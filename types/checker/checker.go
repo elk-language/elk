@@ -386,6 +386,35 @@ func (c *Checker) CheckSourceNative(sourceName string, source string, output io.
 	return cmp.(*compiler.GoCompiler), err
 }
 
+// Used to typecheck and compile breakpoint code
+func (c *Checker) CheckBreakpointSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	ast, err := parser.Parse(sourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.CheckBreakpointNode(sourceName, ast)
+}
+
+func (c *Checker) CheckBreakpointNode(sourceName string, node *ast.ProgramNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	// to restore it in case of errors
+	localEnvsCopy := deepCloneLocalEnvsForBreakpoint(c.localEnvs)
+
+	c.Filename = sourceName
+	c.checkBreakpointProgram(node)
+
+	if c.Errors.IsFailure() {
+		// restore the previous local environment if the code
+		// did not compile
+		c.localEnvs = localEnvsCopy
+	}
+
+	comp := c.compiler.(*compiler.BytecodeCompiler)
+	fn := comp.Bytecode()
+	comp.ResetBreakpoint()
+	return fn, c.Errors.DiagnosticList
+}
+
 func (c *Checker) setRuntimeGlobalEnv(newEnv *types.GlobalEnvironment) {
 	c.runtimeEnv = newEnv
 	c.selfType = newEnv.StdSubtype(symbol.Object)
@@ -516,6 +545,16 @@ func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	if !c.shouldCompile() {
 		return nil
 	}
+	return c.compiler
+}
+
+func (c *Checker) checkBreakpointProgram(node *ast.ProgramNode) compiler.Compiler {
+	// expand top-level macros
+	c.expandTopLevelMacrosInFile(c.Filename, node)
+
+	c.phase = expressionPhase
+	c.checkExpressionsInFile(c.Filename, node)
+
 	return c.compiler
 }
 
@@ -1257,6 +1296,9 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkValuePatternDeclarationNode(n)
 	case *ast.SwitchExpressionNode:
 		return c.checkSwitchExpressionNode(n, tailPosition)
+	case *ast.BreakpointNode:
+		n.TypecheckerContext = c.createBreakpointContext()
+		return n
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
 		return n

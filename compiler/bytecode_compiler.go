@@ -30,6 +30,18 @@ func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc
 	return compiler
 }
 
+func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpointContext, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
+	compiler := NewBytecodeCompiler(context.Location.FilePath, breakpointBytecodeCompilerMode, context.Location, checker)
+	compiler.Errors = errors
+	compiler.lastLocalIndex = context.lastLocalIndex
+	compiler.maxLocalIndex = context.maxLocalIndex
+	compiler.predefinedLocals = context.maxLocalIndex + 1
+	compiler.patternNesting = context.patternNesting
+	compiler.upvalues = context.upvalues.deepClone()
+	compiler.scopes = context.scopes.deepClone()
+	return compiler
+}
+
 func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
 	compiler.predefinedLocals = c.maxLocalIndex + 1
@@ -70,6 +82,7 @@ type bytecodeCompilerMode uint8
 
 const (
 	topLevelBytecodeCompilerMode bytecodeCompilerMode = iota
+	breakpointBytecodeCompilerMode
 	namespaceBytecodeCompilerMode
 	methodBytecodeCompilerMode
 	macroBytecodeCompilerMode
@@ -82,6 +95,13 @@ const (
 type bytecodeLocal struct {
 	index      uint16
 	hasUpvalue bool
+}
+
+func (l *bytecodeLocal) clone() *bytecodeLocal {
+	return &bytecodeLocal{
+		index:      l.index,
+		hasUpvalue: l.hasUpvalue,
+	}
 }
 
 type bytecodeLocalTable map[string]*bytecodeLocal
@@ -102,6 +122,18 @@ type bytecodeScope struct {
 	typ        bytecodeScopeType
 }
 
+func (s *bytecodeScope) deepClone() *bytecodeScope {
+	newLocalTable := make(bytecodeLocalTable, len(s.localTable))
+	for key, val := range s.localTable {
+		newLocalTable[key] = val.clone()
+	}
+	return &bytecodeScope{
+		localTable: newLocalTable,
+		label:      s.label,
+		typ:        s.typ,
+	}
+}
+
 func newBytecodeScope(label string, typ bytecodeScopeType) *bytecodeScope {
 	return &bytecodeScope{
 		localTable: bytecodeLocalTable{},
@@ -117,6 +149,14 @@ type bytecodeScopes []*bytecodeScope
 // Get the last local variable scope.
 func (s bytecodeScopes) last() *bytecodeScope {
 	return s[len(s)-1]
+}
+
+func (s bytecodeScopes) deepClone() bytecodeScopes {
+	result := make(bytecodeScopes, len(s))
+	for i, scope := range s {
+		result[i] = scope.deepClone()
+	}
+	return result
 }
 
 type bytecodeLoopJumpInfoType uint8
@@ -158,6 +198,26 @@ type bytecodeUpvalue struct {
 	local   *bytecodeLocal      // the local that is captured through this upvalue
 }
 
+func (u *bytecodeUpvalue) deepClone() *bytecodeUpvalue {
+	return &bytecodeUpvalue{
+		index:   u.index,
+		upIndex: u.upIndex,
+		kind:    u.kind,
+		local:   u.local.clone(),
+	}
+}
+
+type bytecodeUpvalues []*bytecodeUpvalue
+
+func (u bytecodeUpvalues) deepClone() bytecodeUpvalues {
+	result := make(bytecodeUpvalues, len(u))
+	for i, upvalue := range u {
+		result[i] = upvalue.deepClone()
+	}
+
+	return result
+}
+
 // Holds the state of the BytecodeCompiler.
 type BytecodeCompiler struct {
 	Name               string
@@ -169,16 +229,16 @@ type BytecodeCompiler struct {
 	lastLocalIndex     int   // index of the last local variable
 	maxLocalIndex      int   // max index of a local variable
 	predefinedLocals   int
-	mode               bytecodeCompilerMode
-	isGenerator        bool
-	isAsync            bool
-	unhygienic         bool
 	secondToLastOpCode bytecode.OpCode
 	lastOpCode         bytecode.OpCode
 	patternNesting     int
 	parent             *BytecodeCompiler
-	upvalues           []*bytecodeUpvalue
+	upvalues           bytecodeUpvalues
 	checker            types.Checker
+	mode               bytecodeCompilerMode
+	isGenerator        bool
+	isAsync            bool
+	unhygienic         bool
 }
 
 // Instantiate a NewBytecodeCompiler Compiler instance.
@@ -205,6 +265,26 @@ func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.L
 		c.predefinedLocals = 1
 	}
 	return c
+}
+
+func (c *BytecodeCompiler) createBreakpointContext(typecheckerContext value.Reference, loc *position.Location) *BytecodeBreakpointContext {
+	return &BytecodeBreakpointContext{
+		lastLocalIndex:     c.lastLocalIndex,
+		maxLocalIndex:      c.maxLocalIndex,
+		patternNesting:     c.patternNesting,
+		upvalues:           c.upvalues.deepClone(),
+		scopes:             c.scopes.deepClone(),
+		Location:           loc,
+		TypecheckerContext: typecheckerContext,
+	}
+}
+
+func (c *BytecodeCompiler) ResetBreakpoint() {
+	c.bytecode = vm.NewBytecodeFunctionSimple(
+		c.bytecode.Name(),
+		[]byte{},
+		c.bytecode.Location,
+	)
 }
 
 func (c *BytecodeCompiler) Parent() Compiler {
@@ -1163,6 +1243,8 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		c.emit(node.Location().StartPos.Line, bytecode.TRUE)
 	case *ast.NilLiteralNode:
 		c.emit(node.Location().StartPos.Line, bytecode.NIL)
+	case *ast.BreakpointNode:
+		c.compileBreakpointNode(node)
 	case *ast.ThrowExpressionNode:
 		c.compileThrowExpressionNode(node)
 	case *ast.MustExpressionNode:
@@ -1333,6 +1415,13 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 	}
 
 	return expressionCompiled
+}
+
+func (c *BytecodeCompiler) compileBreakpointNode(node *ast.BreakpointNode) {
+	context := c.createBreakpointContext(node.TypecheckerContext, node.Location())
+
+	c.emitValue(context.ToValue(), node.Location())
+	c.emit(node.Location().StartPos.Line, bytecode.BREAKPOINT)
 }
 
 func (c *BytecodeCompiler) compileUnquoteNode(node *ast.UnquoteNode) {
@@ -7897,6 +7986,22 @@ func (c *BytecodeCompiler) emitYield(location *position.Location, value ast.Node
 // Provide `nil` as the value when the returned value is already
 // on the stack.
 func (c *BytecodeCompiler) emitReturn(location *position.Location, value ast.Node) {
+	if c.mode == breakpointBytecodeCompilerMode {
+		switch c.lastOpCode {
+		case bytecode.RETURN_FINALLY, bytecode.YIELD:
+			return
+		}
+
+		if value != nil {
+			c.compileNodeWithResult(value)
+		}
+		if c.isNestedInFinally() {
+			c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
+		} else {
+			c.emit(location.EndPos.Line, bytecode.YIELD)
+		}
+	}
+
 	switch c.lastOpCode {
 	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.RETURN_FINALLY:

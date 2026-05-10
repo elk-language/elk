@@ -53,7 +53,10 @@ func init() {
 		DEFAULT_THREAD_POOL_QUEUE_SIZE = 256
 	}
 
-	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
+	DefaultThreadPool.initThreadPool(
+		DEFAULT_THREAD_POOL_SIZE,
+		DEFAULT_THREAD_POOL_QUEUE_SIZE,
+	)
 }
 
 var stopIterationSymbol = value.ToSymbol("stop_iteration")

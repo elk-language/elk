@@ -33,6 +33,7 @@ func InitGlobalEnvironment() {
 	initBinaryPatternNode()
 	initBinaryTypeNode()
 	initBoolLiteralNode()
+	initBreakpointNode()
 	initBreakExpressionNode()
 	initCallNode()
 	initCaseNode()

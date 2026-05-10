@@ -31,6 +31,36 @@ func (l *local) copy() *local {
 	}
 }
 
+func (l *local) deepCloneConditionalSpecialisationsForBreakpoint(localMapping map[*local]*local) []*local {
+	result := make([]*local, len(l.conditionalSpecialisations))
+	for i, local := range l.conditionalSpecialisations {
+		result[i] = local.deepCloneForBreakpoint(localMapping)
+	}
+
+	return result
+}
+
+func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
+	if newLocal := localMapping[l]; newLocal != nil {
+		return newLocal
+	}
+
+	var newShadowOf *local
+	if l.shadowOf != nil {
+		newShadowOf = l.shadowOf.deepCloneForBreakpoint(localMapping)
+	}
+	newLocal := &local{
+		typ:                        l.typ,
+		initialised:                l.initialised,
+		singleAssignment:           l.singleAssignment,
+		shadowOf:                   newShadowOf,
+		conditionalSpecialisations: l.deepCloneConditionalSpecialisationsForBreakpoint(localMapping),
+		envIndex:                   l.envIndex,
+	}
+	localMapping[l] = newLocal
+	return newLocal
+}
+
 func (l *local) createShadow() *local {
 	return &local{
 		typ:              l.typ,
@@ -131,6 +161,33 @@ func (l *localEnvironment) copy() *localEnvironment {
 	}
 }
 
+func (l *localEnvironment) deepCloneLocalsForBreakpoint(localMapping map[*local]*local) map[value.Symbol]*local {
+	result := make(map[value.Symbol]*local)
+	for name, local := range l.locals {
+		result[name] = local.deepCloneForBreakpoint(localMapping)
+	}
+	return result
+}
+
+func (l *localEnvironment) deepCloneForBreakpoint(envMapping map[*localEnvironment]*localEnvironment, localMapping map[*local]*local) *localEnvironment {
+	if newEnv := envMapping[l]; newEnv != nil {
+		return newEnv
+	}
+
+	var newParent *localEnvironment
+	if l.parent != nil {
+		newParent = l.parent.deepCloneForBreakpoint(envMapping, localMapping)
+	}
+	newEnv := &localEnvironment{
+		parent: newParent,
+		locals: l.deepCloneLocalsForBreakpoint(localMapping),
+		index:  l.index,
+		typ:    l.typ,
+	}
+	envMapping[l] = newEnv
+	return newEnv
+}
+
 func (l *localEnvironment) addLocal(name value.Symbol, local *local) {
 	local.envIndex = l.index
 	l.locals[name] = local
@@ -179,6 +236,40 @@ func newLocalEnvironment(parent *localEnvironment, typ localEnvType) *localEnvir
 		parent: parent,
 		locals: make(map[value.Symbol]*local),
 		typ:    typ,
+	}
+}
+
+func deepCloneLocalEnvsForBreakpoint(localEnvs []*localEnvironment) []*localEnvironment {
+	result := make([]*localEnvironment, len(localEnvs))
+	localMapping := make(map[*local]*local)
+	envMapping := make(map[*localEnvironment]*localEnvironment)
+
+	for i, env := range localEnvs {
+		result[i] = env.deepCloneForBreakpoint(envMapping, localMapping)
+	}
+	return result
+}
+
+func (c *Checker) allLocals() iter.Seq2[value.Symbol, *local] {
+	return func(yield func(value.Symbol, *local) bool) {
+		currentEnv := c.currentLocalEnv()
+		localNames := ds.MakeSet[value.Symbol]()
+
+		for currentEnv != nil {
+			for name, local := range currentEnv.locals {
+				if localNames.Contains(name) {
+					continue
+				}
+
+				localNames.Add(name)
+
+				if !yield(name, local) {
+					return
+				}
+			}
+
+			currentEnv = currentEnv.parent
+		}
 	}
 }
 

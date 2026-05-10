@@ -1844,6 +1844,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileSimpleSymbolLiteralNode(node)
 	case *ast.NilLiteralNode:
 		return nilGoValue
+	case *ast.BreakpointNode:
+		c.addFailure(
+			"breakpoint is not available in native mode",
+			node.Location(),
+		)
+		return nilGoValue
 	case *ast.TrueLiteralNode:
 		return newGoValue("value.True", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.FalseLiteralNode:

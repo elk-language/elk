@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    `breakpoint` entry
+  ]##
+  sealed primitive class BreakpointNode
+    include ExpressionNode
+
+    init(location: FS::Location = loop; end); end
+    def location: FS::Location; end
+  end
+end

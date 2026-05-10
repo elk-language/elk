@@ -106,6 +106,23 @@ func (vm *Thread) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value)
 	return vm.peek(), value.Undefined
 }
 
+func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.Value) {
+	vm.state = runningState
+	vm.createCurrentCallFrame(true)
+
+	vm.bytecode = fn
+	vm.ipSet(&fn.Instructions[0])
+	vm.tailCallCounter = 0
+	vm.pop() // pop the result of last run
+	vm.runWithState()
+
+	err := vm.Err()
+	if !err.IsUndefined() {
+		return value.Undefined, err
+	}
+	return vm.peek(), value.Undefined
+}
+
 func (vm *Thread) runWithState() {
 	vm.state = runningState
 	vm.run()
@@ -743,6 +760,8 @@ func (vm *Thread) run() {
 			vm.throwIfErr(
 				vm.opCallSelf(int(vm.readUint16())),
 			)
+		case bytecode.BREAKPOINT:
+			vm.opBreakpoint()
 		case bytecode.INSTANCE_OF:
 			vm.throwIfErr(vm.opInstanceOf())
 		case bytecode.IS_A:
@@ -2032,6 +2051,23 @@ func (vm *Thread) opAppend() (err value.Value) {
 	}
 
 	return value.Undefined
+}
+
+// Stop the program and open a REPL for debugging
+func (vm *Thread) opBreakpoint() {
+	breakpointContext := vm.popGet()
+	if BREAKPOINT_HANDLER == nil {
+		vm.push(value.Nil)
+		return
+	}
+
+	vm.push(value.Nil)
+	prevState := vm.state
+	vm.state = idleState
+	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+	vm.state = prevState
+
+	vm.replace(value.Nil)
 }
 
 // Create a new instance of a class

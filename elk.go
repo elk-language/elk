@@ -21,6 +21,7 @@ import (
 	parserRuntime "github.com/elk-language/elk/parser/runtime"
 	"github.com/elk-language/elk/position/diagnostic"
 	diagnosticRuntime "github.com/elk-language/elk/position/diagnostic/runtime"
+	_ "github.com/elk-language/elk/repl/breakpoint"
 	"github.com/elk-language/elk/types/checker"
 	typesRuntime "github.com/elk-language/elk/types/runtime"
 	"github.com/elk-language/elk/value"

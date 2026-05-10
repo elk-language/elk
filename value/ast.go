@@ -80,6 +80,7 @@ var UnaryExpressionNodeClass *Class               // Std::Elk::AST::UnaryExpress
 var TrueLiteralNodeClass *Class                   // Std::Elk::AST::TrueLiteralNode
 var FalseLiteralNodeClass *Class                  // Std::Elk::AST::FalseLiteralNode
 var NilLiteralNodeClass *Class                    // Std::Elk::AST::NilLiteralNode
+var BreakpointNodeClass *Class                    // Std::Elk::AST::BreakpointNode
 var UndefinedLiteralNodeClass *Class              // Std::Elk::AST::UndefinedLiteralNode
 var SelfLiteralNodeClass *Class                   // Std::Elk::AST::SelfLiteralNode
 var PublicInstanceVariableNodeClass *Class        // Std::Elk::AST::PublicInstanceVariableNode
@@ -516,6 +517,10 @@ func initElkAST() {
 	NilLiteralNodeClass.IncludeMixin(UsingEntryNodeMixin)
 	NilLiteralNodeClass.IncludeMixin(ComplexConstantNodeMixin)
 	ElkASTModule.AddConstantString("NilLiteralNode", Ref(NilLiteralNodeClass))
+
+	BreakpointNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	BreakpointNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("BreakpointNode", Ref(BreakpointNodeClass))
 
 	UndefinedLiteralNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UndefinedLiteralNodeClass.IncludeMixin(ExpressionNodeMixin)
