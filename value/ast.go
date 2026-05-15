@@ -130,6 +130,7 @@ var QuoteExpressionNodeClass *Class               // Std::Elk::AST::QuoteExpress
 var UnquoteNodeClass *Class                       // Std::Elk::AST::UnquoteNode
 var SingletonBlockExpressionNodeClass *Class      // Std::Elk::AST::SingletonBlockExpressionNode
 var SwitchExpressionNodeClass *Class              // Std::Elk::AST::SwitchExpressionNode
+var SelectExpressionNodeClass *Class              // Std::Elk::AST::SelectExpressionNode
 var IfExpressionNodeClass *Class                  // Std::Elk::AST::IfExpressionNode
 var UnquoteIfExpressionNodeClass *Class           // Std::Elk::AST::UnquoteIfExpressionNode
 var UnlessExpressionNodeClass *Class              // Std::Elk::AST::UnlessExpressionNode
@@ -215,7 +216,8 @@ var BinHashSetLiteralNodeClass *Class             // Std::Elk::AST::BinHashSetLi
 var HashMapLiteralNodeClass *Class                // Std::Elk::AST::HashMapLiteralNode
 var HashRecordLiteralNodeClass *Class             // Std::Elk::AST::HashRecordLiteralNode
 var RangeLiteralNodeClass *Class                  // Std::Elk::AST::RangeLiteralNode
-var CaseNodeClass *Class                          // Std::Elk::AST::CaseNode
+var SwitchCaseNodeClass *Class                    // Std::Elk::AST::SwitchCaseNode
+var SelectCaseNodeClass *Class                    // Std::Elk::AST::SelectCaseNode
 var CatchNodeClass *Class                         // Std::Elk::AST::CatchNode
 var VariantTypeParameterNodeClass *Class          // Std::Elk::AST::VariantTypeParameterNode
 var FormalParameterNodeClass *Class               // Std::Elk::AST::FormalParameterNode
@@ -840,6 +842,10 @@ func initElkAST() {
 	SwitchExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("SwitchExpressionNode", Ref(SwitchExpressionNodeClass))
 
+	SelectExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	SelectExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("SelectExpressionNode", Ref(SelectExpressionNodeClass))
+
 	IfExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	IfExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("IfExpressionNode", Ref(IfExpressionNodeClass))
@@ -1204,9 +1210,13 @@ func initElkAST() {
 	RangeLiteralNodeClass.IncludeMixin(LiteralPatternNodeMixin)
 	ElkASTModule.AddConstantString("RangeLiteralNode", Ref(RangeLiteralNodeClass))
 
-	CaseNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
-	CaseNodeClass.IncludeMixin(NodeMixin)
-	ElkASTModule.AddConstantString("CaseNode", Ref(CaseNodeClass))
+	SwitchCaseNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	SwitchCaseNodeClass.IncludeMixin(NodeMixin)
+	ElkASTModule.AddConstantString("SwitchCaseNode", Ref(SwitchCaseNodeClass))
+
+	SelectCaseNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	SelectCaseNodeClass.IncludeMixin(NodeMixin)
+	ElkASTModule.AddConstantString("SelectCaseNode", Ref(SelectCaseNodeClass))
 
 	CatchNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	CatchNodeClass.IncludeMixin(NodeMixin)

@@ -2473,6 +2473,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.initDefinition(false)
 	case token.SWITCH:
 		return p.switchExpression()
+	case token.SELECT:
+		return p.selectExpression()
 	case token.PERCENT:
 		return p.percentPrefixedExpression()
 	case token.IF:
@@ -7210,6 +7212,65 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 	}
 }
 
+// selectExpression = "select" SEPARATOR
+// ("case" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+func (p *Parser) selectExpression() ast.ExpressionNode {
+	selectTok := p.advance()
+	p.swallowNewlines()
+
+	var lastLocation *position.Location
+	var cases []*ast.SelectCaseNode
+	var els []ast.StatementNode
+	var elsePresent bool
+	withoutContent := true
+
+	for {
+		if p.match(token.ELSE) {
+			lastLocation, els, _ = p.statementBlock(token.END)
+			withoutContent = false
+			elsePresent = true
+			break
+		} else if caseTok, ok := p.matchOk(token.CASE); ok {
+			expr := p.expressionWithoutModifier()
+			var caseBody []ast.StatementNode
+			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
+			withoutContent = false
+			cases = append(cases, ast.NewSelectCaseNode(
+				caseTok.Location().Join(lastLocation),
+				expr,
+				caseBody,
+			))
+			p.swallowNewlines()
+		} else {
+			break
+		}
+	}
+
+	if withoutContent {
+		p.indentedSection = true
+	}
+	p.swallowNewlines()
+	endTok, ok := p.consume(token.END)
+	if withoutContent {
+		p.indentedSection = false
+	}
+	if ok {
+		lastLocation = endTok.Location()
+	}
+	location := selectTok.Location().Join(lastLocation)
+	if len(cases) == 0 && !elsePresent {
+		p.errorMessageLocation("select cannot be empty", location)
+	} else if len(cases) == 0 && elsePresent {
+		p.errorMessageLocation("select cannot only consist of else", location)
+	}
+	return ast.NewSelectExpressionNode(
+		location,
+		cases,
+		els,
+	)
+}
+
 // switchExpression = "switch" expressionWithoutModifier SEPARATOR
 // ("case" pattern ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
@@ -7219,7 +7280,7 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 	p.swallowNewlines()
 
 	var lastLocation *position.Location
-	var cases []*ast.CaseNode
+	var cases []*ast.SwitchCaseNode
 	var els []ast.StatementNode
 	var elsePresent bool
 	withoutContent := true
@@ -7235,7 +7296,7 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 			var caseBody []ast.StatementNode
 			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
 			withoutContent = false
-			cases = append(cases, ast.NewCaseNode(
+			cases = append(cases, ast.NewSwitchCaseNode(
 				caseTok.Location().Join(lastLocation),
 				pattern,
 				caseBody,

@@ -145,7 +145,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("`breakpoint` entry", false, true, true, false, value.ToSymbol("BreakpointNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a callable type eg. `|i: Int|: String`", false, true, true, false, value.ToSymbol("CallableTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("CaseNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `catch` eg.\n\n```\ncatch SomeError(message)\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("CatchNode"), objectClass, env)
 				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
@@ -339,6 +338,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a rest element in a list pattern eg. `*a`", false, true, true, false, value.ToSymbol("RestPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `return` expression eg. `return`, `return true`", false, true, true, false, value.ToSymbol("ReturnExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a scoped macro call eg. `Foo::bar!(5)`", false, true, true, false, value.ToSymbol("ScopedMacroCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a select `case` node eg. `case v := <<ch then println(v)`", false, true, true, false, value.ToSymbol("SelectCaseNode"), objectClass, env)
 				namespace.TryDefineClass("`self` literal.", false, true, true, false, value.ToSymbol("SelfLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a Set pattern eg. `^[1, \"foo\"]`", false, true, true, false, value.ToSymbol("SetPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a new setter declaration eg. `setter foo: String`", false, true, true, false, value.ToSymbol("SetterDeclarationNode"), objectClass, env)
@@ -357,6 +357,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineMixin("Represents a single statement of a struct body\noptionally terminated with a newline or semicolon.", false, value.ToSymbol("StructBodyStatementNode"), env)
 				namespace.TryDefineClass("Represents a struct declaration eg. `struct Foo; end`", false, true, true, false, value.ToSymbol("StructDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents subscript access eg. `arr[5]`", false, true, true, false, value.ToSymbol("SubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a switch `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("SwitchCaseNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `switch` expression eg.\n\nswitch a\ncase 3\n  println(\"eureka!\")\ncase nil\n  println(\"boo\")\nelse\n  println(\"nothing\")\nend", false, true, true, false, value.ToSymbol("SwitchExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a symbol ArrayList literal eg. `\\s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayListLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a symbol ArrayTuple literal eg. `%s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayTupleLiteralNode"), objectClass, env)
@@ -2620,23 +2621,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
-
-						// Define constants
-
-						// Define instance variables
-					}
-					{
-						namespace := namespace.MustSubtypeString("CaseNode").(*Class)
-
-						namespace.Name() // noop - avoid unused variable error
-
-						// Include mixins and implement interfaces
-
-						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -5265,6 +5249,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("SelectCaseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression_node"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("SelfLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -5575,6 +5576,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("SwitchCaseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("SwitchExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -5583,8 +5601,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})

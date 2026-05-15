@@ -132,8 +132,8 @@ nil
 							ast.NewSwitchExpressionNode(
 								L(S(P(8, 3, 2), P(38, 6, 4))),
 								ast.NewPublicIdentifierNode(L(S(P(15, 3, 9), P(17, 3, 11))), "foo"),
-								[]*ast.CaseNode{
-									ast.NewCaseNode(
+								[]*ast.SwitchCaseNode{
+									ast.NewSwitchCaseNode(
 										L(S(P(20, 4, 2), P(34, 5, 8))),
 										ast.NewPublicIdentifierNode(L(S(P(25, 4, 7), P(25, 4, 7))), "n"),
 										[]ast.StatementNode{
@@ -216,8 +216,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(1, 2, 1), P(49, 9, 3))),
 							ast.NewPublicIdentifierNode(L(S(P(8, 2, 8), P(10, 2, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(12, 3, 1), P(22, 4, 4))),
 									ast.NewPublicIdentifierNode(L(S(P(17, 3, 6), P(17, 3, 6))), "n"),
 									[]ast.StatementNode{
@@ -227,7 +227,7 @@ end
 										),
 									},
 								),
-								ast.NewCaseNode(
+								ast.NewSwitchCaseNode(
 									L(S(P(23, 5, 1), P(33, 6, 4))),
 									ast.NewPublicIdentifierNode(L(S(P(28, 5, 6), P(28, 5, 6))), "m"),
 									[]ast.StatementNode{
@@ -271,8 +271,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(1, 2, 1), P(53, 6, 3))),
 							ast.NewPublicIdentifierNode(L(S(P(8, 2, 8), P(10, 2, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(12, 3, 1), P(24, 3, 13))),
 									ast.NewPublicIdentifierNode(L(S(P(17, 3, 6), P(17, 3, 6))), "n"),
 									[]ast.StatementNode{
@@ -282,7 +282,7 @@ end
 										),
 									},
 								),
-								ast.NewCaseNode(
+								ast.NewSwitchCaseNode(
 									L(S(P(26, 4, 1), P(38, 4, 13))),
 									ast.NewPublicIdentifierNode(L(S(P(31, 4, 6), P(31, 4, 6))), "m"),
 									[]ast.StatementNode{
@@ -319,8 +319,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(52, 1, 53))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(23, 1, 24))),
 									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(16, 1, 17))), "n"),
 									[]ast.StatementNode{
@@ -330,7 +330,7 @@ end
 										),
 									},
 								),
-								ast.NewCaseNode(
+								ast.NewSwitchCaseNode(
 									L(S(P(25, 1, 26), P(37, 1, 38))),
 									ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(30, 1, 31))), "m"),
 									[]ast.StatementNode{
@@ -367,8 +367,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewTrueLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20)))),
 									[]ast.StatementNode{
@@ -395,8 +395,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewFalseLiteralNode(L(S(P(16, 1, 17), P(20, 1, 21)))),
 									[]ast.StatementNode{
@@ -423,8 +423,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewNilLiteralNode(L(S(P(16, 1, 17), P(18, 1, 19)))),
 									[]ast.StatementNode{
@@ -451,8 +451,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewCharLiteralNode(L(S(P(16, 1, 17), P(18, 1, 19))), 'f'),
 									[]ast.StatementNode{
@@ -479,8 +479,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRawCharLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), 'f'),
 									[]ast.StatementNode{
@@ -507,8 +507,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRawStringLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "fo"),
 									[]ast.StatementNode{
@@ -535,8 +535,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewDoubleQuotedStringLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "fo"),
 									[]ast.StatementNode{
@@ -563,8 +563,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUninterpolatedRegexLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "f", bitfield.BitField8{}),
 									[]ast.StatementNode{
@@ -591,8 +591,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "foo"),
 									[]ast.StatementNode{
@@ -619,8 +619,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewSimpleSymbolLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "&"),
 									[]ast.StatementNode{
@@ -647,8 +647,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewPublicIdentifierNode(L(S(P(16, 1, 17), P(19, 1, 20))), "foof"),
 									[]ast.StatementNode{
@@ -675,8 +675,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewPrivateIdentifierNode(L(S(P(16, 1, 17), P(19, 1, 20))), "_foo"),
 									[]ast.StatementNode{
@@ -703,8 +703,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewIntLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1234"),
 									[]ast.StatementNode{
@@ -731,8 +731,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewInt64LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -759,8 +759,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUInt64LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -787,8 +787,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewInt32LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -815,8 +815,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUInt32LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -843,8 +843,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewInt16LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -871,8 +871,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUInt16LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -899,8 +899,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewInt8LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "12"),
 									[]ast.StatementNode{
@@ -927,8 +927,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUInt8LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "12"),
 									[]ast.StatementNode{
@@ -955,8 +955,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewFloatLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "12.5"),
 									[]ast.StatementNode{
@@ -983,8 +983,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewBigFloatLiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "12"),
 									[]ast.StatementNode{
@@ -1011,8 +1011,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewFloat64LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -1039,8 +1039,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewFloat32LiteralNode(L(S(P(16, 1, 17), P(19, 1, 20))), "1"),
 									[]ast.StatementNode{
@@ -1067,8 +1067,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1099,8 +1099,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewPublicConstantNode(L(S(P(16, 1, 17), P(18, 1, 19))), "Foo"),
 									[]ast.StatementNode{
@@ -1127,8 +1127,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewPrivateConstantNode(L(S(P(16, 1, 17), P(18, 1, 19))), "_Fo"),
 									[]ast.StatementNode{
@@ -1155,8 +1155,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewConstantLookupNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1187,8 +1187,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(36, 1, 37))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(32, 1, 33))),
 									ast.NewConstantLookupNode(
 										L(S(P(16, 1, 17), P(23, 1, 24))),
@@ -1219,8 +1219,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(38, 1, 39))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(34, 1, 35))),
 									ast.NewConstantLookupNode(
 										L(S(P(16, 1, 17), P(25, 1, 26))),
@@ -1255,8 +1255,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(18, 1, 19))),
@@ -1287,8 +1287,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1322,8 +1322,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(18, 1, 19))),
@@ -1354,8 +1354,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1386,8 +1386,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1418,8 +1418,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1450,8 +1450,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1482,8 +1482,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1514,8 +1514,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1546,8 +1546,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1578,8 +1578,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1610,8 +1610,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(34, 1, 35))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(30, 1, 31))),
 									ast.NewUnaryExpressionNode(
 										L(S(P(16, 1, 17), P(21, 1, 22))),
@@ -1646,8 +1646,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewBinaryPatternNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -1687,8 +1687,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(36, 1, 37))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(32, 1, 33))),
 									ast.NewBinaryPatternNode(
 										L(S(P(16, 1, 17), P(23, 1, 24))),
@@ -1724,8 +1724,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1757,8 +1757,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1790,8 +1790,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(35, 1, 36))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(31, 1, 32))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(22, 1, 23))),
@@ -1831,8 +1831,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1864,8 +1864,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1897,8 +1897,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(33, 1, 34))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(29, 1, 30))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(20, 1, 21))),
@@ -1930,8 +1930,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1963,8 +1963,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -1996,8 +1996,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -2029,8 +2029,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(32, 1, 33))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(28, 1, 29))),
 									ast.NewRangeLiteralNode(
 										L(S(P(16, 1, 17), P(19, 1, 20))),
@@ -2063,8 +2063,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewSetPatternNode(
 										L(S(P(16, 1, 17), P(18, 1, 19))),
@@ -2094,8 +2094,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewWordHashSetLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2129,8 +2129,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewSymbolHashSetLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2164,8 +2164,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewHexHashSetLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2199,8 +2199,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewBinHashSetLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2234,8 +2234,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(49, 1, 50))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(45, 1, 46))),
 									ast.NewSetPatternNode(
 										L(S(P(16, 1, 17), P(36, 1, 37))),
@@ -2274,8 +2274,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(52, 1, 53))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(48, 1, 49))),
 									ast.NewSetPatternNode(
 										L(S(P(16, 1, 17), P(39, 1, 40))),
@@ -2318,8 +2318,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(52, 1, 53))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(48, 1, 49))),
 									ast.NewSetPatternNode(
 										L(S(P(16, 1, 17), P(39, 1, 40))),
@@ -2361,8 +2361,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(30, 1, 31))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(26, 1, 27))),
 									ast.NewListPatternNode(
 										L(S(P(16, 1, 17), P(17, 1, 18))),
@@ -2392,8 +2392,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewWordArrayListLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2427,8 +2427,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewSymbolArrayListLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2462,8 +2462,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewHexArrayListLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2497,8 +2497,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewBinArrayListLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2532,8 +2532,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(56, 1, 57))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(52, 1, 53))),
 									ast.NewListPatternNode(
 										L(S(P(16, 1, 17), P(43, 1, 44))),
@@ -2592,8 +2592,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(34, 1, 35))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(30, 1, 31))),
 									ast.NewListPatternNode(
 										L(S(P(16, 1, 17), P(21, 1, 22))),
@@ -2632,8 +2632,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewTuplePatternNode(
 										L(S(P(16, 1, 17), P(18, 1, 19))),
@@ -2663,8 +2663,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewWordArrayTupleLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2697,8 +2697,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewSymbolArrayTupleLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2731,8 +2731,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewHexArrayTupleLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2765,8 +2765,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(39, 1, 40))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(35, 1, 36))),
 									ast.NewBinArrayTupleLiteralNode(
 										L(S(P(16, 1, 17), P(26, 1, 27))),
@@ -2799,8 +2799,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(58, 1, 59))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(54, 1, 55))),
 									ast.NewTuplePatternNode(
 										L(S(P(16, 1, 17), P(45, 1, 46))),
@@ -2859,8 +2859,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(35, 1, 36))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(31, 1, 32))),
 									ast.NewTuplePatternNode(
 										L(S(P(16, 1, 17), P(22, 1, 23))),
@@ -2900,8 +2900,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(30, 1, 31))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(26, 1, 27))),
 									ast.NewMapPatternNode(
 										L(S(P(16, 1, 17), P(17, 1, 18))),
@@ -2931,8 +2931,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(80, 1, 81))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(76, 1, 77))),
 									ast.NewMapPatternNode(
 										L(S(P(16, 1, 17), P(67, 1, 68))),
@@ -3006,8 +3006,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(27, 1, 28))),
 									ast.NewRecordPatternNode(
 										L(S(P(16, 1, 17), P(18, 1, 19))),
@@ -3037,8 +3037,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(82, 1, 83))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(78, 1, 79))),
 									ast.NewRecordPatternNode(
 										L(S(P(16, 1, 17), P(69, 1, 70))),
@@ -3112,8 +3112,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(35, 1, 36))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(31, 1, 32))),
 									ast.NewObjectPatternNode(
 										L(S(P(16, 1, 17), P(22, 1, 23))),
@@ -3151,8 +3151,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(91, 1, 92))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(87, 1, 88))),
 									ast.NewObjectPatternNode(
 										L(S(P(16, 1, 17), P(78, 1, 79))),
@@ -3242,8 +3242,8 @@ end
 						ast.NewSwitchExpressionNode(
 							L(S(P(0, 1, 1), P(43, 1, 44))),
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(11, 1, 12), P(39, 1, 40))),
 									ast.NewAsPatternNode(
 										L(S(P(16, 1, 17), P(30, 1, 31))),

@@ -23,7 +23,7 @@ import (
 type SwitchExpressionNode struct {
 	TypedNodeBase
 	Value    ExpressionNode
-	Cases    []*CaseNode
+	Cases    []*SwitchCaseNode
 	ElseBody []StatementNode
 }
 
@@ -125,7 +125,7 @@ func (*SwitchExpressionNode) IsStatic() bool {
 }
 
 // Create a new `switch` expression node
-func NewSwitchExpressionNode(loc *position.Location, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
+func NewSwitchExpressionNode(loc *position.Location, val ExpressionNode, cases []*SwitchCaseNode, els []StatementNode) *SwitchExpressionNode {
 	return &SwitchExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Value:         val,
@@ -190,25 +190,25 @@ func (n *SwitchExpressionNode) Error() string {
 }
 
 // Represents a `case` node eg. `case 3 then println("eureka!")`
-type CaseNode struct {
+type SwitchCaseNode struct {
 	NodeBase
 	Pattern PatternNode
 	Body    []StatementNode
 }
 
-func (n *CaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
-	return &CaseNode{
+func (n *SwitchCaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	return &SwitchCaseNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
 		Body:     SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 
-func (n *CaseNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::CaseNode", env)
+func (n *SwitchCaseNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::SwitchCaseNode", env)
 }
 
-func (n *CaseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+func (n *SwitchCaseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
 	switch enter(n, parent) {
 	case TraverseBreak:
 		return TraverseBreak
@@ -229,8 +229,8 @@ func (n *CaseNode) traverse(parent Node, enter func(node, parent Node) TraverseO
 	return leave(n, parent)
 }
 
-func (n *CaseNode) Equal(other value.Value) bool {
-	o, ok := other.SafeAsReference().(*CaseNode)
+func (n *SwitchCaseNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchCaseNode)
 	if !ok {
 		return false
 	}
@@ -252,7 +252,7 @@ func (n *CaseNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
-func (n *CaseNode) String() string {
+func (n *SwitchCaseNode) String() string {
 	var buff strings.Builder
 
 	buff.WriteString("case ")
@@ -267,22 +267,22 @@ func (n *CaseNode) String() string {
 	return buff.String()
 }
 
-func (*CaseNode) IsStatic() bool {
+func (*SwitchCaseNode) IsStatic() bool {
 	return false
 }
 
-func (*CaseNode) Class() *value.Class {
-	return value.CaseNodeClass
+func (*SwitchCaseNode) Class() *value.Class {
+	return value.SwitchCaseNodeClass
 }
 
-func (*CaseNode) DirectClass() *value.Class {
-	return value.CaseNodeClass
+func (*SwitchCaseNode) DirectClass() *value.Class {
+	return value.SwitchCaseNodeClass
 }
 
-func (n *CaseNode) Inspect() string {
+func (n *SwitchCaseNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::CaseNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::SwitchCaseNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  pattern: ")
 	indent.IndentStringFromSecondLine(&buff, n.Pattern.Inspect(), 1)
@@ -301,17 +301,17 @@ func (n *CaseNode) Inspect() string {
 	return buff.String()
 }
 
-func (n *CaseNode) ToValue() value.Value {
+func (n *SwitchCaseNode) ToValue() value.Value {
 	return value.Ref(n)
 }
 
-func (n *CaseNode) Error() string {
+func (n *SwitchCaseNode) Error() string {
 	return n.Inspect()
 }
 
-// Create a new `case` node
-func NewCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *CaseNode {
-	return &CaseNode{
+// Create a new switch `case` node
+func NewSwitchCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *SwitchCaseNode {
+	return &SwitchCaseNode{
 		NodeBase: NodeBase{loc: loc},
 		Pattern:  pattern,
 		Body:     body,

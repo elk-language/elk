@@ -1487,8 +1487,8 @@ func TestScopedMacroCall(t *testing.T) {
 						ast.NewSwitchExpressionNode(
 							L(S(P(5, 2, 5), P(51, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(18, 3, 5), P(51, 4, 7))),
 									ast.NewBinaryPatternNode(
 										L(S(P(23, 3, 10), P(43, 3, 30))),
@@ -2437,8 +2437,8 @@ func TestMacroCall(t *testing.T) {
 						ast.NewSwitchExpressionNode(
 							L(S(P(5, 2, 5), P(46, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(18, 3, 5), P(46, 4, 7))),
 									ast.NewBinaryPatternNode(
 										L(S(P(23, 3, 10), P(38, 3, 25))),
@@ -2478,8 +2478,8 @@ func TestMacroCall(t *testing.T) {
 						ast.NewSwitchExpressionNode(
 							L(S(P(5, 2, 5), P(52, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(18, 3, 5), P(52, 4, 7))),
 									ast.NewBinaryPatternNode(
 										L(S(P(23, 3, 10), P(44, 3, 31))),
@@ -2522,8 +2522,8 @@ func TestMacroCall(t *testing.T) {
 						ast.NewSwitchExpressionNode(
 							L(S(P(5, 2, 5), P(57, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(18, 3, 5), P(57, 4, 7))),
 									ast.NewBinaryPatternNode(
 										L(S(P(23, 3, 10), P(49, 3, 36))),
@@ -2579,8 +2579,8 @@ func TestMacroCall(t *testing.T) {
 						ast.NewSwitchExpressionNode(
 							L(S(P(5, 2, 5), P(57, 4, 7))),
 							ast.NewPublicIdentifierNode(L(S(P(12, 2, 12), P(12, 2, 12))), "a"),
-							[]*ast.CaseNode{
-								ast.NewCaseNode(
+							[]*ast.SwitchCaseNode{
+								ast.NewSwitchCaseNode(
 									L(S(P(18, 3, 5), P(57, 4, 7))),
 									ast.NewBinaryPatternNode(
 										L(S(P(23, 3, 10), P(49, 3, 36))),

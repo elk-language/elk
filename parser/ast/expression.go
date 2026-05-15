@@ -70,6 +70,7 @@ func (*QuoteExpressionNode) expressionNode()               {}
 func (*UnquoteNode) expressionNode()                       {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
+func (*SelectExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}
 func (*UnquoteIfExpressionNode) expressionNode()           {}
 func (*UnlessExpressionNode) expressionNode()              {}

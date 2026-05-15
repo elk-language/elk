@@ -7,8 +7,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func initCaseNode() {
-	c := &value.CaseNodeClass.MethodContainer
+func initSwitchCaseNode() {
+	c := &value.SwitchCaseNodeClass.MethodContainer
 	vm.Def(
 		c,
 		"#init",
@@ -26,7 +26,7 @@ func initCaseNode() {
 			} else {
 				argLoc = (*position.Location)(args[3].Pointer())
 			}
-			self := ast.NewCaseNode(
+			self := ast.NewSwitchCaseNode(
 				argLoc,
 				argPattern,
 				argBody,
@@ -41,7 +41,7 @@ func initCaseNode() {
 		c,
 		"pattern_node",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.CaseNode)
+			self := args[0].MustReference().(*ast.SwitchCaseNode)
 			result := value.Ref(self.Pattern)
 			return result, value.Undefined
 
@@ -52,7 +52,7 @@ func initCaseNode() {
 		c,
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.CaseNode)
+			self := args[0].MustReference().(*ast.SwitchCaseNode)
 			entries := value.CastNativeArrayTuplePtr(&self.Body)
 			return entries.ToValue(), value.Undefined
 		},
@@ -62,7 +62,7 @@ func initCaseNode() {
 		c,
 		"location",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.CaseNode)
+			self := args[0].MustReference().(*ast.SwitchCaseNode)
 			result := value.Ref((*value.Location)(self.Location()))
 			return result, value.Undefined
 
@@ -72,7 +72,7 @@ func initCaseNode() {
 		c,
 		"==",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.CaseNode)
+			self := args[0].MustReference().(*ast.SwitchCaseNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
 		},
@@ -83,7 +83,7 @@ func initCaseNode() {
 		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustReference().(*ast.CaseNode)
+			self := args[0].MustReference().(*ast.SwitchCaseNode)
 			return value.Ref(value.String(self.String())), value.Undefined
 		},
 	)

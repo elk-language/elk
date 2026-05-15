@@ -43,7 +43,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
-		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
+		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH, SELECT,
 		INT, INT64, UINT, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
 		FLOAT, BIG_FLOAT, FLOAT64, FLOAT32, REGEX_BEG:
 		return true
@@ -60,7 +60,7 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE,
 		RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL, FLOAT, FLOAT32, FLOAT64,
 		NIL, FALSE, TRUE, LOOP, ENUM,
-		VAR, VAL, CONST, DO, SELF, SUPER, SWITCH, MINUS, PLUS:
+		VAR, VAL, CONST, DO, SELF, SUPER, SWITCH, SELECT, MINUS, PLUS:
 		return true
 	}
 
@@ -496,6 +496,7 @@ const (
 	SELF              // Keyword `self`
 	SUPER             // Keyword `super`
 	SWITCH            // Keyword `switch`
+	SELECT            // Keyword `select`
 	CASE              // Keyword `case`
 	MATCH             // Keyword `match`
 	WITH              // Keyword `with`
@@ -604,6 +605,7 @@ var Keywords = map[string]Type{
 	"self":            SELF,
 	"super":           SUPER,
 	"switch":          SWITCH,
+	"select":          SELECT,
 	"case":            CASE,
 	"match":           MATCH,
 	"with":            WITH,
@@ -880,6 +882,7 @@ var tokenNames = [...]string{
 	SELF:            "self",
 	SUPER:           "super",
 	SWITCH:          "switch",
+	SELECT:          "select",
 	CASE:            "case",
 	MATCH:           "match",
 	WITH:            "with",

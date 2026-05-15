@@ -1,8 +1,8 @@
 module Std::Elk::AST
   ##[
-    Represents a `case` node eg. `case 3 then println("eureka!")`
+    Represents a switch `case` node eg. `case 3 then println("eureka!")`
   ]##
-  sealed primitive class CaseNode
+  sealed primitive class SwitchCaseNode
     init(pattern_node: PatternNode, body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
     def pattern_node: PatternNode; end
     def body: ArrayTuple[StatementNode]; end

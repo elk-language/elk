@@ -5029,3 +5029,348 @@ end`,
 		})
 	}
 }
+
+func TestSelect(t *testing.T) {
+	tests := testTable{
+		"cannot be empty": {
+			input: `
+select
+end
+`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 3, 4))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 2, 1), P(11, 3, 4))),
+						ast.NewSelectExpressionNode(
+							L(S(P(1, 2, 1), P(10, 3, 3))),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(1, 2, 1), P(10, 3, 3))), "select cannot be empty"),
+			},
+		},
+		"is_an_expression": {
+			input: `
+bar =
+	select
+	case <<ch
+		n + 2
+	end
+nil
+`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(42, 7, 4))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 2, 1), P(38, 6, 5))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(1, 2, 1), P(37, 6, 4))),
+							T(L(S(P(5, 2, 5), P(5, 2, 5))), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(L(S(P(1, 2, 1), P(3, 2, 3))), "bar"),
+							ast.NewSelectExpressionNode(
+								L(S(P(8, 3, 2), P(37, 6, 4))),
+								[]*ast.SelectCaseNode{
+									ast.NewSelectCaseNode(
+										L(S(P(16, 4, 2), P(33, 5, 8))),
+										ast.NewUnaryExpressionNode(
+											L(S(P(21, 4, 7), P(24, 4, 10))),
+											T(L(S(P(21, 4, 7), P(22, 4, 8))), token.LBITSHIFT),
+											ast.NewPublicIdentifierNode(L(S(P(23, 4, 9), P(24, 4, 10))), "ch"),
+										),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												L(S(P(28, 5, 3), P(33, 5, 8))),
+												ast.NewBinaryExpressionNode(
+													L(S(P(28, 5, 3), P(32, 5, 7))),
+													T(L(S(P(30, 5, 5), P(30, 5, 5))), token.PLUS),
+													ast.NewPublicIdentifierNode(L(S(P(28, 5, 3), P(28, 5, 3))), "n"),
+													ast.NewIntLiteralNode(L(S(P(32, 5, 7), P(32, 5, 7))), "2"),
+												),
+											),
+										},
+									),
+								},
+								nil,
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						L(S(P(39, 7, 1), P(42, 7, 4))),
+						ast.NewNilLiteralNode(L(S(P(39, 7, 1), P(41, 7, 3)))),
+					),
+				},
+			),
+		},
+		"cannot have only else": {
+			input: `
+select
+else
+  n + 2
+end
+`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 5, 4))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 2, 1), P(24, 5, 4))),
+						ast.NewSelectExpressionNode(
+							L(S(P(1, 2, 1), P(23, 5, 3))),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(15, 4, 3), P(20, 4, 8))),
+									ast.NewBinaryExpressionNode(
+										L(S(P(15, 4, 3), P(19, 4, 7))),
+										T(L(S(P(17, 4, 5), P(17, 4, 5))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(15, 4, 3), P(15, 4, 3))), "n"),
+										ast.NewIntLiteralNode(L(S(P(19, 4, 7), P(19, 4, 7))), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(1, 2, 1), P(23, 5, 3))), "select cannot only consist of else"),
+			},
+		},
+		"can have multiple branches": {
+			input: `
+select
+case v := <<ch
+  println("popped #{v}")
+case ch << 5
+  println("pushed 5")
+else
+  println("nothing matched")
+end
+`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(120, 9, 4))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 2, 1), P(120, 9, 4))),
+						ast.NewSelectExpressionNode(
+							L(S(P(1, 2, 1), P(119, 9, 3))),
+							[]*ast.SelectCaseNode{
+								ast.NewSelectCaseNode(
+									L(S(P(8, 3, 1), P(47, 4, 25))),
+									ast.NewAssignmentExpressionNode(
+										L(S(P(13, 3, 6), P(21, 3, 14))),
+										T(L(S(P(15, 3, 8), P(16, 3, 9))), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(L(S(P(13, 3, 6), P(13, 3, 6))), "v"),
+										ast.NewUnaryExpressionNode(
+											L(S(P(18, 3, 11), P(21, 3, 14))),
+											T(L(S(P(18, 3, 11), P(19, 3, 12))), token.LBITSHIFT),
+											ast.NewPublicIdentifierNode(L(S(P(20, 3, 13), P(21, 3, 14))), "ch"),
+										),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(25, 4, 3), P(47, 4, 25))),
+											ast.NewReceiverlessMethodCallNode(
+												L(S(P(25, 4, 3), P(46, 4, 24))),
+												ast.NewPublicIdentifierNode(L(S(P(25, 4, 3), P(31, 4, 9))), "println"),
+												[]ast.ExpressionNode{
+													ast.NewInterpolatedStringLiteralNode(
+														L(S(P(33, 4, 11), P(45, 4, 23))),
+														[]ast.StringLiteralContentNode{
+															ast.NewStringLiteralContentSectionNode(
+																L(S(P(34, 4, 12), P(40, 4, 18))),
+																"popped ",
+															),
+															ast.NewStringInspectInterpolationNode(
+																L(S(P(41, 4, 19), P(44, 4, 22))),
+																ast.NewPublicIdentifierNode(L(S(P(43, 4, 21), P(43, 4, 21))), "v"),
+															),
+														},
+													),
+												},
+												nil,
+											),
+										),
+									},
+								),
+								ast.NewSelectCaseNode(
+									L(S(P(48, 5, 1), P(82, 6, 22))),
+									ast.NewBinaryExpressionNode(
+										L(S(P(53, 5, 6), P(59, 5, 12))),
+										T(L(S(P(56, 5, 9), P(57, 5, 10))), token.LBITSHIFT),
+										ast.NewPublicIdentifierNode(L(S(P(53, 5, 6), P(54, 5, 7))), "ch"),
+										ast.NewIntLiteralNode(L(S(P(59, 5, 12), P(59, 5, 12))), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(63, 6, 3), P(82, 6, 22))),
+											ast.NewReceiverlessMethodCallNode(
+												L(S(P(63, 6, 3), P(81, 6, 21))),
+												ast.NewPublicIdentifierNode(L(S(P(63, 6, 3), P(69, 6, 9))), "println"),
+												[]ast.ExpressionNode{
+													ast.NewDoubleQuotedStringLiteralNode(
+														L(S(P(71, 6, 11), P(80, 6, 20))),
+														"pushed 5",
+													),
+												},
+												nil,
+											),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(90, 8, 3), P(116, 8, 29))),
+									ast.NewReceiverlessMethodCallNode(
+										L(S(P(90, 8, 3), P(115, 8, 28))),
+										ast.NewPublicIdentifierNode(L(S(P(90, 8, 3), P(96, 8, 9))), "println"),
+										[]ast.ExpressionNode{
+											ast.NewDoubleQuotedStringLiteralNode(
+												L(S(P(98, 8, 11), P(114, 8, 27))),
+												"nothing matched",
+											),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have short branches with then": {
+			input: `
+select
+case <<ch then n
+case <<ch2 then m
+else n + 2
+end
+`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(57, 6, 4))),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
+					ast.NewExpressionStatementNode(
+						L(S(P(1, 2, 1), P(57, 6, 4))),
+						ast.NewSelectExpressionNode(
+							L(S(P(1, 2, 1), P(56, 6, 3))),
+							[]*ast.SelectCaseNode{
+								ast.NewSelectCaseNode(
+									L(S(P(8, 3, 1), P(23, 3, 16))),
+									ast.NewUnaryExpressionNode(
+										L(S(P(13, 3, 6), P(16, 3, 9))),
+										T(L(S(P(13, 3, 6), P(14, 3, 7))), token.LBITSHIFT),
+										ast.NewPublicIdentifierNode(L(S(P(15, 3, 8), P(16, 3, 9))), "ch"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(23, 3, 16), P(23, 3, 16))),
+											ast.NewPublicIdentifierNode(L(S(P(23, 3, 16), P(23, 3, 16))), "n"),
+										),
+									},
+								),
+								ast.NewSelectCaseNode(
+									L(S(P(25, 4, 1), P(41, 4, 17))),
+									ast.NewUnaryExpressionNode(
+										L(S(P(30, 4, 6), P(34, 4, 10))),
+										T(L(S(P(30, 4, 6), P(31, 4, 7))), token.LBITSHIFT),
+										ast.NewPublicIdentifierNode(L(S(P(32, 4, 8), P(34, 4, 10))), "ch2"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(41, 4, 17), P(41, 4, 17))),
+											ast.NewPublicIdentifierNode(L(S(P(41, 4, 17), P(41, 4, 17))), "m"),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(48, 5, 6), P(52, 5, 10))),
+									ast.NewBinaryExpressionNode(
+										L(S(P(48, 5, 6), P(52, 5, 10))),
+										T(L(S(P(50, 5, 8), P(50, 5, 8))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(48, 5, 6), P(48, 5, 6))), "n"),
+										ast.NewIntLiteralNode(L(S(P(52, 5, 10), P(52, 5, 10))), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be single-line with then": {
+			input: `select case <<ch then n case ch << "420" then m else n + 2 end`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(61, 1, 62))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(61, 1, 62))),
+						ast.NewSelectExpressionNode(
+							L(S(P(0, 1, 1), P(61, 1, 62))),
+							[]*ast.SelectCaseNode{
+								ast.NewSelectCaseNode(
+									L(S(P(7, 1, 8), P(22, 1, 23))),
+									ast.NewUnaryExpressionNode(
+										L(S(P(12, 1, 13), P(15, 1, 16))),
+										T(L(S(P(12, 1, 13), P(13, 1, 14))), token.LBITSHIFT),
+										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(15, 1, 16))), "ch"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(22, 1, 23), P(22, 1, 23))),
+											ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(22, 1, 23))), "n"),
+										),
+									},
+								),
+								ast.NewSelectCaseNode(
+									L(S(P(24, 1, 25), P(46, 1, 47))),
+									ast.NewBinaryExpressionNode(
+										L(S(P(29, 1, 30), P(39, 1, 40))),
+										T(L(S(P(32, 1, 33), P(33, 1, 34))), token.LBITSHIFT),
+										ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(30, 1, 31))), "ch"),
+										ast.NewDoubleQuotedStringLiteralNode(L(S(P(35, 1, 36), P(39, 1, 40))), "420"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											L(S(P(46, 1, 47), P(46, 1, 47))),
+											ast.NewPublicIdentifierNode(L(S(P(46, 1, 47), P(46, 1, 47))), "m"),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									L(S(P(53, 1, 54), P(57, 1, 58))),
+									ast.NewBinaryExpressionNode(
+										L(S(P(53, 1, 54), P(57, 1, 58))),
+										T(L(S(P(55, 1, 56), P(55, 1, 56))), token.PLUS),
+										ast.NewPublicIdentifierNode(L(S(P(53, 1, 54), P(53, 1, 54))), "n"),
+										ast.NewIntLiteralNode(L(S(P(57, 1, 58), P(57, 1, 58))), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}

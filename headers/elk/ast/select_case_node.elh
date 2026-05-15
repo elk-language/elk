@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    Represents a select `case` node eg. `case v := <<ch then println(v)`
+  ]##
+  sealed primitive class SelectCaseNode
+    init(expression_node: ExpressionNode, body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
+    def expression_node: ExpressionNode; end
+    def body: ArrayTuple[StatementNode]; end
+    def location: FS::Location; end
+  end
+end
