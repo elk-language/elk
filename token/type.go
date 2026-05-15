@@ -305,6 +305,7 @@ const (
 	LABEL_OVERRIDABLE_OP_BEG
 	PLUS_PLUS        // Increment operator `++`
 	MINUS_MINUS      // Decrement operator `--`
+	LBITSHIFT_AT     // Plus `<<@`
 	PLUS_AT          // Plus `+@`
 	MINUS_AT         // Negate `-@`
 	MINUS            // Minus `-`
@@ -713,8 +714,9 @@ var tokenNames = [...]string{
 	LAX_NOT_EQUAL:           "!~",
 	STRICT_NOT_EQUAL:        "!==",
 
-	MINUS_AT:               "-@",
+	LBITSHIFT_AT:           "<<@",
 	PLUS_AT:                "+@",
+	MINUS_AT:               "-@",
 	MINUS:                  "-",
 	PLUS:                   "+",
 	STAR:                   "*",

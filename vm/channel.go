@@ -108,6 +108,7 @@ func initChannel() {
 			return result, value.Undefined
 		},
 	)
+	Alias(c, "<<@", "pop")
 
 	Def(
 		c,

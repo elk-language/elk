@@ -34,11 +34,6 @@ sealed primitive class ::Std::ArrayList[Val]
 	def remove_at(index: Int); end
 
 	##[
-		Adds the given value to the list.
-	]##
-	def push(value: Val); end
-
-	##[
 		Removes all elements from the list.
 	]##
 	def clear; end
@@ -163,6 +158,14 @@ sealed primitive class ::Std::ArrayList[Val]
 		too small to hold it.
 	]##
 	def <<(value: Val): self; end
+
+	##[
+		Adds the given value to the list.
+
+		Reallocates the underlying array if it is
+		too small to hold it.
+	]##
+	def push(value: Val); end
 
 	##[
 		Iterates over the elements of this list,

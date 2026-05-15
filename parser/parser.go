@@ -1371,9 +1371,9 @@ func (p *Parser) asExpression() ast.ExpressionNode {
 	return expr
 }
 
-// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
+// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&" | "<<") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE, token.LBITSHIFT); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true

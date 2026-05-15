@@ -155,6 +155,7 @@ var (
 	OpDecrement            = value.ToSymbol("--")  // `--`
 	OpSubscriptSet         = value.ToSymbol("[]=") // `[]=`
 	OpSubscript            = value.ToSymbol("[]")  // `[]`
+	OpPop                  = value.ToSymbol("<<@") // `<<@`
 	OpNegate               = value.ToSymbol("-@")  // `-@`
 	OpUnaryPlus            = value.ToSymbol("+@")  // `+@`
 	OpBitwiseNot           = value.ToSymbol("~")   // `~`

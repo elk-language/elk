@@ -7930,6 +7930,8 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 		}
 
 		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpUnaryPlus, 0), node.Location(), false)
+	case token.LBITSHIFT:
+		c.emitCallMethod(value.NewCallSiteInfo(symbol.OpPop, 0), node.Location(), false)
 	case token.MINUS:
 		if c.checker.IsSubtype(rightType, c.checker.StdInt()) {
 			c.emit(node.Location().StartPos.Line, bytecode.NEGATE_INT)

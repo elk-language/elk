@@ -1935,6 +1935,33 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		node.Right = receiver
 		node.SetType(typ)
 		return node
+	case token.LBITSHIFT:
+		node.Right = c.checkExpression(node.Right)
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
+			node.Right,
+			token.DOT,
+			symbol.OpPop,
+			nil,
+			nil,
+			nil,
+			node.Location(),
+		)
+		if methodName != symbol.OpPop {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
+		node.Right = receiver
+		node.SetType(typ)
+		return node
 	case token.TILDE:
 		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,

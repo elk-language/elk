@@ -8,6 +8,69 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestPop(t *testing.T) {
+	tests := testTable{
+		"pop on identifier": {
+			input: "<<foo",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(4, 1, 5))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(4, 1, 5))),
+						ast.NewUnaryExpressionNode(
+							L(S(P(0, 1, 1), P(4, 1, 5))),
+							T(L(S(P(0, 1, 1), P(1, 1, 2))), token.LBITSHIFT),
+							ast.NewPublicIdentifierNode(L(S(P(2, 1, 3), P(4, 1, 5))), "foo"),
+						),
+					),
+				},
+			),
+		},
+		"can have a newline": {
+			input: "<<\nfoo",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(5, 2, 3))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(5, 2, 3))),
+						ast.NewUnaryExpressionNode(
+							L(S(P(0, 1, 1), P(5, 2, 3))),
+							T(L(S(P(0, 1, 1), P(1, 1, 2))), token.LBITSHIFT),
+							ast.NewPublicIdentifierNode(L(S(P(3, 2, 1), P(5, 2, 3))), "foo"),
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "<< <<foo",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(7, 1, 8))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(7, 1, 8))),
+						ast.NewUnaryExpressionNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							T(L(S(P(0, 1, 1), P(1, 1, 2))), token.LBITSHIFT),
+							ast.NewUnaryExpressionNode(
+								L(S(P(3, 1, 4), P(7, 1, 8))),
+								T(L(S(P(3, 1, 4), P(4, 1, 5))), token.LBITSHIFT),
+								ast.NewPublicIdentifierNode(L(S(P(5, 1, 6), P(7, 1, 8))), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestPipeExpression(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {

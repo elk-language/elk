@@ -2137,6 +2137,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				if l.matchChar(':') {
 					return l.token(token.INSTANCE_OF_OP)
 				}
+				if l.matchChar('@') {
+					return l.token(token.LBITSHIFT_AT)
+				}
 				return l.token(token.LBITSHIFT)
 			}
 			return l.token(token.LESS)

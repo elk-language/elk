@@ -38,8 +38,12 @@
 
 	```
 	ch := Channel::[Int](3) # instantiate a buffered channel of `Int` values
+
 	ch << 5 # send `5` to the channel
-	v := try ch.pop # pop `5` from the channel
+	v := try <<ch # pop `5` from the channel using the pop unary operator
+
+	ch << 3 # send `3` to the channel
+	v := try ch.pop # pop `3` from the channel using the pop method
 	```
 
 	if the channel is closed `pop` will throw `:channel_closed`
@@ -92,12 +96,21 @@ sealed primitive class ::Std::Channel[V]
 	def <<(value: V): self; end
 
 	##[
+		Pushes a new element to the channel.
+		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
+
+		Pushing to a closed channel throws an unchecked error.
+	]##
+	def push(value: V); end
+
+	##[
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws `:closed_channel`.
+		Popping from a closed channel throws `:channel_closed`.
 	]##
-	def pop: V ! :closed_channel; end
+	def pop: V ! :channel_closed; end
+	alias <<@ pop
 
 	##[
 		Closes the channel, preventing any more values from being pushed or popped.
