@@ -1296,6 +1296,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkValuePatternDeclarationNode(n)
 	case *ast.SwitchExpressionNode:
 		return c.checkSwitchExpressionNode(n, tailPosition)
+	case *ast.SelectExpressionNode:
+		return c.checkSelectExpressionNode(n, tailPosition)
 	case *ast.BreakpointNode:
 		n.TypecheckerContext = c.createBreakpointContext()
 		return n
@@ -7689,6 +7691,254 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 
 	returnType := c.NewNormalisedUnion(returnTypes...)
 	node.SetType(returnType)
+	return node
+}
+
+func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tailPosition bool) *ast.SelectExpressionNode {
+	hasElse := len(node.ElseBody) > 0
+
+	var returnTypes []types.Type
+	for _, caseNode := range node.Cases {
+		c.pushConditionalLocalEnv(true)
+		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
+		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
+		returnTypes = append(returnTypes, caseType)
+		c.popLocalEnv()
+	}
+
+	if hasElse {
+		c.pushConditionalLocalEnv(true)
+		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
+		returnTypes = append(returnTypes, elseType)
+		c.popLocalEnv()
+	}
+
+	c.initialiseConditionalLocals()
+
+	returnType := c.NewNormalisedUnion(returnTypes...)
+	node.SetType(returnType)
+	return node
+}
+
+func (c *Checker) checkSelectCaseExpressionNode(node ast.ExpressionNode) ast.ExpressionNode {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode:
+		return c.checkSelectUnaryExpressionNode(node)
+	case *ast.AssignmentExpressionNode:
+		return c.checkSelectAssignmentExpressionNode(node)
+	case *ast.VariableDeclarationNode:
+		return c.checkSelectVariableDeclarationNode(node)
+	case *ast.ValueDeclarationNode:
+		return c.checkSelectValueDeclarationNode(node)
+	case *ast.ValuePatternDeclarationNode:
+		return c.checkSelectValuePatternDeclarationNode(node)
+	case *ast.VariablePatternDeclarationNode:
+		return c.checkSelectVariablePatternDeclarationNode(node)
+	case *ast.BinaryExpressionNode:
+		return c.checkSelectBinaryExpressionNode(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid expression in select case, expected a channel push or channel pop, got: %T",
+				node,
+			),
+			node.Location(),
+		)
+		return c.checkExpression(node)
+	}
+}
+
+func (c *Checker) checkSelectVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"variable pattern declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		return c.checkVariablePatternDeclarationNode(node)
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	return c.checkVariablePatternDeclarationNode(node)
+}
+
+func (c *Checker) checkSelectValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"value pattern declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		return c.checkValuePatternDeclarationNode(node)
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	return c.checkValuePatternDeclarationNode(node)
+}
+
+func (c *Checker) checkSelectVariableDeclarationNode(node *ast.VariableDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"variable declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		c.checkVariableDeclarationNode(node)
+		return node
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	c.checkVariableDeclarationNode(node)
+	return node
+}
+
+func (c *Checker) checkSelectValueDeclarationNode(node *ast.ValueDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"value declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		c.checkValueDeclarationNode(node)
+		return node
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	c.checkValueDeclarationNode(node)
+	return node
+}
+
+func (c *Checker) checkSelectAssignmentExpressionNode(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		return c.checkSelectLocalAssignment(node)
+	case token.COLON_EQUAL:
+		return c.checkSelectShortVariableDeclaration(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment operator in select case, expected `=` or `:=`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkAssignmentExpressionNode(node)
+	}
+}
+
+func (c *Checker) checkSelectLocalAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	node.Right = c.checkSelectAssignmentRightNode(node.Right)
+
+	switch node.Left.(type) {
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment target in select case, expected a local variable/value, got: %T",
+				node.Left,
+			),
+			node.Left.Location(),
+		)
+	}
+
+	return c.checkAssignment(node)
+}
+
+func (c *Checker) checkSelectShortVariableDeclaration(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	node.Right = c.checkSelectAssignmentRightNode(node.Right)
+
+	switch node.Left.(type) {
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment target in select case, expected a local variable/value, got: %T",
+				node.Left,
+			),
+			node.Left.Location(),
+		)
+	}
+
+	return c.checkShortVariableDeclaration(node)
+}
+
+func (c *Checker) checkSelectAssignmentRightNode(node ast.ExpressionNode) ast.ExpressionNode {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode:
+		return c.checkSelectUnaryExpressionNode(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid expression in select case assignment, expected a channel pop eg. `<<ch`, got: %T",
+				node,
+			),
+			node.Location(),
+		)
+		return c.checkExpression(node)
+	}
+}
+
+func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) ast.ExpressionNode {
+	if node.Op.Type != token.LBITSHIFT {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid unary expression in select case, expected a channel pop `<<`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkUnaryExpression(node)
+	}
+
+	node.Right = c.checkExpression(node.Right)
+	rightType := c.TypeOf(node.Right)
+
+	if !c.isSubtype(rightType, c.Std(symbol.Channel), node.Right.Location()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid pop target in select case, expected a channel, got: `%s`",
+				types.Inspect(rightType),
+			),
+			node.Location(),
+		)
+	}
+
+	return node
+}
+
+func (c *Checker) checkSelectBinaryExpressionNode(node *ast.BinaryExpressionNode) ast.ExpressionNode {
+	if node.Op.Type != token.LBITSHIFT {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid binary expression in select case, expected a channel push `<<`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkBinaryExpression(node)
+	}
+
+	originalMethodName := value.ToSymbol(node.Op.FetchValue())
+	_, left, args, typ := c.checkSimpleMethodCall(
+		node.Left,
+		token.DOT,
+		originalMethodName,
+		nil,
+		[]ast.ExpressionNode{node.Right},
+		nil,
+		node.Location(),
+	)
+	leftType := c.TypeOf(left)
+
+	if !c.isSubtype(leftType, c.Std(symbol.Channel), left.Location()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid push target in select case, expected a channel, got: `%s`",
+				types.Inspect(leftType),
+			),
+			node.Location(),
+		)
+	}
+
+	node.Left = left
+	node.Right = args[0]
+	node.SetType(typ)
 	return node
 }
 

@@ -110,7 +110,14 @@ sealed primitive class ::Std::Channel[V]
 		Popping from a closed channel throws `:channel_closed`.
 	]##
 	def pop: V ! :channel_closed; end
-	alias <<@ pop
+
+	##[
+		Pops an element from the channel.
+		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
+
+		Popping from a closed channel throws an unchecked error `:channel_closed`.
+	]##
+	def <<@: V; end
 
 	##[
 		Closes the channel, preventing any more values from being pushed or popped.

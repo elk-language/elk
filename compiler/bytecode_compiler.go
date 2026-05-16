@@ -1137,6 +1137,8 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		c.compileMatchExpressionNode(node)
 	case *ast.SwitchExpressionNode:
 		return c.compileSwitchExpressionNode(node, valueIsIgnored)
+	case *ast.SelectExpressionNode:
+		return c.compileSelectExpressionNode(node, valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		c.compileSubscriptExpressionNode(node)
 	case *ast.NilSafeSubscriptExpressionNode:
@@ -4456,6 +4458,47 @@ func (c *BytecodeCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressio
 
 	c.leaveScope(location.EndPos.Line)
 	return valueIgnoredToResult(valueIsIgnored)
+}
+
+func (c *BytecodeCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode, valueIsIgnored bool) expressionResult {
+	// TODO: Select
+	return expressionCompiled
+	// location := node.Location()
+
+	// c.enterScope("", defaultBytecodeScopeType)
+
+	// var jumpToEndOffsets []int
+
+	// for _, caseNode := range node.Cases {
+	// 	c.enterScope("", defaultBytecodeScopeType)
+
+	// 	caseSpan := caseNode.Location()
+	// 	c.pattern(caseNode.Pattern)
+
+	// 	jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
+
+	// 	c.emit(caseSpan.StartPos.Line, bytecode.POP)
+
+	// 	c.compileStatements(caseNode.Body, caseSpan, valueIsIgnored)
+
+	// 	c.leaveScopeWithoutMutating(caseSpan.EndPos.Line)
+
+	// 	jumpToEndOffset := c.emitJump(caseSpan.EndPos.Line, bytecode.JUMP)
+	// 	jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+
+	// 	c.patchJump(jumpOverBodyOffset, caseSpan)
+	// 	c.leaveScope(caseSpan.EndPos.Line)
+	// }
+
+	// c.emit(location.StartPos.Line, bytecode.POP)
+	// c.compileStatements(node.ElseBody, location, valueIsIgnored)
+
+	// for _, offset := range jumpToEndOffsets {
+	// 	c.patchJump(offset, location)
+	// }
+
+	// c.leaveScope(location.EndPos.Line)
+	// return valueIgnoredToResult(valueIsIgnored)
 }
 
 func (c *BytecodeCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode) {

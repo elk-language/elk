@@ -39,6 +39,12 @@ sealed primitive class ::Std::ArrayList[Val]
 	def clear; end
 
 	##[
+		Removes the last elements from the list and returns it.
+	]##
+	def pop: Val; end
+	alias <<@ pop
+
+	##[
 		Mutates the list.
 
 		Reallocates the underlying array to hold

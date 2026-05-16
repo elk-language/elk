@@ -583,6 +583,150 @@ func TestThrowExpression(t *testing.T) {
 	}
 }
 
+func TestSelectExpression(t *testing.T) {
+	tests := testTable{
+		"can push to a channel": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case ch << 5
+					puts "sent"
+				end
+			`,
+		},
+		"cannot use another binary operator": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case ch >> 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 10), P(54, 4, 16)), "invalid binary expression in select case, expected a channel push `<<`, got: >>"),
+				diagnostic.NewFailure(L("<main>", P(48, 4, 10), P(54, 4, 16)), "method `>>` is not defined on type `Std::Channel[Std::Int]`"),
+			},
+		},
+		"cannot have any expression in case": {
+			input: `
+				select
+				case puts("foo")
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 10), P(31, 3, 20)), "invalid expression in select case, expected a channel push or channel pop, got: *ast.ReceiverlessMethodCallNode"),
+			},
+		},
+		"cannot push to non-channel": {
+			input: `
+				list := [1]
+				select
+				case list << 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(45, 4, 18)), "invalid push target in select case, expected a channel, got: `Std::ArrayList[Std::Int]`"),
+			},
+		},
+		"can pop from a channel": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"cannot pop from a non-channel": {
+			input: `
+				list := [1]
+				select
+				case <<list
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(42, 4, 15)), "invalid pop target in select case, expected a channel, got: `Std::ArrayList[Std::Int]`"),
+			},
+		},
+		"invalid unary operator": {
+			input: `
+				a := 5
+				select
+				case +a
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 4, 10), P(33, 4, 11)), "invalid unary expression in select case, expected a channel pop `<<`, got: +"),
+			},
+		},
+		"can pop from a channel and assign to a variable": {
+			input: `
+				ch := Channel::[Int]()
+				v := 5
+				select
+				case v = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and short declare a variable": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case v := <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a variable": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case var v = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a variable with a pattern": {
+			input: `
+				ch := Channel::[ArrayList[Int]]()
+				select
+				case var [a, b] = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a value": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case val v = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a value with a pattern": {
+			input: `
+				ch := Channel::[ArrayList[Int]]()
+				select
+				case val [a, b] = <<ch
+					puts "sent"
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestSwitchExpression(t *testing.T) {
 	tests := testTable{
 		"has access to outer variables": {
