@@ -349,7 +349,7 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 	return compiler
 }
 
-func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
+func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
 	compiler.Errors = errors

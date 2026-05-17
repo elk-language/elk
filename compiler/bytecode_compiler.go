@@ -24,8 +24,9 @@ import (
 
 const MainName = "<main>"
 
-func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
+func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) *BytecodeCompiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
+	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.Errors = errors
 	compiler.parent = parent
 	return compiler
@@ -43,8 +44,9 @@ func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpoint
 	return compiler
 }
 
-func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler {
+func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
+	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -55,6 +57,7 @@ func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *positi
 
 func (c *BytecodeCompiler) InitGlobalEnv() Compiler {
 	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
+	envCompiler.additionalAbortChecks = c.additionalAbortChecks
 	envCompiler.parent = c
 	envCompiler.Errors = c.Errors
 	envCompiler.compileGlobalEnv()
@@ -221,25 +224,26 @@ func (u bytecodeUpvalues) deepClone() bytecodeUpvalues {
 
 // Holds the state of the BytecodeCompiler.
 type BytecodeCompiler struct {
-	Name               string
-	bytecode           *vm.BytecodeFunction
-	Errors             *diagnostic.SyncDiagnosticList
-	scopes             bytecodeScopes
-	loopJumpSets       []*bytecodeLoopJumpSet
-	offsetValueIds     []int // ids of integers in the value pool that represent bytecode offsets
-	lastLocalIndex     int   // index of the last local variable
-	maxLocalIndex      int   // max index of a local variable
-	predefinedLocals   int
-	secondToLastOpCode bytecode.OpCode
-	lastOpCode         bytecode.OpCode
-	patternNesting     int
-	parent             *BytecodeCompiler
-	upvalues           bytecodeUpvalues
-	checker            types.Checker
-	mode               bytecodeCompilerMode
-	isGenerator        bool
-	isAsync            bool
-	unhygienic         bool
+	Name                  string
+	bytecode              *vm.BytecodeFunction
+	Errors                *diagnostic.SyncDiagnosticList
+	scopes                bytecodeScopes
+	loopJumpSets          []*bytecodeLoopJumpSet
+	offsetValueIds        []int // ids of integers in the value pool that represent bytecode offsets
+	lastLocalIndex        int   // index of the last local variable
+	maxLocalIndex         int   // max index of a local variable
+	predefinedLocals      int
+	secondToLastOpCode    bytecode.OpCode
+	lastOpCode            bytecode.OpCode
+	patternNesting        int
+	parent                *BytecodeCompiler
+	upvalues              bytecodeUpvalues
+	checker               types.Checker
+	mode                  bytecodeCompilerMode
+	isGenerator           bool
+	isAsync               bool
+	unhygienic            bool
+	additionalAbortChecks bool
 }
 
 // Instantiate a NewBytecodeCompiler Compiler instance.
@@ -1911,6 +1915,9 @@ func (c *BytecodeCompiler) compileLoopExpressionNode(label string, body []ast.St
 		c.emit(location.EndPos.Line, bytecode.POP)
 	}
 	c.leaveScope(location.EndPos.Line)
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	c.emitLoop(location, start)
 
 	c.leaveScope(location.EndPos.Line)
@@ -1957,6 +1964,9 @@ func (c *BytecodeCompiler) compileWhileExpressionNode(label string, node *ast.Wh
 	c.compileStatementsWithResult(node.ThenBody, location)
 
 	c.closeUpvaluesInCurrentScope(location.EndPos.Line)
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop condition
 	c.emitLoop(location, start)
 
@@ -2019,6 +2029,9 @@ func (c *BytecodeCompiler) modifierWhileExpression(label string, node *ast.Modif
 	c.emit(location.StartPos.Line, bytecode.POP)
 
 	c.leaveScope(location.EndPos.Line)
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop start
 	c.emitLoop(location, start)
 
@@ -2081,6 +2094,10 @@ func (c *BytecodeCompiler) modifierUntilExpression(label string, node *ast.Modif
 	c.emit(location.StartPos.Line, bytecode.POP)
 
 	c.leaveScope(location.EndPos.Line)
+
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop start
 	c.emitLoop(location, start)
 
@@ -2132,6 +2149,9 @@ func (c *BytecodeCompiler) compileUntilExpressionNode(label string, node *ast.Un
 	c.compileStatementsWithResult(node.ThenBody, location)
 
 	c.leaveScope(location.EndPos.Line)
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop condition
 	c.emitLoop(location, start)
 
@@ -2586,6 +2606,9 @@ func (c *BytecodeCompiler) compileForIn(
 	if !collectionLiteral {
 		c.emit(location.EndPos.Line, bytecode.POP)
 	}
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop condition
 	c.emitLoop(location, start)
 
@@ -2665,6 +2688,9 @@ func (c *BytecodeCompiler) compileNumericFor(label string, init, cond, increment
 		c.compileNodeWithoutResult(increment)
 	}
 
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
 	// jump to loop condition
 	c.emitLoop(location, start)
 
@@ -3715,6 +3741,10 @@ func (c *BytecodeCompiler) compileValueDeclarationNode(node *ast.ValueDeclaratio
 
 func (c *BytecodeCompiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) {
 	location := node.Location()
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
+
 	c.compileNodeWithResult(node.Value)
 	if !c.isAsync || node.Sync {
 		c.emit(location.StartPos.Line, bytecode.AWAIT_SYNC)
@@ -8156,6 +8186,10 @@ func (c *BytecodeCompiler) emitJump(line int, op bytecode.OpCode) int {
 // Provide `nil` as the value when the yielded value is already
 // on the stack.
 func (c *BytecodeCompiler) emitYield(location *position.Location, value ast.Node) {
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
+	}
+
 	if value != nil {
 		c.compileNodeWithResult(value)
 	}
@@ -8193,6 +8227,10 @@ func (c *BytecodeCompiler) emitReturn(location *position.Location, value ast.Nod
 		c.emitYield(location, value)
 		c.emit(location.EndPos.Line, bytecode.STOP_ITERATION)
 		return
+	}
+
+	if c.additionalAbortChecks {
+		c.emit(location.EndPos.Line, bytecode.CHECK_ABORT)
 	}
 
 	switch c.mode {

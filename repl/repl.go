@@ -2,10 +2,14 @@ package repl
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"go/format"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/compiler/colorize"
@@ -21,6 +25,7 @@ import (
 )
 
 type evaluator struct {
+	ctx            context.Context
 	vm             *vm.Thread
 	inspectStack   bool
 	sourceMap      map[string]string
@@ -52,6 +57,7 @@ func (e *evaluator) evaluate(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetAdditionalAbortChecks(true)
 		e.elkTypechecker.SetIncremental(true)
 		e.vm = vm.New()
 	}
@@ -73,7 +79,39 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}
 
+	executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
+	defer markExecutionFinished()
+
+	vmCtx, abortExecution := context.WithCancel(e.ctx)
+	defer abortExecution()
+
+	cancelSignalCtx, cancelSignal := context.WithCancel(e.ctx)
+	defer cancelSignal()
+
+	go func() {
+		signalCtx, stop := signal.NotifyContext(
+			cancelSignalCtx,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+		)
+		defer stop()
+
+		<-signalCtx.Done()
+
+		abortExecution()
+
+		select {
+		case <-executionFinishedCtx.Done():
+		case <-time.After(5 * time.Second):
+			fmt.Fprintf(e.vm.Stderr, "\ntimed out waiting for execution to finish\n")
+			os.Exit(1)
+		}
+	}()
+
+	e.vm.Ctx = vmCtx
 	value, runtimeErr := e.vm.InterpretREPL(fn)
+	cancelSignal()
+	markExecutionFinished()
 	if !runtimeErr.IsUndefined() {
 		e.vm.PrintError()
 		e.vm.ResetError()
@@ -281,12 +319,13 @@ func (e *evaluator) lex(input string) {
 }
 
 // Start the REPL.
-func Run(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) {
-	prompt.Run(executor(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand))
+func Run(ctx context.Context, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) {
+	prompt.Run(executor(ctx, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand))
 }
 
-func executor(disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) goprompt.Executor {
+func executor(ctx context.Context, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) goprompt.Executor {
 	eval := &evaluator{
+		ctx:          ctx,
 		inspectStack: inspectStack,
 		sourceMap:    make(map[string]string),
 	}

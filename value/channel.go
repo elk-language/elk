@@ -1,6 +1,7 @@
 package value
 
 import (
+	"context"
 	"fmt"
 	"iter"
 )
@@ -76,9 +77,33 @@ func (ch *Channel) Push(val Value) (err Value) {
 	return Undefined
 }
 
+func (ch *Channel) PushCtx(ctx context.Context, val Value) (err Value) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
+		}
+	}()
+
+	select {
+	case ch.Native <- val:
+		return Undefined
+	case <-ctx.Done():
+		return NewExecutionAbortedError().ToValue()
+	}
+}
+
 func (ch *Channel) Pop() (Value, bool) {
 	result, ok := <-ch.Native
 	return result, ok
+}
+
+func (ch *Channel) PopCtx(ctx context.Context) (v Value, ok bool, err Value) {
+	select {
+	case result, ok := <-ch.Native:
+		return result, ok, Undefined
+	case <-ctx.Done():
+		return Undefined, false, NewExecutionAbortedError().ToValue()
+	}
 }
 
 func (ch *Channel) NextValue() (Value, Value) {
@@ -88,6 +113,18 @@ func (ch *Channel) NextValue() (Value, Value) {
 	}
 
 	return next, Undefined
+}
+
+func (ch *Channel) NextValueCtx(ctx context.Context) (Value, Value) {
+	select {
+	case next, ok := <-ch.Native:
+		if !ok {
+			return Undefined, stopIterationSymbol.ToValue()
+		}
+		return next, Undefined
+	case <-ctx.Done():
+		return Undefined, NewExecutionAbortedError().ToValue()
+	}
 }
 
 func (ch *Channel) Iterate() iter.Seq2[Value, Value] {

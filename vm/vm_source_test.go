@@ -142,9 +142,10 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	stdout := newConcurrentStringBuilder()
 	stderr := newConcurrentStringBuilder()
-	tp := vm.NewThreadPool(2, 50, vm.WithStdout(stdout), vm.WithStderr(stderr))
+	ctx := t.Context()
+	tp := vm.NewThreadPool(2, 50, vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithContext(ctx))
 	defer tp.Close()
-	v := vm.New(vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithThreadPool(tp))
+	v := vm.New(vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithThreadPool(tp), vm.WithContext(ctx))
 
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
@@ -218,7 +219,8 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	}
 
 	var stdout strings.Builder
-	vm := vm.New(vm.WithStdout(&stdout))
+	ctx := t.Context()
+	vm := vm.New(vm.WithStdout(&stdout), vm.WithContext(ctx))
 	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
 	if !gotRuntimeErr.IsUndefined() {
 		t.Fatalf("Runtime Error: %s", gotRuntimeErr.Inspect())

@@ -1,6 +1,7 @@
 package value
 
 import (
+	"context"
 	"fmt"
 	"iter"
 	"math"
@@ -1395,6 +1396,16 @@ func ToGoUInt(val Value) (uint, bool) {
 	}
 
 	return 0, false
+}
+
+// Return true if the given context is done, otherwise false.
+func ShouldAbortCtx(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
 }
 
 // Returns true when the Elk value is nil

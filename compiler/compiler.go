@@ -25,7 +25,7 @@ type Compiler interface {
 	InitMainCompiler()
 	InitGlobalEnv() Compiler
 	FinishGlobalEnvCompiler()
-	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) Compiler
+	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler
 	CompileClassInheritance(*types.Class, *position.Location)
 	CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location)
 	CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location)
@@ -41,10 +41,11 @@ type Compiler interface {
 	Flush() // Outputs the compiled code to an output file
 }
 
-func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList) Compiler {
+func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) Compiler {
 	switch parent := parent.(type) {
 	case *BytecodeCompiler, nil:
 		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker)
+		cmp.additionalAbortChecks = additionalAbortChecks
 		cmp.Errors = errors
 		cmp.SetParent(parent)
 		return cmp

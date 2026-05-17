@@ -290,6 +290,7 @@ const (
 	DEF_IVARS                         // Define instance variables in a class
 	BREAKPOINT                        // Stop the program and open a REPL
 	SELECT                            // Trigger a channel select using the case data on top of the stack. Pushes three value on top of the stack: the read value from channel (or undefined), a bool value that indicates if the channel is open, integer which is the index of the case that was chosen.
+	CHECK_ABORT                       // Check the thread context, if it is cancelled throw `Std::ExecutionAbortedError`
 )
 
 var opCodeNames = [...]string{
@@ -541,4 +542,5 @@ var opCodeNames = [...]string{
 	DEF_IVARS:           "DEF_IVARS",
 	BREAKPOINT:          "BREAKPOINT",
 	SELECT:              "SELECT",
+	CHECK_ABORT:         "CHECK_ABORT",
 }

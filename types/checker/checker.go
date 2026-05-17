@@ -132,6 +132,7 @@ const (
 const (
 	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	GoCompilerFlag
+	AdditionalAbortChecks // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
@@ -264,6 +265,18 @@ func (c *Checker) SetIncremental(val bool) {
 		c.flags.SetFlag(incrementalFlag)
 	} else {
 		c.flags.UnsetFlag(incrementalFlag)
+	}
+}
+
+func (c *Checker) HasAdditionalAbortChecks() bool {
+	return c.flags.HasFlag(AdditionalAbortChecks)
+}
+
+func (c *Checker) SetAdditionalAbortChecks(val bool) {
+	if val {
+		c.flags.SetFlag(AdditionalAbortChecks)
+	} else {
+		c.flags.UnsetFlag(AdditionalAbortChecks)
 	}
 }
 
@@ -559,7 +572,7 @@ func (c *Checker) checkBreakpointProgram(node *ast.ProgramNode) compiler.Compile
 }
 
 func (c *Checker) CheckMacroExpression(node ast.ExpressionNode) *compiler.BytecodeCompiler {
-	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors)
+	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors, c.HasAdditionalAbortChecks())
 	c.compiler = compiler
 
 	node = c.checkExpression(node)
@@ -607,7 +620,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
+	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 }
 
 // Create a new compiler and emit bytecode
@@ -620,11 +633,11 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	parent := c.compiler
 	var mainCompiler compiler.Compiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output)
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
 		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output)
 	} else {
-		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
+		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}
 	mainCompiler.InitMainCompiler()
 	c.compiler = mainCompiler.InitGlobalEnv()

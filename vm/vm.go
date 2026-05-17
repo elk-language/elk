@@ -67,7 +67,7 @@ type Option func(*Thread) // constructor option function
 // Assign a context to the thread
 func WithContext(ctx context.Context) Option {
 	return func(vm *Thread) {
-		vm.ctx = ctx
+		vm.Ctx = ctx
 	}
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -34,7 +35,7 @@ func main() {
 		typecheck := fs.Bool("typecheck", false, "run the REPL in type checker mode")
 		expand := fs.Bool("expand", false, "run the REPL in macro expansion mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(*disassemble, *transpile, *native, *inspectStack, *parse, *lex, *typecheck, *expand)
+		repl.Run(context.Background(), *disassemble, *transpile, *native, *inspectStack, *parse, *lex, *typecheck, *expand)
 	case "run":
 		if len(os.Args) < 3 {
 			runMain()

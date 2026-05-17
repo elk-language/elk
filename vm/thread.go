@@ -37,7 +37,7 @@ type Thread struct {
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
-	ctx             context.Context
+	Ctx             context.Context
 	state           state
 }
 
@@ -63,7 +63,7 @@ func New(opts ...Option) *Thread {
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
 		threadPool: DefaultThreadPool,
-		ctx:        context.Background(),
+		Ctx:        context.Background(),
 	}
 	vm.cfpSet(&callFrames[0])
 
@@ -1334,7 +1334,9 @@ func (vm *Thread) run() {
 		case bytecode.LESS_EQUAL_FLOAT:
 			vm.opLessThanEqualFloat()
 		case bytecode.SELECT:
-			vm.opSelect()
+			vm.throwIfErr(vm.opSelect())
+		case bytecode.CHECK_ABORT:
+			vm.throwIfErr(vm.opCheckAbort())
 		case bytecode.INSPECT_STACK:
 			vm.InspectValueStack()
 		default:
@@ -1347,7 +1349,7 @@ func (vm *Thread) run() {
 // Spins up a new goroutine and executes the closure on top of the stack in it.
 func (vm *Thread) opGo() {
 	closure := (*BytecodeClosure)(vm.peek().Pointer())
-	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr))
+	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr), WithContext(vm.Ctx))
 
 	go func(closure *BytecodeClosure, thread *Thread) {
 		thread.state = runningState
@@ -3550,9 +3552,22 @@ func (vm *Thread) opBitwiseAndInt() {
 	vm.replace(result)
 }
 
-func (vm *Thread) opSelect() {
+func (vm *Thread) opCheckAbort() value.Value {
+	if value.ShouldAbortCtx(vm.Ctx) {
+		return value.NewExecutionAbortedError().ToValue()
+	}
+
+	return value.Undefined
+}
+
+func (vm *Thread) opSelect() value.Value {
 	selectData := (*Select)(vm.popGet().Pointer())
-	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases))
+	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases)+1)
+
+	reflectSelectCases[0] = reflect.SelectCase{
+		Chan: reflect.ValueOf(vm.Ctx.Done()),
+		Dir:  reflect.SelectRecv,
+	}
 
 	for i, selectCase := range ds.ReverseSlice(selectData.Cases) {
 		var channel reflect.Value
@@ -3573,7 +3588,7 @@ func (vm *Thread) opSelect() {
 			panic(fmt.Sprintf("invalid select direction: %d", selectCase.Direction))
 		}
 
-		reflectSelectCases[i] = reflect.SelectCase{
+		reflectSelectCases[i+1] = reflect.SelectCase{
 			Chan: channel,
 			Send: send,
 			Dir:  selectCase.Direction,
@@ -3581,16 +3596,22 @@ func (vm *Thread) opSelect() {
 	}
 
 	chosenCase, val, channelOpen := reflect.Select(reflectSelectCases)
+	if chosenCase == 0 {
+		return value.NewExecutionAbortedError().ToValue()
+	}
+
+	chosenCase--
 	if !channelOpen {
 		vm.push(value.Nil)
 		vm.push(value.False.ToValue())
 		vm.push(value.SmallInt(chosenCase).ToValue())
-		return
+	} else {
+		vm.push(val.Interface().(value.Value))
+		vm.push(value.Bool(channelOpen).ToValue())
+		vm.push(value.SmallInt(chosenCase).ToValue())
 	}
 
-	vm.push(val.Interface().(value.Value))
-	vm.push(value.Bool(channelOpen).ToValue())
-	vm.push(value.SmallInt(chosenCase).ToValue())
+	return value.Undefined
 }
 
 func (vm *Thread) opLeftBitshiftInt() {

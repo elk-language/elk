@@ -86,7 +86,7 @@ func initChannel() {
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
-			err := self.Push(args[1])
+			err := self.PushCtx(vm.Ctx, args[1])
 			if err.IsUndefined() {
 				return value.Ref(self), value.Undefined
 			}
@@ -101,7 +101,10 @@ func initChannel() {
 		"pop",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
-			result, ok := self.Pop()
+			result, ok, err := self.PopCtx(vm.Ctx)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 			if !ok {
 				return value.Undefined, symbol.L_channel_closed.ToValue()
 			}
@@ -127,9 +130,9 @@ func initChannel() {
 	Def(
 		c,
 		"next",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Channel)(args[0].Pointer())
-			return self.NextValue()
+			return self.NextValueCtx(vm.Ctx)
 		},
 	)
 	Def(

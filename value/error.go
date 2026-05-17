@@ -10,6 +10,11 @@ import (
 // Parent class for all exceptions.
 var ErrorClass *Class
 
+// ::Std::ExecutionAbortedError
+//
+// Thrown when the execution was aborted/interrupted.
+var ExecutionAbortedErrorClass *Class
+
 // ::Std::UnexpectedNilError
 //
 // Thrown when a `nil` value is encountered in a `must` expression.
@@ -144,6 +149,13 @@ func NewError(class *Class, message string) *Object {
 		class:             class,
 		instanceVariables: ivars,
 	}
+}
+
+func NewExecutionAbortedError() *Object {
+	return NewError(
+		ExecutionAbortedErrorClass,
+		"execution aborted",
+	)
 }
 
 // Create a new error that signals that
@@ -637,6 +649,10 @@ func initError() {
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
 	RegisterNativeClass("Std::UnexpectedNilError", "value.UnexpectedNilErrorClass")
+
+	ExecutionAbortedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	StdModule.AddConstantString("ExecutionAbortedError", Ref(ExecutionAbortedErrorClass))
+	RegisterNativeClass("Std::ExecutionAbortedError", "value.ExecutionAbortedErrorClass")
 
 	OpenClosureErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("OpenClosureError", Ref(OpenClosureErrorClass))
