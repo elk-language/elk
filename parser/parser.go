@@ -6099,7 +6099,7 @@ func (p *Parser) doExpressionOrMacroBoundary() ast.ExpressionNode {
 }
 
 // doExpression = "do" ((SEPARATOR [statements]) | (expressionWithoutModifier))
-// ("catch" pattern ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ("catch" pattern ["," identifier] ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["finally" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
 func (p *Parser) doExpression() *ast.DoExpressionNode {
@@ -7213,7 +7213,7 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 }
 
 // selectExpression = "select" SEPARATOR
-// ("case" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ("case" expressionWithoutModifier ["," identifier] ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 func (p *Parser) selectExpression() ast.ExpressionNode {
 	selectTok := p.advance()
@@ -7233,12 +7233,19 @@ func (p *Parser) selectExpression() ast.ExpressionNode {
 			break
 		} else if caseTok, ok := p.matchOk(token.CASE); ok {
 			expr := p.expressionWithoutModifier()
+
+			var okVar ast.IdentifierNode
+			if p.match(token.COMMA) {
+				okVar = p.identifier()
+			}
+
 			var caseBody []ast.StatementNode
 			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
 			withoutContent = false
 			cases = append(cases, ast.NewSelectCaseNode(
 				caseTok.Location().Join(lastLocation),
 				expr,
+				okVar,
 				caseBody,
 			))
 			p.swallowNewlines()

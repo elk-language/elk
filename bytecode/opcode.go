@@ -289,6 +289,7 @@ const (
 	AWAIT_SYNC                        // Await the promise on top of the stack synchronously
 	DEF_IVARS                         // Define instance variables in a class
 	BREAKPOINT                        // Stop the program and open a REPL
+	SELECT                            // Trigger a channel select using the case data on top of the stack. Pushes three value on top of the stack: the read value from channel (or undefined), a bool value that indicates if the channel is open, integer which is the index of the case that was chosen.
 )
 
 var opCodeNames = [...]string{
@@ -539,4 +540,5 @@ var opCodeNames = [...]string{
 	AWAIT_SYNC:          "AWAIT_SYNC",
 	DEF_IVARS:           "DEF_IVARS",
 	BREAKPOINT:          "BREAKPOINT",
+	SELECT:              "SELECT",
 }

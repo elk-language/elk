@@ -1,15 +1,18 @@
 package vm
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strings"
 	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -34,6 +37,7 @@ type Thread struct {
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
+	ctx             context.Context
 	state           state
 }
 
@@ -59,6 +63,7 @@ func New(opts ...Option) *Thread {
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
 		threadPool: DefaultThreadPool,
+		ctx:        context.Background(),
 	}
 	vm.cfpSet(&callFrames[0])
 
@@ -1328,6 +1333,8 @@ func (vm *Thread) run() {
 			vm.opLessThanEqualInt()
 		case bytecode.LESS_EQUAL_FLOAT:
 			vm.opLessThanEqualFloat()
+		case bytecode.SELECT:
+			vm.opSelect()
 		case bytecode.INSPECT_STACK:
 			vm.InspectValueStack()
 		default:
@@ -3541,6 +3548,49 @@ func (vm *Thread) opBitwiseAndInt() {
 	}
 
 	vm.replace(result)
+}
+
+func (vm *Thread) opSelect() {
+	selectData := (*Select)(vm.popGet().Pointer())
+	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases))
+
+	for i, selectCase := range ds.ReverseSlice(selectData.Cases) {
+		var channel reflect.Value
+		var send reflect.Value
+
+		switch selectCase.Direction {
+		case reflect.SelectRecv:
+			ch := vm.popGet().AsReference().(*value.Channel)
+			channel = reflect.ValueOf(ch.Native)
+		case reflect.SelectSend:
+			val := vm.popGet()
+			send = reflect.ValueOf(val)
+
+			ch := vm.popGet().AsReference().(*value.Channel)
+			channel = reflect.ValueOf(ch.Native)
+		case reflect.SelectDefault:
+		default:
+			panic(fmt.Sprintf("invalid select direction: %d", selectCase.Direction))
+		}
+
+		reflectSelectCases[i] = reflect.SelectCase{
+			Chan: channel,
+			Send: send,
+			Dir:  selectCase.Direction,
+		}
+	}
+
+	chosenCase, val, channelOpen := reflect.Select(reflectSelectCases)
+	if !channelOpen {
+		vm.push(value.Nil)
+		vm.push(value.False.ToValue())
+		vm.push(value.SmallInt(chosenCase).ToValue())
+		return
+	}
+
+	vm.push(val.Interface().(value.Value))
+	vm.push(value.Bool(channelOpen).ToValue())
+	vm.push(value.SmallInt(chosenCase).ToValue())
 }
 
 func (vm *Thread) opLeftBitshiftInt() {

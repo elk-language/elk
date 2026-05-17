@@ -15,11 +15,12 @@ func MapSlice[T, R any](input []T, f func(T) R) []R {
 }
 
 // Iterate over the elements of a slice in reverse order.
-func ReverseSlice[V any](s []V) iter.Seq[V] {
-	return func(yield func(V) bool) {
+func ReverseSlice[V any](s []V) iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
 		for i := range len(s) {
-			v := s[len(s)-i-1]
-			if !yield(v) {
+			j := len(s) - i - 1
+			v := s[j]
+			if !yield(j, v) {
 				return
 			}
 		}

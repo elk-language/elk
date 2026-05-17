@@ -243,9 +243,10 @@ const (
 
 	// Operators start here
 	LABEL_OP_BEG
-	THIN_ARROW   // Thin arrow `->` (closure arrow)
-	WIGGLY_ARROW // Wiggly arrow `~>` (lambda arrow)
-	THICK_ARROW  // Thick arrow `=>`
+	LEFT_THIN_ARROW // Left thin arrow `<-`
+	THIN_ARROW      // Thin arrow `->` (closure arrow)
+	WIGGLY_ARROW    // Wiggly arrow `~>` (lambda arrow)
+	THICK_ARROW     // Thick arrow `=>`
 
 	// Assignment operators start here
 	LABEL_ASSIGN_OP_BEG
@@ -662,6 +663,7 @@ var tokenNames = [...]string{
 	NEWLINE:              "NEWLINE",
 	SEMICOLON:            ";",
 	THICK_ARROW:          "=>",
+	LEFT_THIN_ARROW:      "<-",
 	THIN_ARROW:           "->",
 	WIGGLY_ARROW:         "~>",
 	SHORT_UNQUOTE_BEG:    "!{",

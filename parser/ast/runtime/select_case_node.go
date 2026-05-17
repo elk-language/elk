@@ -20,21 +20,27 @@ func initSelectCaseNode() {
 				return v.AsReference().(ast.StatementNode)
 			}).ToSlice()
 
+			var argOk ast.IdentifierNode
+			if args[3].IsNotUndefined() {
+				argOk = args[3].AsReference().(ast.IdentifierNode)
+			}
+
 			var argLoc *position.Location
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[3].Pointer())
+				argLoc = (*position.Location)(args[4].Pointer())
 			}
 			self := ast.NewSelectCaseNode(
 				argLoc,
 				argExpr,
+				argOk,
 				argBody,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(4),
 	)
 
 	vm.Def(
@@ -45,6 +51,19 @@ func initSelectCaseNode() {
 			result := value.Ref(self.Expression)
 			return result, value.Undefined
 
+		},
+	)
+
+	vm.Def(
+		c,
+		"ok_var",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SelectCaseNode)
+			if self.OkVar == nil {
+				return value.Nil, value.Undefined
+			}
+
+			return value.Ref(self.OkVar), value.Undefined
 		},
 	)
 

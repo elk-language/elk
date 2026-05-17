@@ -2105,6 +2105,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.GREATER)
 		case '<':
+			if l.matchChar('-') {
+				return l.token(token.LEFT_THIN_ARROW)
+			}
 			if l.acceptChar('.') {
 				if l.acceptNextChar('.') {
 					l.advanceChars(2)

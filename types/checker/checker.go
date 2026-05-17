@@ -6514,7 +6514,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, location *positi
 
 // Get the type with the given name
 func (c *Checker) resolveType(name string, location *position.Location) (types.Type, string) {
-	for constScope := range ds.ReverseSlice(c.constantScopes) {
+	for _, constScope := range ds.ReverseSlice(c.constantScopes) {
 		constant, ok := constScope.container.SubtypeString(name)
 		if !ok {
 			continue
@@ -7701,6 +7701,19 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 	for _, caseNode := range node.Cases {
 		c.pushConditionalLocalEnv(true)
 		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
+		if caseNode.OkVar != nil {
+			var okVarName string
+			switch s := caseNode.OkVar.(type) {
+			case *ast.PublicIdentifierNode:
+				okVarName = s.Value
+			case *ast.PrivateIdentifierNode:
+				okVarName = s.Value
+			default:
+				panic(fmt.Sprintf("invalid ok variable name in select case: %T", caseNode.OkVar))
+			}
+
+			c.addLocal(okVarName, newLocal(types.Bool{}, true, true))
+		}
 		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
 		c.popLocalEnv()
@@ -7898,6 +7911,9 @@ func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) 
 			node.Location(),
 		)
 	}
+
+	channelVal := rightType.(*types.Generic).Get(0).Type
+	node.SetType(c.ToNilable(channelVal))
 
 	return node
 }

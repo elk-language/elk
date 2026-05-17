@@ -158,6 +158,20 @@ func NewOpenClosureError(closureVMID, VMID int64, closureInspect string) *Object
 	)
 }
 
+func NewPatternNotMatchedInVariableDeclarationError() *Object {
+	return NewError(
+		PatternNotMatchedErrorClass,
+		"assigned value does not match the pattern defined in variable declaration",
+	)
+}
+
+func NewPatternNotMatchedInValueDeclarationError() *Object {
+	return NewError(
+		PatternNotMatchedErrorClass,
+		"assigned value does not match the pattern defined in value declaration",
+	)
+}
+
 // Create a new error that signals that
 // the given index is out of range.
 func NewIndexOutOfRangeError(index string, length int) *Object {

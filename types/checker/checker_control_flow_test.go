@@ -635,7 +635,7 @@ func TestSelectExpression(t *testing.T) {
 				ch := Channel::[Int]()
 				select
 				case <<ch
-					puts "sent"
+					puts "read"
 				end
 			`,
 		},
@@ -644,7 +644,7 @@ func TestSelectExpression(t *testing.T) {
 				list := [1]
 				select
 				case <<list
-					puts "sent"
+					puts "read"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -656,7 +656,7 @@ func TestSelectExpression(t *testing.T) {
 				a := 5
 				select
 				case +a
-					puts "sent"
+					puts "read"
 				end
 			`,
 			err: diagnostic.DiagnosticList{
@@ -666,12 +666,39 @@ func TestSelectExpression(t *testing.T) {
 		"can pop from a channel and assign to a variable": {
 			input: `
 				ch := Channel::[Int]()
-				v := 5
+				var v: Int? = 5
 				select
 				case v = <<ch
+					puts "read"
+				end
+			`,
+		},
+		"can pop from a channel and assign to a variable with ok": {
+			input: `
+				ch := Channel::[Int]()
+				var v: Int? = 5
+				select
+				case v = <<ch, ok
+					var a: never = ok
+					puts "read"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(101, 6, 21), P(102, 6, 22)), "type `bool` cannot be assigned to type `never`"),
+			},
+		},
+		"popped value is nilable": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case v := <<ch
+					var a: never = v
 					puts "sent"
 				end
 			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(78, 5, 21), P(78, 5, 21)), "type `Std::Int?` cannot be assigned to type `never`"),
+			},
 		},
 		"can pop from a channel and short declare a variable": {
 			input: `

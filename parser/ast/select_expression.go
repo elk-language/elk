@@ -180,14 +180,25 @@ func (n *SelectExpressionNode) Error() string {
 type SelectCaseNode struct {
 	NodeBase
 	Expression ExpressionNode
+	OkVar      IdentifierNode
 	Body       []StatementNode
 }
 
 func (n *SelectCaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	expr := n.Expression.splice(loc, args, unquote).(ExpressionNode)
+
+	var okVar IdentifierNode
+	if n.OkVar != nil {
+		okVar = n.OkVar.splice(loc, args, unquote).(IdentifierNode)
+	}
+
+	body := SpliceSlice(n.Body, loc, args, unquote)
+
 	return &SelectCaseNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
-		Body:       SpliceSlice(n.Body, loc, args, unquote),
+		OkVar:      okVar,
+		Expression: expr,
+		Body:       body,
 	}
 }
 
@@ -205,6 +216,12 @@ func (n *SelectCaseNode) traverse(parent Node, enter func(node, parent Node) Tra
 
 	if n.Expression.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
+	}
+
+	if n.OkVar != nil {
+		if n.OkVar.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
 	}
 
 	for _, stmt := range n.Body {
@@ -226,6 +243,13 @@ func (n *SelectCaseNode) Equal(other value.Value) bool {
 		return false
 	}
 
+	if n.OkVar == o.OkVar {
+	} else if n.OkVar == nil || o.OkVar == nil {
+		return false
+	} else if !n.OkVar.Equal(value.Ref(o.OkVar)) {
+		return false
+	}
+
 	if len(n.Body) != len(o.Body) {
 		return false
 	}
@@ -244,6 +268,10 @@ func (n *SelectCaseNode) String() string {
 
 	buff.WriteString("case ")
 	buff.WriteString(n.Expression.String())
+	if n.OkVar != nil {
+		buff.WriteString(", ")
+		buff.WriteString(n.OkVar.String())
+	}
 	buff.WriteRune('\n')
 
 	for _, stmt := range n.Body {
@@ -274,6 +302,13 @@ func (n *SelectCaseNode) Inspect() string {
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)
 
+	buff.WriteString(",\n  ok_var: ")
+	if n.OkVar == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.OkVar.Inspect(), 1)
+	}
+
 	buff.WriteString(",\n  body: %[\n")
 	for i, element := range n.Body {
 		if i != 0 {
@@ -297,10 +332,11 @@ func (n *SelectCaseNode) Error() string {
 }
 
 // Create a new select `case` node
-func NewSelectCaseNode(loc *position.Location, expr ExpressionNode, body []StatementNode) *SelectCaseNode {
+func NewSelectCaseNode(loc *position.Location, expr ExpressionNode, okVar IdentifierNode, body []StatementNode) *SelectCaseNode {
 	return &SelectCaseNode{
 		NodeBase:   NodeBase{loc: loc},
 		Expression: expr,
+		OkVar:      okVar,
 		Body:       body,
 	}
 }

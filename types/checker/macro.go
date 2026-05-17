@@ -187,7 +187,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 }
 
 func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
-	for methodScope := range ds.ReverseSlice(c.methodScopes) {
+	for _, methodScope := range ds.ReverseSlice(c.methodScopes) {
 		macro := c.resolveMacroForNamespace(methodScope.container, name)
 		if macro != nil {
 			return macro

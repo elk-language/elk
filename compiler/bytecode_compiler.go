@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"slices"
 	"strconv"
 
@@ -1166,7 +1167,7 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		c.compileYieldExpressionNode(node)
 		return expressionCompiledWithoutResult
 	case *ast.VariablePatternDeclarationNode:
-		c.compilerVariablePatternDeclarationNode(node)
+		c.compileVariablePatternDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
 		return c.compileVariableDeclarationNode(node, valueIsIgnored)
 	case *ast.ValuePatternDeclarationNode:
@@ -4461,44 +4462,179 @@ func (c *BytecodeCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressio
 }
 
 func (c *BytecodeCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode, valueIsIgnored bool) expressionResult {
-	// TODO: Select
-	return expressionCompiled
-	// location := node.Location()
+	caseLength := len(node.Cases)
+	if len(node.ElseBody) > 0 {
+		caseLength++
+	}
+	selectCases := make([]vm.SelectCase, caseLength)
 
-	// c.enterScope("", defaultBytecodeScopeType)
+	for i, caseNode := range node.Cases {
+		c.compileSelectChannel(caseNode.Expression, &selectCases[i])
+	}
 
-	// var jumpToEndOffsets []int
+	if len(node.ElseBody) > 0 {
+		selectCases[len(selectCases)-1] = vm.SelectCase{
+			Direction: reflect.SelectDefault,
+		}
+	}
 
-	// for _, caseNode := range node.Cases {
-	// 	c.enterScope("", defaultBytecodeScopeType)
+	selectData := vm.NewSelect(selectCases)
+	c.emitValue(selectData.ToValue(), node.Location())
+	c.emit(node.Location().StartPos.Line, bytecode.SELECT)
 
-	// 	caseSpan := caseNode.Location()
-	// 	c.pattern(caseNode.Pattern)
+	var jumpToEndOffsets []int
 
-	// 	jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
+	prevCaseJumpOffset := -1
+	for i, caseNode := range node.Cases {
+		caseLoc := caseNode.Location()
 
-	// 	c.emit(caseSpan.StartPos.Line, bytecode.POP)
+		if prevCaseJumpOffset != -1 {
+			c.patchJump(prevCaseJumpOffset, caseLoc)
+		}
+		c.emit(caseLoc.StartPos.Line, bytecode.DUP)                                      // duplicate the chosen case index
+		c.emitSmallInt(value.SmallInt(i), caseLoc)                                       // index of the checked case
+		prevCaseJumpOffset = c.emitJump(caseLoc.StartPos.Line, bytecode.JUMP_UNLESS_IEQ) // jump to next case if no index match
 
-	// 	c.compileStatements(caseNode.Body, caseSpan, valueIsIgnored)
+		c.emit(caseLoc.StartPos.Line, bytecode.POP) // pop the chosen case index
 
-	// 	c.leaveScopeWithoutMutating(caseSpan.EndPos.Line)
+		if caseNode.OkVar != nil {
+			var okVarName string
+			switch o := caseNode.OkVar.(type) {
+			case *ast.PublicIdentifierNode:
+				okVarName = o.Value
+			case *ast.PrivateIdentifierNode:
+				okVarName = o.Value
+			default:
+				panic(fmt.Sprintf("invalid ok variable name in select case: %T", caseNode.OkVar))
+			}
 
-	// 	jumpToEndOffset := c.emitJump(caseSpan.EndPos.Line, bytecode.JUMP)
-	// 	jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+			okVar := c.defineLocal(okVarName, caseNode.OkVar.Location())
+			if okVar != nil {
+				c.emitSetLocalPop(caseNode.OkVar.Location().StartPos.Line, okVar.index)
+			}
+		} else {
+			c.emit(caseLoc.EndPos.Line, bytecode.POP) // pop ok
+		}
 
-	// 	c.patchJump(jumpOverBodyOffset, caseSpan)
-	// 	c.leaveScope(caseSpan.EndPos.Line)
-	// }
+		c.enterScope("", defaultBytecodeScopeType)
+		c.compileSelectCaseExpression(caseNode.Expression)
 
-	// c.emit(location.StartPos.Line, bytecode.POP)
-	// c.compileStatements(node.ElseBody, location, valueIsIgnored)
+		c.compileStatements(caseNode.Body, caseLoc, valueIsIgnored)
 
-	// for _, offset := range jumpToEndOffsets {
-	// 	c.patchJump(offset, location)
-	// }
+		c.leaveScopeWithoutMutating(caseLoc.EndPos.Line)
+		jumpToEndOffset := c.emitJump(caseLoc.EndPos.Line, bytecode.JUMP)
+		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
 
-	// c.leaveScope(location.EndPos.Line)
-	// return valueIgnoredToResult(valueIsIgnored)
+		c.leaveScope(caseLoc.EndPos.Line)
+	}
+
+	if len(node.ElseBody) > 0 {
+		c.emit(node.Location().StartPos.Line, bytecode.POP) // pop the chosen case index
+		c.emit(node.Location().StartPos.Line, bytecode.POP) // pop ok
+
+		if prevCaseJumpOffset != -1 {
+			c.patchJump(prevCaseJumpOffset, node.Location())
+		}
+
+		c.enterScope("", defaultBytecodeScopeType)
+		c.compileStatements(node.ElseBody, node.Location(), valueIsIgnored)
+		c.leaveScope(node.Location().EndPos.Line)
+	} else if prevCaseJumpOffset != -1 {
+		c.patchJump(prevCaseJumpOffset, node.Location())
+	}
+
+	selectData.Cases = selectCases
+
+	for _, offset := range jumpToEndOffsets {
+		c.patchJump(offset, node.Location())
+	}
+
+	return valueIgnoredToResult(valueIsIgnored)
+}
+
+func (c *BytecodeCompiler) compileSelectChannel(node ast.ExpressionNode, vmCase *vm.SelectCase) {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode:
+		if node.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid unary op in select case: %s", node.Op.String()))
+		}
+		vmCase.Direction = reflect.SelectRecv
+		c.compileNodeWithResult(node.Right)
+	case *ast.AssignmentExpressionNode:
+		switch node.Op.Type {
+		case token.EQUAL_OP, token.COLON_EQUAL:
+		default:
+			panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))
+		}
+		c.compileSelectChannel(node.Right, vmCase)
+	case *ast.VariableDeclarationNode:
+		if node.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		c.compileSelectChannel(node.Initialiser, vmCase)
+	case *ast.ValueDeclarationNode:
+		if node.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		c.compileSelectChannel(node.Initialiser, vmCase)
+	case *ast.VariablePatternDeclarationNode:
+		if node.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		c.compileSelectChannel(node.Initialiser, vmCase)
+	case *ast.ValuePatternDeclarationNode:
+		if node.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		c.compileSelectChannel(node.Initialiser, vmCase)
+	case *ast.BinaryExpressionNode:
+		if node.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid binary op in select case: %s", node.Op.String()))
+		}
+		vmCase.Direction = reflect.SelectSend
+		c.compileNodeWithResult(node.Left)
+		c.compileNodeWithResult(node.Right)
+	default:
+		panic(fmt.Sprintf("invalid select case expression: %T", node))
+	}
+}
+
+func (c *BytecodeCompiler) compileSelectCaseExpression(node ast.ExpressionNode) {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode, *ast.BinaryExpressionNode:
+		c.emit(node.Location().StartPos.Line, bytecode.POP)
+	case *ast.AssignmentExpressionNode:
+		name := identifierToName(node.Left.(ast.IdentifierNode))
+		switch node.Op.Type {
+		case token.EQUAL_OP:
+			c.setLocalWithoutValue(
+				name,
+				node.Location(),
+				true,
+			)
+		case token.COLON_EQUAL:
+			local := c.defineLocal(name, nil)
+			c.emitSetLocal(node.Location().StartPos.Line, local.index, true)
+		default:
+			panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))
+		}
+	case *ast.VariableDeclarationNode:
+		local := c.defineLocal(identifierToName(node.Name), node.Location())
+		if local != nil {
+			c.emitSetLocal(node.Location().StartPos.Line, local.index, true)
+		}
+	case *ast.ValueDeclarationNode:
+		local := c.defineLocal(identifierToName(node.Name), node.Location())
+		if local != nil {
+			c.emitSetLocal(node.Location().StartPos.Line, local.index, true)
+		}
+	case *ast.VariablePatternDeclarationNode:
+		c.compileVariablePatternDeclarationWithoutValue(node.Pattern, node.Location())
+	case *ast.ValuePatternDeclarationNode:
+		c.compileValuePatternDeclarationWithoutValue(node.Pattern, node.Location())
+	default:
+		panic(fmt.Sprintf("invalid select case expression: %T", node))
+	}
 }
 
 func (c *BytecodeCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode) {
@@ -4927,47 +5063,47 @@ func (c *BytecodeCompiler) compileClassDeclarationNode(node *ast.ClassDeclaratio
 }
 
 func (c *BytecodeCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) {
+	c.compileNodeWithResult(node.Initialiser)
+	c.compileValuePatternDeclarationWithoutValue(node.Pattern, node.Location())
+}
+
+func (c *BytecodeCompiler) compileValuePatternDeclarationWithoutValue(pattern ast.PatternNode, loc *position.Location) {
 	previousMode := c.mode
 	c.mode = valuePatternDeclarationBytecodeCompilerMode
 	defer func() {
 		c.mode = previousMode
 	}()
 
-	location := node.Location()
-	c.compileNodeWithResult(node.Initialiser)
-	c.pattern(node.Pattern)
+	c.pattern(pattern)
 
-	jumpOverErrorOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
+	jumpOverErrorOffset := c.emitJump(loc.StartPos.Line, bytecode.JUMP_IF)
 
 	c.emitValue(
-		value.Ref(value.NewError(
-			value.PatternNotMatchedErrorClass,
-			"assigned value does not match the pattern defined in value declaration",
-		)),
-		location,
+		value.NewPatternNotMatchedInValueDeclarationError().ToValue(),
+		loc,
 	)
-	c.emit(location.EndPos.Line, bytecode.THROW)
+	c.emit(loc.EndPos.Line, bytecode.THROW)
 
-	c.patchJump(jumpOverErrorOffset, location)
+	c.patchJump(jumpOverErrorOffset, loc)
 }
 
-func (c *BytecodeCompiler) compilerVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
-	location := node.Location()
+func (c *BytecodeCompiler) compileVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) {
 	c.compileNodeWithResult(node.Initialiser)
-	c.pattern(node.Pattern)
+	c.compileVariablePatternDeclarationWithoutValue(node.Pattern, node.Location())
+}
 
-	jumpOverErrorOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP_IF)
+func (c *BytecodeCompiler) compileVariablePatternDeclarationWithoutValue(pattern ast.PatternNode, loc *position.Location) {
+	c.pattern(pattern)
+
+	jumpOverErrorOffset := c.emitJump(loc.StartPos.Line, bytecode.JUMP_IF)
 
 	c.emitValue(
-		value.Ref(value.NewError(
-			value.PatternNotMatchedErrorClass,
-			"assigned value does not match the pattern defined in variable declaration",
-		)),
-		location,
+		value.NewPatternNotMatchedInVariableDeclarationError().ToValue(),
+		loc,
 	)
-	c.emit(location.EndPos.Line, bytecode.THROW)
+	c.emit(loc.EndPos.Line, bytecode.THROW)
 
-	c.patchJump(jumpOverErrorOffset, location)
+	c.patchJump(jumpOverErrorOffset, loc)
 }
 
 func (c *BytecodeCompiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode, valueIsIgnored bool) expressionResult {

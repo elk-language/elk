@@ -4,6 +4,7 @@
 package vm
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sync/atomic"
@@ -62,6 +63,13 @@ func init() {
 var stopIterationSymbol = value.ToSymbol("stop_iteration")
 
 type Option func(*Thread) // constructor option function
+
+// Assign a context to the thread
+func WithContext(ctx context.Context) Option {
+	return func(vm *Thread) {
+		vm.ctx = ctx
+	}
+}
 
 // Assign the given io.Reader as the Stdin of the VM.
 func WithStdin(stdin io.Reader) Option {
