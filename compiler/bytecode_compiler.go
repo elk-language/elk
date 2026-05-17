@@ -4551,9 +4551,13 @@ func (c *BytecodeCompiler) compileSelectExpressionNode(node *ast.SelectExpressio
 
 		c.compileStatements(caseNode.Body, caseLoc, valueIsIgnored)
 
-		c.leaveScopeWithoutMutating(caseLoc.EndPos.Line)
-		jumpToEndOffset := c.emitJump(caseLoc.EndPos.Line, bytecode.JUMP)
-		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+		if i < len(node.Cases)-1 || i == len(node.Cases)-1 && len(node.ElseBody) != 0 {
+			c.leaveScopeWithoutMutating(caseLoc.EndPos.Line)
+
+			jumpToEndOffset := c.emitJump(caseLoc.EndPos.Line, bytecode.JUMP)
+			jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+
+		}
 
 		c.leaveScope(caseLoc.EndPos.Line)
 	}
