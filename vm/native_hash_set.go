@@ -250,7 +250,7 @@ func (h *NativeHashSet[V]) Remove(other V) (removed bool) {
 func (h *NativeHashSet[V]) RemoveVal(thread *Thread, other value.Value) (removed bool, err value.Value) {
 	o, ok := value.Downcast[V](other)
 	if !ok {
-		return false, value.NewInvalidElementInTypedSet(h, o.Class()).ToValue()
+		return false, value.NewInvalidElementInTypedSet(h, other.Class()).ToValue()
 	}
 	return h.Remove(o), value.Undefined
 }

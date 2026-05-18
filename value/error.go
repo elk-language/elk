@@ -525,6 +525,15 @@ func NewInvalidKeyInTypedMap(m any, elementClass *Class) *Object {
 	)
 }
 
+func NewInvalidValueInChannel(ch any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot send value of type %s in a typed channel %[2]T, %[2]s",
+		elementClass.Inspect(),
+		ch,
+	)
+}
+
 func NewInvalidValueInTypedPair(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,

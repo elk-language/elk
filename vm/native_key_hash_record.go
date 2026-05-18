@@ -120,7 +120,7 @@ func (h NativeKeyHashRecord[K]) GetVal(thread *Thread, key value.Value) (value.V
 func (h NativeKeyHashRecord[K]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 	h[k] = val
 	return value.Undefined

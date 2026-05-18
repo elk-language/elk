@@ -15,7 +15,7 @@ func initAborter() {
 		c,
 		"closed",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			ch := value.NewChannel(0)
+			ch := value.NewChannelOfValue(0)
 			ch.Close()
 			return value.Ref(ch), value.Undefined
 		},
@@ -27,7 +27,7 @@ func initAborter() {
 		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
@@ -35,7 +35,7 @@ func initAborter() {
 		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
@@ -43,7 +43,7 @@ func initAborter() {
 		c,
 		"left_capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
@@ -67,7 +67,7 @@ func initAborter() {
 		c,
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			err := self.PushCtx(vm.Aborter.Context(), args[1])
 			if err.IsUndefined() {
 				return value.Ref(self), value.Undefined
@@ -82,7 +82,7 @@ func initAborter() {
 		c,
 		"pop",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			result, ok, err := self.PopCtx(vm.Aborter.Context())
 			if err.IsNotUndefined() {
 				return value.Undefined, err
@@ -99,7 +99,7 @@ func initAborter() {
 		c,
 		"close",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			err := self.Close()
 			if err.IsUndefined() {
 				return value.Nil, value.Undefined
@@ -113,7 +113,7 @@ func initAborter() {
 		c,
 		"next",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := (*value.ChannelOfValue)(args[0].Pointer())
 			return self.NextValueCtx(vm.Aborter.Context())
 		},
 	)

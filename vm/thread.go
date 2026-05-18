@@ -3569,6 +3569,7 @@ func (vm *Thread) opCheckAbort() value.Value {
 
 func (vm *Thread) opSelect() value.Value {
 	selectData := (*Select)(vm.popGet().Pointer())
+	channels := make([]value.Channel, len(selectData.Cases))
 	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases)+1)
 
 	reflectSelectCases[0] = reflect.SelectCase{
@@ -3582,14 +3583,16 @@ func (vm *Thread) opSelect() value.Value {
 
 		switch selectCase.Direction {
 		case reflect.SelectRecv:
-			ch := vm.popGet().AsReference().(*value.Channel)
-			channel = reflect.ValueOf(ch.Native)
+			ch := vm.popGet().AsReference().(value.Channel)
+			channels[i] = ch
+			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectSend:
 			val := vm.popGet()
 			send = reflect.ValueOf(val)
 
-			ch := vm.popGet().AsReference().(*value.Channel)
-			channel = reflect.ValueOf(ch.Native)
+			ch := vm.popGet().AsReference().(value.Channel)
+			channels[i] = ch
+			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectDefault:
 		default:
 			panic(fmt.Sprintf("invalid select direction: %d", selectCase.Direction))
@@ -3602,20 +3605,45 @@ func (vm *Thread) opSelect() value.Value {
 		}
 	}
 
-	chosenCase, val, channelOpen := reflect.Select(reflectSelectCases)
-	if chosenCase == 0 {
+	chosenCaseIndex, val, channelOpen := reflect.Select(reflectSelectCases)
+	if chosenCaseIndex == 0 {
 		return value.NewExecutionAbortedError().ToValue()
 	}
 
-	chosenCase--
+	chosenCaseIndex--
+	chosenCase := selectData.Cases[chosenCaseIndex]
+	chosenChannel := channels[chosenCaseIndex]
+
 	if !channelOpen {
 		vm.push(value.Nil)
 		vm.push(value.False.ToValue())
-		vm.push(value.SmallInt(chosenCase).ToValue())
-	} else {
+		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
+		return value.Undefined
+	}
+
+	if chosenCase.Direction != reflect.SelectRecv {
+		vm.push(value.Nil)
+		vm.push(value.Bool(channelOpen).ToValue())
+		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
+		return value.Undefined
+	}
+
+	if chosenChannel != nil && chosenChannel.IsTransformerChannel() {
+		vm.push(chosenChannel.TransformToValue(val.Interface()))
+		vm.push(value.Bool(channelOpen).ToValue())
+		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
+		return value.Undefined
+	}
+
+	switch chosenChannel.(type) {
+	case *value.ChannelOfValue:
 		vm.push(val.Interface().(value.Value))
 		vm.push(value.Bool(channelOpen).ToValue())
-		vm.push(value.SmallInt(chosenCase).ToValue())
+		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
+	default:
+		vm.push(val.Interface().(value.ValueInterface).ToValue())
+		vm.push(value.Bool(channelOpen).ToValue())
+		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 	}
 
 	return value.Undefined

@@ -9,17 +9,17 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestChannelClose(t *testing.T) {
+func TestChannelOfValueClose(t *testing.T) {
 	opts := comparer.Options()
 
-	ch := value.NewChannel(0)
+	ch := value.NewChannelOfValue(0)
 	got := ch.Close()
 	if !got.IsUndefined() {
 		t.Logf("got an error when closing an open channel: %s", got.Inspect())
 		t.Fail()
 	}
 
-	ch = value.NewChannel(0)
+	ch = value.NewChannelOfValue(0)
 	ch.Close()
 	got = ch.Close()
 	want := value.Ref(value.NewError(value.ChannelClosedErrorClass, "cannot close a closed channel"))
@@ -29,10 +29,10 @@ func TestChannelClose(t *testing.T) {
 	}
 }
 
-func TestChannelPush(t *testing.T) {
+func TestChannelOfValuePush(t *testing.T) {
 	opts := comparer.Options()
 
-	ch := value.NewChannel(2)
+	ch := value.NewChannelOfValue(2)
 	got := ch.Push(value.True.ToValue())
 	if !got.IsUndefined() {
 		t.Logf("got an error when pushing to an open channel: %s", got.Inspect())
@@ -50,7 +50,7 @@ func TestChannelPush(t *testing.T) {
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	ch.Close()
 	got = ch.Push(value.Nil)
 	want = value.Ref(value.NewError(value.ChannelClosedErrorClass, "cannot push values to a closed channel"))
@@ -60,10 +60,10 @@ func TestChannelPush(t *testing.T) {
 	}
 }
 
-func TestChannelPop(t *testing.T) {
+func TestChannelOfValuePop(t *testing.T) {
 	opts := comparer.Options()
 
-	ch := value.NewChannel(2)
+	ch := value.NewChannelOfValue(2)
 	ch.Push(value.SmallInt(5).ToValue())
 
 	got, gotOk := ch.Pop()
@@ -77,7 +77,7 @@ func TestChannelPop(t *testing.T) {
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	ch.Close()
 	_, gotOk = ch.Pop()
 	if gotOk {
@@ -86,10 +86,10 @@ func TestChannelPop(t *testing.T) {
 	}
 }
 
-func TestChannelNext(t *testing.T) {
+func TestChannelOfValueNext(t *testing.T) {
 	opts := comparer.Options()
 
-	ch := value.NewChannel(2)
+	ch := value.NewChannelOfValue(2)
 	ch.Push(value.SmallInt(5).ToValue())
 
 	got, gotErr := ch.NextValue()
@@ -104,7 +104,7 @@ func TestChannelNext(t *testing.T) {
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	ch.Close()
 	_, gotErr = ch.NextValue()
 	wantErr = symbol.L_stop_iteration.ToValue()
@@ -114,20 +114,20 @@ func TestChannelNext(t *testing.T) {
 	}
 }
 
-func TestChannelLength(t *testing.T) {
-	ch := value.NewChannel(0)
+func TestChannelOfValueLength(t *testing.T) {
+	ch := value.NewChannelOfValue(0)
 	if got := ch.Length(); got != 0 {
 		t.Logf("got wrong length for an unbuffered channel: %d", got)
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	if got := ch.Length(); got != 0 {
 		t.Logf("got wrong length for an empty channel: %d", got)
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	ch.Push(value.SmallInt(5).ToValue())
 	if got := ch.Length(); got != 1 {
 		t.Logf("got wrong length for channel with 1 element: %d", got)
@@ -135,20 +135,20 @@ func TestChannelLength(t *testing.T) {
 	}
 }
 
-func TestChannelCapacity(t *testing.T) {
-	ch := value.NewChannel(0)
+func TestChannelOfValueCapacity(t *testing.T) {
+	ch := value.NewChannelOfValue(0)
 	if got := ch.Capacity(); got != 0 {
 		t.Logf("got wrong cap for an unbuffered channel: %d", got)
 		t.Fail()
 	}
 
-	ch = value.NewChannel(2)
+	ch = value.NewChannelOfValue(2)
 	if got := ch.Capacity(); got != 2 {
 		t.Logf("got wrong length for channel with 2 slots: %d", got)
 		t.Fail()
 	}
 
-	ch = value.NewChannel(5)
+	ch = value.NewChannelOfValue(5)
 	ch.Push(value.SmallInt(5).ToValue())
 	if got := ch.Capacity(); got != 5 {
 		t.Logf("got wrong length for channel with 5 slots: %d", got)

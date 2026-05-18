@@ -158,7 +158,7 @@ func (h *NativeKeyHashMap[K]) Set(key K, val value.Value) {
 func (h *NativeKeyHashMap[K]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 
 	h.m[k] = val
