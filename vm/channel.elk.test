@@ -1,0 +1,148 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+using Std::Sync::WaitGroup
+using Std::Sync::WaitGroup::spawn!
+
+describe "Channel", ->
+
+	context "select", ->
+		should "trigger the case for available buffered channel", ->
+			ch1 := Channel::[Int](5)
+			ch2 := Channel::[Int]()
+
+			ch1 << 9
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.must + 3
+			case v := <<ch2
+				result = v.must * 2
+			end
+
+			assert! result == 12
+		end
+
+		should "wait and trigger the read case for available channel", ->
+			ch1 := Channel::[Int](5)
+			ch2 := Channel::[Int](5)
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.must + 3
+			case v := <<ch2
+				result = v.must * 2
+			end
+
+			wg.wait
+
+			assert! result == 6
+		end
+
+		should "wait and trigger the write case for available channel", ->
+			ch1 := Channel::[Int]()
+			ch2 := Channel::[Int]()
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				<<ch1
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				<<ch2
+			end
+
+			var result: Int?
+			select
+			case ch1 << 420
+				result = 420
+			case ch2 << 69
+				result = 69
+			end
+
+			ch1 << -1
+			wg.wait
+
+			assert! result == 69
+		end
+
+		should "trigger default case", ->
+			ch1 := Channel::[Int](5)
+			ch2 := Channel::[Int](5)
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.must + 3
+			case v := <<ch2
+				result = v.must * 2
+			else
+				result = -420
+			end
+
+			wg.wait
+
+			assert! result == -420
+		end
+
+		should "trigger send case when no reader is available", ->
+			ch1 := Channel::[Int]()
+			ch2 := Channel::[Int](5)
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				<<ch1
+			end
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case ch1 << 9
+				result = 69
+			case v := <<ch2
+				result = v.must * 2
+			end
+
+			wg.wait
+
+			assert! result == 69
+		end
+
+
+	end
+
+end

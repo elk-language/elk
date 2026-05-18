@@ -192,11 +192,11 @@ func MakeTimeSpan(hours, mins, secs, millisecs, microsecs, nsecs int) TimeSpan {
 }
 
 func DurationSince(t DateTime) TimeSpan {
-	return TimeSpan(time.Since(t.Go))
+	return TimeSpan(time.Since(t.native))
 }
 
 func DurationUntil(t DateTime) TimeSpan {
-	return TimeSpan(time.Until(t.Go))
+	return TimeSpan(time.Until(t.native))
 }
 
 func (t TimeSpan) ToTime() Time {
@@ -242,7 +242,7 @@ func (t TimeSpan) LessThanEqual(other TimeSpan) bool {
 	return t <= other
 }
 
-func (t TimeSpan) Go() time.Duration {
+func (t TimeSpan) Native() time.Duration {
 	return time.Duration(t)
 }
 
@@ -358,7 +358,7 @@ func (t TimeSpan) Add(other Value) (Value, Value) {
 }
 
 func (t TimeSpan) AddTimeSpan(other TimeSpan) TimeSpan {
-	return TimeSpan(t.Go() + other.Go())
+	return TimeSpan(t.Native() + other.Native())
 }
 
 func (t TimeSpan) AddDateSpan(other DateSpan) *DateTimeSpan {
@@ -396,7 +396,7 @@ func (t TimeSpan) Subtract(other Value) (Value, Value) {
 }
 
 func (t TimeSpan) SubtractTimeSpan(other TimeSpan) TimeSpan {
-	return TimeSpan(t.Go() - other.Go())
+	return TimeSpan(t.Native() - other.Native())
 }
 
 func (t TimeSpan) SubtractDateSpan(other DateSpan) *DateTimeSpan {
@@ -525,39 +525,39 @@ func (t TimeSpan) DivideBigFloat(other *BigFloat) (TimeSpan, Value) {
 }
 
 func (t TimeSpan) TotalNanoseconds() Value {
-	return ToElkInt(t.Go().Nanoseconds())
+	return ToElkInt(t.Native().Nanoseconds())
 }
 
 func (t TimeSpan) Nanoseconds() int {
-	return int(t.Go().Nanoseconds() % 1000)
+	return int(t.Native().Nanoseconds() % 1000)
 }
 
 func (t TimeSpan) InNanoseconds() Float {
-	return Float(t.Go().Nanoseconds())
+	return Float(t.Native().Nanoseconds())
 }
 
 func (t TimeSpan) TotalMicroseconds() Value {
-	return ToElkInt(t.Go().Microseconds())
+	return ToElkInt(t.Native().Microseconds())
 }
 
 func (t TimeSpan) Microseconds() int {
-	return int(t.Go().Microseconds() % 1000)
+	return int(t.Native().Microseconds() % 1000)
 }
 
 func (t TimeSpan) InMicroseconds() Float {
-	return Float(t.Go().Microseconds())
+	return Float(t.Native().Microseconds())
 }
 
 func (t TimeSpan) TotalMilliseconds() Value {
-	return ToElkInt(t.Go().Milliseconds())
+	return ToElkInt(t.Native().Milliseconds())
 }
 
 func (t TimeSpan) Milliseconds() int {
-	return int(t.Go().Milliseconds() % 1000)
+	return int(t.Native().Milliseconds() % 1000)
 }
 
 func (t TimeSpan) InMilliseconds() Float {
-	return Float(t.Go().Milliseconds())
+	return Float(t.Native().Milliseconds())
 }
 
 func (t TimeSpan) TotalSeconds() Value {
@@ -569,7 +569,7 @@ func (t TimeSpan) Seconds() int {
 }
 
 func (t TimeSpan) InSeconds() Float {
-	return Float(t.Go().Seconds())
+	return Float(t.Native().Seconds())
 }
 
 func (t TimeSpan) TotalMinutes() Value {
@@ -581,7 +581,7 @@ func (t TimeSpan) Minutes() int {
 }
 
 func (t TimeSpan) InMinutes() Float {
-	return Float(t.Go().Minutes())
+	return Float(t.Native().Minutes())
 }
 
 func (t TimeSpan) TotalHours() Value {
@@ -593,7 +593,7 @@ func (t TimeSpan) Hours() int {
 }
 
 func (t TimeSpan) InHours() Float {
-	return Float(t.Go().Hours())
+	return Float(t.Native().Hours())
 }
 
 func (t TimeSpan) TotalDays() Value {

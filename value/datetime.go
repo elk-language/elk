@@ -26,7 +26,7 @@ const (
 
 // Elk's DateTime value
 type DateTime struct {
-	Go time.Time
+	native time.Time
 }
 
 func (t *DateTime) Copy() Reference {
@@ -65,15 +65,19 @@ func (t DateTime) InstanceVariables() *InstanceVariables {
 }
 
 func ToElkDateTime(time time.Time) *DateTime {
-	return &DateTime{Go: time}
+	return &DateTime{native: time}
 }
 
 func ToElkDateTimeValue(time time.Time) DateTime {
-	return DateTime{Go: time}
+	return DateTime{native: time}
 }
 
 func (t DateTime) ToString() String {
 	return String(t.String())
+}
+
+func (t DateTime) ToNativeTime() time.Time {
+	return t.native
 }
 
 func (t DateTime) String() string {
@@ -115,7 +119,7 @@ func MakeDateTime(year, month, day, hour, min, sec, millisec, microsec, nsec int
 	}
 
 	return DateTime{
-		Go: time.Date(
+		native: time.Date(
 			year,
 			time.Month(month),
 			day,
@@ -152,8 +156,8 @@ func (t *DateTime) Time() Time {
 }
 
 func (t *DateTime) InZone(zone *Timezone) *DateTime {
-	time := t.Go.In(zone.ToGoLocation())
-	return &DateTime{Go: time}
+	time := t.native.In(zone.ToGoLocation())
+	return &DateTime{native: time}
 }
 
 func (t *DateTime) WithZone(zone *Timezone) *DateTime {
@@ -201,7 +205,7 @@ func (t *DateTime) AddDateTimeSpan(val *DateTimeSpan) *DateTime {
 }
 
 func (t *DateTime) AddTimeSpan(val TimeSpan) *DateTime {
-	return ToElkDateTime(t.Go.Add(val.Go()))
+	return ToElkDateTime(t.native.Add(val.Native()))
 }
 
 func daysOfMonth(year, month int) int {
@@ -269,7 +273,7 @@ func (t *DateTime) SubtractDateSpan(val DateSpan) *DateTime {
 }
 
 func (t *DateTime) SubtractTimeSpan(val TimeSpan) *DateTime {
-	return ToElkDateTime(t.Go.Add(-val.Go()))
+	return ToElkDateTime(t.native.Add(-val.Native()))
 }
 
 func (t *DateTime) Diff(val Value) (Value, Value) {
@@ -302,7 +306,7 @@ func (t *DateTime) DiffDateTime(val *DateTime) *DateTimeSpan {
 }
 
 func (t DateTime) ToGoTime() time.Time {
-	return t.Go
+	return t.native
 }
 
 func (t DateTime) ToDateTimeSpan() *DateTimeSpan {
@@ -313,11 +317,11 @@ func (t DateTime) ToDateTimeSpan() *DateTimeSpan {
 }
 
 func (t DateTime) Zone() *Timezone {
-	return NewTimezone(t.Go.Location())
+	return NewTimezone(t.native.Location())
 }
 
 func (t DateTime) ISOYear() int {
-	year, _ := t.Go.ISOWeek()
+	year, _ := t.native.ISOWeek()
 	return year
 }
 
@@ -326,27 +330,27 @@ func (t DateTime) ISOYearLastTwo() int {
 }
 
 func (t DateTime) YearLastTwo() int {
-	return t.Go.Year() % 100
+	return t.native.Year() % 100
 }
 
 func (t DateTime) Year() int {
-	return t.Go.Year()
+	return t.native.Year()
 }
 
 func (t DateTime) Century() int {
-	return t.Go.Year() / 100
+	return t.native.Year() / 100
 }
 
 func (t DateTime) Millenium() int {
-	return t.Go.Year() / 1000
+	return t.native.Year() / 1000
 }
 
 func (t DateTime) Month() int {
-	return int(t.Go.Month())
+	return int(t.native.Month())
 }
 
 func (t DateTime) MonthName() string {
-	return t.Go.Month().String()
+	return t.native.Month().String()
 }
 
 func (t DateTime) AbbreviatedMonthName() string {
@@ -354,12 +358,12 @@ func (t DateTime) AbbreviatedMonthName() string {
 }
 
 func (t DateTime) Day() int {
-	return t.Go.Day()
+	return t.native.Day()
 }
 
 // Day of the year.
 func (t DateTime) YearDay() int {
-	return t.Go.YearDay()
+	return t.native.YearDay()
 }
 
 func (t *DateTime) ToDate() Date {
@@ -376,7 +380,7 @@ func (t DateTime) ISOYearDay() int {
 
 // Hour in a 24 hour clock.
 func (t DateTime) Hour() int {
-	return t.Go.Hour()
+	return t.native.Hour()
 }
 
 // Whether the current hour is AM.
@@ -424,11 +428,11 @@ func (t DateTime) Hour12() int {
 }
 
 func (t DateTime) Minute() int {
-	return t.Go.Minute()
+	return t.native.Minute()
 }
 
 func (t DateTime) Second() int {
-	return t.Go.Second()
+	return t.native.Second()
 }
 
 func (t DateTime) Millisecond() int {
@@ -448,7 +452,7 @@ func (t DateTime) Nanosecond() int {
 }
 
 func (t DateTime) NanosecondsInSecond() int {
-	return t.Go.Nanosecond()
+	return t.native.Nanosecond()
 }
 
 func (t DateTime) PicosecondsInSecond() int64 {
@@ -476,36 +480,36 @@ func (t DateTime) YoctosecondsInSecond() *big.Int {
 }
 
 func (t DateTime) ZoneName() string {
-	return t.Go.Location().String()
+	return t.native.Location().String()
 }
 
 func (t DateTime) ZoneAbbreviatedName() string {
-	name, _ := t.Go.Zone()
+	name, _ := t.native.Zone()
 	return name
 }
 
 func (t DateTime) ZoneOffset() TimeSpan {
-	_, offset := t.Go.Zone()
+	_, offset := t.native.Zone()
 	return TimeSpan(offset) * Second
 }
 
 func (t DateTime) ZoneOffsetSeconds() int {
-	_, offset := t.Go.Zone()
+	_, offset := t.native.Zone()
 	return offset
 }
 
 func (t DateTime) ZoneOffsetHours() int {
-	_, offset := t.Go.Zone()
+	_, offset := t.native.Zone()
 	return offset / 3600
 }
 
 func (t DateTime) ZoneOffsetHourMinutes() int {
-	_, offset := t.Go.Zone()
+	_, offset := t.native.Zone()
 	return (offset % 3600) / 60
 }
 
 func (t DateTime) WeekdayName() string {
-	return t.Go.Weekday().String()
+	return t.native.Weekday().String()
 }
 
 func (t DateTime) AbbreviatedWeekdayName() string {
@@ -514,7 +518,7 @@ func (t DateTime) AbbreviatedWeekdayName() string {
 
 // Specifies the day of the week (Monday = 1, ...).
 func (t DateTime) WeekdayFromMonday() int {
-	weekday := int(t.Go.Weekday())
+	weekday := int(t.native.Weekday())
 	if weekday == 0 {
 		return 7
 	}
@@ -524,15 +528,15 @@ func (t DateTime) WeekdayFromMonday() int {
 
 // Specifies the day of the week (Sunday = 0, ...).
 func (t DateTime) WeekdayFromSunday() int {
-	return int(t.Go.Weekday())
+	return int(t.native.Weekday())
 }
 
 func (t DateTime) UnixSeconds() int64 {
-	return t.Go.Unix()
+	return t.native.Unix()
 }
 
 func (t DateTime) UnixMilliseconds() int64 {
-	return t.Go.UnixMilli()
+	return t.native.UnixMilli()
 }
 
 func (t DateTime) UnixMicroseconds() *big.Int {
@@ -576,7 +580,7 @@ func (t DateTime) UnixYoctoseconds() *big.Int {
 }
 
 func (t DateTime) ISOWeek() int {
-	_, week := t.Go.ISOWeek()
+	_, week := t.native.ISOWeek()
 	return week
 }
 
@@ -650,12 +654,12 @@ func (t DateTime) IsLocal() bool {
 
 // Convert the time to the UTC zone.
 func (t *DateTime) UTC() *DateTime {
-	return ToElkDateTime(t.Go.UTC())
+	return ToElkDateTime(t.native.UTC())
 }
 
 // Convert the time to the local timezone.
 func (t *DateTime) Local() *DateTime {
-	return ToElkDateTime(t.Go.Local())
+	return ToElkDateTime(t.native.Local())
 }
 
 // Cmp compares x and y and returns:
@@ -664,7 +668,7 @@ func (t *DateTime) Local() *DateTime {
 //		 0 if x == y
 //	  +1 if x >  y
 func (x *DateTime) Cmp(y *DateTime) int {
-	return x.Go.Compare(y.Go)
+	return x.native.Compare(y.native)
 }
 
 func (d *DateTime) CompareVal(other Value) (Value, Value) {

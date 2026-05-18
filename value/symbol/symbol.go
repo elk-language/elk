@@ -97,6 +97,8 @@ var (
 	DateTime             = value.ToSymbol("DateTime")
 	Span                 = value.ToSymbol("Span")
 	Closure              = value.ToSymbol("Closure")
+	Sync                 = value.ToSymbol("Sync")
+	WaitGroup            = value.ToSymbol("WaitGroup")
 )
 
 // lowercase symbols

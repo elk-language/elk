@@ -57,7 +57,7 @@ func (t Time) ToDateTime() *DateTime {
 
 func (t Time) ToDateTimeValue() DateTime {
 	now := DateTimeNow()
-	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.Go.Location())
+	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.native.Location())
 	return ToElkDateTimeValue(goTime)
 }
 

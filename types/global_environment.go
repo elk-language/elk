@@ -11,6 +11,14 @@ type GlobalEnvironment struct {
 	Init bool // Whether the global environment is in its initialisation stage
 }
 
+func (g *GlobalEnvironment) NamesToType(path ...value.Symbol) Type {
+	return PathToNestedSubtype(path, g.Root)
+}
+
+func (g *GlobalEnvironment) NamesToNamespace(path ...value.Symbol) Namespace {
+	return PathToNestedNamespace(path, g.Root)
+}
+
 func (g *GlobalEnvironment) Std() *Module {
 	s, _ := g.Root.Subtype(symbol.Std)
 	return s.Type.(*Module)

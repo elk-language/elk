@@ -66,6 +66,7 @@ func InitGlobalEnvironment() {
 	initPath()
 	initError()
 	initInterface()
+	initAborter()
 	initKernel()
 	initRuntime()
 	initDebug()

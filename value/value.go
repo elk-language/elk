@@ -1398,6 +1398,11 @@ func ToGoUInt(val Value) (uint, bool) {
 	return 0, false
 }
 
+// Return true if the given aborter is aborted, otherwise false.
+func ShouldAbort(aborter *Aborter) bool {
+	return ShouldAbortCtx(aborter.ctx)
+}
+
 // Return true if the given context is done, otherwise false.
 func ShouldAbortCtx(ctx context.Context) bool {
 	select {

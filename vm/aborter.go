@@ -5,10 +5,12 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-// ::Std::Channel
-func initChannel() {
+// TODO: Aborter
+
+// ::Std::Aborter
+func initAborter() {
 	// Singleton methods
-	c := &value.ChannelClass.SingletonClass().MethodContainer
+	c := &value.AborterClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"closed",
@@ -20,27 +22,7 @@ func initChannel() {
 	)
 
 	// Instance methods
-	c = &value.ChannelClass.MethodContainer
-	Def(
-		c,
-		"#init",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			nVal := args[1]
-			var n int
-			if nVal.IsUndefined() {
-
-			} else {
-				var ok bool
-				n, ok = value.ToGoInt(nVal)
-				if !ok {
-					return value.Undefined, value.Ref(value.NewError(value.OutOfRangeErrorClass, "channel capacity is too large"))
-				}
-			}
-			self := value.NewChannel(n)
-			return value.Ref(self), value.Undefined
-		},
-		DefWithParameters(1),
-	)
+	c = &value.AborterClass.MethodContainer
 	Def(
 		c,
 		"capacity",

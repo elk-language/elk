@@ -1558,7 +1558,8 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 
 	// receiverless macro
-	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) {
+	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) ||
+		p.lookahead.IsValidMethodName() && p.acceptSecond(token.BANG) && p.acceptThird(token.LPAREN) {
 		macroName := p.advance()
 		location := macroName.Location()
 
@@ -2163,7 +2164,7 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 				token.DOLLAR_IDENTIFIER,
 				token.PUBLIC_IDENTIFIER,
 				token.UNQUOTE_IDENT,
-			) {
+			) || p.lookahead.IsKeyword() {
 				right := p.methodName()
 
 				if bang, ok := p.matchOk(token.BANG); ok {

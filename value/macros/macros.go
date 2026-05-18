@@ -11,6 +11,7 @@ func NewGlobalEnvironment() *types.GlobalEnvironment {
 
 	initResult(env)
 	initValue(env)
+	initWaitGroup(env)
 
 	return env
 }

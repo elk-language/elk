@@ -122,7 +122,7 @@ func initKernel() {
 				duration = durationVal.AsInlineTimeSpan()
 			}
 
-			time.Sleep(duration.Go())
+			time.Sleep(duration.Native())
 
 			return value.Nil, value.Undefined
 		},
@@ -146,7 +146,7 @@ func initKernel() {
 			go func(p *Promise, d time.Duration) {
 				<-time.After(d)
 				p.Resolve(value.Nil)
-			}(p, duration.Go())
+			}(p, duration.Native())
 
 			return value.Ref(p), value.Undefined
 		},

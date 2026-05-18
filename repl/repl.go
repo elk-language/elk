@@ -19,6 +19,7 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/types/checker"
+	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
 	"github.com/k0kubun/pp/v3"
@@ -108,7 +109,7 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}()
 
-	e.vm.Ctx = vmCtx
+	e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
 	value, runtimeErr := e.vm.InterpretREPL(fn)
 	cancelSignal()
 	markExecutionFinished()

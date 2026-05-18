@@ -4,7 +4,6 @@
 package vm
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"sync/atomic"
@@ -64,10 +63,10 @@ var stopIterationSymbol = value.ToSymbol("stop_iteration")
 
 type Option func(*Thread) // constructor option function
 
-// Assign a context to the thread
-func WithContext(ctx context.Context) Option {
+// Assign an aborter to the thread
+func WithAborter(aborter *value.Aborter) Option {
 	return func(vm *Thread) {
-		vm.Ctx = ctx
+		vm.Aborter = aborter
 	}
 }
 

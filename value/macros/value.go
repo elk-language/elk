@@ -21,8 +21,8 @@ Useful in header files for function parameter default value.
 
 Example:
 
-	def foo(a: Bar = Value::never_value!); end`,
-		"never_value!",
+	def foo(a: Bar = Value::never!); end`,
+		"never!",
 		nil,
 		exprNode,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {

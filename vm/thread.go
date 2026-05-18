@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -37,7 +36,7 @@ type Thread struct {
 	callFrames      []CallFrame       // Call stack
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
-	Ctx             context.Context
+	Aborter         *value.Aborter
 	state           state
 }
 
@@ -63,12 +62,15 @@ func New(opts ...Option) *Thread {
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
 		threadPool: DefaultThreadPool,
-		Ctx:        context.Background(),
 	}
 	vm.cfpSet(&callFrames[0])
 
 	for _, opt := range opts {
 		opt(vm)
+	}
+
+	if vm.Aborter == nil {
+		vm.Aborter = value.NewCancelAborter(value.GLOBAL_ABORTER)
 	}
 
 	return vm
@@ -1349,7 +1351,12 @@ func (vm *Thread) run() {
 // Spins up a new goroutine and executes the closure on top of the stack in it.
 func (vm *Thread) opGo() {
 	closure := (*BytecodeClosure)(vm.peek().Pointer())
-	thread := New(WithStdin(vm.Stdin), WithStdout(vm.Stdout), WithStderr(vm.Stderr), WithContext(vm.Ctx))
+	thread := New(
+		WithStdin(vm.Stdin),
+		WithStdout(vm.Stdout),
+		WithStderr(vm.Stderr),
+		WithAborter(value.NewCancelAborter(vm.Aborter)),
+	)
 
 	go func(closure *BytecodeClosure, thread *Thread) {
 		thread.state = runningState
@@ -3553,7 +3560,7 @@ func (vm *Thread) opBitwiseAndInt() {
 }
 
 func (vm *Thread) opCheckAbort() value.Value {
-	if value.ShouldAbortCtx(vm.Ctx) {
+	if value.ShouldAbort(vm.Aborter) {
 		return value.NewExecutionAbortedError().ToValue()
 	}
 
@@ -3565,7 +3572,7 @@ func (vm *Thread) opSelect() value.Value {
 	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases)+1)
 
 	reflectSelectCases[0] = reflect.SelectCase{
-		Chan: reflect.ValueOf(vm.Ctx.Done()),
+		Chan: reflect.ValueOf(vm.Aborter.Context().Done()),
 		Dir:  reflect.SelectRecv,
 	}
 

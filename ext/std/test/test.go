@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"fmt"
 	"math/rand/v2"
 	"sync"
@@ -42,7 +41,8 @@ func Run() *SuiteReport {
 func RunWith(v *vm.Thread, reporter Reporter, events chan *ReportEvent, seed uint64) *SuiteReport {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	shutdownCtx, shutdown := context.WithCancel(context.Background())
+	shutdownCtx := v.Aborter.Context()
+	shutdown := v.Aborter.CancelFunc()
 
 	go func() {
 		reporter.Report(events, shutdown)
