@@ -3569,7 +3569,7 @@ func (vm *Thread) opCheckAbort() value.Value {
 
 func (vm *Thread) opSelect() value.Value {
 	selectData := (*Select)(vm.popGet().Pointer())
-	channels := make([]value.Channel, len(selectData.Cases))
+	channels := make([]value.AnyChannel, len(selectData.Cases))
 	reflectSelectCases := make([]reflect.SelectCase, len(selectData.Cases)+1)
 
 	reflectSelectCases[0] = reflect.SelectCase{
@@ -3583,14 +3583,14 @@ func (vm *Thread) opSelect() value.Value {
 
 		switch selectCase.Direction {
 		case reflect.SelectRecv:
-			ch := vm.popGet().AsReference().(value.Channel)
+			ch := vm.popGet().AsReference().(value.AnyChannel)
 			channels[i] = ch
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectSend:
 			val := vm.popGet()
 			send = reflect.ValueOf(val)
 
-			ch := vm.popGet().AsReference().(value.Channel)
+			ch := vm.popGet().AsReference().(value.AnyChannel)
 			channels[i] = ch
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectDefault:

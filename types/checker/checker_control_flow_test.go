@@ -594,6 +594,30 @@ func TestSelectExpression(t *testing.T) {
 				end
 			`,
 		},
+		"can push to a write channel": {
+			input: `
+				ch := Channel::[Int]()
+				wch := ch.writeonly
+				select
+				case wch << 5
+					puts "sent"
+				end
+			`,
+		},
+		"cannot push to a read channel": {
+			input: `
+				ch := Channel::[Int]()
+				rch := ch.readonly
+				select
+				case rch << 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 5, 10), P(78, 5, 17)), "method `<<` is not defined on type `Std::ReadChannel[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 10), P(78, 5, 17)), "invalid push target in select case, expected a writable channel, got: `Std::ReadChannel[Std::Int]`"),
+			},
+		},
 		"cannot use another binary operator": {
 			input: `
 				ch := Channel::[Int]()
@@ -627,7 +651,7 @@ func TestSelectExpression(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(45, 4, 18)), "invalid push target in select case, expected a channel, got: `Std::ArrayList[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(45, 4, 18)), "invalid push target in select case, expected a writable channel, got: `Std::ArrayList[Std::Int]`"),
 			},
 		},
 		"can pop from a channel": {
@@ -639,6 +663,29 @@ func TestSelectExpression(t *testing.T) {
 				end
 			`,
 		},
+		"can pop from a read channel": {
+			input: `
+				ch := Channel::[Int]()
+				rch := ch.readonly
+				select
+				case <<rch
+					puts "read"
+				end
+			`,
+		},
+		"cannot pop from a write channel": {
+			input: `
+				ch := Channel::[Int]()
+				wch := ch.writeonly
+				select
+				case <<wch
+					puts "read"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 5, 10), P(76, 5, 14)), "invalid pop target in select case, expected a readable channel, got: `Std::WriteChannel[Std::Int]`"),
+			},
+		},
 		"cannot pop from a non-channel": {
 			input: `
 				list := [1]
@@ -648,7 +695,7 @@ func TestSelectExpression(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(42, 4, 15)), "invalid pop target in select case, expected a channel, got: `Std::ArrayList[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(42, 4, 15)), "invalid pop target in select case, expected a readable channel, got: `Std::ArrayList[Std::Int]`"),
 			},
 		},
 		"invalid unary operator": {

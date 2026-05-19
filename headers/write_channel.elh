@@ -1,0 +1,73 @@
+##[
+	A `WriteChannel` is a view of `Channel` that can only send values.
+	Its useful for constraining a piece of code to make sure it only sends to a channel.
+
+	## Pushing values
+
+	You can send values to the channel using the `<<` operator.
+	Unbuffered channels will block the current thread until the pushed value
+	is popped by another thread.
+	Buffered channels will not block the current thread if there is enough capacity for another value.
+
+	```
+	ch := Channel::[Int]() # instantiate a channel of `Int` values
+	rch := ch.writeonly # get a WriteChannel
+	rch << 5 # send `5` to the channel
+	```
+
+	Pushing values to a closed channel will result in an unchecked error being thrown.
+
+	## Closing channels
+
+	You can close a channel using the `close` method when you no longer wish to send values to it.
+	Closing a closed channel will result in an unchecked error being thrown.
+]##
+sealed noinit primitive class ::Std::WriteChannel[V]
+	implement Closable
+
+	singleton
+		##[
+			Create a new `WriteChannel` that is closed.
+		]##
+		def closed[V]: WriteChannel[V]; end
+	end
+
+	##[
+		Returns the size of the buffer that can hold elements
+		until they're popped.
+	]##
+	def capacity: Int; end
+
+	##[
+		Returns the amount of elements present in the buffer.
+	]##
+	def length: Int; end
+
+	##[
+		Returns the amount of slots in the buffer that are available for new elements.
+	]##
+	def left_capacity: Int; end
+
+	##[
+		Pushes a new element to the channel.
+		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
+
+		Pushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.
+	]##
+	def <<(value: V): self; end
+
+	##[
+		Pushes a new element to the channel.
+		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
+
+		Pushing to a closed channel throws `Std::Channel::ClosedError`.
+	]##
+	def push(value: V) ! Channel::ClosedError; end
+
+	##[
+		Closes the channel, preventing any more values from being pushed or popped.
+
+		Closing a closed channel results in an unchecked error `Std::Channel::ClosedError`.
+	]##
+	def close; end
+end

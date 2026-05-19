@@ -2,7 +2,6 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::Channel
@@ -101,12 +100,9 @@ func initChannel() {
 		"pop",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.Channel)
-			result, ok, err := self.PopCtx(vm.Aborter.Context())
+			result, err := self.PopCtx(vm.Aborter.Context())
 			if err.IsNotUndefined() {
 				return value.Undefined, err
-			}
-			if !ok {
-				return value.Undefined, symbol.L_channel_closed.ToValue()
 			}
 			return result, value.Undefined
 		},
@@ -124,6 +120,24 @@ func initChannel() {
 			} else {
 				return value.Undefined, err
 			}
+		},
+	)
+
+	Def(
+		c,
+		"writeonly",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return self.ToWriteChannel().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
+		"readonly",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return self.ToReadChannel().ToValue(), value.Undefined
 		},
 	)
 

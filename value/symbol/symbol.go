@@ -73,6 +73,8 @@ var (
 	Thread               = value.ToSymbol("Thread")
 	ThreadPool           = value.ToSymbol("ThreadPool")
 	Channel              = value.ToSymbol("Channel")
+	ReadChannel          = value.ToSymbol("ReadChannel")
+	WriteChannel         = value.ToSymbol("WriteChannel")
 	StackTrace           = value.ToSymbol("StackTrace")
 	CallFrame            = value.ToSymbol("CallFrame")
 	Promise              = value.ToSymbol("Promise")

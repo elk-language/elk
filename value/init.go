@@ -143,6 +143,8 @@ func InitGlobalEnvironment() {
 	initPromise()
 	initThreadPool()
 	initChannel()
+	initReadChannel()
+	initWriteChannel()
 	initImmutableBox()
 	initWeak()
 	initBox()

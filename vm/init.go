@@ -80,6 +80,8 @@ func InitGlobalEnvironment() {
 	initThread()
 	initThreadPool()
 	initChannel()
+	initReadChannel()
+	initWriteChannel()
 	initWaitGroup()
 	initMutex()
 	initRWMutex()

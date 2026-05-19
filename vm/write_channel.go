@@ -4,29 +4,27 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// TODO: Aborter
-
-// ::Std::Aborter
-func initAborter() {
+// ::Std::WriteChannel
+func initWriteChannel() {
 	// Singleton methods
-	c := &value.AborterClass.SingletonClass().MethodContainer
+	c := &value.WriteChannelClass.SingletonClass().MethodContainer
 	Def(
 		c,
 		"closed",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			ch := value.NewChannelOfValue(0)
 			ch.Close()
-			return value.Ref(ch), value.Undefined
+			return ch.ToWriteChannelOfValue().ToValue(), value.Undefined
 		},
 	)
 
 	// Instance methods
-	c = &value.AborterClass.MethodContainer
+	c = &value.WriteChannelClass.MethodContainer
 	Def(
 		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.WriteChannel)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
@@ -34,7 +32,7 @@ func initAborter() {
 		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.WriteChannel)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
@@ -42,7 +40,7 @@ func initAborter() {
 		c,
 		"left_capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.WriteChannel)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
@@ -66,10 +64,10 @@ func initAborter() {
 		c,
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.WriteChannel)
 			err := self.PushCtx(vm.Aborter.Context(), args[1])
 			if err.IsUndefined() {
-				return value.Ref(self), value.Undefined
+				return self.ToValue(), value.Undefined
 			}
 			return value.Undefined, err
 		},
@@ -79,45 +77,15 @@ func initAborter() {
 
 	Def(
 		c,
-		"pop",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			result, err := self.PopCtx(vm.Aborter.Context())
-			if err.IsNotUndefined() {
-				return value.Undefined, err
-			}
-			return result, value.Undefined
-		},
-	)
-	Alias(c, "<<@", "pop")
-
-	Def(
-		c,
 		"close",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
+			self := args[0].AsReference().(value.WriteChannel)
 			err := self.Close()
 			if err.IsUndefined() {
 				return value.Nil, value.Undefined
 			} else {
 				return value.Undefined, err
 			}
-		},
-	)
-
-	Def(
-		c,
-		"next",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			return self.NextValueCtx(vm.Aborter.Context())
-		},
-	)
-	Def(
-		c,
-		"iter",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Undefined
 		},
 	)
 

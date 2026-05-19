@@ -18,6 +18,26 @@ func NewChannelOfValue(size int) *ChannelOfValue {
 	}
 }
 
+func (ch *ChannelOfValue) ToReadChannel() ReadChannel {
+	return ch.ToReadChannelOfValue()
+}
+
+func (ch *ChannelOfValue) ToReadChannelOfValue() *ReadChannelOfValue {
+	return &ReadChannelOfValue{
+		native: ch.native,
+	}
+}
+
+func (ch *ChannelOfValue) ToWriteChannel() WriteChannel {
+	return ch.ToWriteChannelOfValue()
+}
+
+func (ch *ChannelOfValue) ToWriteChannelOfValue() *WriteChannelOfValue {
+	return &WriteChannelOfValue{
+		native: ch.native,
+	}
+}
+
 func (ch *ChannelOfValue) Copy() Reference {
 	return NewChannelOfValue(ch.Length())
 }
@@ -85,7 +105,7 @@ func (ch *ChannelOfValue) LeftCapacity() int {
 func (ch *ChannelOfValue) Push(val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
+			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
 		}
 	}()
 
@@ -96,7 +116,7 @@ func (ch *ChannelOfValue) Push(val Value) (err Value) {
 func (ch *ChannelOfValue) PushCtx(ctx context.Context, val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
+			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
 		}
 	}()
 
@@ -108,17 +128,24 @@ func (ch *ChannelOfValue) PushCtx(ctx context.Context, val Value) (err Value) {
 	}
 }
 
-func (ch *ChannelOfValue) Pop() (Value, bool) {
+func (ch *ChannelOfValue) Pop() (result Value, err Value) {
 	result, ok := <-ch.native
-	return result, ok
+	if !ok {
+		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+	}
+
+	return result, Undefined
 }
 
-func (ch *ChannelOfValue) PopCtx(ctx context.Context) (v Value, ok bool, err Value) {
+func (ch *ChannelOfValue) PopCtx(ctx context.Context) (result Value, err Value) {
 	select {
 	case result, ok := <-ch.native:
-		return result, ok, Undefined
+		if !ok {
+			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		}
+		return result, Undefined
 	case <-ctx.Done():
-		return Undefined, false, NewExecutionAbortedError().ToValue()
+		return Undefined, NewExecutionAbortedError().ToValue()
 	}
 }
 

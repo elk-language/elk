@@ -3,20 +3,23 @@ using Std::Test::*
 using Std::Sync::WaitGroup
 using Std::Sync::WaitGroup::spawn!
 
-describe "Channel", ->
+describe "ReadChannel", ->
 
 	context "select", ->
 		should "trigger the case for available buffered channel", ->
 			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Int]()
+			rch2 := ch2.readonly
 
 			ch1 << 9
 
 			var result: Int?
 			select
-			case v := <<ch1
+			case v := <<rch1
 				result = v.must + 3
-			case v := <<ch2
+			case v := <<rch2
 				result = v.must * 2
 			end
 
@@ -25,7 +28,10 @@ describe "Channel", ->
 
 		should "wait and trigger the read case for available channel", ->
 			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
 
 			wg := WaitGroup()
 
@@ -41,9 +47,9 @@ describe "Channel", ->
 
 			var result: Int?
 			select
-			case v := <<ch1
+			case v := <<rch1
 				result = v.must + 3
-			case v := <<ch2
+			case v := <<rch2
 				result = v.must * 2
 			end
 
@@ -52,39 +58,12 @@ describe "Channel", ->
 			assert! result == 6
 		end
 
-		should "wait and trigger the write case for available channel", ->
-			ch1 := Channel::[Int]()
-			ch2 := Channel::[Int]()
-
-			wg := WaitGroup()
-
-			spawn! wg, go
-				sleep 100.milliseconds
-				<<ch1
-			end
-
-			spawn! wg, go
-				sleep 10.milliseconds
-				<<ch2
-			end
-
-			var result: Int?
-			select
-			case ch1 << 420
-				result = 420
-			case ch2 << 69
-				result = 69
-			end
-
-			ch1 << -1
-			wg.wait
-
-			assert! result == 69
-		end
-
 		should "trigger default case", ->
 			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
 
 			wg := WaitGroup()
 
@@ -100,9 +79,9 @@ describe "Channel", ->
 
 			var result: Int?
 			select
-			case v := <<ch1
+			case v := <<rch1
 				result = v.must + 3
-			case v := <<ch2
+			case v := <<rch2
 				result = v.must * 2
 			else
 				result = -420
@@ -115,13 +94,16 @@ describe "Channel", ->
 
 		should "trigger send case when no reader is available", ->
 			ch1 := Channel::[Int]()
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
 
 			wg := WaitGroup()
 
 			spawn! wg, go
 				sleep 10.milliseconds
-				<<ch1
+				<<rch1
 			end
 
 			spawn! wg, go
@@ -133,7 +115,7 @@ describe "Channel", ->
 			select
 			case ch1 << 9
 				result = 69
-			case v := <<ch2
+			case v := <<rch2
 				result = v.must * 2
 			end
 
@@ -148,73 +130,89 @@ describe "Channel", ->
 	context "capacity", ->
 		should "return 0 for non-buffered channel", ->
 			ch := Channel::[Float]()
-			assert! ch.capacity == 0
+			rch := ch.readonly
+			assert! rch.capacity == 0
 		end
 
 		should "return non-zero for buffered channel", ->
 			ch := Channel::[Float](10)
-			assert! ch.capacity == 10
+			rch := ch.readonly
+			assert! rch.capacity == 10
 		end
 	end
 
 	context "length", ->
 		should "return 0 for non-buffered channel", ->
 			ch := Channel::[Float]()
-			assert! ch.length == 0
+			rch := ch.readonly
+			assert! rch.length == 0
 		end
 
 		should "return zero for buffered channel with no elements", ->
 			ch := Channel::[Float](10)
-			assert! ch.length == 0
+			rch := ch.readonly
+			assert! rch.length == 0
 		end
 
 		should "return non-zero for buffered channel with elements", ->
 			ch := Channel::[Float](10)
-			assert! ch.length == 0
+			rch := ch.readonly
+
+			assert! rch.length == 0
 
 			ch << 2.0
-			assert! ch.length == 1
+			assert! rch.length == 1
 
 			ch << 55.2
-			assert! ch.length == 2
+			assert! rch.length == 2
 		end
 	end
 
 	context "left_capacity", ->
 		should "return 0 for non-buffered channel", ->
 			ch := Channel::[Float]()
-			assert! ch.left_capacity == 0
+			rch := ch.readonly
+			assert! rch.left_capacity == 0
 		end
 
 		should "return capacity for buffered channel with no elements", ->
 			ch := Channel::[Float](10)
-			assert! ch.capacity == 10
-			assert! ch.left_capacity == 10
+			rch := ch.readonly
+			assert! rch.capacity == 10
+			assert! rch.left_capacity == 10
 		end
 
 		should "return non-zero for buffered channel with elements", ->
 			ch := Channel::[Float](10)
-			assert! ch.left_capacity == 10
+			rch := ch.readonly
+
+			assert! rch.left_capacity == 10
 
 			ch << 2.0
-			assert! ch.left_capacity == 9
+			assert! rch.left_capacity == 9
 
 			ch << 55.2
-			assert! ch.left_capacity == 8
+			assert! rch.left_capacity == 8
 		end
 	end
 
 	context "==", ->
 		should "return true for the same channel object", ->
 			ch := Channel::[Float]()
-			result := ch == ch
+			rch := ch.readonly
+
+			result := rch == rch
 			assert! result == true
 		end
 
 		should "return false for different channel", ->
 			ch1 := Channel::[Float]()
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Float]()
-			result := ch1 == ch2
+			rch2 := ch2.readonly
+
+			result := rch1 == rch2
 			assert! result == false
 		end
 	end
@@ -222,79 +220,39 @@ describe "Channel", ->
 	context "=~", ->
 		should "return true for the same channel object", ->
 			ch := Channel::[Float]()
-			result := ch =~ ch
+			rch := ch.readonly
+
+			result := rch =~ rch
 			assert! result == true
 		end
 
 		should "return false for different channel", ->
 			ch1 := Channel::[Float]()
+			rch1 := ch1.readonly
+
 			ch2 := Channel::[Float]()
-			result := ch1 =~ ch2
+			rch2 := ch2.readonly
+
+			result := rch1 =~ rch2
 			assert! result == false
-		end
-	end
-
-	context "push", ->
-		should "should push to buffered channel without blocking", ->
-			ch := Channel::[Float](2)
-			ch << 2.5
-		end
-
-		should "should throw when pushing to closed channel", ->
-			ch := Channel::[Float](2)
-			ch.close
-			assert_throws! ch << 2.5 match Channel::ClosedError()
 		end
 	end
 
 	context "pop", ->
 		should "should pop from a buffered channel without blocking", ->
 			ch := Channel::[Float](2)
+			rch := ch.readonly
 			ch << 2.5
 
-			<<ch
+			assert!(<<rch == 2.5)
 		end
 
 		should "should throw when popping from a closed channel", ->
 			ch := Channel::[Float](2)
-			ch.close
-			assert_throws!(<<ch match Channel::ClosedError())
-		end
-	end
-
-	context "close", ->
-		should "should close an open channel", ->
-			ch := Channel::[Float](2)
-			ch.close
-		end
-
-		should "should throw when closing a closed channel", ->
-			ch := Channel::[Float](2)
-			ch.close
-			assert_throws! ch.close() match Channel::ClosedError()
-		end
-	end
-
-	context "readonly", ->
-		should "should return a read view of channel", ->
-			ch := Channel::[Float](2)
-			ch << 5.5
-
 			rch := ch.readonly
-			assert! rch <<: ReadChannel
-			assert!(<<rch == 5.5)
-		end
-	end
 
-	context "writeonly", ->
-		should "should return a write view of channel", ->
-			ch := Channel::[Float](2)
-
-			wch := ch.writeonly
-			assert! wch <<: WriteChannel
-			wch << 5.5
-
-			assert!(<<ch == 5.5)
+			ch.close
+			assert_throws!(<<rch match Channel::ClosedError())
 		end
 	end
 
@@ -305,8 +263,9 @@ describe "Channel", ->
 			ch << 2.25
 			ch.close
 
+			rch := ch.readonly
 			var result: ArrayList[Float] = []
-			for f in ch
+			for f in rch
 				result << f
 			end
 

@@ -57,6 +57,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nv := try <<ch # pop `5` from the channel using the pop unary operator\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, false, false, false, value.ToSymbol("ClosedError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, value.ToSymbol("Char"), objectClass, env)
@@ -660,6 +661,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
+			namespace := namespace.TryDefineClass("A `ReadChannel` is a view of `Channel` that can only receive values.\nIts useful for constraining a piece of code to make sure it only reads from a channel.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nch << 3 # send `5` to the channel\n\nrch := ch.readonly # get a ReadChannel\nv := try <<rch # pop `5` from the channel using the pop unary operator\nv := try rch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nA `ReadChannel` cannot be closed.", false, true, true, true, value.ToSymbol("ReadChannel"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineMixin("Represents an unordered immutable collection of key-value pairs.\nA record is an immutable map.", true, value.ToSymbol("Record"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
@@ -761,6 +766,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, value.ToSymbol("Value"), nil, env)
 		{
 			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, value.ToSymbol("Weak"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
+			namespace := namespace.TryDefineClass("A `WriteChannel` is a view of `Channel` that can only send values.\nIts useful for constraining a piece of code to make sure it only sends to a channel.\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nrch := ch.writeonly # get a WriteChannel\nrch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, true, value.ToSymbol("WriteChannel"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Thrown after an attempt od dividing an integer by zero.", false, false, false, false, value.ToSymbol("ZeroDivisionError"), objectClass, env)
@@ -1189,16 +1198,18 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				method = namespace.DefineMethod("Create a new `Channel` with the given capacity.\nDefault capacity is `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("capacity"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Self{}, Never{})
-				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws an unchecked error `:channel_closed`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NameToType("Std::Channel::V", env), Never{})
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NameToType("Std::Channel::V", env), Never{})
 				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Closes the channel, preventing any more values from being pushed or popped.\n\nClosing a closed channel results in an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("stop_iteration"))
-				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `:channel_closed`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("channel_closed"))
-				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::Channel::V", env), NameToType("Std::Channel::ClosedError", env))
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Void{}, NameToType("Std::Channel::ClosedError", env))
+				namespace.DefineMethod("Obtain a read-only view of the channel.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("readonly"), nil, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NameToType("Std::Channel::V", env), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+				namespace.DefineMethod("Obtain a write-only view of the channel.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("writeonly"), nil, nil, NewGeneric(NameToType("Std::WriteChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NameToType("Std::Channel::V", env), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
 
 				// Define constants
 
@@ -1213,6 +1224,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Create a new `Channel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::Channel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("ClosedError").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
 
 					// Define constants
 
@@ -9103,6 +9128,53 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("ReadChannel").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("V"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("V"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("V"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ReadChannel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+				// Define methods
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NameToType("Std::ReadChannel::V", env), Never{})
+				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
+				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::ReadChannel::V", env), NewSymbolLiteral("stop_iteration"))
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::ReadChannel::V", env), NameToType("Std::Channel::ClosedError", env))
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `ReadChannel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtypeString("Record").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -10052,8 +10124,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("Create a new `Tuple` containing the elements of `self`\nand another given `Tuple`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Tuple::Val", env), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				method = namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Val", env), Never{})
-				method.RegisterOverload(NewMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{}, namespace))
-				namespace.DefineMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]@1"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Pair::Key", env), NameToType("Std::Pair::Value", env)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+				method.RegisterOverload(NewMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{}, namespace))
+				namespace.DefineMethod("Return a Tuple that contains the elements from the given range of indices.\nThis tuple should be backed by the same buffer as the original tuple.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]@1"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Diagnostic", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Get the element under the given index.\n\nThrows an error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Tuple::Val", env), NameToType("Std::OutOfRangeError", env))
 				namespace.DefineMethod("Returns a new tuple containing all elements except first `n` elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("drop"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns a new tuple containing all elements except first elements that satisfy the given predicate.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("drop_while"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Val", env), NormalParameterKind, false)}, Bool{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :drop_while", true), Never{}, Any{}, Never{}, INVARIANT))
@@ -10494,6 +10566,52 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("WriteChannel").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("V"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("V"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("V"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Closable", env).(*Interface))
+
+				// Define methods
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::WriteChannel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Closes the channel, preventing any more values from being pushed or popped.\n\nClosing a closed channel results in an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::WriteChannel::V", env), NormalParameterKind, false)}, Void{}, NameToType("Std::Channel::ClosedError", env))
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `WriteChannel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::WriteChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("ZeroDivisionError").(*Class)

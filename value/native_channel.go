@@ -14,6 +14,22 @@ func MakeNativeChannel[V ValueInterface](size int) NativeChannel[V] {
 	return make(NativeChannel[V], size)
 }
 
+func (ch NativeChannel[V]) ToWriteChannel() WriteChannel {
+	return ch.ToNativeWriteChannel()
+}
+
+func (ch NativeChannel[V]) ToNativeWriteChannel() NativeWriteChannel[V] {
+	return (chan V)(ch)
+}
+
+func (ch NativeChannel[V]) ToReadChannel() ReadChannel {
+	return ch.ToNativeReadChannel()
+}
+
+func (ch NativeChannel[V]) ToNativeReadChannel() NativeReadChannel[V] {
+	return (chan V)(ch)
+}
+
 func (ch NativeChannel[V]) Copy() Reference {
 	return ch
 }
@@ -108,17 +124,24 @@ func (ch NativeChannel[V]) PushCtx(ctx context.Context, val Value) (err Value) {
 	}
 }
 
-func (ch NativeChannel[V]) Pop() (Value, bool) {
+func (ch NativeChannel[V]) Pop() (v Value, err Value) {
 	result, ok := <-ch
-	return result.ToValue(), ok
+	if !ok {
+		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+	}
+
+	return result.ToValue(), Undefined
 }
 
-func (ch NativeChannel[V]) PopCtx(ctx context.Context) (v Value, ok bool, err Value) {
+func (ch NativeChannel[V]) PopCtx(ctx context.Context) (v Value, err Value) {
 	select {
 	case result, ok := <-ch:
-		return result.ToValue(), ok, Undefined
+		if !ok {
+			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		}
+		return result.ToValue(), Undefined
 	case <-ctx.Done():
-		return Undefined, false, NewExecutionAbortedError().ToValue()
+		return Undefined, NewExecutionAbortedError().ToValue()
 	}
 }
 

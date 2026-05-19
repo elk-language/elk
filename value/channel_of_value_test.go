@@ -39,9 +39,9 @@ func TestChannelOfValuePush(t *testing.T) {
 		t.Fail()
 	}
 
-	got, gotOk := ch.Pop()
-	if !gotOk {
-		t.Log("got false when popping from an open channel")
+	got, gotErr := ch.Pop()
+	if gotErr.IsNotUndefined() {
+		t.Log("got error when popping from an open channel")
 		t.Fail()
 	}
 	want := value.True.ToValue()
@@ -66,9 +66,9 @@ func TestChannelOfValuePop(t *testing.T) {
 	ch := value.NewChannelOfValue(2)
 	ch.Push(value.SmallInt(5).ToValue())
 
-	got, gotOk := ch.Pop()
-	if !gotOk {
-		t.Log("got false when popping from an open channel")
+	got, gotErr := ch.Pop()
+	if gotErr.IsNotUndefined() {
+		t.Log("got err when popping from an open channel")
 		t.Fail()
 	}
 	want := value.SmallInt(5).ToValue()
@@ -79,9 +79,9 @@ func TestChannelOfValuePop(t *testing.T) {
 
 	ch = value.NewChannelOfValue(2)
 	ch.Close()
-	_, gotOk = ch.Pop()
-	if gotOk {
-		t.Log("got true when popping from a closed channel")
+	_, gotErr = ch.Pop()
+	if gotErr.IsUndefined() {
+		t.Log("got no error when popping from a closed channel")
 		t.Fail()
 	}
 }

@@ -7915,10 +7915,14 @@ func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) 
 	node.Right = c.checkExpression(node.Right)
 	rightType := c.TypeOf(node.Right)
 
-	if !c.isSubtype(rightType, c.Std(symbol.Channel), node.Right.Location()) {
+	channelType := c.NewNormalisedUnion(
+		c.Std(symbol.Channel),
+		c.Std(symbol.ReadChannel),
+	)
+	if !c.isSubtype(rightType, channelType, node.Right.Location()) {
 		c.addFailure(
 			fmt.Sprintf(
-				"invalid pop target in select case, expected a channel, got: `%s`",
+				"invalid pop target in select case, expected a readable channel, got: `%s`",
 				types.Inspect(rightType),
 			),
 			node.Location(),
@@ -7955,10 +7959,14 @@ func (c *Checker) checkSelectBinaryExpressionNode(node *ast.BinaryExpressionNode
 	)
 	leftType := c.TypeOf(left)
 
-	if !c.isSubtype(leftType, c.Std(symbol.Channel), left.Location()) {
+	channelType := c.NewNormalisedUnion(
+		c.Std(symbol.Channel),
+		c.Std(symbol.WriteChannel),
+	)
+	if !c.isSubtype(leftType, channelType, left.Location()) {
 		c.addFailure(
 			fmt.Sprintf(
-				"invalid push target in select case, expected a channel, got: `%s`",
+				"invalid push target in select case, expected a writable channel, got: `%s`",
 				types.Inspect(leftType),
 			),
 			node.Location(),

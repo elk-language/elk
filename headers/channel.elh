@@ -58,6 +58,11 @@ sealed primitive class ::Std::Channel[V]
 	include Iterable::FiniteBase[V]
 	implement Closable
 
+	##[
+		Thrown when trying to pop, push or close a closed channel.
+	]##
+	class ClosedError < Error; end
+
 	singleton
 		##[
 			Create a new `Channel` that is closed.
@@ -91,7 +96,7 @@ sealed primitive class ::Std::Channel[V]
 		Pushes a new element to the channel.
 		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
 
-		Pushing to a closed channel throws an unchecked error.
+		Pushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.
 	]##
 	def <<(value: V): self; end
 
@@ -99,23 +104,23 @@ sealed primitive class ::Std::Channel[V]
 		Pushes a new element to the channel.
 		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
 
-		Pushing to a closed channel throws an unchecked error.
+		Pushing to a closed channel throws `Std::Channel::ClosedError`.
 	]##
-	def push(value: V); end
+	def push(value: V) ! ClosedError; end
 
 	##[
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws `:channel_closed`.
+		Popping from a closed channel throws `Std::Channel::ClosedError`.
 	]##
-	def pop: V ! :channel_closed; end
+	def pop: V ! ClosedError; end
 
 	##[
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws an unchecked error `:channel_closed`.
+		Popping from a closed channel throws an unchecked error `Std::Channel::ClosedError`.
 	]##
 	def <<@: V; end
 
@@ -129,4 +134,14 @@ sealed primitive class ::Std::Channel[V]
 	def next: V ! :stop_iteration; end
 
 	def iter: self; end
+
+	##[
+		Obtain a read-only view of the channel.
+	]##
+	def readonly: ReadChannel[V]; end
+
+	##[
+		Obtain a write-only view of the channel.
+	]##
+	def writeonly: WriteChannel[V]; end
 end
