@@ -5084,7 +5084,6 @@ nil
 											T(L(S(P(21, 4, 7), P(22, 4, 8))), token.LBITSHIFT),
 											ast.NewPublicIdentifierNode(L(S(P(23, 4, 9), P(24, 4, 10))), "ch"),
 										),
-										nil,
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
 												L(S(P(28, 5, 3), P(33, 5, 8))),
@@ -5176,7 +5175,6 @@ end
 											ast.NewPublicIdentifierNode(L(S(P(20, 3, 13), P(21, 3, 14))), "ch"),
 										),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(25, 4, 3), P(47, 4, 25))),
@@ -5211,7 +5209,6 @@ end
 										ast.NewPublicIdentifierNode(L(S(P(53, 5, 6), P(54, 5, 7))), "ch"),
 										ast.NewIntLiteralNode(L(S(P(59, 5, 12), P(59, 5, 12))), "5"),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(63, 6, 3), P(82, 6, 22))),
@@ -5251,113 +5248,6 @@ end
 				},
 			),
 		},
-		"can have multiple branches with ok var": {
-			input: `
-select
-case v := <<ch, ok
-  println("popped #{v}")
-case ch << 5, ok
-  println("pushed 5")
-else
-  println("nothing matched")
-end
-`,
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(128, 9, 4))),
-				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(L(S(P(0, 1, 1), P(0, 1, 1)))),
-					ast.NewExpressionStatementNode(
-						L(S(P(1, 2, 1), P(128, 9, 4))),
-						ast.NewSelectExpressionNode(
-							L(S(P(1, 2, 1), P(127, 9, 3))),
-							[]*ast.SelectCaseNode{
-								ast.NewSelectCaseNode(
-									L(S(P(8, 3, 1), P(51, 4, 25))),
-									ast.NewAssignmentExpressionNode(
-										L(S(P(13, 3, 6), P(21, 3, 14))),
-										T(L(S(P(15, 3, 8), P(16, 3, 9))), token.COLON_EQUAL),
-										ast.NewPublicIdentifierNode(L(S(P(13, 3, 6), P(13, 3, 6))), "v"),
-										ast.NewUnaryExpressionNode(
-											L(S(P(18, 3, 11), P(21, 3, 14))),
-											T(L(S(P(18, 3, 11), P(19, 3, 12))), token.LBITSHIFT),
-											ast.NewPublicIdentifierNode(L(S(P(20, 3, 13), P(21, 3, 14))), "ch"),
-										),
-									),
-									ast.NewPublicIdentifierNode(L(S(P(24, 3, 17), P(25, 3, 18))), "ok"),
-									[]ast.StatementNode{
-										ast.NewExpressionStatementNode(
-											L(S(P(29, 4, 3), P(51, 4, 25))),
-											ast.NewReceiverlessMethodCallNode(
-												L(S(P(29, 4, 3), P(50, 4, 24))),
-												ast.NewPublicIdentifierNode(L(S(P(29, 4, 3), P(35, 4, 9))), "println"),
-												[]ast.ExpressionNode{
-													ast.NewInterpolatedStringLiteralNode(
-														L(S(P(37, 4, 11), P(49, 4, 23))),
-														[]ast.StringLiteralContentNode{
-															ast.NewStringLiteralContentSectionNode(
-																L(S(P(38, 4, 12), P(44, 4, 18))),
-																"popped ",
-															),
-															ast.NewStringInspectInterpolationNode(
-																L(S(P(45, 4, 19), P(48, 4, 22))),
-																ast.NewPublicIdentifierNode(L(S(P(47, 4, 21), P(47, 4, 21))), "v"),
-															),
-														},
-													),
-												},
-												nil,
-											),
-										),
-									},
-								),
-								ast.NewSelectCaseNode(
-									L(S(P(52, 5, 1), P(90, 6, 22))),
-									ast.NewBinaryExpressionNode(
-										L(S(P(57, 5, 6), P(63, 5, 12))),
-										T(L(S(P(60, 5, 9), P(61, 5, 10))), token.LBITSHIFT),
-										ast.NewPublicIdentifierNode(L(S(P(57, 5, 6), P(58, 5, 7))), "ch"),
-										ast.NewIntLiteralNode(L(S(P(63, 5, 12), P(63, 5, 12))), "5"),
-									),
-									ast.NewPublicIdentifierNode(L(S(P(66, 5, 15), P(67, 5, 16))), "ok"),
-									[]ast.StatementNode{
-										ast.NewExpressionStatementNode(
-											L(S(P(71, 6, 3), P(90, 6, 22))),
-											ast.NewReceiverlessMethodCallNode(
-												L(S(P(71, 6, 3), P(89, 6, 21))),
-												ast.NewPublicIdentifierNode(L(S(P(71, 6, 3), P(77, 6, 9))), "println"),
-												[]ast.ExpressionNode{
-													ast.NewDoubleQuotedStringLiteralNode(
-														L(S(P(79, 6, 11), P(88, 6, 20))),
-														"pushed 5",
-													),
-												},
-												nil,
-											),
-										),
-									},
-								),
-							},
-							[]ast.StatementNode{
-								ast.NewExpressionStatementNode(
-									L(S(P(98, 8, 3), P(124, 8, 29))),
-									ast.NewReceiverlessMethodCallNode(
-										L(S(P(98, 8, 3), P(123, 8, 28))),
-										ast.NewPublicIdentifierNode(L(S(P(98, 8, 3), P(104, 8, 9))), "println"),
-										[]ast.ExpressionNode{
-											ast.NewDoubleQuotedStringLiteralNode(
-												L(S(P(106, 8, 11), P(122, 8, 27))),
-												"nothing matched",
-											),
-										},
-										nil,
-									),
-								),
-							},
-						),
-					),
-				},
-			),
-		},
 		"can have short branches with then": {
 			input: `
 select
@@ -5382,7 +5272,6 @@ end
 										T(L(S(P(13, 3, 6), P(14, 3, 7))), token.LBITSHIFT),
 										ast.NewPublicIdentifierNode(L(S(P(15, 3, 8), P(16, 3, 9))), "ch"),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(23, 3, 16), P(23, 3, 16))),
@@ -5397,7 +5286,6 @@ end
 										T(L(S(P(30, 4, 6), P(31, 4, 7))), token.LBITSHIFT),
 										ast.NewPublicIdentifierNode(L(S(P(32, 4, 8), P(34, 4, 10))), "ch2"),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(41, 4, 17), P(41, 4, 17))),
@@ -5439,7 +5327,6 @@ end
 										T(L(S(P(12, 1, 13), P(13, 1, 14))), token.LBITSHIFT),
 										ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(15, 1, 16))), "ch"),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(22, 1, 23), P(22, 1, 23))),
@@ -5455,7 +5342,6 @@ end
 										ast.NewPublicIdentifierNode(L(S(P(29, 1, 30), P(30, 1, 31))), "ch"),
 										ast.NewDoubleQuotedStringLiteralNode(L(S(P(35, 1, 36), P(39, 1, 40))), "420"),
 									),
-									nil,
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											L(S(P(46, 1, 47), P(46, 1, 47))),

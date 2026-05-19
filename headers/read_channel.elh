@@ -62,9 +62,9 @@ sealed noinit primitive class ::Std::ReadChannel[V]
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws an unchecked error `Std::Channel::ClosedError`.
+		Popping from a closed channel returns a result with error `Std::Channel::ClosedError`.
 	]##
-	def <<@: V; end
+	def <<@: Result[V, Channel::ClosedError]; end
 
 	def next: V ! :stop_iteration; end
 

@@ -105,7 +105,7 @@ func (ch *ChannelOfValue) LeftCapacity() int {
 func (ch *ChannelOfValue) Push(val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
+			err = ChannelClosedPushError.ToValue()
 		}
 	}()
 
@@ -116,7 +116,7 @@ func (ch *ChannelOfValue) Push(val Value) (err Value) {
 func (ch *ChannelOfValue) PushCtx(ctx context.Context, val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
+			err = ChannelClosedPushError.ToValue()
 		}
 	}()
 
@@ -124,14 +124,14 @@ func (ch *ChannelOfValue) PushCtx(ctx context.Context, val Value) (err Value) {
 	case ch.native <- val:
 		return Undefined
 	case <-ctx.Done():
-		return NewExecutionAbortedError().ToValue()
+		return ExecutionAbortedError.ToValue()
 	}
 }
 
 func (ch *ChannelOfValue) Pop() (result Value, err Value) {
 	result, ok := <-ch.native
 	if !ok {
-		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		return Undefined, ChannelClosedPopError.ToValue()
 	}
 
 	return result, Undefined
@@ -141,11 +141,11 @@ func (ch *ChannelOfValue) PopCtx(ctx context.Context) (result Value, err Value) 
 	select {
 	case result, ok := <-ch.native:
 		if !ok {
-			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+			return Undefined, ChannelClosedPopError.ToValue()
 		}
 		return result, Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -166,7 +166,7 @@ func (ch *ChannelOfValue) NextValueCtx(ctx context.Context) (Value, Value) {
 		}
 		return next, Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -187,7 +187,7 @@ func (ch *ChannelOfValue) Iter() NativeIterator {
 func (ch *ChannelOfValue) Close() (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot close a closed channel"))
+			err = ChannelClosedCloseError.ToValue()
 		}
 	}()
 

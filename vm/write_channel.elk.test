@@ -18,9 +18,9 @@ describe "WriteChannel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			assert! result == 12
@@ -48,9 +48,9 @@ describe "WriteChannel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait
@@ -113,9 +113,9 @@ describe "WriteChannel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			else
 				result = -420
 			end
@@ -149,7 +149,7 @@ describe "WriteChannel", ->
 			case wch1 << 9
 				result = 69
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait

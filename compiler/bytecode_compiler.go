@@ -4527,25 +4527,6 @@ func (c *BytecodeCompiler) compileSelectExpressionNode(node *ast.SelectExpressio
 
 		c.emit(caseLoc.StartPos.Line, bytecode.POP) // pop the chosen case index
 
-		if caseNode.OkVar != nil {
-			var okVarName string
-			switch o := caseNode.OkVar.(type) {
-			case *ast.PublicIdentifierNode:
-				okVarName = o.Value
-			case *ast.PrivateIdentifierNode:
-				okVarName = o.Value
-			default:
-				panic(fmt.Sprintf("invalid ok variable name in select case: %T", caseNode.OkVar))
-			}
-
-			okVar := c.defineLocal(okVarName, caseNode.OkVar.Location())
-			if okVar != nil {
-				c.emitSetLocalPop(caseNode.OkVar.Location().StartPos.Line, okVar.index)
-			}
-		} else {
-			c.emit(caseLoc.EndPos.Line, bytecode.POP) // pop ok
-		}
-
 		c.enterScope("", defaultBytecodeScopeType)
 		c.compileSelectCaseExpression(caseNode.Expression)
 

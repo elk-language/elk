@@ -5,6 +5,10 @@ import "context"
 var ChannelClass *Class            // ::Std::Channel
 var ChannelClosedErrorClass *Class // ::Std::Channel::ClosedError
 
+var ChannelClosedPopError *Object
+var ChannelClosedPushError *Object
+var ChannelClosedCloseError *Object
+
 type AnyChannel interface {
 	ValueInterface
 	Length() int
@@ -46,4 +50,8 @@ func initChannel() {
 	ChannelClosedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	ChannelClass.AddConstantString("ClosedError", Ref(ChannelClosedErrorClass))
 	RegisterNativeClass("Std::Channel::ClosedError", "value.ChannelClosedErrorClass")
+
+	ChannelClosedPopError = NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel")
+	ChannelClosedPushError = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel")
+	ChannelClosedCloseError = NewError(ChannelClosedErrorClass, "cannot close a closed channel")
 }

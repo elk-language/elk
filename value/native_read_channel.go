@@ -77,7 +77,7 @@ func (ch NativeReadChannel[V]) LeftCapacity() int {
 func (ch NativeReadChannel[V]) Pop() (v Value, err Value) {
 	result, ok := <-ch
 	if !ok {
-		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		return Undefined, ChannelClosedPopError.ToValue()
 	}
 	return result.ToValue(), Undefined
 }
@@ -86,11 +86,11 @@ func (ch NativeReadChannel[V]) PopCtx(ctx context.Context) (v Value, err Value) 
 	select {
 	case result, ok := <-ch:
 		if !ok {
-			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+			return Undefined, ChannelClosedPopError.ToValue()
 		}
 		return result.ToValue(), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -111,7 +111,7 @@ func (ch NativeReadChannel[V]) NextValueCtx(ctx context.Context) (Value, Value) 
 		}
 		return next.ToValue(), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 

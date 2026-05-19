@@ -6,12 +6,10 @@ module Std::Elk::AST
     init(
       expression_node: ExpressionNode,
       body: ArrayTuple[StatementNode],
-      ok_var: IdentifierNode? = nil,
       location: FS::Location = loop; end,
     ); end
 
     def expression_node: ExpressionNode; end
-    def ok_var: IdentifierNode?; end
     def body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end
   end

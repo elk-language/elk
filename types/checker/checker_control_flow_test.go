@@ -713,28 +713,14 @@ func TestSelectExpression(t *testing.T) {
 		"can pop from a channel and assign to a variable": {
 			input: `
 				ch := Channel::[Int]()
-				var v: Int? = 5
+				var v: Result[Int, Channel::ClosedError]
 				select
 				case v = <<ch
 					puts "read"
 				end
 			`,
 		},
-		"can pop from a channel and assign to a variable with ok": {
-			input: `
-				ch := Channel::[Int]()
-				var v: Int? = 5
-				select
-				case v = <<ch, ok
-					var a: never = ok
-					puts "read"
-				end
-			`,
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(101, 6, 21), P(102, 6, 22)), "type `bool` cannot be assigned to type `never`"),
-			},
-		},
-		"popped value is nilable": {
+		"popped value is a Result": {
 			input: `
 				ch := Channel::[Int]()
 				select
@@ -744,7 +730,7 @@ func TestSelectExpression(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(78, 5, 21), P(78, 5, 21)), "type `Std::Int?` cannot be assigned to type `never`"),
+				diagnostic.NewFailure(L("<main>", P(78, 5, 21), P(78, 5, 21)), "type `Std::Result[Std::Int, Std::Channel::ClosedError]` cannot be assigned to type `never`"),
 			},
 		},
 		"can pop from a channel and short declare a variable": {
@@ -769,7 +755,7 @@ func TestSelectExpression(t *testing.T) {
 			input: `
 				ch := Channel::[ArrayList[Int]]()
 				select
-				case var [a, b] = <<ch
+				case var Result(value, err) = <<ch
 					puts "sent"
 				end
 			`,
@@ -787,7 +773,7 @@ func TestSelectExpression(t *testing.T) {
 			input: `
 				ch := Channel::[ArrayList[Int]]()
 				select
-				case val [a, b] = <<ch
+				case val Result(value, err) = <<ch
 					puts "sent"
 				end
 			`,

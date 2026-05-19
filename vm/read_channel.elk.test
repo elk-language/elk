@@ -18,9 +18,9 @@ describe "ReadChannel", ->
 			var result: Int?
 			select
 			case v := <<rch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<rch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			assert! result == 12
@@ -48,9 +48,9 @@ describe "ReadChannel", ->
 			var result: Int?
 			select
 			case v := <<rch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<rch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait
@@ -80,9 +80,9 @@ describe "ReadChannel", ->
 			var result: Int?
 			select
 			case v := <<rch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<rch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			else
 				result = -420
 			end
@@ -116,7 +116,7 @@ describe "ReadChannel", ->
 			case ch1 << 9
 				result = 69
 			case v := <<rch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait
@@ -244,7 +244,8 @@ describe "ReadChannel", ->
 			rch := ch.readonly
 			ch << 2.5
 
-			assert!(<<rch == 2.5)
+			result := <<rch
+			assert! result.unwrap == 2.5
 		end
 
 		should "should throw when popping from a closed channel", ->
@@ -252,7 +253,8 @@ describe "ReadChannel", ->
 			rch := ch.readonly
 
 			ch.close
-			assert_throws!(<<rch match Channel::ClosedError())
+			result := <<rch
+			assert_throws! result.unwrap match Channel::ClosedError()
 		end
 	end
 

@@ -7714,19 +7714,6 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 	for _, caseNode := range node.Cases {
 		c.pushConditionalLocalEnv(true)
 		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
-		if caseNode.OkVar != nil {
-			var okVarName string
-			switch s := caseNode.OkVar.(type) {
-			case *ast.PublicIdentifierNode:
-				okVarName = s.Value
-			case *ast.PrivateIdentifierNode:
-				okVarName = s.Value
-			default:
-				panic(fmt.Sprintf("invalid ok variable name in select case: %T", caseNode.OkVar))
-			}
-
-			c.addLocal(okVarName, newLocal(types.Bool{}, true, true))
-		}
 		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
 		c.popLocalEnv()
@@ -7929,8 +7916,12 @@ func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) 
 		)
 	}
 
+	resultClass := c.runtimeEnv.NamesToNamespace(symbol.Std, symbol.Result)
+	closedErrorClass := c.runtimeEnv.NamesToNamespace(symbol.Std, symbol.Channel, value.ToSymbol("ClosedError"))
 	channelVal := rightType.(*types.Generic).Get(0).Type
-	node.SetType(c.ToNilable(channelVal))
+
+	typ := types.NewGenericWithTypeArgs(resultClass, channelVal, closedErrorClass)
+	node.SetType(typ)
 
 	return node
 }

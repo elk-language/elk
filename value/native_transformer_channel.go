@@ -108,7 +108,7 @@ func (ch *NativeTransformerChannel[V]) LeftCapacity() int {
 func (ch *NativeTransformerChannel[V]) Push(val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
+			err = ChannelClosedPushError.ToValue()
 		}
 	}()
 
@@ -119,7 +119,7 @@ func (ch *NativeTransformerChannel[V]) Push(val Value) (err Value) {
 func (ch *NativeTransformerChannel[V]) PushCtx(ctx context.Context, val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel").ToValue()
+			err = ChannelClosedPushError.ToValue()
 		}
 	}()
 
@@ -127,14 +127,14 @@ func (ch *NativeTransformerChannel[V]) PushCtx(ctx context.Context, val Value) (
 	case ch.ch <- ch.setTransformer(val):
 		return Undefined
 	case <-ctx.Done():
-		return NewExecutionAbortedError().ToValue()
+		return ExecutionAbortedError.ToValue()
 	}
 }
 
 func (ch *NativeTransformerChannel[V]) Pop() (v Value, err Value) {
 	result, ok := <-ch.ch
 	if !ok {
-		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		return Undefined, ChannelClosedPopError.ToValue()
 	}
 	return ch.getTransformer(result), Undefined
 }
@@ -143,11 +143,11 @@ func (ch *NativeTransformerChannel[V]) PopCtx(ctx context.Context) (v Value, err
 	select {
 	case result, ok := <-ch.ch:
 		if !ok {
-			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+			return Undefined, ChannelClosedPopError.ToValue()
 		}
 		return ch.getTransformer(result), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -168,7 +168,7 @@ func (ch *NativeTransformerChannel[V]) NextValueCtx(ctx context.Context) (Value,
 		}
 		return ch.getTransformer(next), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -189,7 +189,7 @@ func (ch *NativeTransformerChannel[V]) Iter() NativeIterator {
 func (ch *NativeTransformerChannel[V]) Close() (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot close a closed channel"))
+			err = Ref(ChannelClosedCloseError)
 		}
 	}()
 

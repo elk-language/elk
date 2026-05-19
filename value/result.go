@@ -14,6 +14,14 @@ type Result struct {
 var _ ValueInterface = Result{}
 var _ Reference = Result{}
 
+func MakeResult2(value Value, err Value) Result {
+	if err.IsNotUndefined() {
+		return MakeErrResult(err)
+	}
+
+	return MakeOkResult(value)
+}
+
 // Create a new result
 func MakeResult(value Value, ok bool) Result {
 	return Result{

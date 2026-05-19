@@ -151,6 +151,8 @@ func NewError(class *Class, message string) *Object {
 	}
 }
 
+var ExecutionAbortedError *Object
+
 func NewExecutionAbortedError() *Object {
 	return NewError(
 		ExecutionAbortedErrorClass,
@@ -662,6 +664,8 @@ func initError() {
 	ExecutionAbortedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ExecutionAbortedError", Ref(ExecutionAbortedErrorClass))
 	RegisterNativeClass("Std::ExecutionAbortedError", "value.ExecutionAbortedErrorClass")
+
+	ExecutionAbortedError = NewExecutionAbortedError()
 
 	OpenClosureErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("OpenClosureError", Ref(OpenClosureErrorClass))

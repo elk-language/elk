@@ -32,15 +32,18 @@
 
 	## Popping values
 
-	You can receive values from the channel using the `pop` method.
+	You can receive values from the channel using the `<<ch` and `ch.pop` methods.
 	Unbuffered channels will block the current thread until a value is available.
 	Buffered channels will not block the current thread if there is a value in the channel's buffer.
+
+	The pop operator `<<ch` returns a `Std::Result`.
 
 	```
 	ch := Channel::[Int](3) # instantiate a buffered channel of `Int` values
 
 	ch << 5 # send `5` to the channel
-	v := try <<ch # pop `5` from the channel using the pop unary operator
+	result := <<ch # pop from the channel using the pop unary operator
+	result.unwrap #=> 5
 
 	ch << 3 # send `3` to the channel
 	v := try ch.pop # pop `3` from the channel using the pop method
@@ -61,7 +64,7 @@ sealed primitive class ::Std::Channel[V]
 	##[
 		Thrown when trying to pop, push or close a closed channel.
 	]##
-	class ClosedError < Error; end
+	sealed class ClosedError < Error; end
 
 	singleton
 		##[
@@ -120,9 +123,9 @@ sealed primitive class ::Std::Channel[V]
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws an unchecked error `Std::Channel::ClosedError`.
+		Popping from a closed channel return a result with error `Std::Channel::ClosedError`.
 	]##
-	def <<@: V; end
+	def <<@: Result[V, ClosedError]; end
 
 	##[
 		Closes the channel, preventing any more values from being pushed or popped.

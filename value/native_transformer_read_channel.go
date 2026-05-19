@@ -84,7 +84,7 @@ func (ch *NativeTransformerReadChannel[V]) LeftCapacity() int {
 func (ch *NativeTransformerReadChannel[V]) Pop() (v Value, err Value) {
 	result, ok := <-ch.ch
 	if !ok {
-		return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+		return Undefined, ChannelClosedPopError.ToValue()
 	}
 	return ch.getTransformer(result), Undefined
 }
@@ -93,11 +93,11 @@ func (ch *NativeTransformerReadChannel[V]) PopCtx(ctx context.Context) (v Value,
 	select {
 	case result, ok := <-ch.ch:
 		if !ok {
-			return Undefined, NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel").ToValue()
+			return Undefined, ChannelClosedPopError.ToValue()
 		}
 		return ch.getTransformer(result), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 
@@ -118,7 +118,7 @@ func (ch *NativeTransformerReadChannel[V]) NextValueCtx(ctx context.Context) (Va
 		}
 		return ch.getTransformer(next), Undefined
 	case <-ctx.Done():
-		return Undefined, NewExecutionAbortedError().ToValue()
+		return Undefined, ExecutionAbortedError.ToValue()
 	}
 }
 

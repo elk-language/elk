@@ -107,7 +107,15 @@ func initChannel() {
 			return result, value.Undefined
 		},
 	)
-	Alias(c, "<<@", "pop")
+
+	Def(
+		c,
+		"<<@",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return value.MakeResult2(self.PopCtx(vm.Aborter.Context())).ToValue(), value.Undefined
+		},
+	)
 
 	Def(
 		c,

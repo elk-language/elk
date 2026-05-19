@@ -3561,7 +3561,7 @@ func (vm *Thread) opBitwiseAndInt() {
 
 func (vm *Thread) opCheckAbort() value.Value {
 	if value.ShouldAbort(vm.Aborter) {
-		return value.NewExecutionAbortedError().ToValue()
+		return value.ExecutionAbortedError.ToValue()
 	}
 
 	return value.Undefined
@@ -3607,7 +3607,7 @@ func (vm *Thread) opSelect() value.Value {
 
 	chosenCaseIndex, val, channelOpen := reflect.Select(reflectSelectCases)
 	if chosenCaseIndex == 0 {
-		return value.NewExecutionAbortedError().ToValue()
+		return value.ExecutionAbortedError.ToValue()
 	}
 
 	chosenCaseIndex--
@@ -3615,34 +3615,46 @@ func (vm *Thread) opSelect() value.Value {
 	chosenChannel := channels[chosenCaseIndex]
 
 	if !channelOpen {
-		vm.push(value.Nil)
-		vm.push(value.False.ToValue())
+		var result value.Result
+		if chosenCase.Direction == reflect.SelectSend {
+			result = value.MakeErrResult(value.ChannelClosedPopError.ToValue())
+		} else {
+			result = value.MakeErrResult(value.ChannelClosedPushError.ToValue())
+		}
+		vm.push(result.ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 		return value.Undefined
 	}
 
 	if chosenCase.Direction != reflect.SelectRecv {
-		vm.push(value.Nil)
-		vm.push(value.Bool(channelOpen).ToValue())
+		vm.push(value.MakeOkResult(value.Nil).ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 		return value.Undefined
 	}
 
 	if chosenChannel != nil && chosenChannel.IsTransformerChannel() {
-		vm.push(chosenChannel.TransformToValue(val.Interface()))
-		vm.push(value.Bool(channelOpen).ToValue())
+		result := value.MakeOkResult(
+			chosenChannel.TransformToValue(
+				val.Interface(),
+			),
+		)
+		vm.push(result.ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 		return value.Undefined
 	}
 
 	switch chosenChannel.(type) {
 	case *value.ChannelOfValue:
-		vm.push(val.Interface().(value.Value))
-		vm.push(value.Bool(channelOpen).ToValue())
+		result := value.MakeOkResult(
+			val.Interface().(value.Value),
+		)
+		vm.push(result.ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 	default:
-		vm.push(val.Interface().(value.ValueInterface).ToValue())
-		vm.push(value.Bool(channelOpen).ToValue())
+		result := value.MakeOkResult(
+			val.Interface().(value.ValueInterface).ToValue(),
+		)
+		vm.push(result.ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
 	}
 

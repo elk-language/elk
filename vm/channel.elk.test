@@ -15,9 +15,9 @@ describe "Channel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			assert! result == 12
@@ -42,9 +42,9 @@ describe "Channel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait
@@ -101,9 +101,9 @@ describe "Channel", ->
 			var result: Int?
 			select
 			case v := <<ch1
-				result = v.must + 3
+				result = v.unwrap + 3
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			else
 				result = -420
 			end
@@ -134,7 +134,7 @@ describe "Channel", ->
 			case ch1 << 9
 				result = 69
 			case v := <<ch2
-				result = v.must * 2
+				result = v.unwrap * 2
 			end
 
 			wg.wait
@@ -247,18 +247,37 @@ describe "Channel", ->
 		end
 	end
 
+	context "<<@", ->
+		should "should pop from a buffered channel without blocking", ->
+			ch := Channel::[Float](2)
+			ch << 2.5
+
+			result := <<ch
+			assert! result.ok == true
+			assert! result.unwrap == 2.5
+		end
+
+		should "should return an error when popping from a closed channel", ->
+			ch := Channel::[Float](2)
+			ch.close
+			result := <<ch
+			assert! result.ok == false
+			assert! result.err <<: Channel::ClosedError
+		end
+	end
+
 	context "pop", ->
 		should "should pop from a buffered channel without blocking", ->
 			ch := Channel::[Float](2)
 			ch << 2.5
 
-			<<ch
+			ch.pop
 		end
 
 		should "should throw when popping from a closed channel", ->
 			ch := Channel::[Float](2)
 			ch.close
-			assert_throws!(<<ch match Channel::ClosedError())
+			assert_throws! ch.pop match Channel::ClosedError()
 		end
 	end
 
@@ -282,7 +301,8 @@ describe "Channel", ->
 
 			rch := ch.readonly
 			assert! rch <<: ReadChannel
-			assert!(<<rch == 5.5)
+			result := <<rch
+			assert! result.unwrap == 5.5
 		end
 	end
 
@@ -294,7 +314,8 @@ describe "Channel", ->
 			assert! wch <<: WriteChannel
 			wch << 5.5
 
-			assert!(<<ch == 5.5)
+			result := <<ch
+			assert! result.unwrap == 5.5
 		end
 	end
 

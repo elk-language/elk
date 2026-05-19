@@ -7235,18 +7235,12 @@ func (p *Parser) selectExpression() ast.ExpressionNode {
 		} else if caseTok, ok := p.matchOk(token.CASE); ok {
 			expr := p.expressionWithoutModifier()
 
-			var okVar ast.IdentifierNode
-			if p.match(token.COMMA) {
-				okVar = p.identifier()
-			}
-
 			var caseBody []ast.StatementNode
 			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
 			withoutContent = false
 			cases = append(cases, ast.NewSelectCaseNode(
 				caseTok.Location().Join(lastLocation),
 				expr,
-				okVar,
 				caseBody,
 			))
 			p.swallowNewlines()

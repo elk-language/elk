@@ -65,11 +65,7 @@ func initReadChannel() {
 		"pop",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ReadChannel)
-			result, err := self.PopCtx(vm.Aborter.Context())
-			if err.IsNotUndefined() {
-				return value.Undefined, err
-			}
-			return result, value.Undefined
+			return value.MakeResult2(self.PopCtx(vm.Aborter.Context())).ToValue(), value.Undefined
 		},
 	)
 	Alias(c, "<<@", "pop")

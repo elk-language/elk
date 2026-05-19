@@ -20,14 +20,14 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				select
 				case v := <<ch1
 					println("ch1: #{v}")
-				case v := <<ch2, ok
+				case v := <<ch2
 					println("ch2: #{v}")
 				end
 `,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x04,
+					byte(bytecode.PREP_LOCALS8), 0x03,
 
 					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
 					byte(bytecode.INT_5),
@@ -46,8 +46,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x10,
-					byte(bytecode.POP),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
 
@@ -57,25 +56,24 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					byte(bytecode.CALL_METHOD8), 0x04, // inspect
 					byte(bytecode.NEW_STRING8), 0x02,
 					byte(bytecode.CALL_METHOD8), 0x05, // println@1
-					byte(bytecode.JUMP), 0x00, 0x13, // Changed to +0x13 (19)
+					byte(bytecode.JUMP), 0x00, 0x12,
 
 					byte(bytecode.DUP),
 					byte(bytecode.INT_1),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0e, // Changed to +0x0e (14)
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0d,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-					byte(bytecode.SET_LOCAL_4),
 
 					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
 					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
-					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.CALL_METHOD8), 0x07, // inspect
 					byte(bytecode.NEW_STRING8), 0x02,
 					byte(bytecode.CALL_METHOD8), 0x08, // println@1
 
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(174, 10, 8)),
+				L(P(0, 1, 1), P(170, 10, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 6),
@@ -83,12 +81,10 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 					bytecode.NewLineInfo(8, 1),
 					bytecode.NewLineInfo(5, 2),
-					bytecode.NewLineInfo(6, 6),
-					bytecode.NewLineInfo(7, 1),
-					bytecode.NewLineInfo(6, 1),
+					&bytecode.LineInfo{LineNumber: 6, InstructionCount: 7},
 					bytecode.NewLineInfo(7, 13),
-					bytecode.NewLineInfo(8, 8),
-					bytecode.NewLineInfo(9, 11), // Changed from 14 to 11
+					&bytecode.LineInfo{LineNumber: 8, InstructionCount: 7},
+					bytecode.NewLineInfo(9, 11),
 					bytecode.NewLineInfo(10, 1),
 				},
 				[]value.Value{
@@ -108,81 +104,6 @@ func TestBytecodeSelectExpression(t *testing.T) {
 						1,
 					)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
-				},
-			),
-		},
-		"channel read with ok": {
-			input: `
-				ch1 := Channel::[Int](5)
-
-				select
-				case v := <<ch1, ok
-					println("ch1: #{v}, ok: #{ok}")
-				end
-		`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x03,
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
-					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
-					byte(bytecode.SET_LOCAL_1),
-
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE_1), // Select{receive}
-					byte(bytecode.SELECT),
-
-					byte(bytecode.DUP),
-					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x12,
-					byte(bytecode.POP),
-					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.SET_LOCAL_3),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE_3), // "ch1: "
-					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 0x04, // inspect
-					byte(bytecode.LOAD_VALUE8), 0x05, // ", ok: "
-					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 0x06, // inspect
-					byte(bytecode.NEW_STRING8), 0x04,
-					byte(bytecode.CALL_METHOD8), 0x07, // println@1
-
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(110, 7, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(2, 6),
-					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(4, 2),
-					bytecode.NewLineInfo(5, 8),
-					bytecode.NewLineInfo(6, 15),
-					bytecode.NewLineInfo(7, 1),
-				},
-				[]value.Value{
-					value.ToSymbol("Std::Channel").ToValue(),
-					value.Ref(vm.NewSelect([]vm.SelectCase{
-						{Direction: reflect.SelectRecv},
-					})),
-					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.String("ch1: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.String(", ok: ")),
 					value.Ref(value.NewCallSiteInfo(
 						value.ToSymbol("inspect"),
 						0,
@@ -220,8 +141,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x08,
-					byte(bytecode.POP),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x07,
 					byte(bytecode.POP),
 					byte(bytecode.POP),
 
@@ -237,9 +157,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					bytecode.NewLineInfo(2, 6),
 					bytecode.NewLineInfo(5, 2),
 					bytecode.NewLineInfo(4, 2),
-					bytecode.NewLineInfo(5, 6),
-					bytecode.NewLineInfo(6, 1),
-					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(5, 7),
 					bytecode.NewLineInfo(6, 5),
 					bytecode.NewLineInfo(7, 1),
 				},
@@ -257,7 +175,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				},
 			),
 		},
-		"a few cases and else": {
+		"a_few_cases_and_else": {
 			input: `
 				ch1 := Channel::[Int](5)
 				ch2 := Channel::[Int](5)
@@ -265,7 +183,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				select
 				case v := <<ch1
 					println("ch1: #{v}")
-				case v := <<ch2, ok
+				case v := <<ch2
 					println("ch2: #{v}")
 				else
 					println("no match")
@@ -274,7 +192,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x04,
+					byte(bytecode.PREP_LOCALS8), 0x03,
 
 					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
 					byte(bytecode.INT_5),
@@ -293,8 +211,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x10,
-					byte(bytecode.POP),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
 
@@ -304,18 +221,17 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					byte(bytecode.CALL_METHOD8), 0x04, // inspect
 					byte(bytecode.NEW_STRING8), 0x02,
 					byte(bytecode.CALL_METHOD8), 0x05, // println@1
-					byte(bytecode.JUMP), 0x00, 0x1e,
+					byte(bytecode.JUMP), 0x00, 0x1d,
 
 					byte(bytecode.DUP),
 					byte(bytecode.INT_1),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x13,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x12,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-					byte(bytecode.SET_LOCAL_4),
 
 					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
 					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
-					byte(bytecode.GET_LOCAL_4),
+					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.CALL_METHOD8), 0x07, // inspect
 					byte(bytecode.NEW_STRING8), 0x02,
 					byte(bytecode.CALL_METHOD8), 0x08, // println@1
@@ -330,7 +246,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(208, 12, 8)),
+				L(P(0, 1, 1), P(204, 12, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 6),
@@ -338,11 +254,9 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 					bytecode.NewLineInfo(8, 1),
 					bytecode.NewLineInfo(5, 2),
-					bytecode.NewLineInfo(6, 6),
-					bytecode.NewLineInfo(7, 1),
-					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(6, 7),
 					bytecode.NewLineInfo(7, 13),
-					bytecode.NewLineInfo(8, 8),
+					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 14),
 					bytecode.NewLineInfo(5, 2),
 					bytecode.NewLineInfo(11, 6),

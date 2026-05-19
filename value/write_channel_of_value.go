@@ -84,7 +84,7 @@ func (ch *WriteChannelOfValue) LeftCapacity() int {
 func (ch *WriteChannelOfValue) Push(val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
+			err = Ref(ChannelClosedPushError)
 		}
 	}()
 
@@ -95,7 +95,7 @@ func (ch *WriteChannelOfValue) Push(val Value) (err Value) {
 func (ch *WriteChannelOfValue) PushCtx(ctx context.Context, val Value) (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
+			err = Ref(ChannelClosedPushError)
 		}
 	}()
 
@@ -103,14 +103,14 @@ func (ch *WriteChannelOfValue) PushCtx(ctx context.Context, val Value) (err Valu
 	case ch.native <- val:
 		return Undefined
 	case <-ctx.Done():
-		return NewExecutionAbortedError().ToValue()
+		return ExecutionAbortedError.ToValue()
 	}
 }
 
 func (ch *WriteChannelOfValue) Close() (err Value) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot close a closed channel"))
+			err = Ref(ChannelClosedCloseError)
 		}
 	}()
 
