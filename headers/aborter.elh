@@ -1,0 +1,113 @@
+##[
+	An `Aborter` is an object that can be used to send signal that execution should be terminated.
+	Its useful in multithreading and timeouts.
+
+	## Instantiation
+
+	You can create a default aborter that can be closed on demand using the constructor.
+
+	```
+	# closable aborter
+	aborter := Aborter()
+	```
+
+	There are timeout aborters.
+	You can specify the amount of time after which the aborter will get automatically closed.
+
+	```
+	# aborter will be automatically closed after 2 minutes
+	aborter := Aborter.timeout(2.minutes)
+	```
+
+	Another type of aborter is the deadline aborter.
+	You can specify the datetime at which the aborter will get automatically closed.
+
+	```
+	deadline := DateTime.new(2026, 2, 16, 15, 30)
+
+	# aborter will be automatically closed at the given datetime
+	aborter := Aborter.deadline(deadline)
+	```
+
+	## Closing
+
+	You can send a signal that execution should be terminated using the `close` method.
+
+	```
+	aborter := Aborter()
+	aborter.close
+	```
+
+	Not every aborter can be closed.
+	Every aborter you create using the constructor methods
+	will be closable.
+	If you try to close an unclosable aborter an error will be thrown.
+	You can check if an aborter is closable by calling the `is_closable` method.
+
+	```
+	aborter := Aborter()
+	aborter.is_closable #=> true
+	```
+
+	## Checking for closure
+
+	You can listen for a close event of an aborter by using the readonly channel
+	returned by the `closed` method.
+
+	```
+	aborter := Aborter()
+	<<aborter.closed # blocks until the aborter is closed
+	```
+]##
+sealed primitive class ::Std::Aborter
+	implement Closable
+
+	##[
+		Thrown when trying to close an unclosable aborter.
+	]##
+	class CannotBeClosedError < Error; end
+
+	singleton
+		##[
+			Create a new `Aborter` that is closed.
+		]##
+		def closed: Aborter; end
+
+		##[
+			Create a new `Aborter` that gets automatically closed after the given time span.
+		]##
+		def timeout(span: Time::Span, parent: Aborter = loop; end): Aborter; end
+
+		##[
+			Create a new `Aborter` that gets automatically closed at the given datetime.
+		]##
+		def deadline(datetime: DateTime, parent: Aborter = loop; end): Aborter; end
+	end
+
+	##[
+		Create a new `Aborter` that can be manually closed.
+	]##
+	init(parent: Aborter = loop; end); end
+
+	##[
+		Closes the aborter sending a signal that execution should be terminated.
+		If the aborter is not closable an unchecked error `Std::Aborter::CannotBeClosedError` gets thrown.
+	]##
+	def close; end
+
+	##[
+		Returns `true` when the aborter is closed.
+	]##
+	def is_closed: bool; end
+
+	##[
+		Returns `true` when the aborter can be closed.
+	]##
+	def is_closable: bool; end
+
+	##[
+		Returns a channel that gets closed when the aborter is closed.
+		It can be used to listen and wait for aborter's close event.
+	]##
+	def closed: ReadChannel[void]; end
+end

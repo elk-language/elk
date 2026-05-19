@@ -17,6 +17,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 	// Define all namespaces
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
+		{
+			namespace := namespace.TryDefineClass("An `Aborter` is an object that can be used to send signal that execution should be terminated.\nIts useful in multithreading and timeouts.\n\n## Instantiation\n\nYou can create a default aborter that can be closed on demand using the constructor.\n\n```\n# closable aborter\naborter := Aborter()\n```\n\nThere are timeout aborters.\nYou can specify the amount of time after which the aborter will get automatically closed.\n\n```\n# aborter will be automatically closed after 2 minutes\naborter := Aborter.timeout(2.minutes)\n```\n\nAnother type of aborter is the deadline aborter.\nYou can specify the datetime at which the aborter will get automatically closed.\n\n```\ndeadline := DateTime.new(2026, 2, 16, 15, 30)\n\n# aborter will be automatically closed at the given datetime\naborter := Aborter.deadline(deadline)\n```\n\n## Closing\n\nYou can send a signal that execution should be terminated using the `close` method.\n\n```\naborter := Aborter()\naborter.close\n```\n\nNot every aborter can be closed.\nEvery aborter you create using the constructor methods\nwill be closable.\nIf you try to close an unclosable aborter an error will be thrown.\nYou can check if an aborter is closable by calling the `is_closable` method.\n\n```\naborter := Aborter()\naborter.is_closable #=> true\n```\n\n## Checking for closure\n\nYou can listen for a close event of an aborter by using the readonly channel\nreturned by the `closed` method.\n\n```\naborter := Aborter()\n<<aborter.closed # blocks until the aborter is closed\n```", false, true, true, false, value.ToSymbol("Aborter"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to close an unclosable aborter.", false, false, false, false, value.ToSymbol("CannotBeClosedError"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))))
 		{
@@ -56,7 +61,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.DefineSubtype(value.ToSymbol("Byte"), NewNamedType("Std::Byte", NameToType("Std::UInt8", env)))
 		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nv := try <<ch # pop `5` from the channel using the pop unary operator\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `Channel` is an object that can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nv := try <<ch # pop `5` from the channel using the pop unary operator\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
 			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, false, false, false, value.ToSymbol("ClosedError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
@@ -804,6 +809,56 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 			// Define instance variables
 
+			{
+				namespace := namespace.MustSubtypeString("Aborter").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Closable", env).(*Interface))
+
+				// Define methods
+				method = namespace.DefineMethod("Create a new `Aborter` that can be manually closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Closes the aborter sending a signal that execution should be terminated.\nIf the aborter is not closable an unchecked error `Std::Aborter::CannotBeClosedError` gets thrown.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Returns a channel that gets closed when the aborter is closed.\nIt can be used to listen and wait for aborter's close event.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), nil, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(Void{}, INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+				namespace.DefineMethod("Returns `true` when the aborter can be closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_closable"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns `true` when the aborter is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_closed"), nil, nil, Bool{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `Aborter` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), nil, nil, NameToType("Std::Aborter", env), Never{})
+					namespace.DefineMethod("Create a new `Aborter` that gets automatically closed at the given datetime.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("deadline"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false), NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, NameToType("Std::Aborter", env), Never{})
+					namespace.DefineMethod("Create a new `Aborter` that gets automatically closed after the given time span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timeout"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::Time::Span", env), NormalParameterKind, false), NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, NameToType("Std::Aborter", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("CannotBeClosedError").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
 			{
 				namespace := namespace.MustSubtypeString("ArrayList").(*Class)
 

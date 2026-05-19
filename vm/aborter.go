@@ -4,8 +4,6 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// TODO: Aborter
-
 // ::Std::Aborter
 func initAborter() {
 	// Singleton methods
@@ -14,110 +12,92 @@ func initAborter() {
 		c,
 		"closed",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			ch := value.NewChannelOfValue(0)
-			ch.Close()
-			return value.Ref(ch), value.Undefined
+			aborter := value.NewClosedAborter()
+			return aborter.ToValue(), value.Undefined
 		},
+	)
+	Def(
+		c,
+		"timeout",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			span := args[1].AsTimeSpan()
+			var parent *value.Aborter
+			if args[2].IsNotUndefined() {
+				parent = args[2].AsReference().(*value.Aborter)
+			} else {
+				parent = value.GLOBAL_ABORTER
+			}
+			aborter := value.NewTimeoutAborter(parent, span)
+			return aborter.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
+	)
+	Def(
+		c,
+		"deadline",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			datetime := args[1].AsReference().(*value.DateTime)
+			var parent *value.Aborter
+			if args[2].IsNotUndefined() {
+				parent = args[2].AsReference().(*value.Aborter)
+			} else {
+				parent = value.GLOBAL_ABORTER
+			}
+			aborter := value.NewDeadlineAborter(parent, datetime)
+			return aborter.ToValue(), value.Undefined
+		},
+		DefWithParameters(2),
 	)
 
 	// Instance methods
 	c = &value.AborterClass.MethodContainer
 	Def(
 		c,
-		"capacity",
+		"#init",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"length",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			return value.SmallInt(self.Length()).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"left_capacity",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
-		},
-	)
-	Def(
-		c,
-		"==",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.BoolVal(args[0] == args[1]), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"=~",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			return value.BoolVal(args[0] == args[1]), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"<<",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			err := self.PushCtx(vm.Aborter.Context(), args[1])
-			if err.IsUndefined() {
-				return value.Ref(self), value.Undefined
+			var parent *value.Aborter
+			if args[1].IsNotUndefined() {
+				parent = args[1].AsReference().(*value.Aborter)
+			} else {
+				parent = value.GLOBAL_ABORTER
 			}
-			return value.Undefined, err
+
+			aborter := value.NewCancelAborter(parent)
+			return aborter.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
-	Alias(c, "push", "<<")
-
 	Def(
 		c,
-		"pop",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			result, err := self.PopCtx(vm.Aborter.Context())
-			if err.IsNotUndefined() {
-				return value.Undefined, err
-			}
-			return result, value.Undefined
+		"is_closed",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Aborter)(args[0].Pointer())
+			return value.BoolVal(self.IsClosed()), value.Undefined
 		},
 	)
-	Alias(c, "<<@", "pop")
-
+	Def(
+		c,
+		"is_closable",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Aborter)(args[0].Pointer())
+			return value.BoolVal(self.IsClosable()), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"closed",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*value.Aborter)(args[0].Pointer())
+			return self.Closed().ToValue(), value.Undefined
+		},
+	)
 	Def(
 		c,
 		"close",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			err := self.Close()
-			if err.IsUndefined() {
-				return value.Nil, value.Undefined
-			} else {
-				return value.Undefined, err
-			}
-		},
-	)
-
-	Def(
-		c,
-		"next",
-		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.ChannelOfValue)(args[0].Pointer())
-			return self.NextValueCtx(vm.Aborter.Context())
-		},
-	)
-	Def(
-		c,
-		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			return args[0], value.Undefined
+			self := (*value.Aborter)(args[0].Pointer())
+			self.Close()
+			return value.Nil, value.Undefined
 		},
 	)
 

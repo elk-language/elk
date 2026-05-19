@@ -7,8 +7,8 @@ import (
 
 var GLOBAL_ABORTER = NewAborter(context.WithCancel(context.Background()))
 
-var AborterClass *Class                     // ::Std::Aborter
-var AborterCannotBeAbortedErrorClass *Class // ::Std::Aborter::CannotBeAbortedError
+var AborterClass *Class                    // ::Std::Aborter
+var AborterCannotBeClosedErrorClass *Class // ::Std::Aborter::CannotBeClosedError
 
 type Aborter struct {
 	ctx    context.Context
@@ -16,6 +16,12 @@ type Aborter struct {
 }
 
 var _ Reference = &Aborter{}
+
+func NewClosedAborter() *Aborter {
+	aborter := NewCancelAborter(GLOBAL_ABORTER)
+	aborter.Close()
+	return aborter
+}
 
 func NewTimeoutAborter(parent *Aborter, timeout TimeSpan) *Aborter {
 	return NewAborter(context.WithTimeout(parent.ctx, timeout.Native()))
@@ -60,7 +66,7 @@ func (*Aborter) SingletonClass() *Class {
 }
 
 func (a *Aborter) Inspect() string {
-	return fmt.Sprintf("Std::Aborter{&: %p, aborted: %t}", a, a.Aborted())
+	return fmt.Sprintf("Std::Aborter{&: %p, is_closed: %t, is_closable: %t}", a, a.IsClosed(), a.IsClosable())
 }
 
 func (a *Aborter) Error() string {
@@ -71,22 +77,33 @@ func (*Aborter) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (a *Aborter) Abort() (err Value) {
+func (a *Aborter) Close() (err Value) {
 	if a.cancel == nil {
-		return NewError(AborterCannotBeAbortedErrorClass, "tried to abort an aborter that has no cancel function").ToValue()
+		return NewError(AborterCannotBeClosedErrorClass, "tried to close an aborter that is not closable").ToValue()
 	}
 
 	a.cancel()
 	return Undefined
 }
 
-func (a *Aborter) Aborted() bool {
+func (a *Aborter) Closed() *NativeTransformerReadChannel[struct{}] {
+	return NewNativeTransformerReadChannel(
+		a.ctx.Done(),
+		func(v struct{}) Value { return Nil },
+	)
+}
+
+func (a *Aborter) IsClosed() bool {
 	select {
 	case <-a.ctx.Done():
 		return true
 	default:
 		return false
 	}
+}
+
+func (a *Aborter) IsClosable() bool {
+	return a.cancel != nil
 }
 
 func (a *Aborter) Context() context.Context {
@@ -102,7 +119,7 @@ func initAborter() {
 	StdModule.AddConstantString("Aborter", Ref(AborterClass))
 	RegisterNativeClass("Std::Aborter", "value.AborterClass")
 
-	AborterCannotBeAbortedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
-	AborterClass.AddConstantString("CannotBeAbortedError", Ref(AborterCannotBeAbortedErrorClass))
-	RegisterNativeClass("Std::Channel::CannotBeAbortedError", "value.AborterCannotBeAbortedErrorClass")
+	AborterCannotBeClosedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	AborterClass.AddConstantString("CannotBeClosedError", Ref(AborterCannotBeClosedErrorClass))
+	RegisterNativeClass("Std::Aborter::CannotBeClosedError", "value.AborterCannotBeClosedErrorClass")
 }

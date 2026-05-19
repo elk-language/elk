@@ -79,6 +79,7 @@ func InitGlobalEnvironment() {
 	initGenerator()
 	initThread()
 	initThreadPool()
+	initAborter()
 	initChannel()
 	initReadChannel()
 	initWriteChannel()

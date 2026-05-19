@@ -1,5 +1,5 @@
 ##[
-	A `Channel` is an object tha can be used to send and receive values.
+	A `Channel` is an object that can be used to send and receive values.
 	Its useful for communicating between multiple threads of execution.
 
 	## Instantiation
