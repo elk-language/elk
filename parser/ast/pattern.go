@@ -12,7 +12,9 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*MacroNameNode) patternNode()                  {}
 func (*UnhygienicNode) patternNode()                 {}
+func (*MustPatternNode) patternNode()                {}
 func (*AsPatternNode) patternNode()                  {}
+func (*NilablePatternNode) patternNode()             {}
 func (*BinHashSetLiteralNode) patternNode()          {}
 func (*BinArrayTupleLiteralNode) patternNode()       {}
 func (*BinArrayListLiteralNode) patternNode()        {}
@@ -28,6 +30,7 @@ func (*WordArrayListLiteralNode) patternNode()       {}
 func (*SymbolKeyValuePatternNode) patternNode()      {}
 func (*KeyValuePatternNode) patternNode()            {}
 func (*ObjectPatternNode) patternNode()              {}
+func (*InferredObjectPatternNode) patternNode()      {}
 func (*RecordPatternNode) patternNode()              {}
 func (*MapPatternNode) patternNode()                 {}
 func (*RestPatternNode) patternNode()                {}

@@ -2358,6 +2358,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case '_':
 			return l.privateIdentifier(afterMethodCallOperator)
 		case '@':
+			if l.matchChar('{') {
+				return l.token(token.AT_LBRACE)
+			}
 			if l.matchChar('"') {
 				return l.quotedInstanceVariable()
 			}

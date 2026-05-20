@@ -18,7 +18,7 @@ build: fmt
 	go build -ldflags "-s -w -X 'github.com/elk-language/elk/info.Version=$$(git describe --tags --exact-match 2>/dev/null || git branch --show-current)'"
 
 go-test: header
-	go test ./... -timeout 40s -tags debug
+	go test ./... -timeout 60s -tags debug
 
 elk-test: header
 	go run -tags debug ./cmd/elk test

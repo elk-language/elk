@@ -1,0 +1,16 @@
+module Std::Elk::AST
+  ##[
+    Represents an inferred object pattern eg. `@{foo: 5, bar: a, c}`
+  ]##
+  sealed primitive class InferredObjectPatternNode
+    include PatternNode
+
+    init(
+      attributes: ArrayTuple[PatternNode] = loop; end,
+      location: FS::Location = loop; end,
+    ); end
+
+    def attributes: ArrayTuple[PatternNode]; end
+    def location: FS::Location; end
+  end
+end

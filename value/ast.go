@@ -148,6 +148,7 @@ var YieldExpressionNodeClass *Class               // Std::Elk::AST::YieldExpress
 var ContinueExpressionNodeClass *Class            // Std::Elk::AST::ContinueExpressionNode
 var ThrowExpressionNodeClass *Class               // Std::Elk::AST::ThrowExpressionNode
 var MustExpressionNodeClass *Class                // Std::Elk::AST::MustExpressionNode
+var MustPatternNodeClass *Class                   // Std::Elk::AST::MustPatternNode
 var TryExpressionNodeClass *Class                 // Std::Elk::AST::TryExpressionNode
 var AwaitExpressionNodeClass *Class               // Std::Elk::AST::AwaitExpressionNode
 var TypeofExpressionNodeClass *Class              // Std::Elk::AST::TypeofExpressionNode
@@ -239,9 +240,11 @@ var NotTypeNodeClass *Class                       // Std::Elk::AST::NotTypeNode
 var CallableTypeNodeClass *Class                  // Std::Elk::AST::CallableTypeNode
 var UnaryTypeNodeClass *Class                     // Std::Elk::AST::UnaryTypeNode
 var AsPatternNodeClass *Class                     // Std::Elk::AST::AsPatternNode
+var NilablePatternNodeClass *Class                // Std::Elk::AST::NilablePatternNode
 var SymbolKeyValuePatternNodeClass *Class         // Std::Elk::AST::SymbolKeyValuePatternNode
 var KeyValuePatternNodeClass *Class               // Std::Elk::AST::KeyValuePatternNode
 var ObjectPatternNodeClass *Class                 // Std::Elk::AST::ObjectPatternNode
+var InferredObjectPatternNodeClass *Class         // Std::Elk::AST::InferredObjectPatternNode
 var RecordPatternNodeClass *Class                 // Std::Elk::AST::RecordPatternNode
 var MapPatternNodeClass *Class                    // Std::Elk::AST::MapPatternNode
 var RestPatternNodeClass *Class                   // Std::Elk::AST::RestPatternNode
@@ -914,6 +917,10 @@ func initElkAST() {
 	MustExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("MustExpressionNode", Ref(MustExpressionNodeClass))
 
+	MustPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	MustPatternNodeClass.IncludeMixin(PatternNodeMixin)
+	ElkASTModule.AddConstantString("MustPatternNode", Ref(MustPatternNodeClass))
+
 	TryExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	TryExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("TryExpressionNode", Ref(TryExpressionNodeClass))
@@ -1302,6 +1309,10 @@ func initElkAST() {
 	AsPatternNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("AsPatternNode", Ref(AsPatternNodeClass))
 
+	NilablePatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	NilablePatternNodeClass.IncludeMixin(PatternNodeMixin)
+	ElkASTModule.AddConstantString("NilablePatternNode", Ref(NilablePatternNodeClass))
+
 	SymbolKeyValuePatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	SymbolKeyValuePatternNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("SymbolKeyValuePatternNode", Ref(SymbolKeyValuePatternNodeClass))
@@ -1313,6 +1324,10 @@ func initElkAST() {
 	ObjectPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	ObjectPatternNodeClass.IncludeMixin(PatternNodeMixin)
 	ElkASTModule.AddConstantString("ObjectPatternNode", Ref(ObjectPatternNodeClass))
+
+	InferredObjectPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	InferredObjectPatternNodeClass.IncludeMixin(PatternNodeMixin)
+	ElkASTModule.AddConstantString("InferredObjectPatternNode", Ref(InferredObjectPatternNodeClass))
 
 	RecordPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	RecordPatternNodeClass.IncludeMixin(PatternNodeMixin)

@@ -6321,9 +6321,9 @@ func (p *Parser) orPattern() ast.PatternNode {
 	return p.binaryPattern(p.andPattern, token.OR_OR)
 }
 
-// andPattern = unaryPattern | andPattern "&&" unaryPattern
+// andPattern = nilablePattern | andPattern "&&" unaryPattern
 func (p *Parser) andPattern() ast.PatternNode {
-	return p.binaryPattern(p.unaryPattern, token.AND_AND)
+	return p.binaryPattern(p.nilablePattern, token.AND_AND)
 }
 
 func (p *Parser) objectAttributePatternList(stopTokens ...token.Type) []ast.PatternNode {
@@ -6494,6 +6494,44 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 		location,
 		constant,
 		elements,
+	)
+}
+
+// inferredObjectPattern = "@{" [objectPatternAttributes] "}"
+func (p *Parser) inferredObjectPattern() ast.PatternNode {
+	startTok := p.advance()
+	if rbrace, ok := p.matchOk(token.RBRACE); ok {
+		return ast.NewInferredObjectPatternNode(
+			startTok.Location().Join(rbrace.Location()),
+			nil,
+		)
+	}
+
+	elements := p.objectAttributePatternList(token.RBRACE)
+	p.swallowNewlines()
+	rbrace, ok := p.consume(token.RBRACE)
+	location := startTok.Location()
+	if ok {
+		location = location.Join(rbrace.Location())
+	}
+
+	return ast.NewInferredObjectPatternNode(
+		location,
+		elements,
+	)
+}
+
+// nilablePattern = unaryPattern ["?"]
+func (p *Parser) nilablePattern() ast.PatternNode {
+	pattern := p.unaryPattern()
+	if !p.accept(token.QUESTION) {
+		return pattern
+	}
+
+	question := p.advance()
+	return ast.NewNilablePatternNode(
+		pattern.Location().Join(question.Location()),
+		pattern,
 	)
 }
 
@@ -7208,9 +7246,19 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 		return p.unquotePattern()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquotePattern()
+	case token.MUST:
+		return p.mustPattern()
+	case token.AT_LBRACE:
+		return p.inferredObjectPattern()
 	default:
 		return p.simplePattern()
 	}
+}
+
+// mustPattern = "must"
+func (p *Parser) mustPattern() *ast.MustPatternNode {
+	tok := p.advance()
+	return ast.NewMustPatternNode(tok.Location())
 }
 
 // selectExpression = "select" SEPARATOR

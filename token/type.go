@@ -240,6 +240,7 @@ const (
 	QUESTION_DOT_DOT             // Safe cascade call operator `?..`
 	COLON                        // Colon `:`
 	QUESTION                     // Question mark `?`
+	AT_LBRACE                    // Start of a inferred object pattern `@{`
 
 	// Operators start here
 	LABEL_OP_BEG
@@ -681,6 +682,7 @@ var tokenNames = [...]string{
 	QUESTION_DOT_DOT:     "?..",
 	COLON:                ":",
 	QUESTION:             "?",
+	AT_LBRACE:            "@{",
 	PLUS_PLUS:            "++",
 	MINUS_MINUS:          "--",
 	SCOPE_RES_OP:         "::",
