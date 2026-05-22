@@ -2209,12 +2209,12 @@ func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressi
 		[]ast.PatternNode{
 			ast.NewSymbolKeyValuePatternNode(
 				node.Location(),
-				"key",
+				ast.NewPublicIdentifierNode(node.Location(), "key"),
 				keyIdentNode,
 			),
 			ast.NewSymbolKeyValuePatternNode(
 				node.Location(),
-				"value",
+				ast.NewPublicIdentifierNode(node.Location(), "value"),
 				valIdentNode,
 			),
 		},

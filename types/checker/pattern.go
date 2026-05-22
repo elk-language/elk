@@ -21,6 +21,10 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 	case *ast.PrivateIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(n.Value, matchedType, matchedType, n.Location()))
 		return node, types.Any{}
+	case *ast.NilablePatternNode:
+		return c.checkNilablePatternNode(n, matchedType)
+	case *ast.MustPatternNode:
+		return c.checkMustPatternNode(n, matchedType)
 	case *ast.IntLiteralNode:
 		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.Int64LiteralNode:
@@ -176,6 +180,8 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 		return c.checkSetPattern(n, matchedType)
 	case *ast.ObjectPatternNode:
 		return c.checkObjectPattern(n, matchedType)
+	case *ast.InferredObjectPatternNode:
+		return c.checkInferredObjectPattern(n, matchedType)
 	case *ast.PublicConstantNode:
 		return c.checkPublicConstantPattern(n, matchedType)
 	case *ast.PrivateConstantNode:
@@ -210,8 +216,6 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 	switch node.Op.Type {
 	case token.OR_OR:
 		var leftCatchType, rightCatchType types.Type
-		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
-		leftType := c.TypeOf(node.Left)
 
 		prevMode := c.mode
 		switch c.mode {
@@ -220,10 +224,14 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		default:
 			c.mode = nilablePatternMode
 		}
+
+		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
+		leftType := c.TypeOf(node.Left)
+
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
 		rightType := c.TypeOf(node.Right)
-		c.mode = prevMode
 
+		c.mode = prevMode
 		node.SetType(c.NewNormalisedUnion(leftType, rightType))
 		return node, c.NewNormalisedUnion(leftCatchType, rightCatchType)
 	case token.AND_AND:
@@ -306,6 +314,39 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 	default:
 		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.Name()))
 	}
+}
+
+func (c *Checker) checkNilablePatternNode(node *ast.NilablePatternNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	prevMode := c.mode
+	switch c.mode {
+	case valuePatternMode, nilableValuePatternMode:
+		c.mode = nilableValuePatternMode
+	default:
+		c.mode = nilablePatternMode
+	}
+	var catchType types.Type
+	node.Pattern, catchType = c.checkPattern(node.Pattern, matchedType)
+	patternType := c.TypeOf(node.Pattern)
+	c.mode = prevMode
+
+	node.SetType(c.ToNilable(patternType))
+	return node, c.ToNilable(catchType)
+}
+
+func (c *Checker) checkMustPatternNode(node *ast.MustPatternNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.IsNotNilable(matchedType) {
+		c.addWarning(
+			fmt.Sprintf(
+				"redundant must pattern, type `%s` will never be nil",
+				types.Inspect(matchedType),
+			),
+			node.Location(),
+		)
+	}
+
+	nonNilable := c.ToNonNilable(matchedType)
+	node.SetType(nonNilable)
+	return node, nonNilable
 }
 
 func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) (*ast.UnaryExpressionNode, types.Type) {
@@ -463,8 +504,43 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 	return node, types.Never{}
 }
 
-func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *ast.SymbolKeyValuePatternNode) (attrType types.Type, fullyCaptured bool) {
-	getter := c.GetMethod(namespace, value.ToSymbol(node.Key), node.Location())
+func (c *Checker) checkInferredObjectPattern(node *ast.InferredObjectPatternNode, matchedType types.Type) (resultNode *ast.InferredObjectPatternNode, fullyCapturedType types.Type) {
+	allAttributesFullyCaptured := true
+	for _, attribute := range node.Attributes {
+		switch attr := attribute.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+			attrType, fullyCaptured := c.checkObjectKeyValuePattern(matchedType, attr)
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
+		case *ast.PublicIdentifierNode:
+			attrType, fullyCaptured := c.checkObjectIdentifierPattern(matchedType, attr.Value, attr.Location())
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
+		case *ast.PrivateIdentifierNode:
+			attrType, fullyCaptured := c.checkObjectIdentifierPattern(matchedType, attr.Value, attr.Location())
+			attr.SetType(attrType)
+			if !fullyCaptured {
+				allAttributesFullyCaptured = false
+			}
+		default:
+			panic(fmt.Sprintf("invalid inferred object pattern attribute: %T", attr))
+		}
+	}
+
+	if allAttributesFullyCaptured {
+		return node, c.TypeOf(node)
+	}
+
+	return node, types.Never{}
+}
+
+func (c *Checker) checkObjectKeyValuePattern(typ types.Type, node *ast.SymbolKeyValuePatternNode) (attrType types.Type, fullyCaptured bool) {
+	keyStr := ast.IdentifierToString(node.Key)
+	getter := c.GetMethod(typ, value.ToSymbol(keyStr), node.Location())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
 		return types.Untyped{}, false
@@ -481,8 +557,8 @@ func (c *Checker) checkObjectKeyValuePattern(namespace types.Namespace, node *as
 	return returnType, c.isSubtype(returnType, fullyCapturedType, nil)
 }
 
-func (c *Checker) checkObjectIdentifierPattern(namespace types.Namespace, name string, location *position.Location) (attrType types.Type, fullyCaptured bool) {
-	getter := c.GetMethod(namespace, value.ToSymbol(name), location)
+func (c *Checker) checkObjectIdentifierPattern(typ types.Type, name string, location *position.Location) (attrType types.Type, fullyCaptured bool) {
+	getter := c.GetMethod(typ, value.ToSymbol(name), location)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, location)
 		return types.Untyped{}, false

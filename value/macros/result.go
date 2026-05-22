@@ -46,7 +46,7 @@ Example:
 				[]ast.PatternNode{
 					ast.NewSymbolKeyValuePatternNode(
 						position.ZeroLocation,
-						"value",
+						ast.NewPublicIdentifierNode(position.ZeroLocation, "value"),
 						ast.NewAsPatternNode(
 							position.ZeroLocation,
 							ast.NewUnaryExpressionNode(
@@ -62,7 +62,7 @@ Example:
 					),
 					ast.NewSymbolKeyValuePatternNode(
 						position.ZeroLocation,
-						"err",
+						ast.NewPublicIdentifierNode(position.ZeroLocation, "err"),
 						ast.NewAsPatternNode(
 							position.ZeroLocation,
 							ast.NewNilLiteralNode(position.ZeroLocation),
@@ -106,7 +106,7 @@ Example:
 				[]ast.PatternNode{
 					ast.NewSymbolKeyValuePatternNode(
 						position.ZeroLocation,
-						"err",
+						ast.NewPublicIdentifierNode(position.ZeroLocation, "err"),
 						ast.NewAsPatternNode(
 							position.ZeroLocation,
 							ast.NewUnaryExpressionNode(
@@ -122,7 +122,7 @@ Example:
 					),
 					ast.NewSymbolKeyValuePatternNode(
 						position.ZeroLocation,
-						"value",
+						ast.NewPublicIdentifierNode(position.ZeroLocation, "value"),
 						ast.NewAsPatternNode(
 							position.ZeroLocation,
 							ast.NewNilLiteralNode(position.ZeroLocation),

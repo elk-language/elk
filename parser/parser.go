@@ -6333,31 +6333,35 @@ func (p *Parser) objectAttributePatternList(stopTokens ...token.Type) []ast.Patt
 // objectAttributePattern = (identifier | constant) |
 // (identifier | constant) ":" pattern
 func (p *Parser) objectAttributePattern() ast.PatternNode {
-	if p.accept(
-		token.PUBLIC_IDENTIFIER,
-		token.PRIVATE_IDENTIFIER,
-		token.PUBLIC_CONSTANT,
-		token.PRIVATE_CONSTANT,
-	) &&
-		p.acceptSecond(token.COLON) {
+	if (p.lookahead.IsKeyword() || p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)) && p.acceptSecond(token.COLON) {
 		key := p.advance()
 		p.advance()
 		p.swallowNewlines()
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			ast.NewPublicIdentifierNode(key.Location(), key.Value),
 			val,
 		)
 	}
-	switch p.lookahead.Type {
-	case token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER:
-		return p.identifier()
-	default:
-		p.errorExpected("an object pattern attribute")
-		tok := p.advance()
-		return ast.NewInvalidNode(tok.Location(), tok)
+
+	ident := p.identifier()
+	if ast.IsInvalid(ident) {
+		return ident
 	}
+
+	if !p.accept(token.COLON) {
+		return ident
+	}
+
+	p.advance()
+	p.swallowNewlines()
+	val := p.pattern()
+	return ast.NewSymbolKeyValuePatternNode(
+		ident.Location().Join(val.Location()),
+		ident,
+		val,
+	)
 }
 
 func (p *Parser) strictConstantLookupOrScopedMacro(kind ast.MacroKind) ast.ComplexConstantNode {
@@ -6626,6 +6630,7 @@ func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternN
 // simplePattern "=>" pattern
 func (p *Parser) mapElementPattern() ast.PatternNode {
 	if p.accept(
+		token.DOLLAR_IDENTIFIER,
 		token.PUBLIC_IDENTIFIER,
 		token.PRIVATE_IDENTIFIER,
 		token.PUBLIC_CONSTANT,
@@ -6638,7 +6643,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			ast.NewPublicIdentifierNode(key.Location(), key.Value),
 			val,
 		)
 	}

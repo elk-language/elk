@@ -2989,7 +2989,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(38, 1, 39), P(65, 1, 66))),
-												"foo",
+												ast.NewPublicIdentifierNode(L(S(P(38, 1, 39), P(40, 1, 41))), "foo"),
 												ast.NewMapPatternNode(
 													L(S(P(43, 1, 44), P(65, 1, 66))),
 													[]ast.PatternNode{
@@ -3095,7 +3095,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(39, 1, 40), P(67, 1, 68))),
-												"foo",
+												ast.NewPublicIdentifierNode(L(S(P(39, 1, 40), P(41, 1, 42))), "foo"),
 												ast.NewRecordPatternNode(
 													L(S(P(44, 1, 45), P(67, 1, 68))),
 													[]ast.PatternNode{
@@ -3237,7 +3237,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(23, 1, 24), P(46, 1, 47))),
-												"bar",
+												ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "bar"),
 												ast.NewObjectPatternNode(
 													L(S(P(28, 1, 29), P(46, 1, 47))),
 													ast.NewPublicConstantNode(
@@ -3247,7 +3247,7 @@ end
 													[]ast.PatternNode{
 														ast.NewSymbolKeyValuePatternNode(
 															L(S(P(32, 1, 33), P(45, 1, 46))),
-															"x",
+															ast.NewPublicIdentifierNode(L(S(P(32, 1, 33), P(32, 1, 33))), "x"),
 															ast.NewBinaryPatternNode(
 																L(S(P(35, 1, 36), P(45, 1, 46))),
 																T(L(S(P(39, 1, 40), P(40, 1, 41))), token.AND_AND),
@@ -3268,7 +3268,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(49, 1, 50), P(77, 1, 78))),
-												"foo",
+												ast.NewPublicIdentifierNode(L(S(P(49, 1, 50), P(51, 1, 52))), "foo"),
 												ast.NewRecordPatternNode(
 													L(S(P(54, 1, 55), P(77, 1, 78))),
 													[]ast.PatternNode{
@@ -3324,7 +3324,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(21, 1, 22), P(44, 1, 45))),
-												"bar",
+												ast.NewPublicIdentifierNode(L(S(P(21, 1, 22), P(23, 1, 24))), "bar"),
 												ast.NewObjectPatternNode(
 													L(S(P(26, 1, 27), P(44, 1, 45))),
 													ast.NewPublicConstantNode(
@@ -3334,7 +3334,7 @@ end
 													[]ast.PatternNode{
 														ast.NewSymbolKeyValuePatternNode(
 															L(S(P(30, 1, 31), P(43, 1, 44))),
-															"x",
+															ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "x"),
 															ast.NewBinaryPatternNode(
 																L(S(P(33, 1, 34), P(43, 1, 44))),
 																T(L(S(P(37, 1, 38), P(38, 1, 39))), token.AND_AND),
@@ -3355,7 +3355,7 @@ end
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(47, 1, 48), P(75, 1, 76))),
-												"foo",
+												ast.NewPublicIdentifierNode(L(S(P(47, 1, 48), P(49, 1, 50))), "foo"),
 												ast.NewRecordPatternNode(
 													L(S(P(52, 1, 53), P(75, 1, 76))),
 													[]ast.PatternNode{

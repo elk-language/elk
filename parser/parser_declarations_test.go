@@ -2261,7 +2261,7 @@ func TestValueDeclaration(t *testing.T) {
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(13, 1, 14), P(16, 1, 17))),
-												"c",
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "c"),
 												ast.NewIntLiteralNode(L(S(P(16, 1, 17), P(16, 1, 17))), "2"),
 											),
 										},
@@ -3080,7 +3080,7 @@ func TestVariableDeclaration(t *testing.T) {
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(13, 1, 14), P(16, 1, 17))),
-												"c",
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "c"),
 												ast.NewIntLiteralNode(L(S(P(16, 1, 17), P(16, 1, 17))), "2"),
 											),
 										},

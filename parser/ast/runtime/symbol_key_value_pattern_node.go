@@ -13,7 +13,7 @@ func initSymbolKeyValuePatternNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argKey := (string)(args[1].MustReference().(value.String))
+			argKey := args[1].MustReference().(ast.IdentifierNode)
 			argValue := args[2].MustReference().(ast.PatternNode)
 
 			var argLoc *position.Location
@@ -38,7 +38,7 @@ func initSymbolKeyValuePatternNode() {
 		"key",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.SymbolKeyValuePatternNode)
-			result := value.Ref(value.String(self.Key))
+			result := value.Ref(self.Key)
 			return result, value.Undefined
 
 		},

@@ -3821,11 +3821,20 @@ func (c *BytecodeCompiler) relationalPattern(pattern ast.Node, opcode bytecode.O
 	)
 }
 
-func (c *BytecodeCompiler) literalPattern(pattern ast.Node, opcode bytecode.OpCode) {
-	location := pattern.Location()
-	c.emit(location.StartPos.Line, bytecode.DUP)
-	c.compileNodeWithResult(pattern)
-	c.emit(location.StartPos.Line, opcode)
+func (c *BytecodeCompiler) literalPatternNode(pattern ast.Node, opcode bytecode.OpCode) {
+	c.literalPattern(
+		func() {
+			c.compileNodeWithResult(pattern)
+		},
+		opcode,
+		pattern.Location(),
+	)
+}
+
+func (c *BytecodeCompiler) literalPattern(pattern func(), opcode bytecode.OpCode, loc *position.Location) {
+	c.emit(loc.StartPos.Line, bytecode.DUP)
+	pattern()
+	c.emit(loc.StartPos.Line, opcode)
 }
 
 func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
@@ -3840,10 +3849,14 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
 		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat,
 			bytecode.EQUAL,
 		)
+	case *ast.NilablePatternNode:
+		c.nilablePattern(pat)
+	case *ast.MustPatternNode:
+		c.mustPattern(pat)
 	case *ast.RangeLiteralNode:
 		c.emit(location.StartPos.Line, bytecode.DUP)
 		c.compileRangeLiteralNode(pat)
@@ -3869,7 +3882,9 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		c.setLocalWithoutValue(pat.Value, location, false)
 		c.emit(location.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
-		c.objectPattern(pat)
+		c.objectPatternNode(pat)
+	case *ast.InferredObjectPatternNode:
+		c.inferredObjectPattern(pat)
 	case *ast.AsPatternNode:
 		c.asPattern(pat)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
@@ -3881,7 +3896,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 	case *ast.UnaryExpressionNode:
 		c.unaryPattern(pat)
 	case *ast.BinaryPatternNode:
-		c.binaryPattern(pat)
+		c.binaryPatternNode(pat)
 	case *ast.MapPatternNode:
 		c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
 	case *ast.RecordPatternNode:
@@ -3912,32 +3927,32 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 func (c *BytecodeCompiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 	switch pat.Op.Type {
 	case token.EQUAL_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.EQUAL,
 		)
 	case token.NOT_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.NOT_EQUAL,
 		)
 	case token.LAX_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.LAX_EQUAL,
 		)
 	case token.LAX_NOT_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.LAX_NOT_EQUAL,
 		)
 	case token.STRICT_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.STRICT_EQUAL,
 		)
 	case token.STRICT_NOT_EQUAL:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat.Right,
 			bytecode.STRICT_NOT_EQUAL,
 		)
@@ -3962,34 +3977,73 @@ func (c *BytecodeCompiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 			bytecode.GREATER_EQUAL,
 		)
 	default:
-		c.literalPattern(
+		c.literalPatternNode(
 			pat,
 			bytecode.EQUAL,
 		)
 	}
 }
 
-func (c *BytecodeCompiler) binaryPattern(pat *ast.BinaryPatternNode) {
-	location := pat.Location()
+func (c *BytecodeCompiler) binaryPatternNode(pat *ast.BinaryPatternNode) {
+	c.binaryPattern(
+		pat.Op.Type,
+		func() { c.pattern(pat.Left) },
+		func() { c.pattern(pat.Right) },
+		pat.Location(),
+	)
+}
+
+func (c *BytecodeCompiler) binaryPattern(opTok token.Type, left func(), right func(), loc *position.Location) {
 	var op bytecode.OpCode
-	switch pat.Op.Type {
+	switch opTok {
 	case token.OR_OR:
 		op = bytecode.JUMP_IF_NP
 	case token.AND_AND:
 		op = bytecode.JUMP_UNLESS_NP
 	default:
-		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.Name()))
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", opTok.Name()))
 	}
 
-	c.pattern(pat.Left)
-	jump := c.emitJump(location.StartPos.Line, op)
+	left()
+	jump := c.emitJump(loc.StartPos.Line, op)
 
 	// branch one
-	c.emit(location.StartPos.Line, bytecode.POP)
-	c.pattern(pat.Right)
+	c.emit(loc.StartPos.Line, bytecode.POP)
+	right()
 
 	// branch two
-	c.patchJump(jump, location)
+	c.patchJump(jump, loc)
+}
+
+func (c *BytecodeCompiler) nilablePattern(node *ast.NilablePatternNode) {
+	location := node.Location()
+	c.binaryPattern(
+		token.OR_OR,
+		func() {
+			c.pattern(node.Pattern)
+		},
+		func() {
+			c.literalPattern(
+				func() {
+					c.emit(location.StartPos.Line, bytecode.NIL)
+				},
+				bytecode.EQUAL,
+				location,
+			)
+		},
+		location,
+	)
+}
+
+func (c *BytecodeCompiler) mustPattern(node *ast.MustPatternNode) {
+	location := node.Location()
+	c.literalPattern(
+		func() {
+			c.emit(location.StartPos.Line, bytecode.NIL)
+		},
+		bytecode.NOT_EQUAL,
+		location,
+	)
 }
 
 func (c *BytecodeCompiler) asPattern(node *ast.AsPatternNode) {
@@ -4029,25 +4083,34 @@ func (c *BytecodeCompiler) identifierObjectPatternAttribute(name string, locatio
 	c.emitSetLocalPop(location.StartPos.Line, identVar.index)
 }
 
-func (c *BytecodeCompiler) objectPattern(node *ast.ObjectPatternNode) {
+func (c *BytecodeCompiler) objectPatternNode(node *ast.ObjectPatternNode) {
+	c.objectPattern(node.ObjectType, node.Attributes, node.Location())
+}
+
+func (c *BytecodeCompiler) inferredObjectPattern(node *ast.InferredObjectPatternNode) {
+	c.objectPattern(nil, node.Attributes, node.Location())
+}
+
+func (c *BytecodeCompiler) objectPattern(objectTypeNode ast.ComplexConstantNode, attributes []ast.PatternNode, loc *position.Location) {
 	var jumpsToPatch []int
 	c.enterPattern()
 
-	location := node.Location()
-	c.emit(node.ObjectType.Location().StartPos.Line, bytecode.DUP)
-	c.compileNodeWithResult(node.ObjectType)
-	c.emit(node.ObjectType.Location().StartPos.Line, bytecode.IS_A)
+	if objectTypeNode != nil {
+		c.emit(objectTypeNode.Location().StartPos.Line, bytecode.DUP)
+		c.compileNodeWithResult(objectTypeNode)
+		c.emit(objectTypeNode.Location().StartPos.Line, bytecode.IS_A)
 
-	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
-	jumpsToPatch = append(jumpsToPatch, jmp)
-	c.emit(location.StartPos.Line, bytecode.POP)
+		jmp := c.emitJump(loc.StartPos.Line, bytecode.JUMP_UNLESS_NP)
+		jumpsToPatch = append(jumpsToPatch, jmp)
+		c.emit(loc.StartPos.Line, bytecode.POP)
+	}
 
-	for _, attr := range node.Attributes {
+	for _, attr := range attributes {
 		location := attr.Location()
 		switch e := attr.(type) {
 		case *ast.SymbolKeyValuePatternNode:
 			c.emit(location.StartPos.Line, bytecode.DUP)
-			callInfo := value.NewCallSiteInfo(value.ToSymbol(e.Key), 0)
+			callInfo := value.NewCallSiteInfo(value.ToSymbol(identifierToName(e.Key)), 0)
 			c.emitCallMethod(callInfo, location, false)
 
 			c.pattern(e.Value)
@@ -4068,11 +4131,11 @@ func (c *BytecodeCompiler) objectPattern(node *ast.ObjectPatternNode) {
 	}
 
 	// leave true as the result of the happy path
-	c.emit(location.StartPos.Line, bytecode.TRUE)
+	c.emit(loc.StartPos.Line, bytecode.TRUE)
 
 	// leave false on the stack from the falsy if that jumped here
 	for _, jmp := range jumpsToPatch {
-		c.patchJump(jmp, location)
+		c.patchJump(jmp, loc)
 	}
 	c.leavePattern()
 }
@@ -4143,7 +4206,7 @@ func (c *BytecodeCompiler) mapOrRecordPattern(typ types.Type, location *position
 		switch e := element.(type) {
 		case *ast.SymbolKeyValuePatternNode:
 			c.emit(location.StartPos.Line, bytecode.DUP)
-			c.emitValue(value.ToSymbol(e.Key).ToValue(), location)
+			c.emitValue(value.ToSymbol(identifierToName(e.Key)).ToValue(), location)
 			c.compileSubscript(typ, location)
 
 			c.pattern(e.Value)

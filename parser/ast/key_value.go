@@ -228,14 +228,14 @@ func (n *SymbolKeyValueExpressionNode) Error() string {
 // Represents a symbol value pattern eg. `foo: bar`
 type SymbolKeyValuePatternNode struct {
 	NodeBase
-	Key   string
+	Key   IdentifierNode
 	Value PatternNode
 }
 
 func (n *SymbolKeyValuePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SymbolKeyValuePatternNode{
 		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Key:      n.Key,
+		Key:      n.Key.splice(loc, args, unquote).(IdentifierNode),
 		Value:    n.Value.splice(loc, args, unquote).(PatternNode),
 	}
 }
@@ -252,6 +252,10 @@ func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, paren
 		return leave(n, parent)
 	}
 
+	if n.Key.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
 	if n.Value.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
@@ -265,7 +269,7 @@ func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	return n.Key != o.Key &&
+	return n.Key.Equal(o.Key.ToValue()) &&
 		n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
 }
@@ -273,7 +277,7 @@ func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 func (n *SymbolKeyValuePatternNode) String() string {
 	var buff strings.Builder
 
-	buff.WriteString(n.Key)
+	buff.WriteString(n.Key.String())
 	buff.WriteString(": ")
 	buff.WriteString(n.Value.String())
 
@@ -298,7 +302,7 @@ func (n *SymbolKeyValuePatternNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolKeyValuePatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  key: ")
-	indent.IndentStringFromSecondLine(&buff, value.String(n.Key).Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, n.Key.Inspect(), 1)
 
 	buff.WriteString(",\n  value: ")
 	indent.IndentStringFromSecondLine(&buff, n.Value.Inspect(), 1)
@@ -317,7 +321,7 @@ func (n *SymbolKeyValuePatternNode) Error() string {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValuePatternNode(loc *position.Location, key string, val PatternNode) *SymbolKeyValuePatternNode {
+func NewSymbolKeyValuePatternNode(loc *position.Location, key IdentifierNode, val PatternNode) *SymbolKeyValuePatternNode {
 	return &SymbolKeyValuePatternNode{
 		NodeBase: NodeBase{loc: loc},
 		Key:      key,
