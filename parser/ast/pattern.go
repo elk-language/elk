@@ -89,6 +89,10 @@ func PatternDeclaresVariables(pattern PatternNode) bool {
 	case *BinaryPatternNode:
 		return PatternDeclaresVariables(pat.Left) ||
 			PatternDeclaresVariables(pat.Right)
+	case *InferredObjectPatternNode:
+		return anyPatternDeclaresVariables(pat.Attributes)
+	case *NilablePatternNode:
+		return PatternDeclaresVariables(pat.Pattern)
 	case *ObjectPatternNode:
 		return anyPatternDeclaresVariables(pat.Attributes)
 	case *SymbolKeyValuePatternNode:

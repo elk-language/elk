@@ -3334,7 +3334,7 @@ end
 													[]ast.PatternNode{
 														ast.NewSymbolKeyValuePatternNode(
 															L(S(P(30, 1, 31), P(43, 1, 44))),
-															ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(32, 1, 33))), "x"),
+															ast.NewPublicIdentifierNode(L(S(P(30, 1, 31), P(30, 1, 31))), "x"),
 															ast.NewBinaryPatternNode(
 																L(S(P(33, 1, 34), P(43, 1, 44))),
 																T(L(S(P(37, 1, 38), P(38, 1, 39))), token.AND_AND),

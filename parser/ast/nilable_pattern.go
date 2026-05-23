@@ -12,14 +12,14 @@ import (
 
 // Represents a nilable pattern eg. `Foo(bar, baz)?`
 type NilablePatternNode struct {
-	NodeBase
+	TypedNodeBase
 	Pattern PatternNode
 }
 
 func (n *NilablePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NilablePatternNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
 	}
 }
 
@@ -49,8 +49,8 @@ func (*NilablePatternNode) IsStatic() bool {
 // Create a nilable pattern node eg. `Foo(foo: 5, bar: a, c)?`
 func NewNilablePatternNode(loc *position.Location, pattern PatternNode) *NilablePatternNode {
 	return &NilablePatternNode{
-		NodeBase: NodeBase{loc: loc},
-		Pattern:  pattern,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Pattern:       pattern,
 	}
 }
 

@@ -269,7 +269,7 @@ func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) boo
 		if classMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, true) {
+		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, true, false) {
 			return false
 		}
 	}
@@ -291,7 +291,7 @@ func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespa
 		if bMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, true) {
+		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, true, false) {
 			return false
 		}
 	}
@@ -1121,7 +1121,7 @@ abstractLoop:
 			continue abstractLoop
 		}
 
-		if !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
+		if !c.checkMethodCompatibility(abstractMethod, method, nil, true, false) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
 				superMethod: abstractMethod,
 				override:    method,
@@ -1201,7 +1201,7 @@ func (c *Checker) isSubtypeOfCallable(a types.Namespace, b *types.Callable, errL
 		return false
 	}
 
-	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false) {
+	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false, false) {
 		methodDetailsBuff := new(strings.Builder)
 		if method == nil {
 			fmt.Fprintf(

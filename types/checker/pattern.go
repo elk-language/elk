@@ -327,6 +327,7 @@ func (c *Checker) checkNilablePatternNode(node *ast.NilablePatternNode, matchedT
 	var catchType types.Type
 	node.Pattern, catchType = c.checkPattern(node.Pattern, matchedType)
 	patternType := c.TypeOf(node.Pattern)
+	c.checkCanMatch(matchedType, types.Nil{}, node.Location())
 	c.mode = prevMode
 
 	node.SetType(c.ToNilable(patternType))
@@ -532,9 +533,11 @@ func (c *Checker) checkInferredObjectPattern(node *ast.InferredObjectPatternNode
 	}
 
 	if allAttributesFullyCaptured {
+		node.SetType(matchedType)
 		return node, c.TypeOf(node)
 	}
 
+	node.SetType(types.Never{})
 	return node, types.Never{}
 }
 

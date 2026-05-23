@@ -110,7 +110,8 @@ func (t *Token) Color() prompt.Color {
 		return prompt.Red
 	case ERROR:
 		return prompt.Black
-	case HASH_SET_LITERAL_BEG, TUPLE_LITERAL_BEG, RECORD_LITERAL_BEG, CLOSURE_TYPE_BEG:
+	case HASH_SET_LITERAL_BEG, TUPLE_LITERAL_BEG, RECORD_LITERAL_BEG, CLOSURE_TYPE_BEG,
+		AT_LBRACE:
 		return prompt.Fuchsia
 	}
 
@@ -173,7 +174,8 @@ func (t *Token) AnsiStyling() []color.Attribute {
 		return []color.Attribute{color.FgHiRed}
 	case ERROR:
 		return []color.Attribute{color.FgBlack, color.BgRed}
-	case HASH_SET_LITERAL_BEG, TUPLE_LITERAL_BEG, RECORD_LITERAL_BEG, CLOSURE_TYPE_BEG:
+	case HASH_SET_LITERAL_BEG, TUPLE_LITERAL_BEG, RECORD_LITERAL_BEG, CLOSURE_TYPE_BEG,
+		AT_LBRACE:
 		return []color.Attribute{color.FgHiMagenta}
 	}
 

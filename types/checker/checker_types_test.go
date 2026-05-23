@@ -114,16 +114,16 @@ func TestNilableTypeMethodCall(t *testing.T) {
 		"method with different return types": {
 			input: `
 				class Foo
-					def foo(a: Int): Int then a
+					def foo: Int then 5
 				end
 				sealed primitive noinit class Std::Nil < Value
-					def foo(a: Int): Nil then nil
+					def foo: Float then 2.5
 				end
 				var a: Foo? = nil
-				a.foo
+				var b: nil = a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(178, 9, 7), P(180, 9, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(175, 9, 18), P(179, 9, 22)), "type `Std::Int | Std::Float` cannot be assigned to type `nil`"),
 			},
 		},
 		"method with different param types": {
@@ -497,20 +497,19 @@ func TestUnionTypeMethodCall(t *testing.T) {
 		"method with different return types": {
 			input: `
 				class Bar
-					def foo(a: Int): String then ""
+					def foo: String then ""
 				end
 				class Foo
-					def foo(a: Int): Int then a
+					def foo: Int then 5
 				end
 				sealed primitive noinit class Std::Nil < Value
-					def foo(a: Int): Nil then nil
+					def foo: Nil then nil
 				end
 				var a: Foo | Bar | Nil = nil
-				a.foo
+				var b: nil = a.foo
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(248, 12, 7), P(250, 12, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::String`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				diagnostic.NewFailure(L("<main>", P(248, 12, 7), P(250, 12, 9)), "method `Std::Nil.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::Int): Std::Nil`\n  should be: `def foo(a: Std::Int): Std::Int`\n\n  - method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+				diagnostic.NewFailure(L("<main>", P(235, 12, 18), P(239, 12, 22)), "type `Std::Int | Std::String | Std::Nil` cannot be assigned to type `nil`"),
 			},
 		},
 		"method with different param types": {
@@ -570,9 +569,6 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar = Foo()
 				a.foo("b")
 			`,
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(154, 9, 7), P(156, 9, 9)), "method `Bar.:foo` is incompatible with `Foo.:foo`\n  is:        `def foo(a: Std::String): Std::Value`\n  should be: `def foo(a: Std::String): Std::Int`\n\n  - method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Value`, should have `Std::Int`"),
-			},
 		},
 		"method with narrower return type": {
 			input: `
