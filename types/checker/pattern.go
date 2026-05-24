@@ -239,7 +239,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
 		leftType := c.TypeOf(node.Left)
 
-		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
+		node.Right, rightCatchType = c.checkPattern(node.Right, leftType)
 		rightType := c.TypeOf(node.Right)
 
 		intersection := c.NewNormalisedIntersection(leftType, rightType)

@@ -2819,7 +2819,6 @@ func TestBinaryPattern(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "type `2.2` cannot ever match type `Std::Int`"),
-				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(19, 2, 19)), "type `2.2` cannot ever match type `Std::Int`"),
 			},
 		},
 		"&& - incompatible patterns": {
@@ -2829,7 +2828,7 @@ func TestBinaryPattern(t *testing.T) {
 				var c: 9 = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(45, 3, 9), P(56, 3, 20)), "this pattern is impossible to satisfy"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 18), P(56, 3, 20)), "type `Std::Int` cannot ever match type `Std::Float`"),
 			},
 		},
 	}

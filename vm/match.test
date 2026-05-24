@@ -1,0 +1,16 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "match expression", ->
+  should "return true when pattern matches", ->
+    var a: Int | String = 5
+    result := a match Int()
+    assert! result == true
+  end
+
+  should "return false when pattern does not match", ->
+    var a: Int | String = 5
+    result := a match String()
+    assert! result == false
+  end
+end

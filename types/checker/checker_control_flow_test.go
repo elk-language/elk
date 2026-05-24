@@ -111,6 +111,7 @@ func TestDoCatchExpression(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 4, 29), P(56, 4, 33)), "type `Std::String` cannot ever match type `Std::Int`"),
 				diagnostic.NewWarning(L("<main>", P(34, 4, 11), P(56, 4, 33)), "this pattern is impossible to satisfy"),
 			},
 		},
