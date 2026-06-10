@@ -148,6 +148,7 @@ var YieldExpressionNodeClass *Class               // Std::Elk::AST::YieldExpress
 var ContinueExpressionNodeClass *Class            // Std::Elk::AST::ContinueExpressionNode
 var ThrowExpressionNodeClass *Class               // Std::Elk::AST::ThrowExpressionNode
 var MustExpressionNodeClass *Class                // Std::Elk::AST::MustExpressionNode
+var DeferExpressionNodeClass *Class               // Std::Elk::AST::DeferExpressionNode
 var MustPatternNodeClass *Class                   // Std::Elk::AST::MustPatternNode
 var TryExpressionNodeClass *Class                 // Std::Elk::AST::TryExpressionNode
 var AwaitExpressionNodeClass *Class               // Std::Elk::AST::AwaitExpressionNode
@@ -916,6 +917,10 @@ func initElkAST() {
 	MustExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	MustExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("MustExpressionNode", Ref(MustExpressionNodeClass))
+
+	DeferExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	DeferExpressionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("DeferExpressionNode", Ref(DeferExpressionNodeClass))
 
 	MustPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	MustPatternNodeClass.IncludeMixin(PatternNodeMixin)

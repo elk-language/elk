@@ -4283,6 +4283,57 @@ func TestMust(t *testing.T) {
 	}
 }
 
+func TestDefer(t *testing.T) {
+	tests := testTable{
+		"can have an argument": {
+			input: `defer 2`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(6, 1, 7))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(6, 1, 7))),
+						ast.NewDeferExpressionNode(
+							L(S(P(0, 1, 1), P(6, 1, 7))),
+							ast.NewIntLiteralNode(L(S(P(6, 1, 7), P(6, 1, 7))), "2"),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && defer bar()`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewLogicalExpressionNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							T(L(S(P(4, 1, 5), P(5, 1, 6))), token.AND_AND),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewDeferExpressionNode(
+								L(S(P(7, 1, 8), P(17, 1, 18))),
+								ast.NewReceiverlessMethodCallNode(
+									L(S(P(13, 1, 14), P(17, 1, 18))),
+									ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(15, 1, 16))), "bar"),
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestAs(t *testing.T) {
 	tests := testTable{
 		"can have a public constant as a type": {

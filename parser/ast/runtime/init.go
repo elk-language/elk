@@ -128,6 +128,7 @@ func InitGlobalEnvironment() {
 	initModifierNode()
 	initModuleDeclarationNode()
 	initMustExpressionNode()
+	initDeferExpressionNode()
 	initNamedCallArgumentNode()
 	initNeverTypeNode()
 	initNewExpressionNode()

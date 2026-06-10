@@ -2398,6 +2398,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
+	case token.DEFER:
+		return p.deferExpression()
 	case token.TRY:
 		return p.tryExpression()
 	case token.TYPEOF:
@@ -5267,6 +5269,17 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 
 	return ast.NewMustExpressionNode(
 		mustTok.Location().Join(expr.Location()),
+		expr,
+	)
+}
+
+// deferExpression = "defer" [expressionWithoutModifier]
+func (p *Parser) deferExpression() *ast.DeferExpressionNode {
+	deferTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewDeferExpressionNode(
+		deferTok.Location().Join(expr.Location()),
 		expr,
 	)
 }

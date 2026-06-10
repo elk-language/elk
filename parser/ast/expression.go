@@ -88,6 +88,7 @@ func (*YieldExpressionNode) expressionNode()               {}
 func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*MustExpressionNode) expressionNode()                {}
+func (*DeferExpressionNode) expressionNode()               {}
 func (*TryExpressionNode) expressionNode()                 {}
 func (*AwaitExpressionNode) expressionNode()               {}
 func (*TypeofExpressionNode) expressionNode()              {}
