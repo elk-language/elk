@@ -6225,3 +6225,148 @@ func TestBytecodeCatch(t *testing.T) {
 		})
 	}
 }
+
+func TestBytecodeDefer(t *testing.T) {
+	tests := bytecodeTestTable{
+		"multiple defer": {
+			input: `
+				puts "1. open file"
+				defer puts "2. close file"
+
+				puts "3. open TCP socket"
+				defer puts "4. close TCP socket"
+			`,
+			want: vm.NewBytecodeFunctionWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CLOSURE),
+					0xff,
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.CLOSURE),
+					0xff,
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.INT_1),
+					byte(bytecode.EXEC_DEFER),
+					byte(bytecode.JUMP), 0, 37,
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.INT_1),
+					byte(bytecode.EXEC_DEFER),
+					byte(bytecode.NIL),
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+					byte(bytecode.POP_2),
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF_NP), 0, 10,
+					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+					byte(bytecode.POP_2),
+					byte(bytecode.POP_2_SKIP_ONE),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP_2),
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_2),
+					byte(bytecode.RETHROW),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(123, 6, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(1, 1),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(5, 7),
+					bytecode.NewLineInfo(6, 8),
+					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(6, 13),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(6, 22),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.Ref(&value.NativeArrayList[*vm.BytecodeClosure]{}),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("1. open file")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("<defer>"),
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.CALL_METHOD8), 2,
+								byte(bytecode.RETURN),
+							},
+							L(P(29, 3, 5), P(54, 3, 30)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(3, 6),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(value.String("2. close file")),
+								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+							},
+						),
+					),
+					value.Ref(value.String("3. open TCP socket")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("<defer>"),
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.CALL_METHOD8), 2,
+								byte(bytecode.RETURN),
+							},
+							L(P(91, 6, 5), P(122, 6, 36)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(6, 6),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(value.String("4. close TCP socket")),
+								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+							},
+						),
+					),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(5, 33, 38, false),
+					vm.NewCatchEntry(5, 33, 46, true),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			bytecodeCompilerTest(tc, t)
+		})
+	}
+}

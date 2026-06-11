@@ -14,6 +14,7 @@ import (
 type InterfaceDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	HasDefer       bool
 	Constant       ExpressionNode      // The constant that will hold the interface value
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Body           []StatementNode     // body of the interface
@@ -34,6 +35,7 @@ func (n *InterfaceDeclarationNode) splice(loc *position.Location, args *[]Node, 
 	return &InterfaceDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		HasDefer:               n.HasDefer,
 		Constant:               constant,
 		TypeParameters:         typeParams,
 		Body:                   body,

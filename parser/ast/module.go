@@ -14,6 +14,7 @@ import (
 type ModuleDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	HasDefer bool
 	Constant ExpressionNode  // The constant that will hold the module value
 	Body     []StatementNode // body of the module
 	Bytecode value.Method
@@ -30,6 +31,7 @@ func (n *ModuleDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 	return &ModuleDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		HasDefer:               n.HasDefer,
 		Constant:               constant,
 		Body:                   body,
 		Bytecode:               n.Bytecode,

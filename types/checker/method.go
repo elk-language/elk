@@ -1118,6 +1118,8 @@ func (c *Checker) checkMethod(
 ) (ast.TypeNode, ast.TypeNode) {
 	prevCatchScopes := c.catchScopes
 	c.catchScopes = nil
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
 
 	name := checkedMethod.Name
 	prevMode := c.mode
@@ -1290,6 +1292,9 @@ func (c *Checker) checkMethod(
 		}
 	}
 
+	checkedMethod.SetHasDefer(c.hasDefer())
+
+	c.setHasDefer(prevHasDefer)
 	c.returnType = nil
 	c.throwType = nil
 	c.mode = prevMode

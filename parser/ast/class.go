@@ -18,6 +18,7 @@ type ClassDeclarationNode struct {
 	Sealed         bool
 	Primitive      bool
 	NoInit         bool
+	HasDefer       bool
 	Constant       ExpressionNode      // The constant that will hold the class value
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Superclass     ExpressionNode      // the super/parent class of this class
@@ -46,6 +47,7 @@ func (n *ClassDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 		Sealed:         n.Sealed,
 		Primitive:      n.Primitive,
 		NoInit:         n.NoInit,
+		HasDefer:       n.HasDefer,
 		Constant:       constant,
 		TypeParameters: typeParams,
 		Superclass:     superclass,

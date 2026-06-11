@@ -244,6 +244,7 @@ type BytecodeCompiler struct {
 	isAsync               bool
 	unhygienic            bool
 	additionalAbortChecks bool
+	hasDefer              bool
 }
 
 // Instantiate a NewBytecodeCompiler Compiler instance.
@@ -457,6 +458,7 @@ func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) C
 }
 
 func (c *BytecodeCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
+	c.hasDefer = node.HasDefer
 	c.compileProgram(node)
 }
 
@@ -466,7 +468,12 @@ func (c *BytecodeCompiler) CompileExpression(node ast.ExpressionNode) {
 
 // Entry point to the compilation process
 func (c *BytecodeCompiler) compileProgram(node ast.Node) {
-	c.compileNode(node, false)
+	c.compileWithDefer(
+		func() {
+			c.compileNode(node, false)
+		},
+		node.Location(),
+	)
 	c.emitReturn(node.Location(), nil)
 	c.prepLocals()
 }
@@ -482,8 +489,47 @@ func identifierToName(node ast.IdentifierNode) string {
 	}
 }
 
+const deferStackVarName = "#_defer_stack"
+
+func (c *BytecodeCompiler) compileWithDefer(body func(), loc *position.Location) {
+	if !c.hasDefer {
+		body()
+		return
+	}
+
+	local, ok := c.resolveLocal(deferStackVarName)
+	if !ok {
+		local = c.defineLocal(deferStackVarName, loc)
+	}
+	c.emitValue(value.NewNativeArrayList[*vm.BytecodeClosure](5).ToValue(), loc)
+	c.emitSetLocalPop(loc.StartPos.Line, local.index)
+
+	c.compileDo(
+		body,
+		nil,
+		func(valueIsIgnored bool) {
+			c.emitValue(value.SmallInt(local.index).ToValue(), loc)
+			c.emit(loc.StartPos.Line, bytecode.EXEC_DEFER)
+			if !valueIsIgnored {
+				c.emit(loc.StartPos.Line, bytecode.NIL)
+			}
+		},
+		loc,
+	)
+}
+
 // Entry point for compiling the body of a function.
-func (c *BytecodeCompiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
+func (c *BytecodeCompiler) compileFunctionStatements(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	c.compileFunction(
+		location,
+		parameters,
+		func() {
+			c.compileStatements(body, location, false)
+		},
+	)
+}
+
+func (c *BytecodeCompiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body func()) {
 	c.bytecode.SetParameterCount(len(parameters))
 
 	for _, param := range parameters {
@@ -509,7 +555,11 @@ func (c *BytecodeCompiler) compileFunction(location *position.Location, paramete
 			c.patchJump(jump, pSpan)
 		}
 	}
-	c.compileStatements(body, location, false)
+
+	c.compileWithDefer(
+		body,
+		location,
+	)
 
 	c.emitReturn(location, nil)
 	c.prepLocals()
@@ -781,6 +831,8 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
+	methodType := c.typeOf(node).(*types.Method)
+	methodCompiler.hasDefer = methodType.HasDefer()
 	methodCompiler.compileMethodBody(node.Location(), node.Parameters, node.Body)
 
 	return methodCompiler
@@ -789,44 +841,49 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 func (c *BytecodeCompiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
 	methodCompiler := NewBytecodeCompiler(name.String(), macroBytecodeCompilerMode, node.Location(), c.checker)
 	methodCompiler.Errors = c.Errors
+	methodType := c.typeOf(node).(*types.Method)
+	methodCompiler.hasDefer = methodType.HasDefer()
 	methodCompiler.compileMacroBody(node.Location(), node.Parameters, node.Body)
 
 	return methodCompiler.bytecode
 }
 
-const macroLocationParamName = "_location"
-
 // Entry point for compiling the body of a macro.
 func (c *BytecodeCompiler) compileMacroBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
-	paramCount := len(parameters)
+	c.compileWithDefer(
+		func() {
+			paramCount := len(parameters)
 
-	for _, param := range parameters {
-		p := param.(*ast.FormalParameterNode)
-		pSpan := p.Location()
+			for _, param := range parameters {
+				p := param.(*ast.FormalParameterNode)
+				pSpan := p.Location()
 
-		pName := identifierToName(p.Name)
-		local := c.defineLocal(pName, pSpan)
-		if local == nil {
-			return
-		}
-		c.predefinedLocals++
+				pName := identifierToName(p.Name)
+				local := c.defineLocal(pName, pSpan)
+				if local == nil {
+					return
+				}
+				c.predefinedLocals++
 
-		if p.Initialiser != nil {
-			c.bytecode.IncrementOptionalParameterCount()
+				if p.Initialiser != nil {
+					c.bytecode.IncrementOptionalParameterCount()
 
-			c.emitGetLocal(location.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+					c.emitGetLocal(location.StartPos.Line, local.index)
+					jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
-			c.compileNode(p.Initialiser, false)
-			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
+					c.compileNode(p.Initialiser, false)
+					c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
 
-			c.patchJump(jump, pSpan)
-		}
-	}
+					c.patchJump(jump, pSpan)
+				}
+			}
 
-	c.bytecode.SetParameterCount(paramCount)
+			c.bytecode.SetParameterCount(paramCount)
 
-	c.compileStatements(body, location, false)
+			c.compileStatements(body, location, false)
+		},
+		location,
+	)
 
 	c.emitReturn(location, nil)
 	c.emitFinalReturn(location, nil)
@@ -835,55 +892,60 @@ func (c *BytecodeCompiler) compileMacroBody(location *position.Location, paramet
 
 // Entry point for compiling the body of a method.
 func (c *BytecodeCompiler) compileMethodBody(location *position.Location, parameters []ast.ParameterNode, body []ast.StatementNode) {
-	for _, param := range parameters {
-		p := param.(*ast.MethodParameterNode)
-		pSpan := p.Location()
+	c.compileWithDefer(
+		func() {
+			for _, param := range parameters {
+				p := param.(*ast.MethodParameterNode)
+				pSpan := p.Location()
 
-		pName := identifierToName(p.Name)
-		local := c.defineLocal(pName, pSpan)
-		if local == nil {
-			return
-		}
-		c.predefinedLocals++
+				pName := identifierToName(p.Name)
+				local := c.defineLocal(pName, pSpan)
+				if local == nil {
+					return
+				}
+				c.predefinedLocals++
 
-		if p.Initialiser != nil {
-			c.bytecode.IncrementOptionalParameterCount()
+				if p.Initialiser != nil {
+					c.bytecode.IncrementOptionalParameterCount()
 
-			c.emitGetLocal(location.StartPos.Line, local.index)
-			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+					c.emitGetLocal(location.StartPos.Line, local.index)
+					jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
 
-			c.compileNode(p.Initialiser, false)
-			c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
+					c.compileNode(p.Initialiser, false)
+					c.emitSetLocalPop(pSpan.StartPos.Line, local.index)
 
-			c.patchJump(jump, pSpan)
-		}
+					c.patchJump(jump, pSpan)
+				}
 
-		if p.SetInstanceVariable {
-			c.emitGetLocal(location.StartPos.Line, local.index)
-			c.emitSetInstanceVariableNoPop(value.ToSymbol(pName), pSpan)
-			// pop the value after setting it
-			c.emit(pSpan.StartPos.Line, bytecode.POP)
-		}
-	}
+				if p.SetInstanceVariable {
+					c.emitGetLocal(location.StartPos.Line, local.index)
+					c.emitSetInstanceVariableNoPop(value.ToSymbol(pName), pSpan)
+					// pop the value after setting it
+					c.emit(pSpan.StartPos.Line, bytecode.POP)
+				}
+			}
 
-	paramCount := len(parameters)
-	if c.isGenerator {
-		c.emit(location.StartPos.Line, bytecode.GENERATOR)
-		c.emit(location.EndPos.Line, bytecode.RETURN)
-		c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
-	} else if c.isAsync {
-		poolVar := c.defineLocal("_pool", location)
-		paramCount++
-		c.predefinedLocals++
-		c.bytecode.IncrementOptionalParameterCount()
+			paramCount := len(parameters)
+			if c.isGenerator {
+				c.emit(location.StartPos.Line, bytecode.GENERATOR)
+				c.emit(location.EndPos.Line, bytecode.RETURN)
+				c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
+			} else if c.isAsync {
+				poolVar := c.defineLocal("_pool", location)
+				paramCount++
+				c.predefinedLocals++
+				c.bytecode.IncrementOptionalParameterCount()
 
-		c.emitGetLocal(location.StartPos.Line, poolVar.index)
-		c.emit(location.StartPos.Line, bytecode.PROMISE)
-		c.emit(location.EndPos.Line, bytecode.RETURN)
-	}
-	c.bytecode.SetParameterCount(paramCount)
+				c.emitGetLocal(location.StartPos.Line, poolVar.index)
+				c.emit(location.StartPos.Line, bytecode.PROMISE)
+				c.emit(location.EndPos.Line, bytecode.RETURN)
+			}
+			c.bytecode.SetParameterCount(paramCount)
 
-	c.compileStatements(body, location, false)
+			c.compileStatements(body, location, false)
+		},
+		location,
+	)
 
 	c.emitReturn(location, nil)
 	c.emitFinalReturn(location, nil)
@@ -893,32 +955,42 @@ func (c *BytecodeCompiler) compileMethodBody(location *position.Location, parame
 // Entry point for compiling the body of a namespace eg. Module, Class, Mixin, Struct, Interface.
 func (c *BytecodeCompiler) compileNamespace(node ast.Node) bool {
 	location := node.Location()
-	switch n := node.(type) {
-	case *ast.ClassDeclarationNode:
-		if !c.compileStatementsOk(n.Body) {
-			return false
-		}
-	case *ast.InterfaceDeclarationNode:
-		if !c.compileStatementsOk(n.Body) {
-			return false
-		}
-	case *ast.ModuleDeclarationNode:
-		if !c.compileStatementsOk(n.Body) {
-			return false
-		}
-	case *ast.MixinDeclarationNode:
-		if !c.compileStatementsOk(n.Body) {
-			return false
-		}
-	case *ast.SingletonBlockExpressionNode:
-		if !c.compileStatementsOk(n.Body) {
-			return false
-		}
-	default:
-		c.addFailure(
-			fmt.Sprintf("incorrect namespace type %#v", n),
-			location,
-		)
+	result := true
+
+	c.compileWithDefer(
+		func() {
+			switch n := node.(type) {
+			case *ast.ClassDeclarationNode:
+				if !c.compileStatementsOk(n.Body) {
+					result = false
+				}
+			case *ast.InterfaceDeclarationNode:
+				if !c.compileStatementsOk(n.Body) {
+					result = false
+				}
+			case *ast.ModuleDeclarationNode:
+				if !c.compileStatementsOk(n.Body) {
+					result = false
+				}
+			case *ast.MixinDeclarationNode:
+				if !c.compileStatementsOk(n.Body) {
+					result = false
+				}
+			case *ast.SingletonBlockExpressionNode:
+				if !c.compileStatementsOk(n.Body) {
+					result = false
+				}
+			default:
+				c.addFailure(
+					fmt.Sprintf("incorrect namespace type %#v", n),
+					location,
+				)
+				result = false
+			}
+		},
+		node.Location(),
+	)
+	if result == false {
 		return false
 	}
 
@@ -1256,6 +1328,8 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		c.compileThrowExpressionNode(node)
 	case *ast.MustExpressionNode:
 		c.compileMustExpressionNode(node)
+	case *ast.DeferExpressionNode:
+		return c.compileDeferExpressionNode(node, valueIsIgnored)
 	case *ast.TryExpressionNode:
 		return c.compileTryExpressionNode(node, valueIsIgnored)
 	case *ast.AsExpressionNode:
@@ -1523,6 +1597,35 @@ func (c *BytecodeCompiler) compileMustExpressionNode(node *ast.MustExpressionNod
 	c.emit(location.StartPos.Line, bytecode.MUST)
 }
 
+func (c *BytecodeCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode, valueIsIgnored bool) expressionResult {
+	loc := node.Location()
+	c.compileLocalVariableAccess(deferStackVarName, loc)
+
+	closureCompiler := NewBytecodeCompiler("<defer>", methodBytecodeCompilerMode, loc, c.checker)
+	closureCompiler.parent = c
+	closureCompiler.Errors = c.Errors
+	closureCompiler.compileFunction(
+		loc,
+		nil,
+		func() {
+			closureCompiler.compileNode(node.Expression, true)
+		},
+	)
+
+	result := closureCompiler.bytecode
+	c.emitValue(value.Ref(result), loc)
+	c.emitClosure(false, closureCompiler.upvalues, loc)
+
+	c.emit(loc.StartPos.Line, bytecode.APPEND)
+	c.emit(loc.StartPos.Line, bytecode.POP)
+	if valueIsIgnored {
+		return expressionCompiledWithoutResult
+	}
+
+	c.emit(loc.StartPos.Line, bytecode.NIL)
+	return expressionCompiled
+}
+
 func (c *BytecodeCompiler) compileAsExpressionNode(node *ast.AsExpressionNode) {
 	location := node.Location()
 	c.compileNode(node.Value, false)
@@ -1581,31 +1684,55 @@ func (c *BytecodeCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarat
 }
 
 func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
-	location := node.Location()
+	c.compileDoStatements(
+		node.Body,
+		node.Catches,
+		node.Finally,
+		node.Location(),
+	)
+}
 
+func (c *BytecodeCompiler) compileDoStatements(body []ast.StatementNode, catches []*ast.CatchNode, finally []ast.StatementNode, location *position.Location) {
+	var finallyFn func(bool)
+	if len(finally) > 0 {
+		finallyFn = func(valueIsIgnored bool) {
+			c.compileStatements(finally, location, valueIsIgnored)
+		}
+	}
+	c.compileDo(
+		func() {
+			c.compileStatementsWithResult(body, location)
+		},
+		catches,
+		finallyFn,
+		location,
+	)
+}
+
+func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, finally func(valueIsIgnored bool), location *position.Location) {
 	doStartOffset := c.nextInstructionOffset()
 
 	var scopeType bytecodeScopeType
-	if len(node.Finally) > 0 {
+	if finally != nil {
 		scopeType = doFinallyBytecodeScopeType
 	} else {
 		scopeType = defaultBytecodeScopeType
 	}
 
 	c.enterScope("", scopeType)
-	c.compileStatementsWithResult(node.Body, location)
+	body()
 	c.leaveScope(location.EndPos.Line)
 
 	doEndOffset := c.nextInstructionOffset()
 
-	if len(node.Finally) > 0 {
+	if finally != nil {
 		c.enterScope("", defaultBytecodeScopeType)
 		// pop the return value of finally leaving the return value of do
-		c.compileStatementsWithoutResult(node.Finally)
+		finally(true)
 		c.leaveScope(location.EndPos.Line)
 	}
 
-	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
+	if len(catches) <= 0 && finally == nil {
 		return
 	}
 
@@ -1618,7 +1745,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 	c.enterScope("", defaultBytecodeScopeType)
 
-	for _, catchNode := range node.Catches {
+	for _, catchNode := range catches {
 		location := catchNode.Location()
 
 		if catchNode.StackTraceVar != nil {
@@ -1645,7 +1772,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 
 		c.compileStatementsWithResult(catchNode.Body, catchNode.Location())
 
-		if len(node.Finally) < 1 {
+		if finally == nil {
 			// pop the thrown value and the stack trace, leaving the return value of the catch
 			c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE)
 		}
@@ -1655,22 +1782,21 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.patchJump(jumpOverCatchBody, location)
 	}
 
-	if len(node.Finally) > 0 {
+	if finally != nil {
 		c.emit(location.EndPos.Line, bytecode.TRUE)
 	} else {
 		c.emit(location.EndPos.Line, bytecode.RETHROW)
 	}
 
 	var jumpOverFalseOffset int
-	if len(node.Finally) > 0 {
-
+	if finally != nil {
 		jumpOverFalseOffset = c.emitJump(location.EndPos.Line, bytecode.JUMP)
 	}
 	for _, jump := range jumpsToEndOfCatch {
 		c.patchJump(jump, location)
 	}
-	if len(node.Finally) > 0 {
-		c.emit(location.EndPos.Line, bytecode.FALSE)
+	if finally != nil {
+		c.emit(location.EndPos.Line, bytecode.FALSE) // entry point for executing finally after catch
 		c.patchJump(jumpOverFalseOffset, location)
 
 		jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
@@ -1686,7 +1812,7 @@ func (c *BytecodeCompiler) compileDoExpressionNode(node *ast.DoExpressionNode) {
 		c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
 		c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
 
-		c.compileStatementsWithResult(node.Finally, location)
+		finally(false)
 
 		c.emit(location.EndPos.Line, bytecode.SWAP)
 		jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
@@ -4917,6 +5043,7 @@ func (c *BytecodeCompiler) singletonBlockIsCompilable(node *ast.SingletonBlockEx
 
 	singletonCompiler := NewBytecodeCompiler(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceBytecodeCompilerMode, location, c.checker)
 	singletonCompiler.Errors = c.Errors
+	singletonCompiler.hasDefer = node.HasDefer
 	if !singletonCompiler.compileNamespace(node) {
 		return false
 	}
@@ -4943,7 +5070,8 @@ func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileFunction(node.Location(), nil, node.Body)
+	closureCompiler.hasDefer = node.HasDefer
+	closureCompiler.compileFunctionStatements(node.Location(), nil, node.Body)
 
 	line := node.Location().StartPos.Line
 	result := closureCompiler.bytecode
@@ -4981,18 +5109,23 @@ func (c *BytecodeCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNod
 	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileFunction(node.Location(), node.Parameters, node.Body)
+	closureType := c.typeOf(node).(*types.Callable)
+	closureCompiler.hasDefer = closureType.Body.HasDefer()
+	closureCompiler.compileFunctionStatements(node.Location(), node.Parameters, node.Body)
 
 	result := closureCompiler.bytecode
 	c.emitValue(value.Ref(result), node.Location())
+	c.emitClosure(node.Lambda, closureCompiler.upvalues, node.Location())
+}
 
-	if node.Lambda {
-		c.emit(node.Location().StartPos.Line, bytecode.CLOSED_CLOSURE)
+func (c *BytecodeCompiler) emitClosure(lambda bool, upvalues bytecodeUpvalues, loc *position.Location) {
+	if lambda {
+		c.emit(loc.StartPos.Line, bytecode.CLOSED_CLOSURE)
 	} else {
-		c.emit(node.Location().StartPos.Line, bytecode.CLOSURE)
+		c.emit(loc.StartPos.Line, bytecode.CLOSURE)
 	}
 
-	for _, upvalue := range closureCompiler.upvalues {
+	for _, upvalue := range upvalues {
 		if upvalue.kind == upvalueOwnLocal {
 			continue
 		}
@@ -5025,6 +5158,7 @@ func (c *BytecodeCompiler) mixinIsCompilable(node *ast.MixinDeclarationNode) boo
 
 	mixinCompiler := NewBytecodeCompiler(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	mixinCompiler.Errors = c.Errors
+	mixinCompiler.hasDefer = node.HasDefer
 	if !mixinCompiler.compileNamespace(node) {
 		return false
 	}
@@ -5056,6 +5190,7 @@ func (c *BytecodeCompiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) b
 	modType := c.typeOf(node).(*types.Module)
 	modCompiler := NewBytecodeCompiler(fmt.Sprintf("<module: %s>", modType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	modCompiler.Errors = c.Errors
+	modCompiler.hasDefer = node.HasDefer
 	if !modCompiler.compileNamespace(node) {
 		return false
 	}
@@ -5087,6 +5222,7 @@ func (c *BytecodeCompiler) interfaceIsCompilable(node *ast.InterfaceDeclarationN
 
 	ifaceCompiler := NewBytecodeCompiler(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	ifaceCompiler.Errors = c.Errors
+	ifaceCompiler.hasDefer = node.HasDefer
 	if !ifaceCompiler.compileNamespace(node) {
 		return false
 	}
@@ -5118,6 +5254,7 @@ func (c *BytecodeCompiler) classIsCompilable(node *ast.ClassDeclarationNode) boo
 
 	classCompiler := NewBytecodeCompiler(fmt.Sprintf("<class: %s>", classType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
 	classCompiler.Errors = c.Errors
+	classCompiler.hasDefer = node.HasDefer
 	if !classCompiler.compileNamespace(node) {
 		return false
 	}

@@ -235,6 +235,34 @@ func TestMustExpression(t *testing.T) {
 	}
 }
 
+func TestDeferExpression(t *testing.T) {
+	tests := testTable{
+		"defer with an expression": {
+			input: `
+				a := 5
+				defer a.to_string
+			`,
+		},
+		"defer returns nil": {
+			input: `
+				a := 5
+				result := defer a.to_string
+				var a: never = result
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 5), P(68, 4, 25)), "cannot redeclare local `a`"),
+				diagnostic.NewFailure(L("<main>", P(63, 4, 20), P(68, 4, 25)), "type `nil` cannot be assigned to type `never`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestAsExpression(t *testing.T) {
 	tests := testTable{
 		"valid type downcast": {

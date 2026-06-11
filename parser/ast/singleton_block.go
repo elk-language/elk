@@ -17,6 +17,7 @@ import (
 //	end
 type SingletonBlockExpressionNode struct {
 	TypedNodeBase
+	HasDefer bool
 	Body     []StatementNode // do expression body
 	Bytecode value.Method
 }
@@ -24,6 +25,7 @@ type SingletonBlockExpressionNode struct {
 func (n *SingletonBlockExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SingletonBlockExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		HasDefer:      n.HasDefer,
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 		Bytecode:      n.Bytecode,
 	}

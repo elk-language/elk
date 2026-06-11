@@ -32,6 +32,7 @@ type ProgramNode struct {
 	NodeBase
 	Body        []StatementNode
 	ImportPaths []string
+	HasDefer    bool
 	State       ProgramState
 }
 
@@ -40,6 +41,7 @@ func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool)
 		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Body:        SpliceSlice(n.Body, loc, args, unquote),
 		ImportPaths: n.ImportPaths,
+		HasDefer:    n.HasDefer,
 		State:       n.State,
 	}
 }

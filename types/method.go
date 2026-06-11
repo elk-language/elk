@@ -163,6 +163,7 @@ const (
 	METHOD_ASYNC_FLAG
 	METHOD_OVERLOAD_FLAG
 	METHOD_MACRO_FLAG
+	METHOD_HAS_DEFER_FLAG
 	// used in using expression placeholders
 	METHOD_PLACEHOLDER_FLAG
 	METHOD_CHECKED_FLAG
@@ -439,6 +440,15 @@ func (m *Method) IsMacro() bool {
 
 func (m *Method) SetMacro(val bool) *Method {
 	m.SetFlag(METHOD_MACRO_FLAG, val)
+	return m
+}
+
+func (m *Method) HasDefer() bool {
+	return m.Flags.HasFlag(METHOD_HAS_DEFER_FLAG)
+}
+
+func (m *Method) SetHasDefer(val bool) *Method {
+	m.SetFlag(METHOD_HAS_DEFER_FLAG, val)
 	return m
 }
 

@@ -291,6 +291,7 @@ const (
 	BREAKPOINT                        // Stop the program and open a REPL
 	SELECT                            // Trigger a channel select using the case data on top of the stack. Pushes three value on top of the stack: the read value from channel (or undefined), a bool value that indicates if the channel is open, integer which is the index of the case that was chosen.
 	CHECK_ABORT                       // Check the thread context, if it is cancelled throw `Std::ExecutionAbortedError`
+	EXEC_DEFER                        // Execute deferred code in LIFO order. Expects an integer that is the index of the variable that holds the defer stack to be on top of the stack.
 )
 
 var opCodeNames = [...]string{
@@ -543,4 +544,5 @@ var opCodeNames = [...]string{
 	BREAKPOINT:          "BREAKPOINT",
 	SELECT:              "SELECT",
 	CHECK_ABORT:         "CHECK_ABORT",
+	EXEC_DEFER:          "EXEC_DEFER",
 }

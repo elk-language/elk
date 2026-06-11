@@ -1337,6 +1337,8 @@ func (vm *Thread) run() {
 			vm.opLessThanEqualFloat()
 		case bytecode.SELECT:
 			vm.throwIfErr(vm.opSelect())
+		case bytecode.EXEC_DEFER:
+			vm.throwIfErr(vm.opExecDefer())
 		case bytecode.CHECK_ABORT:
 			vm.throwIfErr(vm.opCheckAbort())
 		case bytecode.INSPECT_STACK:
@@ -3656,6 +3658,21 @@ func (vm *Thread) opSelect() value.Value {
 		)
 		vm.push(result.ToValue())
 		vm.push(value.SmallInt(chosenCaseIndex).ToValue())
+	}
+
+	return value.Undefined
+}
+
+func (vm *Thread) opExecDefer() value.Value {
+	localIndex := vm.popGet().AsSmallInt()
+	deferStack := vm.getLocalValue(int(localIndex)).AsReference().(*value.NativeArrayList[*BytecodeClosure])
+
+	for i := len(*deferStack) - 1; i >= 0; i-- {
+		deferClosure := (*deferStack)[i]
+		_, err := vm.CallBytecodeClosure(deferClosure)
+		if err.IsNotUndefined() {
+			return err
+		}
 	}
 
 	return value.Undefined

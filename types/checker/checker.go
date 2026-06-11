@@ -140,6 +140,7 @@ const (
 	conditionFlag     // checked expression is a part of an if/unless condition
 	definedMacrosFlag // indicates that the typechecker has defined some macros
 	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
+	hasDeferFlag      // indicates that defer is used in the current context eg. a function
 )
 
 type phase uint8
@@ -265,6 +266,18 @@ func (c *Checker) SetIncremental(val bool) {
 		c.flags.SetFlag(incrementalFlag)
 	} else {
 		c.flags.UnsetFlag(incrementalFlag)
+	}
+}
+
+func (c *Checker) hasDefer() bool {
+	return c.flags.HasFlag(hasDeferFlag)
+}
+
+func (c *Checker) setHasDefer(val bool) {
+	if val {
+		c.flags.SetFlag(hasDeferFlag)
+	} else {
+		c.flags.UnsetFlag(hasDeferFlag)
 	}
 }
 
@@ -805,15 +818,19 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 
 	prevFilename := c.Filename
 	c.Filename = filename
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
 
 	c.checkStatements(node.Body, false)
 
 	node.State = ast.CHECKED_EXPRESSIONS
+	node.HasDefer = c.hasDefer()
 
 	if c.shouldCompile() {
 		c.compiler.CompileExpressionsInFile(node)
 	}
 	c.Filename = prevFilename
+	c.setHasDefer(prevHasDefer)
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
@@ -943,7 +960,13 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -970,7 +993,13 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -997,7 +1026,13 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -1023,7 +1058,13 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -1049,7 +1090,13 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -1464,6 +1511,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkThrowExpressionNode(n)
 	case *ast.MustExpressionNode:
 		return c.checkMustExpressionNode(n)
+	case *ast.DeferExpressionNode:
+		return c.checkDeferExpressionNode(n)
 	case *ast.TryExpressionNode:
 		return c.checkTryExpressionNode(n)
 	case *ast.AsExpressionNode:
@@ -1766,6 +1815,12 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 	}
 
 	node.SetType(c.ToNonNilable(mustType))
+	return node
+}
+
+func (c *Checker) checkDeferExpressionNode(node *ast.DeferExpressionNode) *ast.DeferExpressionNode {
+	c.setHasDefer(true)
+	node.Expression = c.checkExpression(node.Expression)
 	return node
 }
 
@@ -5648,11 +5703,18 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.pushNestedLocalEnv(defaultLocalEnvType)
 	c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	node.SetType(c.Std(symbol.Thread))
+
+	node.HasDefer = c.hasDefer()
+	c.setHasDefer(prevHasDefer)
+
 	return node
 }
 

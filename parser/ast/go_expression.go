@@ -13,12 +13,14 @@ import (
 // Represents a `go` expression eg. `go foo()`, `go; foo(); end`
 type GoExpressionNode struct {
 	TypedNodeBase
-	Body []StatementNode
+	HasDefer bool
+	Body     []StatementNode
 }
 
 func (n *GoExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &GoExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		HasDefer:      n.HasDefer,
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }

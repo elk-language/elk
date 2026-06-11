@@ -424,7 +424,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	switch opcode {
 	case bytecode.RETURN, bytecode.BREAKPOINT, bytecode.ADD, bytecode.SUBTRACT,
 		bytecode.MULTIPLY, bytecode.DIVIDE, bytecode.EXPONENTIATE, bytecode.SELECT, bytecode.CHECK_ABORT,
-		bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
+		bytecode.EXEC_DEFER, bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
 		bytecode.TRUE, bytecode.FALSE, bytecode.NIL, bytecode.POP,
 		bytecode.RBITSHIFT, bytecode.LBITSHIFT, bytecode.NOOP,
 		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
