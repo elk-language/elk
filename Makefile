@@ -21,7 +21,7 @@ go-test: header
 	go test ./... -timeout 60s -tags debug
 
 elk-test: header
-	go run -tags debug ./cmd/elk test
+	ELKWARN=0 go run -tags debug ./cmd/elk test
 
 test: go-test elk-test
 

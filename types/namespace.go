@@ -139,6 +139,25 @@ func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	return false
 }
 
+func ConstructTypeArgumentsFromTypeParameters(typeParams []*TypeParameter) *TypeArguments {
+	typeArgMap := make(TypeArgumentMap, len(typeParams))
+	typeArgOrder := make([]value.Symbol, len(typeParams))
+
+	for i, typeParam := range typeParams {
+		typeArg := NewTypeArgument(
+			typeParam,
+			typeParam.Variance,
+		)
+		typeArgMap[typeParam.Name] = typeArg
+		typeArgOrder[i] = typeParam.Name
+	}
+
+	return NewTypeArguments(
+		typeArgMap,
+		typeArgOrder,
+	)
+}
+
 func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]value.Symbol, len(typeParams))

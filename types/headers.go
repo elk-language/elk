@@ -747,6 +747,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, value.ToSymbol("Tuple"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Thrown when there is a type mismatch.", false, false, false, false, value.ToSymbol("TypeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, value.ToSymbol("UInt"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
@@ -10277,6 +10278,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns a new tuple containing only the first `n` elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("take"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns a new tuple containing first elements satisfying the given predicate.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("take_while"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Val", env), NormalParameterKind, false)}, Bool{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT))
 				namespace.DefineMethod("Get the element under the given index.\n\nReturns `nil` if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Tuple::Val", env)), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("TypeError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 

@@ -6045,7 +6045,7 @@ func (c *Checker) addFailureWithLocation(message string, loc *position.Location)
 }
 
 func (c *Checker) addWarning(message string, location *position.Location) {
-	if location == nil {
+	if !env.ELKWARN || location == nil {
 		return
 	}
 	c.Errors.AddWarning(

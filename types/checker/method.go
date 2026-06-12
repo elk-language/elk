@@ -906,6 +906,14 @@ func (c *Checker) checkMethodOverride(
 		return
 	}
 
+	overrideNamespace := overrideMethod.DefinedUnder
+	if overrideNamespace != nil {
+		overrideGeneric := types.GetDefaultNamespaceGenericInstance(overrideNamespace)
+		overrideSelfMap := c.createTypeArgumentMapWithSelf(overrideGeneric)
+		baseMethod = c.replaceTypeParametersInMethodCopy(baseMethod, overrideSelfMap, false)
+		overrideMethod = c.replaceTypeParametersInMethodCopy(overrideMethod, overrideSelfMap, false)
+	}
+
 	if len(baseMethod.Overloads) > len(overrideMethod.Overloads) {
 		errDetailsBuff := new(strings.Builder)
 

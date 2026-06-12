@@ -245,7 +245,7 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var b: 9 = a
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | Std::String | Std::Int | Std::Char | nil` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(72, 3, 16), P(72, 3, 16)), "type `Std::Float | nil | Std::String | Std::Int | Std::Char` cannot be assigned to type `9`"),
 			},
 		},
 		"normalise Int | ~Int": {

@@ -864,6 +864,91 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 	)
 }
 
+func (c *Checker) normaliseSingletonOf(typ *types.SingletonOf) types.Type {
+	switch nestedType := typ.Type.(type) {
+	case *types.InstanceOf:
+		return nestedType.Type
+	case *types.Class:
+		return nestedType.Singleton()
+	case *types.Mixin:
+		return nestedType.Singleton()
+	case *types.Interface:
+		return nestedType.Singleton()
+	case *types.Generic:
+		return c.normaliseSingletonOf(types.NewSingletonOf(nestedType.Namespace))
+	default:
+		return typ
+	}
+}
+
+func (c *Checker) normaliseInstanceOf(typ *types.InstanceOf) types.Type {
+	switch nestedType := typ.Type.(type) {
+	case *types.SingletonOf:
+		return nestedType.Type
+	case *types.SingletonClass:
+		return nestedType.AttachedObject
+	default:
+		return typ
+	}
+}
+
+func (c *Checker) normaliseNilable(t *types.Nilable) types.Type {
+	t.Type = c.NormaliseType(t.Type)
+	switch t.Type.(type) {
+	case types.Never:
+		return types.Nil{}
+	case types.Any, types.Untyped:
+		return t.Type
+	}
+	if c.IsNilable(t.Type) {
+		return t.Type
+	}
+	if union, ok := t.Type.(*types.Union); ok {
+		return c.NewNormalisedUnion(
+			append(
+				[]types.Type{types.Nil{}},
+				union.Elements...,
+			)...,
+		)
+	}
+	return t
+}
+
+func (c *Checker) normaliseNot(t *types.Not) types.Type {
+	t.Type = c.NormaliseType(t.Type)
+	switch nestedType := t.Type.(type) {
+	case *types.Not:
+		return nestedType.Type
+	case types.Never:
+		return types.Any{}
+	case types.Any:
+		return types.Never{}
+	case types.Untyped:
+		return types.Untyped{}
+	case *types.Union:
+		intersectionElements := make([]types.Type, 0, len(nestedType.Elements))
+		for _, element := range nestedType.Elements {
+			intersectionElements = append(intersectionElements, types.NewNot(element))
+		}
+		return c.NewNormalisedIntersection(intersectionElements...)
+	case *types.Intersection:
+		unionElements := make([]types.Type, 0, len(nestedType.Elements))
+		for _, element := range nestedType.Elements {
+			unionElements = append(unionElements, types.NewNot(element))
+		}
+		return c.NewNormalisedUnion(unionElements...)
+	}
+
+	return t
+}
+
+func (c *Checker) normaliseGeneric(t *types.Generic) types.Type {
+	for _, arg := range t.TypeArguments.AllArguments() {
+		arg.Type = c.NormaliseType(arg.Type)
+	}
+	return t
+}
+
 func (c *Checker) NormaliseType(typ types.Type) types.Type {
 	switch t := typ.(type) {
 	case *types.Union:
@@ -871,74 +956,15 @@ func (c *Checker) NormaliseType(typ types.Type) types.Type {
 	case *types.Intersection:
 		return c.NewNormalisedIntersection(t.Elements...)
 	case *types.Generic:
-		for _, arg := range t.TypeArguments.AllArguments() {
-			arg.Type = c.NormaliseType(arg.Type)
-		}
-		return t
+		return c.normaliseGeneric(t)
 	case *types.SingletonOf:
-		switch nestedType := t.Type.(type) {
-		case *types.InstanceOf:
-			return nestedType.Type
-		case *types.Class:
-			return nestedType.Singleton()
-		case *types.Mixin:
-			return nestedType.Singleton()
-		case *types.Interface:
-			return nestedType.Singleton()
-		default:
-			return t
-		}
+		return c.normaliseSingletonOf(t)
 	case *types.InstanceOf:
-		switch nestedType := t.Type.(type) {
-		case *types.SingletonOf:
-			return nestedType.Type
-		case *types.SingletonClass:
-			return nestedType.AttachedObject
-		default:
-			return t
-		}
+		return c.normaliseInstanceOf(t)
 	case *types.Nilable:
-		t.Type = c.NormaliseType(t.Type)
-		switch t.Type.(type) {
-		case types.Never:
-			return types.Nil{}
-		case types.Any, types.Untyped:
-			return t.Type
-		}
-		if c.IsNilable(t.Type) {
-			return t.Type
-		}
-		if union, ok := t.Type.(*types.Union); ok {
-			union.Elements = append(union.Elements, types.Nil{})
-			return union
-		}
-		return t
+		return c.normaliseNilable(t)
 	case *types.Not:
-		t.Type = c.NormaliseType(t.Type)
-		switch nestedType := t.Type.(type) {
-		case *types.Not:
-			return nestedType.Type
-		case types.Never:
-			return types.Any{}
-		case types.Any:
-			return types.Never{}
-		case types.Untyped:
-			return types.Untyped{}
-		case *types.Union:
-			intersectionElements := make([]types.Type, 0, len(nestedType.Elements))
-			for _, element := range nestedType.Elements {
-				intersectionElements = append(intersectionElements, types.NewNot(element))
-			}
-			return c.NewNormalisedIntersection(intersectionElements...)
-		case *types.Intersection:
-			unionElements := make([]types.Type, 0, len(nestedType.Elements))
-			for _, element := range nestedType.Elements {
-				unionElements = append(unionElements, types.NewNot(element))
-			}
-			return c.NewNormalisedUnion(unionElements...)
-		}
-
-		return t
+		return c.normaliseNot(t)
 	default:
 		return typ
 	}

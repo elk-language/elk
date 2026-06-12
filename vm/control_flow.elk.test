@@ -1,0 +1,2081 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Control Flow" ->
+	context "defer" ->
+		should "execute deferred expressions before return" ->
+			fn := ->
+			  puts "1. open file"
+				defer puts "2. close file"
+
+				puts "3. open TCP socket"
+				defer puts "4. close TCP socket"
+
+				5
+			end
+
+			assert_stdout("1. open file\n3. open TCP socket\n4. close TCP socket\n2. close file\n") ->
+				result := fn()
+				assert! result == 5
+			end
+		end
+
+		should "execute deferred expressions before throw" ->
+			fn := ->
+			  puts "1. open file"
+				defer puts "2. close file"
+
+				puts "3. open TCP socket"
+				defer puts "4. close TCP socket"
+
+				throw "unexpected error"
+			end
+
+			assert_stdout("1. open file\n3. open TCP socket\n4. close TCP socket\n2. close file\n") ->
+				assert_throws! fn() match "unexpected error"
+			end
+		end
+
+	end
+
+	context "must" ->
+		should "return the non-nil value" ->
+			var a: Int? = 5
+			result := must a
+			assert! result == 5
+		end
+
+		should "throw an error for nil" ->
+			var a: Int? = nil
+			assert_throws!((must a) match TypeError(message: "unexpected nil value in a must expression"))
+		end
+	end
+
+	context "as" ->
+		should "do a valid downcast" ->
+			var a: Int | Float = 5
+			b := a as ::Std::Int
+			assert! b == 5
+		end
+
+		should "do a valid upcast" ->
+			a := 5
+			b := a as ::Std::Value
+			assert! b == 5
+		end
+
+		should "throw an error for an invalid cast" ->
+			var a: Int | Float = 5
+			assert_throws!((a as ::Std::Float) match TypeError(message: "failed type cast, `5` is not an instance of `Std::Float`"))
+		end
+	end
+
+	context "throw catch" ->
+		should "throw" ->
+			fn := ->
+				println "1"
+				throw unchecked :foo
+				println "2"
+			end
+
+			assert_stdout("1\n") ->
+				assert_throws! fn() match :foo
+			end
+		end
+
+		should "throw and catch" ->
+			fn := ->
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :foo
+					println "4"
+					2
+				end
+				println "5"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n5\n") ->
+				assert! fn() == 2
+			end
+		end
+
+		should "throw and catch with stack trace" ->
+			fn := ->
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :foo, trace
+					println "4"
+					println trace.class.name
+					2
+				end
+				println "5"
+				a
+			end
+
+			assert_stdout("1\n2\n4\nStd::StackTrace\n5\n") ->
+				assert! fn() == 2
+			end
+		end
+
+		should "throw and catch in second branch" ->
+			fn := ->
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :bar
+					println "4"
+					2
+				catch :foo
+					println "5"
+					3
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n5\n6\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw and catch with pattern matching" ->
+			fn := ->
+				a := do
+					println "1"
+					throw "foo"
+					println "2"
+					1
+				catch "bar" || "baz"
+					println "3"
+					2
+				catch ::Std::String(length: > 2) as str
+					println "4, str: ${str}"
+					3
+				catch String()
+					println "5"
+					4
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n4, str: foo\n6\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw unchecked and do not catch" ->
+			fn := ->
+				println "1"
+				a := do
+					println "2"
+					throw unchecked :foo
+					println "3"
+					1
+				catch :bar
+					println "4"
+					2
+				catch :baz
+					println "5"
+					3
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n") ->
+				assert_throws! fn() match :foo
+			end
+		end
+
+		should "throw and catch in parent" ->
+			fn := ->
+				a := do
+					println "1"
+					do
+						println "2"
+						throw :foo
+						println "3"
+					catch :bar
+						println "4"
+						1
+					end
+					println "5"
+					2
+				catch :foo
+					println "6"
+					3
+				end
+				println "7"
+				a
+			end
+
+			assert_stdout("1\n2\n6\n7\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw in catch and catch in parent" ->
+			fn := ->
+				a := do
+					do
+						println "1"
+						throw :foo
+						println "2"
+					catch :foo
+						do
+							println "3"
+							throw :bar
+							println "4"
+						catch :biz
+							println "5"
+						end
+						println "6"
+					end
+					1
+				catch :bar
+					println "7"
+					2
+				end
+				println "8"
+				a
+			end
+
+			assert_stdout("1\n3\n7\n8\n") ->
+				assert! fn() == 2
+			end
+		end
+
+		should "finally without throw" ->
+			fn := ->
+				a := do
+					println "1"
+					1
+				finally
+					println "2"
+					2
+				end
+				println "3"
+				a
+			end
+
+			assert_stdout("1\n2\n3\n") ->
+				assert! fn() == 1
+			end
+		end
+
+		should "throw, catch and execute finally" ->
+			fn := ->
+				a := do
+					println "1"
+					throw :foo
+					println "2"
+					2
+				catch :foo
+					println "3"
+					3
+				finally
+					println "4"
+					4
+				end
+				println "5"
+				a
+			end
+
+			assert_stdout("1\n3\n4\n5\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw, execute finally and rethrow" ->
+			fn := ->
+				a := do
+					println "1"
+					throw unchecked :foo
+					println "2"
+					1
+				finally
+					println "3"
+					2
+				end
+				println "4"
+				a
+			end
+
+			assert_stdout("1\n3\n") ->
+				assert_throws! fn() match :foo
+			end
+		end
+
+		should "throw, execute finally, throw and catch in finally, rethrow" ->
+			fn := ->
+				a := do
+					println "1"
+					throw unchecked :foo
+					println "2"
+					1
+				finally
+					do
+						println "3"
+						throw :bar
+						println "4"
+						2
+					catch :bar
+						println "5"
+						3
+					end
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n3\n5\n") ->
+				assert_throws! fn() match :foo
+			end
+		end
+
+		should "execute finally, throw and catch in finally" ->
+			fn := ->
+				a := do
+					println "1"
+					1
+				finally
+					do
+						println "2"
+						throw :bar
+						println "3"
+						2
+					catch :bar
+						println "4"
+						3
+					end
+				end
+				println "5"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n5\n") ->
+				assert! fn() == 1
+			end
+		end
+
+		should "throw, execute finally, throw and catch in parent" ->
+			fn := ->
+				a := do
+					println "1"
+					do
+						println "2"
+						throw unchecked :foo
+						println "3"
+						1
+					finally
+						println "4"
+						throw :bar
+						println "5"
+						2
+					end
+				catch :bar
+					println "6"
+					3
+				end
+				println "7"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n6\n7\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "execute finally, throw and catch in parent" ->
+			fn := ->
+				a := do
+					println "1"
+					do
+						println "2"
+						1
+					finally
+						println "3"
+						throw :bar
+						println "4"
+						2
+					end
+				catch :bar
+					println "5"
+					3
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n3\n5\n6\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw, execute finally, rethrow and catch in parent" ->
+			fn := ->
+				a := do
+					println "1"
+					do
+						println "2"
+						throw :foo
+						println "3"
+						1
+					finally
+						println "4"
+						2
+					end
+				catch :foo
+					println "5"
+					3
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n5\n6\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw in function and catch in parent context" ->
+			foo := || ! :foo ->
+				println "1"
+				throw :foo
+				println "2"
+				1
+			end
+
+			fn := ->
+				a := do
+					foo()
+					println "3"
+					2
+				catch :foo
+					println "4"
+					3
+				end
+				println "5"
+				a
+			end
+
+			assert_stdout("1\n4\n5\n") ->
+				assert! fn() == 3
+			end
+		end
+
+		should "throw in nested method and catch in parent context" ->
+			foo := || ! :foo ->
+				println "1"
+				throw :foo
+				println "2"
+				1
+			end
+
+			bar := || ! :foo ->
+				do
+					foo()
+					println "3"
+					2
+				catch :bar
+					println "4"
+					3
+				end
+			end
+
+			fn := ->
+				a := do
+					bar()
+					println "5"
+					4
+				catch :foo
+					println "6"
+					5
+				end
+				println "7"
+				a
+			end
+
+			assert_stdout("1\n6\n7\n") ->
+				assert! fn() == 5
+			end
+		end
+
+		should "throw, catch and break in loop" ->
+			fn := ->
+				i := 0
+				loop
+					println i
+					do
+						throw :foo if i == 5
+					catch :foo
+						break i
+					end
+					i += 1
+				end
+			end
+
+			assert_stdout("0\n1\n2\n3\n4\n5\n") ->
+				assert! fn() == 5
+			end
+		end
+
+		should "execute finally before return" ->
+			bar := ||: Int ->
+				println("3")
+				1
+			end
+
+			foo := ||: Int ->
+				println "1"
+				do
+					println "2"
+					return bar()
+				finally
+					println "4"
+					2
+				end
+				println "5"
+				3
+			end
+
+			assert_stdout("1\n2\n3\n4\n") ->
+				assert! foo() == 1
+			end
+		end
+
+		should "execute nested finally before return" ->
+			bar := ||: Int ->
+				println("3")
+				1
+			end
+
+			foo := || ->
+				println "1"
+				do
+					do
+						println "2"
+						return bar()
+					finally
+						println "4"
+						2
+					end
+				finally
+					println "5"
+					3
+				end
+				println "6"
+				4
+			end
+
+			assert_stdout("1\n2\n3\n4\n5\n") ->
+				assert! foo() == 1
+			end
+		end
+
+		should "execute finally before break" ->
+			foo := ||: Int ->
+				println("2")
+				1
+			end
+
+			fn := ->
+				a := loop
+					do
+						println "1"
+						break foo()
+						println "3"
+						2
+					finally
+						println "4"
+						3
+					end
+					println "5"
+					4
+				end
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n6\n") ->
+				assert! fn() == 1
+			end
+		end
+
+		should "execute nested finally before break" ->
+			foo := ||: Int ->
+				println("2")
+				1
+			end
+
+			fn := ->
+				var a: Int
+				do
+					a = loop
+						do
+							do
+								println "1"
+								break foo()
+								println "3"
+								2
+							finally
+								println "4"
+								3
+							end
+						finally
+							println "5"
+							4
+						end
+						println "6"
+						5
+					end
+					println "7"
+					6
+				finally
+					println "8"
+					7
+				end
+				println "9"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n5\n7\n8\n9\n") ->
+				assert! fn() == 1
+			end
+		end
+
+		should "execute finally before continue" ->
+			foo := ||: Int ->
+				println("2")
+				1
+			end
+
+			fn := ->
+				a := (do
+					do
+						println "1"
+						continue foo()
+						println "3"
+						2
+					finally
+						println "4"
+						3
+					end
+					println "5"
+					4
+				end while false)
+				println "6"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n6\n") ->
+				assert! fn() == 1
+			end
+		end
+
+		should "execute nested finally before continue" ->
+			foo := ||: Int ->
+				println("2")
+				1
+			end
+
+			fn := ->
+				var a: Int?
+				do
+					a = (do
+						do
+							do
+								println "1"
+								continue foo()
+								println "3"
+								2
+							finally
+								println "4"
+								3
+							end
+						finally
+							println "5"
+							4
+						end
+						println "6"
+						5
+					end while false)
+					println "7"
+					6
+				finally
+					println "8"
+					7
+				end
+				println "9"
+				a
+			end
+
+			assert_stdout("1\n2\n4\n5\n7\n8\n9\n") ->
+				assert! fn() == 1
+			end
+		end
+
+	end
+
+	context "for in" ->
+		should "loop over a list" ->
+			fn := ->
+				for i in [1, 2, 3, :foo, 'bar']
+					print(i.inspect, " ")
+				end
+			end
+			assert_stdout("1 2 3 :foo \"bar\" ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over a string" ->
+			fn := ->
+				for i in "Poznań jest √🔥"
+					print(i.inspect, ", ")
+				end
+			end
+			assert_stdout("`P`, `o`, `z`, `n`, `a`, `ń`, ` `, `j`, `e`, `s`, `t`, ` `, `√`, `🔥`, ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over a hashmap with a pattern" ->
+			fn := ->
+				h := {
+					"foo" => 21,
+					"elo" => 54,
+					"grim" => -8,
+				}
+				sum := 0
+				for ::Std::Pair(value) in h
+					sum += value
+				end
+				println(sum.inspect)
+			end
+			assert_stdout("67\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over a string byte iterator" ->
+			fn := ->
+				for i in "Poznań jest √🔥".byte_iter
+					print(i.inspect, ", ")
+				end
+			end
+			assert_stdout("80u8, 111u8, 122u8, 110u8, 97u8, 197u8, 132u8, 32u8, 106u8, 101u8, 115u8, 116u8, 32u8, 226u8, 136u8, 154u8, 240u8, 159u8, 148u8, 165u8, ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over an arrayTuple" ->
+			fn := ->
+				for i in %[1, 2, 3, :foo, 'bar']
+					print(i.inspect, " ")
+				end
+			end
+			assert_stdout("1 2 3 :foo \"bar\" ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "for-in with break" ->
+			fn := ->
+				for i in [1, 2, 3, 4, 5]
+					break if i > 3
+					print(i.inspect, " ")
+				end
+			end
+			assert_stdout("1 2 3 ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "for-in with break with value" ->
+			fn := ->
+				for i in [1, 2, 3, 4, 5]
+					break i if i > 3
+					print(i.inspect, " ")
+				end
+			end
+			assert_stdout("1 2 3 ") ->
+				assert! fn() == 4
+			end
+		end
+
+		should "nested for-in loops" ->
+			fn := ->
+				for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			end
+			assert_stdout("1:8 1:9 1:10 2:8 2:9 2:10 3:8 3:9 3:10 ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested for-in with break" ->
+			fn := ->
+				for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break if j == 9
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			end
+			assert_stdout("1:8 2:8 3:8 ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested for-in with labeled break" ->
+			fn := ->
+				$outer: for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break[outer] if j == 10
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			end
+			assert_stdout("1:8 1:9 ") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested for-in with labeled break with value" ->
+			fn := ->
+				$outer: for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break[outer] j if j == 10
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			end
+			assert_stdout("1:8 1:9 ") ->
+				assert! fn() == 10
+			end
+		end
+	end
+
+	context "numeric for" ->
+		should "calculate the sum of consecutive natural numbers" ->
+			fn := ->
+				a := 0
+				fornum i := 1; i < 6; i += 1
+					a += i
+				end
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "create a repeated string" ->
+			fn := ->
+				a := ""
+				fornum i := 20; i > 0; i -= 2
+					a += "-"
+				end
+				a
+			end
+			assert! fn() == "----------"
+		end
+
+		should "calculate the factorial of 10" ->
+			fn := ->
+				a := 1
+				fornum i := 2; i <= 10; i += 1
+					a *= i
+				end
+				a
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return the value of the last iteration" ->
+			fn := ->
+				a := 1
+				fornum i := 2; i <= 10; i += 1
+					a *= i
+				end
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return nil when no iterations" ->
+			fn := ->
+				a := 1
+				fornum i := 20; i <= 10; i += 1
+					a *= i
+				end
+			end
+			assert! fn() == nil
+		end
+
+		should "return nil after break" ->
+			fn := ->
+				a := 1
+				fornum i := 2; i <= 10; i += 1
+					a *= i
+					break if a > 200
+				end
+			end
+			assert! fn() == nil
+		end
+
+		should "return a value using break" ->
+			fn := ->
+				a := 1
+				fornum i := 2; i <= 10; i += 1
+					a *= i
+					break a if a > 200
+				end
+			end
+			assert! fn() == 720
+		end
+
+		should "nested with continue" ->
+			fn := ->
+				fornum j := 1; j <= 5; j += 1
+					fornum i := 1; i <= 5; i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested with a labeled continue" ->
+			fn := ->
+				$foo: fornum j := 1; j <= 5; j += 1
+					fornum i := 1; i <= 5; i += 1
+						continue[foo] if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n3:1\n5:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested with break" ->
+			fn := ->
+				fornum j := 1;; j += 1
+					fornum i := 1;; i += 1
+						println j.to_string + ":" + i.to_string
+						break if i >= 5
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "nested with a labeled break" ->
+			fn := ->
+				$foo: fornum j := 1;; j += 1
+					fornum i := 1;; i += 1
+						println j.to_string + ":" + i.to_string
+						break[foo] if i >= 5
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n") ->
+				assert! fn() == nil
+			end
+		end
+	end
+
+	context "while" ->
+		should "calculate the sum of consecutive natural numbers" ->
+			fn := ->
+				a := 0
+				i := 0
+				while i < 6
+					a += i
+					i += 1
+				end
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "return nil with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break if i >= 6
+				end
+			end
+			assert! fn() == nil
+		end
+
+		should "loop with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break if i >= 6
+				end
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "loop nested with break" ->
+			fn := ->
+				j := 0
+				while true
+					j += 1
+					i := 0
+					while true
+						break if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled break" ->
+			fn := ->
+				j := 0
+				$foo: while true
+					j += 1
+					i := 0
+					while true
+						break[foo] if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "continue" ->
+			during := || ->
+				println "during"
+				nil
+			end
+
+			fn := ->
+				i := 0
+				while i < 2
+					i += 1
+					println "before"
+					continue during()
+					println "after"
+				end
+			end
+			assert_stdout("before\nduring\nbefore\nduring\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with continue" ->
+			fn := ->
+				j := 0
+				while j < 5
+					j += 1
+					i := 0
+					while i < 5
+						i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled continue" ->
+			fn := ->
+				j := 0
+				$foo: while j < 5
+					j += 1
+					i := 0
+					while i < 5
+						i += 1
+						continue[foo] if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n3:1\n5:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "return a value with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break a if i >= 6
+				end
+			end
+			assert! fn() == 15
+		end
+
+		should "create a repeated string" ->
+			fn := ->
+				a := ""
+				i := 20
+				while i > 0
+					a += "-"
+					i -= 2
+				end
+				a
+			end
+			assert! fn() == "----------"
+		end
+
+		should "calculate the factorial of 10" ->
+			fn := ->
+				a := 1
+				i := 2
+				while i <= 10
+					a *= i
+					i += 1
+				end
+				a
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return the value of the last iteration" ->
+			fn := ->
+				a := 1
+				i := 2
+				while i <= 10
+					a *= i
+					i += 1
+					a
+				end
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return nil when no iterations" ->
+			fn := ->
+				a := 1
+				i := 20
+				while i <= 10
+					a *= i
+					i += 1
+				end
+			end
+			assert! fn() == nil
+		end
+	end
+
+	context "modifier while" ->
+		should "calculate the sum of consecutive natural numbers" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+				end while i < 6
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "return nil with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end while true
+			end
+			assert! fn() == nil
+		end
+
+		should "loop with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end while true
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "loop over nested with break" ->
+			fn := ->
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						break if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end while true
+					break if j >= 5
+				end while true
+			end
+
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled break" ->
+			out := ""
+			fn := ->
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						break[foo] if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end while true
+					break if j >= 5
+				end while true
+			end
+
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "continue" ->
+			during := || ->
+				println "during"
+				nil
+			end
+
+			fn := ->
+				i := 0
+				do
+					i += 1
+					println "before"
+					continue during()
+					println "after"
+				end while i < 2
+			end
+
+			assert_stdout("before\nduring\nbefore\nduring\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with continue" ->
+			fn := ->
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end while i < 5
+				end while j < 5
+			end
+
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled continue" ->
+			fn := ->
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue[foo] if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end while i < 5
+				end while j < 5
+			end
+
+			assert_stdout("1:1\n3:1\n5:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "return a value with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break a if i >= 6
+				end while true
+			end
+			assert! fn() == 15
+		end
+
+		should "create a repeated string" ->
+			fn := ->
+				a := ""
+				i := 20
+				do
+					a += "-"
+					i -= 2
+				end while i > 0
+				a
+			end
+			assert! fn() == "----------"
+		end
+
+		should "calculate the factorial of 10" ->
+			fn := ->
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+				end while i <= 10
+				a
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return value of last iteration" ->
+			fn := ->
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+					a
+				end while i <= 10
+			end
+			assert! fn() == 3628800
+		end
+
+		should "do one iteration when condition is not met" ->
+			fn := ->
+				a := 1
+				i := 20
+				do
+					a *= i
+					i += 1
+				end while i <= 10
+			end
+			assert! fn() == 21
+		end
+	end
+
+	context "until" ->
+		should "calculate the sum of consecutive natural numbers" ->
+			fn := ->
+				a := 0
+				i := 0
+				until i >= 6
+					a += i
+					i += 1
+				end
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "return nil with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				until false
+					a += i
+					i += 1
+					break if i >= 6
+				end
+			end
+			assert! fn() == nil
+		end
+
+		should "loop with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				until false
+					a += i
+					i += 1
+					break if i >= 6
+				end
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "loop over nested with break" ->
+			fn := ->
+				j := 0
+				until false
+					j += 1
+					i := 0
+					until false
+						break if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled break" ->
+			fn := ->
+				j := 0
+				$foo: until false
+					j += 1
+					i := 0
+					until false
+						break[foo] if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end
+					break if j >= 5
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "continue" ->
+			fn := ->
+				during := ->
+					println "during"
+					nil
+				end
+				i := 0
+				until i >= 2
+					i += 1
+					println "before"
+					continue during()
+					println "after"
+				end
+			end
+			assert_stdout("before\nduring\nbefore\nduring\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with continue" ->
+			fn := ->
+				j := 0
+				until j >= 5
+					j += 1
+					i := 0
+					until i >= 5
+						i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled continue" ->
+			fn := ->
+				j := 0
+				$foo: until j >= 5
+					j += 1
+					i := 0
+					until i >= 5
+						i += 1
+						continue[foo] if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			end
+			assert_stdout("1:1\n3:1\n5:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "return a value with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				until false
+					a += i
+					i += 1
+					break a if i >= 6
+				end
+			end
+			assert! fn() == 15
+		end
+
+		should "create a repeated string" ->
+			fn := ->
+				a := ""
+				i := 20
+				until i <= 0
+					a += "-"
+					i -= 2
+				end
+				a
+			end
+			assert! fn() == "----------"
+		end
+
+		should "calculate the factorial of 10" ->
+			fn := ->
+				a := 1
+				i := 2
+				until i > 10
+					a *= i
+					i += 1
+				end
+				a
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return the value of the last iteration" ->
+			fn := ->
+				a := 1
+				i := 2
+				until i > 10
+					a *= i
+					i += 1
+					a
+				end
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return nil when no iterations" ->
+			fn := ->
+				a := 1
+				i := 20
+				until i > 10
+					a *= i
+					i += 1
+				end
+			end
+			assert! fn() == nil
+		end
+	end
+
+	context "modifier until" ->
+		should "calculate the sum of consecutive natural numbers" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+				end until i >= 6
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "return nil with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end until false
+			end
+			assert! fn() == nil
+		end
+
+		should "loop with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end until false
+				a
+			end
+			assert! fn() == 15
+		end
+
+		should "loop over nested with break" ->
+			fn := ->
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						break if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end until false
+					break if j >= 5
+				end until false
+			end
+
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled break" ->
+			fn := ->
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						break[foo] if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end until false
+					break if j >= 5
+				end until false
+			end
+
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n1:5\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "continue" ->
+			during := || ->
+				println "during"
+				nil
+			end
+
+			fn := ->
+				i := 0
+				do
+					i += 1
+					println "before"
+					continue during()
+					println "after"
+				end until i >= 2
+			end
+			assert_stdout("before\nduring\nbefore\nduring\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with continue" ->
+			fn := ->
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end until i >= 5
+				end until j >= 5
+			end
+			assert_stdout("1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "loop over nested with a labeled continue" ->
+			fn := ->
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue[foo] if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end until i >= 5
+				end until j >= 5
+			end
+			assert_stdout("1:1\n3:1\n5:1\n") ->
+				assert! fn() == nil
+			end
+		end
+
+		should "return a value with break" ->
+			fn := ->
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break a if i >= 6
+				end until false
+			end
+			assert! fn() == 15
+		end
+
+		should "create a repeated string" ->
+			fn := ->
+				a := ""
+				i := 20
+				do
+					a += "-"
+					i -= 2
+				end until i <= 0
+				a
+			end
+			assert! fn() == "----------"
+		end
+
+		should "calculate the factorial of 10" ->
+			fn := ->
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+				end until i > 10
+				a
+			end
+			assert! fn() == 3628800
+		end
+
+		should "return the value of the last iteration" ->
+			fn := ->
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+					a
+				end until i > 10
+			end
+			assert! fn() == 3628800
+		end
+
+		should "do one iteration when condition is not met" ->
+			fn := ->
+				a := 1
+				i := 20
+				do
+				  a *= i
+					i += 1
+				end until i > 10
+			end
+			assert! fn() == 21
+		end
+
+	end
+
+	context "if" ->
+		should "return nil when condition is truthy and then is empty" ->
+			result := if true; end
+			assert! result == nil
+		end
+
+		should "return nil when condition is falsy and then is empty" ->
+			result := if false; end
+			assert! result == nil
+		end
+
+		should "execute the then branch" ->
+			a := 5
+			if a
+				a = a + 2
+			end
+			assert! a == 7
+		end
+
+		should "execute the empty else branch" ->
+			a := 5
+			if false
+				a = a * 2
+			end
+			assert! a == 5
+		end
+
+		should "execute the then branch instead of else" ->
+			a := 5
+			if a
+				a = a + 2
+			else
+				a = 30
+			end
+			assert! a == 7
+		end
+
+		should "execute the else branch instead of then" ->
+			a := 5
+			if nil
+				a = a + 2
+			else
+				a = 30
+			end
+			assert! a == 30
+		end
+
+		should "be an expression" ->
+			a := 5
+			b := if a
+				"foo"
+			else
+				5
+			end
+			assert! b == "foo"
+		end
+
+		should "return the left side if the condition is satisfied" ->
+			a := 5
+			result := ("foo" if a else 5)
+			assert! result == "foo"
+		end
+
+		should "return the right side if the condition is not satisfied" ->
+			a := nil
+			result := ("foo" if a else 5)
+			assert! result == 5
+		end
+
+		should "return nil when condition is not satisfied" ->
+			a := nil
+			result := ("foo" if a)
+			assert! result == nil
+		end
+
+		should "access variables defined in the condition" ->
+			result := (a + " bar" if a := "foo")
+			assert! result == "foo bar"
+		end
+	end
+
+	context "unless" ->
+		should "return nil when condition is falsy and then is empty" ->
+			result := (unless false; end)
+			assert! result == nil
+		end
+
+		should "return nil when condition is truthy and then is empty" ->
+			result := (unless true; end)
+			assert! result == nil
+		end
+
+		should "execute the then branch" ->
+			var a: Int? = nil
+			b := unless a
+				a = 7
+			end
+			assert! a == 7
+		end
+
+		should "execute the empty else branch" ->
+			a := 5
+			b := unless true
+				a = a * 2
+			end
+			assert! b == nil
+		end
+
+		should "execute the then branch instead of else" ->
+			var a: Int? = nil
+			unless a
+				a = 10
+			else
+				a = a + 2
+			end
+			assert! a == 10
+		end
+
+		should "execute the else branch instead of then" ->
+			a := 5
+			unless a
+				a = 30
+			else
+				a = a + 2
+			end
+			assert! a == 7
+		end
+
+		should "be an expression" ->
+			a := true
+			b := unless a
+				"foo"
+			else
+				5
+			end
+			assert! b == 5
+		end
+
+		should "return the left side if the condition is satisfied" ->
+			a := nil
+			result := ("foo" unless a)
+			assert! result == "foo"
+		end
+
+		should "return nil if the condition is not satisfied" ->
+			a := 5
+			result := ("foo" unless a)
+			assert! result == nil
+		end
+
+		should "can access variables defined in the condition" ->
+			result := (a unless a := false)
+			assert! result == false
+		end
+	end
+
+	context "logical or" ->
+		should "return right operand if left is nil" ->
+			result := (nil || 4)
+			assert! result == 4
+		end
+
+		should "return right operand (nil) if left is nil" ->
+			result := (nil || nil)
+			assert! result == nil
+		end
+
+		should "return right operand (false) if left is nil" ->
+			result := (nil || false)
+			assert! result == false
+		end
+
+		should "return right operand if left is false" ->
+			result := (false || "foo")
+			assert! result == "foo"
+		end
+
+		should "return left operand if it's truthy" ->
+			result := (3 || "foo")
+			assert! result == 3
+		end
+
+		should "return right nested operand if left are falsy" ->
+			result := (false || nil || 4)
+			assert! result == 4
+		end
+
+		should "return middle nested operand if left is falsy" ->
+			result := (false || 2 || 5)
+			assert! result == 2
+		end
+	end
+
+	context "logical and" ->
+		should "return left operand if left is nil" ->
+			result := (nil && 4)
+			assert! result == nil
+		end
+
+		should "return left operand if left is false" ->
+			result := (false && "foo")
+			assert! result == false
+		end
+
+		should "return right operand if left is truthy" ->
+			result := (3 && "foo")
+			assert! result == "foo"
+		end
+
+		should "return right operand (false) if left is truthy" ->
+			result := (3 && false)
+			assert! result == false
+		end
+
+		should "return right nested operand if left are truthy" ->
+			result := (4 && "bar" && 16)
+			assert! result == 16
+		end
+
+		should "return middle nested operand if left is truthy" ->
+			result := (4 && nil && 5)
+			assert! result == nil
+		end
+	end
+
+	context "nil coalescence" ->
+		should "return right operand if left is nil" ->
+			result := (nil ?? 4)
+			assert! result == 4
+		end
+
+		should "return right operand (nil) if left is nil" ->
+			result := (nil ?? nil)
+			assert! result == nil
+		end
+
+		should "return right operand (false) if left is nil" ->
+			result := (nil ?? false)
+			assert! result == false
+		end
+
+		should "return left operand if left is false" ->
+			result := (false ?? 'foo')
+			assert! result == false
+		end
+
+		should "return left operand if it's not nil" ->
+			result := (3 ?? 'foo')
+			assert! result == 3
+		end
+
+		should "return right nested operand if left are nil" ->
+			result := (nil ?? nil ?? 4)
+			assert! result == 4
+		end
+
+		should "return middle nested operand if left is nil" ->
+			result := (nil ?? false ?? 5)
+			assert! result == false
+		end
+	end
+
+end

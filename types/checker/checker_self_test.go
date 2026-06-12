@@ -8,6 +8,15 @@ import (
 
 func TestSelfType(t *testing.T) {
 	tests := testTable{
+		"resolve self from method return type": {
+			input: `
+				a := [1, 2, 3]
+				var b: never = a.class
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(39, 3, 20), P(45, 3, 26)), "type `&Std::ArrayList` cannot be assigned to type `never`"),
+			},
+		},
 		"use self in a variable declaration in top level": {
 			input: `
 				var a: self

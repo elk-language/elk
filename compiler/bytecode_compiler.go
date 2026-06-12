@@ -11,6 +11,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -9073,7 +9074,7 @@ func (c *BytecodeCompiler) addFailure(message string, loc *position.Location) {
 }
 
 func (c *BytecodeCompiler) addWarning(message string, loc *position.Location) {
-	if loc == nil {
+	if !env.ELKWARN || loc == nil {
 		return
 	}
 
