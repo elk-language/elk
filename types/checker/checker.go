@@ -1819,8 +1819,11 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 }
 
 func (c *Checker) checkDeferExpressionNode(node *ast.DeferExpressionNode) *ast.DeferExpressionNode {
-	c.setHasDefer(true)
+	c.setHasDefer(false)
 	node.Expression = c.checkExpression(node.Expression)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(true)
 	return node
 }
 

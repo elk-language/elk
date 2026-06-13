@@ -3,6 +3,23 @@ using Std::Test::*
 
 describe "Control Flow" ->
 	context "defer" ->
+		should "execute nested defer" ->
+			fn := ->
+			  puts "1. open file"
+				defer defer puts "2. close file"
+
+				puts "3. open TCP socket"
+				defer defer defer puts "4. close TCP socket"
+
+				5
+			end
+
+			assert_stdout("1. open file\n3. open TCP socket\n4. close TCP socket\n2. close file\n") ->
+				result := fn()
+				assert! result == 5
+			end
+		end
+
 		should "execute deferred expressions before return" ->
 			fn := ->
 			  puts "1. open file"

@@ -13,12 +13,14 @@ import (
 // Represents a `defer` expression eg. `defer foo()`
 type DeferExpressionNode struct {
 	NodeBase
+	HasDefer   bool
 	Expression ExpressionNode
 }
 
 func (n *DeferExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &DeferExpressionNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		HasDefer:   n.HasDefer,
 		Expression: n.Expression,
 	}
 }

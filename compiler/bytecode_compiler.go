@@ -1605,6 +1605,7 @@ func (c *BytecodeCompiler) compileDeferExpressionNode(node *ast.DeferExpressionN
 	closureCompiler := NewBytecodeCompiler("<defer>", methodBytecodeCompilerMode, loc, c.checker)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
+	closureCompiler.hasDefer = node.HasDefer
 	closureCompiler.compileFunction(
 		loc,
 		nil,
