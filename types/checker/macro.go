@@ -153,29 +153,14 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.StructDeclarationNode:
 		c.hoistStructDeclaration(expr)
-	case *ast.MacroCallNode:
-		posArgs := []ast.ExpressionNode{expr.Receiver}
-
-		result := c.expandMacroByName(
-			c.identifierToName(expr.MacroName),
-			expr.Kind,
-			append(posArgs, expr.PositionalArguments...),
-			expr.NamedArguments,
-			expr.Location(),
-		)
-		expr.SetType(types.Untyped{})
+	case *ast.ReceiverlessMacroCallNode:
+		result := c.checkReceiverlessMacroCallNode(expr)
 		if result == nil {
 			return expr
 		}
 		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
-	case *ast.ReceiverlessMacroCallNode:
-		result := c.expandMacroByName(
-			c.identifierToName(expr.MacroName),
-			expr.Kind,
-			expr.PositionalArguments,
-			expr.NamedArguments,
-			expr.Location(),
-		)
+	case *ast.ScopedMacroCallNode:
+		result := c.checkScopedMacroCallNode(expr)
 		expr.SetType(types.Untyped{})
 		if result == nil {
 			return expr
@@ -186,9 +171,9 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 	return expr
 }
 
-func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
+func (c *Checker) resolveSingletonMacro(name value.Symbol) *types.Method {
 	for _, methodScope := range ds.ReverseSlice(c.methodScopes) {
-		macro := c.resolveMacroForNamespace(methodScope.container, name)
+		macro := c.resolveSingletonMacroForNamespace(methodScope.container, name)
 		if macro != nil {
 			return macro
 		}
@@ -197,13 +182,31 @@ func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
 	return nil
 }
 
-func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
 	switch n := namespace.(type) {
 	case *types.Class:
 		namespace = n.Singleton()
 	case *types.Mixin:
 		namespace = n.Singleton()
 	case *types.Module, *types.SingletonClass, *types.UsingBufferNamespace:
+		namespace = n
+	default:
+		return nil
+	}
+
+	for parent := range types.Parents(namespace) {
+		macro := parent.Method(name)
+		if macro != nil {
+			return macro
+		}
+	}
+
+	return nil
+}
+
+func (c *Checker) resolveInstanceMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+	switch n := namespace.(type) {
+	case *types.Class, *types.Mixin, *types.Module, *types.SingletonClass:
 		namespace = n
 	default:
 		return nil
@@ -231,7 +234,7 @@ func macroName(namespace types.Namespace, name string) string {
 }
 
 func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
-	macro := c.resolveMacroForNamespace(namespace, name)
+	macro := c.resolveSingletonMacroForNamespace(namespace, name)
 	if macro == nil {
 		c.addUndefinedMacroError(macroName(namespace, name.String()), loc)
 	}
@@ -249,10 +252,45 @@ func (c *Checker) addUndefinedMacroError(name string, loc *position.Location) {
 	)
 }
 
+func (c *Checker) addUndefinedInstanceMacroError(name string, typ types.Type, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"macro `%s` is not defined on type `%s`",
+			name,
+			types.InspectWithColor(typ),
+		),
+		loc,
+	)
+}
+
 func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
-	macro := c.resolveMacro(name)
+	macro := c.resolveSingletonMacro(name)
 	if macro == nil {
 		c.addUndefinedMacroError(name.String(), loc)
+	}
+
+	return macro
+}
+
+func (c *Checker) getInstanceMacro(name value.Symbol, typ types.Type, loc *position.Location) *types.Method {
+	typ = c.ToNonLiteral(typ, false)
+
+	var namespace types.Namespace
+	switch t := typ.(type) {
+	case types.Namespace:
+		namespace = t
+	case types.Self:
+		typ = c.selfType
+		namespace = c.selfType.(types.Namespace)
+	default:
+		c.addUndefinedInstanceMacroError(name.String(), typ, loc)
+		return nil
+	}
+
+	macro := c.resolveInstanceMacroForNamespace(namespace, name)
+	if macro == nil {
+		c.addUndefinedInstanceMacroError(name.String(), typ, loc)
+		return nil
 	}
 
 	return macro
@@ -265,6 +303,19 @@ func (c *Checker) macroMethodName(macroName string) value.Symbol {
 func (c *Checker) expandMacroByName(name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
 	macroName := c.macroMethodName(name)
 	macro := c.getMacro(macroName, loc)
+	if macro == nil {
+		return nil
+	}
+	if macro.IsPlaceholder() {
+		return nil
+	}
+
+	return c.expandMacro(macro, kind, posArgs, namedArgs, loc)
+}
+
+func (c *Checker) expandInstanceMacro(typ types.Type, name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
+	macroName := c.macroMethodName(name)
+	macro := c.getInstanceMacro(macroName, typ, loc)
 	if macro == nil {
 		return nil
 	}
@@ -319,7 +370,7 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	case *vm.BytecodeFunction:
 		promise = vm.NewBytecodePromise(c.threadPool, body, runtimeArgs...)
 	default:
-		panic(fmt.Sprintf("invalid compiled macro body: %T", body))
+		panic(fmt.Sprintf("invalid compiled macro body %T for: %s", body, macro.InspectSignature(false)))
 	}
 
 	result, stackTrace, err := promise.AwaitSync()
@@ -674,10 +725,8 @@ func (c *Checker) checkMacroArguments(
 func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	c.setDefinedMacros(true)
 	definedUnder := c.currentMethodScope().container
-	switch d := definedUnder.(type) {
-	case *types.Module:
-	case *types.Class, *types.Mixin:
-		definedUnder = d.Singleton()
+	switch definedUnder.(type) {
+	case *types.Module, *types.Class, *types.Mixin, *types.SingletonClass:
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -887,6 +936,16 @@ func (c *Checker) declareMacro(
 		returnType = exprNodeType
 	}
 
+	switch macroNamespace.(type) {
+	case *types.Class, *types.Mixin:
+		if len(params) < 1 {
+			c.addFailure(
+				"instance macros have to define at least one parameter for self node",
+				location,
+			)
+		}
+	}
+
 	newMacro := types.NewMethod(
 		docComment,
 		0,
@@ -914,8 +973,11 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 		return nil
 	}
 
+	receiverType := c.TypeOf(c.checkReadonlyExpression(node.Receiver))
+
 	posArgs := []ast.ExpressionNode{node.Receiver}
-	result := c.expandMacroByName(
+	result := c.expandInstanceMacro(
+		receiverType,
 		c.identifierToName(node.MacroName),
 		node.Kind,
 		append(posArgs, node.PositionalArguments...),
@@ -928,7 +990,20 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 	return result
 }
 
+func (c *Checker) checkReadonlyExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	c.setReadonly(true)
+	defer c.setReadonly(false)
+
+	nodeCopy := ast.DeepCopy(node).(ast.ExpressionNode)
+	return c.checkExpression(nodeCopy)
+}
+
 func (c *Checker) checkMacroCallNodeForExpression(node *ast.MacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node
@@ -937,6 +1012,11 @@ func (c *Checker) checkMacroCallNodeForExpression(node *ast.MacroCallNode) ast.E
 }
 
 func (c *Checker) checkMacroCallNodeForType(node *ast.MacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node
@@ -945,6 +1025,11 @@ func (c *Checker) checkMacroCallNodeForType(node *ast.MacroCallNode) ast.TypeNod
 }
 
 func (c *Checker) checkMacroCallNodeForPattern(node *ast.MacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}
@@ -1004,6 +1089,11 @@ func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.No
 }
 
 func (c *Checker) checkScopedMacroCallNodeForExpression(node *ast.ScopedMacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1012,6 +1102,11 @@ func (c *Checker) checkScopedMacroCallNodeForExpression(node *ast.ScopedMacroCal
 }
 
 func (c *Checker) checkScopedMacroCallNodeForType(node *ast.ScopedMacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1020,6 +1115,11 @@ func (c *Checker) checkScopedMacroCallNodeForType(node *ast.ScopedMacroCallNode)
 }
 
 func (c *Checker) checkScopedMacroCallNodeForPattern(node *ast.ScopedMacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}
@@ -1049,6 +1149,11 @@ func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCall
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForExpression(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 
 	if result == nil {
@@ -1058,6 +1163,11 @@ func (c *Checker) checkReceiverlessMacroCallNodeForExpression(node *ast.Receiver
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForType(node *ast.ReceiverlessMacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1066,6 +1176,11 @@ func (c *Checker) checkReceiverlessMacroCallNodeForType(node *ast.ReceiverlessMa
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForPattern(node *ast.ReceiverlessMacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}

@@ -219,8 +219,10 @@ func TestUsing(t *testing.T) {
 				using Foo::{bar!}
 
 				class Foo
-					macro bar
-						3.to_ast_expr_node
+					singleton
+						macro bar
+							3.to_ast_expr_node
+						end
 					end
 				end
 
@@ -228,7 +230,7 @@ func TestUsing(t *testing.T) {
 				var c: 3 = bar!
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(113, 10, 18), P(115, 10, 20)), "type `3` cannot be assigned to type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(140, 12, 18), P(142, 12, 20)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"using with a single macro in braces with as": {
@@ -236,8 +238,10 @@ func TestUsing(t *testing.T) {
 				using Foo::{bar! as b!}
 
 				class Foo
-					macro bar
-						3.to_ast_expr_node
+					singleton
+						macro bar
+							3.to_ast_expr_node
+						end
 					end
 				end
 
@@ -245,7 +249,7 @@ func TestUsing(t *testing.T) {
 				var c: 3 = b!
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(119, 10, 18), P(119, 10, 18)), "type `3` cannot be assigned to type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(146, 12, 18), P(146, 12, 18)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"using with a single macro": {
@@ -253,8 +257,10 @@ func TestUsing(t *testing.T) {
 				using Foo::bar!
 
 				class Foo
-					macro bar
-						3.to_ast_expr_node
+					singleton
+						macro bar
+							3.to_ast_expr_node
+						end
 					end
 				end
 
@@ -262,7 +268,7 @@ func TestUsing(t *testing.T) {
 				var c: 3 = bar!
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(111, 10, 18), P(113, 10, 20)), "type `3` cannot be assigned to type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(138, 12, 18), P(140, 12, 20)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"using with a single macro and as": {
@@ -270,8 +276,10 @@ func TestUsing(t *testing.T) {
 				using Foo::bar! as b!
 
 				class Foo
-					macro bar
-						3.to_ast_expr_node
+					singleton
+						macro bar
+							3.to_ast_expr_node
+						end
 					end
 				end
 
@@ -279,7 +287,7 @@ func TestUsing(t *testing.T) {
 				var c: 3 = b!
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(117, 10, 18), P(117, 10, 18)), "type `3` cannot be assigned to type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(144, 12, 18), P(144, 12, 18)), "type `3` cannot be assigned to type `nil`"),
 			},
 		},
 		"using with a single constant and as": {

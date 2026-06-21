@@ -12,6 +12,11 @@ import (
 )
 
 func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (result ast.PatternNode, fullyCapturedType types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	switch n := node.(type) {
 	case *ast.AsPatternNode:
 		return c.checkAsPatternNode(n, matchedType)

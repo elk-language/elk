@@ -77,7 +77,7 @@ func (c *Checker) checkThrowType(throwType types.Type, location *position.Locati
 		}
 	}
 
-	if c.shouldInferClosureThrowType() {
+	if c.shouldInferClosureThrowType() && !c.isReadonly() {
 		c.addToThrowType(throwType)
 		return
 	}

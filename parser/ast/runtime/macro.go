@@ -25,10 +25,10 @@ func initMacro() {
 			switch node := node.(type) {
 			case ast.StatementNode:
 				expr = ast.NewDoExpressionNode(node.Location(), []ast.StatementNode{node}, nil, nil)
-			case *value.ArrayTupleOfValue:
-				body := ds.MapSlice(
-					*node,
-					func(v value.Value) ast.StatementNode {
+			case value.ArrayTuple:
+				body := ds.MapSeq2(
+					node.Elements(),
+					func(_ int, v value.Value) ast.StatementNode {
 						return v.MustReference().(ast.StatementNode)
 					},
 				)

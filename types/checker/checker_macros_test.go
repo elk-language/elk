@@ -537,10 +537,11 @@ func TestExpandMacro(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `Foo::fib!`"),
 			},
 		},
-		"inherit a macro": {
+
+		"inherit an instance macro from a class and call it outside": {
 			input: `
 				class Foo
-					macro fib(i: IntLiteralNode)
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
 						calc_fib := |n: Int|: Int ->
 							return 1 if n < 3
 
@@ -553,9 +554,235 @@ func TestExpandMacro(t *testing.T) {
 
 				class Bar < Foo; end
 
+				timeout := Bar().fib!(15) + 2
+			`,
+		},
+
+		"call an instance macro in an instance method": {
+			input: `
+				class Bar
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+
+		"inherit an instance macro from a class and call it in an instance method": {
+			input: `
+				class Foo
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar < Foo
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit an instance macro from a mixin and call it in an instance method": {
+			input: `
+				mixin Foo
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					include Foo
+
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+
+		"inherit a singleton macro from a class and call it outside": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo; end
+
 				timeout := Bar::fib!(15) + 2
 			`,
 		},
+		"inherit a singleton macro from a class and call it in an instance method": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo
+					def dupnij_se_lolka: Int
+						fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit a singleton macro from a class and call it in a singleton method": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo
+					singleton
+						def dupnij_se_lolka: Int
+							fib!(15) + 2
+						end
+					end
+				end
+
+				timeout := Bar.dupnij_se_lolka
+			`,
+		},
+
+		"inherit a singleton macro from a mixin and call it outside": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+				end
+
+				timeout := Bar::fib!(15) + 2
+			`,
+		},
+		"inherit a singleton macro from a mixin and call it in an instance method": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+
+					def dupnij_se_lolka: Int
+						fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit a singleton macro from a mixin and call it in a singleton method": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+
+					singleton
+						def dupnij_se_lolka: Int
+							fib!(15) + 2
+						end
+					end
+				end
+
+				timeout := Bar.dupnij_se_lolka
+			`,
+		},
+
 		"throw an error in a macro": {
 			input: `
 				using Std::Elk::AST::*
@@ -960,6 +1187,29 @@ func TestMacroDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(39, 4, 9)), "undefined constant `Foo`"),
 			},
 		},
+		"should fail when class instance macro has no parameters": {
+			input: `
+				class Foo
+					macro baz
+						5.to_ast_node
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(57, 5, 8)), "instance macros have to define at least one parameter for self node"),
+			},
+		},
+		"instance macro is valid with one or more parameters": {
+			input: `
+				class Foo
+					macro baz(this: Elk::AST::IntLiteralNode)
+						quote
+							unquote(this) * 5
+						end
+					end
+				end
+			`,
+		},
 		"returned value must inherit from ExpressionNode when no return type - success": {
 			input: `
 				module Foo
@@ -1109,8 +1359,10 @@ func TestMacroDefinition(t *testing.T) {
 				using Std::Elk::AST::*
 
 				class Foo
-					macro baz(a: IntLiteralNode) then a
-					macro baz then try IntLiteralNode("123")
+					singleton
+						macro baz(a: IntLiteralNode) then a
+						macro baz then try IntLiteralNode("123")
+					end
 
 					baz!
 				end

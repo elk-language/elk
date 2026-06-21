@@ -266,6 +266,11 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 }
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return
+	}
+
 	for _, entry := range node.Entries {
 		c.resolveUsingEntry(entry, true)
 	}
