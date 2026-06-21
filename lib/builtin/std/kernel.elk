@@ -1,0 +1,25 @@
+module ::Std::Kernel
+  ##[
+    Includes the given mixin in the current namespace
+    and includes its nested `::Singleton` mixin
+    in the singleton class of the current namespace.
+
+    `enhance! Foo` is roughly equivalent to:
+
+    ```
+    include Foo
+    singleton
+      include Foo::Singleton
+    end
+    ```
+  ]##
+  macro enhance(mixinConst: ComplexConstantNode)
+    quote
+      include !{mixinConst}
+      singleton
+        include !{mixinConst}::Singleton
+      end
+    end
+  end
+
+end

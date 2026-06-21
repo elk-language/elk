@@ -155,7 +155,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`", false, true, true, false, value.ToSymbol("ClosureLiteralNode"), objectClass, env)
-				namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
+				{
+					namespace := namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
+					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo::Bar as Bar`.", false, true, true, false, value.ToSymbol("ConstantAsNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant declaration eg. `const Foo: ArrayList[String] = [\"foo\", \"bar\"]`", false, true, true, false, value.ToSymbol("ConstantDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant lookup expressions eg. `Foo::Bar`", false, true, true, false, value.ToSymbol("ConstantLookupNode"), objectClass, env)
@@ -1524,8 +1528,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Collection::Base::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 					IncludeMixin(namespace, NewGeneric(NameToType("Std::ImmutableCollection::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Collection::Base::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Collection", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Collection::Base::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 
 					// Define methods
 					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Collection::Base::Val", env), NormalParameterKind, false)}, Self{}, Never{})
@@ -2807,10 +2811,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 
 						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_complex_const_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
+
+							namespace.Name() // noop - avoid unused variable error
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_complex_const_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("ConstantAsNode").(*Class)
@@ -7850,8 +7870,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})))
 
 					// Define methods
 					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("drop"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ImmutableCollection", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ImmutableCollection::Base::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
@@ -8685,8 +8705,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Iterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Iterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Iterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Iterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::Iterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Iterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Iterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 					namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
@@ -9416,8 +9436,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					namespace.SetTypeParameters(typeParams)
 
 					// Include mixins and implement interfaces
-					ImplementInterface(namespace, NewGeneric(NameToType("Std::ResettableIterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 					IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterator::Base", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+					ImplementInterface(namespace, NewGeneric(NameToType("Std::ResettableIterator", env).(*Interface), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Val", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::ResettableIterator::Base::Err", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
 
 					// Define methods
 

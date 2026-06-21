@@ -137,6 +137,7 @@ const (
 	inferClosureThrowTypeFlag
 	generatorFlag
 	unhygienicFlag
+	builtinImportsProcessed  //indicates that builtin imports have already been handled
 	conditionFlag            // checked expression is a part of an if/unless condition
 	definedMacrosFlag        // indicates that the typechecker has defined some macros
 	incrementalFlag          // indicates the typechecker should check and compiler code incrementally (REPL)
@@ -279,6 +280,18 @@ func (c *Checker) setHasDefer(val bool) {
 		c.flags.SetFlag(hasDeferFlag)
 	} else {
 		c.flags.UnsetFlag(hasDeferFlag)
+	}
+}
+
+func (c *Checker) areBuiltinImportsProcessed() bool {
+	return c.flags.HasFlag(builtinImportsProcessed)
+}
+
+func (c *Checker) setBuiltinImportsProcessed(val bool) {
+	if val {
+		c.flags.SetFlag(builtinImportsProcessed)
+	} else {
+		c.flags.UnsetFlag(builtinImportsProcessed)
 	}
 }
 
@@ -542,8 +555,22 @@ func (c *Checker) initExtensions() {
 	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
+func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup) {
+	if c.IsHeader() || c.areBuiltinImportsProcessed() {
+		return
+	}
+
+	builtinPaths := c.resolveImportPath("builtin/**/*.elk", "", node.Location())
+	node.ImportPaths = append(node.ImportPaths, builtinPaths...)
+	c.checkImportPaths(builtinPaths, wg, node.Location())
+	c.setBuiltinImportsProcessed(true)
+}
+
 func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
+
+	c.checkBuiltinImports(node, &wg)
+
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
 	wg.Wait()
@@ -853,37 +880,117 @@ func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg 
 	for _, importStmt := range imports {
 		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				_, ok := c.ASTCache.Get(importPath)
-				if ok {
-					return
-				}
-				bytes, err := os.ReadFile(importPath)
-				if err != nil {
-					c.addFailure(
-						fmt.Sprintf(
-							"cannot read file: %s (%s)",
-							importPath,
-							err,
-						),
-						importStmt.Location(),
-					)
-					return
-				}
-
-				ast, errList := parser.Parse(importPath, string(bytes))
-				if errList != nil {
-					c.Errors.JoinErrList(errList)
-					return
-				}
-
-				c.checkImportsForFile(importPath, ast, wg)
-			}()
+			c.checkImportPath(importPath, wg, importStmt.Location())
 		}
 	}
 
+}
+
+func (c *Checker) checkImportPaths(importPaths []string, wg *sync.WaitGroup, loc *position.Location) {
+	for _, path := range importPaths {
+		c.checkImportPath(path, wg, loc)
+	}
+}
+
+func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *position.Location) {
+	wg.Go(func() {
+		_, ok := c.ASTCache.Get(importPath)
+		if ok {
+			return
+		}
+		bytes, err := os.ReadFile(importPath)
+		if err != nil {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot read file: %s (%s)",
+					importPath,
+					err,
+				),
+				loc,
+			)
+			return
+		}
+
+		ast, errList := parser.Parse(importPath, string(bytes))
+		if errList != nil {
+			c.Errors.JoinErrList(errList)
+			return
+		}
+
+		c.checkImportsForFile(importPath, ast, wg)
+	})
+}
+
+func (c *Checker) resolveImportPath(importPath string, checkedFileName string, loc *position.Location) []string {
+	if isLibPath(importPath) {
+		shortPath := importPath
+		// library
+		importPath = filepath.Join(env.ELKPATH, "lib", importPath)
+		if filepath.Ext(importPath) == "" {
+			importPath = filepath.Join(importPath, "init.{elk,elh}")
+		}
+		extension, ok := ext.Map[shortPath]
+		if ok {
+			c.extensions.Push(extension)
+		}
+	} else if !filepath.IsAbs(importPath) {
+		dirPath := filepath.Dir(checkedFileName)
+		importPath = filepath.Join(dirPath, importPath)
+	}
+
+	baseDir, pattern := doublestar.SplitPattern(importPath)
+	fsys := os.DirFS(baseDir)
+	filePaths, err := doublestar.Glob(fsys, pattern)
+	if err != nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid glob pattern: %s (%s)",
+				importPath,
+				err,
+			),
+			loc,
+		)
+		return nil
+	}
+
+	if len(filePaths) == 0 {
+		c.addFailure(
+			fmt.Sprintf(
+				"no matched files for import: %s",
+				importPath,
+			),
+			loc,
+		)
+		return nil
+	}
+
+	fsPaths := make([]string, 0, len(filePaths))
+	for _, filename := range filePaths {
+		filename := filepath.Join(baseDir, filename)
+		info, err := os.Stat(filename)
+		if os.IsNotExist(err) {
+			c.addFailure(
+				fmt.Sprintf(
+					"tried to import a file that does not exist: %s",
+					filename,
+				),
+				loc,
+			)
+			continue
+		}
+		if info.IsDir() {
+			c.addFailure(
+				fmt.Sprintf(
+					"tried to import a directory: %s",
+					filename,
+				),
+				loc,
+			)
+			continue
+		}
+		fsPaths = append(fsPaths, filename)
+	}
+	return fsPaths
 }
 
 func (c *Checker) setMode(mode mode) {
@@ -1636,6 +1743,11 @@ func (c *Checker) StdConstantNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
+func (c *Checker) StdComplexConstantNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.ComplexConstantNode)
+	return constant.Type.(*types.Mixin)
+}
+
 func (c *Checker) StdPatternNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.PatternNode)
 	return constant.Type.(*types.Mixin)
@@ -1673,6 +1785,11 @@ func (c *Checker) StdExpressionNodeConvertible() *types.Interface {
 
 func (c *Checker) StdConstantNodeConvertible() *types.Interface {
 	constant, _ := c.StdConstantNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
+func (c *Checker) StdComplexConstantNodeConvertible() *types.Interface {
+	constant, _ := c.StdComplexConstantNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
 }
 
@@ -4642,6 +4759,7 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.QuoteExpressionNode {
 	exprConvertible := c.StdExpressionNodeConvertible()
 	constConvertible := c.StdConstantNodeConvertible()
+	complexConstConvertible := c.StdComplexConstantNodeConvertible()
 	patternConvertible := c.StdPatternNodeConvertible()
 	patternExprConvertible := c.StdLiteralPatternNodeConvertible()
 	typeConvertible := c.StdTypeNodeConvertible()
@@ -4662,6 +4780,8 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 					iface = exprConvertible
 				case ast.UNQUOTE_CONSTANT_KIND:
 					iface = constConvertible
+				case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+					iface = complexConstConvertible
 				case ast.UNQUOTE_PATTERN_KIND:
 					iface = patternConvertible
 				case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
@@ -8941,6 +9061,8 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				stmt.Expression = c.hoistStructDeclaration(expr)
 			case *ast.MacroBoundaryNode:
 				c.hoistNamespaceDefinitionsAndMacros(expr.Body)
+			case *ast.DoExpressionNode:
+				c.hoistNamespaceDefinitionsAndMacros(expr.Body)
 			case *ast.MacroDefinitionNode:
 				c.hoistMacroDefinition(expr)
 			case *ast.ModuleDeclarationNode:
@@ -8962,23 +9084,9 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 			case *ast.UsingExpressionNode:
 				c.checkUsingExpressionForNamespaces(expr)
 			case *ast.ImplementExpressionNode:
-				switch c.mode {
-				case classMode, mixinMode, interfaceMode:
-				default:
-					continue
-				}
-				namespace := c.currentMethodScope().container
-				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+				c.registerImplementExpressionCheck(expr)
 			case *ast.IncludeExpressionNode:
-				switch c.mode {
-				case classMode, mixinMode, singletonMode:
-				default:
-					continue
-				}
-				namespace := c.currentMethodScope().container
-				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+				c.registerIncludeExpressionCheck(expr)
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
@@ -8988,7 +9096,39 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 	}
 }
 
+func (c *Checker) registerImplementExpressionCheck(expr *ast.ImplementExpressionNode) {
+	if expr.SkipTypechecking() {
+		return
+	}
+	switch c.mode {
+	case classMode, mixinMode, interfaceMode:
+	default:
+		return
+	}
+	namespace := c.currentMethodScope().container
+	expr.SetType(types.Untyped{})
+	c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+}
+
+func (c *Checker) registerIncludeExpressionCheck(expr *ast.IncludeExpressionNode) {
+	if expr.SkipTypechecking() {
+		return
+	}
+	switch c.mode {
+	case classMode, mixinMode, singletonMode:
+	default:
+		return
+	}
+	namespace := c.currentMethodScope().container
+	expr.SetType(types.Untyped{})
+	c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+}
+
 func (c *Checker) checkUsingExpressionForNamespaces(node *ast.UsingExpressionNode) {
+	if node.SkipTypechecking() {
+		return
+	}
+
 	node.SetType(types.Untyped{})
 	for i, entry := range node.Entries {
 		node.Entries[i] = c.checkUsingEntryNodeForNamespaces(entry)
@@ -9172,74 +9312,7 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode, checkedFileName str
 		path = pathNode.Value
 	}
 
-	if isLibPath(path) {
-		shortPath := path
-		// library
-		path = filepath.Join(env.ELKPATH, "lib", path)
-		if filepath.Ext(path) == "" {
-			path = filepath.Join(path, "init.{elk,elh}")
-		} else {
-		}
-		extension, ok := ext.Map[shortPath]
-		if ok {
-			c.extensions.Push(extension)
-		}
-	} else if !filepath.IsAbs(path) {
-		dirPath := filepath.Dir(checkedFileName)
-		path = filepath.Join(dirPath, path)
-	}
-
-	baseDir, pattern := doublestar.SplitPattern(path)
-	fsys := os.DirFS(baseDir)
-	filePaths, err := doublestar.Glob(fsys, pattern)
-	if err != nil {
-		c.addFailure(
-			fmt.Sprintf(
-				"invalid glob pattern: %s (%s)",
-				path,
-				err,
-			),
-			node.Location(),
-		)
-		return
-	}
-
-	if len(filePaths) == 0 {
-		c.addFailure(
-			fmt.Sprintf(
-				"no matched files for import: %s",
-				path,
-			),
-			node.Location(),
-		)
-		return
-	}
-
-	for _, filename := range filePaths {
-		filename := filepath.Join(baseDir, filename)
-		info, err := os.Stat(filename)
-		if os.IsNotExist(err) {
-			c.addFailure(
-				fmt.Sprintf(
-					"tried to import a file that does not exist: %s",
-					filename,
-				),
-				node.Location(),
-			)
-			continue
-		}
-		if info.IsDir() {
-			c.addFailure(
-				fmt.Sprintf(
-					"tried to import a directory: %s",
-					filename,
-				),
-				node.Location(),
-			)
-			continue
-		}
-		node.FsPaths = append(node.FsPaths, filename)
-	}
+	node.FsPaths = c.resolveImportPath(path, checkedFileName, node.Location())
 }
 
 func (c *Checker) declareMixin(docComment string, abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Mixin {

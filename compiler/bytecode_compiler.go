@@ -1515,6 +1515,8 @@ func (c *BytecodeCompiler) compileUnquoteNode(node *ast.UnquoteNode) {
 		methodName = symbol.L_to_ast_expr_node
 	case ast.UNQUOTE_CONSTANT_KIND:
 		methodName = symbol.L_to_ast_const_node
+	case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+		methodName = symbol.L_to_ast_complex_const_node
 	case ast.UNQUOTE_PATTERN_KIND:
 		methodName = symbol.L_to_ast_pattern_node
 	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
@@ -1525,6 +1527,8 @@ func (c *BytecodeCompiler) compileUnquoteNode(node *ast.UnquoteNode) {
 		methodName = symbol.L_to_ast_ident_node
 	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
 		methodName = symbol.L_to_ast_ivar_node
+	default:
+		panic(fmt.Sprintf("invalid unquote kind %d", node.Kind))
 	}
 
 	c.emitCallMethod(

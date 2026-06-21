@@ -139,6 +139,8 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		c.checkUsingExpressionForMacros(expr)
 	case *ast.MacroBoundaryNode:
 		c.expandTopLevelMacros(expr.Body)
+	case *ast.DoExpressionNode:
+		c.expandTopLevelMacros(expr.Body)
 	case *ast.ModuleDeclarationNode:
 		c.hoistModuleDeclarationAndExpandMacros(expr)
 	case *ast.ClassDeclarationNode:
@@ -153,6 +155,14 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.StructDeclarationNode:
 		c.hoistStructDeclaration(expr)
+	case *ast.TypeDefinitionNode:
+		c.registerNamedTypeCheck(expr)
+	case *ast.GenericTypeDefinitionNode:
+		c.registerGenericNamedTypeCheck(expr)
+	case *ast.ImplementExpressionNode:
+		c.registerImplementExpressionCheck(expr)
+	case *ast.IncludeExpressionNode:
+		c.registerIncludeExpressionCheck(expr)
 	case *ast.ReceiverlessMacroCallNode:
 		result := c.checkReceiverlessMacroCallNode(expr)
 		if result == nil {
@@ -166,6 +176,10 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 			return expr
 		}
 		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
+	case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+		namespace := c.currentMethodScope().container
+		namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
 	}
 
 	return expr

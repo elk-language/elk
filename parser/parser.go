@@ -2250,7 +2250,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 			right,
 		)
 	} else {
-		left = p.constant()
+		left = p.complexConstant()
 	}
 
 	for p.lookahead.Type == token.SCOPE_RES_OP {
@@ -2291,6 +2291,32 @@ func (p *Parser) privateConstant() *ast.PrivateConstantNode {
 	return ast.NewPrivateConstantNode(
 		tok.Location(),
 		tok.Value,
+	)
+}
+
+// complexConstant = privateConstant | publicConstant | unquoteComplexConstant
+func (p *Parser) complexConstant() ast.ConstantNode {
+	if p.accept(token.PRIVATE_CONSTANT) {
+		return p.privateConstant()
+	}
+
+	if p.accept(token.PUBLIC_CONSTANT) {
+		return p.publicConstant()
+	}
+
+	if p.accept(token.UNQUOTE, token.UNQUOTE_CONST) {
+		return p.unquoteComplexConstant()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteComplexConstant()
+	}
+
+	p.errorExpected("a constant")
+	tok := p.advance()
+	p.mode = panicMode
+	return ast.NewInvalidNode(
+		tok.Location(),
+		tok,
 	)
 }
 
@@ -5304,6 +5330,11 @@ func (p *Parser) unquoteConstant() ast.ConstantNode {
 	return p.unquote(ast.UNQUOTE_CONSTANT_KIND)
 }
 
+// unquoteComplexConstant = ("unquote") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteComplexConstant() ast.ConstantNode {
+	return p.unquote(ast.UNQUOTE_COMPLEX_CONSTANT_KIND)
+}
+
 // unquoteType = ("unquote" | "unquote_type") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteType() ast.TypeNode {
 	return p.unquote(ast.UNQUOTE_TYPE_KIND)
@@ -5344,37 +5375,42 @@ func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	)
 }
 
-// shortUnquoteExpression = "${" expressionWithoutModifier "}"
+// shortUnquoteExpression = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteExpression() ast.ExpressionNode {
 	return p.shortUnquote(ast.UNQUOTE_EXPRESSION_KIND)
 }
 
-// shortUnquotePattern = "${" expressionWithoutModifier "}"
+// shortUnquotePattern = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquotePattern() ast.PatternNode {
 	return p.shortUnquote(ast.UNQUOTE_PATTERN_KIND)
 }
 
-// shortUnquotePatternExpression = "${" expressionWithoutModifier "}"
+// shortUnquotePatternExpression = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquotePatternExpression() ast.LiteralPatternNode {
 	return p.shortUnquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
 
-// shortUnquoteConstant = "${" expressionWithoutModifier "}"
+// shortUnquoteConstant = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteConstant() ast.ConstantNode {
 	return p.shortUnquote(ast.UNQUOTE_CONSTANT_KIND)
 }
 
-// shortUnquoteType = "${" expressionWithoutModifier "}"
+// shortUnquoteComplexConstant = "!{" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteComplexConstant() ast.ConstantNode {
+	return p.shortUnquote(ast.UNQUOTE_COMPLEX_CONSTANT_KIND)
+}
+
+// shortUnquoteType = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteType() ast.TypeNode {
 	return p.shortUnquote(ast.UNQUOTE_TYPE_KIND)
 }
 
-// shortUnquoteIdentifier = "${" expressionWithoutModifier "}"
+// shortUnquoteIdentifier = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteIdentifier() ast.IdentifierNode {
 	return p.shortUnquote(ast.UNQUOTE_IDENTIFIER_KIND)
 }
 
-// shortUnquote = "${" expressionWithoutModifier "}"
+// shortUnquote = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	begTok := p.advance()
 

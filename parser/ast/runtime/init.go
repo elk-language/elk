@@ -6,6 +6,7 @@ func InitGlobalEnvironment() {
 	initMacro()
 	initExpressionNode()
 	initConstantNode()
+	initComplexConstantNode()
 	initIdentifierNode()
 	initTypeNode()
 	initMatchExpressionNode()
