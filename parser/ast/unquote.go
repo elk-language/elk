@@ -18,9 +18,9 @@ const (
 	UNQUOTE_PATTERN_EXPRESSION_KIND                    // Unquote kind for pattern expression nodes
 	UNQUOTE_TYPE_KIND                                  // Unquote kind for type nodes
 	UNQUOTE_CONSTANT_KIND                              // Unquote kind for constant nodes
-	UNQUOTE_COMPLEX_CONSTANT_KIND                      // Unquote kind for complex constant nodes
 	UNQUOTE_IDENTIFIER_KIND                            // Unquote kind for identifier nodes
 	UNQUOTE_INSTANCE_VARIABLE_KIND                     // Unquote kind for instance variable nodes
+	UNQUOTE_COMPLEX_CONSTANT_KIND                      // Unquote kind for complex constant nodes
 )
 
 type UnquoteOrInvalidNode interface {

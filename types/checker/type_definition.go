@@ -117,7 +117,7 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 }
 
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
-	if node.SkipTypechecking() {
+	if c.TypeOf(node) != nil {
 		return
 	}
 	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
@@ -149,7 +149,7 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 }
 
 func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionNode) {
-	if node.SkipTypechecking() {
+	if c.TypeOf(node) != nil {
 		return
 	}
 	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)

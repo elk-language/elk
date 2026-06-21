@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/compiler/types"
 	"github.com/elk-language/elk/lexer"
@@ -185,7 +186,7 @@ func (e *evaluator) transpile(input string) {
 	defer e.deleteSource(sourceName)
 
 	var buff bytes.Buffer
-	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, &buff, vm.DefaultThreadPool)
+	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField16{}, &buff, vm.DefaultThreadPool)
 
 	if dl != nil {
 		fmt.Println()

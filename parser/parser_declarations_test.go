@@ -7129,7 +7129,7 @@ func TestMethodDefinition(t *testing.T) {
 							0,
 							ast.NewUnquoteNode(
 								L(S(P(4, 1, 5), P(19, 1, 20))),
-								5,
+								ast.UNQUOTE_IDENTIFIER_KIND,
 								ast.NewBinaryExpressionNode(
 									L(S(P(12, 1, 13), P(18, 1, 19))),
 									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),

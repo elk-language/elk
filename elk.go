@@ -133,7 +133,7 @@ func CompileRunSource(sourceName, source string) (err error) {
 
 func CompileSource(sourceName, source string) (binPath string, err error) {
 	var buffer bytes.Buffer
-	goCompiler, diagnostics := checker.CheckSourceNative(sourceName, source, nil, &buffer, nil)
+	goCompiler, diagnostics := checker.CheckSourceNative(sourceName, source, nil, bitfield.BitField16{}, &buffer, nil)
 	return compileResult(
 		&buffer,
 		goCompiler,

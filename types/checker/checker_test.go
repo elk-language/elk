@@ -3,10 +3,12 @@ package checker_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -20,6 +22,7 @@ import (
 
 func init() {
 	elk.InitGlobalEnvironment()
+	env.ELKPATH = filepath.Join(env.ELKPATH, "../..")
 }
 
 func TestMain(m *testing.M) {

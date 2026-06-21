@@ -1,12 +1,14 @@
 package vm_test
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/comparer"
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/position"
 	perror "github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
@@ -16,6 +18,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
+}
 
 // Represents a single VM source code test case.
 type sourceTestCase struct {

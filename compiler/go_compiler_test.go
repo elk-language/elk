@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/compiler/types"
@@ -16,6 +17,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
+}
 
 // Represents a single go compiler test case.
 type goTestCase struct {
@@ -35,7 +40,14 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	var buff bytes.Buffer
-	compiler, errDiag := checker.CheckSourceNative("<main>", tc.input, nil, &buff, vm.DefaultThreadPool)
+	compiler, errDiag := checker.CheckSourceNative(
+		"<main>",
+		tc.input,
+		nil,
+		bitfield.BitField16FromBitFlag(checker.BuiltinImportsProcessed),
+		&buff,
+		vm.DefaultThreadPool,
+	)
 	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, errDiag, opts...); diff != "" {
 		t.Log(pp.Sprint(errDiag))

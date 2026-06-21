@@ -46,13 +46,13 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of Elk source code and generate Go source
-func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	return CheckASTNative(sourceName, ast, globalEnv, output, threadPool)
+	return CheckASTNative(sourceName, ast, globalEnv, flags, output, threadPool)
 }
 
 // Check the types of an Elk AST and generate bytecode
@@ -66,8 +66,8 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 }
 
 // Check the types of an Elk AST and generate Go source
-func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool, false)
+func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(flags.ToBitFlag()|GoCompilerFlag), output, threadPool, false)
 	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -132,12 +132,12 @@ const (
 const (
 	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	GoCompilerFlag
-	AdditionalAbortChecks // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
+	AdditionalAbortChecks   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
+	BuiltinImportsProcessed // indicates that builtin imports do not need to be processed
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
 	unhygienicFlag
-	builtinImportsProcessed  //indicates that builtin imports have already been handled
 	conditionFlag            // checked expression is a part of an if/unless condition
 	definedMacrosFlag        // indicates that the typechecker has defined some macros
 	incrementalFlag          // indicates the typechecker should check and compiler code incrementally (REPL)
@@ -283,15 +283,15 @@ func (c *Checker) setHasDefer(val bool) {
 	}
 }
 
-func (c *Checker) areBuiltinImportsProcessed() bool {
-	return c.flags.HasFlag(builtinImportsProcessed)
+func (c *Checker) AreBuiltinImportsProcessed() bool {
+	return c.flags.HasFlag(BuiltinImportsProcessed)
 }
 
-func (c *Checker) setBuiltinImportsProcessed(val bool) {
+func (c *Checker) SetBuiltinImportsProcessed(val bool) {
 	if val {
-		c.flags.SetFlag(builtinImportsProcessed)
+		c.flags.SetFlag(BuiltinImportsProcessed)
 	} else {
-		c.flags.UnsetFlag(builtinImportsProcessed)
+		c.flags.UnsetFlag(BuiltinImportsProcessed)
 	}
 }
 
@@ -556,14 +556,14 @@ func (c *Checker) initExtensions() {
 }
 
 func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup) {
-	if c.IsHeader() || c.areBuiltinImportsProcessed() {
+	if c.IsHeader() || c.AreBuiltinImportsProcessed() {
 		return
 	}
 
 	builtinPaths := c.resolveImportPath("builtin/**/*.elk", "", node.Location())
 	node.ImportPaths = append(node.ImportPaths, builtinPaths...)
 	c.checkImportPaths(builtinPaths, wg, node.Location())
-	c.setBuiltinImportsProcessed(true)
+	c.SetBuiltinImportsProcessed(true)
 }
 
 func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
@@ -9097,7 +9097,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 }
 
 func (c *Checker) registerImplementExpressionCheck(expr *ast.ImplementExpressionNode) {
-	if expr.SkipTypechecking() {
+	if c.TypeOf(expr) != nil {
 		return
 	}
 	switch c.mode {
@@ -9111,7 +9111,7 @@ func (c *Checker) registerImplementExpressionCheck(expr *ast.ImplementExpression
 }
 
 func (c *Checker) registerIncludeExpressionCheck(expr *ast.IncludeExpressionNode) {
-	if expr.SkipTypechecking() {
+	if c.TypeOf(expr) != nil {
 		return
 	}
 	switch c.mode {
@@ -9125,7 +9125,7 @@ func (c *Checker) registerIncludeExpressionCheck(expr *ast.IncludeExpressionNode
 }
 
 func (c *Checker) checkUsingExpressionForNamespaces(node *ast.UsingExpressionNode) {
-	if node.SkipTypechecking() {
+	if c.TypeOf(node) != nil {
 		return
 	}
 

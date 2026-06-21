@@ -41,6 +41,7 @@ func bytecodeCompilerTest(tc bytecodeTestCase, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
+	typechecker.SetBuiltinImportsProcessed(true)
 	got, err := typechecker.CheckSourceBytecode("<main>", tc.input)
 	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
