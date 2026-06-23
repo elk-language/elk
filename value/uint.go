@@ -219,10 +219,14 @@ func (i UInt) Divide(other Value) (UInt, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsUInt()
-	if o == 0 {
+	return i.DivideUInt(o)
+}
+
+func (i UInt) DivideUInt(other UInt) (UInt, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i UInt) CompareVal(other Value) (Value, Value) {

@@ -7400,6 +7400,8 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return c.compileDivideUInt16(narrowLeft, right, loc)
 	case "value.UInt8":
 		return c.compileDivideUInt8(narrowLeft, right, loc)
+	case "value.UInt":
+		return c.compileDivideUInt(narrowLeft, right, loc)
 	case "value.Float":
 		return c.compileDivideFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigFloat":
@@ -7489,6 +7491,17 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 			tmp,
 			typ,
 		)
+	case "*value.BigInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit("%s, err = (%s).DivideBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).DivideFloat(%s)", left.value, narrowRight.value),
@@ -7555,7 +7568,18 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
 		c.emitSetCallFrameLineNumber(loc)
-		c.emit("%s, err = (%s).DivideSmallInt(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+		c.emit("%s, err = (%s).DivideSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	case "*value.BigInt":
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit("%s, err = (%s).DivideBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
 
 		return newGoValueWithLocal(
@@ -7855,6 +7879,19 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Loca
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt8(%s)\n", tmp.name, left.fetchValue(), c.valueToNarrowerType(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		left.elkType,
+	)
+}
+
+func (c *GoCompiler) compileDivideUInt(left, right *goValue, loc *position.Location) *goValue {
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).DivideUInt(%s)\n", tmp.name, left.fetchValue(), c.valueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
 
 	return newGoValueWithLocal(
@@ -11533,6 +11570,8 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return c.compileAddUInt16(narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileAddUInt8(narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileAddUInt(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
 		return c.compileAddFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
@@ -11618,6 +11657,13 @@ func (c *GoCompiler) compileAddBigInt(left, right *goValue, typ types.Type, loc 
 			goValueType,
 			left, narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).AddBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).AddFloat(%s)", left.value, narrowRight.value),
@@ -11666,6 +11712,13 @@ func (c *GoCompiler) compileAddSmallInt(left, right *goValue, typ types.Type, lo
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).AddSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).AddBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			goValueType,
 			left, narrowRight,
@@ -12001,6 +12054,18 @@ func (c *GoCompiler) compileAddUInt8(left, right *goValue, valueIsIgnored bool) 
 		fmt.Sprintf("(%s) + (%s)", left.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
 		left.elkType,
 		value.FetchGoType("value.UInt8"),
+	)
+}
+
+func (c *GoCompiler) compileAddUInt(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	return newGoValue(
+		fmt.Sprintf("(%s) + (%s)", left.fetchValue(), c.valueToNarrowerType(right).fetchValue()),
+		left.elkType,
+		value.FetchGoType("value.UInt"),
 	)
 }
 

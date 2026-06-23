@@ -1,0 +1,29 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+module LibBuiltinKernelTest
+  mixin Foo
+    def foo_instance: String
+      "instance"
+    end
+
+    mixin Singleton
+      def foo_singleton: String
+        "singleton"
+      end
+    end
+  end
+
+  class Bar
+    enhance! Foo
+  end
+end
+
+describe "builtin Elk Kernel" ->
+  context "enhance!" ->
+    should "include instance and singleton methods" ->
+      assert! LibBuiltinKernelTest::Bar().foo_instance == "instance"
+      assert! LibBuiltinKernelTest::Bar.foo_singleton == "singleton"
+    end
+  end
+end

@@ -225,10 +225,10 @@ func (i UInt32) Divide(other Value) (UInt32, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsUInt32()
-	return i.DivideUInt16(o)
+	return i.DivideUInt32(o)
 }
 
-func (i UInt32) DivideUInt16(other UInt32) (UInt32, Value) {
+func (i UInt32) DivideUInt32(other UInt32) (UInt32, Value) {
 	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}

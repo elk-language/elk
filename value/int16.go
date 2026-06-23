@@ -222,10 +222,14 @@ func (i Int16) Divide(other Value) (Int16, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt16()
-	if o == 0 {
+	return i.DivideInt16(o)
+}
+
+func (i Int16) DivideInt16(other Int16) (Int16, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int16) CompareVal(other Value) (Value, Value) {

@@ -137,7 +137,11 @@ func (f Float32) ModuloVal(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Mod(float64(f), float64(o))), Undefined
+	return f.ModuloFloat32(o), Undefined
+}
+
+func (f Float32) ModuloFloat32(other Float32) Float32 {
+	return Float32(math.Mod(float64(f), float64(other)))
 }
 
 func (f Float32) Divide(other Value) (Float32, Value) {

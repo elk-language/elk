@@ -219,10 +219,14 @@ func (i Int8) Divide(other Value) (Int8, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt8()
-	if o == 0 {
+	return i.DivideInt8(o)
+}
+
+func (i Int8) DivideInt8(other Int8) (Int8, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int8) CompareVal(other Value) (Value, Value) {
