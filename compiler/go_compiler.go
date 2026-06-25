@@ -9678,6 +9678,8 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return c.compileMultiplyUInt16(narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileMultiplyUInt8(narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileMultiplyUInt(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
 		return c.compileMultiplyFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "*value.BigFloat":
@@ -9764,6 +9766,14 @@ func (c *GoCompiler) compileMultiplyBigInt(left, right *goValue, typ types.Type,
 			left,
 			right,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).MultiplyBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left,
+			right,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).MultiplyFloat(%s)", left.value, narrowRight.value),
@@ -9815,7 +9825,15 @@ func (c *GoCompiler) compileMultiplySmallInt(left, right *goValue, typ types.Typ
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).MultiplySmallInt(%s)", left.value, narrowRight.value),
 			left.elkType,
-			value.FetchGoType("value.SmallInt"),
+			goValueType,
+			left,
+			right,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).MultiplyBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
 			left,
 			right,
 		)
@@ -9874,6 +9892,14 @@ func (c *GoCompiler) compileMultiplyFloat(left, right *goValue, typ types.Type, 
 			left,
 			right,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).MultiplyBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Float"),
+			left,
+			right,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).MultiplyFloat(%s)", left.value, narrowRight.value),
@@ -9924,6 +9950,14 @@ func (c *GoCompiler) compileMultiplyBigFloat(left, right *goValue, typ types.Typ
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).MultiplySmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left,
+			right,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).MultiplyBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left,
@@ -10159,6 +10193,19 @@ func (c *GoCompiler) compileMultiplyUInt8(left, right *goValue, valueIsIgnored b
 		fmt.Sprintf("(%s) * (%s)", left.value, c.valueToNarrowerType(right).value),
 		left.elkType,
 		value.FetchGoType("value.UInt8"),
+		left, right,
+	)
+}
+
+func (c *GoCompiler) compileMultiplyUInt(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s) * (%s)", left.value, c.valueToNarrowerType(right).value),
+		left.elkType,
+		value.FetchGoType("value.UInt"),
 		left, right,
 	)
 }
