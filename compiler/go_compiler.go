@@ -7656,6 +7656,14 @@ func (c *GoCompiler) compileDivideFloat(left, right *goValue, typ types.Type, lo
 			left,
 			right,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).DivideBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Float"),
+			left,
+			right,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).DivideFloat(%s)", left.value, narrowRight.value),
@@ -7710,6 +7718,14 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).DivideSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left,
+			right,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).DivideBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left,
@@ -10171,6 +10187,8 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return c.compileSubtractUInt16(narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileSubtractUInt8(narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileSubtractUInt(narrowLeft, right, valueIsIgnored)
 	case "value.Float":
 		return c.compileSubtractFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
@@ -10252,6 +10270,13 @@ func (c *GoCompiler) compileSubtractBigInt(left, right *goValue, typ types.Type,
 			goValueType,
 			left, narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).SubtractBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).SubtractFloat(%s)", left.value, narrowRight.value),
@@ -10301,7 +10326,14 @@ func (c *GoCompiler) compileSubtractSmallInt(left, right *goValue, typ types.Typ
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).SubtractSmallInt(%s)", left.value, narrowRight.value),
 			left.elkType,
-			value.FetchGoType("value.SmallInt"),
+			goValueType,
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).SubtractBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
 			left, narrowRight,
 		)
 	case "value.Float":
@@ -10356,6 +10388,13 @@ func (c *GoCompiler) compileSubtractFloat(left, right *goValue, typ types.Type, 
 			value.FetchGoType("value.Float"),
 			left, narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).SubtractBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Float"),
+			left, narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).SubtractFloat(%s)", left.value, narrowRight.value),
@@ -10404,6 +10443,13 @@ func (c *GoCompiler) compileSubtractBigFloat(left, right *goValue, typ types.Typ
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).SubtractSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).SubtractBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left, narrowRight,
@@ -10582,6 +10628,20 @@ func (c *GoCompiler) compileSubtractUInt8(left, right *goValue, valueIsIgnored b
 		fmt.Sprintf("(%s) - (%s)", left.value, narrowRight.value),
 		left.elkType,
 		value.FetchGoType("value.UInt8"),
+		left, narrowRight,
+	)
+}
+
+func (c *GoCompiler) compileSubtractUInt(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s) - (%s)", left.value, narrowRight.value),
+		left.elkType,
+		value.FetchGoType("value.UInt"),
 		left, narrowRight,
 	)
 }
@@ -11131,6 +11191,13 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 			value.FetchGoType("value.Float"),
 			left, narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ModuloBigInt(%s)", left.value, narrowRight.value),
+			typ,
+			value.FetchGoType("value.Float"),
+			left, narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloFloat(%s)", left.value, narrowRight.value),
@@ -11179,6 +11246,13 @@ func (c *GoCompiler) compileModuloBigFloat(left, right *goValue, typ types.Type,
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ModuloSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ModuloBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left, narrowRight,
@@ -11775,6 +11849,13 @@ func (c *GoCompiler) compileAddFloat(left, right *goValue, typ types.Type, loc *
 			value.FetchGoType("value.Float"),
 			left, narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).AddBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Float"),
+			left, narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).AddFloat(%s)", left.value, narrowRight.value),
@@ -11823,6 +11904,13 @@ func (c *GoCompiler) compileAddBigFloat(left, right *goValue, typ types.Type, lo
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).AddSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).AddBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left, narrowRight,
