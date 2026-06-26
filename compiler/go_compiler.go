@@ -8832,6 +8832,10 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 	narrowLeft := c.valueToNarrowerType(left)
 
 	switch narrowLeft.goType.Name {
+	case "value.SmallInt":
+		return c.compileBitwiseXorSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
+	case "*value.BigInt":
+		return c.compileBitwiseXorBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
 		return newGoValueWithDependencies(
@@ -8897,6 +8901,96 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		},
 		loc,
 		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileBitwiseXorSmallInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.SmallInt"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		converted := c.convertToValue(right)
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorInt(%s)", left.value, converted.value),
+			left.elkType,
+			goValueType,
+			left, converted,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).BitwiseXorVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileBitwiseXorBigInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left, narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		converted := c.convertToValue(right)
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).BitwiseXorInt(%s)", left.value, converted.value),
+			left.elkType,
+			goValueType,
+			left, converted,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(goValueType)
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = (%s).BitwiseXorVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
 	)
 }
 

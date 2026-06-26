@@ -6798,6 +6798,268 @@ func main() { // loc: <main>
 `,
 		},
 
+		"xor smallint smallint": {
+			input: `
+				val a = 23
+				val b = 10
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.SmallInt // var b: 10
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = value.SmallInt(10)
+	l2 = ((l0).BitwiseXorSmallInt(l1)).ToValue()
+}
+`,
+		},
+		"xor smallint bigint": {
+			input: `
+				val a = 23
+				c := a ^ 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).BitwiseXorBigInt(bi0)
+}
+`,
+		},
+		"xor smallint int": {
+			input: `
+				val a = 23
+				b := 5
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (value.SmallInt(5)).ToValue()
+	l2 = (l0).BitwiseXorInt(l1)
+}
+`,
+		},
+
+		"xor bigint smallint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 10
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.SmallInt // var b: 10
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.SmallInt(10)
+	l2 = (l0).BitwiseXorSmallInt(l1)
+}
+`,
+		},
+		"xor bigint bigint": {
+			input: `
+				val a = 18446744073709551616
+				c := a ^ 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).BitwiseXorBigInt(bi0)
+}
+`,
+		},
+		"xor bigint int": {
+			input: `
+				val a = 18446744073709551616
+				b := 5
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (value.SmallInt(5)).ToValue()
+	l2 = (l0).BitwiseXorInt(l1)
+}
+`,
+		},
+
 		"xor int64": {
 			input: `
 				a := 23i64
@@ -7285,7 +7547,7 @@ func Foo_ns__xor_(thread *vm.Thread, self value.Value, l0 value.Value) (result v
 
 	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
 	defer thread.PopNativeCallFrame()
-	return value.BitwiseXorInts((value.SmallInt(5)).ToValue(), l0), value.Undefined
+	return (value.SmallInt(5)).BitwiseXorInt(l0), value.Undefined
 
 }
 
