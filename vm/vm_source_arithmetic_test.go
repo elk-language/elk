@@ -35,10 +35,8 @@ func TestVMSource_Modulo(t *testing.T) {
 			wantStackTop: value.Int64(2).ToValue(),
 		},
 		"SmallInt % Float": {
-			source: "250 % 4.5",
-			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(6, 1, 7), P(8, 1, 9)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:%`, got type `4.5`"),
-			},
+			source:       "250 % 4.5",
+			wantStackTop: value.Float(2.5).ToValue(),
 		},
 		"Int64 % Int32": {
 			source: "11i64 % 2i32",

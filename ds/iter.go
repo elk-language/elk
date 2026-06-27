@@ -14,12 +14,33 @@ func MapSlice[T, R any](input []T, f func(T) R) []R {
 	return result
 }
 
+// Map elements of a Seq2 and create a new slice
+// with those mapped values.
+func MapSeq2[K, V, R any](input iter.Seq2[K, V], f func(K, V) R) []R {
+	result := []R{}
+	for k, v := range input {
+		result = append(result, f(k, v))
+	}
+	return result
+}
+
+// Map elements of Seq and create a new slice
+// with those mapped values.
+func MapSeq[T, R any](input iter.Seq[T], f func(T) R) []R {
+	result := []R{}
+	for v := range input {
+		result = append(result, f(v))
+	}
+	return result
+}
+
 // Iterate over the elements of a slice in reverse order.
-func ReverseSlice[V any](s []V) iter.Seq[V] {
-	return func(yield func(V) bool) {
+func ReverseSlice[V any](s []V) iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
 		for i := range len(s) {
-			v := s[len(s)-i-1]
-			if !yield(v) {
+			j := len(s) - i - 1
+			v := s[j]
+			if !yield(j, v) {
 				return
 			}
 		}

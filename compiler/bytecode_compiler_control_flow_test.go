@@ -1,6 +1,7 @@
 package compiler_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
@@ -8,6 +9,301 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
+
+func TestBytecodeSelectExpression(t *testing.T) {
+	tests := bytecodeTestTable{
+		"multiple channel reads": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				end
+`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 0x03,
+
+					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.INT_5),
+					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.SET_LOCAL_1),
+
+					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.INT_5),
+					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.SET_LOCAL_2),
+
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.LOAD_VALUE_1), // Select{receive, receive}
+					byte(bytecode.SELECT),
+
+					byte(bytecode.DUP),
+					byte(bytecode.INT_0),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
+					byte(bytecode.POP),
+					byte(bytecode.SET_LOCAL_3),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE_3), // "ch1: "
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.CALL_METHOD8), 0x04, // inspect
+					byte(bytecode.NEW_STRING8), 0x02,
+					byte(bytecode.CALL_METHOD8), 0x05, // println@1
+					byte(bytecode.JUMP), 0x00, 0x12,
+
+					byte(bytecode.DUP),
+					byte(bytecode.INT_1),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0d,
+					byte(bytecode.POP),
+					byte(bytecode.SET_LOCAL_3),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.CALL_METHOD8), 0x07, // inspect
+					byte(bytecode.NEW_STRING8), 0x02,
+					byte(bytecode.CALL_METHOD8), 0x08, // println@1
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(170, 10, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(8, 1),
+					bytecode.NewLineInfo(5, 2),
+					&bytecode.LineInfo{LineNumber: 6, InstructionCount: 7},
+					bytecode.NewLineInfo(7, 13),
+					&bytecode.LineInfo{LineNumber: 8, InstructionCount: 7},
+					bytecode.NewLineInfo(9, 11),
+					bytecode.NewLineInfo(10, 1),
+				},
+				[]value.Value{
+					value.ToSymbol("Std::Channel").ToValue(),
+					value.Ref(vm.NewSelect([]vm.SelectCase{
+						{Direction: reflect.SelectRecv},
+						{Direction: reflect.SelectRecv},
+					})),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("ch1: ")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("inspect"),
+						0,
+					)),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+					value.Ref(value.String("ch2: ")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("inspect"),
+						0,
+					)),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+				},
+			),
+		},
+		"channel send": {
+			input: `
+				ch := Channel::[Int](5)
+
+				select
+				case ch << 5
+					println("sent")
+				end
+		`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 0x01,
+
+					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.INT_5),
+					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.SET_LOCAL_1),
+
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.LOAD_VALUE_1), // Select{send}
+					byte(bytecode.SELECT),
+
+					byte(bytecode.DUP),
+					byte(bytecode.INT_0),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x07,
+					byte(bytecode.POP),
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE_3),       // "sent"
+					byte(bytecode.CALL_METHOD8), 0x04, // println@1
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(86, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(5, 7),
+					bytecode.NewLineInfo(6, 5),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					value.ToSymbol("Std::Channel").ToValue(),
+					value.Ref(vm.NewSelect([]vm.SelectCase{
+						{Direction: reflect.SelectSend},
+					})),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("sent")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+				},
+			),
+		},
+		"a_few_cases_and_else": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				else
+					println("no match")
+				end
+`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 0x03,
+
+					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.INT_5),
+					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.SET_LOCAL_1),
+
+					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.INT_5),
+					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.SET_LOCAL_2),
+
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_2),
+					byte(bytecode.LOAD_VALUE_1), // Select{receive, receive, else}
+					byte(bytecode.SELECT),
+
+					byte(bytecode.DUP),
+					byte(bytecode.INT_0),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
+					byte(bytecode.POP),
+					byte(bytecode.SET_LOCAL_3),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE_3), // "ch1: "
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.CALL_METHOD8), 0x04, // inspect
+					byte(bytecode.NEW_STRING8), 0x02,
+					byte(bytecode.CALL_METHOD8), 0x05, // println@1
+					byte(bytecode.JUMP), 0x00, 0x1d,
+
+					byte(bytecode.DUP),
+					byte(bytecode.INT_1),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x12,
+					byte(bytecode.POP),
+					byte(bytecode.SET_LOCAL_3),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
+					byte(bytecode.GET_LOCAL_3),
+					byte(bytecode.CALL_METHOD8), 0x07, // inspect
+					byte(bytecode.NEW_STRING8), 0x02,
+					byte(bytecode.CALL_METHOD8), 0x08, // println@1
+					byte(bytecode.JUMP), 0x00, 0x08,
+
+					byte(bytecode.POP),
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
+					byte(bytecode.LOAD_VALUE8), 0x09, // "no match"
+					byte(bytecode.CALL_METHOD8), 0x0a, // println@1
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(204, 12, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(8, 1),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(6, 7),
+					bytecode.NewLineInfo(7, 13),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(9, 14),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(11, 6),
+					bytecode.NewLineInfo(12, 1),
+				},
+				[]value.Value{
+					value.ToSymbol("Std::Channel").ToValue(),
+					value.Ref(vm.NewSelect([]vm.SelectCase{
+						{Direction: reflect.SelectRecv},
+						{Direction: reflect.SelectRecv},
+						{Direction: reflect.SelectDefault},
+					})),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("ch1: ")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("inspect"),
+						0,
+					)),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+					value.Ref(value.String("ch2: ")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("inspect"),
+						0,
+					)),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+					value.Ref(value.String("no match")),
+					value.Ref(value.NewCallSiteInfo(
+						value.ToSymbol("println@1"),
+						1,
+					)),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			bytecodeCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestBytecodeGoExpression(t *testing.T) {
 	tests := bytecodeTestTable{
@@ -1178,7 +1474,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.PROMISE),
@@ -1252,7 +1548,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.PROMISE),
@@ -5882,7 +6178,7 @@ func TestBytecodeCatch(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.CALL_SELF8), 1,
@@ -5918,6 +6214,151 @@ func TestBytecodeCatch(t *testing.T) {
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(3, 7, 16, false),
 					vm.NewCatchEntry(3, 7, 40, true),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			bytecodeCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestBytecodeDefer(t *testing.T) {
+	tests := bytecodeTestTable{
+		"multiple defer": {
+			input: `
+				puts "1. open file"
+				defer puts "2. close file"
+
+				puts "3. open TCP socket"
+				defer puts "4. close TCP socket"
+			`,
+			want: vm.NewBytecodeFunctionWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE_2),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CLOSURE),
+					0xff,
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.CLOSURE),
+					0xff,
+					byte(bytecode.APPEND),
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.INT_1),
+					byte(bytecode.EXEC_DEFER),
+					byte(bytecode.JUMP), 0, 37,
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.INT_1),
+					byte(bytecode.EXEC_DEFER),
+					byte(bytecode.NIL),
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+					byte(bytecode.POP_2),
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF_NP), 0, 10,
+					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+					byte(bytecode.POP_2),
+					byte(bytecode.POP_2_SKIP_ONE),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP_2),
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_2),
+					byte(bytecode.RETHROW),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(123, 6, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(1, 1),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(5, 7),
+					bytecode.NewLineInfo(6, 8),
+					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(6, 13),
+					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(6, 22),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.Ref(&value.NativeArrayList[*vm.BytecodeClosure]{}),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("1. open file")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("<defer>"),
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.CALL_METHOD8), 2,
+								byte(bytecode.RETURN),
+							},
+							L(P(29, 3, 5), P(54, 3, 30)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(3, 6),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(value.String("2. close file")),
+								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+							},
+						),
+					),
+					value.Ref(value.String("3. open TCP socket")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(
+						vm.NewBytecodeFunctionNoParams(
+							value.ToSymbol("<defer>"),
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.CALL_METHOD8), 2,
+								byte(bytecode.RETURN),
+							},
+							L(P(91, 6, 5), P(122, 6, 36)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(6, 6),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(value.String("4. close TCP socket")),
+								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+							},
+						),
+					),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(5, 33, 38, false),
+					vm.NewCatchEntry(5, 33, 46, true),
 				},
 			),
 		},

@@ -57,7 +57,7 @@ func (t Time) ToDateTime() *DateTime {
 
 func (t Time) ToDateTimeValue() DateTime {
 	now := DateTimeNow()
-	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.Go.Location())
+	goTime := time.Date(now.Year(), time.Month(now.Month()), now.Day(), t.Hour(), t.Minute(), t.Second(), t.NanosecondsInSecond(), now.native.Location())
 	return ToElkDateTimeValue(goTime)
 }
 
@@ -1018,5 +1018,5 @@ func initTime() {
 	RegisterNativeClass("Std::Time", "value.TimeClass")
 
 	TimeClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultTimeFormat)))
-	RegisterNativeConstant("Std::Time::DEFAULT_FORMAT", "value.String(value.DefaultTimeFormat)", "value.String")
+	RegisterNativeConstant("Std::Time::DEFAULT_FORMAT", "value.String(value.DefaultTimeFormat)", FetchGoType("value.String"))
 }

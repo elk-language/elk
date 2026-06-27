@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a nilable pattern eg. `5?`
+  ]##
+  sealed primitive class NilablePatternNode
+    include PatternNode
+
+    init(pattern_node: PatternNode, location: FS::Location = loop; end); end
+    def pattern_node: PatternNode; end
+    def location: FS::Location; end
+  end
+end

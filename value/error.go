@@ -10,6 +10,11 @@ import (
 // Parent class for all exceptions.
 var ErrorClass *Class
 
+// ::Std::ExecutionAbortedError
+//
+// Thrown when the execution was aborted/interrupted.
+var ExecutionAbortedErrorClass *Class
+
 // ::Std::UnexpectedNilError
 //
 // Thrown when a `nil` value is encountered in a `must` expression.
@@ -146,6 +151,15 @@ func NewError(class *Class, message string) *Object {
 	}
 }
 
+var ExecutionAbortedError *Object
+
+func NewExecutionAbortedError() *Object {
+	return NewError(
+		ExecutionAbortedErrorClass,
+		"execution aborted",
+	)
+}
+
 // Create a new error that signals that
 // the given index is out of range.
 func NewOpenClosureError(closureVMID, VMID int64, closureInspect string) *Object {
@@ -155,6 +169,20 @@ func NewOpenClosureError(closureVMID, VMID int64, closureInspect string) *Object
 		VMID,
 		closureInspect,
 		closureVMID,
+	)
+}
+
+func NewPatternNotMatchedInVariableDeclarationError() *Object {
+	return NewError(
+		PatternNotMatchedErrorClass,
+		"assigned value does not match the pattern defined in variable declaration",
+	)
+}
+
+func NewPatternNotMatchedInValueDeclarationError() *Object {
+	return NewError(
+		PatternNotMatchedErrorClass,
+		"assigned value does not match the pattern defined in value declaration",
 	)
 }
 
@@ -499,6 +527,15 @@ func NewInvalidKeyInTypedMap(m any, elementClass *Class) *Object {
 	)
 }
 
+func NewInvalidValueInChannel(ch any, elementClass *Class) *Object {
+	return Errorf(
+		TypeErrorClass,
+		"cannot send value of type %s in a typed channel %[2]T, %[2]s",
+		elementClass.Inspect(),
+		ch,
+	)
+}
+
 func NewInvalidValueInTypedPair(m any, elementClass *Class) *Object {
 	return Errorf(
 		TypeErrorClass,
@@ -623,6 +660,12 @@ func initError() {
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
 	RegisterNativeClass("Std::UnexpectedNilError", "value.UnexpectedNilErrorClass")
+
+	ExecutionAbortedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	StdModule.AddConstantString("ExecutionAbortedError", Ref(ExecutionAbortedErrorClass))
+	RegisterNativeClass("Std::ExecutionAbortedError", "value.ExecutionAbortedErrorClass")
+
+	ExecutionAbortedError = NewExecutionAbortedError()
 
 	OpenClosureErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("OpenClosureError", Ref(OpenClosureErrorClass))

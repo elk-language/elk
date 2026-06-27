@@ -10,6 +10,12 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type IfExpressionInterface interface {
+	ExpressionNode
+	ifExpression()
+	SetElseBody([]StatementNode)
+}
+
 // Represents an `if` expression eg. `if foo then println("bar")`
 type IfExpressionNode struct {
 	TypedNodeBase
@@ -56,6 +62,12 @@ func (n *IfExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *IfExpressionNode) ifExpression() {}
+
+func (n *IfExpressionNode) SetElseBody(body []StatementNode) {
+	n.ElseBody = body
 }
 
 // Check if this node equals another node.
@@ -138,6 +150,10 @@ func NewIfExpressionNode(loc *position.Location, cond ExpressionNode, then, els 
 	}
 }
 
+func NewIfExpressionNodeI(loc *position.Location, cond ExpressionNode, then, els []StatementNode) IfExpressionInterface {
+	return NewIfExpressionNode(loc, cond, then, els)
+}
+
 func (*IfExpressionNode) Class() *value.Class {
 	return value.IfExpressionNodeClass
 }
@@ -154,23 +170,31 @@ func (n *IfExpressionNode) Inspect() string {
 	buff.WriteString(",\n  condition: ")
 	indent.IndentStringFromSecondLine(&buff, n.Condition.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %[\n")
-	for i, element := range n.ThenBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  then_body: %[")
+	if len(n.ThenBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ThenBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  else_body: %[\n")
-	for i, element := range n.ElseBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  else_body: %[")
+	if len(n.ElseBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ElseBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

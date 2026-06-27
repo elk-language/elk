@@ -41,7 +41,7 @@ func (*Location) InstanceVariables() *InstanceVariables {
 
 func (l *Location) Inspect() string {
 	return fmt.Sprintf(
-		"Std::Location{&: %p, span: %s, file_path: %s}",
+		"Std::Location{&: %p, span: %s, file_path: %q}",
 		l,
 		l.SpanValue().Inspect(),
 		l.FilePath,

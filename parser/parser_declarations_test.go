@@ -2261,7 +2261,7 @@ func TestValueDeclaration(t *testing.T) {
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(13, 1, 14), P(16, 1, 17))),
-												"c",
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "c"),
 												ast.NewIntLiteralNode(L(S(P(16, 1, 17), P(16, 1, 17))), "2"),
 											),
 										},
@@ -3080,7 +3080,7 @@ func TestVariableDeclaration(t *testing.T) {
 											),
 											ast.NewSymbolKeyValuePatternNode(
 												L(S(P(13, 1, 14), P(16, 1, 17))),
-												"c",
+												ast.NewPublicIdentifierNode(L(S(P(13, 1, 14), P(13, 1, 14))), "c"),
 												ast.NewIntLiteralNode(L(S(P(16, 1, 17), P(16, 1, 17))), "2"),
 											),
 										},
@@ -7129,7 +7129,7 @@ func TestMethodDefinition(t *testing.T) {
 							0,
 							ast.NewUnquoteNode(
 								L(S(P(4, 1, 5), P(19, 1, 20))),
-								5,
+								ast.UNQUOTE_IDENTIFIER_KIND,
 								ast.NewBinaryExpressionNode(
 									L(S(P(12, 1, 13), P(18, 1, 19))),
 									T(L(S(P(16, 1, 17), P(16, 1, 17))), token.PLUS),

@@ -267,7 +267,7 @@ func (i *BigInt) AddFloat(other Float) Float {
 func (i *BigInt) AddBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-	iBigFloat.AddBigFloat(iBigFloat, other)
+	iBigFloat.AddMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -327,7 +327,7 @@ func (i *BigInt) SubtractFloat(other Float) Float {
 func (i *BigInt) SubtractBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-	iBigFloat.SubBigFloat(iBigFloat, other)
+	iBigFloat.SubMutBigFloat(iBigFloat, other)
 	return iBigFloat
 }
 
@@ -383,7 +383,7 @@ func (i *BigInt) MultiplyInt(other Value) Value {
 func (i *BigInt) MultiplyBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-	return iBigFloat.MulBigFloat(iBigFloat, other)
+	return iBigFloat.MulMutBigFloat(iBigFloat, other)
 }
 
 func (i *BigInt) MultiplyBigInt(other *BigInt) Value {
@@ -453,7 +453,7 @@ func (i *BigInt) DivideBigInt(other *BigInt) (Value, Value) {
 func (i *BigInt) DivideBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-	return iBigFloat.DivBigFloat(iBigFloat, other)
+	return iBigFloat.DivMutBigFloat(iBigFloat, other)
 }
 
 func (i *BigInt) DivideSmallInt(other SmallInt) (Value, Value) {
@@ -574,7 +574,7 @@ func (i *BigInt) ModuloFloat(other Float) Float {
 func (i *BigInt) ModuloBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), uint(i.BitSize()), 64)
 	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
-	return iBigFloat.Mod(iBigFloat, other)
+	return iBigFloat.ModMutBigFloat(iBigFloat, other)
 }
 
 func (i *BigInt) ModuloBigInt(other *BigInt) (Value, Value) {
@@ -848,68 +848,72 @@ func (i *BigInt) LessThanEqualBigFloat(other *BigFloat) bool {
 
 // Check whether i is equal to other (with coercion)
 func (i *BigInt) LaxEqualVal(other Value) Value {
+	return BoolVal(i.LaxEqual(other))
+}
+
+func (i *BigInt) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return Bool(i.Cmp(o) == 0).ToValue()
+			return i.Cmp(o) == 0
 		case *BigFloat:
 			if o.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&BigFloat{}).SetBigInt(i)
-			return Bool(iBigFloat.Cmp(o) == 0).ToValue()
+			return iBigFloat.Cmp(o) == 0
 		case Int64:
 			oBigInt := NewBigInt(int64(o))
-			return Bool(i.Cmp(oBigInt) == 0).ToValue()
+			return i.Cmp(oBigInt) == 0
 		case UInt64:
 			oBigInt := NewBigInt(int64(o))
-			return Bool(i.Cmp(oBigInt) == 0).ToValue()
+			return i.Cmp(oBigInt) == 0
 		case Float64:
-			return Bool(i.ToFloat() == Float(o)).ToValue()
+			return i.ToFloat() == Float(o)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsSmallInt()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case FLOAT_FLAG:
-		return Bool(i.ToFloat() == other.AsFloat()).ToValue()
+		return i.ToFloat() == other.AsFloat()
 	case INT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineInt64()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt32()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt16()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case INT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInt8()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT64_FLAG:
 		oBigInt := NewBigInt(int64(other.AsInlineUInt64()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT32_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt32()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT16_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt16()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case UINT8_FLAG:
 		oBigInt := NewBigInt(int64(other.AsUInt8()))
-		return Bool(i.Cmp(oBigInt) == 0).ToValue()
+		return i.Cmp(oBigInt) == 0
 	case FLOAT64_FLAG:
-		return Bool(i.ToFloat() == Float(other.AsInlineFloat64())).ToValue()
+		return i.ToFloat() == Float(other.AsInlineFloat64())
 	case FLOAT32_FLAG:
-		return Bool(i.ToFloat() == Float(other.AsFloat32())).ToValue()
+		return i.ToFloat() == Float(other.AsFloat32())
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
@@ -1301,24 +1305,14 @@ func (i *BigInt) BitwiseOrVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), o.ToGoBigInt()))
-			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Undefined
-			}
-			return Ref(result), Undefined
+			return i.BitwiseOrBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := big.NewInt(int64(other.AsSmallInt()))
-		oBigInt.Or(i.ToGoBigInt(), oBigInt)
-		result := ToElkBigInt(oBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Undefined
-		}
-		return Ref(result), Undefined
+		return i.BitwiseOrSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
@@ -1333,7 +1327,7 @@ func (i *BigInt) BitwiseOrInt(other Value) Value {
 
 func (i *BigInt) BitwiseOrSmallInt(other SmallInt) Value {
 	oBigInt := big.NewInt(int64(other))
-	oBigInt.And(i.ToGoBigInt(), oBigInt)
+	oBigInt.Or(i.ToGoBigInt(), oBigInt)
 	result := ToElkBigInt(oBigInt)
 	if result.IsSmallInt() {
 		return result.ToSmallInt().ToValue()
@@ -1342,7 +1336,7 @@ func (i *BigInt) BitwiseOrSmallInt(other SmallInt) Value {
 }
 
 func (i *BigInt) BitwiseOrBigInt(other *BigInt) Value {
-	result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), other.ToGoBigInt()))
+	result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), other.ToGoBigInt()))
 	if result.IsSmallInt() {
 		return result.ToSmallInt().ToValue()
 	}
@@ -1355,27 +1349,44 @@ func (i *BigInt) BitwiseXorVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), o.ToGoBigInt()))
-			if result.IsSmallInt() {
-				return result.ToSmallInt().ToValue(), Undefined
-			}
-			return Ref(result), Undefined
+			return i.BitwiseXorBigInt(o), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		oBigInt := big.NewInt(int64(other.AsSmallInt()))
-		oBigInt.Xor(i.ToGoBigInt(), oBigInt)
-		result := ToElkBigInt(oBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt().ToValue(), Undefined
-		}
-		return Ref(result), Undefined
+		return i.BitwiseXorSmallInt(other.AsSmallInt()), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
+}
+
+func (i *BigInt) BitwiseXorInt(other Value) Value {
+	if other.IsSmallInt() {
+		return i.BitwiseXorSmallInt(other.AsSmallInt())
+	}
+	return i.BitwiseXorBigInt((*BigInt)(other.Pointer()))
+}
+
+// Perform bitwise XOR with a SmallInt and return the result
+func (i *BigInt) BitwiseXorSmallInt(other SmallInt) Value {
+	oBigInt := big.NewInt(int64(other))
+	oBigInt.Xor(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return result.ToValue()
+}
+
+// Perform bitwise XOR with another BigInt and return the result
+func (i *BigInt) BitwiseXorBigInt(other *BigInt) Value {
+	result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), other.ToGoBigInt()))
+	if result.IsSmallInt() {
+		return result.ToSmallInt().ToValue()
+	}
+	return result.ToValue()
 }
 
 func (*BigInt) Class() *Class {

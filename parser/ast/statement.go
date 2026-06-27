@@ -259,7 +259,7 @@ func (e *ImportStatementNode) DirectClass() *value.Class {
 }
 
 func (e *ImportStatementNode) Inspect() string {
-	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{location: %s, path: %s}", (*value.Location)(e.loc).Inspect(), e.Path.Inspect())
+	return fmt.Sprintf("Std::Elk::AST::ImportStatementNode{location: %s, path: %q}", (*value.Location)(e.loc).Inspect(), e.Path.Inspect())
 }
 
 func (n *ImportStatementNode) ToValue() value.Value {

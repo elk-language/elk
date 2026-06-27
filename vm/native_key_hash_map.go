@@ -22,10 +22,10 @@ var _ HashMap = &NativeKeyHashMap[value.String]{}
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeKeyHashMap(m, func(k string, v uint8) (value.String, value.Value) {
+//	TransformMapIntoNativeKeyHashMap(m, func(k string, v uint8) (value.String, value.Value) {
 //		return value.String(k), value.UInt8(v).ToValue()
 //	})
-func TransformIntoNativeKeyHashMap[
+func TransformMapIntoNativeKeyHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -51,6 +51,18 @@ func NewNativeKeyHashMap[K value.ComparableValueInterface](capacity int) *Native
 	return &NativeKeyHashMap[K]{
 		m: make(map[K]value.Value, capacity),
 	}
+}
+
+func NewNativeKeyHashMapWithElements[K value.ComparableValueInterface](elements ...value.NativePair[K, value.Value]) *NativeKeyHashMap[K] {
+	return NewNativeKeyHashMapWithElementsAndTotalCapacity(len(elements), elements...)
+}
+
+func NewNativeKeyHashMapWithElementsAndTotalCapacity[K value.ComparableValueInterface](capacity int, elements ...value.NativePair[K, value.Value]) *NativeKeyHashMap[K] {
+	m := NewNativeKeyHashMap[K](capacity)
+	for _, pair := range elements {
+		m.Set(pair.NativeKey(), pair.NativeValue())
+	}
+	return m
 }
 
 func (h *NativeKeyHashMap[K]) CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value) {
@@ -146,7 +158,7 @@ func (h *NativeKeyHashMap[K]) Set(key K, val value.Value) {
 func (h *NativeKeyHashMap[K]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 
 	h.m[k] = val

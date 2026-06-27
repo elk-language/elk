@@ -17,20 +17,18 @@ func initConstructorCallNode() {
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[2].IsUndefined() {
-				argPosArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
-				for i, el := range *argPosArgsTuple {
-					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
-				}
+				argPosArgsTuple := args[2].AsReference().(value.ArrayTuple)
+				argPosArgs = value.TransformArrayTupleIntoNativeArrayTuple(argPosArgsTuple, func(v value.Value) ast.ExpressionNode {
+					return v.AsReference().(ast.ExpressionNode)
+				}).ToSlice()
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[3].IsUndefined() {
-				argNamedArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
-				for i, el := range *argNamedArgsTuple {
-					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
-				}
+				argNamedArgsTuple := args[3].AsReference().(value.ArrayTuple)
+				argNamedArgs = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgsTuple, func(v value.Value) ast.NamedArgumentNode {
+					return v.AsReference().(ast.NamedArgumentNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -67,15 +65,8 @@ func initConstructorCallNode() {
 		"positional_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
-
-			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.PositionalArguments)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -84,15 +75,8 @@ func initConstructorCallNode() {
 		"named_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ConstructorCallNode)
-
-			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.NamedArguments)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

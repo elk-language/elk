@@ -15,11 +15,11 @@ func initInterpolatedRegexLiteralNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			argContentTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argContent := make([]ast.RegexLiteralContentNode, argContentTuple.Length())
-			for i, el := range *argContentTuple {
-				argContent[i] = el.MustReference().(ast.RegexLiteralContentNode)
-			}
+			argContentTuple := args[1].AsReference().(value.ArrayTuple)
+			argContent := value.TransformArrayTupleIntoNativeArrayTuple(argContentTuple, func(v value.Value) ast.RegexLiteralContentNode {
+				return v.AsReference().(ast.RegexLiteralContentNode)
+			}).ToSlice()
+
 			var argFlags value.UInt8
 			if !args[2].IsUndefined() {
 				argFlags = args[2].AsUInt8()
@@ -47,15 +47,8 @@ func initInterpolatedRegexLiteralNode() {
 		"content",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InterpolatedRegexLiteralNode)
-
-			collection := self.Content
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Content)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

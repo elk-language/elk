@@ -298,7 +298,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -428,7 +428,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -561,7 +561,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -686,7 +686,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -772,7 +772,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -886,7 +886,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1004,7 +1004,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1118,7 +1118,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1232,7 +1232,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
 									byte(bytecode.DUP),
@@ -1717,7 +1717,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -1851,7 +1851,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -1980,7 +1980,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
 									byte(bytecode.CALL_METHOD8), 0,
@@ -2070,7 +2070,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE_0),
 									byte(bytecode.CALL_METHOD8), 1,
@@ -2190,7 +2190,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2318,7 +2318,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2449,7 +2449,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.MUST),
@@ -2576,7 +2576,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2660,7 +2660,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
 									byte(bytecode.RETURN),
@@ -2772,7 +2772,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -2888,7 +2888,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -3000,7 +3000,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -3112,7 +3112,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.RETURN),
@@ -3824,14 +3824,37 @@ func TestBytecodeUpvalues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.BOX_LOCAL8), 1, 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 3, 7)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{},
+			),
+		},
+		"create a pointer to immutable local": {
+			input: `
+				val a = 5
+				&a
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.BOX_LOCAL8), 1, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 3, 7)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(3, 4),
 				},
 				[]value.Value{},
 			),
@@ -3851,7 +3874,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.BOX_LOCAL8), 2,
+					byte(bytecode.BOX_LOCAL8), 2, 0,
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.CLOSE_UPVALUES_TO_2),
@@ -3864,7 +3887,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(4, 2),
-					bytecode.NewLineInfo(5, 4),
+					bytecode.NewLineInfo(5, 5),
 					bytecode.NewLineInfo(6, 2),
 					bytecode.NewLineInfo(7, 4),
 				},
@@ -3885,7 +3908,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.BOX_LOCAL8), 1, 0,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.RETURN),
@@ -3894,7 +3917,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(4, 2),
 				},
 				[]value.Value{},
@@ -3912,7 +3935,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.BOX_LOCAL8), 1, 0,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.LOAD_INT_8), 20,
 					byte(bytecode.DUP),
@@ -3923,7 +3946,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{},
@@ -3942,7 +3965,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 3,
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.BOX_LOCAL8), 1,
+					byte(bytecode.BOX_LOCAL8), 1, 0,
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.LOAD_VALUE_0),
 					byte(bytecode.CLOSURE), 2, 1, 0xff,
@@ -3954,7 +3977,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 					bytecode.NewLineInfo(2, 2),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(4, 6),
 					bytecode.NewLineInfo(5, 2),
 				},
@@ -4212,21 +4235,11 @@ func TestBytecodeUpvalues(t *testing.T) {
 
 func TestBytecodeLocalValues(t *testing.T) {
 	tests := bytecodeTestTable{
-		"declare": {
+		"declare without initialisation": {
 			input: "val a: Int",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.NIL),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-				},
-				[]value.Value{},
-			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(9, 1, 10)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"declare and initialise": {
 			input: "val a = 3",
@@ -4306,24 +4319,9 @@ func TestBytecodeLocalValues(t *testing.T) {
 				val a: String
 				a = 'foo'
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(32, 3, 14)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 2),
-					bytecode.NewLineInfo(3, 4),
-				},
-				[]value.Value{
-					value.Ref(value.String("foo")),
-				},
-			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(17, 2, 17)), "a value must be initialised on declaration `a`"),
+			},
 		},
 		"assign initialised": {
 			input: `
@@ -4341,6 +4339,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				a + 2
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(14, 2, 14)), "a value must be initialised on declaration `a`"),
 				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},

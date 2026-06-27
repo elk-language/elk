@@ -30,7 +30,6 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/macros"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 	"github.com/rivo/uniseg"
@@ -47,19 +46,19 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of Elk source code and generate Go source
-func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	return CheckASTNative(sourceName, ast, globalEnv, output, threadPool)
+	return CheckASTNative(sourceName, ast, globalEnv, flags, output, threadPool)
 }
 
 // Check the types of an Elk AST and generate bytecode
 func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool)
-	cmp := checker.checkProgram(ast)
+	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool, false)
+	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
 	}
@@ -67,9 +66,9 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 }
 
 // Check the types of an Elk AST and generate Go source
-func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
-	cmp := checker.checkProgram(ast)
+func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(flags.ToBitFlag()|GoCompilerFlag), output, threadPool, false)
+	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
 	}
@@ -79,7 +78,7 @@ func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.Gl
 
 // Check the types of an Elk file and generate bytecode
 func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, flags, nil, threadPool)
+	checker := newChecker(fileName, globalEnv, flags, nil, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -89,7 +88,7 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfie
 
 // Check the types of an Elk file and generate Go source
 func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool)
+	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -133,13 +132,17 @@ const (
 const (
 	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	GoCompilerFlag
+	AdditionalAbortChecks   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
+	BuiltinImportsProcessed // indicates that builtin imports do not need to be processed
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
 	unhygienicFlag
-	conditionFlag     // checked expression is a part of an if/unless condition
-	definedMacrosFlag // indicates that the typechecker has defined some macros
-	incrementalFlag   // indicates the typechecker should check and compiler code incrementally (REPL)
+	conditionFlag            // checked expression is a part of an if/unless condition
+	definedMacrosFlag        // indicates that the typechecker has defined some macros
+	incrementalFlag          // indicates the typechecker should check and compiler code incrementally (REPL)
+	hasDeferFlag             // indicates that defer is used in the current context eg. a function
+	readonlyTypecheckingFlag // indicates that no state of the typechecker should be modified during typechecking
 )
 
 type phase uint8
@@ -157,7 +160,8 @@ type Checker struct {
 	Filename                string                                    // name of the current source file
 	Errors                  *diagnostic.SyncDiagnosticList            // list of typechecking errors
 	ASTCache                *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
-	env                     *types.GlobalEnvironment
+	runtimeEnv              *types.GlobalEnvironment
+	macroEnv                *types.GlobalEnvironment
 	flags                   bitfield.BitField16
 	phase                   phase
 	mode                    mode
@@ -190,7 +194,7 @@ type Checker struct {
 }
 
 // Instantiate a new Checker instance.
-func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool, macro bool) *Checker {
 	c := &Checker{
 		Filename:   filename,
 		returnType: types.Void{},
@@ -198,7 +202,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		mode:       topLevelMode,
 		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, false),
+			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
@@ -214,21 +218,29 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		c.threadPool = vm.DefaultThreadPool
 	}
 	if globalEnv == nil {
-		globalEnv = macros.NewGlobalEnvironment()
+		globalEnv = NewGlobalEnvironment()
 	}
 
-	c.setGlobalEnv(globalEnv)
+	if macro {
+		c.setMacroGlobalEnv(globalEnv)
+	} else {
+		c.setRuntimeGlobalEnv(globalEnv)
+		c.macroEnv = types.NewGlobalEnvironment()
+	}
 	return c
 }
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
+	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, false)
 }
 
-// Instantiate a new Checker instance.
-func NewWithEnv(env *types.GlobalEnvironment) *Checker {
-	return newChecker("", env, bitfield.BitField16{}, nil, vm.DefaultThreadPool)
+func NewWithFlags(flags bitfield.BitField16) *Checker {
+	return newChecker("", nil, flags, nil, vm.DefaultThreadPool, false)
+}
+
+func NewMacroChecker() *Checker {
+	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, true)
 }
 
 func (c *Checker) SelfType() types.Type {
@@ -256,6 +268,54 @@ func (c *Checker) SetIncremental(val bool) {
 		c.flags.SetFlag(incrementalFlag)
 	} else {
 		c.flags.UnsetFlag(incrementalFlag)
+	}
+}
+
+func (c *Checker) hasDefer() bool {
+	return c.flags.HasFlag(hasDeferFlag)
+}
+
+func (c *Checker) setHasDefer(val bool) {
+	if val {
+		c.flags.SetFlag(hasDeferFlag)
+	} else {
+		c.flags.UnsetFlag(hasDeferFlag)
+	}
+}
+
+func (c *Checker) AreBuiltinImportsProcessed() bool {
+	return c.flags.HasFlag(BuiltinImportsProcessed)
+}
+
+func (c *Checker) SetBuiltinImportsProcessed(val bool) {
+	if val {
+		c.flags.SetFlag(BuiltinImportsProcessed)
+	} else {
+		c.flags.UnsetFlag(BuiltinImportsProcessed)
+	}
+}
+
+func (c *Checker) isReadonly() bool {
+	return c.flags.HasFlag(readonlyTypecheckingFlag)
+}
+
+func (c *Checker) setReadonly(val bool) {
+	if val {
+		c.flags.SetFlag(readonlyTypecheckingFlag)
+	} else {
+		c.flags.UnsetFlag(readonlyTypecheckingFlag)
+	}
+}
+
+func (c *Checker) HasAdditionalAbortChecks() bool {
+	return c.flags.HasFlag(AdditionalAbortChecks)
+}
+
+func (c *Checker) SetAdditionalAbortChecks(val bool) {
+	if val {
+		c.flags.SetFlag(AdditionalAbortChecks)
+	} else {
+		c.flags.UnsetFlag(AdditionalAbortChecks)
 	}
 }
 
@@ -320,7 +380,7 @@ func (c *Checker) setInferClosureThrowType(val bool) {
 }
 
 // Used in the REPL to typecheck and compile the input
-func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -328,10 +388,10 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
-	envCopy := c.env.DeepCopyEnv()
-	localEnvsCopy := c.deepCopyLocalEnvs(c.env, envCopy)
-	constantScopesCopy := c.deepCopyConstantScopes(c.env, envCopy)
-	methodScopesCopy := c.deepCopyMethodScopes(c.env, envCopy)
+	envCopy := c.runtimeEnv.DeepCopyEnv()
+	localEnvsCopy := c.deepCopyLocalEnvs(c.runtimeEnv, envCopy)
+	constantScopesCopy := c.deepCopyConstantScopes(c.runtimeEnv, envCopy)
+	methodScopesCopy := c.deepCopyMethodScopes(c.runtimeEnv, envCopy)
 	c.methodScopesCopyCache = nil
 	c.constantScopesCopyCache = nil
 
@@ -340,12 +400,12 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	c.macroChecks = nil
 	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
 	c.setDefinedMacros(false)
-	compiler := c.checkProgram(ast)
+	compiler := c.CheckProgram(ast)
 
 	if c.Errors.IsFailure() {
 		// restore the previous global environment if the code
 		// did not compile
-		c.setGlobalEnv(envCopy)
+		c.setRuntimeGlobalEnv(envCopy)
 		c.localEnvs = localEnvsCopy
 		c.constantScopes = constantScopesCopy
 		c.methodScopes = methodScopesCopy
@@ -354,11 +414,61 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	if compiler == nil {
 		return nil, c.Errors.DiagnosticList
 	}
-	return compiler.Bytecode(), c.Errors.DiagnosticList
+	return compiler, c.Errors.DiagnosticList
 }
 
-func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
-	c.env = newEnv
+// Used in the REPL to typecheck and compile the input to bytecode
+func (c *Checker) CheckSourceBytecode(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	cmp, err := c.CheckSource(sourceName, source)
+	if cmp == nil {
+		return nil, err
+	}
+
+	return cmp.Bytecode(), err
+}
+
+// Used in the REPL to typecheck and compile the input to Go source code
+func (c *Checker) CheckSourceNative(sourceName string, source string, output io.Writer) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	c.output = output
+	cmp, err := c.CheckSource(sourceName, source)
+	if cmp == nil {
+		return nil, err
+	}
+
+	return cmp.(*compiler.GoCompiler), err
+}
+
+// Used to typecheck and compile breakpoint code
+func (c *Checker) CheckBreakpointSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	ast, err := parser.Parse(sourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.CheckBreakpointNode(sourceName, ast)
+}
+
+func (c *Checker) CheckBreakpointNode(sourceName string, node *ast.ProgramNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	// to restore it in case of errors
+	localEnvsCopy := deepCloneLocalEnvsForBreakpoint(c.localEnvs)
+
+	c.Filename = sourceName
+	c.checkBreakpointProgram(node)
+
+	if c.Errors.IsFailure() {
+		// restore the previous local environment if the code
+		// did not compile
+		c.localEnvs = localEnvsCopy
+	}
+
+	comp := c.compiler.(*compiler.BytecodeCompiler)
+	fn := comp.Bytecode()
+	comp.ResetBreakpoint()
+	return fn, c.Errors.DiagnosticList
+}
+
+func (c *Checker) setRuntimeGlobalEnv(newEnv *types.GlobalEnvironment) {
+	c.runtimeEnv = newEnv
 	c.selfType = newEnv.StdSubtype(symbol.Object)
 	c.constantScopes = []constantScope{
 		makeConstantScope(newEnv.Std()),
@@ -368,6 +478,49 @@ func (c *Checker) setGlobalEnv(newEnv *types.GlobalEnvironment) {
 		makeLocalMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
 		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
 	}
+}
+
+func (c *Checker) setMacroGlobalEnv(newEnv *types.GlobalEnvironment) {
+	c.runtimeEnv = newEnv
+	c.selfType = newEnv.StdSubtype(symbol.Macro)
+
+	c.constantScopes = []constantScope{
+		makeConstantScope(newEnv.Std()),
+		makeLocalConstantScope(newEnv.Root),
+		makeUsingConstantScope(newEnv.StdSubtypeModule(symbol.Elk).MustSubtype(symbol.AST).(*types.Module)),
+	}
+	c.constantScopesCopyCache = nil
+
+	c.methodScopes = []methodScope{
+		makeLocalMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
+		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.Kernel)),
+	}
+	c.methodScopesCopyCache = nil
+}
+
+func (c *Checker) doWithMacroScopes(fn func()) {
+	prevConstScopes := c.constantScopes
+	prevMethodScopes := c.methodScopes
+
+	c.constantScopes = []constantScope{
+		makeConstantScope(c.runtimeEnv.Std()),
+		makeLocalConstantScope(c.runtimeEnv.Root),
+		makeUsingConstantScope(c.StdAST()),
+	}
+	c.constantScopesCopyCache = nil
+
+	c.methodScopes = []methodScope{
+		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.Kernel)),
+		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.Kernel)),
+	}
+	c.methodScopesCopyCache = nil
+
+	fn()
+
+	c.constantScopes = prevConstScopes
+	c.constantScopesCopyCache = nil
+	c.methodScopes = prevMethodScopes
+	c.methodScopesCopyCache = nil
 }
 
 func (c *Checker) checkNamespacePlaceholders() {
@@ -390,20 +543,34 @@ func (c *Checker) checkNamespacePlaceholders() {
 }
 
 func (c *Checker) resetLocalEnvs() {
-	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, false)}
+	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, defaultLocalEnvType)}
 }
 
 func (c *Checker) initExtensions() {
-	c.env.Init = true
+	c.runtimeEnv.Init = true
 	for _, extension := range c.extensions.Slice {
 		extension.Init(c)
 	}
-	c.env.Init = false
+	c.runtimeEnv.Init = false
 	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) compiler.Compiler {
+func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup) {
+	if c.IsHeader() || c.AreBuiltinImportsProcessed() {
+		return
+	}
+
+	builtinPaths := c.resolveImportPath("builtin/**/*.elk", "", node.Location())
+	node.ImportPaths = append(node.ImportPaths, builtinPaths...)
+	c.checkImportPaths(builtinPaths, wg, node.Location())
+	c.SetBuiltinImportsProcessed(true)
+}
+
+func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
+
+	c.checkBuiltinImports(node, &wg)
+
 	// parse all files of the project concurrently
 	c.checkImportsForFile(c.Filename, node, &wg)
 	wg.Wait()
@@ -447,6 +614,25 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) compiler.Compiler {
 	return c.compiler
 }
 
+func (c *Checker) checkBreakpointProgram(node *ast.ProgramNode) compiler.Compiler {
+	// expand top-level macros
+	c.expandTopLevelMacrosInFile(c.Filename, node)
+
+	c.phase = expressionPhase
+	c.checkExpressionsInFile(c.Filename, node)
+
+	return c.compiler
+}
+
+func (c *Checker) CheckMacroExpression(node ast.ExpressionNode) *compiler.BytecodeCompiler {
+	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors, c.HasAdditionalAbortChecks())
+	c.compiler = compiler
+
+	node = c.checkExpression(node)
+	compiler.CompileExpression(node)
+	return compiler
+}
+
 // Compile method definitions
 func (c *Checker) compileMethods(methodCompiler compiler.Compiler, offset int, location *position.Location) {
 	if methodCompiler == nil {
@@ -487,7 +673,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
+	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 }
 
 // Create a new compiler and emit bytecode
@@ -500,11 +686,11 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	parent := c.compiler
 	var mainCompiler compiler.Compiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output)
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
 		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output)
 	} else {
-		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors)
+		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}
 	mainCompiler.InitMainCompiler()
 	c.compiler = mainCompiler.InitGlobalEnv()
@@ -566,13 +752,13 @@ func (c *Checker) checkFile(filename string) compiler.Compiler {
 		return nil
 	}
 
-	return c.checkProgram(ast)
+	return c.CheckProgram(ast)
 }
 
 func (c *Checker) setIsHeaderForPath(filePath string) {
 	if path.Ext(filePath) == ".elh" {
 		c.SetHeader(true)
-		c.env.Init = true
+		c.runtimeEnv.Init = true
 	}
 }
 
@@ -604,7 +790,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
-	c.env.Init = false
+	c.runtimeEnv.Init = false
 
 	node.State = ast.CHECKED_NAMESPACES
 }
@@ -636,7 +822,7 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
-	c.env.Init = false
+	c.runtimeEnv.Init = false
 
 	node.State = ast.CHECKED_METHODS
 }
@@ -667,20 +853,24 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 
 		c.compiler = prevCompiler
 		c.SetHeader(prevIsHeader)
-		c.env.Init = false
+		c.runtimeEnv.Init = false
 	}
 
 	prevFilename := c.Filename
 	c.Filename = filename
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
 
 	c.checkStatements(node.Body, false)
 
 	node.State = ast.CHECKED_EXPRESSIONS
+	node.HasDefer = c.hasDefer()
 
 	if c.shouldCompile() {
 		c.compiler.CompileExpressionsInFile(node)
 	}
 	c.Filename = prevFilename
+	c.setHasDefer(prevHasDefer)
 }
 
 func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
@@ -690,37 +880,117 @@ func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg 
 	for _, importStmt := range imports {
 		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				_, ok := c.ASTCache.Get(importPath)
-				if ok {
-					return
-				}
-				bytes, err := os.ReadFile(importPath)
-				if err != nil {
-					c.addFailure(
-						fmt.Sprintf(
-							"cannot read file: %s (%s)",
-							importPath,
-							err,
-						),
-						importStmt.Location(),
-					)
-					return
-				}
-
-				ast, errList := parser.Parse(importPath, string(bytes))
-				if errList != nil {
-					c.Errors.JoinErrList(errList)
-					return
-				}
-
-				c.checkImportsForFile(importPath, ast, wg)
-			}()
+			c.checkImportPath(importPath, wg, importStmt.Location())
 		}
 	}
 
+}
+
+func (c *Checker) checkImportPaths(importPaths []string, wg *sync.WaitGroup, loc *position.Location) {
+	for _, path := range importPaths {
+		c.checkImportPath(path, wg, loc)
+	}
+}
+
+func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *position.Location) {
+	wg.Go(func() {
+		_, ok := c.ASTCache.Get(importPath)
+		if ok {
+			return
+		}
+		bytes, err := os.ReadFile(importPath)
+		if err != nil {
+			c.addFailure(
+				fmt.Sprintf(
+					"cannot read file: %s (%s)",
+					importPath,
+					err,
+				),
+				loc,
+			)
+			return
+		}
+
+		ast, errList := parser.Parse(importPath, string(bytes))
+		if errList != nil {
+			c.Errors.JoinErrList(errList)
+			return
+		}
+
+		c.checkImportsForFile(importPath, ast, wg)
+	})
+}
+
+func (c *Checker) resolveImportPath(importPath string, checkedFileName string, loc *position.Location) []string {
+	if isLibPath(importPath) {
+		shortPath := importPath
+		// library
+		importPath = filepath.Join(env.ELKPATH, "lib", importPath)
+		if filepath.Ext(importPath) == "" {
+			importPath = filepath.Join(importPath, "init.{elk,elh}")
+		}
+		extension, ok := ext.Map[shortPath]
+		if ok {
+			c.extensions.Push(extension)
+		}
+	} else if !filepath.IsAbs(importPath) {
+		dirPath := filepath.Dir(checkedFileName)
+		importPath = filepath.Join(dirPath, importPath)
+	}
+
+	baseDir, pattern := doublestar.SplitPattern(importPath)
+	fsys := os.DirFS(baseDir)
+	filePaths, err := doublestar.Glob(fsys, pattern)
+	if err != nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid glob pattern: %s (%s)",
+				importPath,
+				err,
+			),
+			loc,
+		)
+		return nil
+	}
+
+	if len(filePaths) == 0 {
+		c.addFailure(
+			fmt.Sprintf(
+				"no matched files for import: %s",
+				importPath,
+			),
+			loc,
+		)
+		return nil
+	}
+
+	fsPaths := make([]string, 0, len(filePaths))
+	for _, filename := range filePaths {
+		filename := filepath.Join(baseDir, filename)
+		info, err := os.Stat(filename)
+		if os.IsNotExist(err) {
+			c.addFailure(
+				fmt.Sprintf(
+					"tried to import a file that does not exist: %s",
+					filename,
+				),
+				loc,
+			)
+			continue
+		}
+		if info.IsDir() {
+			c.addFailure(
+				fmt.Sprintf(
+					"tried to import a directory: %s",
+					filename,
+				),
+				loc,
+			)
+			continue
+		}
+		fsPaths = append(fsPaths, filename)
+	}
+	return fsPaths
 }
 
 func (c *Checker) setMode(mode mode) {
@@ -795,6 +1065,10 @@ func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
 }
 
 func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	module, ok := c.TypeOf(node).(*types.Module)
 	previousSelf := c.selfType
 	if ok {
@@ -810,7 +1084,13 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -821,6 +1101,10 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 }
 
 func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	class, ok := c.TypeOf(node).(*types.Class)
 	previousSelf := c.selfType
 	if ok {
@@ -837,7 +1121,13 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -848,6 +1138,10 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 }
 
 func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	previousSelf := c.selfType
 	if ok {
@@ -864,7 +1158,13 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -875,6 +1175,10 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 }
 
 func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclarationNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	previousSelf := c.selfType
 	if ok {
@@ -890,7 +1194,13 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -901,13 +1211,17 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 }
 
 func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpressionNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	class, ok := c.TypeOf(node).(*types.SingletonClass)
 	previousSelf := c.selfType
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
 		c.pushIsolatedLocalEnv()
-		c.selfType = c.env.StdSubtype(symbol.Class)
+		c.selfType = c.runtimeEnv.StdSubtype(symbol.Class)
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -916,7 +1230,13 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		)
 	}
 
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
 	c.checkStatements(node.Body, false)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(prevHasDefer)
 	c.selfType = previousSelf
 
 	if ok {
@@ -1176,6 +1496,15 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkValuePatternDeclarationNode(n)
 	case *ast.SwitchExpressionNode:
 		return c.checkSwitchExpressionNode(n, tailPosition)
+	case *ast.SelectExpressionNode:
+		return c.checkSelectExpressionNode(n, tailPosition)
+	case *ast.BreakpointNode:
+		if c.isReadonly() {
+			node.SetType(types.Untyped{})
+			return n
+		}
+		n.TypecheckerContext = c.createBreakpointContext()
+		return n
 	case *ast.PublicIdentifierNode:
 		c.checkPublicIdentifierNode(n)
 		return n
@@ -1326,6 +1655,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkThrowExpressionNode(n)
 	case *ast.MustExpressionNode:
 		return c.checkMustExpressionNode(n)
+	case *ast.DeferExpressionNode:
+		return c.checkDeferExpressionNode(n)
 	case *ast.TryExpressionNode:
 		return c.checkTryExpressionNode(n)
 	case *ast.AsExpressionNode:
@@ -1353,39 +1684,39 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 }
 
 func (c *Checker) Env() *types.GlobalEnvironment {
-	return c.env
+	return c.runtimeEnv
 }
 
 func (c *Checker) StdValue() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Value)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Value)
 }
 
 func (c *Checker) StdInt() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Int)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Int)
 }
 
 func (c *Checker) StdFloat() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Float)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Float)
 }
 
 func (c *Checker) StdBigFloat() *types.Class {
-	return c.env.StdSubtypeClass(symbol.BigFloat)
+	return c.runtimeEnv.StdSubtypeClass(symbol.BigFloat)
 }
 
 func (c *Checker) StdClass() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Class)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Class)
 }
 
 func (c *Checker) Std(name value.Symbol) types.Type {
-	return c.env.StdSubtype(name)
+	return c.runtimeEnv.StdSubtype(name)
 }
 
 func (c *Checker) StdPrimitiveIterable() *types.Interface {
-	return c.env.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
+	return c.runtimeEnv.StdSubtype(symbol.PrimitiveIterable).(*types.Interface)
 }
 
 func (c *Checker) StdElk() *types.Module {
-	return c.env.StdSubtype(symbol.Elk).(*types.Module)
+	return c.runtimeEnv.StdSubtype(symbol.Elk).(*types.Module)
 }
 
 func (c *Checker) StdAST() *types.Module {
@@ -1398,6 +1729,10 @@ func (c *Checker) StdNode() *types.Mixin {
 	return constant.Type.(*types.Mixin)
 }
 
+func (c *Checker) StdMacro() *types.Module {
+	return c.runtimeEnv.StdSubtype(symbol.Macro).(*types.Module)
+}
+
 func (c *Checker) StdExpressionNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.ExpressionNode)
 	return constant.Type.(*types.Mixin)
@@ -1405,6 +1740,11 @@ func (c *Checker) StdExpressionNode() *types.Mixin {
 
 func (c *Checker) StdConstantNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.ConstantNode)
+	return constant.Type.(*types.Mixin)
+}
+
+func (c *Checker) StdComplexConstantNode() *types.Mixin {
+	constant, _ := c.StdAST().Subtype(symbol.ComplexConstantNode)
 	return constant.Type.(*types.Mixin)
 }
 
@@ -1448,6 +1788,11 @@ func (c *Checker) StdConstantNodeConvertible() *types.Interface {
 	return constant.Type.(*types.Interface)
 }
 
+func (c *Checker) StdComplexConstantNodeConvertible() *types.Interface {
+	constant, _ := c.StdComplexConstantNode().Subtype(symbol.Convertible)
+	return constant.Type.(*types.Interface)
+}
+
 func (c *Checker) StdPatternNodeConvertible() *types.Interface {
 	constant, _ := c.StdPatternNode().Subtype(symbol.Convertible)
 	return constant.Type.(*types.Interface)
@@ -1474,7 +1819,7 @@ func (c *Checker) StdInstanceVariableNodeConvertible() *types.Interface {
 }
 
 func (c *Checker) StdString() *types.Class {
-	return c.env.StdSubtypeClass(symbol.String)
+	return c.runtimeEnv.StdSubtypeClass(symbol.String)
 }
 
 func (c *Checker) StdStringConvertible() types.Type {
@@ -1483,71 +1828,71 @@ func (c *Checker) StdStringConvertible() types.Type {
 }
 
 func (c *Checker) StdInspectable() types.Type {
-	return c.env.StdSubtype(symbol.Inspectable)
+	return c.runtimeEnv.StdSubtype(symbol.Inspectable)
 }
 
 func (c *Checker) StdAnyInt() types.Type {
-	return c.env.StdSubtype(symbol.AnyInt)
+	return c.runtimeEnv.StdSubtype(symbol.AnyInt)
 }
 
 func (c *Checker) StdBool() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Bool)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Bool)
 }
 
 func (c *Checker) StdArrayList() *types.Class {
-	return c.env.StdSubtypeClass(symbol.ArrayList)
+	return c.runtimeEnv.StdSubtypeClass(symbol.ArrayList)
 }
 
 func (c *Checker) StdList() *types.Mixin {
-	return c.env.StdSubtype(symbol.List).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.List).(*types.Mixin)
 }
 
 func (c *Checker) StdArrayTuple() *types.Class {
-	return c.env.StdSubtypeClass(symbol.ArrayTuple)
+	return c.runtimeEnv.StdSubtypeClass(symbol.ArrayTuple)
 }
 
 func (c *Checker) StdTuple() *types.Mixin {
-	return c.env.StdSubtype(symbol.Tuple).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.Tuple).(*types.Mixin)
 }
 
 func (c *Checker) StdHashSet() *types.Class {
-	return c.env.StdSubtypeClass(symbol.HashSet)
+	return c.runtimeEnv.StdSubtypeClass(symbol.HashSet)
 }
 
 func (c *Checker) StdSet() *types.Mixin {
-	return c.env.StdSubtype(symbol.Set).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.Set).(*types.Mixin)
 }
 
 func (c *Checker) StdHashMap() *types.Class {
-	return c.env.StdSubtypeClass(symbol.HashMap)
+	return c.runtimeEnv.StdSubtypeClass(symbol.HashMap)
 }
 
 func (c *Checker) StdMap() *types.Mixin {
-	return c.env.StdSubtype(symbol.Map).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.Map).(*types.Mixin)
 }
 
 func (c *Checker) StdHashRecord() *types.Class {
-	return c.env.StdSubtypeClass(symbol.HashRecord)
+	return c.runtimeEnv.StdSubtypeClass(symbol.HashRecord)
 }
 
 func (c *Checker) StdRange() *types.Mixin {
-	return c.env.StdSubtype(symbol.Range).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.Range).(*types.Mixin)
 }
 
 func (c *Checker) StdRecord() *types.Mixin {
-	return c.env.StdSubtype(symbol.Record).(*types.Mixin)
+	return c.runtimeEnv.StdSubtype(symbol.Record).(*types.Mixin)
 }
 
 func (c *Checker) StdNil() *types.Class {
-	return c.env.StdSubtypeClass(symbol.Nil)
+	return c.runtimeEnv.StdSubtypeClass(symbol.Nil)
 }
 
 func (c *Checker) StdTrue() *types.Class {
-	return c.env.StdSubtypeClass(symbol.True)
+	return c.runtimeEnv.StdSubtypeClass(symbol.True)
 }
 
 func (c *Checker) StdFalse() *types.Class {
-	return c.env.StdSubtypeClass(symbol.False)
+	return c.runtimeEnv.StdSubtypeClass(symbol.False)
 }
 
 func (c *Checker) checkAsExpressionNode(node *ast.AsExpressionNode) *ast.AsExpressionNode {
@@ -1627,6 +1972,20 @@ func (c *Checker) checkMustExpressionNode(node *ast.MustExpressionNode) *ast.Mus
 	return node
 }
 
+func (c *Checker) checkDeferExpressionNode(node *ast.DeferExpressionNode) *ast.DeferExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.setHasDefer(false)
+	node.Expression = c.checkExpression(node.Expression)
+	node.HasDefer = c.hasDefer()
+
+	c.setHasDefer(true)
+	return node
+}
+
 func (c *Checker) checkArithmeticBinaryOperator(
 	node *ast.BinaryExpressionNode,
 	methodName value.Symbol,
@@ -1670,6 +2029,18 @@ func (c *Checker) checkArithmeticBinaryOperator(
 			node.SetType(c.StdBigFloat())
 			return node
 		}
+	case "Std::BigFloat":
+		switch rightClassType.Name() {
+		case "Std::Int":
+			node.SetType(c.StdBigFloat())
+			return node
+		case "Std::Float":
+			node.SetType(c.StdBigFloat())
+			return node
+		case "Std::BigFloat":
+			node.SetType(c.StdBigFloat())
+			return node
+		}
 	}
 
 	return c.checkBinaryOpMethodCall(
@@ -1678,18 +2049,31 @@ func (c *Checker) checkArithmeticBinaryOperator(
 	)
 }
 
+func (c *Checker) checkBoxOfLocal(node *ast.BoxOfExpressionNode, name string) ast.ExpressionNode {
+	local, typ := c.checkIdentifier(name, node.Location())
+	node.Expression.SetType(typ)
+
+	if types.IsUntyped(typ) {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	var box *types.Generic
+	if local.singleAssignment {
+		box = types.NewGenericWithTypeArgs(c.Std(symbol.ImmutableBox).(*types.Class), typ)
+	} else {
+		box = types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+	}
+	node.SetType(box)
+	return node
+}
+
 func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.ExpressionNode {
 	switch expr := node.Expression.(type) {
-	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
-		node.Expression = c.checkExpression(node.Expression)
-		typ := c.typeOfGuardVoid(node.Expression)
-		if types.IsUntyped(typ) {
-			node.SetType(types.Untyped{})
-			return node
-		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
-		node.SetType(box)
-		return node
+	case *ast.PublicIdentifierNode:
+		return c.checkBoxOfLocal(node, expr.Value)
+	case *ast.PrivateIdentifierNode:
+		return c.checkBoxOfLocal(node, expr.Value)
 	case *ast.PublicInstanceVariableNode:
 		c.checkNonNilableInstanceVariablesForSelf(expr.Location())
 		typ := c.checkInstanceVariable(expr.Value, expr.Location())
@@ -1783,6 +2167,33 @@ func (c *Checker) checkUnaryExpression(node *ast.UnaryExpressionNode) ast.Expres
 		node.Right = receiver
 		node.SetType(typ)
 		return node
+	case token.LBITSHIFT:
+		node.Right = c.checkExpression(node.Right)
+		methodName, receiver, _, typ := c.checkSimpleMethodCall(
+			node.Right,
+			token.DOT,
+			symbol.OpPop,
+			nil,
+			nil,
+			nil,
+			node.Location(),
+		)
+		if methodName != symbol.OpPop {
+			newNode := ast.NewMethodCallNode(
+				node.Location(),
+				receiver,
+				token.New(node.Location(), token.DOT),
+				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
+				nil,
+				nil,
+			)
+			newNode.SetType(typ)
+			return node
+		}
+
+		node.Right = receiver
+		node.SetType(typ)
+		return node
 	case token.TILDE:
 		methodName, receiver, _, typ := c.checkSimpleMethodCall(
 			node.Right,
@@ -1852,11 +2263,11 @@ func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueT
 }
 
 func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(true)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	var thenKeyType, thenValueType types.Type
 	switch l := node.ThenExpression.(type) {
@@ -1876,7 +2287,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	}
 	c.popLocalEnv()
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(true)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	var elseKeyType, elseValueType types.Type
 	switch l := node.ElseExpression.(type) {
@@ -1897,6 +2308,8 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	c.popLocalEnv()
 
 	c.popLocalEnv()
+
+	c.initialiseConditionalLocals()
 
 	if c.IsTruthy(conditionType) {
 		c.addWarning(
@@ -2013,12 +2426,12 @@ func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressi
 		[]ast.PatternNode{
 			ast.NewSymbolKeyValuePatternNode(
 				node.Location(),
-				"key",
+				ast.NewPublicIdentifierNode(node.Location(), "key"),
 				keyIdentNode,
 			),
 			ast.NewSymbolKeyValuePatternNode(
 				node.Location(),
-				"value",
+				ast.NewPublicIdentifierNode(node.Location(), "value"),
 				valIdentNode,
 			),
 		},
@@ -2605,6 +3018,11 @@ func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteral
 }
 
 func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	var typ types.Type
 	if node.Value == nil {
 		typ = types.Nil{}
@@ -2626,6 +3044,11 @@ func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) 
 }
 
 func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	var typ types.Type
 	if node.Value == nil {
 		typ = types.Nil{}
@@ -2655,7 +3078,7 @@ func (c *Checker) checkReturnExpressionNode(node *ast.ReturnExpressionNode) ast.
 		typ = c.typeOfGuardVoid(node.Value)
 	}
 
-	if c.shouldInferClosureReturnType() {
+	if c.shouldInferClosureReturnType() && !c.isReadonly() {
 		c.addToReturnType(typ)
 		return node
 	}
@@ -2721,7 +3144,7 @@ func (c *Checker) checkYieldExpressionNode(node *ast.YieldExpressionNode) ast.Ex
 		c.checkThrowType(throwType, node.Location())
 	}
 
-	if c.shouldInferClosureReturnType() {
+	if c.shouldInferClosureReturnType() && !c.isReadonly() {
 		c.addToReturnType(typ)
 		return node
 	}
@@ -2767,7 +3190,12 @@ func (c *Checker) checkLabeledExpressionNode(node *ast.LabeledExpressionNode) as
 }
 
 func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericForExpressionNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Initialiser = c.checkExpression(node.Initialiser)
 
 	node.Condition = c.checkExpression(node.Condition)
@@ -2807,12 +3235,12 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 
-	node.Increment = c.checkExpression(node.Increment)
-
 	thenType, _ := c.checkStatements(node.ThenBody, false)
+
+	node.Increment = c.checkExpression(node.Increment)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
@@ -2832,7 +3260,12 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 }
 
 func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.ModifierForInNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -2842,7 +3275,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	node.ThenExpression = c.checkExpression(node.ThenExpression)
 	c.popLocalEnv()
 
@@ -2859,7 +3292,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 }
 
 func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
@@ -2868,7 +3301,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	switch then := node.ThenExpression.(type) {
 	case *ast.KeyValueExpressionNode:
 		then.Key = c.checkExpression(then.Key)
@@ -2892,7 +3325,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 }
 
 func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
 	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Location())
@@ -2900,7 +3333,7 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn C
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
@@ -2911,7 +3344,12 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn C
 }
 
 func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressionNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -2921,7 +3359,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 
@@ -2989,8 +3427,13 @@ func (c *Checker) getIteratorElementType(typ types.Type, location *position.Loca
 }
 
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	loop := c.registerLoop(label, true)
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
 	c.popLoop()
@@ -3004,7 +3447,12 @@ func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpression
 }
 
 func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressionNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3038,7 +3486,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
@@ -3060,7 +3508,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 }
 
 func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3086,8 +3534,10 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 		endless = true
 		typ = types.Never{}
 	}
-	loop := c.registerLoop(label, endless)
+	c.popLocalEnv()
 
+	c.pushConditionalLocalEnv(false)
+	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
 
@@ -3104,7 +3554,12 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 }
 
 func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressionNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3138,7 +3593,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(node.ThenBody, false)
 	c.popLocalEnv()
@@ -3160,7 +3615,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 }
 
 func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3186,8 +3641,10 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 			node.Right.Location(),
 		)
 	}
-	loop := c.registerLoop(label, endless)
+	c.popLocalEnv()
 
+	c.pushConditionalLocalEnv(false)
+	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
 
@@ -3211,17 +3668,23 @@ func (c *Checker) checkTypeofExpressionNode(node *ast.TypeofExpressionNode) ast.
 }
 
 func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tailPosition bool) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
+	hasElse := len(node.ElseBody) > 0
+
+	c.pushConditionalLocalEnv(hasElse)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushNestedLocalEnv()
-
+	c.pushConditionalLocalEnv(hasElse)
 	prevMode := c.mode
 	if types.IsNever(thenType) {
 		c.mode = mutateLocalsInNarrowing
@@ -3235,6 +3698,10 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tail
 	c.popLocalEnv()
 
 	c.popLocalEnv()
+
+	if hasElse {
+		c.initialiseConditionalLocals()
+	}
 
 	if c.IsTruthy(conditionType) {
 		c.addWarning(
@@ -3270,6 +3737,11 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tail
 }
 
 func (c *Checker) checkModifierNode(node *ast.ModifierNode, tailPosition bool) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	switch node.Modifier.Type {
 	case token.IF:
 		return c.checkIfExpressionNode(
@@ -3317,7 +3789,12 @@ func (c *Checker) checkModifierIfElseNode(node *ast.ModifierIfElseNode, tailPosi
 }
 
 func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition bool) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 
 	prevConditionFlagValue := c.flags.HasFlag(conditionFlag)
 	c.flags.SetFlag(conditionFlag)
@@ -3326,12 +3803,14 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
+	hasElse := len(node.ElseBody) > 0
+
+	c.pushConditionalLocalEnv(hasElse)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(hasElse)
 
 	prevMode := c.mode
 	if types.IsNever(thenType) {
@@ -3346,6 +3825,10 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 	c.popLocalEnv()
 
 	c.popLocalEnv()
+
+	if hasElse {
+		c.initialiseConditionalLocals()
+	}
 
 	if c.IsTruthy(conditionType) {
 		c.addWarning(
@@ -3381,23 +3864,25 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 }
 
 func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(true)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(true)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	node.ElseExpression = fn(node.ElseExpression)
 	elseType := c.TypeOf(node.ElseExpression)
 	c.popLocalEnv()
 
 	c.popLocalEnv()
+
+	c.initialiseConditionalLocals()
 
 	if c.IsTruthy(conditionType) {
 		c.addWarning(
@@ -3429,11 +3914,11 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 }
 
 func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Right, assumptionTruthy)
 	node.Left = fn(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -3470,11 +3955,11 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpr
 }
 
 func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Right, assumptionFalsy)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -3511,11 +3996,11 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn Check
 }
 
 func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Right, assumptionTruthy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -3562,11 +4047,11 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 }
 
 func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv()
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Right, assumptionFalsy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -3616,12 +4101,18 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	var resultType types.Type
 
 	hasFinally := len(node.Finally) > 0
-	if len(node.Catches) > 0 {
+	hasCatches := len(node.Catches) > 0
+	if (hasFinally || hasCatches) && c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	if hasCatches {
 		fullyCaughtTypes := make([]types.Type, 0, len(node.Catches))
 		catchResultTypes := make([]types.Type, 0, len(node.Catches))
 
 		for _, catchNode := range node.Catches {
-			c.pushNestedLocalEnv()
+			c.pushConditionalLocalEnv(false)
 			if catchNode.StackTraceVar != nil {
 				var stackTraceVarName string
 				switch s := catchNode.StackTraceVar.(type) {
@@ -3654,12 +4145,16 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	}
 
 	if hasFinally {
-		c.pushNestedLocalEnv()
+		c.pushNestedLocalEnv(defaultLocalEnvType)
 		c.checkStatements(node.Finally, false)
 		c.popLocalEnv()
 	}
 
-	c.pushNestedLocalEnv()
+	if len(node.Catches) > 0 {
+		c.pushConditionalLocalEnv(false)
+	} else {
+		c.pushNestedLocalEnv(defaultLocalEnvType)
+	}
 	bodyResultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
@@ -3673,6 +4168,11 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 }
 
 func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	c.pushMacroBoundaryLocalEnv()
 	resultType, _ := c.checkStatements(node.Body, false)
 	c.popLocalEnv()
@@ -3817,7 +4317,7 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 
 func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Left, assumptionNil)
 
 	node.Right = c.checkExpression(node.Right)
@@ -3853,7 +4353,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Left, assumptionFalsy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -3893,7 +4393,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 
 func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushNestedLocalEnv()
+	c.pushConditionalLocalEnv(false)
 	c.narrowCondition(node.Left, assumptionTruthy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -3943,6 +4443,8 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		return c.checkArithmeticBinaryOperator(node, symbol.OpDivide)
 	case token.STAR_STAR:
 		return c.checkArithmeticBinaryOperator(node, symbol.OpExponentiate)
+	case token.PERCENT:
+		return c.checkArithmeticBinaryOperator(node, symbol.OpModulo)
 	case token.PIPE_OP:
 		return c.checkPipeExpression(node)
 	case token.INSTANCE_OF_OP:
@@ -3961,7 +4463,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		c.checkEqual(node)
 	case token.LBITSHIFT, token.LTRIPLE_BITSHIFT,
 		token.RBITSHIFT, token.RTRIPLE_BITSHIFT, token.AND,
-		token.AND_TILDE, token.OR, token.XOR, token.PERCENT,
+		token.AND_TILDE, token.OR, token.XOR,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
 		originalMethodName := value.ToSymbol(node.Op.FetchValue())
@@ -4257,6 +4759,7 @@ func (c *Checker) findParentOfMixinProxy(mixin types.Namespace) types.Namespace 
 func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.QuoteExpressionNode {
 	exprConvertible := c.StdExpressionNodeConvertible()
 	constConvertible := c.StdConstantNodeConvertible()
+	complexConstConvertible := c.StdComplexConstantNodeConvertible()
 	patternConvertible := c.StdPatternNodeConvertible()
 	patternExprConvertible := c.StdLiteralPatternNodeConvertible()
 	typeConvertible := c.StdTypeNodeConvertible()
@@ -4277,6 +4780,8 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 					iface = exprConvertible
 				case ast.UNQUOTE_CONSTANT_KIND:
 					iface = constConvertible
+				case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+					iface = complexConstConvertible
 				case ast.UNQUOTE_PATTERN_KIND:
 					iface = patternConvertible
 				case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
@@ -4494,6 +4999,10 @@ type instanceVariableOverride struct {
 }
 
 func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
+	if c.isReadonly() {
+		return
+	}
+
 	if c.TypeOf(node) == nil {
 		c.addFailure(
 			"cannot include mixins in this context",
@@ -4523,7 +5032,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		var incompatibleMethods []methodOverride
 		for name, includedMethod := range c.methodsInNamespace(includedMixin) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
-			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true) {
+			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true, false) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
 					superMethod: superMethod,
 					override:    includedMethod,
@@ -4637,7 +5146,7 @@ func (c *Checker) TypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
-	return node.Type(c.env)
+	return node.Type(c.runtimeEnv)
 }
 
 // Returns the type of the AST node, for use in macros
@@ -4645,7 +5154,7 @@ func (c *Checker) MacroTypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
-	return node.MacroType(c.env)
+	return node.MacroType(c.runtimeEnv)
 }
 
 func (c *Checker) typeGuardVoid(typ types.Type, location *position.Location) types.Type {
@@ -4706,7 +5215,8 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 	var receiver ast.ExpressionNode
 	if fromLocal {
 		ident := ast.NewPublicIdentifierNode(loc, methodName)
-		ident.SetType(c.checkIdentifier(ident.Value, nil))
+		_, typ := c.checkIdentifier(ident.Value, nil)
+		ident.SetType(typ)
 		receiver = ident
 	} else {
 		switch under := methodNamespace.(type) {
@@ -5428,11 +5938,18 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 }
 
 func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
-	c.pushNestedLocalEnv()
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
+
+	c.pushNestedLocalEnv(defaultLocalEnvType)
 	c.checkStatements(node.Body, false)
 	c.popLocalEnv()
 
 	node.SetType(c.Std(symbol.Thread))
+
+	node.HasDefer = c.hasDefer()
+	c.setHasDefer(prevHasDefer)
+
 	return node
 }
 
@@ -5481,6 +5998,11 @@ func (c *Checker) checkBinaryOperatorAssignmentExpression(node *ast.AssignmentEx
 }
 
 func (c *Checker) checkAssignmentExpressionNode(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	location := node.Location()
 	switch node.Op.Type {
 	case token.EQUAL_OP:
@@ -5536,6 +6058,11 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 	case *ast.PrivateIdentifierNode:
 		name = left.Value
 	}
+
+	if variable := c.getLocal(name); variable != nil {
+		return c.checkAssignment(node)
+	}
+
 	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
 	node.Right = init
 	node.SetType(typ)
@@ -5751,6 +6278,9 @@ func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 }
 
 func (c *Checker) addFailureWithLocation(message string, loc *position.Location) {
+	if c.isReadonly() {
+		return
+	}
 	c.Errors.AddFailure(
 		message,
 		loc,
@@ -5758,7 +6288,7 @@ func (c *Checker) addFailureWithLocation(message string, loc *position.Location)
 }
 
 func (c *Checker) addWarning(message string, location *position.Location) {
-	if location == nil {
+	if !env.ELKWARN || c.isReadonly() || location == nil {
 		return
 	}
 	c.Errors.AddWarning(
@@ -5768,7 +6298,7 @@ func (c *Checker) addWarning(message string, location *position.Location) {
 }
 
 func (c *Checker) addFailure(message string, location *position.Location) {
-	if location == nil {
+	if c.isReadonly() || location == nil {
 		return
 	}
 	c.Errors.AddFailure(
@@ -5788,9 +6318,9 @@ func (c *Checker) addUnreachableCodeError(location *position.Location) {
 func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (_parentNamespace types.Namespace, _typ types.Type, _fullName, _constName string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
-		return c.env.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
+		return c.runtimeEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.PrivateConstantNode:
-		return c.env.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
+		return c.runtimeEnv.Root, c.resolveSimpleConstantInRoot(constant.Value), constant.Value, constant.Value
 	case *ast.ConstantLookupNode:
 		return c.resolveTypeLookupInRoot(constant)
 	default:
@@ -5800,7 +6330,7 @@ func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (
 
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
-	root := c.env.Root
+	root := c.runtimeEnv.Root
 	constant, ok := root.SubtypeString(name)
 	if ok {
 		return constant.Type
@@ -5810,7 +6340,7 @@ func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
 
 // Get the type of the constant with the given name
 func (c *Checker) resolveSimpleConstantInRoot(name string) types.Type {
-	root := c.env.Root
+	root := c.runtimeEnv.Root
 	constant, ok := root.ConstantString(name)
 	if ok {
 		return constant.Type
@@ -5828,7 +6358,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
-		namespace := c.env.Root
+		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
@@ -5842,7 +6372,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(l.Location())
 		}
 	case *ast.PrivateConstantNode:
-		namespace := c.env.Root
+		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
 		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
@@ -5856,7 +6386,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(l.Location())
 		}
 	case nil:
-		leftContainerType = c.env.Root
+		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
 		_, leftContainerType, leftContainerName, _ = c._resolveConstantLookupTypeInRoot(l, false)
 	default:
@@ -6022,7 +6552,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 			placeholder.Locations.Push(l.Location())
 		}
 	case nil:
-		leftContainerType = c.env.Root
+		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
 		_, leftContainerType, leftContainerName = c._resolveConstantLookupForNamespaceDeclaration(l, false)
 	default:
@@ -6120,7 +6650,7 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 			return nil, nil, ""
 		}
 	case nil:
-		leftContainerType = c.env.Root
+		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
 		var container types.Namespace
 		container, leftContainerType, leftContainerName = c._resolveConstantLookupForConstantDeclaration(l, false)
@@ -6302,7 +6832,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, location *positi
 
 // Get the type with the given name
 func (c *Checker) resolveType(name string, location *position.Location) (types.Type, string) {
-	for constScope := range ds.ReverseSlice(c.constantScopes) {
+	for _, constScope := range ds.ReverseSlice(c.constantScopes) {
 		constant, ok := constScope.container.SubtypeString(name)
 		if !ok {
 			continue
@@ -6426,7 +6956,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
 	case nil:
-		leftContainerType = c.env.Root
+		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
 		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
 	default:
@@ -6507,7 +7037,7 @@ func (c *Checker) getConstantLookupTypeForMacro(node *ast.ConstantLookupNode) ty
 	case *ast.PrivateConstantNode:
 		leftContainerType = c.getSimpleConstantTypeForMacro(l.Value)
 	case nil:
-		leftContainerType = c.env.Root
+		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
 		leftContainerType = c.getConstantLookupTypeForMacro(l)
 	}
@@ -7120,26 +7650,26 @@ func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location
 	)
 }
 
-func (c *Checker) checkIdentifier(value string, loc *position.Location) types.Type {
+func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local, types.Type) {
 	local, _ := c.resolveLocal(value, loc)
 	if local == nil {
-		return types.Untyped{}
+		return nil, types.Untyped{}
 	}
 
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}
-	return local.typ
+	return local, local.typ
 }
 
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
-	typ := c.checkIdentifier(node.Value, node.Location())
+	_, typ := c.checkIdentifier(node.Value, node.Location())
 	node.SetType(typ)
 	return node
 }
 
 func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
-	typ := c.checkIdentifier(node.Value, node.Location())
+	_, typ := c.checkIdentifier(node.Value, node.Location())
 	node.SetType(typ)
 	return node
 }
@@ -7354,6 +7884,12 @@ func (c *Checker) checkLocalDeclaration(
 		)
 	}
 	if initialiser == nil {
+		if singleAssignment {
+			c.addFailure(
+				fmt.Sprintf("a value must be initialised on declaration `%s`", name),
+				location,
+			)
+		}
 		if typeNode == nil {
 			c.addFailure(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
@@ -7426,6 +7962,11 @@ func (c *Checker) checkLocalDeclaration(
 }
 
 func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *ast.VariablePatternDeclarationNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	initType := c.typeOfGuardVoid(node.Initialiser)
 
@@ -7434,6 +7975,11 @@ func (c *Checker) checkVariablePatternDeclarationNode(node *ast.VariablePatternD
 }
 
 func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *ast.ValuePatternDeclarationNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	node.Initialiser = c.checkExpression(node.Initialiser)
 	initType := c.typeOfGuardVoid(node.Initialiser)
 
@@ -7445,12 +7991,19 @@ func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclara
 }
 
 func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tailPosition bool) *ast.SwitchExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	node.Value = c.checkExpression(node.Value)
 	valueType := c.typeOfGuardVoid(node.Value)
 
+	hasElse := len(node.ElseBody) > 0
+
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
-		c.pushNestedLocalEnv()
+		c.pushConditionalLocalEnv(true)
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
 		c.narrowToType(node.Value, patternType)
@@ -7459,16 +8012,286 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 		c.popLocalEnv()
 	}
 
-	if len(node.ElseBody) > 0 {
-		c.pushNestedLocalEnv()
+	if hasElse {
+		c.pushConditionalLocalEnv(true)
 		c.narrowToType(node.Value, types.Any{})
 		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
 		c.popLocalEnv()
 	}
 
+	c.initialiseConditionalLocals()
+
 	returnType := c.NewNormalisedUnion(returnTypes...)
 	node.SetType(returnType)
+	return node
+}
+
+func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tailPosition bool) *ast.SelectExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	hasElse := len(node.ElseBody) > 0
+
+	var returnTypes []types.Type
+	for _, caseNode := range node.Cases {
+		c.pushConditionalLocalEnv(true)
+		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
+		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
+		returnTypes = append(returnTypes, caseType)
+		c.popLocalEnv()
+	}
+
+	if hasElse {
+		c.pushConditionalLocalEnv(true)
+		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
+		returnTypes = append(returnTypes, elseType)
+		c.popLocalEnv()
+	}
+
+	c.initialiseConditionalLocals()
+
+	returnType := c.NewNormalisedUnion(returnTypes...)
+	node.SetType(returnType)
+	return node
+}
+
+func (c *Checker) checkSelectCaseExpressionNode(node ast.ExpressionNode) ast.ExpressionNode {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode:
+		return c.checkSelectUnaryExpressionNode(node)
+	case *ast.AssignmentExpressionNode:
+		return c.checkSelectAssignmentExpressionNode(node)
+	case *ast.VariableDeclarationNode:
+		return c.checkSelectVariableDeclarationNode(node)
+	case *ast.ValueDeclarationNode:
+		return c.checkSelectValueDeclarationNode(node)
+	case *ast.ValuePatternDeclarationNode:
+		return c.checkSelectValuePatternDeclarationNode(node)
+	case *ast.VariablePatternDeclarationNode:
+		return c.checkSelectVariablePatternDeclarationNode(node)
+	case *ast.BinaryExpressionNode:
+		return c.checkSelectBinaryExpressionNode(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid expression in select case, expected a channel push or channel pop, got: %T",
+				node,
+			),
+			node.Location(),
+		)
+		return c.checkExpression(node)
+	}
+}
+
+func (c *Checker) checkSelectVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"variable pattern declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		return c.checkVariablePatternDeclarationNode(node)
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	return c.checkVariablePatternDeclarationNode(node)
+}
+
+func (c *Checker) checkSelectValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"value pattern declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		return c.checkValuePatternDeclarationNode(node)
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	return c.checkValuePatternDeclarationNode(node)
+}
+
+func (c *Checker) checkSelectVariableDeclarationNode(node *ast.VariableDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"variable declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		c.checkVariableDeclarationNode(node)
+		return node
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	c.checkVariableDeclarationNode(node)
+	return node
+}
+
+func (c *Checker) checkSelectValueDeclarationNode(node *ast.ValueDeclarationNode) ast.ExpressionNode {
+	if node.Initialiser == nil {
+		c.addFailure(
+			"value declaration in select case must be initialised to a channel pop eg. `<<ch`",
+			node.Location(),
+		)
+		c.checkValueDeclarationNode(node)
+		return node
+	}
+
+	node.Initialiser = c.checkSelectAssignmentRightNode(node.Initialiser)
+	c.checkValueDeclarationNode(node)
+	return node
+}
+
+func (c *Checker) checkSelectAssignmentExpressionNode(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		return c.checkSelectLocalAssignment(node)
+	case token.COLON_EQUAL:
+		return c.checkSelectShortVariableDeclaration(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment operator in select case, expected `=` or `:=`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkAssignmentExpressionNode(node)
+	}
+}
+
+func (c *Checker) checkSelectLocalAssignment(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	node.Right = c.checkSelectAssignmentRightNode(node.Right)
+
+	switch node.Left.(type) {
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment target in select case, expected a local variable/value, got: %T",
+				node.Left,
+			),
+			node.Left.Location(),
+		)
+	}
+
+	return c.checkAssignment(node)
+}
+
+func (c *Checker) checkSelectShortVariableDeclaration(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	node.Right = c.checkSelectAssignmentRightNode(node.Right)
+
+	switch node.Left.(type) {
+	case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid assignment target in select case, expected a local variable/value, got: %T",
+				node.Left,
+			),
+			node.Left.Location(),
+		)
+	}
+
+	return c.checkShortVariableDeclaration(node)
+}
+
+func (c *Checker) checkSelectAssignmentRightNode(node ast.ExpressionNode) ast.ExpressionNode {
+	switch node := node.(type) {
+	case *ast.UnaryExpressionNode:
+		return c.checkSelectUnaryExpressionNode(node)
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid expression in select case assignment, expected a channel pop eg. `<<ch`, got: %T",
+				node,
+			),
+			node.Location(),
+		)
+		return c.checkExpression(node)
+	}
+}
+
+func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) ast.ExpressionNode {
+	if node.Op.Type != token.LBITSHIFT {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid unary expression in select case, expected a channel pop `<<`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkUnaryExpression(node)
+	}
+
+	node.Right = c.checkExpression(node.Right)
+	rightType := c.TypeOf(node.Right)
+
+	channelType := c.NewNormalisedUnion(
+		c.Std(symbol.Channel),
+		c.Std(symbol.ReadChannel),
+	)
+	if !c.isSubtype(rightType, channelType, node.Right.Location()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid pop target in select case, expected a readable channel, got: `%s`",
+				types.Inspect(rightType),
+			),
+			node.Location(),
+		)
+	}
+
+	resultClass := c.runtimeEnv.NamesToNamespace(symbol.Std, symbol.Result)
+	closedErrorClass := c.runtimeEnv.NamesToNamespace(symbol.Std, symbol.Channel, value.ToSymbol("ClosedError"))
+	channelVal := rightType.(*types.Generic).Get(0).Type
+
+	typ := types.NewGenericWithTypeArgs(resultClass, channelVal, closedErrorClass)
+	node.SetType(typ)
+
+	return node
+}
+
+func (c *Checker) checkSelectBinaryExpressionNode(node *ast.BinaryExpressionNode) ast.ExpressionNode {
+	if node.Op.Type != token.LBITSHIFT {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid binary expression in select case, expected a channel push `<<`, got: %s",
+				node.Op.String(),
+			),
+			node.Location(),
+		)
+		return c.checkBinaryExpression(node)
+	}
+
+	originalMethodName := value.ToSymbol(node.Op.FetchValue())
+	_, left, args, typ := c.checkSimpleMethodCall(
+		node.Left,
+		token.DOT,
+		originalMethodName,
+		nil,
+		[]ast.ExpressionNode{node.Right},
+		nil,
+		node.Location(),
+	)
+	leftType := c.TypeOf(left)
+
+	channelType := c.NewNormalisedUnion(
+		c.Std(symbol.Channel),
+		c.Std(symbol.WriteChannel),
+	)
+	if !c.isSubtype(leftType, channelType, left.Location()) {
+		c.addFailure(
+			fmt.Sprintf(
+				"invalid push target in select case, expected a writable channel, got: `%s`",
+				types.Inspect(leftType),
+			),
+			node.Location(),
+		)
+	}
+
+	node.Left = left
+	node.Right = args[0]
+	node.SetType(typ)
 	return node
 }
 
@@ -7609,6 +8432,11 @@ func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin,
 }
 
 func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return
+	}
+
 	init, typeNode, typ := c.checkLocalDeclaration(
 		c.identifierToName(node.Name),
 		node.Initialiser,
@@ -7622,6 +8450,11 @@ func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode
 }
 
 func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return
+	}
+
 	init, typeNode, typ := c.checkLocalDeclaration(
 		c.identifierToName(node.Name),
 		node.Initialiser,
@@ -7676,7 +8509,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.env,
+				c.runtimeEnv,
 			)
 			t.Namespace = module
 			namespace.DefineConstant(constantName, module)
@@ -7686,7 +8519,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			module := types.NewModule(
 				docComment,
 				fullConstantName,
-				c.env,
+				c.runtimeEnv,
 			)
 			c.replaceSimpleNamespacePlaceholder(t, module, module)
 			namespace.DefineConstant(constantName, module)
@@ -7694,15 +8527,15 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			return module
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewModule(docComment, fullConstantName, c.env)
+			return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewModule(docComment, fullConstantName, c.env)
+		return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
 	}
 
-	return namespace.DefineModule(docComment, constantName, c.env)
+	return namespace.DefineModule(docComment, constantName, c.runtimeEnv)
 }
 
 func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, errSpan *position.Location) {
@@ -7734,7 +8567,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				noinit,
 				fullConstantName,
 				nil,
-				c.env,
+				c.runtimeEnv,
 			)
 			classSingleton := class.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
@@ -7751,7 +8584,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				noinit,
 				fullConstantName,
 				nil,
-				c.env,
+				c.runtimeEnv,
 			)
 		}
 
@@ -7761,9 +8594,9 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
-						fullConstantName,
-						types.InspectModifier(abstract, sealed, primitive, noinit),
-						types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit()),
+						lexer.Colorize(fullConstantName),
+						lexer.Colorize(types.InspectModifier(abstract, sealed, primitive, noinit)),
+						lexer.Colorize(types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit())),
 					),
 					location,
 				)
@@ -7781,7 +8614,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.env,
+				c.runtimeEnv,
 			)
 			t.Namespace = class
 			namespace.DefineConstant(constantName, class.Singleton())
@@ -7797,7 +8630,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				noinit,
 				fullConstantName,
 				nil,
-				c.env,
+				c.runtimeEnv,
 			)
 		}
 	}
@@ -7811,7 +8644,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 			noinit,
 			fullConstantName,
 			nil,
-			c.env,
+			c.runtimeEnv,
 		)
 	}
 
@@ -7823,7 +8656,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 		noinit,
 		constantName,
 		nil,
-		c.env,
+		c.runtimeEnv,
 	)
 }
 
@@ -8196,7 +9029,7 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 	c.pushConstScope(makeLocalConstantScope(singleton))
 	c.pushMethodScope(makeLocalMethodScope(singleton))
 
-	c.hoistNamespaceDefinitionsAndMacros(node.Body)
+	fn(node.Body)
 
 	c.popLocalConstScope()
 	c.popMethodScope()
@@ -8228,6 +9061,8 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				stmt.Expression = c.hoistStructDeclaration(expr)
 			case *ast.MacroBoundaryNode:
 				c.hoistNamespaceDefinitionsAndMacros(expr.Body)
+			case *ast.DoExpressionNode:
+				c.hoistNamespaceDefinitionsAndMacros(expr.Body)
 			case *ast.MacroDefinitionNode:
 				c.hoistMacroDefinition(expr)
 			case *ast.ModuleDeclarationNode:
@@ -8249,23 +9084,9 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 			case *ast.UsingExpressionNode:
 				c.checkUsingExpressionForNamespaces(expr)
 			case *ast.ImplementExpressionNode:
-				switch c.mode {
-				case classMode, mixinMode, interfaceMode:
-				default:
-					continue
-				}
-				namespace := c.currentMethodScope().container
-				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+				c.registerImplementExpressionCheck(expr)
 			case *ast.IncludeExpressionNode:
-				switch c.mode {
-				case classMode, mixinMode, singletonMode:
-				default:
-					continue
-				}
-				namespace := c.currentMethodScope().container
-				expr.SetType(types.Untyped{})
-				c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+				c.registerIncludeExpressionCheck(expr)
 			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
@@ -8275,7 +9096,39 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 	}
 }
 
+func (c *Checker) registerImplementExpressionCheck(expr *ast.ImplementExpressionNode) {
+	if c.TypeOf(expr) != nil {
+		return
+	}
+	switch c.mode {
+	case classMode, mixinMode, interfaceMode:
+	default:
+		return
+	}
+	namespace := c.currentMethodScope().container
+	expr.SetType(types.Untyped{})
+	c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+}
+
+func (c *Checker) registerIncludeExpressionCheck(expr *ast.IncludeExpressionNode) {
+	if c.TypeOf(expr) != nil {
+		return
+	}
+	switch c.mode {
+	case classMode, mixinMode, singletonMode:
+	default:
+		return
+	}
+	namespace := c.currentMethodScope().container
+	expr.SetType(types.Untyped{})
+	c.registerNamespaceDeclarationCheck(namespace.Name(), expr, namespace, c.IsHeader())
+}
+
 func (c *Checker) checkUsingExpressionForNamespaces(node *ast.UsingExpressionNode) {
+	if c.TypeOf(node) != nil {
+		return
+	}
+
 	node.SetType(types.Untyped{})
 	for i, entry := range node.Entries {
 		node.Entries[i] = c.checkUsingEntryNodeForNamespaces(entry)
@@ -8459,74 +9312,7 @@ func (c *Checker) checkImport(node *ast.ImportStatementNode, checkedFileName str
 		path = pathNode.Value
 	}
 
-	if isLibPath(path) {
-		shortPath := path
-		// library
-		path = filepath.Join(env.ELKPATH, "lib", path)
-		if filepath.Ext(path) == "" {
-			path = filepath.Join(path, "init.{elk,elh}")
-		} else {
-		}
-		extension, ok := ext.Map[shortPath]
-		if ok {
-			c.extensions.Push(extension)
-		}
-	} else if !filepath.IsAbs(path) {
-		dirPath := filepath.Dir(checkedFileName)
-		path = filepath.Join(dirPath, path)
-	}
-
-	baseDir, pattern := doublestar.SplitPattern(path)
-	fsys := os.DirFS(baseDir)
-	filePaths, err := doublestar.Glob(fsys, pattern)
-	if err != nil {
-		c.addFailure(
-			fmt.Sprintf(
-				"invalid glob pattern: %s (%s)",
-				path,
-				err,
-			),
-			node.Location(),
-		)
-		return
-	}
-
-	if len(filePaths) == 0 {
-		c.addFailure(
-			fmt.Sprintf(
-				"no matched files for import: %s",
-				path,
-			),
-			node.Location(),
-		)
-		return
-	}
-
-	for _, filename := range filePaths {
-		filename := filepath.Join(baseDir, filename)
-		info, err := os.Stat(filename)
-		if os.IsNotExist(err) {
-			c.addFailure(
-				fmt.Sprintf(
-					"tried to import a file that does not exist: %s",
-					filename,
-				),
-				node.Location(),
-			)
-			continue
-		}
-		if info.IsDir() {
-			c.addFailure(
-				fmt.Sprintf(
-					"tried to import a directory: %s",
-					filename,
-				),
-				node.Location(),
-			)
-			continue
-		}
-		node.FsPaths = append(node.FsPaths, filename)
-	}
+	node.FsPaths = c.resolveImportPath(path, checkedFileName, node.Location())
 }
 
 func (c *Checker) declareMixin(docComment string, abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Mixin {
@@ -8539,7 +9325,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				docComment,
 				abstract,
 				fullConstantName,
-				c.env,
+				c.runtimeEnv,
 			)
 			mixinSingleton := mixin.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
@@ -8548,7 +9334,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.env)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
 		}
 
 		switch t := constantType.(type) {
@@ -8575,7 +9361,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.env,
+				c.runtimeEnv,
 			)
 			t.Namespace = mixin
 			namespace.DefineConstant(constantName, mixin.Singleton())
@@ -8583,15 +9369,15 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.env)
+			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewMixin(docComment, abstract, fullConstantName, c.env)
+		return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
 	}
 
-	return namespace.DefineMixin(docComment, abstract, constantName, c.env)
+	return namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv)
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Interface {
@@ -8603,7 +9389,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			iface := types.NewInterface(
 				docComment,
 				fullConstantName,
-				c.env,
+				c.runtimeEnv,
 			)
 			ifaceSingleton := iface.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
@@ -8612,7 +9398,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.env)
+			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
 		}
 
 		switch t := constantType.(type) {
@@ -8626,7 +9412,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.env,
+				c.runtimeEnv,
 			)
 			t.Namespace = iface
 			namespace.DefineConstant(constantName, iface.Singleton())
@@ -8634,11 +9420,11 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.env)
+			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, c.env)
+		return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
 	} else {
-		return namespace.DefineInterface(docComment, constantName, c.env)
+		return namespace.DefineInterface(docComment, constantName, c.runtimeEnv)
 	}
 }

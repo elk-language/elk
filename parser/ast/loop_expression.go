@@ -103,14 +103,18 @@ func (n *LoopExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::LoopExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  then_body: %[\n")
-	for i, stmt := range n.ThenBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  then_body: %[")
+	if len(n.ThenBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ThenBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

@@ -18,20 +18,18 @@ func initMethodDefinitionNode() {
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				argTypeParameters = make([]ast.TypeParameterNode, argTypeParametersTuple.Length())
-				for i, el := range *argTypeParametersTuple {
-					argTypeParameters[i] = el.MustReference().(ast.TypeParameterNode)
-				}
+				argTypeParametersTuple := args[2].AsReference().(value.ArrayTuple)
+				argTypeParameters = value.TransformArrayTupleIntoNativeArrayTuple(argTypeParametersTuple, func(v value.Value) ast.TypeParameterNode {
+					return v.AsReference().(ast.TypeParameterNode)
+				}).ToSlice()
 			}
 
 			var argParameters []ast.ParameterNode
 			if !args[3].IsUndefined() {
-				argParametersTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argParameters = make([]ast.ParameterNode, argParametersTuple.Length())
-				for i, el := range *argParametersTuple {
-					argParameters[i] = el.MustReference().(ast.ParameterNode)
-				}
+				argParametersTuple := args[3].AsReference().(value.ArrayTuple)
+				argParameters = value.TransformArrayTupleIntoNativeArrayTuple(argParametersTuple, func(v value.Value) ast.ParameterNode {
+					return v.AsReference().(ast.ParameterNode)
+				}).ToSlice()
 			}
 
 			var argReturnType ast.TypeNode
@@ -46,11 +44,10 @@ func initMethodDefinitionNode() {
 
 			var argBody []ast.StatementNode
 			if !args[6].IsUndefined() {
-				argBodyTuple := args[6].MustReference().(*value.ArrayTupleOfValue)
-				argBody = make([]ast.StatementNode, argBodyTuple.Length())
-				for i, el := range *argBodyTuple {
-					argBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argBodyTuple := args[6].AsReference().(value.ArrayTuple)
+				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argFlags bitfield.BitFlag8
@@ -113,15 +110,8 @@ func initMethodDefinitionNode() {
 		"type_parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-
-			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeParameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -130,15 +120,8 @@ func initMethodDefinitionNode() {
 		"parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-
-			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Parameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -173,15 +156,8 @@ func initMethodDefinitionNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

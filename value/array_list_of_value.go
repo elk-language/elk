@@ -45,6 +45,12 @@ func NewArrayListOfValueWithElements(capacity int, elements ...Value) *ArrayList
 	return &l
 }
 
+func NewArrayListOfValueWithElementsAndTotalCapacity(capacity int, elements ...Value) *ArrayListOfValue {
+	l := make(ArrayListOfValue, len(elements), capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (l *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
 	return NewArrayListOfValue(capacity)
 }

@@ -10,6 +10,8 @@ func NewGlobalEnvironment() *types.GlobalEnvironment {
 	env := types.NewGlobalEnvironment()
 
 	initResult(env)
+	initValue(env)
+	initWaitGroup(env)
 
 	return env
 }

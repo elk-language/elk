@@ -18,7 +18,7 @@ func TestGoExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(24, 4, 6), P(32, 4, 14)), "no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`"),
 				diagnostic.NewFailure(L("<main>", P(58, 7, 5), P(58, 7, 5)), "undefined local `b`"),
 			},
 		},
@@ -54,9 +54,18 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 7, 10), P(71, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
-				diagnostic.NewFailure(L("<main>", P(99, 10, 5), P(99, 10, 5)), "undefined local `b`"),
+				diagnostic.NewFailure(
+					L("<main>", P(63, 7, 6), P(71, 7, 14)),
+					"no overload of `-` matches the given arguments\n  signature: `def -(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def -@1(other: Std::Int): Std::Int`\n             `def -@2(other: Std::Float): Std::Float`\n             `def -@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(24, 4, 6), P(32, 4, 14)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(99, 10, 5), P(99, 10, 5)),
+					"undefined local `b`",
+				),
 			},
 		},
 		"catches have their own scopes": {
@@ -75,10 +84,22 @@ func TestDoCatchExpression(t *testing.T) {
 				b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(74, 7, 10), P(78, 7, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:-`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(120, 10, 10), P(124, 10, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:*`, got type `\"bar\"`"),
-				diagnostic.NewFailure(L("<main>", P(28, 4, 10), P(32, 4, 14)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `\"foo\"`"),
-				diagnostic.NewFailure(L("<main>", P(152, 13, 5), P(152, 13, 5)), "undefined local `b`"),
+				diagnostic.NewFailure(
+					L("<main>", P(70, 7, 6), P(78, 7, 14)),
+					"no overload of `-` matches the given arguments\n  signature: `def -(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def -@1(other: Std::Int): Std::Int`\n             `def -@2(other: Std::Float): Std::Float`\n             `def -@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(116, 10, 6), P(124, 10, 14)),
+					"no overload of `*` matches the given arguments\n  signature: `def *(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def *@1(other: Std::Int): Std::Int`\n             `def *@2(other: Std::Float): Std::Float`\n             `def *@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(24, 4, 6), P(32, 4, 14)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
+				diagnostic.NewFailure(
+					L("<main>", P(152, 13, 5), P(152, 13, 5)),
+					"undefined local `b`",
+				),
 			},
 		},
 		"checks invalid patterns": {
@@ -90,6 +111,7 @@ func TestDoCatchExpression(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 4, 29), P(56, 4, 33)), "type `Std::String` cannot ever match type `Std::Int`"),
 				diagnostic.NewWarning(L("<main>", P(34, 4, 11), P(56, 4, 33)), "this pattern is impossible to satisfy"),
 			},
 		},
@@ -202,6 +224,34 @@ func TestMustExpression(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(37, 3, 17), P(42, 3, 22)), "type `Std::Int` cannot be assigned to type `-1`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestDeferExpression(t *testing.T) {
+	tests := testTable{
+		"defer with an expression": {
+			input: `
+				a := 5
+				defer a.to_string
+			`,
+		},
+		"defer returns nil": {
+			input: `
+				a := 5
+				result := defer a.to_string
+				var a: never = result
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 5), P(68, 4, 25)), "cannot redeclare local `a`"),
+				diagnostic.NewFailure(L("<main>", P(63, 4, 20), P(68, 4, 25)), "type `nil` cannot be assigned to type `never`"),
 			},
 		},
 	}
@@ -550,6 +600,210 @@ func TestThrowExpression(t *testing.T) {
 			input: `
 				def bar! Symbol
 					throw :foo
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestSelectExpression(t *testing.T) {
+	tests := testTable{
+		"can push to a channel": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case ch << 5
+					puts "sent"
+				end
+			`,
+		},
+		"can push to a write channel": {
+			input: `
+				ch := Channel::[Int]()
+				wch := ch.writeonly
+				select
+				case wch << 5
+					puts "sent"
+				end
+			`,
+		},
+		"cannot push to a read channel": {
+			input: `
+				ch := Channel::[Int]()
+				rch := ch.readonly
+				select
+				case rch << 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 5, 10), P(78, 5, 17)), "method `<<` is not defined on type `Std::ReadChannel[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 10), P(78, 5, 17)), "invalid push target in select case, expected a writable channel, got: `Std::ReadChannel[Std::Int]`"),
+			},
+		},
+		"cannot use another binary operator": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case ch >> 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 10), P(54, 4, 16)), "invalid binary expression in select case, expected a channel push `<<`, got: >>"),
+				diagnostic.NewFailure(L("<main>", P(48, 4, 10), P(54, 4, 16)), "method `>>` is not defined on type `Std::Channel[Std::Int]`"),
+			},
+		},
+		"cannot have any expression in case": {
+			input: `
+				select
+				case puts("foo")
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(21, 3, 10), P(31, 3, 20)), "invalid expression in select case, expected a channel push or channel pop, got: *ast.ReceiverlessMethodCallNode"),
+			},
+		},
+		"cannot push to non-channel": {
+			input: `
+				list := [1]
+				select
+				case list << 5
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(45, 4, 18)), "invalid push target in select case, expected a writable channel, got: `Std::ArrayList[Std::Int]`"),
+			},
+		},
+		"can pop from a channel": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case <<ch
+					puts "read"
+				end
+			`,
+		},
+		"can pop from a read channel": {
+			input: `
+				ch := Channel::[Int]()
+				rch := ch.readonly
+				select
+				case <<rch
+					puts "read"
+				end
+			`,
+		},
+		"cannot pop from a write channel": {
+			input: `
+				ch := Channel::[Int]()
+				wch := ch.writeonly
+				select
+				case <<wch
+					puts "read"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(72, 5, 10), P(76, 5, 14)), "invalid pop target in select case, expected a readable channel, got: `Std::WriteChannel[Std::Int]`"),
+			},
+		},
+		"cannot pop from a non-channel": {
+			input: `
+				list := [1]
+				select
+				case <<list
+					puts "read"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 10), P(42, 4, 15)), "invalid pop target in select case, expected a readable channel, got: `Std::ArrayList[Std::Int]`"),
+			},
+		},
+		"invalid unary operator": {
+			input: `
+				a := 5
+				select
+				case +a
+					puts "read"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(32, 4, 10), P(33, 4, 11)), "invalid unary expression in select case, expected a channel pop `<<`, got: +"),
+			},
+		},
+		"can pop from a channel and assign to a variable": {
+			input: `
+				ch := Channel::[Int]()
+				var v: Result[Int, Channel::ClosedError]
+				select
+				case v = <<ch
+					puts "read"
+				end
+			`,
+		},
+		"popped value is a Result": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case v := <<ch
+					var a: never = v
+					puts "sent"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(78, 5, 21), P(78, 5, 21)), "type `Std::Result[Std::Int, Std::Channel::ClosedError]` cannot be assigned to type `never`"),
+			},
+		},
+		"can pop from a channel and short declare a variable": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case v := <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a variable": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case var v = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a variable with a pattern": {
+			input: `
+				ch := Channel::[ArrayList[Int]]()
+				select
+				case var Result(value, err) = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a value": {
+			input: `
+				ch := Channel::[Int]()
+				select
+				case val v = <<ch
+					puts "sent"
+				end
+			`,
+		},
+		"can pop from a channel and declare a value with a pattern": {
+			input: `
+				ch := Channel::[ArrayList[Int]]()
+				select
+				case val Result(value, err) = <<ch
+					puts "sent"
 				end
 			`,
 		},
@@ -1060,8 +1314,8 @@ func TestNumericForExpression(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "undefined local `a`"),
 				diagnostic.NewFailure(L("<main>", P(15, 2, 15), P(15, 2, 15)), "undefined local `b`"),
-				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(18, 2, 18)), "undefined local `c`"),
 				diagnostic.NewFailure(L("<main>", P(25, 3, 6), P(25, 3, 6)), "undefined local `d`"),
+				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(18, 2, 18)), "undefined local `c`"),
 			},
 		},
 		"returns never if condition is truthy": {

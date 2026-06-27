@@ -436,6 +436,7 @@ func TestVMSource_Values(t *testing.T) {
 				a
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(14, 2, 14)), "a value must be initialised on declaration `a`"),
 				diagnostic.NewFailure(L(P(20, 3, 5), P(20, 3, 5)), "cannot access uninitialised local `a`"),
 			},
 		},

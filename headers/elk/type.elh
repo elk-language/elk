@@ -1,0 +1,5 @@
+##[
+	Represents an Elk type.
+]##
+abstract mixin ::Std::Elk::Type
+end

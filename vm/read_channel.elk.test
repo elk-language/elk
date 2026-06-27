@@ -1,0 +1,278 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+using Std::Sync::WaitGroup
+using Std::Sync::WaitGroup::spawn!
+
+describe "ReadChannel", ->
+
+	context "select", ->
+		should "trigger the case for available buffered channel", ->
+			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Int]()
+			rch2 := ch2.readonly
+
+			ch1 << 9
+
+			var result: Int?
+			select
+			case v := <<rch1
+				result = v.unwrap + 3
+			case v := <<rch2
+				result = v.unwrap * 2
+			end
+
+			assert! result == 12
+		end
+
+		should "wait and trigger the read case for available channel", ->
+			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<rch1
+				result = v.unwrap + 3
+			case v := <<rch2
+				result = v.unwrap * 2
+			end
+
+			wg.wait
+
+			assert! result == 6
+		end
+
+		should "trigger default case", ->
+			ch1 := Channel::[Int](5)
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<rch1
+				result = v.unwrap + 3
+			case v := <<rch2
+				result = v.unwrap * 2
+			else
+				result = -420
+			end
+
+			wg.wait
+
+			assert! result == -420
+		end
+
+		should "trigger send case when no reader is available", ->
+			ch1 := Channel::[Int]()
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Int](5)
+			rch2 := ch2.readonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				<<rch1
+			end
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				ch2 << 3
+			end
+
+			var result: Int?
+			select
+			case ch1 << 9
+				result = 69
+			case v := <<rch2
+				result = v.unwrap * 2
+			end
+
+			wg.wait
+
+			assert! result == 69
+		end
+
+
+	end
+
+	context "capacity", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			rch := ch.readonly
+			assert! rch.capacity == 0
+		end
+
+		should "return non-zero for buffered channel", ->
+			ch := Channel::[Float](10)
+			rch := ch.readonly
+			assert! rch.capacity == 10
+		end
+	end
+
+	context "length", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			rch := ch.readonly
+			assert! rch.length == 0
+		end
+
+		should "return zero for buffered channel with no elements", ->
+			ch := Channel::[Float](10)
+			rch := ch.readonly
+			assert! rch.length == 0
+		end
+
+		should "return non-zero for buffered channel with elements", ->
+			ch := Channel::[Float](10)
+			rch := ch.readonly
+
+			assert! rch.length == 0
+
+			ch << 2.0
+			assert! rch.length == 1
+
+			ch << 55.2
+			assert! rch.length == 2
+		end
+	end
+
+	context "left_capacity", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			rch := ch.readonly
+			assert! rch.left_capacity == 0
+		end
+
+		should "return capacity for buffered channel with no elements", ->
+			ch := Channel::[Float](10)
+			rch := ch.readonly
+			assert! rch.capacity == 10
+			assert! rch.left_capacity == 10
+		end
+
+		should "return non-zero for buffered channel with elements", ->
+			ch := Channel::[Float](10)
+			rch := ch.readonly
+
+			assert! rch.left_capacity == 10
+
+			ch << 2.0
+			assert! rch.left_capacity == 9
+
+			ch << 55.2
+			assert! rch.left_capacity == 8
+		end
+	end
+
+	context "==", ->
+		should "return true for the same channel object", ->
+			ch := Channel::[Float]()
+			rch := ch.readonly
+
+			result := rch == rch
+			assert! result == true
+		end
+
+		should "return false for different channel", ->
+			ch1 := Channel::[Float]()
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Float]()
+			rch2 := ch2.readonly
+
+			result := rch1 == rch2
+			assert! result == false
+		end
+	end
+
+	context "=~", ->
+		should "return true for the same channel object", ->
+			ch := Channel::[Float]()
+			rch := ch.readonly
+
+			result := rch =~ rch
+			assert! result == true
+		end
+
+		should "return false for different channel", ->
+			ch1 := Channel::[Float]()
+			rch1 := ch1.readonly
+
+			ch2 := Channel::[Float]()
+			rch2 := ch2.readonly
+
+			result := rch1 =~ rch2
+			assert! result == false
+		end
+	end
+
+	context "pop", ->
+		should "should pop from a buffered channel without blocking", ->
+			ch := Channel::[Float](2)
+			rch := ch.readonly
+			ch << 2.5
+
+			result := <<rch
+			assert! result.unwrap == 2.5
+		end
+
+		should "should throw when popping from a closed channel", ->
+			ch := Channel::[Float](2)
+			rch := ch.readonly
+
+			ch.close
+			result := <<rch
+			assert_throws! result.unwrap match Channel::ClosedError()
+		end
+	end
+
+	context "iter", ->
+		should "should return a read view of channel", ->
+			ch := Channel::[Float](3)
+			ch << 5.5
+			ch << 2.25
+			ch.close
+
+			rch := ch.readonly
+			var result: ArrayList[Float] = []
+			for f in rch
+				result << f
+			end
+
+			assert! result == [5.5, 2.25]
+		end
+	end
+
+end

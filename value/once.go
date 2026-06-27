@@ -9,7 +9,7 @@ var OnceClass *Class // ::Std::Sync::Once
 
 // Wraps a Go Once.
 type Once struct {
-	Native sync.Once
+	native sync.Once
 }
 
 func NewOnce() *Once {
@@ -50,6 +50,10 @@ func (o *Once) Error() string {
 
 func (*Once) InstanceVariables() *InstanceVariables {
 	return nil
+}
+
+func (o *Once) Native() *sync.Once {
+	return &o.native
 }
 
 func initOnce() {

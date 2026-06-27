@@ -269,6 +269,9 @@ func (i UInt64) Multiply(other Value) (UInt64, Value) {
 func (i UInt64) ModuloVal(other Value) (UInt64, Value) {
 	switch o := other.SafeAsReference().(type) {
 	case UInt64:
+		if o == 0 {
+			return 0, Ref(NewZeroDivisionError())
+		}
 		return i % o, Undefined
 	default:
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
@@ -284,6 +287,13 @@ func (i UInt64) ModuloVal(other Value) (UInt64, Value) {
 		return 0, Ref(NewZeroDivisionError())
 	}
 	return i % o, Undefined
+}
+
+func (i UInt64) ModuloUInt64(other UInt64) (UInt64, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i % other, Undefined
 }
 
 func (i UInt64) Divide(other Value) (UInt64, Value) {

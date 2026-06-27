@@ -33,7 +33,7 @@ func initKernel() {
 					return value.Undefined, err
 				}
 
-				result, err := vm.CallMethodByName(toStringSymbol, val)
+				result, err := ToString(vm, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -50,7 +50,7 @@ func initKernel() {
 		"print@1",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			val := args[1]
-			result, err := vm.CallMethodByName(toStringSymbol, val)
+			result, err := ToString(vm, val)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -74,7 +74,7 @@ func initKernel() {
 					return value.Undefined, err
 				}
 
-				result, err := vm.CallMethodByName(toStringSymbol, val)
+				result, err := ToString(vm, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -96,7 +96,7 @@ func initKernel() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			val := args[1]
 
-			result, err := vm.CallMethodByName(toStringSymbol, val)
+			result, err := ToString(vm, val)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -122,7 +122,7 @@ func initKernel() {
 				duration = durationVal.AsInlineTimeSpan()
 			}
 
-			time.Sleep(duration.Go())
+			time.Sleep(duration.Native())
 
 			return value.Nil, value.Undefined
 		},
@@ -146,10 +146,10 @@ func initKernel() {
 			go func(p *Promise, d time.Duration) {
 				<-time.After(d)
 				p.Resolve(value.Nil)
-			}(p, duration.Go())
+			}(p, duration.Native())
 
 			return value.Ref(p), value.Undefined
 		},
-		DefWithParameters(1),
+		DefWithParameters(2),
 	)
 }

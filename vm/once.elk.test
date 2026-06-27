@@ -1,0 +1,82 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Once", ->
+	context "singleton", ->
+		context "fn", ->
+			should "call function only once", ->
+				a := 0
+				fn := Sync::Once.fn ->
+					a++
+				end
+
+				fn()
+				assert! a == 1
+
+				fn()
+				assert! a == 1
+
+				fn()
+				assert! a == 1
+			end
+		end
+
+		context "memo", ->
+			should "return the same calculated value", ->
+				a := 0
+				fn := Sync::Once.memo() ->
+					a++
+				end
+
+				result := fn()
+				assert! result == 1
+				assert! a == 1
+
+				fn()
+				assert! result == 1
+				assert! a == 1
+
+				fn()
+				assert! result == 1
+				assert! a == 1
+			end
+
+			should "throw the same error", ->
+				a := 0
+				fn := Sync::Once.memo() ->
+					a++
+					throw :error
+				end
+
+				assert_throws! fn() match :error
+				assert! a == 1
+
+				assert_throws! fn() match :error
+				assert! a == 1
+
+				assert_throws! fn() match :error
+				assert! a == 1
+			end
+		end
+
+	end
+
+	context "instance", ->
+		context "call", ->
+			should "call only one closure", ->
+				once := Sync::Once()
+				a := 0
+
+				once() ->
+					a = 5
+				end
+				assert! a == 5
+
+				once() ->
+					a = 20
+				end
+				assert! a == 5
+			end
+		end
+	end
+end

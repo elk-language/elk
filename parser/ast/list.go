@@ -181,14 +181,18 @@ func (n *ArrayListLiteralNode) Inspect() string {
 	buff.WriteString("Std::Elk::AST::ArrayListLiteralNode{\n")
 
 	fmt.Fprintf(&buff, "span: %s", (*value.Location)(n.loc).Inspect())
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  capacity: ")
 	if n.Capacity == nil {
@@ -366,14 +370,18 @@ func (n *WordArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::WordArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  capacity: ")
 	if n.Capacity == nil {
@@ -551,14 +559,18 @@ func (n *SymbolArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SymbolArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  capacity: ")
 	if n.Capacity == nil {
@@ -736,14 +748,18 @@ func (n *HexArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::HexArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  capacity: ")
 	if n.Capacity == nil {
@@ -926,14 +942,18 @@ func (n *BinArrayListLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::BinArrayListLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  capacity: ")
 	if n.Capacity == nil {
@@ -1040,14 +1060,18 @@ func (n *ListPatternNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ListPatternNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  elements: %[\n")
-	for i, element := range n.Elements {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  elements: %[")
+	if len(n.Elements) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Elements {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

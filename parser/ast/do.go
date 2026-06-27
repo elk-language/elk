@@ -152,32 +152,44 @@ func (n *DoExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::DoExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, stmt := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  catches: %[\n")
-	for i, stmt := range n.Catches {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  catches: %[")
+	if len(n.Catches) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Catches {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  finally: %[\n")
-	for i, stmt := range n.Finally {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  finally: %[")
+	if len(n.Finally) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Finally {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -344,14 +356,18 @@ func (n *CatchNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.StackTraceVar.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

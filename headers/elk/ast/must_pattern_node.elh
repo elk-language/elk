@@ -1,0 +1,11 @@
+module Std::Elk::AST
+  ##[
+    Represents a `must` pattern eg. `must`
+  ]##
+  sealed primitive class MustPatternNode
+    include PatternNode
+
+    init(location: FS::Location = loop; end); end
+    def location: FS::Location; end
+  end
+end

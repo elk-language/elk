@@ -17,20 +17,18 @@ func initClassDeclarationNode() {
 
 			var body []ast.StatementNode
 			if !args[2].IsUndefined() {
-				bodyTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-				body = make([]ast.StatementNode, bodyTuple.Length())
-				for _, el := range *bodyTuple {
-					body = append(body, el.MustReference().(ast.StatementNode))
-				}
+				bodyTuple := args[2].AsReference().(value.ArrayTuple)
+				body = value.TransformArrayTupleIntoNativeArrayTuple(bodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var typeParams []ast.TypeParameterNode
 			if !args[3].IsUndefined() {
-				typeParamTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				typeParams = make([]ast.TypeParameterNode, typeParamTuple.Length())
-				for _, el := range *typeParamTuple {
-					typeParams = append(typeParams, el.MustReference().(ast.TypeParameterNode))
-				}
+				typeParamTuple := args[3].AsReference().(value.ArrayTuple)
+				typeParams = value.TransformArrayTupleIntoNativeArrayTuple(typeParamTuple, func(v value.Value) ast.TypeParameterNode {
+					return v.AsReference().(ast.TypeParameterNode)
+				}).ToSlice()
 			}
 
 			var abstract bool
@@ -143,15 +141,8 @@ func initClassDeclarationNode() {
 		"type_parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-
-			collection := self.TypeParameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeParameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -172,15 +163,8 @@ func initClassDeclarationNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

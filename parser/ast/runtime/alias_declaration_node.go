@@ -14,11 +14,10 @@ func initAliasDeclarationNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			arg0Tuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			arg0 := make([]*ast.AliasDeclarationEntry, arg0Tuple.Length())
-			for i, el := range *arg0Tuple {
-				arg0[i] = el.MustReference().(*ast.AliasDeclarationEntry)
-			}
+			arg0Tuple := args[1].AsReference().(value.ArrayTuple)
+			arg0 := value.TransformArrayTupleIntoNativeArrayTuple(arg0Tuple, func(v value.Value) *ast.AliasDeclarationEntry {
+				return (*ast.AliasDeclarationEntry)(v.Pointer())
+			})
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -28,7 +27,7 @@ func initAliasDeclarationNode() {
 			}
 			self := ast.NewAliasDeclarationNode(
 				argLoc,
-				arg0,
+				arg0.ToSlice(),
 			)
 			return value.Ref(self), value.Undefined
 
@@ -41,15 +40,8 @@ func initAliasDeclarationNode() {
 		"entries",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AliasDeclarationNode)
-
-			collection := self.Entries
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Entries)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

@@ -20,6 +20,7 @@ const (
 	UNQUOTE_CONSTANT_KIND                              // Unquote kind for constant nodes
 	UNQUOTE_IDENTIFIER_KIND                            // Unquote kind for identifier nodes
 	UNQUOTE_INSTANCE_VARIABLE_KIND                     // Unquote kind for instance variable nodes
+	UNQUOTE_COMPLEX_CONSTANT_KIND                      // Unquote kind for complex constant nodes
 )
 
 type UnquoteOrInvalidNode interface {
@@ -27,6 +28,7 @@ type UnquoteOrInvalidNode interface {
 	PatternNode
 	TypeNode
 	ConstantNode
+	ComplexConstantNode
 	IdentifierNode
 	InstanceVariableNode
 	unquote()

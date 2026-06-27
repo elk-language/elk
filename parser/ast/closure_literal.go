@@ -203,14 +203,18 @@ func (n *ClosureLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ClosureLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  parameters: %[\n")
-	for i, element := range n.Parameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  parameters: %[")
+	if len(n.Parameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Parameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  return_type: ")
 	if n.ReturnType == nil {
@@ -226,14 +230,18 @@ func (n *ClosureLiteralNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.ThrowType.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	fmt.Fprintf(&buff, ",\n  lambda: %t", n.Lambda)
 

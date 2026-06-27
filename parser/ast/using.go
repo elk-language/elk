@@ -248,14 +248,18 @@ func (n *UsingEntryWithSubentriesNode) Inspect() string {
 	buff.WriteString(",\n  namespace: ")
 	indent.IndentStringFromSecondLine(&buff, n.Namespace.Inspect(), 1)
 
-	buff.WriteString(",\n  subentries: %[\n")
-	for i, element := range n.Subentries {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  subentries: %[")
+	if len(n.Subentries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Subentries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
@@ -360,14 +364,18 @@ func (n *UsingExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::UsingExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  entries: %[\n")
-	for i, element := range n.Entries {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  entries: %[")
+	if len(n.Entries) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Entries {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

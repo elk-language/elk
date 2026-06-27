@@ -21,8 +21,8 @@ var _ HashMap = &NativeHashMap[value.String, value.String]{}
 
 // UNSAFE! Cast a map with native go types to a map with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `castNativeMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `map[value.String]value.UInt8`
-func castNativeMap[
+// underlying types eg. `unsafeCastNativeMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `map[value.String]value.UInt8`
+func unsafeCastNativeMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -33,15 +33,15 @@ func castNativeMap[
 
 // UNSAFE! Cast a map with native go types to a new Elk `NativeHashMap` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `NewCastNativeHashMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `*NativeHashMap[value.String, value.UInt8]`
-func NewCastNativeHashMap[
+// underlying types eg. `NewUnsafeCastNativeHashMap[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `*NativeHashMap[value.String, value.UInt8]`
+func NewUnsafeCastNativeHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
 	OV value.ValueInterface,
 ](m map[IK]IV) *NativeHashMap[OK, OV] {
 	return &NativeHashMap[OK, OV]{
-		m: castNativeMap[IK, IV, OK, OV](m),
+		m: unsafeCastNativeMap[IK, IV, OK, OV](m),
 	}
 }
 
@@ -49,10 +49,10 @@ func NewCastNativeHashMap[
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeHashMap(m, func(k string, v uint8) (value.String, value.UInt8) {
+//	TransformMapIntoNativeHashMap(m, func(k string, v uint8) (value.String, value.UInt8) {
 //		return value.String(k), value.UInt8(v)
 //	})
-func TransformIntoNativeHashMap[
+func TransformMapIntoNativeHashMap[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -79,6 +79,18 @@ func NewNativeHashMap[K value.ComparableValueInterface, V value.ValueInterface](
 	return &NativeHashMap[K, V]{
 		m: make(map[K]V, capacity),
 	}
+}
+
+func NewNativeHashMapWithElements[K value.ComparableValueInterface, V value.ValueInterface](elements ...value.NativePair[K, V]) *NativeHashMap[K, V] {
+	return NewNativeHashMapWithElementsAndTotalCapacity(len(elements), elements...)
+}
+
+func NewNativeHashMapWithElementsAndTotalCapacity[K value.ComparableValueInterface, V value.ValueInterface](capacity int, elements ...value.NativePair[K, V]) *NativeHashMap[K, V] {
+	m := NewNativeHashMap[K, V](capacity)
+	for _, pair := range elements {
+		m.Set(pair.NativeKey(), pair.NativeValue())
+	}
+	return m
 }
 
 func (h *NativeHashMap[K, V]) CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value) {
@@ -174,11 +186,11 @@ func (h *NativeHashMap[K, V]) Set(key K, val V) {
 func (h *NativeHashMap[K, V]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 	v, ok := value.Downcast[V](val)
 	if !ok {
-		return value.NewInvalidValueInTypedMap(h, v.Class()).ToValue()
+		return value.NewInvalidValueInTypedMap(h, val.Class()).ToValue()
 	}
 
 	h.m[k] = v

@@ -213,7 +213,7 @@ func (f Float) AddVal(other Value) (result, err Value) {
 
 func (f Float) AddBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.AddBigFloat(fBigFloat, other)
+	return fBigFloat.AddMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) AddFloat(other Float) Float {
@@ -262,7 +262,7 @@ func (f Float) SubtractVal(other Value) (result, err Value) {
 
 func (f Float) SubtractBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.SubBigFloat(fBigFloat, other)
+	return fBigFloat.SubMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) SubtractFloat(other Float) Float {
@@ -311,7 +311,7 @@ func (f Float) MultiplyVal(other Value) (result, err Value) {
 
 func (f Float) MultiplyBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.MulBigFloat(fBigFloat, other)
+	return fBigFloat.MulMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) MultiplyFloat(other Float) Float {
@@ -360,7 +360,7 @@ func (f Float) DivideVal(other Value) (result, err Value) {
 
 func (f Float) DivideBigFloat(other *BigFloat) *BigFloat {
 	fBigFloat := NewBigFloat(float64(f))
-	return fBigFloat.DivBigFloat(fBigFloat, other)
+	return fBigFloat.DivMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) DivideFloat(other Float) Float {
@@ -465,7 +465,7 @@ func (f Float) ModuloVal(other Value) (result, err Value) {
 func (f Float) ModuloBigFloat(other *BigFloat) *BigFloat {
 	prec := max(other.Precision(), 53)
 	fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
-	return fBigFloat.Mod(fBigFloat, other)
+	return fBigFloat.ModMutBigFloat(fBigFloat, other)
 }
 
 func (f Float) ModuloFloat(other Float) Float {
@@ -788,65 +788,67 @@ func (f Float) LessThanEqualBigInt(other *BigInt) bool {
 
 // Check whether f is equal to other
 func (f Float) LaxEqualVal(other Value) Value {
+	return BoolVal(f.LaxEqual(other))
+}
+
+func (f Float) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *BigInt:
-			return Bool(f == o.ToFloat()).ToValue()
+			return f == o.ToFloat()
 		case *BigFloat:
 			if f.IsNaN() || o.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			fBigFloat := (&BigFloat{}).SetFloat(f)
-			return Bool(fBigFloat.Cmp(o) == 0).ToValue()
+			return fBigFloat.Cmp(o) == 0
 		case Int64:
-			return Bool(f == Float(o)).ToValue()
+			return f == Float(o)
 		case UInt64:
-			return Bool(f == Float(o)).ToValue()
+			return f == Float(o)
 		case Float64:
-			return Bool(float64(f) == float64(o)).ToValue()
+			return float64(f) == float64(o)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case SMALL_INT_FLAG:
-		return Bool(f == Float(other.AsSmallInt())).ToValue()
+		return f == Float(other.AsSmallInt())
 	case FLOAT_FLAG:
-		return Bool(f == other.AsFloat()).ToValue()
+		return f == other.AsFloat()
 	case INT64_FLAG:
-		return Bool(f == Float(other.AsInlineInt64())).ToValue()
+		return f == Float(other.AsInlineInt64())
 	case INT32_FLAG:
-		return Bool(f == Float(other.AsInt32())).ToValue()
+		return f == Float(other.AsInt32())
 	case INT16_FLAG:
-		return Bool(f == Float(other.AsInt16())).ToValue()
+		return f == Float(other.AsInt16())
 	case INT8_FLAG:
-		return Bool(f == Float(other.AsInt8())).ToValue()
+		return f == Float(other.AsInt8())
 	case UINT64_FLAG:
-		return Bool(f == Float(other.AsInlineUInt64())).ToValue()
+		return f == Float(other.AsInlineUInt64())
 	case UINT32_FLAG:
-		return Bool(f == Float(other.AsUInt32())).ToValue()
+		return f == Float(other.AsUInt32())
 	case UINT16_FLAG:
-		return Bool(f == Float(other.AsUInt16())).ToValue()
+		return f == Float(other.AsUInt16())
 	case UINT8_FLAG:
-		return Bool(f == Float(other.AsUInt8())).ToValue()
+		return f == Float(other.AsUInt8())
 	case FLOAT64_FLAG:
-		return Bool(float64(f) == float64(other.AsInlineFloat64())).ToValue()
+		return float64(f) == float64(other.AsInlineFloat64())
 	case FLOAT32_FLAG:
-		return Bool(Float(f) == Float(other.AsFloat32())).ToValue()
+		return Float(f) == Float(other.AsFloat32())
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
-// Check whether f is equal to other and return an error
-// if something went wrong.
+// Check whether f is equal to other.
 func (f Float) EqualVal(other Value) Value {
 	return Bool(f.Equal(other)).ToValue()
 }
 
-// Check whether f is equal to other and return an error
-// if something went wrong.
+// Check whether f is equal to other.
 func (f Float) Equal(other Value) bool {
 	if other.IsFloat() {
 		return f == other.AsFloat()
@@ -859,8 +861,7 @@ func (f Float) EqualFloat(other Float) bool {
 	return f == other
 }
 
-// Check whether f is strictly equal to other and return an error
-// if something went wrong.
+// Check whether f is strictly equal to other
 func (f Float) StrictEqualVal(other Value) Value {
 	return f.EqualVal(other)
 }
@@ -956,13 +957,13 @@ func initFloat() {
 	RegisterNativeClass("Std::Float", "value.FloatClass")
 
 	FloatClass.AddConstantString("NAN", FloatNaN().ToValue())
-	RegisterNativeConstant("Std::Float::NAN", "value.FloatNaN()", "value.Float")
+	RegisterNativeConstant("Std::Float::NAN", "value.FloatNaN()", FetchGoType("value.Float"))
 
 	FloatClass.AddConstantString("INF", FloatInf().ToValue())
-	RegisterNativeConstant("Std::Float::INF", "value.FloatInf()", "value.Float")
+	RegisterNativeConstant("Std::Float::INF", "value.FloatInf()", FetchGoType("value.Float"))
 
 	FloatClass.AddConstantString("NEG_INF", FloatNegInf().ToValue())
-	RegisterNativeConstant("Std::Float::NEG_INF", "value.FloatNegInf()", "value.Float")
+	RegisterNativeConstant("Std::Float::NEG_INF", "value.FloatNegInf()", FetchGoType("value.Float"))
 
 	FloatClass.AddConstantString("Convertible", Ref(NewInterface()))
 }

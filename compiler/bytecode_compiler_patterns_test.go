@@ -4018,7 +4018,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					bytecode.NewLineInfo(5, 2),
 				},
 				[]value.Value{
-					value.Ref(vm.MustNewHashRecordWithElements(
+					value.Ref(vm.MustNewHashRecordOfValueWithElements(
 						nil,
 						value.MakePairOfValue(
 							value.SmallInt(1).ToValue(),

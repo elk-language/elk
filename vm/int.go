@@ -63,82 +63,145 @@ func initInt() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
+
 	Def(
 		c,
 		"+",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().AddVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.AddVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+			return value.AddInt(self, other)
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"+@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.AddInts(self, other), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "+@2", "+")
+	Alias(c, "+@3", "+")
+
 	Def(
 		c,
 		"-",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().SubtractVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.SubtractVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+			return value.SubtractInt(self, other)
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"-@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.SubtractInts(self, other), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "-@2", "-")
+	Alias(c, "-@3", "-")
+
 	Def(
 		c,
 		"*",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().MultiplyVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.MultiplyVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+			return value.MultiplyInt(self, other)
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"*@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.MultiplyInts(self, other), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "*@2", "*")
+	Alias(c, "*@3", "*")
+
 	Def(
 		c,
 		"/",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().DivideVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.DivideVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+			return value.DivideInt(self, other)
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"/@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.DivideInts(self, other)
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "/@2", "/")
+	Alias(c, "/@3", "/")
+
+	Def(
+		c,
+		"**",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.ExponentiateInt(self, other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"**@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.ExponentiateInts(self, other), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "**@2", "**")
+	Alias(c, "**@3", "**")
+
+	Def(
+		c,
+		"%",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.ModuloInt(self, other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"%@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			return value.ModuloInts(self, other)
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "%@2", "%")
+	Alias(c, "%@3", "%")
+
 	Def(
 		c,
 		"is_even",
@@ -172,25 +235,6 @@ func initInt() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
-	)
-	Def(
-		c,
-		"**",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().ExponentiateVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.ExponentiateVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
-		},
-		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -450,25 +494,6 @@ func initInt() {
 			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
 				return s.BitwiseXorVal(other)
-			}
-
-			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"%",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			other := args[1]
-			if self.IsSmallInt() {
-				return self.AsSmallInt().ModuloVal(other)
-			}
-
-			switch s := self.SafeAsReference().(type) {
-			case *value.BigInt:
-				return s.ModuloVal(other)
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))

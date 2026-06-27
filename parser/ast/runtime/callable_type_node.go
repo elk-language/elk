@@ -15,11 +15,10 @@ func initCallableTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			var argParams []ast.ParameterNode
 			if !args[1].IsUndefined() {
-				argParamsTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-				argParams := make([]ast.ParameterNode, argParamsTuple.Length())
-				for i, el := range *argParamsTuple {
-					argParams[i] = el.MustReference().(ast.ParameterNode)
-				}
+				argParamsTuple := args[1].AsReference().(value.ArrayTuple)
+				argParams = value.TransformArrayTupleIntoNativeArrayTuple(argParamsTuple, func(v value.Value) ast.ParameterNode {
+					return v.AsReference().(ast.ParameterNode)
+				}).ToSlice()
 			}
 
 			var argReturnType ast.TypeNode
@@ -61,15 +60,8 @@ func initCallableTypeNode() {
 		"parameters",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
-
-			collection := self.Parameters
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Parameters)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

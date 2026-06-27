@@ -343,7 +343,7 @@ func (s String) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return SmallInt(s.Cmp(o)).ToValue(), Undefined
+			return s.CompareString(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -351,10 +351,18 @@ func (s String) CompareVal(other Value) (Value, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return SmallInt(s.Cmp(String(other.AsChar()))).ToValue(), Undefined
+		return s.CompareChar(other.AsChar()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
+}
+
+func (s String) CompareString(other String) SmallInt {
+	return SmallInt(s.Cmp(other))
+}
+
+func (s String) CompareChar(other Char) SmallInt {
+	return SmallInt(s.Cmp(String(other)))
 }
 
 // Check whether s is greater than other and return an error
@@ -370,7 +378,7 @@ func (s String) GreaterThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s > o, Undefined
+			return s.GreaterThanString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -378,10 +386,18 @@ func (s String) GreaterThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return s > String(other.AsChar()), Undefined
+		return s.GreaterThanChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
+}
+
+func (s String) GreaterThanString(other String) bool {
+	return s > other
+}
+
+func (s String) GreaterThanChar(other Char) bool {
+	return s > String(other)
 }
 
 // Check whether s is greater than or equal to other and return an error
@@ -397,7 +413,7 @@ func (s String) GreaterThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s >= o, Undefined
+			return s.GreaterThanEqualString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -405,10 +421,18 @@ func (s String) GreaterThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return s >= String(other.AsChar()), Undefined
+		return s.GreaterThanEqualChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
+}
+
+func (s String) GreaterThanEqualString(other String) bool {
+	return s >= other
+}
+
+func (s String) GreaterThanEqualChar(other Char) bool {
+	return s >= String(other)
 }
 
 // Check whether s is less than other and return an error
@@ -424,7 +448,7 @@ func (s String) LessThan(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s < o, Undefined
+			return s.LessThanString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -432,10 +456,18 @@ func (s String) LessThan(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return s < String(other.AsChar()), Undefined
+		return s.LessThanChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
+}
+
+func (s String) LessThanString(other String) bool {
+	return s < other
+}
+
+func (s String) LessThanChar(other Char) bool {
+	return s < String(other)
 }
 
 // Check whether s is less than or equal to other and return an error
@@ -451,7 +483,7 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return s <= o, Undefined
+			return s.LessThanEqualString(o), Undefined
 		default:
 			return false, Ref(NewCoerceError(s.Class(), other.Class()))
 		}
@@ -459,19 +491,27 @@ func (s String) LessThanEqual(other Value) (bool, Value) {
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return s <= String(other.AsChar()), Undefined
+		return s.LessThanEqualChar(other.AsChar()), Undefined
 	default:
 		return false, Ref(NewCoerceError(s.Class(), other.Class()))
 	}
 }
 
-// Check whether s is equal to other
-func (s String) LaxEqualVal(other Value) Value {
-	return BoolVal(s.LaxEqualBool(other))
+func (s String) LessThanEqualString(other String) bool {
+	return s <= other
+}
+
+func (s String) LessThanEqualChar(other Char) bool {
+	return s <= String(other)
 }
 
 // Check whether s is equal to other
-func (s String) LaxEqualBool(other Value) bool {
+func (s String) LaxEqualVal(other Value) Value {
+	return BoolVal(s.LaxEqual(other))
+}
+
+// Check whether s is equal to other
+func (s String) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:

@@ -2105,6 +2105,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.GREATER)
 		case '<':
+			if l.matchChar('-') {
+				return l.token(token.LEFT_THIN_ARROW)
+			}
 			if l.acceptChar('.') {
 				if l.acceptNextChar('.') {
 					l.advanceChars(2)
@@ -2136,6 +2139,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				}
 				if l.matchChar(':') {
 					return l.token(token.INSTANCE_OF_OP)
+				}
+				if l.matchChar('@') {
+					return l.token(token.LBITSHIFT_AT)
 				}
 				return l.token(token.LBITSHIFT)
 			}
@@ -2352,6 +2358,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 		case '_':
 			return l.privateIdentifier(afterMethodCallOperator)
 		case '@':
+			if l.matchChar('{') {
+				return l.token(token.AT_LBRACE)
+			}
 			if l.matchChar('"') {
 				return l.quotedInstanceVariable()
 			}

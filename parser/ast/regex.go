@@ -531,13 +531,18 @@ func (n *InterpolatedRegexLiteralNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::InterpolatedRegexLiteralNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  content: %[\n")
-	for i, stmt := range n.Content {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  content: %[")
+	if len(n.Content) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Content {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
+	buff.WriteRune(']')
 
 	buff.WriteString("\n  ]")
 

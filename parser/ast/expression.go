@@ -11,6 +11,7 @@ func (*UnhygienicNode) expressionNode()                    {}
 func (*TypeExpressionNode) expressionNode()                {}
 func (*PatternExpressionNode) expressionNode()             {}
 func (*MatchExpressionNode) expressionNode()               {}
+func (*BreakpointNode) expressionNode()                    {}
 func (*MacroNameNode) expressionNode()                     {}
 func (*InstanceVariableDeclarationNode) expressionNode()   {}
 func (*VariablePatternDeclarationNode) expressionNode()    {}
@@ -69,13 +70,16 @@ func (*QuoteExpressionNode) expressionNode()               {}
 func (*UnquoteNode) expressionNode()                       {}
 func (*SingletonBlockExpressionNode) expressionNode()      {}
 func (*SwitchExpressionNode) expressionNode()              {}
+func (*SelectExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()                  {}
+func (*UnquoteIfExpressionNode) expressionNode()           {}
 func (*UnlessExpressionNode) expressionNode()              {}
 func (*WhileExpressionNode) expressionNode()               {}
 func (*UntilExpressionNode) expressionNode()               {}
 func (*LoopExpressionNode) expressionNode()                {}
 func (*NumericForExpressionNode) expressionNode()          {}
 func (*ForInExpressionNode) expressionNode()               {}
+func (*UnquoteForInExpressionNode) expressionNode()        {}
 func (*BreakExpressionNode) expressionNode()               {}
 func (*LabeledExpressionNode) expressionNode()             {}
 func (*GoExpressionNode) expressionNode()                  {}
@@ -84,6 +88,7 @@ func (*YieldExpressionNode) expressionNode()               {}
 func (*ContinueExpressionNode) expressionNode()            {}
 func (*ThrowExpressionNode) expressionNode()               {}
 func (*MustExpressionNode) expressionNode()                {}
+func (*DeferExpressionNode) expressionNode()               {}
 func (*TryExpressionNode) expressionNode()                 {}
 func (*AwaitExpressionNode) expressionNode()               {}
 func (*TypeofExpressionNode) expressionNode()              {}

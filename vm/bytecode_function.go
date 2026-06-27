@@ -363,6 +363,14 @@ func (f *BytecodeFunction) DisassembleString() (string, error) {
 	return buffer.String(), nil
 }
 
+func (f *BytecodeFunction) MustDisassembleString() string {
+	result, err := f.DisassembleString()
+	if err != nil {
+		panic(fmt.Sprintf("disassembly error for %s: %s", f.name.String(), err))
+	}
+	return result
+}
+
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeFunction) Disassemble(output io.Writer) error {
@@ -414,9 +422,9 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	opcodeByte := f.Instructions[offset]
 	opcode := bytecode.OpCode(opcodeByte)
 	switch opcode {
-	case bytecode.RETURN, bytecode.ADD, bytecode.SUBTRACT,
-		bytecode.MULTIPLY, bytecode.DIVIDE, bytecode.EXPONENTIATE,
-		bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
+	case bytecode.RETURN, bytecode.BREAKPOINT, bytecode.ADD, bytecode.SUBTRACT,
+		bytecode.MULTIPLY, bytecode.DIVIDE, bytecode.EXPONENTIATE, bytecode.SELECT, bytecode.CHECK_ABORT,
+		bytecode.EXEC_DEFER, bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
 		bytecode.TRUE, bytecode.FALSE, bytecode.NIL, bytecode.POP,
 		bytecode.RBITSHIFT, bytecode.LBITSHIFT, bytecode.NOOP,
 		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
@@ -450,7 +458,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS,
 		bytecode.GET_IVAR_0, bytecode.GET_IVAR_1, bytecode.GET_IVAR_2, bytecode.SET_IVAR_0, bytecode.SET_IVAR_1, bytecode.SET_IVAR_2:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
-	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8, bytecode.BOX_LOCAL8,
+	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUES_TO8,
@@ -458,6 +466,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
 		bytecode.LOAD_UINT8, bytecode.GET_IVAR8, bytecode.SET_IVAR8:
 		return f.disassembleUnsignedNumericOperands(output, 1, 1, offset)
+	case bytecode.BOX_LOCAL8:
+		return f.disassembleUnsignedNumericOperands(output, 2, 1, offset)
 	case bytecode.LOAD_INT_8, bytecode.LOAD_INT64_8,
 		bytecode.LOAD_INT32_8, bytecode.LOAD_INT16_8, bytecode.LOAD_INT8:
 		return f.disassembleSignedNumericOperands(output, 1, 1, offset)
@@ -473,8 +483,10 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
 		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
 		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16, bytecode.BOX_LOCAL16:
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
+	case bytecode.BOX_LOCAL16:
+		return f.disassembleUnsignedUnevenNumericOperands(output, offset, 2, 1)
 	case bytecode.LOAD_INT_16:
 		return f.disassembleSignedNumericOperands(output, 1, 2, offset)
 	case bytecode.DEF_NAMESPACE:
@@ -565,6 +577,34 @@ func (f *BytecodeFunction) disassembleUnsignedNumericOperands(output io.Writer, 
 
 	for i := 0; i < operands; i++ {
 		a := readFunc(f.Instructions[offset+1+i*operandBytes : offset+1+(i+1)*operandBytes])
+		printNumField(output, a)
+	}
+	fmt.Fprintln(output)
+
+	return offset + bytes, nil
+}
+
+func (f *BytecodeFunction) disassembleUnsignedUnevenNumericOperands(output io.Writer, offset int, operands ...int) (int, error) {
+	var operandByteSum int
+	for _, opBytes := range operands {
+		operandByteSum += opBytes
+	}
+	bytes := 1 + operandByteSum
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, offset)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	currentOffset := offset + 1
+	for operandBytes := range operands {
+		readFunc := readFuncForUnsignedBytes(operandBytes)
+		a := readFunc(f.Instructions[currentOffset:])
+		currentOffset += operandBytes
 		printNumField(output, a)
 	}
 	fmt.Fprintln(output)

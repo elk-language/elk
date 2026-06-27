@@ -13,11 +13,10 @@ func initAttrDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			entriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			entries := make([]ast.ParameterNode, entriesTuple.Length())
-			for _, el := range *entriesTuple {
-				entries = append(entries, el.MustReference().(ast.ParameterNode))
-			}
+			entriesTuple := args[1].AsReference().(value.ArrayTuple)
+			entries := value.TransformArrayTupleIntoNativeArrayTuple(entriesTuple, func(v value.Value) ast.ParameterNode {
+				return v.AsReference().(ast.ParameterNode)
+			}).ToSlice()
 
 			var docComment string
 			if !args[2].IsUndefined() {
@@ -45,15 +44,8 @@ func initAttrDeclarationNode() {
 		"entries",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.AttrDeclarationNode)
-
-			collection := self.Entries
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Entries)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

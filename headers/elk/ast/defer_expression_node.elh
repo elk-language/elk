@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Represents a `defer` expression eg. `defer foo()`
+  ]##
+  sealed primitive class DeferExpressionNode
+    include ExpressionNode
+
+    init(expression: ExpressionNode, location: FS::Location = loop; end); end
+    def expression: ExpressionNode; end
+    def location: FS::Location; end
+  end
+end

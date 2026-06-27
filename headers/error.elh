@@ -17,6 +17,11 @@ class Std::OutOfRangeError < Std::Error; end
 ]##
 class Std::FormatError < Std::Error; end
 
+##[
+	Thrown when there is a type mismatch.
+]##
+class Std::TypeError < Std::Error; end
+
 class Std::FileSystemError < Std::Error; end
 
 ##[
@@ -42,3 +47,8 @@ class Std::IndexError < Std::Error; end
 	Thrown when encountering a nonexistent timezone.
 ]##
 class Std::InvalidTimezoneError < Std::Error; end
+
+##[
+	Thrown after an attempt od dividing an integer by zero.
+]##
+class Std::ZeroDivisionError < Std::Error; end

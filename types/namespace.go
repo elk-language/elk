@@ -139,6 +139,25 @@ func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	return false
 }
 
+func ConstructTypeArgumentsFromTypeParameters(typeParams []*TypeParameter) *TypeArguments {
+	typeArgMap := make(TypeArgumentMap, len(typeParams))
+	typeArgOrder := make([]value.Symbol, len(typeParams))
+
+	for i, typeParam := range typeParams {
+		typeArg := NewTypeArgument(
+			typeParam,
+			typeParam.Variance,
+		)
+		typeArgMap[typeParam.Name] = typeArg
+		typeArgOrder[i] = typeParam.Name
+	}
+
+	return NewTypeArguments(
+		typeArgMap,
+		typeArgOrder,
+	)
+}
+
 func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]value.Symbol, len(typeParams))
@@ -381,8 +400,41 @@ func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
 	return currentType
 }
 
+func PathToNestedSubtype(path []value.Symbol, namespace Namespace) Type {
+	var currentType Type = namespace
+	for _, subtypeName := range path {
+		if namespace == nil {
+			panic(
+				fmt.Sprintf(
+					"`%s` is not a namespace",
+					InspectWithColor(currentType),
+				),
+			)
+		}
+		constant, ok := namespace.Subtype(subtypeName)
+		if !ok {
+			panic(
+				fmt.Sprintf(
+					"Undefined subtype `%s` in namespace `%s`",
+					subtypeName,
+					InspectWithColor(namespace),
+				),
+			)
+		}
+		currentType = constant.Type
+
+		namespace, _ = currentType.(Namespace)
+	}
+
+	return currentType
+}
+
 func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 	return NameToType(fullSubtypePath, env).(Namespace)
+}
+
+func PathToNestedNamespace(path []value.Symbol, namespace Namespace) Namespace {
+	return PathToNestedSubtype(path, namespace).(Namespace)
 }
 
 // Iterate over direct parents of the given namespace (including itself).

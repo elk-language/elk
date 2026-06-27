@@ -43,7 +43,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
-		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
+		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH, SELECT,
 		INT, INT64, UINT, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
 		FLOAT, BIG_FLOAT, FLOAT64, FLOAT32, REGEX_BEG:
 		return true
@@ -60,7 +60,7 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE,
 		RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL, FLOAT, FLOAT32, FLOAT64,
 		NIL, FALSE, TRUE, LOOP, ENUM,
-		VAR, VAL, CONST, DO, SELF, SUPER, SWITCH, MINUS, PLUS:
+		VAR, VAL, CONST, DO, SELF, SUPER, SWITCH, SELECT, MINUS, PLUS:
 		return true
 	}
 
@@ -240,12 +240,14 @@ const (
 	QUESTION_DOT_DOT             // Safe cascade call operator `?..`
 	COLON                        // Colon `:`
 	QUESTION                     // Question mark `?`
+	AT_LBRACE                    // Start of a inferred object pattern `@{`
 
 	// Operators start here
 	LABEL_OP_BEG
-	THIN_ARROW   // Thin arrow `->` (closure arrow)
-	WIGGLY_ARROW // Wiggly arrow `~>` (lambda arrow)
-	THICK_ARROW  // Thick arrow `=>`
+	LEFT_THIN_ARROW // Left thin arrow `<-`
+	THIN_ARROW      // Thin arrow `->` (closure arrow)
+	WIGGLY_ARROW    // Wiggly arrow `~>` (lambda arrow)
+	THICK_ARROW     // Thick arrow `=>`
 
 	// Assignment operators start here
 	LABEL_ASSIGN_OP_BEG
@@ -305,6 +307,7 @@ const (
 	LABEL_OVERRIDABLE_OP_BEG
 	PLUS_PLUS        // Increment operator `++`
 	MINUS_MINUS      // Decrement operator `--`
+	LBITSHIFT_AT     // Plus `<<@`
 	PLUS_AT          // Plus `+@`
 	MINUS_AT         // Negate `-@`
 	MINUS            // Minus `-`
@@ -495,6 +498,7 @@ const (
 	SELF              // Keyword `self`
 	SUPER             // Keyword `super`
 	SWITCH            // Keyword `switch`
+	SELECT            // Keyword `select`
 	CASE              // Keyword `case`
 	MATCH             // Keyword `match`
 	WITH              // Keyword `with`
@@ -603,6 +607,7 @@ var Keywords = map[string]Type{
 	"self":            SELF,
 	"super":           SUPER,
 	"switch":          SWITCH,
+	"select":          SELECT,
 	"case":            CASE,
 	"match":           MATCH,
 	"with":            WITH,
@@ -659,6 +664,7 @@ var tokenNames = [...]string{
 	NEWLINE:              "NEWLINE",
 	SEMICOLON:            ";",
 	THICK_ARROW:          "=>",
+	LEFT_THIN_ARROW:      "<-",
 	THIN_ARROW:           "->",
 	WIGGLY_ARROW:         "~>",
 	SHORT_UNQUOTE_BEG:    "!{",
@@ -676,6 +682,7 @@ var tokenNames = [...]string{
 	QUESTION_DOT_DOT:     "?..",
 	COLON:                ":",
 	QUESTION:             "?",
+	AT_LBRACE:            "@{",
 	PLUS_PLUS:            "++",
 	MINUS_MINUS:          "--",
 	SCOPE_RES_OP:         "::",
@@ -713,8 +720,9 @@ var tokenNames = [...]string{
 	LAX_NOT_EQUAL:           "!~",
 	STRICT_NOT_EQUAL:        "!==",
 
-	MINUS_AT:               "-@",
+	LBITSHIFT_AT:           "<<@",
 	PLUS_AT:                "+@",
+	MINUS_AT:               "-@",
 	MINUS:                  "-",
 	PLUS:                   "+",
 	STAR:                   "*",
@@ -878,6 +886,7 @@ var tokenNames = [...]string{
 	SELF:            "self",
 	SUPER:           "super",
 	SWITCH:          "switch",
+	SELECT:          "select",
 	CASE:            "case",
 	MATCH:           "match",
 	WITH:            "with",

@@ -154,14 +154,18 @@ func (n *GenericTypeDefinitionNode) Inspect() string {
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
 
-	buff.WriteString(",\n  type_parameters: %[\n")
-	for i, element := range n.TypeParameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  type_parameters: %[")
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.TypeParameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

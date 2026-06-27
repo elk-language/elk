@@ -169,15 +169,19 @@ func (i Int8) ExponentiateVal(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateInt8(o), Undefined
+}
+
+func (i Int8) ExponentiateInt8(other Int8) Int8 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j Int8
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i Int8) Subtract(other Value) (Int8, Value) {
@@ -204,10 +208,14 @@ func (i Int8) ModuloVal(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	if o == 0 {
+	return i.ModuloInt8(o)
+}
+
+func (i Int8) ModuloInt8(other Int8) (Int8, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i Int8) Divide(other Value) (Int8, Value) {
@@ -215,10 +223,14 @@ func (i Int8) Divide(other Value) (Int8, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt8()
-	if o == 0 {
+	return i.DivideInt8(o)
+}
+
+func (i Int8) DivideInt8(other Int8) (Int8, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int8) CompareVal(other Value) (Value, Value) {

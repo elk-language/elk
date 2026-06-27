@@ -1277,7 +1277,7 @@ func TestBigFloat_Mod(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.left.Mod(tc.left, tc.right)
+			got := tc.left.ModMutBigFloat(tc.left, tc.right)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -3460,12 +3460,12 @@ func TestBigFloat_Equal(t *testing.T) {
 		"Float 6bf == 6.0": {
 			a:    value.NewBigFloat(6),
 			b:    value.Float(6).ToValue(),
-			want: value.True.ToValue(),
+			want: value.False.ToValue(),
 		},
 		"Float 27.5bf == 27.5": {
 			a:    value.NewBigFloat(27.5),
 			b:    value.Float(27.5).ToValue(),
-			want: value.True.ToValue(),
+			want: value.False.ToValue(),
 		},
 		"Float 6.5bf == 6.0": {
 			a:    value.NewBigFloat(6.5),
@@ -3501,12 +3501,12 @@ func TestBigFloat_Equal(t *testing.T) {
 		"BigFloat 6bf == 6bf": {
 			a:    value.NewBigFloat(6),
 			b:    value.Ref(value.NewBigFloat(6)),
-			want: value.False.ToValue(),
+			want: value.True.ToValue().ToValue(),
 		},
 		"BigFloat 6.5bf == 6.5bf": {
 			a:    value.NewBigFloat(6.5),
 			b:    value.Ref(value.NewBigFloat(6.5)),
-			want: value.False.ToValue(),
+			want: value.True.ToValue(),
 		},
 		"BigFloat 6bf == Inf": {
 			a:    value.NewBigFloat(6),

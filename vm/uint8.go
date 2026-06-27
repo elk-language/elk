@@ -136,7 +136,7 @@ func initUInt8() {
 		"=~",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsUInt8()
-			return value.StrictUnsignedIntLaxEqual(self, args[1]), value.Undefined
+			return value.StrictUnsignedIntLaxEqualVal(self, args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -219,7 +219,7 @@ func initUInt8() {
 			self := args[0].AsUInt8()
 			other := args[1].AsUInt8()
 
-			return (self % other).ToValue(), value.Undefined
+			return value.ToValueErr(self.ModuloUInt8(other))
 		},
 		DefWithParameters(1),
 	)

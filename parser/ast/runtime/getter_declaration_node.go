@@ -13,11 +13,10 @@ func initGetterDeclarationNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argEntries := make([]ast.ParameterNode, argEntriesTuple.Length())
-			for i, el := range *argEntriesTuple {
-				argEntries[i] = el.MustReference().(ast.ParameterNode)
-			}
+			argEntriesTuple := args[1].AsReference().(value.ArrayTuple)
+			argEntries := value.TransformArrayTupleIntoNativeArrayTuple(argEntriesTuple, func(v value.Value) ast.ParameterNode {
+				return v.AsReference().(ast.ParameterNode)
+			}).ToSlice()
 
 			var argDocComment string
 			if !args[2].IsUndefined() {
@@ -46,15 +45,8 @@ func initGetterDeclarationNode() {
 		"entries",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GetterDeclarationNode)
-
-			collection := self.Entries
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Entries)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

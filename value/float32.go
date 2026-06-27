@@ -110,7 +110,12 @@ func (f Float32) ExponentiateVal(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Pow(float64(f), float64(o))), Undefined
+	return f.ExponentiateFloat32(o), Undefined
+}
+
+// ExponentiateVal by the right value.
+func (f Float32) ExponentiateFloat32(other Float32) Float32 {
+	return Float32(math.Pow(float64(f), float64(other)))
 }
 
 func (f Float32) Subtract(other Value) (Float32, Value) {
@@ -137,7 +142,11 @@ func (f Float32) ModuloVal(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Mod(float64(f), float64(o))), Undefined
+	return f.ModuloFloat32(o), Undefined
+}
+
+func (f Float32) ModuloFloat32(other Float32) Float32 {
+	return Float32(math.Mod(float64(f), float64(other)))
 }
 
 func (f Float32) Divide(other Value) (Float32, Value) {
@@ -149,23 +158,26 @@ func (f Float32) Divide(other Value) (Float32, Value) {
 	return f / o, Undefined
 }
 
+func (f Float32) CompareFloat32(other Float32) Value {
+	if math.IsNaN(float64(f)) || math.IsNaN(float64(other)) {
+		return Nil
+	}
+
+	if f > other {
+		return SmallInt(1).ToValue()
+	}
+	if f < other {
+		return SmallInt(-1).ToValue()
+	}
+	return SmallInt(0).ToValue()
+}
+
 func (f Float32) CompareVal(other Value) (Value, Value) {
 	if !other.IsFloat32() {
 		return Undefined, Ref(NewCoerceError(f.Class(), other.Class()))
 	}
 
-	o := other.AsFloat32()
-	if math.IsNaN(float64(f)) || math.IsNaN(float64(o)) {
-		return Nil, Undefined
-	}
-
-	if f > o {
-		return SmallInt(1).ToValue(), Undefined
-	}
-	if f < o {
-		return SmallInt(-1).ToValue(), Undefined
-	}
-	return SmallInt(0).ToValue(), Undefined
+	return f.CompareFloat32(other.AsFloat32()), Undefined
 }
 
 func (f Float32) GreaterThanVal(other Value) (Value, Value) {
@@ -247,13 +259,13 @@ func initFloat32() {
 	RegisterNativeClass("Std::Float32", "value.Float32Class")
 
 	Float32Class.AddConstantString("NAN", Float32NaN().ToValue())
-	RegisterNativeConstant("Std::Float32::NAN", "value.Float32NaN()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::NAN", "value.Float32NaN()", FetchGoType("value.Float32"))
 
 	Float32Class.AddConstantString("INF", Float32Inf().ToValue())
-	RegisterNativeConstant("Std::Float32::INF", "value.Float32Inf()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::INF", "value.Float32Inf()", FetchGoType("value.Float32"))
 
 	Float32Class.AddConstantString("NEG_INF", Float32NegInf().ToValue())
-	RegisterNativeConstant("Std::Float32::NEG_INF", "value.Float32NegInf()", "value.Float32")
+	RegisterNativeConstant("Std::Float32::NEG_INF", "value.Float32NegInf()", FetchGoType("value.Float32"))
 
 	Float32ConvertibleInterface = NewInterface()
 	Float32Class.AddConstantString("Convertible", Ref(Float32ConvertibleInterface))

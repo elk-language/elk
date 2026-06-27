@@ -172,15 +172,19 @@ func (i UInt32) ExponentiateVal(other Value) (UInt32, Value) {
 	}
 
 	o := other.AsUInt32()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateUInt32(o), Undefined
+}
+
+func (i UInt32) ExponentiateUInt32(other UInt32) UInt32 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j UInt32
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i UInt32) Subtract(other Value) (UInt32, Value) {
@@ -213,15 +217,26 @@ func (i UInt32) ModuloVal(other Value) (UInt32, Value) {
 	return i % o, Undefined
 }
 
+func (i UInt32) ModuloUInt32(other UInt32) (UInt32, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return i % other, Undefined
+}
+
 func (i UInt32) Divide(other Value) (UInt32, Value) {
 	if !other.IsUInt32() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsUInt32()
-	if o == 0 {
+	return i.DivideUInt32(o)
+}
+
+func (i UInt32) DivideUInt32(other UInt32) (UInt32, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i UInt32) CompareVal(other Value) (Value, Value) {

@@ -15,11 +15,10 @@ func initUsingEntryWithSubentriesNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argNamespace := args[1].MustReference().(ast.UsingEntryNode)
 
-			argSubentriesTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argSubentries := make([]ast.UsingSubentryNode, argSubentriesTuple.Length())
-			for i, el := range *argSubentriesTuple {
-				argSubentries[i] = el.MustReference().(ast.UsingSubentryNode)
-			}
+			argSubentriesTuple := args[2].AsReference().(value.ArrayTuple)
+			argSubentries := value.TransformArrayTupleIntoNativeArrayTuple(argSubentriesTuple, func(v value.Value) ast.UsingSubentryNode {
+				return v.AsReference().(ast.UsingSubentryNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -54,15 +53,8 @@ func initUsingEntryWithSubentriesNode() {
 		"subentries",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UsingEntryWithSubentriesNode)
-
-			collection := self.Subentries
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Subentries)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

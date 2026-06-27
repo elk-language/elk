@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::ArrayList
@@ -239,7 +240,7 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			callable := args[1]
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for i := range self.Length() {
 					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
@@ -257,7 +258,7 @@ func initArrayList() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -280,7 +281,7 @@ func initArrayList() {
 			newList := value.NewArrayListOfValueWithLength(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for i := range self.Length() {
 					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
@@ -295,7 +296,7 @@ func initArrayList() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

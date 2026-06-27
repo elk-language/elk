@@ -30,11 +30,10 @@ func initNumericForExpressionNode() {
 
 			var argThenBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argThenBodyTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
-				argThenBody = make([]ast.StatementNode, argThenBodyTuple.Length())
-				for i, el := range *argThenBodyTuple {
-					argThenBody[i] = el.MustReference().(ast.StatementNode)
-				}
+				argThenBodyTuple := args[4].AsReference().(value.ArrayTuple)
+				argThenBody = value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+					return v.AsReference().(ast.StatementNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -102,15 +101,8 @@ func initNumericForExpressionNode() {
 		"then_body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.NumericForExpressionNode)
-
-			collection := self.ThenBody
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.ThenBody)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

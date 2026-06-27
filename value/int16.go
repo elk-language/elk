@@ -172,15 +172,19 @@ func (i Int16) ExponentiateVal(other Value) (Int16, Value) {
 	}
 
 	o := other.AsInt16()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateInt16(o), Undefined
+}
+
+func (i Int16) ExponentiateInt16(other Int16) Int16 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j Int16
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i Int16) Subtract(other Value) (Int16, Value) {
@@ -207,10 +211,14 @@ func (i Int16) ModuloVal(other Value) (Int16, Value) {
 	}
 
 	o := other.AsInt16()
-	if o == 0 {
+	return i.ModuloInt16(o)
+}
+
+func (i Int16) ModuloInt16(other Int16) (Int16, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i % o, Undefined
+	return i % other, Undefined
 }
 
 func (i Int16) Divide(other Value) (Int16, Value) {
@@ -218,10 +226,14 @@ func (i Int16) Divide(other Value) (Int16, Value) {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
 	}
 	o := other.AsInt16()
-	if o == 0 {
+	return i.DivideInt16(o)
+}
+
+func (i Int16) DivideInt16(other Int16) (Int16, Value) {
+	if other == 0 {
 		return 0, Ref(NewZeroDivisionError())
 	}
-	return i / o, Undefined
+	return i / other, Undefined
 }
 
 func (i Int16) CompareVal(other Value) (Value, Value) {

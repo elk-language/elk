@@ -17,6 +17,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 	// Define all namespaces
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
+		{
+			namespace := namespace.TryDefineClass("An `Aborter` is an object that can be used to send signal that execution should be terminated.\nIts useful in multithreading and timeouts.\n\n## Instantiation\n\nYou can create a default aborter that can be closed on demand using the constructor.\n\n```\n# closable aborter\naborter := Aborter()\n```\n\nThere are timeout aborters.\nYou can specify the amount of time after which the aborter will get automatically closed.\n\n```\n# aborter will be automatically closed after 2 minutes\naborter := Aborter.timeout(2.minutes)\n```\n\nAnother type of aborter is the deadline aborter.\nYou can specify the datetime at which the aborter will get automatically closed.\n\n```\ndeadline := DateTime.new(2026, 2, 16, 15, 30)\n\n# aborter will be automatically closed at the given datetime\naborter := Aborter.deadline(deadline)\n```\n\n## Closing\n\nYou can send a signal that execution should be terminated using the `close` method.\n\n```\naborter := Aborter()\naborter.close\n```\n\nNot every aborter can be closed.\nEvery aborter you create using the constructor methods\nwill be closable.\nIf you try to close an unclosable aborter an error will be thrown.\nYou can check if an aborter is closable by calling the `is_closable` method.\n\n```\naborter := Aborter()\naborter.is_closable #=> true\n```\n\n## Checking for closure\n\nYou can listen for a close event of an aborter by using the readonly channel\nreturned by the `closed` method.\n\n```\naborter := Aborter()\n<<aborter.closed # blocks until the aborter is closed\n```", false, true, true, false, value.ToSymbol("Aborter"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to close an unclosable aborter.", false, false, false, false, value.ToSymbol("CannotBeClosedError"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env))))
 		{
@@ -56,7 +61,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.DefineSubtype(value.ToSymbol("Byte"), NewNamedType("Std::Byte", NameToType("Std::UInt8", env)))
 		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A `Channel` is an object tha can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nv := try ch.pop # pop `5` from the channel\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `Channel` is an object that can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `<<ch` and `ch.pop` methods.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\nThe pop operator `<<ch` returns a `Std::Result`.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nresult := <<ch # pop from the channel using the pop unary operator\nresult.unwrap #=> 5\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, true, false, false, value.ToSymbol("ClosedError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, value.ToSymbol("Char"), objectClass, env)
@@ -70,6 +76,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Represents an anonymous function.", false, true, true, true, value.ToSymbol("Closure"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("CoercibleNumeric"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))))
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents a finite, mutable collection\nof elements.", value.ToSymbol("Collection"), env)
@@ -141,14 +148,18 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a box of expression eg. `&a`", false, true, true, false, value.ToSymbol("BoxOfExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a box type eg. `^String`, `*String`", false, true, true, false, value.ToSymbol("BoxTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`breakpoint` entry", false, true, true, false, value.ToSymbol("BreakpointNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a callable type eg. `|i: Int|: String`", false, true, true, false, value.ToSymbol("CallableTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("CaseNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `catch` eg.\n\n```\ncatch SomeError(message)\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("CatchNode"), objectClass, env)
 				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`", false, true, true, false, value.ToSymbol("ClosureLiteralNode"), objectClass, env)
-				namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
+				{
+					namespace := namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
+					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
+					namespace.Name() // noop - avoid unused variable error
+				}
 				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo::Bar as Bar`.", false, true, true, false, value.ToSymbol("ConstantAsNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant declaration eg. `const Foo: ArrayList[String] = [\"foo\", \"bar\"]`", false, true, true, false, value.ToSymbol("ConstantDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constant lookup expressions eg. `Foo::Bar`", false, true, true, false, value.ToSymbol("ConstantLookupNode"), objectClass, env)
@@ -160,6 +171,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				}
 				namespace.TryDefineClass("Represents a constructor call eg. `String(123)`", false, true, true, false, value.ToSymbol("ConstructorCallNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `continue` expression eg. `continue`, `continue \"foo\"`", false, true, true, false, value.ToSymbol("ContinueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `defer` expression eg. `defer foo()`", false, true, true, false, value.ToSymbol("DeferExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `do` expression eg.\n\n```\ndo\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("DoExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a simple double quoted string literal eg. `\"foo baz\"`", false, true, true, false, value.ToSymbol("DoubleQuotedStringLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a double splat expression eg. `**foo`", false, true, true, false, value.ToSymbol("DoubleSplatExpressionNode"), objectClass, env)
@@ -212,6 +224,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an enhance expression eg. `implement Enumerable[V]`", false, true, true, false, value.ToSymbol("ImplementExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an import statement eg. `import \"./foo/bar.elk\"`", false, true, true, false, value.ToSymbol("ImportStatementNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an include expression eg. `include Enumerable[V]`", false, true, true, false, value.ToSymbol("IncludeExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an inferred object pattern eg. `@{foo: 5, bar: a, c}`", false, true, true, false, value.ToSymbol("InferredObjectPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, value.ToSymbol("InitDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance method lookup expression eg. `Foo.:bar`", false, true, true, false, value.ToSymbol("InstanceMethodLookupNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance type eg. `%self`", false, true, true, false, value.ToSymbol("InstanceOfTypeNode"), objectClass, env)
@@ -282,12 +295,14 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.", false, true, true, false, value.ToSymbol("ModifierNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a module declaration eg. `module Foo; end`", false, true, true, false, value.ToSymbol("ModuleDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `must` expression eg. `must foo()`", false, true, true, false, value.ToSymbol("MustExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `must` pattern eg. `must`", false, true, true, false, value.ToSymbol("MustPatternNode"), objectClass, env)
 				namespace.TryDefineMixin("Nodes that implement this interface represent\nnamed arguments in method calls.", false, value.ToSymbol("NamedArgumentNode"), env)
 				namespace.TryDefineClass("Represents a named argument in a function call eg. `foo: 123`", false, true, true, false, value.ToSymbol("NamedCallArgumentNode"), objectClass, env)
 				namespace.TryDefineClass("`never` type.", false, true, true, false, value.ToSymbol("NeverTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a new expression eg. `new(123)`", false, true, true, false, value.ToSymbol("NewExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("`nil` literal.", false, true, true, false, value.ToSymbol("NilLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents nil-safe subscript access eg. `arr?[5]`", false, true, true, false, value.ToSymbol("NilSafeSubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a nilable pattern eg. `5?`", false, true, true, false, value.ToSymbol("NilablePatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an optional or nilable type eg. `String?`", false, true, true, false, value.ToSymbol("NilableTypeNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("A base for all Elk AST (Abstract Syntax Tree) nodes.", false, value.ToSymbol("Node"), env)
@@ -337,6 +352,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a rest element in a list pattern eg. `*a`", false, true, true, false, value.ToSymbol("RestPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `return` expression eg. `return`, `return true`", false, true, true, false, value.ToSymbol("ReturnExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a scoped macro call eg. `Foo::bar!(5)`", false, true, true, false, value.ToSymbol("ScopedMacroCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a select `case` node eg. `case v := <<ch then println(v)`", false, true, true, false, value.ToSymbol("SelectCaseNode"), objectClass, env)
 				namespace.TryDefineClass("`self` literal.", false, true, true, false, value.ToSymbol("SelfLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a Set pattern eg. `^[1, \"foo\"]`", false, true, true, false, value.ToSymbol("SetPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a new setter declaration eg. `setter foo: String`", false, true, true, false, value.ToSymbol("SetterDeclarationNode"), objectClass, env)
@@ -355,6 +371,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineMixin("Represents a single statement of a struct body\noptionally terminated with a newline or semicolon.", false, value.ToSymbol("StructBodyStatementNode"), env)
 				namespace.TryDefineClass("Represents a struct declaration eg. `struct Foo; end`", false, true, true, false, value.ToSymbol("StructDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents subscript access eg. `arr[5]`", false, true, true, false, value.ToSymbol("SubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a switch `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("SwitchCaseNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `switch` expression eg.\n\nswitch a\ncase 3\n  println(\"eureka!\")\ncase nil\n  println(\"boo\")\nelse\n  println(\"nothing\")\nend", false, true, true, false, value.ToSymbol("SwitchExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a symbol ArrayList literal eg. `\\s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayListLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a symbol ArrayTuple literal eg. `%s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayTupleLiteralNode"), objectClass, env)
@@ -409,6 +426,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an uninterpolated regex literal eg. `%/foo/`", false, true, true, false, value.ToSymbol("UninterpolatedRegexLiteralNode"), objectClass, env)
 				namespace.TryDefineClass("Union type eg. `String | Int | Float`", false, true, true, false, value.ToSymbol("UnionTypeNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an `unless` expression eg. `unless foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("UnlessExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.\nIt's a for loop expression used in AST templates (quote blocks) to build ASTs.", false, true, true, false, value.ToSymbol("UnquoteForInExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%if` expression eg. `%if foo then println(\"bar\")`.\nIt's an if expression used in AST templates (`quote` blocks) used for\nconditionally building ASTs.", false, true, true, false, value.ToSymbol("UnquoteIfExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an unquoted block of AST in a quote eg.\n\n```\nunquote(x)\n```", false, true, true, false, value.ToSymbol("UnquoteNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a `until` expression eg. `until i >= 5 then i += 5`", false, true, true, false, value.ToSymbol("UntilExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a using all entry node eg. `Foo::*`, `A::B::C::*`", false, true, true, false, value.ToSymbol("UsingAllEntryNode"), objectClass, env)
@@ -438,6 +457,15 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
+			{
+				namespace := namespace.TryDefineMixin("Represents an Elk type.", true, value.ToSymbol("Type"), env)
+				{
+					namespace := namespace.TryDefineClass("Typechecker for Elk source code.", false, true, true, true, value.ToSymbol("Checker"), objectClass, env)
+					namespace.TryDefineClass("Represents a type checking error for Elk source code.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+					namespace.Name() // noop - avoid unused variable error
+				}
+				namespace.Name() // noop - avoid unused variable error
+			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -605,6 +633,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Represents a resource that can be locked and unlocked.", value.ToSymbol("Lockable"), env)
+		namespace.TryDefineModule("Contains utilities for writing macros.", value.ToSymbol("Macro"), env)
 		{
 			namespace := namespace.TryDefineMixin("Represents an unordered mutable collection of key-value pairs.", true, value.ToSymbol("Map"), env)
 			namespace.Name() // noop - avoid unused variable error
@@ -645,6 +674,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
+			namespace := namespace.TryDefineClass("A `ReadChannel` is a view of `Channel` that can only receive values.\nIts useful for constraining a piece of code to make sure it only reads from a channel.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nch << 3 # send `5` to the channel\n\nrch := ch.readonly # get a ReadChannel\nv := try <<rch # pop `5` from the channel using the pop unary operator\nv := try rch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nA `ReadChannel` cannot be closed.", false, true, true, true, value.ToSymbol("ReadChannel"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		{
 			namespace := namespace.TryDefineMixin("Represents an unordered immutable collection of key-value pairs.\nA record is an immutable map.", true, value.ToSymbol("Record"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
@@ -658,7 +691,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end\n\n# Use pattern matching to handle success and failure\nresult := divide(10, 2)\nswitch result\ncase Result::ok!\n\tputs \"ok: #value\"\ncase Result::err!\n\tputs \"err: #err\"\nend\n\nresult.value # read the success value\nresult.err # read the error value\nresult.ok # check if the result contains a value or an error", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
+			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end\n\n# Use pattern matching to handle success and failure\nresult := divide(10, 2)\nswitch result\ncase Result::ok!\n\tputs \"ok: #value\"\ncase Result::err!\n\tputs \"err: #err\"\nend\n\nresult.value # read the success value\nresult.err # read the error value\nresult.ok # check if the result contains a value or an error\nresult.unwrap # return the success value or throw an unchecked error\nresult.or_throw # return the success value or throw a checked error", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -698,7 +731,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, value.ToSymbol("Mutex"), objectClass, env)
-			namespace.TryDefineClass("`Once` is a kind of lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, value.ToSymbol("Once"), objectClass, env)
+			namespace.TryDefineClass("`Once` is a kind of concurrent lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, value.ToSymbol("Once"), objectClass, env)
 			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, value.ToSymbol("ROMutex"), objectClass, env)
 			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock that allows many readers or a single writer\nto hold the lock.", false, true, true, false, value.ToSymbol("RWMutex"), objectClass, env)
 			namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, value.ToSymbol("WaitGroup"), objectClass, env)
@@ -718,6 +751,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, value.ToSymbol("Tuple"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Thrown when there is a type mismatch.", false, false, false, false, value.ToSymbol("TypeError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, value.ToSymbol("UInt"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
@@ -748,6 +782,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, value.ToSymbol("Weak"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		{
+			namespace := namespace.TryDefineClass("A `WriteChannel` is a view of `Channel` that can only send values.\nIts useful for constraining a piece of code to make sure it only sends to a channel.\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nrch := ch.writeonly # get a WriteChannel\nrch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, true, value.ToSymbol("WriteChannel"), objectClass, env)
+			namespace.Name() // noop - avoid unused variable error
+		}
+		namespace.TryDefineClass("Thrown after an attempt od dividing an integer by zero.", false, false, false, false, value.ToSymbol("ZeroDivisionError"), objectClass, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 
@@ -780,6 +819,56 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			// Define instance variables
 
 			{
+				namespace := namespace.MustSubtypeString("Aborter").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Closable", env).(*Interface))
+
+				// Define methods
+				method = namespace.DefineMethod("Create a new `Aborter` that can be manually closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Closes the aborter sending a signal that execution should be terminated.\nIf the aborter is not closable an unchecked error `Std::Aborter::CannotBeClosedError` gets thrown.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Returns a channel that gets closed when the aborter is closed.\nIt can be used to listen and wait for aborter's close event.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), nil, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(Void{}, INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+				namespace.DefineMethod("Returns `true` when the aborter can be closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_closable"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns `true` when the aborter is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("is_closed"), nil, nil, Bool{}, Never{})
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `Aborter` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), nil, nil, NameToType("Std::Aborter", env), Never{})
+					namespace.DefineMethod("Create a new `Aborter` that gets automatically closed at the given datetime.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("deadline"), nil, []*Parameter{NewParameter(value.ToSymbol("datetime"), NameToType("Std::DateTime", env), NormalParameterKind, false), NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, NameToType("Std::Aborter", env), Never{})
+					namespace.DefineMethod("Create a new `Aborter` that gets automatically closed after the given time span.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("timeout"), nil, []*Parameter{NewParameter(value.ToSymbol("span"), NameToType("Std::Time::Span", env), NormalParameterKind, false), NewParameter(value.ToSymbol("parent"), NameToType("Std::Aborter", env), DefaultValueParameterKind, false)}, NameToType("Std::Aborter", env), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("CannotBeClosedError").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtypeString("ArrayList").(*Class)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -802,6 +891,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nrepeated `n` times.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, Self{}, Never{})
 				namespace.DefineMethod("Create a new `ArrayList` containing the elements of `self`\nand another given `Tuple`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("other"), NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::ArrayList::Val", env), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :\"+\"", true), Never{}, Any{}, nil, INVARIANT)), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Removes the last elements from the list and returns it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NameToType("Std::ArrayList::Val", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayList`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Check whether the given value is an `ArrayList` or `ArrayTuple`\nwith the same elements.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("=~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), Any{}, NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				method = namespace.DefineMethod("Get the element under the given index.\n\nThrows an unchecked error if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("[]"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::ArrayList::Val", env), Never{})
@@ -821,7 +911,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the number of elements present in the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nReturns a new List that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map", true), Never{}, Any{}, nil, INVARIANT))
 				namespace.DefineMethod("Iterates over the elements of this list,\nyielding them to the given closure.\n\nMutates the list in place replacing the elements with the ones\nreturned by the given closure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("map_mut"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, NameToType("Std::ArrayList::Val", env), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, Self{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :map_mut", true), Never{}, Any{}, nil, INVARIANT))
-				namespace.DefineMethod("Adds the given value to the list.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Removes the last elements from the list and returns it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::ArrayList::Val", env), Never{})
+				namespace.DefineMethod("Adds the given value to the list.\n\nReallocates the underlying array if it is\ntoo small to hold it.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Removes the element from the list.\n\nReturns `true` if the element has been removed,\notherwise returns `false.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("remove"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::ArrayList::Val", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Removes the element with the given index from the list\nby shifting all elements after it and decreasing the length.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("remove_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::Int", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Return an ArrayList that contains the elements from the given range of indices.\nThis new list will be backed by the same underlying data structure as the original list.\n\nThrows an unchecked error if the range contains indices that are negative\nor are greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("view"), nil, []*Parameter{NewParameter(value.ToSymbol("range"), NewGeneric(NameToType("Std::Range", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Element"): NewTypeArgument(NameToType("Std::Int", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Element")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::ArrayList", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ArrayList::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
@@ -995,14 +1086,50 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
-				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10bf\n\tvar b = 3bf\n\ta % b #=> 1bf\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
-				namespace.DefineMethod("Multiply this float by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
-				namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
-				namespace.DefineMethod("Add `other` to this bigfloat.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10bf\n\tvar b = 3bf\n\ta % b #=> 1bf\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Multiply this float by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method = namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Add `other` to this bigfloat.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1.2bf\n\t+a #=> 1.2bf\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@"), nil, nil, NameToType("Std::BigFloat", env), Never{})
-				namespace.DefineMethod("Subtract `other` from this bigfloat.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Subtract `other` from this bigfloat.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Returns the result of negating the number.\n\n```\n\tvar a = 1.2bf\n\t-a #=> -1.2bf\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@"), nil, nil, NameToType("Std::BigFloat", env), Never{})
-				namespace.DefineMethod("Divide this float by another float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Divide this float by another float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Compare this float with another float.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
@@ -1135,14 +1262,18 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				method = namespace.DefineMethod("Create a new `Channel` with the given capacity.\nDefault capacity is `0`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("capacity"), NameToType("Std::Int", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel return a result with error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Channel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Channel::ClosedError", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Closes the channel, preventing any more values from being pushed or popped.\n\nClosing a closed channel results in an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
 				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("stop_iteration"))
-				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `:closed_channel`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::Channel::V", env), NewSymbolLiteral("closed_channel"))
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::Channel::V", env), NameToType("Std::Channel::ClosedError", env))
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Channel::V", env), NormalParameterKind, false)}, Void{}, NameToType("Std::Channel::ClosedError", env))
+				namespace.DefineMethod("Obtain a read-only view of the channel.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("readonly"), nil, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NameToType("Std::Channel::V", env), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+				namespace.DefineMethod("Obtain a write-only view of the channel.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("writeonly"), nil, nil, NewGeneric(NameToType("Std::WriteChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NameToType("Std::Channel::V", env), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
 
 				// Define constants
 
@@ -1157,6 +1288,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Create a new `Channel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::Channel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+				{
+					namespace := namespace.MustSubtypeString("ClosedError").(*Class)
+
+					namespace.Name() // noop - avoid unused variable error
+					namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+					// Include mixins and implement interfaces
+
+					// Define methods
 
 					// Define constants
 
@@ -1311,6 +1456,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("Closure").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Returns the location where the closure was defined.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtypeString("Collection").(*Interface)
@@ -2502,6 +2662,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("BreakpointNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("CallNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -2536,23 +2712,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("parameters"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("return_type"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("throw_type"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
-
-						// Define constants
-
-						// Define instance variables
-					}
-					{
-						namespace := namespace.MustSubtypeString("CaseNode").(*Class)
-
-						namespace.Name() // noop - avoid unused variable error
-
-						// Include mixins and implement interfaces
-
-						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
 						// Define constants
 
@@ -2652,10 +2811,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::UsingEntryNode", env).(*Mixin))
 
 						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_complex_const_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 
 						// Define constants
 
 						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
+
+							namespace.Name() // noop - avoid unused variable error
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							namespace.DefineMethod("", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("to_ast_complex_const_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+						}
 					}
 					{
 						namespace := namespace.MustSubtypeString("ConstantAsNode").(*Class)
@@ -2796,6 +2971,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("label"), nil, nil, NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("DeferExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
 
@@ -3455,6 +3647,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("InferredObjectPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("attributes"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("attributes"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -4403,6 +4612,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("MustPatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("NamedArgumentNode").(*Mixin)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -4506,6 +4731,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("NilablePatternNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("NilableTypeNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -4541,21 +4783,6 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define instance variables
 
-						{
-							namespace := namespace.Singleton()
-
-							namespace.Name() // noop - avoid unused variable error
-
-							// Include mixins and implement interfaces
-
-							// Define methods
-							namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
-							namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
-
-							// Define constants
-
-							// Define instance variables
-						}
 						{
 							namespace := namespace.MustSubtypeString("Convertible").(*Interface)
 
@@ -5196,6 +5423,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("SelectCaseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("expression_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expression_node"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("SelfLiteralNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -5506,6 +5750,23 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("SwitchCaseNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("SwitchExpressionNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -5514,8 +5775,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -5618,8 +5879,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::PatternNode", env).(*Mixin))
 
 						// Define methods
-						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
-						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::String", env), Never{})
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("key"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
@@ -6129,6 +6390,44 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("UnquoteForInExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("UnquoteIfExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(value.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("UnquoteNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -6605,6 +6904,54 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 				}
+				{
+					namespace := namespace.MustSubtypeString("Type").(*Mixin)
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+
+					// Define constants
+
+					// Define instance variables
+
+					{
+						namespace := namespace.MustSubtypeString("Checker").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+
+						// Define constants
+
+						// Define instance variables
+
+						{
+							namespace := namespace.MustSubtypeString("Error").(*Class)
+
+							namespace.Name() // noop - avoid unused variable error
+							namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+							// Include mixins and implement interfaces
+
+							// Define methods
+							method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("message"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env), NormalParameterKind, false)}, Void{}, Never{})
+							ivars := method.InitialisedInstanceVariables
+							ivars.Add(value.ToSymbol("diagnostics"))
+							namespace.DefineMethod("Returns a list of diagnostics (warnings, errors, info messages)", 0|METHOD_NATIVE_FLAG, value.ToSymbol("diagnostics"), nil, nil, NameToType("Std::DiagnosticList", env), Never{})
+
+							// Define constants
+
+							// Define instance variables
+							namespace.DefineInstanceVariable(value.ToSymbol(""), nil)
+							namespace.DefineInstanceVariable(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env))
+						}
+					}
+				}
 			}
 			{
 				namespace := namespace.MustSubtypeString("EndlessClosedRange").(*Class)
@@ -6902,14 +7249,50 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
-				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Multiply this float by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Add `other` to this float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				method = namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Multiply this float by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method = namespace.DefineMethod("Exponentiate this float, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Add `other` to this float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1.2\n\t+a #=> 1.2\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Subtract `other` from this float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Subtract `other` from this float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Returns the result of negating the number.\n\n```\n\tvar a = 1.2\n\t-a #=> -1.2\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Divide this float by another float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Divide this float by another float.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NewUnion(NameToType("Std::Float", env), NameToType("Std::BigFloat", env)), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Compare this float with another number.\nReturns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<=>"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
@@ -7596,18 +7979,54 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				ImplementInterface(namespace, NameToType("Std::Hashable", env).(*Interface))
 
 				// Define methods
-				namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				method = namespace.DefineMethod("Returns the remainder of dividing by `other`.\n\n```\n\tvar a = 10\n\tvar b = 3\n\ta % b #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("%@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
 				namespace.DefineMethod("Performs bitwise AND.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("&"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Performs bitwise AND NOT (bit clear).", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("&~"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Multiply this integer by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Add `other` to this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				method = namespace.DefineMethod("Multiply this integer by `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				method = namespace.DefineMethod("Exponentiate this integer, raise it to the power of `other`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("**@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("*@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Add `other` to this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Get the next integer by incrementing by `1`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("++"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns itself.\n\n```\n\tvar a = 1\n\t+a #=> 1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Subtract `other` from this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("+@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Subtract `other` from this integer.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
 				namespace.DefineMethod("Get the previous integer by decrementing by `1`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("--"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the result of negating the integer.\n\n```\n\tvar a = 1\n\t-a #=> -1\n```", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("-@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
+				method = namespace.DefineMethod("Divide this integer by another integer.\nThrows an unchecked runtime error when dividing by `0`.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::CoercibleNumeric", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@1"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@2"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("/@3"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::BigFloat", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Returns an integer shifted left by `other` positions, or right if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("<="), nil, []*Parameter{NewParameter(value.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
@@ -8441,6 +8860,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("Macro").(*Module)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("Typecheck, compile and execute the given expression node.\nCan throw typechecker/compiler errors.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("eval_node"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false)}, Any{}, NameToType("Std::Elk::Type::Checker::Error", env))
+				namespace.DefineMethod("Convert the given AST Node, or collection of nodes into\nan expression.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("expr"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NewUnion(NameToType("Std::Elk::AST::StatementNode", env), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), NormalParameterKind, false)}, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
+				namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(value.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
 				namespace := namespace.MustSubtypeString("Map").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -8839,6 +9274,53 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define instance variables
 			}
 			{
+				namespace := namespace.MustSubtypeString("ReadChannel").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("V"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("V"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("V"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				IncludeMixin(namespace, NewGeneric(NameToType("Std::Iterable::FiniteBase", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ReadChannel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})))
+
+				// Define methods
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel returns a result with error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<@"), nil, nil, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::ReadChannel::V", env), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NameToType("Std::Channel::ClosedError", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
+				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("iter"), nil, nil, Self{}, Never{})
+				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("next"), nil, nil, NameToType("Std::ReadChannel::V", env), NewSymbolLiteral("stop_iteration"))
+				namespace.DefineMethod("Pops an element from the channel.\nBlocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.\n\nPopping from a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("pop"), nil, nil, NameToType("Std::ReadChannel::V", env), NameToType("Std::Channel::ClosedError", env))
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `ReadChannel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::ReadChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
 				namespace := namespace.MustSubtypeString("Record").(*Mixin)
 
 				namespace.Name() // noop - avoid unused variable error
@@ -8991,6 +9473,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define methods
 				namespace.DefineMethod("Returns the error value if this Result represents failure.\nReturns `nil` if this Result represents success.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("err"), nil, nil, NewNilable(NameToType("Std::Result::Err", env)), Never{})
 				namespace.DefineMethod("Returns `true` if this Result represents success (contains a value).\nReturns `false` if this Result represents failure (contains an error).", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ok"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the stored success value.\nIf the result stores an error value it gets thrown as a checked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("or_throw"), nil, nil, NameToType("Std::Result::Val", env), NameToType("Std::Result::Err", env))
+				namespace.DefineMethod("Returns the stored success value.\nIf the result stores an error value it gets thrown as an unchecked error.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("unwrap"), nil, nil, NameToType("Std::Result::Val", env), Never{})
 				namespace.DefineMethod("Returns the success value if this Result represents success.\nReturns `nil` if this Result represents failure.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Result::Val", env)), Never{})
 
 				// Define constants
@@ -9006,6 +9490,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define methods
 					namespace.DefineMethod("Create a new Result that represents failure with the given error value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("err"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("err"), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(Never{}, COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :err", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
+					namespace.DefineMethod("Merges a union of two result types into a single one.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("merge"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("V2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("result"), NewUnion(NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewTypeParameter(value.ToSymbol("E2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")}))), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("V1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("V2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT)), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(NewUnion(NewTypeParameter(value.ToSymbol("E1"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E2"), NewTypeParamNamespace("Type Parameter Container of :merge", true), Never{}, Any{}, nil, INVARIANT)), COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 					namespace.DefineMethod("Create a new Result that represents success with the given value.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("ok"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("value"), NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Result", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :ok", true), Never{}, Any{}, nil, INVARIANT), COVARIANT), value.ToSymbol("Err"): NewTypeArgument(Never{}, COVARIANT)}, []value.Symbol{value.ToSymbol("Val"), value.ToSymbol("Err")})), Never{})
 
 					// Define constants
@@ -9455,6 +9940,22 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 					// Define constants
 
 					// Define instance variables
+
+					{
+						namespace := namespace.Singleton()
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+
+						// Define methods
+						namespace.DefineMethod("Returns a function that wraps the given function.\nThe returned function memoizes the return/throw value\nof the original function so that the internal function\ncan only get called once.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("fn"), nil, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, nil, Void{}, Never{}, false), NormalParameterKind, false)}, NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, nil, Void{}, Never{}, false), Never{})
+						namespace.DefineMethod("Returns a function that wraps the given function.\nThe returned function memoizes the return/throw value\nof the original function so that the internal function\ncan only get called once.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, value.ToSymbol("memo"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, nil, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, nil, NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :memo", true), Never{}, Any{}, nil, INVARIANT), false), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
 				}
 				{
 					namespace := namespace.MustSubtypeString("ROMutex").(*Class)
@@ -9797,6 +10298,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns a new tuple containing only the first `n` elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("take"), nil, []*Parameter{NewParameter(value.ToSymbol("n"), NameToType("Std::Int", env), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Returns a new tuple containing first elements satisfying the given predicate.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("take_while"), []*TypeParameter{NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT)}, []*Parameter{NewParameter(value.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, value.ToSymbol("call"), nil, []*Parameter{NewParameter(value.ToSymbol("element"), NameToType("Std::Tuple::Val", env), NormalParameterKind, false)}, Bool{}, NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Tuple", env).(*Mixin), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Tuple::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NewTypeParameter(value.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of :take_while", true), Never{}, Any{}, Never{}, INVARIANT))
 				namespace.DefineMethod("Get the element under the given index.\n\nReturns `nil` if the index is a negative number\nor is greater or equal to `length`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("try_at"), nil, []*Parameter{NewParameter(value.ToSymbol("index"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NewNilable(NameToType("Std::Tuple::Val", env)), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("TypeError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 
@@ -10223,6 +10738,66 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				method = namespace.DefineMethod("Convert the given box to a weak pointer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("box"), NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")})), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Convert this weak pointer to a `Box`\n(a mutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), INVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
 				namespace.DefineMethod("Convert this weak pointer to an `ImmutableBox`\n(an immutable strong pointer).\n\nWill return `nil` if the object has already\nbeen garbage collected.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("to_immutable_box"), nil, nil, NewNilable(NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Weak::Val", env), COVARIANT)}, []value.Symbol{value.ToSymbol("Val")}))), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("WriteChannel").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+
+				// Set up type parameters
+				var typeParam *TypeParameter
+				typeParams := make([]*TypeParameter, 1)
+
+				typeParam = NewTypeParameter(value.ToSymbol("V"), namespace, Never{}, Any{}, nil, INVARIANT)
+				typeParams[0] = typeParam
+				namespace.DefineSubtype(value.ToSymbol("V"), typeParam)
+				namespace.DefineConstant(value.ToSymbol("V"), NoValue{})
+
+				namespace.SetTypeParameters(typeParams)
+
+				// Include mixins and implement interfaces
+				ImplementInterface(namespace, NameToType("Std::Closable", env).(*Interface))
+
+				// Define methods
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("<<"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::WriteChannel::V", env), NormalParameterKind, false)}, Self{}, Never{})
+				namespace.DefineMethod("Returns the size of the buffer that can hold elements\nuntil they're popped.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Closes the channel, preventing any more values from being pushed or popped.\n\nClosing a closed channel results in an unchecked error `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("close"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Returns the amount of slots in the buffer that are available for new elements.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("left_capacity"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of elements present in the buffer.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("length"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Pushes a new element to the channel.\nBlocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.\n\nPushing to a closed channel throws `Std::Channel::ClosedError`.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("push"), nil, []*Parameter{NewParameter(value.ToSymbol("value"), NameToType("Std::WriteChannel::V", env), NormalParameterKind, false)}, Void{}, NameToType("Std::Channel::ClosedError", env))
+
+				// Define constants
+
+				// Define instance variables
+
+				{
+					namespace := namespace.Singleton()
+
+					namespace.Name() // noop - avoid unused variable error
+
+					// Include mixins and implement interfaces
+
+					// Define methods
+					namespace.DefineMethod("Create a new `WriteChannel` that is closed.", 0|METHOD_NATIVE_FLAG, value.ToSymbol("closed"), []*TypeParameter{NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT)}, nil, NewGeneric(NameToType("Std::WriteChannel", env).(*Class), NewTypeArguments(TypeArgumentMap{value.ToSymbol("V"): NewTypeArgument(NewTypeParameter(value.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of :closed", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []value.Symbol{value.ToSymbol("V")})), Never{})
+
+					// Define constants
+
+					// Define instance variables
+				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("ZeroDivisionError").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
 
 				// Define constants
 

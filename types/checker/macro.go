@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
@@ -11,6 +12,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -137,6 +139,8 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		c.checkUsingExpressionForMacros(expr)
 	case *ast.MacroBoundaryNode:
 		c.expandTopLevelMacros(expr.Body)
+	case *ast.DoExpressionNode:
+		c.expandTopLevelMacros(expr.Body)
 	case *ast.ModuleDeclarationNode:
 		c.hoistModuleDeclarationAndExpandMacros(expr)
 	case *ast.ClassDeclarationNode:
@@ -151,42 +155,39 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		c.expandTopLevelMacros(expr.Body)
 	case *ast.StructDeclarationNode:
 		c.hoistStructDeclaration(expr)
-	case *ast.MacroCallNode:
-		posArgs := []ast.ExpressionNode{expr.Receiver}
-
-		result := c.expandMacroByName(
-			c.identifierToName(expr.MacroName),
-			expr.Kind,
-			append(posArgs, expr.PositionalArguments...),
-			expr.NamedArguments,
-			expr.Location(),
-		)
-		expr.SetType(types.Untyped{})
-		if result == nil {
-			return expr
-		}
-		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
+	case *ast.TypeDefinitionNode:
+		c.registerNamedTypeCheck(expr)
+	case *ast.GenericTypeDefinitionNode:
+		c.registerGenericNamedTypeCheck(expr)
+	case *ast.ImplementExpressionNode:
+		c.registerImplementExpressionCheck(expr)
+	case *ast.IncludeExpressionNode:
+		c.registerIncludeExpressionCheck(expr)
 	case *ast.ReceiverlessMacroCallNode:
-		result := c.expandMacroByName(
-			c.identifierToName(expr.MacroName),
-			expr.Kind,
-			expr.PositionalArguments,
-			expr.NamedArguments,
-			expr.Location(),
-		)
+		result := c.checkReceiverlessMacroCallNode(expr)
+		if result == nil {
+			return expr
+		}
+		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
+	case *ast.ScopedMacroCallNode:
+		result := c.checkScopedMacroCallNode(expr)
 		expr.SetType(types.Untyped{})
 		if result == nil {
 			return expr
 		}
 		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
+	case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
+		namespace := c.currentMethodScope().container
+		namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
 	}
 
 	return expr
 }
 
-func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
-	for methodScope := range ds.ReverseSlice(c.methodScopes) {
-		macro := c.resolveMacroForNamespace(methodScope.container, name)
+func (c *Checker) resolveSingletonMacro(name value.Symbol) *types.Method {
+	for _, methodScope := range ds.ReverseSlice(c.methodScopes) {
+		macro := c.resolveSingletonMacroForNamespace(methodScope.container, name)
 		if macro != nil {
 			return macro
 		}
@@ -195,13 +196,31 @@ func (c *Checker) resolveMacro(name value.Symbol) *types.Method {
 	return nil
 }
 
-func (c *Checker) resolveMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
 	switch n := namespace.(type) {
 	case *types.Class:
 		namespace = n.Singleton()
 	case *types.Mixin:
 		namespace = n.Singleton()
 	case *types.Module, *types.SingletonClass, *types.UsingBufferNamespace:
+		namespace = n
+	default:
+		return nil
+	}
+
+	for parent := range types.Parents(namespace) {
+		macro := parent.Method(name)
+		if macro != nil {
+			return macro
+		}
+	}
+
+	return nil
+}
+
+func (c *Checker) resolveInstanceMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+	switch n := namespace.(type) {
+	case *types.Class, *types.Mixin, *types.Module, *types.SingletonClass:
 		namespace = n
 	default:
 		return nil
@@ -229,7 +248,7 @@ func macroName(namespace types.Namespace, name string) string {
 }
 
 func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
-	macro := c.resolveMacroForNamespace(namespace, name)
+	macro := c.resolveSingletonMacroForNamespace(namespace, name)
 	if macro == nil {
 		c.addUndefinedMacroError(macroName(namespace, name.String()), loc)
 	}
@@ -247,10 +266,45 @@ func (c *Checker) addUndefinedMacroError(name string, loc *position.Location) {
 	)
 }
 
+func (c *Checker) addUndefinedInstanceMacroError(name string, typ types.Type, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"macro `%s` is not defined on type `%s`",
+			name,
+			types.InspectWithColor(typ),
+		),
+		loc,
+	)
+}
+
 func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
-	macro := c.resolveMacro(name)
+	macro := c.resolveSingletonMacro(name)
 	if macro == nil {
 		c.addUndefinedMacroError(name.String(), loc)
+	}
+
+	return macro
+}
+
+func (c *Checker) getInstanceMacro(name value.Symbol, typ types.Type, loc *position.Location) *types.Method {
+	typ = c.ToNonLiteral(typ, false)
+
+	var namespace types.Namespace
+	switch t := typ.(type) {
+	case types.Namespace:
+		namespace = t
+	case types.Self:
+		typ = c.selfType
+		namespace = c.selfType.(types.Namespace)
+	default:
+		c.addUndefinedInstanceMacroError(name.String(), typ, loc)
+		return nil
+	}
+
+	macro := c.resolveInstanceMacroForNamespace(namespace, name)
+	if macro == nil {
+		c.addUndefinedInstanceMacroError(name.String(), typ, loc)
+		return nil
 	}
 
 	return macro
@@ -263,6 +317,19 @@ func (c *Checker) macroMethodName(macroName string) value.Symbol {
 func (c *Checker) expandMacroByName(name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
 	macroName := c.macroMethodName(name)
 	macro := c.getMacro(macroName, loc)
+	if macro == nil {
+		return nil
+	}
+	if macro.IsPlaceholder() {
+		return nil
+	}
+
+	return c.expandMacro(macro, kind, posArgs, namedArgs, loc)
+}
+
+func (c *Checker) expandInstanceMacro(typ types.Type, name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
+	macroName := c.macroMethodName(name)
+	macro := c.getInstanceMacro(macroName, typ, loc)
 	if macro == nil {
 		return nil
 	}
@@ -298,7 +365,7 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+1)
 	runtimeArgs = append(
 		runtimeArgs,
-		value.Ref(value.NodeMixin),
+		value.Ref(value.MacroModule),
 	)
 
 	for _, arg := range checkedArgs {
@@ -317,20 +384,15 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	case *vm.BytecodeFunction:
 		promise = vm.NewBytecodePromise(c.threadPool, body, runtimeArgs...)
 	default:
-		panic(fmt.Sprintf("invalid compiled macro body: %T", body))
+		panic(fmt.Sprintf("invalid compiled macro body %T for: %s", body, macro.InspectSignature(false)))
 	}
 
 	result, stackTrace, err := promise.AwaitSync()
 	if !err.IsUndefined() {
-		c.addFailure(
-			fmt.Sprintf(
-				"error while executing macro `%s`: %s\n%s",
-				types.InspectWithColor(macro),
-				lexer.Colorize(err.Inspect()),
-				stackTrace.String(),
-			),
-			loc,
-		)
+		var buff strings.Builder
+		fmt.Fprintf(&buff, "error while executing macro `%s`:\n", types.InspectWithColor(macro))
+		vm.PrintError(&buff, stackTrace, err)
+		c.addFailure(buff.String(), loc)
 		return nil
 	}
 
@@ -677,10 +739,8 @@ func (c *Checker) checkMacroArguments(
 func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	c.setDefinedMacros(true)
 	definedUnder := c.currentMethodScope().container
-	switch d := definedUnder.(type) {
-	case *types.Module:
-	case *types.Class, *types.Mixin:
-		definedUnder = d.Singleton()
+	switch definedUnder.(type) {
+	case *types.Module, *types.Class, *types.Mixin, *types.SingletonClass:
 	default:
 		c.addFailure(
 			fmt.Sprintf(
@@ -691,32 +751,32 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 		)
 	}
 
-	macro := c.declareMacro(
-		definedUnder,
-		node.DocComment(),
-		c.macroMethodName(c.identifierToName(node.Name)),
-		node.Parameters,
-		node.ReturnType,
-		node.Location(),
-	)
+	var macro *types.Method
+	c.doWithMacroScopes(func() {
+		macro = c.declareMacro(
+			definedUnder,
+			node.DocComment(),
+			c.macroMethodName(c.identifierToName(node.Name)),
+			node.Parameters,
+			node.ReturnType,
+			node.Location(),
+		)
+	})
+
 	macro.Node = node
 	node.SetType(macro)
 	c.registerMacroCheck(macro, node)
 }
 
 type macroCheckEntry struct {
-	macro          *types.Method
-	constantScopes []constantScope
-	methodScopes   []methodScope
-	node           *ast.MacroDefinitionNode
+	macro *types.Method
+	node  *ast.MacroDefinitionNode
 }
 
 func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinitionNode) {
 	c.macroChecks = append(c.macroChecks, macroCheckEntry{
-		macro:          macro,
-		constantScopes: c.constantScopesCopy(),
-		methodScopes:   c.methodScopesCopy(),
-		node:           node,
+		macro: macro,
+		node:  node,
 	})
 }
 
@@ -730,9 +790,7 @@ func (c *Checker) checkMacros() {
 			node := macroCheck.node
 			macroChecker := c.newMacroChecker(
 				node.Location().FilePath,
-				macroCheck.constantScopes,
-				macroCheck.methodScopes,
-				c.StdNode().Singleton(),
+				c.StdMacro().Singleton(),
 				macro.ReturnType,
 				macro.ThrowType,
 				macroMode,
@@ -748,8 +806,6 @@ func (c *Checker) checkMacros() {
 
 func (c *Checker) newMacroChecker(
 	filename string,
-	constScopes []constantScope,
-	methodScopes []methodScope,
 	selfType,
 	returnType,
 	throwType types.Type,
@@ -758,25 +814,24 @@ func (c *Checker) newMacroChecker(
 	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
-		env:            c.env,
-		Filename:       filename,
-		mode:           mode,
-		phase:          methodCheckPhase,
-		selfType:       selfType,
-		returnType:     returnType,
-		throwType:      throwType,
-		constantScopes: constScopes,
-		methodScopes:   methodScopes,
-		Errors:         c.Errors,
-		flags:          c.flags,
+		runtimeEnv: c.runtimeEnv,
+		Filename:   filename,
+		mode:       mode,
+		phase:      methodCheckPhase,
+		selfType:   selfType,
+		returnType: returnType,
+		throwType:  throwType,
+		Errors:     c.Errors,
+		flags:      c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, false),
+			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors)
+	checker.setMacroGlobalEnv(c.macroEnv)
+	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors, c.HasAdditionalAbortChecks())
 
 	return checker
 }
@@ -895,6 +950,16 @@ func (c *Checker) declareMacro(
 		returnType = exprNodeType
 	}
 
+	switch macroNamespace.(type) {
+	case *types.Class, *types.Mixin:
+		if len(params) < 1 {
+			c.addFailure(
+				"instance macros have to define at least one parameter for self node",
+				location,
+			)
+		}
+	}
+
 	newMacro := types.NewMethod(
 		docComment,
 		0,
@@ -922,8 +987,11 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 		return nil
 	}
 
+	receiverType := c.TypeOf(c.checkReadonlyExpression(node.Receiver))
+
 	posArgs := []ast.ExpressionNode{node.Receiver}
-	result := c.expandMacroByName(
+	result := c.expandInstanceMacro(
+		receiverType,
 		c.identifierToName(node.MacroName),
 		node.Kind,
 		append(posArgs, node.PositionalArguments...),
@@ -936,7 +1004,20 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 	return result
 }
 
+func (c *Checker) checkReadonlyExpression(node ast.ExpressionNode) ast.ExpressionNode {
+	c.setReadonly(true)
+	defer c.setReadonly(false)
+
+	nodeCopy := ast.DeepCopy(node).(ast.ExpressionNode)
+	return c.checkExpression(nodeCopy)
+}
+
 func (c *Checker) checkMacroCallNodeForExpression(node *ast.MacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node
@@ -945,6 +1026,11 @@ func (c *Checker) checkMacroCallNodeForExpression(node *ast.MacroCallNode) ast.E
 }
 
 func (c *Checker) checkMacroCallNodeForType(node *ast.MacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node
@@ -953,6 +1039,11 @@ func (c *Checker) checkMacroCallNodeForType(node *ast.MacroCallNode) ast.TypeNod
 }
 
 func (c *Checker) checkMacroCallNodeForPattern(node *ast.MacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}
@@ -1012,6 +1103,11 @@ func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.No
 }
 
 func (c *Checker) checkScopedMacroCallNodeForExpression(node *ast.ScopedMacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1020,6 +1116,11 @@ func (c *Checker) checkScopedMacroCallNodeForExpression(node *ast.ScopedMacroCal
 }
 
 func (c *Checker) checkScopedMacroCallNodeForType(node *ast.ScopedMacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1028,6 +1129,11 @@ func (c *Checker) checkScopedMacroCallNodeForType(node *ast.ScopedMacroCallNode)
 }
 
 func (c *Checker) checkScopedMacroCallNodeForPattern(node *ast.ScopedMacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkScopedMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}
@@ -1057,6 +1163,11 @@ func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCall
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForExpression(node *ast.ReceiverlessMacroCallNode) ast.ExpressionNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 
 	if result == nil {
@@ -1066,6 +1177,11 @@ func (c *Checker) checkReceiverlessMacroCallNodeForExpression(node *ast.Receiver
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForType(node *ast.ReceiverlessMacroCallNode) ast.TypeNode {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 	if result == nil {
 		return node
@@ -1074,9 +1190,51 @@ func (c *Checker) checkReceiverlessMacroCallNodeForType(node *ast.ReceiverlessMa
 }
 
 func (c *Checker) checkReceiverlessMacroCallNodeForPattern(node *ast.ReceiverlessMacroCallNode, matchedType types.Type) (ast.PatternNode, types.Type) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return node, types.Untyped{}
+	}
+
 	result := c.checkReceiverlessMacroCallNode(node)
 	if result == nil {
 		return node, types.Never{}
 	}
 	return c.checkPattern(result.(ast.PatternNode), matchedType)
+}
+
+func CompileNode(node ast.ExpressionNode) (*vm.BytecodeFunction, value.Value) {
+	typechecker := NewMacroChecker()
+	compiler := typechecker.CheckMacroExpression(node)
+	dl := &typechecker.Errors.DiagnosticList
+	if dl.IsFailure() {
+		err := value.NewObject(
+			value.ObjectWithClass(value.ElkTypeCheckerErrorClass),
+			value.ObjectWithInstanceVariablesByName(value.SymbolMap{
+				symbol.L_message:     value.String("macro eval checker error").ToValue(),
+				symbol.L_diagnostics: (*value.DiagnosticList)(dl).ToValue(),
+			}),
+		).ToValue()
+		return nil, err
+	}
+
+	return compiler.Bytecode(), value.Undefined
+}
+
+func EvalBytecode(thread *vm.Thread, bytecode *vm.BytecodeFunction) (value.Value, value.Value) {
+	promise := vm.NewBytecodePromise(thread.ThreadPool(), bytecode, value.GlobalObject.ToValue())
+
+	result, _, err := promise.AwaitSync()
+	if err.IsNotUndefined() {
+		return value.Undefined, err
+	}
+
+	return result, value.Undefined
+}
+
+func EvalNode(thread *vm.Thread, node ast.ExpressionNode) (value.Value, value.Value) {
+	bytecode, err := CompileNode(node)
+	if err.IsNotUndefined() {
+		return value.Undefined, err
+	}
+	return EvalBytecode(thread, bytecode)
 }

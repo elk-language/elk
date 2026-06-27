@@ -142,23 +142,31 @@ func (n *ExtendWhereBlockExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ExtendWhereBlockExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  where: %[\n")
-	for i, element := range n.Where {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  where: %[")
+	if len(n.Where) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Where {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

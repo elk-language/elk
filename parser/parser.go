@@ -1371,9 +1371,9 @@ func (p *Parser) asExpression() ast.ExpressionNode {
 	return expr
 }
 
-// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
+// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&" | "<<") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE, token.LBITSHIFT); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true
@@ -1558,7 +1558,8 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 
 	// receiverless macro
-	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) {
+	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) && p.acceptSecond(token.BANG) ||
+		p.lookahead.IsValidMethodName() && p.acceptSecond(token.BANG) && p.acceptThird(token.LPAREN) {
 		macroName := p.advance()
 		location := macroName.Location()
 
@@ -2163,7 +2164,7 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 				token.DOLLAR_IDENTIFIER,
 				token.PUBLIC_IDENTIFIER,
 				token.UNQUOTE_IDENT,
-			) {
+			) || p.lookahead.IsKeyword() {
 				right := p.methodName()
 
 				if bang, ok := p.matchOk(token.BANG); ok {
@@ -2249,7 +2250,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 			right,
 		)
 	} else {
-		left = p.constant()
+		left = p.complexConstant()
 	}
 
 	for p.lookahead.Type == token.SCOPE_RES_OP {
@@ -2290,6 +2291,32 @@ func (p *Parser) privateConstant() *ast.PrivateConstantNode {
 	return ast.NewPrivateConstantNode(
 		tok.Location(),
 		tok.Value,
+	)
+}
+
+// complexConstant = privateConstant | publicConstant | unquoteComplexConstant
+func (p *Parser) complexConstant() ast.ConstantNode {
+	if p.accept(token.PRIVATE_CONSTANT) {
+		return p.privateConstant()
+	}
+
+	if p.accept(token.PUBLIC_CONSTANT) {
+		return p.publicConstant()
+	}
+
+	if p.accept(token.UNQUOTE, token.UNQUOTE_CONST) {
+		return p.unquoteComplexConstant()
+	}
+	if p.accept(token.SHORT_UNQUOTE_BEG) {
+		return p.shortUnquoteComplexConstant()
+	}
+
+	p.errorExpected("a constant")
+	tok := p.advance()
+	p.mode = panicMode
+	return ast.NewInvalidNode(
+		tok.Location(),
+		tok,
 	)
 }
 
@@ -2340,6 +2367,25 @@ func (p *Parser) newExpression() ast.ExpressionNode {
 	)
 }
 
+func (p *Parser) percentPrefixedExpression() ast.ExpressionNode {
+	switch p.secondLookahead.Type {
+	case token.IF:
+		p.advance()
+		return p.unquoteIfExpression()
+	case token.FOR:
+		p.advance()
+		return p.unquoteForExpression()
+	default:
+		p.errorExpected("an expression")
+		p.updateErrorMode(true)
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Location(),
+			tok,
+		)
+	}
+}
+
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.NEW:
@@ -2353,6 +2399,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.NIL:
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Location())
+	case token.BREAKPOINT:
+		tok := p.advance()
+		return ast.NewBreakpointNode(tok.Location())
 	case token.THIN_ARROW, token.WIGGLY_ARROW:
 		return p.closureAfterArrow(nil, nil, nil, nil)
 	case token.SELF:
@@ -2375,6 +2424,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.MUST:
 		return p.mustExpression()
+	case token.DEFER:
+		return p.deferExpression()
 	case token.TRY:
 		return p.tryExpression()
 	case token.TYPEOF:
@@ -2451,6 +2502,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.initDefinition(false)
 	case token.SWITCH:
 		return p.switchExpression()
+	case token.SELECT:
+		return p.selectExpression()
+	case token.PERCENT:
+		return p.percentPrefixedExpression()
 	case token.IF:
 		return p.ifExpression()
 	case token.QUOTE, token.QUOTE_EXPR:
@@ -5244,6 +5299,17 @@ func (p *Parser) mustExpression() *ast.MustExpressionNode {
 	)
 }
 
+// deferExpression = "defer" [expressionWithoutModifier]
+func (p *Parser) deferExpression() *ast.DeferExpressionNode {
+	deferTok := p.advance()
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewDeferExpressionNode(
+		deferTok.Location().Join(expr.Location()),
+		expr,
+	)
+}
+
 // unquoteExpression = ("unquote" | "unquote_expr") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteExpression() ast.ExpressionNode {
 	return p.unquote(ast.UNQUOTE_EXPRESSION_KIND)
@@ -5262,6 +5328,11 @@ func (p *Parser) unquotePatternExpression() ast.LiteralPatternNode {
 // unquoteConstant = ("unquote" | "unquote_const") "(" expressionWithoutModifier ")"
 func (p *Parser) unquoteConstant() ast.ConstantNode {
 	return p.unquote(ast.UNQUOTE_CONSTANT_KIND)
+}
+
+// unquoteComplexConstant = ("unquote") "(" expressionWithoutModifier ")"
+func (p *Parser) unquoteComplexConstant() ast.ConstantNode {
+	return p.unquote(ast.UNQUOTE_COMPLEX_CONSTANT_KIND)
 }
 
 // unquoteType = ("unquote" | "unquote_type") "(" expressionWithoutModifier ")"
@@ -5304,37 +5375,42 @@ func (p *Parser) unquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	)
 }
 
-// shortUnquoteExpression = "${" expressionWithoutModifier "}"
+// shortUnquoteExpression = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteExpression() ast.ExpressionNode {
 	return p.shortUnquote(ast.UNQUOTE_EXPRESSION_KIND)
 }
 
-// shortUnquotePattern = "${" expressionWithoutModifier "}"
+// shortUnquotePattern = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquotePattern() ast.PatternNode {
 	return p.shortUnquote(ast.UNQUOTE_PATTERN_KIND)
 }
 
-// shortUnquotePatternExpression = "${" expressionWithoutModifier "}"
+// shortUnquotePatternExpression = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquotePatternExpression() ast.LiteralPatternNode {
 	return p.shortUnquote(ast.UNQUOTE_PATTERN_EXPRESSION_KIND)
 }
 
-// shortUnquoteConstant = "${" expressionWithoutModifier "}"
+// shortUnquoteConstant = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteConstant() ast.ConstantNode {
 	return p.shortUnquote(ast.UNQUOTE_CONSTANT_KIND)
 }
 
-// shortUnquoteType = "${" expressionWithoutModifier "}"
+// shortUnquoteComplexConstant = "!{" expressionWithoutModifier "}"
+func (p *Parser) shortUnquoteComplexConstant() ast.ConstantNode {
+	return p.shortUnquote(ast.UNQUOTE_COMPLEX_CONSTANT_KIND)
+}
+
+// shortUnquoteType = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteType() ast.TypeNode {
 	return p.shortUnquote(ast.UNQUOTE_TYPE_KIND)
 }
 
-// shortUnquoteIdentifier = "${" expressionWithoutModifier "}"
+// shortUnquoteIdentifier = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquoteIdentifier() ast.IdentifierNode {
 	return p.shortUnquote(ast.UNQUOTE_IDENTIFIER_KIND)
 }
 
-// shortUnquote = "${" expressionWithoutModifier "}"
+// shortUnquote = "!{" expressionWithoutModifier "}"
 func (p *Parser) shortUnquote(kind ast.UnquoteKind) ast.UnquoteOrInvalidNode {
 	begTok := p.advance()
 
@@ -5883,6 +5959,20 @@ func (p *Parser) fornumExpression() ast.ExpressionNode {
 // forExpression = ("for" pattern "in" expressionWithoutModifier)
 // ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) forExpression() ast.ExpressionNode {
+	return p.genericForExpression(ast.NewForInExpressionNodeI)
+}
+
+// unquoteForExpression = ("%for" pattern "in" expressionWithoutModifier)
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) unquoteForExpression() ast.ExpressionNode {
+	return p.genericForExpression(ast.NewUnquoteForInExpressionNodeI)
+}
+
+type forNodeConstructor func(loc *position.Location, pattern ast.PatternNode, inExpr ast.ExpressionNode, then []ast.StatementNode) ast.ExpressionNode
+
+// unquoteForExpression = ("%for" pattern "in" expressionWithoutModifier)
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) genericForExpression(constructor forNodeConstructor) ast.ExpressionNode {
 	forTok := p.advance()
 	p.swallowNewlines()
 	parameter := p.pattern()
@@ -5919,7 +6009,7 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 		}
 	}
 
-	return ast.NewForInExpressionNode(
+	return constructor(
 		location,
 		parameter,
 		inExpr,
@@ -6059,7 +6149,7 @@ func (p *Parser) doExpressionOrMacroBoundary() ast.ExpressionNode {
 }
 
 // doExpression = "do" ((SEPARATOR [statements]) | (expressionWithoutModifier))
-// ("catch" pattern ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ("catch" pattern ["," identifier] ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["finally" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
 func (p *Parser) doExpression() *ast.DoExpressionNode {
@@ -6280,9 +6370,9 @@ func (p *Parser) orPattern() ast.PatternNode {
 	return p.binaryPattern(p.andPattern, token.OR_OR)
 }
 
-// andPattern = unaryPattern | andPattern "&&" unaryPattern
+// andPattern = nilablePattern | andPattern "&&" unaryPattern
 func (p *Parser) andPattern() ast.PatternNode {
-	return p.binaryPattern(p.unaryPattern, token.AND_AND)
+	return p.binaryPattern(p.nilablePattern, token.AND_AND)
 }
 
 func (p *Parser) objectAttributePatternList(stopTokens ...token.Type) []ast.PatternNode {
@@ -6292,31 +6382,35 @@ func (p *Parser) objectAttributePatternList(stopTokens ...token.Type) []ast.Patt
 // objectAttributePattern = (identifier | constant) |
 // (identifier | constant) ":" pattern
 func (p *Parser) objectAttributePattern() ast.PatternNode {
-	if p.accept(
-		token.PUBLIC_IDENTIFIER,
-		token.PRIVATE_IDENTIFIER,
-		token.PUBLIC_CONSTANT,
-		token.PRIVATE_CONSTANT,
-	) &&
-		p.acceptSecond(token.COLON) {
+	if (p.lookahead.IsKeyword() || p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)) && p.acceptSecond(token.COLON) {
 		key := p.advance()
 		p.advance()
 		p.swallowNewlines()
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			ast.NewPublicIdentifierNode(key.Location(), key.Value),
 			val,
 		)
 	}
-	switch p.lookahead.Type {
-	case token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER:
-		return p.identifier()
-	default:
-		p.errorExpected("an object pattern attribute")
-		tok := p.advance()
-		return ast.NewInvalidNode(tok.Location(), tok)
+
+	ident := p.identifier()
+	if ast.IsInvalid(ident) {
+		return ident
 	}
+
+	if !p.accept(token.COLON) {
+		return ident
+	}
+
+	p.advance()
+	p.swallowNewlines()
+	val := p.pattern()
+	return ast.NewSymbolKeyValuePatternNode(
+		ident.Location().Join(val.Location()),
+		ident,
+		val,
+	)
 }
 
 func (p *Parser) strictConstantLookupOrScopedMacro(kind ast.MacroKind) ast.ComplexConstantNode {
@@ -6456,6 +6550,44 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 	)
 }
 
+// inferredObjectPattern = "@{" [objectPatternAttributes] "}"
+func (p *Parser) inferredObjectPattern() ast.PatternNode {
+	startTok := p.advance()
+	if rbrace, ok := p.matchOk(token.RBRACE); ok {
+		return ast.NewInferredObjectPatternNode(
+			startTok.Location().Join(rbrace.Location()),
+			nil,
+		)
+	}
+
+	elements := p.objectAttributePatternList(token.RBRACE)
+	p.swallowNewlines()
+	rbrace, ok := p.consume(token.RBRACE)
+	location := startTok.Location()
+	if ok {
+		location = location.Join(rbrace.Location())
+	}
+
+	return ast.NewInferredObjectPatternNode(
+		location,
+		elements,
+	)
+}
+
+// nilablePattern = unaryPattern ["?"]
+func (p *Parser) nilablePattern() ast.PatternNode {
+	pattern := p.unaryPattern()
+	if !p.accept(token.QUESTION) {
+		return pattern
+	}
+
+	question := p.advance()
+	return ast.NewNilablePatternNode(
+		pattern.Location().Join(question.Location()),
+		pattern,
+	)
+}
+
 // unaryPattern = rangePattern |
 // collectionPattern |
 // ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] bitwiseOrExpression
@@ -6547,6 +6679,7 @@ func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternN
 // simplePattern "=>" pattern
 func (p *Parser) mapElementPattern() ast.PatternNode {
 	if p.accept(
+		token.DOLLAR_IDENTIFIER,
 		token.PUBLIC_IDENTIFIER,
 		token.PRIVATE_IDENTIFIER,
 		token.PUBLIC_CONSTANT,
@@ -6559,7 +6692,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 		val := p.pattern()
 		return ast.NewSymbolKeyValuePatternNode(
 			key.Location().Join(val.Location()),
-			key.Value,
+			ast.NewPublicIdentifierNode(key.Location(), key.Value),
 			val,
 		)
 	}
@@ -7167,9 +7300,79 @@ func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 		return p.unquotePattern()
 	case token.SHORT_UNQUOTE_BEG:
 		return p.shortUnquotePattern()
+	case token.MUST:
+		return p.mustPattern()
+	case token.AT_LBRACE:
+		return p.inferredObjectPattern()
 	default:
 		return p.simplePattern()
 	}
+}
+
+// mustPattern = "must"
+func (p *Parser) mustPattern() *ast.MustPatternNode {
+	tok := p.advance()
+	return ast.NewMustPatternNode(tok.Location())
+}
+
+// selectExpression = "select" SEPARATOR
+// ("case" expressionWithoutModifier ["," identifier] ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+func (p *Parser) selectExpression() ast.ExpressionNode {
+	selectTok := p.advance()
+	p.swallowNewlines()
+
+	var lastLocation *position.Location
+	var cases []*ast.SelectCaseNode
+	var els []ast.StatementNode
+	var elsePresent bool
+	withoutContent := true
+
+	for {
+		if p.match(token.ELSE) {
+			lastLocation, els, _ = p.statementBlock(token.END)
+			withoutContent = false
+			elsePresent = true
+			break
+		} else if caseTok, ok := p.matchOk(token.CASE); ok {
+			expr := p.expressionWithoutModifier()
+
+			var caseBody []ast.StatementNode
+			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
+			withoutContent = false
+			cases = append(cases, ast.NewSelectCaseNode(
+				caseTok.Location().Join(lastLocation),
+				expr,
+				caseBody,
+			))
+			p.swallowNewlines()
+		} else {
+			break
+		}
+	}
+
+	if withoutContent {
+		p.indentedSection = true
+	}
+	p.swallowNewlines()
+	endTok, ok := p.consume(token.END)
+	if withoutContent {
+		p.indentedSection = false
+	}
+	if ok {
+		lastLocation = endTok.Location()
+	}
+	location := selectTok.Location().Join(lastLocation)
+	if len(cases) == 0 && !elsePresent {
+		p.errorMessageLocation("select cannot be empty", location)
+	} else if len(cases) == 0 && elsePresent {
+		p.errorMessageLocation("select cannot only consist of else", location)
+	}
+	return ast.NewSelectExpressionNode(
+		location,
+		cases,
+		els,
+	)
 }
 
 // switchExpression = "switch" expressionWithoutModifier SEPARATOR
@@ -7181,7 +7384,7 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 	p.swallowNewlines()
 
 	var lastLocation *position.Location
-	var cases []*ast.CaseNode
+	var cases []*ast.SwitchCaseNode
 	var els []ast.StatementNode
 	var elsePresent bool
 	withoutContent := true
@@ -7197,7 +7400,7 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 			var caseBody []ast.StatementNode
 			lastLocation, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
 			withoutContent = false
-			cases = append(cases, ast.NewCaseNode(
+			cases = append(cases, ast.NewSwitchCaseNode(
 				caseTok.Location().Join(lastLocation),
 				pattern,
 				caseBody,
@@ -7233,11 +7436,29 @@ func (p *Parser) switchExpression() ast.ExpressionNode {
 	)
 }
 
+type ifNodeConstructor func(loc *position.Location, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) ast.IfExpressionInterface
+type ifNode interface {
+	ast.ExpressionNode
+	SetElseBody([]ast.StatementNode)
+}
+
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
 // ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
-func (p *Parser) ifExpression() *ast.IfExpressionNode {
+func (p *Parser) ifExpression() ast.ExpressionNode {
+	return p.genericIfExpression(ast.NewIfExpressionNodeI)
+}
+
+// unquoteIfExpression = "%if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
+// ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+// "end"
+func (p *Parser) unquoteIfExpression() ast.ExpressionNode {
+	return p.genericIfExpression(ast.NewUnquoteIfExpressionNodeI)
+}
+
+func (p *Parser) genericIfExpression(constructor ifNodeConstructor) ast.ExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
 	var location *position.Location
@@ -7249,7 +7470,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		location = ifTok.Location()
 	}
 
-	ifExpr := ast.NewIfExpressionNode(
+	ifExpr := constructor(
 		location,
 		cond,
 		thenBody,
@@ -7277,19 +7498,19 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 			location = elsifTok.Location()
 		}
 
-		elsifExpr := ast.NewIfExpressionNode(
+		elsifExpr := constructor(
 			location,
 			cond,
 			thenBody,
 			nil,
 		)
 
-		currentExpr.ElseBody = []ast.StatementNode{
+		currentExpr.SetElseBody([]ast.StatementNode{
 			ast.NewExpressionStatementNode(
 				elsifExpr.Location(),
 				elsifExpr,
 			),
-		}
+		})
 		currentExpr = elsifExpr
 	}
 
@@ -7297,13 +7518,13 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		p.advance()
 		p.advance()
 		lastLocation, thenBody, multiline = p.statementBlock(token.END)
-		currentExpr.ElseBody = thenBody
+		currentExpr.SetElseBody(thenBody)
 		if lastLocation != nil {
 			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}
 	} else if p.match(token.ELSE) {
 		lastLocation, thenBody, multiline = p.statementBlock(token.END)
-		currentExpr.ElseBody = thenBody
+		currentExpr.SetElseBody(thenBody)
 		if lastLocation != nil {
 			currentExpr.SetLocation(currentExpr.Location().Join(lastLocation))
 		}

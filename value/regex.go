@@ -44,6 +44,14 @@ func CompileRegex(src string, flags bitfield.BitField8) (*Regex, error) {
 	return NewRegex(*goRe, src, flags), nil
 }
 
+func CompileRegexVal(src String, flags bitfield.BitField8) (*Regex, Value) {
+	re, err := CompileRegex(string(src), flags)
+	if err != nil {
+		return nil, NewError(RegexCompileErrorClass, err.Error()).ToValue()
+	}
+	return re, Undefined
+}
+
 func MustCompileRegex(src string, flags bitfield.BitField8) *Regex {
 	re, err := CompileRegex(src, flags)
 	if err != nil {
@@ -106,6 +114,10 @@ func (r *Regex) Error() string {
 
 func (r *Regex) InstanceVariables() *InstanceVariables {
 	return nil
+}
+
+func (r *Regex) LaxEqual(other Value) Value {
+	return r.Equal(other)
 }
 
 // Check whether r is equal to other

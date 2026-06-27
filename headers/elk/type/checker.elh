@@ -1,0 +1,5 @@
+##[
+	Typechecker for Elk source code.
+]##
+sealed primitive noinit class ::Std::Elk::Type::Checker
+end

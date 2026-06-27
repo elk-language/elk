@@ -1,118 +1,45 @@
 package value
 
-import (
-	"fmt"
-	"iter"
-)
+import "context"
 
 var ChannelClass *Class            // ::Std::Channel
 var ChannelClosedErrorClass *Class // ::Std::Channel::ClosedError
 
-type Channel struct {
-	Native chan Value
+var ChannelClosedPopError *Object
+var ChannelClosedPushError *Object
+var ChannelClosedCloseError *Object
+
+type AnyChannel interface {
+	ValueInterface
+	Length() int
+	Capacity() int
+	LeftCapacity() int
+	IsTransformerChannel() bool
+	TransformFromValue(v Value) any
+	TransformToValue(v any) Value
+	NativeChannelAny() any
 }
 
-var _ NativeIterator = &Channel{}
-var _ NativeIterable = &Channel{}
-
-func NewChannel(size int) *Channel {
-	return &Channel{
-		Native: make(chan Value, size),
-	}
-}
-
-func (ch *Channel) Copy() Reference {
-	return NewChannel(ch.Length())
-}
-
-func (c *Channel) ToValue() Value {
-	return Ref(c)
-}
-
-func (*Channel) Class() *Class {
-	return ChannelClass
-}
-
-func (*Channel) DirectClass() *Class {
-	return ChannelClass
-}
-
-func (*Channel) SingletonClass() *Class {
-	return nil
-}
-
-func (ch *Channel) Inspect() string {
-	return fmt.Sprintf("Std::Channel{&: %p, length: %d, capacity: %d}", ch, ch.Length(), ch.Capacity())
-}
-
-func (ch *Channel) Error() string {
-	return ch.Inspect()
-}
-
-func (*Channel) InstanceVariables() *InstanceVariables {
-	return nil
-}
-
-func (ch *Channel) Length() int {
-	return len(ch.Native)
-}
-
-func (ch *Channel) Capacity() int {
-	return cap(ch.Native)
-}
-
-func (ch *Channel) LeftCapacity() int {
-	return ch.Capacity() - ch.Length()
-}
-
-func (ch *Channel) Push(val Value) (err Value) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot push values to a closed channel"))
-		}
-	}()
-
-	ch.Native <- val
-	return Undefined
-}
-
-func (ch *Channel) Pop() (Value, bool) {
-	result, ok := <-ch.Native
-	return result, ok
-}
-
-func (ch *Channel) NextValue() (Value, Value) {
-	next, ok := <-ch.Native
-	if !ok {
-		return Undefined, stopIterationSymbol.ToValue()
-	}
-
-	return next, Undefined
-}
-
-func (ch *Channel) Iterate() iter.Seq2[Value, Value] {
-	return func(yield func(Value, Value) bool) {
-		for v := range ch.Native {
-			if !yield(v, Undefined) {
-				return
-			}
-		}
-	}
-}
-
-func (ch *Channel) Iter() NativeIterator {
-	return ch
-}
-
-func (ch *Channel) Close() (err Value) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = Ref(NewError(ChannelClosedErrorClass, "cannot close a closed channel"))
-		}
-	}()
-
-	close(ch.Native)
-	return Undefined
+type Channel interface {
+	ValueInterface
+	NativeIterable
+	NativeIterator
+	AnyChannel
+	Length() int
+	Capacity() int
+	LeftCapacity() int
+	Push(val Value) (err Value)
+	PushCtx(ctx context.Context, val Value) (err Value)
+	Pop() (val Value, err Value)
+	PopCtx(ctx context.Context) (val Value, err Value)
+	NextValueCtx(ctx context.Context) (val Value, err Value)
+	Close() (err Value)
+	IsTransformerChannel() bool
+	TransformFromValue(v Value) any
+	TransformToValue(v any) Value
+	NativeChannelAny() any
+	ToReadChannel() ReadChannel
+	ToWriteChannel() WriteChannel
 }
 
 func initChannel() {
@@ -123,4 +50,8 @@ func initChannel() {
 	ChannelClosedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	ChannelClass.AddConstantString("ClosedError", Ref(ChannelClosedErrorClass))
 	RegisterNativeClass("Std::Channel::ClosedError", "value.ChannelClosedErrorClass")
+
+	ChannelClosedPopError = NewError(ChannelClosedErrorClass, "cannot pop values from a closed channel")
+	ChannelClosedPushError = NewError(ChannelClosedErrorClass, "cannot push values to a closed channel")
+	ChannelClosedCloseError = NewError(ChannelClosedErrorClass, "cannot close a closed channel")
 }

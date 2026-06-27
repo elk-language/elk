@@ -3,6 +3,8 @@
 // in other structs to compress multiple bool flags.
 package bitfield
 
+import "iter"
+
 // 8-bit bit-flag
 type BitFlag8 uint8
 
@@ -57,6 +59,19 @@ func (b *BitField8) UnsetFlag(flag BitFlag8) {
 
 func (b BitField8) Byte() byte {
 	return byte(b.bitfield)
+}
+
+func (b BitField8) AllSetFlags() iter.Seq2[int, BitFlag8] {
+	return func(yield func(int, BitFlag8) bool) {
+		for i := range 8 {
+			flag := BitFlag8(1 << i)
+			if b.HasFlag(flag) {
+				if !yield(i, flag) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // 16-bit bit-flag
@@ -114,8 +129,22 @@ func (b *BitField16) SetFlagValue(flag BitFlag16, val bool) {
 func (b BitField16) ToBitFlag() BitFlag16 {
 	return b.bitfield
 }
+
 func (b BitField16) Uint16() uint16 {
 	return uint16(b.bitfield)
+}
+
+func (b BitField16) AllSetFlags() iter.Seq2[int, BitFlag16] {
+	return func(yield func(int, BitFlag16) bool) {
+		for i := range 16 {
+			flag := BitFlag16(1 << i)
+			if b.HasFlag(flag) {
+				if !yield(i, flag) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // 32-bit bit-flag
@@ -173,6 +202,20 @@ func (b *BitField32) SetFlagValue(flag BitFlag32, val bool) {
 func (b BitField32) ToBitFlag() BitFlag32 {
 	return b.bitfield
 }
-func (b BitField32) Uint16() uint16 {
-	return uint16(b.bitfield)
+
+func (b BitField32) Uint32() uint32 {
+	return uint32(b.bitfield)
+}
+
+func (b BitField32) AllSetFlags() iter.Seq2[int, BitFlag32] {
+	return func(yield func(int, BitFlag32) bool) {
+		for i := range 32 {
+			flag := BitFlag32(1 << i)
+			if b.HasFlag(flag) {
+				if !yield(i, flag) {
+					return
+				}
+			}
+		}
+	}
 }

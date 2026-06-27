@@ -29,18 +29,25 @@
 		result.value # read the success value
 		result.err # read the error value
 		result.ok # check if the result contains a value or an error
+		result.unwrap # return the success value or throw an unchecked error
+		result.or_throw # return the success value or throw a checked error
 ]##
 sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 	singleton
 		##[
 			Create a new Result that represents success with the given value.
 		]##
-		def ok[V](value: V): Result[V]; end
+		def ok[V](value: V): Result[V, never]; end
 
 		##[
 			Create a new Result that represents failure with the given error value.
 		]##
 		def err[E](err: E): Result[never, E]; end
+
+		##[
+			Merges a union of two result types into a single one.
+		]##
+		def merge[V1, E1, V2, E2](result: Result[V1, E1] | Result[V2, E2]): Result[V1 | V2, E1 | E2]; end
 	end
 
 	##[
@@ -60,4 +67,16 @@ sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 		Returns `false` if this Result represents failure (contains an error).
 	]##
 	def ok: bool; end
+
+	##[
+		Returns the stored success value.
+		If the result stores an error value it gets thrown as an unchecked error.
+	]##
+	def unwrap: Val; end
+
+	##[
+		Returns the stored success value.
+		If the result stores an error value it gets thrown as a checked error.
+	]##
+	def or_throw: Val ! Err; end
 end

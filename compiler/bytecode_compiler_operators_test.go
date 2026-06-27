@@ -206,7 +206,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpAdd,
+										value.ToSymbol("Foo::+"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -385,7 +385,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpSubtract,
+										value.ToSymbol("Foo::-"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -562,7 +562,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpMultiply,
+										value.ToSymbol("Foo::*"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -739,7 +739,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpDivide,
+										value.ToSymbol("Foo::/"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -914,7 +914,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpExponentiate,
+										value.ToSymbol("Foo::**"),
 										[]byte{
 											byte(bytecode.GET_LOCAL_1),
 											byte(bytecode.RETURN),
@@ -1094,7 +1094,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(
 									vm.NewBytecodeFunction(
-										symbol.OpNegate,
+										value.ToSymbol("Foo::-@"),
 										[]byte{
 											byte(bytecode.SELF),
 											byte(bytecode.RETURN),
@@ -1737,7 +1737,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -1757,7 +1757,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
 									byte(bytecode.INCREMENT_INT),
@@ -1875,7 +1875,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -1895,7 +1895,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
 									byte(bytecode.DECREMENT_INT),
@@ -2013,7 +2013,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2033,7 +2033,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2150,7 +2150,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2170,7 +2170,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2287,7 +2287,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2307,7 +2307,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2424,7 +2424,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2444,7 +2444,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2561,7 +2561,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2581,7 +2581,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2698,7 +2698,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2718,7 +2718,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2835,7 +2835,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2855,7 +2855,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -2972,7 +2972,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2992,7 +2992,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3109,7 +3109,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3129,7 +3129,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3246,7 +3246,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3266,7 +3266,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3383,7 +3383,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3403,7 +3403,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3520,7 +3520,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3540,7 +3540,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3657,7 +3657,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("#init"),
+								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3677,7 +3677,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.INT_3),
@@ -3790,7 +3790,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.JUMP_IF_NP), 0, 2,
@@ -3904,7 +3904,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
@@ -4018,7 +4018,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("foo"),
+								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
 									byte(bytecode.JUMP_UNLESS_NP), 0, 2,

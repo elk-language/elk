@@ -1406,7 +1406,7 @@ func initDate() {
 	RegisterNativeClass("Std::Date", "value.DateClass")
 
 	DateClass.AddConstantString("DEFAULT_FORMAT", Ref(String(DefaultDateFormat)))
-	RegisterNativeConstant("Std::Date::DEFAULT_FORMAT", "value.String(value.DefaultDateFormat)", "value.String")
+	RegisterNativeConstant("Std::Date::DEFAULT_FORMAT", "value.String(value.DefaultDateFormat)", FetchGoType("value.String"))
 
 	DateErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	DateClass.AddConstantString("Error", Ref(DateErrorClass))

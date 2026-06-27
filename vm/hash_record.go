@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -158,7 +159,7 @@ func initHashRecord() {
 			newRecord := NewHashRecordOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
@@ -178,7 +179,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(callSymbol, callable, pair.ToValue())
+				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -205,7 +206,7 @@ func initHashRecord() {
 			newRecord := NewHashRecordOfValue(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for pair := range self.All() {
 					result, err := vm.CallClosure(function, pair.Value())
 					if !err.IsUndefined() {
@@ -221,7 +222,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(callSymbol, callable, pair.Value())
+				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.Value())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -268,13 +269,13 @@ func initHashRecordIterator() {
 }
 
 // Create a new hash record with the given entries.
-func NewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
-	return NewHashRecordWithCapacityAndElements(vm, len(elements), elements...)
+func NewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+	return NewHashRecordOfValueWithCapacityAndElements(vm, len(elements), elements...)
 }
 
 // Create a new hash record with the given entries.
-func MustNewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) *HashRecordOfValue {
-	hrec, err := NewHashRecordWithElements(vm, elements...)
+func MustNewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) *HashRecordOfValue {
+	hrec, err := NewHashRecordOfValueWithElements(vm, elements...)
 	if !err.IsUndefined() {
 		panic(err)
 	}
@@ -282,7 +283,7 @@ func MustNewHashRecordWithElements(vm *Thread, elements ...value.PairOfValue) *H
 	return hrec
 }
 
-func NewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+func NewHashRecordOfValueWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
 	h := NewHashRecordOfValue(capacity)
 	for _, element := range elements {
 		err := HashRecordOfValueSet(vm, h, element.Key(), element.Value())
@@ -295,7 +296,7 @@ func NewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...
 }
 
 func MustNewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) *HashRecordOfValue {
-	hrec, err := NewHashRecordWithCapacityAndElements(vm, capacity, elements...)
+	hrec, err := NewHashRecordOfValueWithCapacityAndElements(vm, capacity, elements...)
 	if !err.IsUndefined() {
 		panic(err)
 	}

@@ -17,24 +17,24 @@ var _ HashRecord = NativeHashRecord[value.String, value.String]{}
 
 // UNSAFE! Cast a map with native go types to an Elk `NativeHashRecord` with corresponding Elk types.
 // This is EXTREMELY unsafe, use it only if `IK`, OK` and `IV`, `OV` have the same
-// underlying types eg. `CastNativeHashRecord[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `NativeHashRecord[value.String, value.UInt8]`
-func CastNativeHashRecord[
+// underlying types eg. `UnsafeCastNativeHashRecord[string, uint8, value.String, value.UInt8](m)`, this will convert `map[string]uint8` to `NativeHashRecord[value.String, value.UInt8]`
+func UnsafeCastNativeHashRecord[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
 	OV value.ValueInterface,
 ](m map[IK]IV) NativeHashRecord[OK, OV] {
-	return NativeHashRecord[OK, OV](castNativeMap[IK, IV, OK, OV](m))
+	return NativeHashRecord[OK, OV](unsafeCastNativeMap[IK, IV, OK, OV](m))
 }
 
 // Transform a map with native go types to a new Elk `NativeHashRecord` with corresponding Elk types
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeHashRecord(m, func(k string, v uint8) (value.String, value.UInt8) {
+//	TransformMapIntoNativeHashRecord(m, func(k string, v uint8) (value.String, value.UInt8) {
 //		return value.String(k), value.UInt8(v)
 //	})
-func TransformIntoNativeHashRecord[
+func TransformMapIntoNativeHashRecord[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -129,15 +129,19 @@ func (h NativeHashRecord[K, V]) GetVal(thread *Thread, key value.Value) (value.V
 func (h NativeHashRecord[K, V]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 	v, ok := value.Downcast[V](val)
 	if !ok {
-		return value.NewInvalidValueInTypedMap(h, v.Class()).ToValue()
+		return value.NewInvalidValueInTypedMap(h, val.Class()).ToValue()
 	}
 
 	h[k] = v
 	return value.Undefined
+}
+
+func (h NativeHashRecord[K, V]) Set(key K, val V) {
+	h[key] = val
 }
 
 func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {

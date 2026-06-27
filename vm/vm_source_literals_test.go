@@ -416,11 +416,11 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 
 func TestVMSource_ArrayListLiteral(t *testing.T) {
 	tests := sourceTestTable{
-		"empty arrayTuple literal": {
+		"empty arrayList literal": {
 			source:       `[]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{}),
 		},
-		"static arrayTuple literal": {
+		"static arrayList literal": {
 			source: `[1, 2.5, :foo]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
@@ -428,42 +428,42 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.ToSymbol("foo").ToValue(),
 			}),
 		},
-		"static arrayTuple literal with static capacity": {
+		"static arrayList literal with static capacity": {
 			source: `
 				print([1, 2.5, :foo]:20.inspect)
 			`,
 			wantStdout:   "[1, 2.5, :foo]:20",
 			wantStackTop: value.Nil,
 		},
-		"word arrayTuple literal with static capacity": {
+		"word arrayList literal with static capacity": {
 			source: `
 				print(\w[foo bar baz]:20.inspect)
 			`,
 			wantStdout:   `["foo", "bar", "baz"]:20`,
 			wantStackTop: value.Nil,
 		},
-		"symbol arrayTuple literal with static capacity": {
+		"symbol arrayList literal with static capacity": {
 			source: `
 				print(\s[foo bar baz]:20.inspect)
 			`,
 			wantStdout:   `[:foo, :bar, :baz]:20`,
 			wantStackTop: value.Nil,
 		},
-		"bin arrayTuple literal with static capacity": {
+		"bin arrayList literal with static capacity": {
 			source: `
 				print(\b[101 10 11]:20.inspect)
 			`,
 			wantStdout:   `[5u8, 2u8, 3u8]:20`,
 			wantStackTop: value.Nil,
 		},
-		"hex arrayTuple literal with static capacity": {
+		"hex arrayList literal with static capacity": {
 			source: `
 				print(\x[ff de4 5]:20.inspect)
 			`,
 			wantStdout:   `[255u16, 3556u16, 5u16]:20`,
 			wantStackTop: value.Nil,
 		},
-		"nested static arrayTuple literal": {
+		"nested static arrayList literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
 			wantStackTop: value.Ref(&value.ArrayListOfValue{
 				value.SmallInt(1).ToValue(),
@@ -1388,7 +1388,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 		},
 		"static literal": {
 			source: `%{ 1 => 2.5, "bar" => :foo }`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.Ref(value.String("bar")),
@@ -1402,7 +1402,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 		},
 		"static elements with for loops": {
 			source: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1427,7 +1427,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				a := { 1 => 1, 2 => 4, 3 => 9, 4 => 16 }
 				%{ 1 => 'foo', **a, 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1459,7 +1459,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 
 				%{ 1 => 'foo', **gen(), 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1500,7 +1500,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				f := Foo()
 				%{ 1 => 'foo', **f, 2 => 5.6 }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.SmallInt(1).ToValue(),
@@ -1594,7 +1594,7 @@ func TestVMSource_HashRecordLiteral(t *testing.T) {
 				foo := "foo var"
 				%{ foo => 1, 2.5 => :bar }
 			`,
-			wantStackTop: value.Ref(vm.MustNewHashRecordWithElements(
+			wantStackTop: value.Ref(vm.MustNewHashRecordOfValueWithElements(
 				nil,
 				value.MakePairOfValue(
 					value.Ref(value.String("foo var")),

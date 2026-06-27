@@ -1,0 +1,22 @@
+module Std::Elk::AST
+  ##[
+    Represents a `%if` expression eg. `%if foo then println("bar")`.
+    It's an if expression used in AST templates (`quote` blocks) used for
+    conditionally building ASTs.
+  ]##
+  sealed primitive class UnquoteIfExpressionNode
+    include ExpressionNode
+
+    init(
+      condition: ExpressionNode,
+      then_body: ArrayTuple[StatementNode],
+      else_body: ArrayTuple[StatementNode] = loop; end,
+      location: FS::Location = loop; end,
+    ); end
+
+    def condition: ExpressionNode; end
+    def then_body: ArrayTuple[StatementNode]; end
+    def else_body: ArrayTuple[StatementNode]; end
+    def location: FS::Location; end
+  end
+end

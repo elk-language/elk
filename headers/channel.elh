@@ -1,5 +1,5 @@
 ##[
-	A `Channel` is an object tha can be used to send and receive values.
+	A `Channel` is an object that can be used to send and receive values.
 	Its useful for communicating between multiple threads of execution.
 
 	## Instantiation
@@ -32,14 +32,21 @@
 
 	## Popping values
 
-	You can receive values from the channel using the `pop` method.
+	You can receive values from the channel using the `<<ch` and `ch.pop` methods.
 	Unbuffered channels will block the current thread until a value is available.
 	Buffered channels will not block the current thread if there is a value in the channel's buffer.
 
+	The pop operator `<<ch` returns a `Std::Result`.
+
 	```
 	ch := Channel::[Int](3) # instantiate a buffered channel of `Int` values
+
 	ch << 5 # send `5` to the channel
-	v := try ch.pop # pop `5` from the channel
+	result := <<ch # pop from the channel using the pop unary operator
+	result.unwrap #=> 5
+
+	ch << 3 # send `3` to the channel
+	v := try ch.pop # pop `3` from the channel using the pop method
 	```
 
 	if the channel is closed `pop` will throw `:channel_closed`
@@ -53,6 +60,11 @@
 sealed primitive class ::Std::Channel[V]
 	include Iterable::FiniteBase[V]
 	implement Closable
+
+	##[
+		Thrown when trying to pop, push or close a closed channel.
+	]##
+	sealed class ClosedError < Error; end
 
 	singleton
 		##[
@@ -87,17 +99,33 @@ sealed primitive class ::Std::Channel[V]
 		Pushes a new element to the channel.
 		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
 
-		Pushing to a closed channel throws an unchecked error.
+		Pushing to a closed channel throws an unchecked error `Std::Channel::ClosedError`.
 	]##
 	def <<(value: V): self; end
+
+	##[
+		Pushes a new element to the channel.
+		Blocks the current thread until another thread pops the element if the channel does not have any empty slots in the buffer.
+
+		Pushing to a closed channel throws `Std::Channel::ClosedError`.
+	]##
+	def push(value: V) ! ClosedError; end
 
 	##[
 		Pops an element from the channel.
 		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
 
-		Popping from a closed channel throws `:closed_channel`.
+		Popping from a closed channel throws `Std::Channel::ClosedError`.
 	]##
-	def pop: V ! :closed_channel; end
+	def pop: V ! ClosedError; end
+
+	##[
+		Pops an element from the channel.
+		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
+
+		Popping from a closed channel return a result with error `Std::Channel::ClosedError`.
+	]##
+	def <<@: Result[V, ClosedError]; end
 
 	##[
 		Closes the channel, preventing any more values from being pushed or popped.
@@ -109,4 +137,14 @@ sealed primitive class ::Std::Channel[V]
 	def next: V ! :stop_iteration; end
 
 	def iter: self; end
+
+	##[
+		Obtain a read-only view of the channel.
+	]##
+	def readonly: ReadChannel[V]; end
+
+	##[
+		Obtain a write-only view of the channel.
+	]##
+	def writeonly: WriteChannel[V]; end
 end

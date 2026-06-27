@@ -2,7 +2,6 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::Channel
@@ -13,7 +12,7 @@ func initChannel() {
 		c,
 		"closed",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			ch := value.NewChannel(0)
+			ch := value.NewChannelOfValue(0)
 			ch.Close()
 			return value.Ref(ch), value.Undefined
 		},
@@ -36,7 +35,7 @@ func initChannel() {
 					return value.Undefined, value.Ref(value.NewError(value.OutOfRangeErrorClass, "channel capacity is too large"))
 				}
 			}
-			self := value.NewChannel(n)
+			self := value.NewChannelOfValue(n)
 			return value.Ref(self), value.Undefined
 		},
 		DefWithParameters(1),
@@ -45,7 +44,7 @@ func initChannel() {
 		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := args[0].AsReference().(value.Channel)
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
 	)
@@ -53,7 +52,7 @@ func initChannel() {
 		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := args[0].AsReference().(value.Channel)
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
 	)
@@ -61,7 +60,7 @@ func initChannel() {
 		c,
 		"left_capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := args[0].AsReference().(value.Channel)
 			return value.SmallInt(self.LeftCapacity()).ToValue(), value.Undefined
 		},
 	)
@@ -85,10 +84,10 @@ func initChannel() {
 		c,
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
-			err := self.Push(args[1])
+			self := args[0].AsReference().(value.Channel)
+			err := self.PushCtx(vm.Aborter.Context(), args[1])
 			if err.IsUndefined() {
-				return value.Ref(self), value.Undefined
+				return self.ToValue(), value.Undefined
 			}
 			return value.Undefined, err
 		},
@@ -100,10 +99,10 @@ func initChannel() {
 		c,
 		"pop",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
-			result, ok := self.Pop()
-			if !ok {
-				return value.Undefined, symbol.L_channel_closed.ToValue()
+			self := args[0].AsReference().(value.Channel)
+			result, err := self.PopCtx(vm.Aborter.Context())
+			if err.IsNotUndefined() {
+				return value.Undefined, err
 			}
 			return result, value.Undefined
 		},
@@ -111,9 +110,18 @@ func initChannel() {
 
 	Def(
 		c,
+		"<<@",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return value.MakeResult2(self.PopCtx(vm.Aborter.Context())).ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"close",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
+			self := args[0].AsReference().(value.Channel)
 			err := self.Close()
 			if err.IsUndefined() {
 				return value.Nil, value.Undefined
@@ -125,10 +133,28 @@ func initChannel() {
 
 	Def(
 		c,
+		"writeonly",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return self.ToWriteChannel().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
+		"readonly",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return self.ToReadChannel().ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
 		"next",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*value.Channel)(args[0].Pointer())
-			return self.NextValue()
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.Channel)
+			return self.NextValueCtx(vm.Aborter.Context())
 		},
 	)
 	Def(

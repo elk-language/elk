@@ -14,7 +14,7 @@ import (
 // Represents a single test case
 type Case struct {
 	Name   string
-	Fn     *vm.Closure
+	Fn     vm.Closure
 	Parent *Suite
 }
 
@@ -33,7 +33,7 @@ func (c *Case) traverse(enter func(test SuiteOrCase) TraverseOption, leave func(
 	return leave(c)
 }
 
-func NewCase(name string, fn *vm.Closure, parent *Suite) *Case {
+func NewCase(name string, fn vm.Closure, parent *Suite) *Case {
 	return &Case{
 		Name:   name,
 		Fn:     fn,
@@ -42,7 +42,7 @@ func NewCase(name string, fn *vm.Closure, parent *Suite) *Case {
 }
 
 func (c *Case) Location() *position.Location {
-	return c.Fn.Bytecode.Location
+	return c.Fn.Location()
 }
 
 func (c *Case) FullName() string {
@@ -88,7 +88,7 @@ func callCaseClosure(
 	v *vm.Thread,
 	caseReport *CaseReport,
 	startTime time.Time,
-	closure *vm.Closure,
+	closure vm.Closure,
 	typ ErrTyp,
 ) bool {
 	var err value.Value

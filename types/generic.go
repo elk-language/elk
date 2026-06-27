@@ -148,12 +148,27 @@ func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 		Namespace:     typ,
 		TypeArguments: typeArgs,
 	}
-	typeArgs.ArgumentMap[symbol.L_self] = NewTypeArgument(
-		generic,
-		INVARIANT,
-	)
 
 	return generic
+}
+
+// If the namespace is not generic returns itself.
+// If the namespace is generic returns a new generic with the namespace's type parameters as type arguments.
+func GetDefaultNamespaceGenericInstance(namespace Namespace) Namespace {
+	if !namespace.IsGeneric() {
+		return namespace
+	}
+
+	return NewGenericWithTypeParameters(namespace)
+}
+
+func NewGenericWithTypeParameters(namespace Namespace) *Generic {
+	return NewGeneric(
+		namespace,
+		ConstructTypeArgumentsFromTypeParameters(
+			namespace.TypeParameters(),
+		),
+	)
 }
 
 func NewGenericWithUpperBoundTypeArgs(namespace Namespace) *Generic {

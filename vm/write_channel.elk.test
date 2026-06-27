@@ -1,0 +1,301 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+using Std::Sync::WaitGroup
+using Std::Sync::WaitGroup::spawn!
+
+describe "WriteChannel", ->
+
+	context "select", ->
+		should "trigger the case for available buffered channel", ->
+			ch1 := Channel::[Int](5)
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Int]()
+			wch2 := ch2.writeonly
+
+			wch1 << 9
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.unwrap + 3
+			case v := <<ch2
+				result = v.unwrap * 2
+			end
+
+			assert! result == 12
+		end
+
+		should "wait and trigger the read case for available channel", ->
+			ch1 := Channel::[Int](5)
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Int](5)
+			wch2 := ch2.writeonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				wch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				wch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.unwrap + 3
+			case v := <<ch2
+				result = v.unwrap * 2
+			end
+
+			wg.wait
+
+			assert! result == 6
+		end
+
+		should "wait and trigger the write case for available channel", ->
+			ch1 := Channel::[Int]()
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Int]()
+			wch2 := ch2.writeonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				<<ch1
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				<<ch2
+			end
+
+			var result: Int?
+			select
+			case wch1 << 420
+				result = 420
+			case wch2 << 69
+				result = 69
+			end
+
+			wch1 << -1
+			wg.wait
+
+			assert! result == 69
+		end
+
+		should "trigger default case", ->
+			ch1 := Channel::[Int](5)
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Int](5)
+			wch2 := ch2.writeonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				wch1 << 9
+			end
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				wch2 << 3
+			end
+
+			var result: Int?
+			select
+			case v := <<ch1
+				result = v.unwrap + 3
+			case v := <<ch2
+				result = v.unwrap * 2
+			else
+				result = -420
+			end
+
+			wg.wait
+
+			assert! result == -420
+		end
+
+		should "trigger send case when no reader is available", ->
+			ch1 := Channel::[Int]()
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Int](5)
+			wch2 := ch2.writeonly
+
+			wg := WaitGroup()
+
+			spawn! wg, go
+				sleep 10.milliseconds
+				<<ch1
+			end
+
+			spawn! wg, go
+				sleep 100.milliseconds
+				wch2 << 3
+			end
+
+			var result: Int?
+			select
+			case wch1 << 9
+				result = 69
+			case v := <<ch2
+				result = v.unwrap * 2
+			end
+
+			wg.wait
+
+			assert! result == 69
+		end
+
+
+	end
+
+	context "capacity", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			wch := ch.writeonly
+			assert! wch.capacity == 0
+		end
+
+		should "return non-zero for buffered channel", ->
+			ch := Channel::[Float](10)
+			wch := ch.writeonly
+			assert! wch.capacity == 10
+		end
+	end
+
+	context "length", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			wch := ch.writeonly
+			assert! wch.length == 0
+		end
+
+		should "return zero for buffered channel with no elements", ->
+			ch := Channel::[Float](10)
+			wch := ch.writeonly
+			assert! wch.length == 0
+		end
+
+		should "return non-zero for buffered channel with elements", ->
+			ch := Channel::[Float](10)
+			wch := ch.writeonly
+			assert! wch.length == 0
+
+			wch << 2.0
+			assert! wch.length == 1
+
+			wch << 55.2
+			assert! wch.length == 2
+		end
+	end
+
+	context "left_capacity", ->
+		should "return 0 for non-buffered channel", ->
+			ch := Channel::[Float]()
+			wch := ch.writeonly
+			assert! wch.left_capacity == 0
+		end
+
+		should "return capacity for buffered channel with no elements", ->
+			ch := Channel::[Float](10)
+			wch := ch.writeonly
+			assert! wch.capacity == 10
+			assert! wch.left_capacity == 10
+		end
+
+		should "return non-zero for buffered channel with elements", ->
+			ch := Channel::[Float](10)
+			wch := ch.writeonly
+			assert! wch.left_capacity == 10
+
+			wch << 2.0
+			assert! wch.left_capacity == 9
+
+			wch << 55.2
+			assert! wch.left_capacity == 8
+		end
+	end
+
+	context "==", ->
+		should "return true for the same channel object", ->
+			ch := Channel::[Float]()
+			wch := ch.writeonly
+			result := wch == wch
+			assert! result == true
+		end
+
+		should "return false for different channel", ->
+			ch1 := Channel::[Float]()
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Float]()
+			wch2 := ch2.writeonly
+
+			result := wch1 == wch2
+			assert! result == false
+		end
+	end
+
+	context "=~", ->
+		should "return true for the same channel object", ->
+			ch := Channel::[Float]()
+			wch := ch.writeonly
+
+			result := wch =~ wch
+			assert! result == true
+		end
+
+		should "return false for different channel", ->
+			ch1 := Channel::[Float]()
+			wch1 := ch1.writeonly
+
+			ch2 := Channel::[Float]()
+			wch2 := ch2.writeonly
+
+			result := wch1 =~ wch2
+			assert! result == false
+		end
+	end
+
+	context "push", ->
+		should "should push to buffered channel without blocking", ->
+			ch := Channel::[Float](2)
+			wch := ch.writeonly
+
+			wch << 2.5
+		end
+
+		should "should throw when pushing to closed channel", ->
+			ch := Channel::[Float](2)
+			wch := ch.writeonly
+			wch.close
+			assert_throws! wch << 2.5 match Channel::ClosedError()
+		end
+	end
+
+	context "close", ->
+		should "should close an open channel", ->
+			ch := Channel::[Float](2)
+			wch := ch.writeonly
+			wch.close
+		end
+
+		should "should throw when closing a closed channel", ->
+			ch := Channel::[Float](2)
+			wch := ch.writeonly
+			wch.close
+			assert_throws! wch.close() match Channel::ClosedError()
+		end
+	end
+end

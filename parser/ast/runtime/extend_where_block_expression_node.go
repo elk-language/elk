@@ -14,17 +14,15 @@ func initExtendWhereBlockExpressionNode() {
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 
-			argBodyTuple := args[1].MustReference().(*value.ArrayTupleOfValue)
-			argBody := make([]ast.StatementNode, argBodyTuple.Length())
-			for i, el := range *argBodyTuple {
-				argBody[i] = el.MustReference().(ast.StatementNode)
-			}
+			argBodyTuple := args[1].AsReference().(value.ArrayTuple)
+			argBody := value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+				return v.AsReference().(ast.StatementNode)
+			}).ToSlice()
 
-			argWhereTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argWhere := make([]ast.TypeParameterNode, argWhereTuple.Length())
-			for i, el := range *argWhereTuple {
-				argWhere[i] = el.MustReference().(ast.TypeParameterNode)
-			}
+			whereTuple := args[2].AsReference().(value.ArrayTuple)
+			argWhere := value.TransformArrayTupleIntoNativeArrayTuple(whereTuple, func(v value.Value) ast.TypeParameterNode {
+				return v.AsReference().(ast.TypeParameterNode)
+			}).ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -48,15 +46,8 @@ func initExtendWhereBlockExpressionNode() {
 		"body",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
-
-			collection := self.Body
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Body)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -65,15 +56,8 @@ func initExtendWhereBlockExpressionNode() {
 		"where_params",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
-
-			collection := self.Where
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.Where)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 

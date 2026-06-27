@@ -18,33 +18,39 @@ build: fmt
 	go build -ldflags "-s -w -X 'github.com/elk-language/elk/info.Version=$$(git describe --tags --exact-match 2>/dev/null || git branch --show-current)'"
 
 go-test: header
-	go test ./... -timeout 40s
+	go test ./... -timeout 60s -tags debug
 
 elk-test: header
-	go run ./cmd/elk test
+	ELKWARN=0 go run -tags debug ./cmd/elk test
 
 test: go-test elk-test
 
 repl: fmt
-	go run ./cmd/elk repl
+	go run -tags debug ./cmd/elk repl
 
 typecheck: fmt
-	go run ./cmd/elk repl --typecheck
+	go run -tags debug ./cmd/elk repl --typecheck
 
 disassemble: fmt
-	go run ./cmd/elk repl --disassemble
+	go run -tags debug ./cmd/elk repl --disassemble
+
+transpile: fmt
+	go run -tags debug ./cmd/elk repl --transpile
+
+native: fmt
+	go run -tags debug ./cmd/elk repl --native
 
 lex: fmt
-	go run ./cmd/elk repl --lex
+	go run -tags debug ./cmd/elk repl --lex
 
 parse: fmt
-	go run ./cmd/elk repl --parse
+	go run -tags debug ./cmd/elk repl --parse
 
 expand: fmt
-	go run ./cmd/elk repl --expand
+	go run -tags debug ./cmd/elk repl --expand
 
 inspect: fmt
-	go run ./cmd/elk repl --inspect-stack
+	go run -tags debug ./cmd/elk repl --inspect-stack
 
 licenses:
 	rm -rf licenses/

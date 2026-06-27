@@ -27,7 +27,8 @@ func (c *Checker) checkAllMethodSignaturesOfNamespace(namespace types.Namespace)
 		return
 	}
 
-	methodSignatures := c.signatureChecks.Get(namespace.Name())
+	namespaceName := namespace.Name()
+	methodSignatures := c.signatureChecks.Get(namespaceName)
 	c.checkSignatures(methodSignatures)
 }
 
@@ -107,6 +108,8 @@ func (c *Checker) checkSignatures(methodSignatures *[]signatureCheckEntry) {
 		c.flags = prevFlags
 		c.mode = prevMode
 	}
+
+	*methodSignatures = nil
 }
 
 // Gathers all declarations of methods, constants and instance variables
@@ -263,6 +266,11 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 }
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
+	if c.isReadonly() {
+		node.SetType(types.Untyped{})
+		return
+	}
+
 	for _, entry := range node.Entries {
 		c.resolveUsingEntry(entry, true)
 	}
@@ -561,7 +569,7 @@ func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSign
 }
 
 func (c *Checker) newMethodChecker(
-	filename string,
+	funcName string,
 	constScopes []constantScope,
 	methodScopes []methodScope,
 	selfType,
@@ -572,8 +580,8 @@ func (c *Checker) newMethodChecker(
 	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
-		env:            c.env,
-		Filename:       filename,
+		runtimeEnv:     c.runtimeEnv,
+		Filename:       loc.FilePath,
 		mode:           mode,
 		phase:          methodCheckPhase,
 		selfType:       selfType,
@@ -584,13 +592,13 @@ func (c *Checker) newMethodChecker(
 		Errors:         c.Errors,
 		flags:          c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, false),
+			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.compiler = compiler.CreateCompiler(c.compiler, checker, loc, c.Errors)
+	checker.compiler = compiler.CreateCompiler(funcName, c.compiler, checker, loc, c.Errors, c.HasAdditionalAbortChecks())
 
 	return checker
 }
@@ -652,9 +660,10 @@ func (c *Checker) checkMethodBodies() {
 			} else {
 				mode = methodMode
 			}
+			elkName := method.NamespacedName()
 
 			methodChecker := c.newMethodChecker(
-				node.Location().FilePath,
+				elkName,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
 				method.DefinedUnder,
@@ -902,6 +911,14 @@ func (c *Checker) checkMethodOverride(
 		return
 	}
 
+	overrideNamespace := overrideMethod.DefinedUnder
+	if overrideNamespace != nil {
+		overrideGeneric := types.GetDefaultNamespaceGenericInstance(overrideNamespace)
+		overrideSelfMap := c.createTypeArgumentMapWithSelf(overrideGeneric)
+		baseMethod = c.replaceTypeParametersInMethodCopy(baseMethod, overrideSelfMap, false)
+		overrideMethod = c.replaceTypeParametersInMethodCopy(overrideMethod, overrideSelfMap, false)
+	}
+
 	if len(baseMethod.Overloads) > len(overrideMethod.Overloads) {
 		errDetailsBuff := new(strings.Builder)
 
@@ -1114,6 +1131,8 @@ func (c *Checker) checkMethod(
 ) (ast.TypeNode, ast.TypeNode) {
 	prevCatchScopes := c.catchScopes
 	c.catchScopes = nil
+	prevHasDefer := c.hasDefer()
+	c.setHasDefer(false)
 
 	name := checkedMethod.Name
 	prevMode := c.mode
@@ -1125,7 +1144,7 @@ func (c *Checker) checkMethod(
 
 		if parent != nil {
 			baseMethod := c.resolveMethodInNamespace(parent, name)
-			if baseMethod != nil {
+			if baseMethod != nil && name != symbol.S_init {
 				c.checkMethodOverride(
 					checkedMethod,
 					baseMethod,
@@ -1136,7 +1155,7 @@ func (c *Checker) checkMethod(
 	}
 
 	if isClosure {
-		c.pushNestedLocalEnv()
+		c.pushNestedLocalEnv(defaultLocalEnvType)
 	} else {
 		c.pushIsolatedLocalEnv()
 	}
@@ -1286,6 +1305,9 @@ func (c *Checker) checkMethod(
 		}
 	}
 
+	checkedMethod.SetHasDefer(c.hasDefer())
+
+	c.setHasDefer(prevHasDefer)
 	c.returnType = nil
 	c.throwType = nil
 	c.mode = prevMode
@@ -2261,7 +2283,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 	c.methodCache.Slice = nil
 
 	if c.shouldCompile() && method.IsCompilable() {
-		method.Body = c.compiler.CompileMethodBody(node, method.Name).Method()
+		method.Body = c.compiler.CompileMethodBody(node, value.ToSymbol(method.NamespacedName())).Method()
 	}
 }
 
@@ -2601,7 +2623,7 @@ func (c *Checker) declareMethodWithBase(
 
 	if generator {
 		returnType = types.NewGenericWithTypeArgs(
-			c.env.StdSubtypeClass(symbol.Generator),
+			c.runtimeEnv.StdSubtypeClass(symbol.Generator),
 			returnType,
 			throwType,
 		)
@@ -2609,7 +2631,7 @@ func (c *Checker) declareMethodWithBase(
 		throwType = types.Never{}
 	} else if async {
 		returnType = types.NewGenericWithTypeArgs(
-			c.env.StdSubtypeClass(symbol.Promise),
+			c.runtimeEnv.StdSubtypeClass(symbol.Promise),
 			returnType,
 			throwType,
 		)
@@ -2727,9 +2749,9 @@ func (c *Checker) setInputPositionTypeMode() {
 	}
 }
 
-func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Location) bool {
+func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Location, widenReturnType bool) bool {
 	if !overrideMethod.IsGeneric() {
-		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true)
+		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true, widenReturnType)
 	}
 
 	prevMode := c.mode
@@ -2751,7 +2773,7 @@ func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, o
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Location, validateParamNames bool) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Location, validateParamNames, widenReturnType bool) bool {
 	if baseMethod == nil {
 		return true
 	}
@@ -2759,27 +2781,29 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
-		fmt.Fprintf(
-			errDetailsBuff,
-			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
-			types.InspectWithColor(overrideMethod),
-			types.InspectWithColor(baseMethod),
-			types.InspectWithColor(overrideMethod.ReturnType),
-			types.InspectWithColor(baseMethod.ReturnType),
-		)
-		areCompatible = false
-	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
-		fmt.Fprintf(
-			errDetailsBuff,
-			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
-			types.InspectWithColor(overrideMethod),
-			types.InspectWithColor(baseMethod),
-			types.InspectWithColor(overrideMethod.ThrowType),
-			types.InspectWithColor(baseMethod.ThrowType),
-		)
-		areCompatible = false
+	if !widenReturnType {
+		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
+			fmt.Fprintf(
+				errDetailsBuff,
+				"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
+				types.InspectWithColor(overrideMethod),
+				types.InspectWithColor(baseMethod),
+				types.InspectWithColor(overrideMethod.ReturnType),
+				types.InspectWithColor(baseMethod.ReturnType),
+			)
+			areCompatible = false
+		}
+		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
+			fmt.Fprintf(
+				errDetailsBuff,
+				"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
+				types.InspectWithColor(overrideMethod),
+				types.InspectWithColor(baseMethod),
+				types.InspectWithColor(overrideMethod.ThrowType),
+				types.InspectWithColor(baseMethod.ThrowType),
+			)
+			areCompatible = false
+		}
 	}
 
 	if len(baseMethod.Params) > len(overrideMethod.Params) {
@@ -3409,122 +3433,157 @@ func (c *Checker) getReceiverlessMethod(name value.Symbol, location *position.Lo
 	return nil, nil, false
 }
 
-func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errLoc *position.Location, inParent, inSelf bool) *types.Method {
 	typ = c.ToNonLiteral(typ, true)
 
 	switch t := typ.(type) {
 	case types.Self:
-		return c._getMethod(c.selfType, name, errSpan, inParent, true)
+		return c._getMethod(c.selfType, name, errLoc, inParent, true)
 	case *types.NamedType:
-		return c._getMethod(t.Type, name, errSpan, inParent, inSelf)
+		return c._getMethod(t.Type, name, errLoc, inParent, inSelf)
 	case *types.TypeParameter:
-		return c.getMethodForTypeParameter(t, name, errSpan, inParent, inSelf)
+		return c.getMethodForTypeParameter(t, name, errLoc, inParent, inSelf)
 	case *types.Generic:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Class:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.NamespacePlaceholder:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.SingletonClass:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Interface:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Callable:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.InterfaceProxy:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Module:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Mixin:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.MixinProxy:
-		return c.getMethodInNamespace(t, typ, name, errSpan, inParent, inSelf)
+		return c.getMethodInNamespace(t, typ, name, errLoc, inParent, inSelf)
 	case *types.Intersection:
-		var methods []*types.Method
-		var baseMethod *types.Method
+		return c.getMethodInIntersection(t, name, errLoc)
+	case *types.Nilable:
+		return c.getMethodInNilable(t, name, errLoc)
+	case *types.Union:
+		return c.getMethodInUnion(t, name, errLoc)
+	default:
+		c.addMissingMethodError(typ, name.String(), errLoc)
+		return nil
+	}
+}
 
-		for _, element := range t.Elements {
-			switch e := element.(type) {
-			case *types.Not:
-				switch t := e.Type.(type) {
-				case *types.Interface:
-					elementMethod := c.GetMethod(t, name, nil)
-					if elementMethod == nil {
-						continue
-					}
-					return nil
-				case *types.Mixin:
-					elementMethod := c.GetMethod(t, name, nil)
-					if elementMethod == nil {
-						continue
-					}
-					return nil
-				}
-			default:
-				elementMethod := c.GetMethod(element, name, nil)
+func (c *Checker) getMethodInNilable(typ *types.Nilable, name value.Symbol, errLoc *position.Location) *types.Method {
+	nilType := c.runtimeEnv.StdSubtype(symbol.Nil).(*types.Class)
+	nilMethod := nilType.Method(name)
+	if nilMethod == nil {
+		c.addMissingMethodError(nilType, name.String(), errLoc)
+	}
+	nonNilMethod := c.GetMethod(typ.Type, name, errLoc)
+	if nilMethod == nil || nonNilMethod == nil {
+		return nil
+	}
+
+	var baseMethod *types.Method
+	var overrideMethod *types.Method
+	if calculateMethodBaseScore(nilMethod) > calculateMethodBaseScore(nonNilMethod) {
+		baseMethod = nilMethod
+		overrideMethod = nonNilMethod
+	} else {
+		baseMethod = nonNilMethod
+		overrideMethod = nilMethod
+	}
+
+	if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errLoc, true) {
+		return nil
+	}
+
+	method := baseMethod.Copy()
+	method.ReturnType = c.NewNormalisedUnion(baseMethod.ReturnType, overrideMethod.ReturnType)
+	method.ThrowType = c.NewNormalisedUnion(baseMethod.ThrowType, overrideMethod.ThrowType)
+	method.Overloads = nil
+	return method
+}
+
+func (c *Checker) getMethodInUnion(typ *types.Union, name value.Symbol, errLoc *position.Location) *types.Method {
+	var methods []*types.Method
+	var baseMethod *types.Method
+
+	for _, element := range typ.Elements {
+		elementMethod := c.GetMethod(element, name, errLoc)
+		if elementMethod == nil {
+			continue
+		}
+		methods = append(methods, elementMethod)
+		if baseMethod == nil {
+			baseMethod = elementMethod
+			continue
+		}
+		currentScore := calculateMethodBaseScore(elementMethod)
+		baseScore := calculateMethodBaseScore(baseMethod)
+		if currentScore > baseScore {
+			baseMethod = elementMethod
+		}
+	}
+
+	if len(methods) < len(typ.Elements) {
+		return nil
+	}
+
+	returnTypes := make([]types.Type, len(methods)+1)
+	throwTypes := make([]types.Type, len(methods)+1)
+
+	returnTypes[0] = baseMethod.ReturnType
+	throwTypes[0] = baseMethod.ThrowType
+
+	isCompatible := true
+	for i := range len(methods) {
+		method := methods[i]
+
+		ok := c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, true)
+		returnTypes[i+1] = method.ReturnType
+		throwTypes[i+1] = method.ThrowType
+		if !ok {
+			isCompatible = false
+		}
+	}
+
+	if !isCompatible {
+		return nil
+	}
+
+	method := baseMethod.Copy()
+	method.ReturnType = c.NewNormalisedUnion(returnTypes...)
+	method.ThrowType = c.NewNormalisedUnion(throwTypes...)
+	method.Overloads = nil
+	return method
+}
+
+func (c *Checker) getMethodInIntersection(typ *types.Intersection, name value.Symbol, errLoc *position.Location) *types.Method {
+	var methods []*types.Method
+	var baseMethod *types.Method
+
+	for _, element := range typ.Elements {
+		switch e := element.(type) {
+		case *types.Not:
+			switch t := e.Type.(type) {
+			case *types.Interface:
+				elementMethod := c.GetMethod(t, name, nil)
 				if elementMethod == nil {
 					continue
 				}
-				methods = append(methods, elementMethod)
-				if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) || baseMethod.IsGeneric() && !elementMethod.IsGeneric() {
-					baseMethod = elementMethod
+				return nil
+			case *types.Mixin:
+				elementMethod := c.GetMethod(t, name, nil)
+				if elementMethod == nil {
+					continue
 				}
+				return nil
 			}
-		}
-
-		switch len(methods) {
-		case 0:
-			c.addMissingMethodError(typ, name.String(), errSpan)
-			return nil
-		case 1:
-			return methods[0].WithoutOverloads()
-		}
-
-		isCompatible := true
-		for i := range len(methods) {
-			method := methods[i]
-
-			if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errSpan) {
-				isCompatible = false
-			}
-		}
-
-		if isCompatible {
-			return baseMethod.WithoutOverloads()
-		}
-
-		return nil
-	case *types.Nilable:
-		nilType := c.env.StdSubtype(symbol.Nil).(*types.Class)
-		nilMethod := nilType.Method(name)
-		if nilMethod == nil {
-			c.addMissingMethodError(nilType, name.String(), errSpan)
-		}
-		nonNilMethod := c.GetMethod(t.Type, name, errSpan)
-		if nilMethod == nil || nonNilMethod == nil {
-			return nil
-		}
-
-		var baseMethod *types.Method
-		var overrideMethod *types.Method
-		if len(nilMethod.Params) < len(nonNilMethod.Params) || nilMethod.IsGeneric() && !nonNilMethod.IsGeneric() {
-			baseMethod = nilMethod
-			overrideMethod = nonNilMethod
-		} else {
-			baseMethod = nonNilMethod
-			overrideMethod = nilMethod
-		}
-
-		if c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errSpan) {
-			return baseMethod.WithoutOverloads()
-		}
-		return nil
-	case *types.Union:
-		var methods []*types.Method
-		var baseMethod *types.Method
-
-		for _, element := range t.Elements {
-			elementMethod := c.GetMethod(element, name, errSpan)
+		default:
+			elementMethod := c.GetMethod(element, name, nil)
 			if elementMethod == nil {
 				continue
 			}
@@ -3533,28 +3592,108 @@ func (c *Checker) _getMethod(typ types.Type, name value.Symbol, errSpan *positio
 				baseMethod = elementMethod
 			}
 		}
+	}
 
-		if len(methods) < len(t.Elements) {
-			return nil
-		}
-
-		isCompatible := true
-		for i := range len(methods) {
-			method := methods[i]
-
-			if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errSpan) {
-				isCompatible = false
-			}
-		}
-
-		if isCompatible {
-			return baseMethod.WithoutOverloads()
-		}
-
+	switch len(methods) {
+	case 0:
+		c.addMissingMethodError(typ, name.String(), errLoc)
 		return nil
+	case 1:
+		return methods[0].WithoutOverloads()
+	}
+
+	isCompatible := true
+	for i := range len(methods) {
+		method := methods[i]
+
+		if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, false) {
+			isCompatible = false
+		}
+	}
+
+	if isCompatible {
+		return baseMethod.WithoutOverloads()
+	}
+
+	return nil
+}
+
+func calculateMethodBaseScore(typ types.Type) int {
+	switch t := typ.(type) {
+	case *types.Union:
+		var sum int
+		for _, element := range t.Elements {
+			sum += calculateMethodBaseScore(element)
+		}
+		return sum
+	case *types.Intersection:
+		var sum int
+		for _, element := range t.Elements {
+			sum += calculateMethodBaseScore(element)
+		}
+
+		return sum/len(t.Elements) - 1
+	case *types.Class:
+		result := 2
+		if t.IsGeneric() {
+			result += 1
+		}
+		if t.IsAbstract() {
+			result += 1
+		}
+		return result
+	case *types.Mixin:
+		result := 3
+		if t.IsGeneric() {
+			result += 1
+		}
+		if t.IsAbstract() {
+			result += 1
+		}
+		return result
+	case *types.Interface:
+		result := 4
+		if t.IsGeneric() {
+			result += 1
+		}
+		return result
+	case *types.InstanceOf:
+		return 2
+	case *types.Nilable:
+		return calculateMethodBaseScore(t.Type) + 1
+	case *types.Never:
+		return -100
+	case *types.Generic:
+		return calculateMethodBaseScore(t.Namespace)
+	case *types.NamedType:
+		return calculateMethodBaseScore(t.Type)
+	case *types.Not:
+		return 100 - calculateMethodBaseScore(t.Type)
+	case *types.Any:
+		return 100
+	case *types.Callable:
+		return calculateMethodBaseScore(t.Body)
+	case *types.Method:
+		var result int
+
+		if t.IsGeneric() {
+			result -= 200
+		}
+
+		var paramScore int
+		for _, param := range t.Params {
+			paramScore += calculateMethodBaseScore(param)
+		}
+		result -= paramScore
+
+		var returnScore int
+		returnScore += calculateMethodBaseScore(t.ReturnType)
+		returnScore += calculateMethodBaseScore(t.ThrowType)
+		result += returnScore / 2
+
+		return result
 	default:
-		c.addMissingMethodError(typ, name.String(), errSpan)
-		return nil
+		return 1
 	}
 }
 

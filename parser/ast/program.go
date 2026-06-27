@@ -32,6 +32,7 @@ type ProgramNode struct {
 	NodeBase
 	Body        []StatementNode
 	ImportPaths []string
+	HasDefer    bool
 	State       ProgramState
 }
 
@@ -40,6 +41,7 @@ func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool)
 		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Body:        SpliceSlice(n.Body, loc, args, unquote),
 		ImportPaths: n.ImportPaths,
+		HasDefer:    n.HasDefer,
 		State:       n.State,
 	}
 }
@@ -110,15 +112,19 @@ func (n *ProgramNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::ProgramNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, stmt := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, stmt := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, stmt.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
-	}
 
-	buff.WriteString("\n  ]")
+		buff.WriteString("\n  ")
+	}
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

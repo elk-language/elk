@@ -136,7 +136,7 @@ func initUInt() {
 		"=~",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsUInt()
-			return value.StrictUnsignedIntLaxEqual(self, args[1]), value.Undefined
+			return value.StrictUnsignedIntLaxEqualVal(self, args[1]), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -221,7 +221,7 @@ func initUInt() {
 			self := args[0].AsUInt()
 			other := args[1].AsUInt()
 
-			return (self % other).ToValue(), value.Undefined
+			return value.ToValueErr(self.ModuloUInt(other))
 		},
 		DefWithParameters(1),
 	)

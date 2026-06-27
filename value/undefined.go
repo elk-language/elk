@@ -7,6 +7,8 @@ package value
 // It is the zero value of `Value` and maps to Go's `nil`
 type UndefinedType struct{}
 
+var _ ValueInterface = UndefinedType{}
+
 var Undefined = UndefinedType{}.ToValue()
 var UndefinedClass *Class
 

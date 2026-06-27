@@ -984,7 +984,8 @@ func TestStringLiteralPattern(t *testing.T) {
 				var "hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 21), P(40, 3, 23)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
+				diagnostic.NewFailure(L("<main>", P(34, 3, 17), P(40, 3, 23)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`"),
 			},
 		},
 		"pattern with raw string literal": {
@@ -1038,7 +1039,10 @@ func TestSymbolLiteralPattern(t *testing.T) {
 				var :"hello${1 + 2i8}" as a = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 22), P(40, 3, 24)), "expected type `Std::Int` for parameter `other` in call to `Std::Int.:+`, got type `2i8`"),
+				diagnostic.NewFailure(
+					L("<main>", P(34, 3, 18), P(40, 3, 24)),
+					"no overload of `+` matches the given arguments\n  signature: `def +(other: Std::CoercibleNumeric): Std::CoercibleNumeric`\n             `def +@1(other: Std::Int): Std::Int`\n             `def +@2(other: Std::Float): Std::Float`\n             `def +@3(other: Std::BigFloat): Std::BigFloat`",
+				),
 			},
 		},
 		"pattern with simple symbol literal": {
@@ -2112,6 +2116,274 @@ func TestObjectPattern(t *testing.T) {
 	}
 }
 
+func TestInferredObjectPattern(t *testing.T) {
+	tests := testTable{
+		"declares variables in variable declaration": {
+			input: `
+				var @{length} = "foo"
+				length = 5
+			`,
+		},
+		"declares values in value declaration": {
+			input: `
+				val @{length} = "foo"
+				length = 5
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 3, 5), P(36, 3, 10)), "local value `length` cannot be reassigned"),
+			},
+		},
+		"identifier - nonexistent method": {
+			input: `
+				var @{lol} = "foo"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(13, 2, 13)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"identifier - valid getter": {
+			input: `
+				var @{length} as s = "foo"
+				var a: 9 = length
+				var b: 7 = s
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(47, 3, 16), P(52, 3, 21)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(69, 4, 16), P(69, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - valid getter and wider type": {
+			input: `
+				var a: Int | String | Float = 3.5
+				var @{to_string} as s = a
+				var b: 9 = to_string
+				var c: 7 = s
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(84, 4, 16), P(92, 4, 24)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(109, 5, 16), P(109, 5, 16)), "type `Std::Int | Std::String | Std::Float` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - method with required arguments": {
+			input: `
+				class Foo
+					def bar(a: Int): Int then a
+				end
+
+				var @{bar} as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(67, 6, 11), P(69, 6, 13)), "argument `a` is missing in call to `Foo.:bar`"),
+				diagnostic.NewFailure(L("<main>", P(100, 7, 16), P(102, 7, 18)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(119, 8, 16), P(119, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - void method": {
+			input: `
+				class Foo
+					def bar; end
+				end
+
+				var @{bar} as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 6, 11), P(54, 6, 13)), "cannot use type `void` as a value in this context"),
+				diagnostic.NewFailure(L("<main>", P(104, 8, 16), P(104, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - generic getter with bounds": {
+			input: `
+				class Foo
+					def bar[T < CoercibleNumeric]: T then loop; end
+				end
+
+				var @{bar} as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(120, 7, 16), P(122, 7, 18)), "type `Std::CoercibleNumeric` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(139, 8, 16), P(139, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - generic getter without bounds": {
+			input: `
+				class Foo
+					def bar[T]: T then loop; end
+				end
+
+				var @{bar} as f = Foo()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(101, 7, 16), P(103, 7, 18)), "type `any` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(120, 8, 16), P(120, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and simple type": {
+			input: `
+				class Foo[T]
+					def bar: T then loop; end
+				end
+
+				var @{bar} as f = Foo::[String]()
+				var a: 9 = bar
+				var b: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(111, 7, 16), P(113, 7, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(130, 8, 16), P(130, 8, 16)), "type `Foo[Std::String]` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and wide type": {
+			input: `
+				class Foo[T]
+					def bar: T then loop; end
+				end
+
+				class Bar < Foo[Int]
+				end
+
+				var a: Foo[String] | Bar = Bar()
+				var @{bar} as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(168, 11, 16), P(170, 11, 18)), "type `Std::String | Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(187, 12, 16), P(187, 12, 16)), "type `Foo[Std::String] | Bar` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on a generic class and interface type that intersects with it": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
+
+				interface Bar
+					sig bar: String
+				end
+
+				var a: Bar = Foo::[String]()
+				var @{bar} as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(186, 12, 16), P(188, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(205, 13, 16), P(205, 13, 16)), "type `Bar` cannot be assigned to type `7`"),
+			},
+		},
+		"identifier - getter on an interface type with union types": {
+			input: `
+				interface Bar
+					sig bar: String | Float | nil
+				end
+
+				def a: Bar then loop; end
+				var @{bar} as f = a()
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(134, 8, 16), P(136, 8, 18)), "type `Std::String | Std::Float | nil` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(153, 9, 16), P(153, 9, 16)), "type `Bar` cannot be assigned to type `7`"),
+			},
+		},
+
+		"identifier - getter on a generic interface type": {
+			input: `
+				class Foo[T < Value]
+					def bar: T then loop; end
+				end
+
+				interface Bar[T]
+					sig bar: T
+				end
+
+				var a: Bar[String] = Foo::[String]()
+				var @{bar} as f = a
+				var b: 9 = bar
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(192, 12, 16), P(194, 12, 18)), "type `Std::String` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(211, 13, 16), P(211, 13, 16)), "type `Bar[Std::String]` cannot be assigned to type `7`"),
+			},
+		},
+
+		"key value - nonexistent method": {
+			input: `
+				var @{lol: l} = "foo"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(16, 2, 16)), "method `lol` is not defined on type `Std::String`"),
+			},
+		},
+		"key value - valid getter": {
+			input: `
+				var @{length: l} as s = "foo"
+				var a: 9 = l
+				var b: 7 = s
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(50, 3, 16), P(50, 3, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(67, 4, 16), P(67, 4, 16)), "type `Std::String` cannot be assigned to type `7`"),
+			},
+		},
+		"key value - invalid value pattern": {
+			input: `
+				var @{length: "lol"} as s = "foo"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(19, 2, 19), P(23, 2, 23)), "type `Std::Int` cannot ever match type `\"lol\"`"),
+			},
+		},
+		"key value - method with required arguments": {
+			input: `
+				class Foo
+					def bar(a: Int): Int then a
+				end
+
+				var @{bar: b} as f = Foo()
+				var a: 9 = b
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(67, 6, 11), P(72, 6, 16)), "argument `a` is missing in call to `Foo.:bar`"),
+				diagnostic.NewFailure(L("<main>", P(103, 7, 16), P(103, 7, 16)), "type `Std::Int` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(120, 8, 16), P(120, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+		"key value - void method": {
+			input: `
+				class Foo
+					def bar; end
+				end
+
+				var @{bar: b} as f = Foo()
+				var a: 9 = b
+				var c: 7 = f
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(52, 6, 11), P(57, 6, 16)), "cannot use type `void` as a value in this context"),
+				diagnostic.NewFailure(L("<main>", P(105, 8, 16), P(105, 8, 16)), "type `Foo` cannot be assigned to type `7`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestConstantPattern(t *testing.T) {
 	tests := testTable{
 		"public constant - type without value": {
@@ -2547,7 +2819,6 @@ func TestBinaryPattern(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(11, 2, 11), P(11, 2, 11)), "type `2.2` cannot ever match type `Std::Int`"),
-				diagnostic.NewFailure(L("<main>", P(18, 2, 18), P(19, 2, 19)), "type `2.2` cannot ever match type `Std::Int`"),
 			},
 		},
 		"&& - incompatible patterns": {
@@ -2557,7 +2828,96 @@ func TestBinaryPattern(t *testing.T) {
 				var c: 9 = b
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(45, 3, 9), P(56, 3, 20)), "this pattern is impossible to satisfy"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 18), P(56, 3, 20)), "type `Std::Int` cannot ever match type `Std::Float`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestNilablePattern(t *testing.T) {
+	tests := testTable{
+		"matching subtype": {
+			input: `
+				var a: String | Float | Int = 1
+				var "foo"? as b = a
+				var c: 9 = b
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(45, 3, 9), P(50, 3, 14)), "type `Std::String | Std::Float | Std::Int` cannot ever match type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(76, 4, 16), P(76, 4, 16)), "type `\"foo\"?` cannot be assigned to type `9`"),
+			},
+		},
+		"non-matching pattern": {
+			input: `
+				var a: Int | Float = 0
+				var "foo"? as b = a
+				var c: 9 = b
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(36, 3, 9), P(40, 3, 13)), "type `Std::Int | Std::Float` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(36, 3, 9), P(41, 3, 14)), "type `Std::Int | Std::Float` cannot ever match type `nil`"),
+				diagnostic.NewFailure(L("<main>", P(67, 4, 16), P(67, 4, 16)), "type `\"foo\"?` cannot be assigned to type `9`"),
+			},
+		},
+		"conditional variables": {
+			input: `
+				var a: String | Float | nil = 1.1
+				var ("foo" as b)? = a
+				var c: 9 = b
+				b = "lol"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+			},
+		},
+		"conditional values": {
+			input: `
+				val a: String | Float | nil = 1.5
+				val ("foo" as b)? = a
+				val c: 9 = b
+				b = "lol"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(80, 4, 16), P(80, 4, 16)), "type `Std::String?` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(86, 5, 5), P(86, 5, 5)), "local value `b` cannot be reassigned"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestMustPattern(t *testing.T) {
+	tests := testTable{
+		"non-nilable type": {
+			input: `
+				a := "foo"
+				var must as b = a
+				var c: 9 = b
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L("<main>", P(24, 3, 9), P(27, 3, 12)), "redundant must pattern, type `Std::String` will never be nil"),
+				diagnostic.NewFailure(L("<main>", P(53, 4, 16), P(53, 4, 16)), "type `Std::String` cannot be assigned to type `9`"),
+			},
+		},
+		"nilable type": {
+			input: `
+				var a: Int? = nil
+				var must as b = a
+				var c: 9 = b
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 4, 16), P(60, 4, 16)), "type `Std::Int` cannot be assigned to type `9`"),
 			},
 		},
 	}

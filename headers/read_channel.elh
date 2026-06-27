@@ -1,0 +1,72 @@
+##[
+	A `ReadChannel` is a view of `Channel` that can only receive values.
+	Its useful for constraining a piece of code to make sure it only reads from a channel.
+
+	## Popping values
+
+	You can receive values from the channel using the `pop` method.
+	Unbuffered channels will block the current thread until a value is available.
+	Buffered channels will not block the current thread if there is a value in the channel's buffer.
+
+	```
+	ch := Channel::[Int](3) # instantiate a buffered channel of `Int` values
+	ch << 5 # send `5` to the channel
+	ch << 3 # send `5` to the channel
+
+	rch := ch.readonly # get a ReadChannel
+	v := try <<rch # pop `5` from the channel using the pop unary operator
+	v := try rch.pop # pop `3` from the channel using the pop method
+	```
+
+	if the channel is closed `pop` will throw `:channel_closed`
+
+	## Closing channels
+
+	A `ReadChannel` cannot be closed.
+]##
+sealed noinit primitive class ::Std::ReadChannel[V]
+	include Iterable::FiniteBase[V]
+
+	singleton
+		##[
+			Create a new `ReadChannel` that is closed.
+		]##
+		def closed[V]: ReadChannel[V]; end
+	end
+
+	##[
+		Returns the size of the buffer that can hold elements
+		until they're popped.
+	]##
+	def capacity: Int; end
+
+	##[
+		Returns the amount of elements present in the buffer.
+	]##
+	def length: Int; end
+
+	##[
+		Returns the amount of slots in the buffer that are available for new elements.
+	]##
+	def left_capacity: Int; end
+
+	##[
+		Pops an element from the channel.
+		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
+
+		Popping from a closed channel throws `Std::Channel::ClosedError`.
+	]##
+	def pop: V ! Channel::ClosedError; end
+
+	##[
+		Pops an element from the channel.
+		Blocks the current thread until another thread pushes an element if the channel does not have any values in the buffer.
+
+		Popping from a closed channel returns a result with error `Std::Channel::ClosedError`.
+	]##
+	def <<@: Result[V, Channel::ClosedError]; end
+
+	def next: V ! :stop_iteration; end
+
+	def iter: self; end
+end

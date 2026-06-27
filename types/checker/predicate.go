@@ -2,6 +2,7 @@ package checker
 
 import (
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -44,17 +45,17 @@ func (c *Checker) IsNotNilable(typ types.Type) bool {
 
 // Type is always `nil`
 func (c *Checker) IsNil(typ types.Type) bool {
-	return types.IsNil(typ, c.env)
+	return types.IsNil(typ, c.runtimeEnv)
 }
 
 // Type is always `false`
 func (c *Checker) IsFalse(typ types.Type) bool {
-	return types.IsFalse(typ, c.env)
+	return types.IsFalse(typ, c.runtimeEnv)
 }
 
 // Type is always `false`
 func (c *Checker) IsTrue(typ types.Type) bool {
-	return types.IsTrue(typ, c.env)
+	return types.IsTrue(typ, c.runtimeEnv)
 }
 
 // Type is always falsy.
@@ -103,7 +104,7 @@ func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
 func (c *Checker) IsTheSameNamespace(a, b types.Namespace) bool {
 	a = c.toInnerNamespace(a)
 	b = c.toInnerNamespace(b)
-	return a == b
+	return a.Name() == b.Name() && reflect.TypeOf(a) == reflect.TypeOf(b)
 }
 
 // Check whether the two given types intersect.
@@ -268,7 +269,7 @@ func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) boo
 		if classMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, true) {
+		if !c.checkMethodCompatibility(mixinMethod, classMethod, nil, true, false) {
 			return false
 		}
 	}
@@ -290,7 +291,7 @@ func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespa
 		if bMethod == nil {
 			continue
 		}
-		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, true) {
+		if !c.checkMethodCompatibility(ifaceMethod, bMethod, nil, true, false) {
 			return false
 		}
 	}
@@ -574,9 +575,9 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	case types.Any:
 		return types.IsAny(b)
 	case types.Nil:
-		return types.IsNilLiteral(b) || b == c.StdNil()
+		return types.IsNilLiteral(b) || c.isTheSameType(c.StdNil(), b, nil)
 	case types.Bool:
-		return types.IsBool(b) || b == c.StdBool()
+		return types.IsBool(b) || c.isTheSameType(c.StdBool(), b, nil)
 	case types.True:
 		return c.IsTrue(b)
 	case types.False:
@@ -913,7 +914,7 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *positio
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, b, errLoc)
 	case *types.Module:
-		return a == b
+		return a.Name() == b.Name()
 	default:
 		return false
 	}
@@ -989,14 +990,15 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 func (c *Checker) isSubtypeOfClass(a types.Namespace, b *types.Class) bool {
 	var currentParent types.Namespace = a
 	for {
-		if currentParent == b {
+		if currentParent == nil {
+			return false
+		}
+		if currentParent.Name() == b.Name() {
 			return true
 		}
 		switch p := currentParent.(type) {
-		case nil:
-			return false
 		case *types.Generic:
-			if p.Namespace == b {
+			if p.Namespace.Name() == b.Name() {
 				return true
 			}
 		}
@@ -1013,11 +1015,11 @@ func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin) bool {
 func (c *Checker) namespaceIsMixin(a types.Namespace, b *types.Mixin) bool {
 	switch a := a.(type) {
 	case *types.Mixin:
-		if a == b {
+		if a.Name() == b.Name() {
 			return true
 		}
 	case *types.MixinProxy:
-		if a.Mixin == b {
+		if a.Mixin.Name() == b.Name() {
 			return true
 		}
 	case *types.Generic:
@@ -1051,11 +1053,11 @@ func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Inter
 	for parent := range types.Parents(a) {
 		switch p := parent.(type) {
 		case *types.Interface:
-			if p == b {
+			if p.Name() == b.Name() {
 				return true
 			}
 		case *types.InterfaceProxy:
-			if p.Interface == b {
+			if p.Interface.Name() == b.Name() {
 				return true
 			}
 		case *types.Generic:
@@ -1119,7 +1121,7 @@ abstractLoop:
 			continue abstractLoop
 		}
 
-		if !c.checkMethodCompatibility(abstractMethod, method, nil, true) {
+		if !c.checkMethodCompatibility(abstractMethod, method, nil, true, false) {
 			incorrectMethods = append(incorrectMethods, methodOverride{
 				superMethod: abstractMethod,
 				override:    method,
@@ -1199,7 +1201,7 @@ func (c *Checker) isSubtypeOfCallable(a types.Namespace, b *types.Callable, errL
 		return false
 	}
 
-	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false) {
+	if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil, false, false) {
 		methodDetailsBuff := new(strings.Builder)
 		if method == nil {
 			fmt.Fprintf(

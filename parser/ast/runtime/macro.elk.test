@@ -1,0 +1,91 @@
+using Std::Test::Assertions::*
+using Std::Test::*
+
+describe "Macro", ->
+	context "eval_node", ->
+		should "evaluate and return the result", ->
+			result := Macro.eval_node(
+				quote
+					"foo".length
+				end
+			)
+			assert! result == 3
+		end
+
+		should "throw a typechecker error", ->
+			assert_throws!(
+				Macro.eval_node(
+					quote
+						1 / 8u8
+					end
+				) match Elk::Type::Checker::Error(message: "macro eval checker error")
+			)
+		end
+
+		should "throw a runtime error", ->
+			assert_throws!(
+				Macro.eval_node(
+					quote
+						1 / 0
+					end
+				) match ZeroDivisionError(message: "cannot divide by zero")
+			)
+		end
+	end
+
+	context "compile_if!", ->
+	  context "if", ->
+			should "return then node if truthy condition", ->
+				result := Macro::compile_if!(if DateTime.now.year > 2000
+					"foo"
+				end)
+				assert! result == "foo"
+			end
+
+			should "return nil if falsy condition and no else node", ->
+				result := Macro::compile_if!(if DateTime.now.year < 2000
+					"foo"
+				end)
+				assert! result == nil
+			end
+
+			should "return else node if falsy condition", ->
+				result := Macro::compile_if!(if DateTime.now.year < 2000
+					"foo"
+				else
+					"bar"
+				end)
+
+				assert! result == "bar"
+			end
+		end
+
+	  context "unless", ->
+			should "return nil if truthy condition and no else node", ->
+				result := Macro::compile_if!(unless DateTime.now.year > 2000
+					"foo"
+				end)
+				assert! result == nil
+			end
+
+			should "return then node if falsy condition", ->
+				result := Macro::compile_if!(unless DateTime.now.year < 2000
+					"foo"
+				end)
+				assert! result == "foo"
+			end
+
+			should "return else node if truthy condition", ->
+				result := Macro::compile_if!(unless DateTime.now.year > 2000
+					"foo"
+				else
+					"bar"
+				end)
+
+				assert! result == "bar"
+			end
+		end
+
+	end
+
+end

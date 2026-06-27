@@ -307,8 +307,6 @@ func TestExpandMacro(t *testing.T) {
 	tests := testTable{
 		"define a class in a top level macro": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro klass(name: ConstantNode)
 					quote
 						class !{name}
@@ -326,8 +324,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"inherit from a generated class": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro klass(name: ConstantNode)
 					quote
 						class !{name}
@@ -371,8 +367,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a method": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fn(name: IdentifierNode)
 					quote
 						def !{name}: String
@@ -390,8 +384,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"use a generated method in a constant": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fn(name: IdentifierNode)
 					quote
 						def !{name}: String
@@ -433,8 +425,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate an expression": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro fib(i: IntLiteralNode)
 					calc_fib := |n: Int|: Int ->
 						return 1 if n < 3
@@ -450,8 +440,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a type": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro foo(t: TypeNode): TypeNode
 					NilableTypeNode(t)
 				end
@@ -477,8 +465,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"generate a pattern": {
 			input: `
-				using Std::Elk::AST::*
-
 				macro foo(c: ConstantNode): PatternNode
 					ObjectPatternNode(c)
 				end
@@ -505,8 +491,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"use a scoped macro": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro fib(i: IntLiteralNode)
 						calc_fib := |n: Int|: Int ->
@@ -553,12 +537,11 @@ func TestExpandMacro(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(41, 3, 21), P(43, 3, 23)), "undefined macro `Foo::fib!`"),
 			},
 		},
-		"inherit a macro": {
-			input: `
-				using Std::Elk::AST::*
 
+		"inherit an instance macro from a class and call it outside": {
+			input: `
 				class Foo
-					macro fib(i: IntLiteralNode)
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
 						calc_fib := |n: Int|: Int ->
 							return 1 if n < 3
 
@@ -571,9 +554,235 @@ func TestExpandMacro(t *testing.T) {
 
 				class Bar < Foo; end
 
+				timeout := Bar().fib!(15) + 2
+			`,
+		},
+
+		"call an instance macro in an instance method": {
+			input: `
+				class Bar
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+
+		"inherit an instance macro from a class and call it in an instance method": {
+			input: `
+				class Foo
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar < Foo
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit an instance macro from a mixin and call it in an instance method": {
+			input: `
+				mixin Foo
+					macro fib(this: ExpressionNode, i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					include Foo
+
+					def dupnij_se_lolka: Int
+						self.fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+
+		"inherit a singleton macro from a class and call it outside": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo; end
+
 				timeout := Bar::fib!(15) + 2
 			`,
 		},
+		"inherit a singleton macro from a class and call it in an instance method": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo
+					def dupnij_se_lolka: Int
+						fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit a singleton macro from a class and call it in a singleton method": {
+			input: `
+				class Foo
+					singleton
+						macro fib(i: IntLiteralNode)
+							calc_fib := |n: Int|: Int ->
+								return 1 if n < 3
+
+								calc_fib(n - 2) + calc_fib(n - 1)
+							end
+
+							calc_fib(i.to_int).to_ast_node
+						end
+					end
+				end
+
+				class Bar < Foo
+					singleton
+						def dupnij_se_lolka: Int
+							fib!(15) + 2
+						end
+					end
+				end
+
+				timeout := Bar.dupnij_se_lolka
+			`,
+		},
+
+		"inherit a singleton macro from a mixin and call it outside": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+				end
+
+				timeout := Bar::fib!(15) + 2
+			`,
+		},
+		"inherit a singleton macro from a mixin and call it in an instance method": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+
+					def dupnij_se_lolka: Int
+						fib!(15) + 2
+					end
+				end
+
+				timeout := Bar().dupnij_se_lolka
+			`,
+		},
+		"inherit a singleton macro from a mixin and call it in a singleton method": {
+			input: `
+				mixin Foo
+					macro fib(i: IntLiteralNode)
+						calc_fib := |n: Int|: Int ->
+							return 1 if n < 3
+
+							calc_fib(n - 2) + calc_fib(n - 1)
+						end
+
+						calc_fib(i.to_int).to_ast_node
+					end
+				end
+
+				class Bar
+					singleton
+						include Foo
+					end
+
+					singleton
+						def dupnij_se_lolka: Int
+							fib!(15) + 2
+						end
+					end
+				end
+
+				timeout := Bar.dupnij_se_lolka
+			`,
+		},
+
 		"throw an error in a macro": {
 			input: `
 				using Std::Elk::AST::*
@@ -584,7 +793,7 @@ func TestExpandMacro(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L("<main>", P(70, 5, 5), P(72, 5, 7)),
-					"error while executing macro `Std::Kernel::foo!`: 5\nStack trace (the most recent call is last)\n 0: <main>:4, in `foo!`\n",
+					"error while executing macro `Std::Kernel::foo!`:\nStack trace (the most recent call is last)\n 0: <main>:4, in `foo!`\nError! Uncaught thrown value: 5\n\n",
 				),
 			},
 		},
@@ -643,8 +852,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"all required positional arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", 5)
@@ -692,8 +899,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"all required named arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode) then c
 					baz!(c: 5, bar: "foo")
@@ -743,8 +948,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with missing optional argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
 					var a: 3 = baz!("foo")
@@ -753,8 +956,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with optional argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode = 3.to_ast_node) then c
 					var a: 9 = baz!("foo", 9)
@@ -763,8 +964,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with missing rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
 					baz!
@@ -773,8 +972,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(*b: FloatLiteralNode) then 3.to_ast_node
 					baz! 1.2, 56.9, .5
@@ -810,8 +1007,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with required post arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", 3)
@@ -833,8 +1028,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with rest and post arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then 3.to_ast_node
 					baz!("foo", 2.5, .9, 128.1, 3)
@@ -883,8 +1076,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with named post argument": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, *b: FloatLiteralNode, c: IntLiteralNode) then c
 					baz!("foo", c: 3)
@@ -906,8 +1097,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call without named rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
 					baz!("foo", 5)
@@ -916,8 +1105,6 @@ func TestExpandMacro(t *testing.T) {
 		},
 		"call with named rest arguments": {
 			input: `
-				using Std::Elk::AST::*
-
 				module Foo
 					macro baz(bar: StringLiteralNode, c: IntLiteralNode, **rest: IntLiteralNode) then c
 					baz!("foo", d: 25, c: 5, e: 11)
@@ -986,6 +1173,42 @@ func TestMacroDefinition(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(59, 5, 16), P(66, 5, 23)), "type `Std::Float` does not inherit from `Std::Elk::AST::Node`, macro parameters must be nodes"),
 			},
+		},
+		"macros have a separate global environment": {
+			input: `
+				module Foo
+					macro baz
+						Foo.inspect
+						5.to_ast_node
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 4, 7), P(39, 4, 9)), "undefined constant `Foo`"),
+			},
+		},
+		"should fail when class instance macro has no parameters": {
+			input: `
+				class Foo
+					macro baz
+						5.to_ast_node
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(57, 5, 8)), "instance macros have to define at least one parameter for self node"),
+			},
+		},
+		"instance macro is valid with one or more parameters": {
+			input: `
+				class Foo
+					macro baz(this: Elk::AST::IntLiteralNode)
+						quote
+							unquote(this) * 5
+						end
+					end
+				end
+			`,
 		},
 		"returned value must inherit from ExpressionNode when no return type - success": {
 			input: `
@@ -1136,8 +1359,10 @@ func TestMacroDefinition(t *testing.T) {
 				using Std::Elk::AST::*
 
 				class Foo
-					macro baz(a: IntLiteralNode) then a
-					macro baz then try IntLiteralNode("123")
+					singleton
+						macro baz(a: IntLiteralNode) then a
+						macro baz then try IntLiteralNode("123")
+					end
 
 					baz!
 				end

@@ -1,6 +1,7 @@
 package value
 
 import (
+	"context"
 	"fmt"
 	"iter"
 	"math"
@@ -21,9 +22,10 @@ const ValueSize = unsafe.Sizeof(Value{})
 
 // `undefined` is the zero value of `Value`, it maps directly to Go `nil`
 type Value struct {
-	data uintptr
-	ptr  unsafe.Pointer
-	flag uint8
+	data        uintptr
+	ptr         unsafe.Pointer
+	flag        uint8
+	result_flag uint8
 }
 
 var _ ValueInterface = Value{}
@@ -50,6 +52,10 @@ const (
 	SYMBOL_FLAG
 	DATE_FLAG
 	WEAK_FLAG
+	REFERENCE_FLAG
+	SENTINEL_FLAG
+	RESULT_OK_FLAG
+	RESULT_ERR_FLAG
 
 	// only 64 bit systems
 	INT64_FLAG
@@ -58,9 +64,6 @@ const (
 	TIME_FLAG
 	TIME_SPAN_FLAG
 	DATE_SPAN_FLAG
-	REFERENCE_FLAG
-
-	SENTINEL_FLAG = 0xFF
 )
 
 // Performs a downcast of the given Value
@@ -85,7 +88,8 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsReference()
 	}
 
-	switch v.ValueFlag() {
+	flag := v.ValueFlag()
+	switch flag {
 	case BOOL_FLAG:
 		return v.AsBool()
 	case NIL_FLAG:
@@ -132,6 +136,10 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsTime()
 	case WEAK_FLAG:
 		return v.AsWeak()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -142,7 +150,8 @@ func (v Value) Inspect() string {
 		return v.AsReference().Inspect()
 	}
 
-	switch v.ValueFlag() {
+	flag := v.ValueFlag()
+	switch flag {
 	case BOOL_FLAG:
 		return v.AsBool().Inspect()
 	case NIL_FLAG:
@@ -189,6 +198,10 @@ func (v Value) Inspect() string {
 		return v.AsTime().Inspect()
 	case WEAK_FLAG:
 		return v.AsWeak().Inspect()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Inspect()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Inspect()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -254,6 +267,10 @@ func (v Value) Class() *Class {
 		return v.AsTime().Class()
 	case WEAK_FLAG:
 		return v.AsWeak().Class()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Class()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Class()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -311,6 +328,10 @@ func (v Value) DirectClass() *Class {
 		return v.AsTime().DirectClass()
 	case WEAK_FLAG:
 		return v.AsWeak().DirectClass()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().DirectClass()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().DirectClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -368,6 +389,10 @@ func (v Value) SingletonClass() *Class {
 		return v.AsTime().SingletonClass()
 	case WEAK_FLAG:
 		return v.AsWeak().SingletonClass()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().SingletonClass()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().SingletonClass()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -425,6 +450,10 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsTime().InstanceVariables()
 	case WEAK_FLAG:
 		return v.AsWeak().InstanceVariables()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().InstanceVariables()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().InstanceVariables()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -482,6 +511,10 @@ func (v Value) Error() string {
 		return v.AsTime().Error()
 	case WEAK_FLAG:
 		return v.AsWeak().Error()
+	case RESULT_OK_FLAG:
+		return v.AsResultOk().Error()
+	case RESULT_ERR_FLAG:
+		return v.AsResultErr().Error()
 	default:
 		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
 	}
@@ -545,6 +578,11 @@ type ToValuer interface {
 	ToValue() Value
 }
 
+type ToStringer interface {
+	Value
+	ToString() String
+}
+
 func ToValueErr[T ToValuer](t T, err Value) (Value, Value) {
 	if !err.IsUndefined() {
 		return Undefined, err
@@ -585,9 +623,9 @@ func (v Value) AsAnyInt() int {
 		case *BigInt:
 			return int(v.ToSmallInt())
 		case Int64:
-			return int(v.ToSmallInt())
+			return int(v)
 		case UInt64:
-			return int(v.ToSmallInt())
+			return int(v)
 		default:
 			panic(fmt.Sprintf("value `%s` is not an integer", v.Inspect()))
 		}
@@ -942,6 +980,46 @@ func (v Value) MustInlineTime() Time {
 		panic(fmt.Sprintf("value `%s` is not an inline Time", v.Inspect()))
 	}
 	return v.AsInlineTime()
+}
+
+func (v Value) unwrapResult() Value {
+	return Value{
+		data: v.data,
+		ptr:  v.ptr,
+		flag: v.result_flag,
+	}
+}
+
+func (v Value) IsInlineResult() bool {
+	switch v.flag {
+	case RESULT_OK_FLAG, RESULT_ERR_FLAG:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v Value) AsInlineResult() Result {
+	return Result{
+		ok:    v.flag == RESULT_OK_FLAG,
+		value: v.unwrapResult(),
+	}
+}
+
+func (v Value) AsResult() Result {
+	if v.IsReference() {
+		return v.AsReference().(Result)
+	} else {
+		return v.AsInlineResult()
+	}
+}
+
+func (v Value) AsResultOk() Result {
+	return MakeOkResult(v.unwrapResult())
+}
+
+func (v Value) AsResultErr() Result {
+	return MakeErrResult(v.unwrapResult())
 }
 
 func (v Value) AsTime() Time {
@@ -1320,10 +1398,34 @@ func ToGoUInt(val Value) (uint, bool) {
 	return 0, false
 }
 
+// Return true if the given aborter is aborted, otherwise false.
+func ShouldAbort(aborter *Aborter) bool {
+	return ShouldAbortCtx(aborter.ctx)
+}
+
+// Return true if the given context is done, otherwise false.
+func ShouldAbortCtx(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
 // Returns true when the Elk value is nil
 // otherwise returns false.
 func IsNil(val Value) bool {
 	return val.IsNil()
+}
+
+// Checks whether the given value is nil and returns and error if it is.
+func Must(val Value) Value {
+	if !val.IsNil() {
+		return Undefined
+	}
+
+	return NewUnexpectedNilError().ToValue()
 }
 
 // Returns true when the Elk value is truthy (works like true in boolean logic)
@@ -1363,12 +1465,49 @@ func InstanceOf(val Value, class *Class) bool {
 	return class == val.Class()
 }
 
+func InstanceOfVal(val Value, class Value) (bool, Value) {
+	c, ok := class.SafeAsReference().(*Class)
+	if !ok {
+		return false, NewIsNotClassError(class.Inspect()).ToValue()
+	}
+
+	return InstanceOf(val, c), Undefined
+}
+
 func IsA(val Value, class *Class) bool {
 	if class.IsMixin() {
 		return mixinIsA(val, class)
 	}
 
 	return classIsA(val, class)
+}
+
+func IsAVal(val Value, class Value) (bool, Value) {
+	c, ok := class.SafeAsReference().(*Class)
+	if !ok {
+		return false, NewIsNotClassOrMixinError(class.Inspect()).ToValue()
+	}
+
+	return IsA(val, c), Undefined
+}
+
+// Asserts that the given value is an instance of the given
+// type. Returns and error if it is not.
+func As(val Value, class *Class) Value {
+	if IsA(val, class) {
+		return Undefined
+	}
+
+	return Errorf(
+		TypeErrorClass,
+		"failed type cast, `%s` is not an instance of `%s`",
+		val.Inspect(),
+		class.Name,
+	).ToValue()
+}
+
+func AsUnsafe(val Value, class Value) Value {
+	return As(val, (*Class)(class.Pointer()))
 }
 
 // Check if the given value is an instance of the given class or its subclasses.
@@ -1525,6 +1664,16 @@ func AddInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.AddVal(right)
+}
+
+func AddInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.AddInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.AddInt(right)
 }
 
 // AddVal two values.
@@ -1684,6 +1833,16 @@ func SubtractInt(left, right Value) (Value, Value) {
 	return l.SubtractVal(right)
 }
 
+func SubtractInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.SubtractInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.SubtractInt(right)
+}
+
 // MultiplyVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1772,6 +1931,16 @@ func MultiplyInt(left, right Value) (Value, Value) {
 	return l.MultiplyVal(right)
 }
 
+func MultiplyInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.MultiplyInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.MultiplyInt(right)
+}
+
 // DivideVal two values
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -1847,6 +2016,16 @@ func DivideInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.DivideVal(right)
+}
+
+func DivideInts(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.DivideInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.DivideInt(right)
 }
 
 // NegateVal a value
@@ -1978,6 +2157,51 @@ func IncrementVal(operand Value) Value {
 		return (o + 1).ToValue()
 	default:
 		return Undefined
+	}
+}
+
+func ToString(v Value) (String, bool) {
+	switch v := v.ToInterface().(type) {
+	case String:
+		return v, true
+	case Symbol:
+		return v.ToString(), true
+	case Char:
+		return v.ToString(), true
+	case *Regex:
+		return v.ToString(), true
+	case Float64:
+		return v.ToString(), true
+	case Float32:
+		return v.ToString(), true
+	case Float:
+		return v.ToString(), true
+	case *BigFloat:
+		return v.ToString(), true
+	case SmallInt:
+		return v.ToString(), true
+	case *BigInt:
+		return v.ToString(), true
+	case Int64:
+		return v.ToString(), true
+	case UInt64:
+		return v.ToString(), true
+	case Int32:
+		return v.ToString(), true
+	case UInt32:
+		return v.ToString(), true
+	case Int16:
+		return v.ToString(), true
+	case UInt16:
+		return v.ToString(), true
+	case Int8:
+		return v.ToString(), true
+	case UInt8:
+		return v.ToString(), true
+	case NilType:
+		return "", true
+	default:
+		return "", false
 	}
 }
 
@@ -2185,11 +2409,21 @@ func ExponentiateVal(left, right Value) (result, err Value) {
 func ExponentiateInt(left, right Value) (Value, Value) {
 	if left.IsReference() {
 		l := (*BigInt)(left.Pointer())
-		return l.DivideVal(right)
+		return l.ExponentiateVal(right)
 	}
 
 	l := left.AsSmallInt()
-	return l.DivideVal(right)
+	return l.ExponentiateVal(right)
+}
+
+func ExponentiateInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.ExponentiateInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.ExponentiateInt(right)
 }
 
 // Perform modulo on two values
@@ -2267,6 +2501,16 @@ func ModuloInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.ModuloVal(right)
+}
+
+func ModuloInts(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.ModuloInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.ModuloInt(right)
 }
 
 // CompareVal two values.
@@ -2353,6 +2597,16 @@ func CompareInt(left, right Value) (Value, Value) {
 
 	l := left.AsSmallInt()
 	return l.CompareVal(right)
+}
+
+func CompareInts(left, right Value) SmallInt {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.CompareInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.CompareInt(right)
 }
 
 // Check whether left is greater than right.
@@ -2495,6 +2749,26 @@ func GreaterThan(left, right Value) (result bool, err Value) {
 	}
 }
 
+func GreaterThanInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanVal(right)
+}
+
+func GreaterThanInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanInt(right)
+}
+
 // Check whether left is greater than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -2633,6 +2907,26 @@ func GreaterThanEqual(left, right Value) (result bool, err Value) {
 	default:
 		return false, Undefined
 	}
+}
+
+func GreaterThanEqualInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanEqualVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanEqualVal(right)
+}
+
+func GreaterThanEqualInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.GreaterThanEqualInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.GreaterThanEqualInt(right)
 }
 
 // Check whether left is less than right.
@@ -2775,6 +3069,26 @@ func LessThan(left, right Value) (result bool, err Value) {
 	}
 }
 
+func LessThanInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanVal(right)
+}
+
+func LessThanInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanInt(right)
+}
+
 // Check whether left is less than or equal to right.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -2847,26 +3161,6 @@ func LessThanEqualVal(left, right Value) (result, err Value) {
 	}
 }
 
-func LessThanEqualValInt(left, right Value) (Value, Value) {
-	if left.IsReference() {
-		l := (*BigInt)(left.Pointer())
-		return l.LessThanEqualVal(right)
-	}
-
-	l := left.AsSmallInt()
-	return l.LessThanEqualVal(right)
-}
-
-func LessThanEqualInt(left, right Value) (bool, Value) {
-	if left.IsReference() {
-		l := (*BigInt)(left.Pointer())
-		return l.LessThanEqual(right)
-	}
-
-	l := left.AsSmallInt()
-	return l.LessThanEqual(right)
-}
-
 func LessThanEqual(left, right Value) (result bool, err Value) {
 	if left.IsReference() {
 		switch l := left.AsReference().(type) {
@@ -2935,6 +3229,26 @@ func LessThanEqual(left, right Value) (result bool, err Value) {
 	}
 }
 
+func LessThanEqualInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqualVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqualVal(right)
+}
+
+func LessThanEqualInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LessThanEqualInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LessThanEqualInt(right)
+}
+
 // Check whether left is equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
@@ -2950,11 +3264,11 @@ func LaxEqualVal(left, right Value) Value {
 		case *Regex:
 			return l.LaxEqualVal(right)
 		case Float64:
-			return StrictFloatLaxEqual(l, right)
+			return StrictFloatLaxEqualVal(l, right)
 		case Int64:
-			return StrictSignedIntLaxEqual(l, right)
+			return StrictSignedIntLaxEqualVal(l, right)
 		case UInt64:
-			return StrictUnsignedIntLaxEqual(l, right)
+			return StrictUnsignedIntLaxEqualVal(l, right)
 		default:
 			return Undefined
 		}
@@ -2975,37 +3289,37 @@ func LaxEqualVal(left, right Value) Value {
 		return l.LaxEqualVal(right)
 	case FLOAT64_FLAG:
 		l := left.AsInlineFloat64()
-		return StrictFloatLaxEqual(l, right)
+		return StrictFloatLaxEqualVal(l, right)
 	case FLOAT32_FLAG:
 		l := left.AsFloat32()
-		return StrictFloatLaxEqual(l, right)
+		return StrictFloatLaxEqualVal(l, right)
 	case INT64_FLAG:
 		l := left.AsInlineInt64()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT32_FLAG:
 		l := left.AsInt32()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT16_FLAG:
 		l := left.AsInt16()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case INT8_FLAG:
 		l := left.AsInt8()
-		return StrictSignedIntLaxEqual(l, right)
+		return StrictSignedIntLaxEqualVal(l, right)
 	case UINT_FLAG:
 		l := left.AsUInt()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT64_FLAG:
 		l := left.AsInlineUInt64()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT32_FLAG:
 		l := left.AsUInt32()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT16_FLAG:
 		l := left.AsUInt16()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	case UINT8_FLAG:
 		l := left.AsUInt8()
-		return StrictUnsignedIntLaxEqual(l, right)
+		return StrictUnsignedIntLaxEqualVal(l, right)
 	default:
 		return Undefined
 	}
@@ -3021,6 +3335,11 @@ func LaxNotEqualVal(left, right Value) Value {
 	}
 
 	return ToNotBool(val).ToValue()
+}
+
+func LaxNotEqual(left, right Value) bool {
+	val := LaxEqualVal(left, right)
+	return bool(ToNotBool(val))
 }
 
 // Check whether left is equal to right.
@@ -3409,6 +3728,26 @@ func RightBitshiftVal(left, right Value) (result, err Value) {
 	}
 }
 
+func RightBitshiftInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.RightBitshiftVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.RightBitshiftVal(right)
+}
+
+func RightBitshiftInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.RightBitshiftInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.RightBitshiftInt(right)
+}
+
 // Execute a logical right bit shift >>>.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3537,6 +3876,26 @@ func LeftBitshiftVal(left, right Value) (result, err Value) {
 	}
 }
 
+func LeftBitshiftInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LeftBitshiftVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LeftBitshiftVal(right)
+}
+
+func LeftBitshiftInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.LeftBitshiftInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.LeftBitshiftInt(right)
+}
+
 // Execute a logical left bit shift <<<.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3662,6 +4021,26 @@ func BitwiseAndVal(left, right Value) (result, err Value) {
 	}
 }
 
+func BitwiseAndInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndVal(right)
+}
+
+func BitwiseAndInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndInt(right)
+}
+
 // Execute a bitwise AND NOT &^.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3725,6 +4104,26 @@ func BitwiseAndNotVal(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func BitwiseAndNotInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndNotVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndNotVal(right)
+}
+
+func BitwiseAndNotInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseAndNotInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseAndNotInt(right)
 }
 
 // Execute a bitwise OR |.
@@ -3792,6 +4191,26 @@ func BitwiseOrVal(left, right Value) (result, err Value) {
 	}
 }
 
+func BitwiseOrInt(left, right Value) (Value, Value) {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseOrVal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseOrVal(right)
+}
+
+func BitwiseOrInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseOrInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseOrInt(right)
+}
+
 // Execute a bitwise XOR ^.
 // When successful returns (result, undefined).
 // When an error occurred returns (undefined, error).
@@ -3855,6 +4274,16 @@ func BitwiseXorVal(left, right Value) (result, err Value) {
 	default:
 		return Undefined, Undefined
 	}
+}
+
+func BitwiseXorInts(left, right Value) Value {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.BitwiseXorInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.BitwiseXorInt(right)
 }
 
 // Call `next`

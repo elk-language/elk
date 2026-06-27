@@ -110,6 +110,10 @@ func NewForInExpressionNode(loc *position.Location, pattern PatternNode, inExpr 
 	}
 }
 
+func NewForInExpressionNodeI(loc *position.Location, pattern PatternNode, inExpr ExpressionNode, then []StatementNode) ExpressionNode {
+	return NewForInExpressionNode(loc, pattern, inExpr, then)
+}
+
 func (*ForInExpressionNode) Class() *value.Class {
 	return value.ForInExpressionNodeClass
 }
@@ -129,14 +133,18 @@ func (n *ForInExpressionNode) Inspect() string {
 	buff.WriteString(",\n  in_expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.InExpression.Inspect(), 1)
 
-	buff.WriteString(",\n  then_body: %[\n")
-	for i, stmt := range n.ThenBody {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  then_body: %[")
+	if len(n.ThenBody) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.ThenBody {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

@@ -19,10 +19,10 @@ var _ HashRecord = NativeKeyHashRecord[value.String]{}
 // using the given function.
 // eg.
 //
-//	TransformIntoNativeKeyHashRecord(m, func(k string, v uint8) (value.String, value.Value) {
+//	TransformMapIntoNativeKeyHashRecord(m, func(k string, v uint8) (value.String, value.Value) {
 //		return value.String(k), value.UInt8(v).ToValue()
 //	})
-func TransformIntoNativeKeyHashRecord[
+func TransformMapIntoNativeKeyHashRecord[
 	IK comparable,
 	IV any,
 	OK value.ComparableValueInterface,
@@ -120,10 +120,14 @@ func (h NativeKeyHashRecord[K]) GetVal(thread *Thread, key value.Value) (value.V
 func (h NativeKeyHashRecord[K]) SetVal(thread *Thread, key, val value.Value) value.Value {
 	k, ok := value.Downcast[K](key)
 	if !ok {
-		return value.NewInvalidKeyInTypedMap(h, k.Class()).ToValue()
+		return value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
 	}
 	h[k] = val
 	return value.Undefined
+}
+
+func (h NativeKeyHashRecord[K]) Set(key K, val value.Value) {
+	h[key] = val
 }
 
 func (h NativeKeyHashRecord[K]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {

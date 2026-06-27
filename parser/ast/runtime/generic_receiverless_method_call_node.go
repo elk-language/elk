@@ -15,28 +15,25 @@ func initGenericReceiverlessMethodCallNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
-			argTypeArgsTuple := args[2].MustReference().(*value.ArrayTupleOfValue)
-			argTypeArgs := make([]ast.TypeNode, argTypeArgsTuple.Length())
-			for i, el := range *argTypeArgsTuple {
-				argTypeArgs[i] = el.MustReference().(ast.TypeNode)
-			}
+			argTypeArgsTuple := args[2].AsReference().(value.ArrayTuple)
+			argTypeArgs := value.TransformArrayTupleIntoNativeArrayTuple(argTypeArgsTuple, func(v value.Value) ast.TypeNode {
+				return v.AsReference().(ast.TypeNode)
+			}).ToSlice()
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[3].IsUndefined() {
-				argPosArgsTuple := args[3].MustReference().(*value.ArrayTupleOfValue)
-				argPosArgs = make([]ast.ExpressionNode, argPosArgsTuple.Length())
-				for i, el := range *argPosArgsTuple {
-					argPosArgs[i] = el.MustReference().(ast.ExpressionNode)
-				}
+				argPosArgsTuple := args[3].AsReference().(value.ArrayTuple)
+				argPosArgs = value.TransformArrayTupleIntoNativeArrayTuple(argPosArgsTuple, func(v value.Value) ast.ExpressionNode {
+					return v.AsReference().(ast.ExpressionNode)
+				}).ToSlice()
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[4].IsUndefined() {
-				argNamedArgsTuple := args[4].MustReference().(*value.ArrayTupleOfValue)
-				argNamedArgs = make([]ast.NamedArgumentNode, argNamedArgsTuple.Length())
-				for i, el := range *argNamedArgsTuple {
-					argNamedArgs[i] = el.MustReference().(ast.NamedArgumentNode)
-				}
+				argNamedArgsTuple := args[4].AsReference().(value.ArrayTuple)
+				argNamedArgs = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgsTuple, func(v value.Value) ast.NamedArgumentNode {
+					return v.AsReference().(ast.NamedArgumentNode)
+				}).ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -74,15 +71,8 @@ func initGenericReceiverlessMethodCallNode() {
 		"type_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
-
-			collection := self.TypeArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
-
+			entries := value.CastNativeArrayTuplePtr(&self.TypeArguments)
+			return entries.ToValue(), value.Undefined
 		},
 	)
 
@@ -91,14 +81,8 @@ func initGenericReceiverlessMethodCallNode() {
 		"positional_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
-
-			collection := self.PositionalArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
+			entries := value.CastNativeArrayTuplePtr(&self.PositionalArguments)
+			return entries.ToValue(), value.Undefined
 
 		},
 	)
@@ -108,14 +92,8 @@ func initGenericReceiverlessMethodCallNode() {
 		"named_arguments",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericReceiverlessMethodCallNode)
-
-			collection := self.NamedArguments
-			arrayTuple := value.NewArrayTupleOfValueWithLength(len(collection))
-			for i, el := range collection {
-				arrayTuple.SetAt(i, value.Ref(el))
-			}
-			result := value.Ref(arrayTuple)
-			return result, value.Undefined
+			entries := value.CastNativeArrayTuplePtr(&self.NamedArguments)
+			return entries.ToValue(), value.Undefined
 
 		},
 	)

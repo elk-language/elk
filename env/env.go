@@ -16,6 +16,9 @@ var ELKPATH string
 // Path to the current Elk executable
 var ELKEXEC string
 
+// If set to `0` elk does not print warnings
+var ELKWARN bool
+
 func init() {
 	elkExecEnv := os.Getenv("ELKEXEC")
 	if elkExecEnv == "" {
@@ -46,4 +49,7 @@ func init() {
 	} else {
 		ELKPATH = elkPathEnv
 	}
+
+	elkWarn := os.Getenv("ELKWARN")
+	ELKWARN = elkWarn == "" || elkWarn != "0"
 }

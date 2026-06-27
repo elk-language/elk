@@ -141,7 +141,7 @@ func initFloat64() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat64()
 			other := args[1]
-			return value.StrictFloatLaxEqual(self, other), value.Undefined
+			return value.StrictFloatLaxEqualVal(self, other), value.Undefined
 		},
 		DefWithParameters(1),
 	)

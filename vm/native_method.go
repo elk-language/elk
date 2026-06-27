@@ -44,11 +44,11 @@ func (n *NativeMethod) OptionalParameterCount() int {
 }
 
 func (*NativeMethod) Class() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*NativeMethod) DirectClass() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*NativeMethod) SingletonClass() *value.Class {

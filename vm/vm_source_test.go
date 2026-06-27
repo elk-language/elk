@@ -1,12 +1,14 @@
 package vm_test
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/comparer"
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/position"
 	perror "github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/token"
@@ -16,6 +18,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/k0kubun/pp/v3"
 )
+
+func init() {
+	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
+}
 
 // Represents a single VM source code test case.
 type sourceTestCase struct {
@@ -131,7 +137,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSource(testFileName, tc.source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, tc.source)
 	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotCompileErr))
 		t.Fatal(diff)
@@ -142,9 +148,11 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	stdout := newConcurrentStringBuilder()
 	stderr := newConcurrentStringBuilder()
-	tp := vm.NewThreadPool(2, 50, vm.WithStdout(stdout), vm.WithStderr(stderr))
+	ctx := t.Context()
+	aborter := value.NewAborter(ctx, nil)
+	tp := vm.NewThreadPool(2, 50, vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithAborter(aborter))
 	defer tp.Close()
-	v := vm.New(vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithThreadPool(tp))
+	v := vm.New(vm.WithStdout(stdout), vm.WithStderr(stderr), vm.WithThreadPool(tp), vm.WithAborter(aborter))
 
 	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
@@ -211,14 +219,16 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSource(testFileName, source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, source)
 	if gotCompileErr.IsFailure() {
 		t.Fatalf("Compile Error: %s", gotCompileErr.Error())
 		return
 	}
 
 	var stdout strings.Builder
-	vm := vm.New(vm.WithStdout(&stdout))
+	ctx := t.Context()
+	aborter := value.NewAborter(ctx, nil)
+	vm := vm.New(vm.WithStdout(&stdout), vm.WithAborter(aborter))
 	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
 	if !gotRuntimeErr.IsUndefined() {
 		t.Fatalf("Runtime Error: %s", gotRuntimeErr.Inspect())

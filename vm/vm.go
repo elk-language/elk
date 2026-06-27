@@ -6,12 +6,13 @@ package vm
 import (
 	"fmt"
 	"io"
-	"os"
 	"sync/atomic"
 
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/fatih/color"
 )
 
@@ -52,27 +53,28 @@ func init() {
 		DEFAULT_THREAD_POOL_QUEUE_SIZE = 256
 	}
 
-	DefaultThreadPool.initThreadPool(DEFAULT_THREAD_POOL_SIZE, DEFAULT_THREAD_POOL_QUEUE_SIZE)
+	DefaultThreadPool.initThreadPool(
+		DEFAULT_THREAD_POOL_SIZE,
+		DEFAULT_THREAD_POOL_QUEUE_SIZE,
+	)
 }
 
 var stopIterationSymbol = value.ToSymbol("stop_iteration")
 
 type Option func(*Thread) // constructor option function
 
+// Assign an aborter to the thread
+func WithAborter(aborter *value.Aborter) Option {
+	return func(vm *Thread) {
+		vm.Aborter = aborter
+	}
+}
+
 // Assign the given io.Reader as the Stdin of the VM.
 func WithStdin(stdin io.Reader) Option {
 	return func(vm *Thread) {
 		vm.Stdin = stdin
 	}
-}
-
-func (vm *Thread) PrintErrorValue(err value.Value) {
-	PrintError(vm.Stderr, vm.ErrStackTrace(), err)
-}
-
-func (vm *Thread) Panic(err value.Value) {
-	vm.PrintErrorValue(err)
-	os.Exit(1)
 }
 
 // Assign the given io.Writer as the Stdout of the VM.
@@ -96,9 +98,22 @@ func WithThreadPool(tp *ThreadPool) Option {
 }
 
 func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value) {
-	fmt.Fprint(stderr, stackTrace.String())
+	if stackTrace != nil {
+		fmt.Fprint(stderr, stackTrace.String())
+	}
 	c := color.New(color.FgRed, color.Bold)
-	if value.IsA(err, value.ErrorClass) {
+
+	if value.IsA(err, value.ElkTypeCheckerErrorClass) {
+		errObj := (*value.Object)(err.Pointer())
+		c.Fprint(stderr, "Error! Uncaught error ")
+		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
+		fmt.Fprint(stderr, ": ")
+		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
+
+		diagnostics := (*diagnostic.DiagnosticList)(errObj.GetInstanceVariable(symbol.L_diagnostics).Pointer())
+		result := diagnostics.HumanStringWithoutSource(true, lexer.Colorizer{})
+		fmt.Fprintf(stderr, "\n\n%s", result)
+	} else if value.IsA(err, value.ErrorClass) {
 		errObj := (*value.Object)(err.Pointer())
 		c.Fprint(stderr, "Error! Uncaught error ")
 		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
@@ -112,27 +127,3 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 
 	fmt.Fprintln(stderr)
 }
-
-// Get the stored error stack trace.
-func (vm *Thread) ErrStackTrace() *value.StackTrace {
-	if vm.state == errorState {
-		return vm.errStackTrace
-	}
-
-	return nil
-}
-
-func (vm *Thread) populateMissingParameters(args []value.Value, paramCount, argumentCount int) []value.Value {
-	// populate missing optional arguments with undefined
-	missingParams := uintptr(paramCount - argumentCount)
-	if missingParams > 0 {
-		newArgs := make([]value.Value, paramCount)
-		copy(newArgs, args)
-		return newArgs
-	}
-
-	return args
-}
-
-var callSymbol = value.ToSymbol("call")
-var toStringSymbol = value.ToSymbol("to_string")

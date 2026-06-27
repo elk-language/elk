@@ -14,6 +14,7 @@ import (
 type InterfaceDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	HasDefer       bool
 	Constant       ExpressionNode      // The constant that will hold the interface value
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Body           []StatementNode     // body of the interface
@@ -34,6 +35,7 @@ func (n *InterfaceDeclarationNode) splice(loc *position.Location, args *[]Node, 
 	return &InterfaceDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		HasDefer:               n.HasDefer,
 		Constant:               constant,
 		TypeParameters:         typeParams,
 		Body:                   body,
@@ -194,23 +196,31 @@ func (n *InterfaceDeclarationNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  type_parameters: %[\n")
-	for i, element := range n.TypeParameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  type_parameters: %[")
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.TypeParameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

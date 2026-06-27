@@ -51,27 +51,57 @@ sealed noinit primitive class ::Std::BigFloat
 	##[
 		Add `other` to this bigfloat.
 	]##
-	sealed def +(other: CoercibleNumeric): BigFloat; end
+	sealed overload def +(other: CoercibleNumeric): BigFloat; end
+	sealed overload def +(other: Int): BigFloat; end
+	sealed overload def +(other: Float): BigFloat; end
+	sealed overload def +(other: BigFloat): BigFloat; end
 
 	##[
 		Subtract `other` from this bigfloat.
 	]##
-	sealed def -(other: CoercibleNumeric): BigFloat; end
+	sealed overload def -(other: CoercibleNumeric): BigFloat; end
+	sealed overload def -(other: Int): BigFloat; end
+	sealed overload def -(other: Float): BigFloat; end
+	sealed overload def -(other: BigFloat): BigFloat; end
 
 	##[
 		Multiply this float by `other`.
 	]##
-	sealed def *(other: CoercibleNumeric): BigFloat; end
+	sealed overload def *(other: CoercibleNumeric): BigFloat; end
+	sealed overload def *(other: Int): BigFloat; end
+	sealed overload def *(other: Float): BigFloat; end
+	sealed overload def *(other: BigFloat): BigFloat; end
 
 	##[
 		Divide this float by another float.
 	]##
-	sealed def /(other: CoercibleNumeric): BigFloat; end
+	sealed overload def /(other: CoercibleNumeric): BigFloat; end
+	sealed overload def /(other: Int): BigFloat; end
+	sealed overload def /(other: Float): BigFloat; end
+	sealed overload def /(other: BigFloat): BigFloat; end
 
 	##[
 		Exponentiate this float, raise it to the power of `other`.
 	]##
-	sealed def **(other: CoercibleNumeric): BigFloat; end
+	sealed overload def **(other: CoercibleNumeric): BigFloat; end
+	sealed overload def **(other: Int): BigFloat; end
+	sealed overload def **(other: Float): BigFloat; end
+	sealed overload def **(other: BigFloat): BigFloat; end
+
+	##[
+		Returns the remainder of dividing by `other`.
+
+		```
+			var a = 10bf
+			var b = 3bf
+			a % b #=> 1bf
+		```
+	]##
+	sealed overload def %(other: CoercibleNumeric): BigFloat; end
+	sealed overload def %(other: Int): BigFloat; end
+	sealed overload def %(other: Float): BigFloat; end
+	sealed overload def %(other: BigFloat): BigFloat; end
+
 
 	##[
 		Compare this float with another float.
@@ -88,17 +118,6 @@ sealed noinit primitive class ::Std::BigFloat
 	sealed def <(other: CoercibleNumeric): Bool; end
 
 	sealed def ==(other: any): Bool; end
-
-	##[
-		Returns the remainder of dividing by `other`.
-
-		```
-			var a = 10bf
-			var b = 3bf
-			a % b #=> 1bf
-		```
-	]##
-	sealed def %(other: CoercibleNumeric): BigFloat; end
 
 	##[
 		Returns itself.

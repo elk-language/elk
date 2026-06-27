@@ -119,7 +119,7 @@ func initArrayTuple() {
 			newTuple := value.NewArrayTupleOfValueWithLength(self.Length())
 
 			// callable is a closure
-			if function, ok := callable.SafeAsReference().(*Closure); ok {
+			if function, ok := callable.SafeAsReference().(Closure); ok {
 				for i := range self.Length() {
 					element := self.AtVal(i)
 					result, err := vm.CallClosure(function, element)
@@ -134,7 +134,7 @@ func initArrayTuple() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(callSymbol, callable, element)
+				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

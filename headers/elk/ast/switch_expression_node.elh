@@ -16,13 +16,13 @@ module Std::Elk::AST
 
     init(
       value: ExpressionNode,
-      cases: ArrayTuple[CaseNode],
+      cases: ArrayTuple[SwitchCaseNode],
       else_body: ArrayTuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 
     def value: ExpressionNode; end
-    def cases: ArrayTuple[CaseNode]; end
+    def cases: ArrayTuple[SwitchCaseNode]; end
     def else_body: ArrayTuple[StatementNode]; end
     def location: FS::Location; end
   end

@@ -115,14 +115,18 @@ func (n *MacroBoundaryNode) Inspect() string {
 	if n.Name != "" {
 		fmt.Fprintf(&buff, ",\n  name: %s", value.String(n.Name).Inspect())
 	}
-	buff.WriteString(",\n  body: %[\n")
-	for i, stmt := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

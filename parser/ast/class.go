@@ -18,6 +18,7 @@ type ClassDeclarationNode struct {
 	Sealed         bool
 	Primitive      bool
 	NoInit         bool
+	HasDefer       bool
 	Constant       ExpressionNode      // The constant that will hold the class value
 	TypeParameters []TypeParameterNode // Generic type variable definitions
 	Superclass     ExpressionNode      // the super/parent class of this class
@@ -46,6 +47,7 @@ func (n *ClassDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 		Sealed:         n.Sealed,
 		Primitive:      n.Primitive,
 		NoInit:         n.NoInit,
+		HasDefer:       n.HasDefer,
 		Constant:       constant,
 		TypeParameters: typeParams,
 		Superclass:     superclass,
@@ -270,14 +272,18 @@ func (n *ClassDeclarationNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.Constant.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  type_parameters: %[\n")
-	for i, element := range n.TypeParameters {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  type_parameters: %[")
+	if len(n.TypeParameters) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.TypeParameters {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString(",\n  superclass: ")
 	if n.Superclass == nil {
@@ -286,14 +292,18 @@ func (n *ClassDeclarationNode) Inspect() string {
 		indent.IndentStringFromSecondLine(&buff, n.Superclass.Inspect(), 1)
 	}
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, element := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, element.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 

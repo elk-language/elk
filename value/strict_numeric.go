@@ -365,175 +365,187 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 }
 
 // Check whether the left float is equal to right.
-func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Value {
+func StrictFloatLaxEqualVal[T StrictFloat](left T, right Value) Value {
+	return BoolVal(StrictFloatLaxEqual(left, right))
+}
+
+func StrictFloatLaxEqual[T StrictFloat](left T, right Value) bool {
 	if right.IsReference() {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
-			return BoolVal(T(left) == T(r.ToFloat()))
+			return T(left) == T(r.ToFloat())
 		case *BigFloat:
 			if r.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&big.Float{}).SetFloat64(float64(left))
-			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return iBigFloat.Cmp(r.AsGoBigFloat()) == 0
 		case Int64:
-			return BoolVal(T(left) == T(r))
+			return T(left) == T(r)
 		case UInt64:
-			return BoolVal(T(left) == T(r))
+			return T(left) == T(r)
 		case Float64:
-			return BoolVal(float64(left) == float64(r))
+			return float64(left) == float64(r)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch right.ValueFlag() {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case INT32_FLAG:
 		r := right.AsInt32()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case INT16_FLAG:
 		r := right.AsInt16()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case INT8_FLAG:
 		r := right.AsInt8()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case UINT_FLAG:
 		r := right.AsUInt()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return BoolVal(T(left) == T(r))
+		return T(left) == T(r)
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
 // Check whether the left signed integer is equal to right.
-func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Value {
+func StrictSignedIntLaxEqualVal[T StrictSignedInt](left T, right Value) Value {
+	return BoolVal(StrictSignedIntLaxEqual(left, right))
+}
+
+func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) bool {
 	if right.IsReference() {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
 			iBigInt := big.NewInt(int64(left))
-			return BoolVal(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+			return iBigInt.Cmp(r.ToGoBigInt()) == 0
 		case *BigFloat:
 			if r.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&big.Float{}).SetInt64(int64(left))
-			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return iBigFloat.Cmp(r.AsGoBigFloat()) == 0
 		case Int64:
-			return BoolVal(int64(left) == int64(r))
+			return int64(left) == int64(r)
 		case UInt64:
 			if r > math.MaxInt64 {
-				return False.ToValue()
+				return false
 			}
-			return BoolVal(int64(left) == int64(r))
+			return int64(left) == int64(r)
 		case Float64:
-			return BoolVal(float64(left) == float64(r))
+			return float64(left) == float64(r)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch right.ValueFlag() {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT32_FLAG:
 		r := right.AsInt32()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT16_FLAG:
 		r := right.AsInt16()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT8_FLAG:
 		r := right.AsInt8()
-		return BoolVal(left == T(r))
+		return left == T(r)
 	case UINT_FLAG:
 		r := right.AsUInt()
 		if r > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
 		if r > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
 // Check whether the left unsigned integer is equal to right.
-func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
+func StrictUnsignedIntLaxEqualVal[T StrictUnsignedInt](left T, right Value) Value {
+	return BoolVal(StrictUnsignedIntLaxEqual(left, right))
+}
+
+func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) bool {
 	if right.IsReference() {
 		switch r := right.AsReference().(type) {
 		case *BigInt:
 			iBigInt := (&big.Int{}).SetUint64(uint64(left))
-			return BoolVal(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+			return iBigInt.Cmp(r.ToGoBigInt()) == 0
 		case *BigFloat:
 			if r.IsNaN() {
-				return False.ToValue()
+				return false
 			}
 			iBigFloat := (&big.Float{}).SetUint64(uint64(left))
-			return BoolVal(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+			return iBigFloat.Cmp(r.AsGoBigFloat()) == 0
 		case Int64:
 			if uint64(left) > math.MaxInt64 {
-				return False.ToValue()
+				return false
 			}
-			return BoolVal(int64(left) == int64(r))
+			return int64(left) == int64(r)
 		case UInt64:
-			return BoolVal(uint64(left) == uint64(r))
+			return uint64(left) == uint64(r)
 		case Float64:
-			return BoolVal(float64(left) == float64(r))
+			return float64(left) == float64(r)
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
@@ -541,59 +553,59 @@ func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Value {
 	case SMALL_INT_FLAG:
 		r := right.AsSmallInt()
 		if uint64(left) > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case FLOAT_FLAG:
 		r := right.AsFloat()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case INT64_FLAG:
 		r := right.AsInlineInt64()
 		if uint64(left) > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT32_FLAG:
 		r := right.AsInt32()
 		if uint64(left) > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT16_FLAG:
 		r := right.AsInt16()
 		if uint64(left) > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case INT8_FLAG:
 		r := right.AsInt8()
 		if uint64(left) > math.MaxInt64 {
-			return False.ToValue()
+			return false
 		}
-		return BoolVal(int64(left) == int64(r))
+		return int64(left) == int64(r)
 	case UINT_FLAG:
 		r := right.AsUInt()
-		return BoolVal(uint64(left) == uint64(r))
+		return uint64(left) == uint64(r)
 	case UINT64_FLAG:
 		r := right.AsInlineUInt64()
-		return BoolVal(uint64(left) == uint64(r))
+		return uint64(left) == uint64(r)
 	case UINT32_FLAG:
 		r := right.AsUInt32()
-		return BoolVal(uint64(left) == uint64(r))
+		return uint64(left) == uint64(r)
 	case UINT16_FLAG:
 		r := right.AsUInt16()
-		return BoolVal(uint64(left) == uint64(r))
+		return uint64(left) == uint64(r)
 	case UINT8_FLAG:
 		r := right.AsUInt8()
-		return BoolVal(left == T(r))
+		return left == T(r)
 	case FLOAT64_FLAG:
 		r := right.AsInlineFloat64()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	case FLOAT32_FLAG:
 		r := right.AsFloat32()
-		return BoolVal(float64(left) == float64(r))
+		return float64(left) == float64(r)
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 

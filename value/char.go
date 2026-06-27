@@ -45,6 +45,10 @@ func (c Char) Rune() rune {
 	return rune(c)
 }
 
+func (c Char) ToString() String {
+	return String(c)
+}
+
 func (c Char) Inspect() string {
 	var buff strings.Builder
 	buff.WriteRune('`')
@@ -202,17 +206,25 @@ func (c Char) CompareVal(other Value) (Value, Value) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
-			return SmallInt(String(c).Cmp(o)).ToValue(), Undefined
+			return c.CompareString(o).ToValue(), Undefined
 		default:
 			return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 		}
 	}
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return SmallInt(c.Cmp(other.AsChar())).ToValue(), Undefined
+		return c.CompareChar(other.AsChar()).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewCoerceError(c.Class(), other.Class()))
 	}
+}
+
+func (c Char) CompareString(other String) SmallInt {
+	return SmallInt(String(c).Cmp(other))
+}
+
+func (c Char) CompareChar(other Char) SmallInt {
+	return SmallInt(c.Cmp(other))
 }
 
 // Check whether c is greater than other and return an error
@@ -357,25 +369,29 @@ func (c Char) LessThanEqualChar(other Char) bool {
 
 // Check whether c is equal to other
 func (c Char) LaxEqualVal(other Value) Value {
+	return BoolVal(c.LaxEqual(other))
+}
+
+func (c Char) LaxEqual(other Value) bool {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case String:
 			ch, ok := o.ToChar()
 			if !ok {
-				return False.ToValue()
+				return false
 			}
 
-			return Bool(c == ch).ToValue()
+			return c == ch
 		default:
-			return False.ToValue()
+			return false
 		}
 	}
 
 	switch other.ValueFlag() {
 	case CHAR_FLAG:
-		return Bool(c == other.AsChar()).ToValue()
+		return c == other.AsChar()
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 

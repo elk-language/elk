@@ -30,6 +30,7 @@ func initFloat() {
 			return (-self).ToValue(), value.Undefined
 		},
 	)
+
 	Def(
 		c,
 		"+",
@@ -42,6 +43,37 @@ func initFloat() {
 	)
 	Def(
 		c,
+		"+@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.AddFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.AddInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"+@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.AddBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"-",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
@@ -50,6 +82,37 @@ func initFloat() {
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"-@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.SubtractFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.SubtractInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"-@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.SubtractBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"*",
@@ -62,6 +125,37 @@ func initFloat() {
 	)
 	Def(
 		c,
+		"*@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.MultiplyFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.MultiplyInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.MultiplyBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"/",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
@@ -72,6 +166,37 @@ func initFloat() {
 	)
 	Def(
 		c,
+		"/@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.DivideFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.DivideInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.DivideBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
 		"**",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsFloat()
@@ -80,6 +205,78 @@ func initFloat() {
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"**@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.ExponentiateFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"**@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.ExponentiateInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"**@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.ExponentiateBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"%",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.ModuloVal(other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"%@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1].AsFloat()
+			return self.ModuloFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"%@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := args[1]
+			return self.ModuloInt(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"%@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsFloat()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return self.ModuloBigFloat(other).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"<=>",
@@ -147,16 +344,6 @@ func initFloat() {
 			self := args[0].AsFloat()
 			other := args[1]
 			return self.LaxEqualVal(other), value.Undefined
-		},
-		DefWithParameters(1),
-	)
-	Def(
-		c,
-		"%",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsFloat()
-			other := args[1]
-			return self.ModuloVal(other)
 		},
 		DefWithParameters(1),
 	)

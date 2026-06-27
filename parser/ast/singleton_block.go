@@ -17,6 +17,7 @@ import (
 //	end
 type SingletonBlockExpressionNode struct {
 	TypedNodeBase
+	HasDefer bool
 	Body     []StatementNode // do expression body
 	Bytecode value.Method
 }
@@ -24,6 +25,7 @@ type SingletonBlockExpressionNode struct {
 func (n *SingletonBlockExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SingletonBlockExpressionNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		HasDefer:      n.HasDefer,
 		Body:          SpliceSlice(n.Body, loc, args, unquote),
 		Bytecode:      n.Bytecode,
 	}
@@ -105,14 +107,18 @@ func (n *SingletonBlockExpressionNode) Inspect() string {
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::SingletonBlockExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
-	buff.WriteString(",\n  body: %[\n")
-	for i, stmt := range n.Body {
-		if i != 0 {
-			buff.WriteString(",\n")
+	buff.WriteString(",\n  body: %[")
+	if len(n.Body) > 0 {
+		buff.WriteRune('\n')
+		for i, element := range n.Body {
+			if i != 0 {
+				buff.WriteString(",\n")
+			}
+			indent.IndentString(&buff, element.Inspect(), 2)
 		}
-		indent.IndentString(&buff, stmt.Inspect(), 2)
+		buff.WriteString("\n  ")
 	}
-	buff.WriteString("\n  ]")
+	buff.WriteRune(']')
 
 	buff.WriteString("\n}")
 
