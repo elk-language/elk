@@ -110,7 +110,12 @@ func (f Float32) ExponentiateVal(other Value) (Float32, Value) {
 	}
 
 	o := other.AsFloat32()
-	return Float32(math.Pow(float64(f), float64(o))), Undefined
+	return f.ExponentiateFloat32(o), Undefined
+}
+
+// ExponentiateVal by the right value.
+func (f Float32) ExponentiateFloat32(other Float32) Float32 {
+	return Float32(math.Pow(float64(f), float64(other)))
 }
 
 func (f Float32) Subtract(other Value) (Float32, Value) {

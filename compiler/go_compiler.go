@@ -7940,6 +7940,8 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return c.compileExponentiateUInt16(narrowLeft, right)
 	case "value.UInt8":
 		return c.compileExponentiateUInt8(narrowLeft, right)
+	case "value.UInt":
+		return c.compileExponentiateUInt(narrowLeft, right)
 	case "value.Float":
 		return c.compileExponentiateFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Float64":
@@ -8027,6 +8029,14 @@ func (c *GoCompiler) compileExponentiateBigInt(left, right *goValue, typ types.T
 			left,
 			right,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ExponentiateBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left,
+			right,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ExponentiateFloat(%s)", left.value, narrowRight.value),
@@ -8078,7 +8088,14 @@ func (c *GoCompiler) compileExponentiateSmallInt(left, right *goValue, typ types
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ExponentiateSmallInt(%s)", left.value, narrowRight.value),
 			left.elkType,
-			value.FetchGoType("value.SmallInt"),
+			goValueType,
+			left, right,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ExponentiateBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
 			left, right,
 		)
 	case "value.Float":
@@ -8132,6 +8149,13 @@ func (c *GoCompiler) compileExponentiateFloat(left, right *goValue, typ types.Ty
 			value.FetchGoType("value.Float"),
 			left, right,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ExponentiateBigInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Float"),
+			left, right,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ExponentiateFloat(%s)", left.value, narrowRight.value),
@@ -8179,6 +8203,13 @@ func (c *GoCompiler) compileExponentiateBigFloat(left, right *goValue, typ types
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).ExponentiateSmallInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigFloat"),
+			left, right,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).ExponentiateBigInt(%s)", left.value, narrowRight.value),
 			left.elkType,
 			value.FetchGoType("*value.BigFloat"),
 			left, right,
@@ -8325,6 +8356,17 @@ func (c *GoCompiler) compileExponentiateUInt8(left, right *goValue) *goValue {
 		fmt.Sprintf("(%s).ExponentiateUInt8(%s)", left.value, narrowRight.value),
 		left.elkType,
 		value.FetchGoType("value.UInt8"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileExponentiateUInt(left, right *goValue) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).ExponentiateUInt(%s)", left.value, narrowRight.value),
+		left.elkType,
+		value.FetchGoType("value.UInt"),
 		left,
 		right,
 	)

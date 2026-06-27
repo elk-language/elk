@@ -3517,7 +3517,13 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name value.Symbol, errLoc *
 			continue
 		}
 		methods = append(methods, elementMethod)
-		if baseMethod == nil || calculateMethodBaseScore(elementMethod) > calculateMethodBaseScore(baseMethod) {
+		if baseMethod == nil {
+			baseMethod = elementMethod
+			continue
+		}
+		currentScore := calculateMethodBaseScore(elementMethod)
+		baseScore := calculateMethodBaseScore(baseMethod)
+		if currentScore > baseScore {
 			baseMethod = elementMethod
 		}
 	}

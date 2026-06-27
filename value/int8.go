@@ -169,15 +169,19 @@ func (i Int8) ExponentiateVal(other Value) (Int8, Value) {
 	}
 
 	o := other.AsInt8()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateInt8(o), Undefined
+}
+
+func (i Int8) ExponentiateInt8(other Int8) Int8 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j Int8
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i Int8) Subtract(other Value) (Int8, Value) {

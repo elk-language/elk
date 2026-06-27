@@ -172,15 +172,19 @@ func (i UInt16) ExponentiateVal(other Value) (UInt16, Value) {
 	}
 
 	o := other.AsUInt16()
-	if o <= 0 {
-		return 1, Undefined
+	return i.ExponentiateUInt16(o), Undefined
+}
+
+func (i UInt16) ExponentiateUInt16(other UInt16) UInt16 {
+	if other <= 0 {
+		return 1
 	}
 	result := i
 	var j UInt16
-	for j = 2; j <= o; j++ {
+	for j = 2; j <= other; j++ {
 		result *= i
 	}
-	return result, Undefined
+	return result
 }
 
 func (i UInt16) Subtract(other Value) (UInt16, Value) {

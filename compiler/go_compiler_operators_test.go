@@ -4,943 +4,6 @@ import (
 	"testing"
 )
 
-// func TestBytecodeBinaryExpressions(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"is a": {
-// 			input: "3 <: ::Std::Int",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.IS_A),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Int").ToValue(),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"is a\" check is always true, `3` will always be an instance of `Std::Int`"),
-// 			},
-// 		},
-// 		"instance of": {
-// 			input: "3 <<: ::Std::Int",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.INSTANCE_OF),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(15, 1, 16)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Int").ToValue(),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(0, 1, 1), P(0, 1, 1)), "this \"instance of\" check is always true, `3` will always be an instance of `Std::Int`"),
-// 			},
-// 		},
-// 		"resolve static add": {
-// 			input: "1i8 + 5i8",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT8), 6,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(8, 1, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"add int": {
-// 			input: "a := 1; a + 5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"add float": {
-// 			input: "a := 1.2; a + 5.0",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.ADD_FLOAT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Float(1.2).ToValue(),
-// 					value.Float(5.0).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"add builtin": {
-// 			input: "a := 1i8; a + 5i8",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT8), 1,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT8), 5,
-// 					byte(bytecode.ADD),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"add value": {
-// 			input: `
-// 				module Foo
-// 					def +(other: Int): Int
-// 					  other
-// 					end
-// 				end
-// 				Foo + 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(85, 7, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							namespaceDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.DEF_NAMESPACE), 0,
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 5),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Root").ToValue(),
-// 								value.ToSymbol("Foo").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							methodDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.GET_SINGLETON),
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.LOAD_VALUE_2),
-// 								byte(bytecode.DEF_METHOD),
-// 								byte(bytecode.POP),
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 7),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Foo").ToValue(),
-// 								value.Ref(
-// 									vm.NewBytecodeFunction(
-// 										value.ToSymbol("Foo::+"),
-// 										[]byte{
-// 											byte(bytecode.GET_LOCAL_1),
-// 											byte(bytecode.RETURN),
-// 										},
-// 										L(P(21, 3, 6), P(64, 5, 8)),
-// 										bytecode.LineInfoList{
-// 											bytecode.NewLineInfo(4, 1),
-// 											bytecode.NewLineInfo(5, 1),
-// 										},
-// 										1,
-// 										0,
-// 										nil,
-// 									),
-// 								),
-// 								value.ToSymbol("+").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(symbol.OpAdd, 1)),
-// 				},
-// 			),
-// 		},
-
-// 		"resolve static subtract": {
-// 			input: "151i32 - 25i32 - 5i32",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT32_8), 0x79,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(20, 1, 21)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"subtract int": {
-// 			input: "a := 1; a - 5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SUBTRACT_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"subtract float": {
-// 			input: "a := 1.2; a - 5.0",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.SUBTRACT_FLOAT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Float(1.2).ToValue(),
-// 					value.Float(5.0).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"subtract builtin": {
-// 			input: "a := 151i32; a - 25i32 - 5i32",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT32_8), 25,
-// 					byte(bytecode.SUBTRACT),
-// 					byte(bytecode.LOAD_INT32_8), 5,
-// 					byte(bytecode.SUBTRACT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(28, 1, 29)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 12),
-// 				},
-// 				[]value.Value{
-// 					value.Int32(151).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"subtract value": {
-// 			input: `
-// 				module Foo
-// 					def -(other: Int): Int
-// 					  other
-// 					end
-// 				end
-// 				Foo - 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(85, 7, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							namespaceDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.DEF_NAMESPACE), 0,
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 5),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Root").ToValue(),
-// 								value.ToSymbol("Foo").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							methodDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.GET_SINGLETON),
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.LOAD_VALUE_2),
-// 								byte(bytecode.DEF_METHOD),
-// 								byte(bytecode.POP),
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 7),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Foo").ToValue(),
-// 								value.Ref(
-// 									vm.NewBytecodeFunction(
-// 										value.ToSymbol("Foo::-"),
-// 										[]byte{
-// 											byte(bytecode.GET_LOCAL_1),
-// 											byte(bytecode.RETURN),
-// 										},
-// 										L(P(21, 3, 6), P(64, 5, 8)),
-// 										bytecode.LineInfoList{
-// 											bytecode.NewLineInfo(4, 1),
-// 											bytecode.NewLineInfo(5, 1),
-// 										},
-// 										1,
-// 										0,
-// 										nil,
-// 									),
-// 								),
-// 								value.ToSymbol("-").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(symbol.OpSubtract, 1)),
-// 				},
-// 			),
-// 		},
-
-// 		"resolve static multiply": {
-// 			input: "45.5 * 2.5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(9, 1, 10)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Float(113.75).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"multiply int": {
-// 			input: "a := 1; a * 5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.MULTIPLY_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"multiply float": {
-// 			input: "a := 1.2; a * 5.0",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.MULTIPLY_FLOAT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Float(1.2).ToValue(),
-// 					value.Float(5.0).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"multiply builtin": {
-// 			input: "a := 45i8; a * 2i8",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT8), 45,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT8), 2,
-// 					byte(bytecode.MULTIPLY),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"multiply value": {
-// 			input: `
-// 				module Foo
-// 					def *(other: Int): Int
-// 					  other
-// 					end
-// 				end
-// 				Foo * 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(85, 7, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							namespaceDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.DEF_NAMESPACE), 0,
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 5),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Root").ToValue(),
-// 								value.ToSymbol("Foo").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							methodDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.GET_SINGLETON),
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.LOAD_VALUE_2),
-// 								byte(bytecode.DEF_METHOD),
-// 								byte(bytecode.POP),
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 7),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Foo").ToValue(),
-// 								value.Ref(
-// 									vm.NewBytecodeFunction(
-// 										value.ToSymbol("Foo::*"),
-// 										[]byte{
-// 											byte(bytecode.GET_LOCAL_1),
-// 											byte(bytecode.RETURN),
-// 										},
-// 										L(P(21, 3, 6), P(64, 5, 8)),
-// 										bytecode.LineInfoList{
-// 											bytecode.NewLineInfo(4, 1),
-// 											bytecode.NewLineInfo(5, 1),
-// 										},
-// 										1,
-// 										0,
-// 										nil,
-// 									),
-// 								),
-// 								value.ToSymbol("*").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(symbol.OpMultiply, 1)),
-// 				},
-// 			),
-// 		},
-
-// 		"resolve static divide": {
-// 			input: "45.5 / .5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(8, 1, 9)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Float(91).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"divide int": {
-// 			input: "a := 1; a / 5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.DIVIDE_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(12, 1, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"divide float": {
-// 			input: "a := 45.5; a / .5",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.DIVIDE_FLOAT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Float(45.5).ToValue(),
-// 					value.Float(0.5).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"divide builtin": {
-// 			input: "a := 1i8; a / 5i8",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT8), 1,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT8), 5,
-// 					byte(bytecode.DIVIDE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"divide value": {
-// 			input: `
-// 				module Foo
-// 					def /(other: Int): Int
-// 					  other
-// 					end
-// 				end
-// 				Foo / 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(85, 7, 12)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							namespaceDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.DEF_NAMESPACE), 0,
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 5),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Root").ToValue(),
-// 								value.ToSymbol("Foo").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							methodDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.GET_SINGLETON),
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.LOAD_VALUE_2),
-// 								byte(bytecode.DEF_METHOD),
-// 								byte(bytecode.POP),
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(85, 7, 12)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 7),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Foo").ToValue(),
-// 								value.Ref(
-// 									vm.NewBytecodeFunction(
-// 										value.ToSymbol("Foo::/"),
-// 										[]byte{
-// 											byte(bytecode.GET_LOCAL_1),
-// 											byte(bytecode.RETURN),
-// 										},
-// 										L(P(21, 3, 6), P(64, 5, 8)),
-// 										bytecode.LineInfoList{
-// 											bytecode.NewLineInfo(4, 1),
-// 											bytecode.NewLineInfo(5, 1),
-// 										},
-// 										1,
-// 										0,
-// 										nil,
-// 									),
-// 								),
-// 								value.ToSymbol("/").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(symbol.OpDivide, 1)),
-// 				},
-// 			),
-// 		},
-
-// 		"resolve static exponentiate": {
-// 			input: "-2 ** 2",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_INT_8), 0xFC,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(6, 1, 7)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"exponentiate int": {
-// 			input: "a := -2; a ** 2",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT_8), 0xFE,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.EXPONENTIATE_INT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"exponentiate float": {
-// 			input: "a := 1.2; a + 5.0",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.ADD_FLOAT),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 8),
-// 				},
-// 				[]value.Value{
-// 					value.Float(1.2).ToValue(),
-// 					value.Float(5.0).ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"exponentiate builtin": {
-// 			input: "a := 1i8; a ** 5i8",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_INT8), 1,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT8), 5,
-// 					byte(bytecode.EXPONENTIATE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(17, 1, 18)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{},
-// 			),
-// 		},
-// 		"exponentiate value": {
-// 			input: `
-// 				module Foo
-// 					def **(other: Int): Int
-// 					  other
-// 					end
-// 				end
-// 				Foo ** 5
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(87, 7, 13)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							namespaceDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.DEF_NAMESPACE), 0,
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(87, 7, 13)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 5),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Root").ToValue(),
-// 								value.ToSymbol("Foo").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.Ref(
-// 						vm.NewBytecodeFunctionNoParams(
-// 							methodDefinitionsSymbol,
-// 							[]byte{
-// 								byte(bytecode.GET_CONST8), 0,
-// 								byte(bytecode.GET_SINGLETON),
-// 								byte(bytecode.LOAD_VALUE_1),
-// 								byte(bytecode.LOAD_VALUE_2),
-// 								byte(bytecode.DEF_METHOD),
-// 								byte(bytecode.POP),
-// 								byte(bytecode.NIL),
-// 								byte(bytecode.RETURN),
-// 							},
-// 							L(P(0, 1, 1), P(87, 7, 13)),
-// 							bytecode.LineInfoList{
-// 								bytecode.NewLineInfo(1, 7),
-// 								bytecode.NewLineInfo(7, 2),
-// 							},
-// 							[]value.Value{
-// 								value.ToSymbol("Foo").ToValue(),
-// 								value.Ref(
-// 									vm.NewBytecodeFunction(
-// 										value.ToSymbol("Foo::**"),
-// 										[]byte{
-// 											byte(bytecode.GET_LOCAL_1),
-// 											byte(bytecode.RETURN),
-// 										},
-// 										L(P(21, 3, 6), P(65, 5, 8)),
-// 										bytecode.LineInfoList{
-// 											bytecode.NewLineInfo(4, 1),
-// 											bytecode.NewLineInfo(5, 1),
-// 										},
-// 										1,
-// 										0,
-// 										nil,
-// 									),
-// 								),
-// 								value.ToSymbol("**").ToValue(),
-// 							},
-// 						),
-// 					),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(symbol.OpExponentiate, 1)),
-// 				},
-// 			),
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
-
 // func TestBytecodeUnaryExpressions(t *testing.T) {
 // 	tests := bytecodeTestTable{
 // 		"resolve static negate": {
@@ -4809,7 +3872,7 @@ func main() { // loc: <main>
 }
 `,
 		},
-		"and custom object": {
+		"and optimised value": {
 			input: `
 				module Foo
 					def &(other: Int): Int
@@ -4880,6 +3943,121 @@ func main() { // loc: <main>
 	l1 = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(10)
 	t1, err = Foo_ns__and_(thread, l0, l1) // receiver: Foo, name: &
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "&", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__and_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"and unoptimised value": {
+			input: `
+				module Foo
+					def &(other: Int): Int
+						5 & other
+					end
+				end
+
+				var a: Foo | Int = Foo
+				b := 10
+				c := a & b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::&")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__and_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::&, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(5)).BitwiseAndInt(l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = l1
+	callFrame.SetNativeLineNumber(10)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpAnd, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5709,7 +4887,7 @@ func main() { // loc: <main>
 }
 `,
 		},
-		"and not custom object": {
+		"and not optimised value": {
 			input: `
 				module Foo
 					def &~(other: Int): Int
@@ -5780,6 +4958,121 @@ func main() { // loc: <main>
 	l1 = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(10)
 	t1, err = Foo_ns__andnot_(thread, l0, l1) // receiver: Foo, name: &~
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "&~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__andnot_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"and not unoptimised value": {
+			input: `
+				module Foo
+					def &~(other: Int): Int
+						5 &~ other
+					end
+				end
+
+				var a: Foo | Int = Foo
+				b := 10
+				c := a &~ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::&~")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__andnot_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::&~, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(5)).BitwiseAndNotInt(l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = l1
+	callFrame.SetNativeLineNumber(10)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpAndNot, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6609,7 +5902,7 @@ func main() { // loc: <main>
 }
 `,
 		},
-		"or custom object": {
+		"or optimised value": {
 			input: `
 				module Foo
 					def |(other: Int): Int
@@ -6680,6 +5973,121 @@ func main() { // loc: <main>
 	l1 = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(10)
 	t1, err = Foo_ns__or_(thread, l0, l1) // receiver: Foo, name: |
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "|", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__or_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"or unoptimised value": {
+			input: `
+				module Foo
+					def |(other: Int): Int
+						5 | other
+					end
+				end
+
+				var a: Foo | Int = Foo
+				b := 10
+				c := a | b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::|")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__or_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::|, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(5)).BitwiseOrInt(l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = l1
+	callFrame.SetNativeLineNumber(10)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpOr, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: |
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7509,7 +6917,7 @@ func main() { // loc: <main>
 }
 `,
 		},
-		"xor custom object": {
+		"xor optimised value": {
 			input: `
 				module Foo
 					def ^(other: Int): Int
@@ -7580,6 +6988,121 @@ func main() { // loc: <main>
 	l1 = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(10)
 	t1, err = Foo_ns__xor_(thread, l0, l1) // receiver: Foo, name: ^
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "^", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__xor_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"xor unoptimised value": {
+			input: `
+				module Foo
+					def ^(other: Int): Int
+						5 ^ other
+					end
+				end
+
+				var a: Int | Foo = Foo
+				b := 10
+				c := a ^ b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::^")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__xor_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::^, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(5)).BitwiseXorInt(l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = l1
+	callFrame.SetNativeLineNumber(10)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpXor, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ^
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -9554,7 +9077,7 @@ func main() { // loc: <main>
 `,
 		},
 
-		"modulo value": {
+		"modulo optimised value": {
 			input: `
 				module Foo
 					def %(other: Int): Int
@@ -9628,6 +9151,125 @@ func main() { // loc: <main>
 	l0 = (Foo).ToValue()
 	callFrame.SetNativeLineNumber(8)
 	t1, err = Foo_ns__mod_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: %
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "%", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__mod_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"modulo unoptimised value": {
+			input: `
+				module Foo
+					def %(other: CoercibleNumeric): CoercibleNumeric
+						5 % other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a % 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::%")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__mod_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::%, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).ModuloVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpModulo, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: %
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -11638,7 +11280,7 @@ func main() { // loc: <main>
 `,
 		},
 
-		"div value": {
+		"div optimised value": {
 			input: `
 				module Foo
 					def /(other: Int): Int
@@ -11712,6 +11354,125 @@ func main() { // loc: <main>
 	l0 = (Foo).ToValue()
 	callFrame.SetNativeLineNumber(8)
 	t1, err = Foo_ns__div_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: /
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "/", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__div_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"div unoptimised value": {
+			input: `
+				module Foo
+					def /(other: CoercibleNumeric): CoercibleNumeric
+						5 / other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a / 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::/")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__div_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::/, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).DivideVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpDivide, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: /
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -13562,7 +13323,7 @@ func main() { // loc: <main>
 `,
 		},
 
-		"add value": {
+		"add optimised value": {
 			input: `
 				module Foo
 					def +(other: Int): Int
@@ -13628,6 +13389,125 @@ func main() { // loc: <main>
 	l0 = (Foo).ToValue()
 	callFrame.SetNativeLineNumber(8)
 	t1, err = Foo_ns__add_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: +
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "+", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__add_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"add unoptimised value": {
+			input: `
+				module Foo
+					def +(other: CoercibleNumeric): CoercibleNumeric
+						5 + other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a + 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::+")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__add_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::+, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).AddVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpAdd, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: +
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -15478,7 +15358,7 @@ func main() { // loc: <main>
 `,
 		},
 
-		"subtract value": {
+		"subtract optimised value": {
 			input: `
 				module Foo
 					def -(other: Int): Int
@@ -15544,6 +15424,125 @@ func main() { // loc: <main>
 	l0 = (Foo).ToValue()
 	callFrame.SetNativeLineNumber(8)
 	t1, err = Foo_ns__sub_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: -
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "-", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__sub_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"subtract unoptimised value": {
+			input: `
+				module Foo
+					def -(other: CoercibleNumeric): CoercibleNumeric
+						5 - other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a - 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::-")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__sub_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::-, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).SubtractVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpSubtract, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: -
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -17394,7 +17393,7 @@ func main() { // loc: <main>
 `,
 		},
 
-		"multiply value": {
+		"multiply optimised value": {
 			input: `
 				module Foo
 					def *(other: Int): Int
@@ -17499,6 +17498,125 @@ func methodDefinitions() {
 `,
 		},
 
+		"multiply unoptimised value": {
+			input: `
+				module Foo
+					def *(other: CoercibleNumeric): CoercibleNumeric
+						5 * other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a * 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::*")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__mul_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::*, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).MultiplyVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpMultiply, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: *
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "*", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__mul_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
 		"resolve static nested multiply": {
 			input: "a := 90 * 15 * 2",
 			want: `package main
@@ -17530,6 +17648,2041 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2700)).ToValue()
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoExponentiate(t *testing.T) {
+	tests := goTestTable{
+		"resolve static exp": {
+			input: "a := 2 ** 10",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1024)).ToValue()
+}
+`,
+		},
+		"exp ints": {
+			input: `
+				a := 23
+				b := a ** 10
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	l1 = value.ExponentiateInts(l0, (value.SmallInt(10)).ToValue())
+}
+`,
+		},
+		"exp int": {
+			input: `
+				a := 23
+				b := a ** 10.5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Float // var b: Std::Float
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = value.ExponentiateInt(l0, (value.Float(10.5)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = (t1).AsFloat()
+}
+`,
+		},
+
+		"exp smallint smallint": {
+			input: `
+						val a = 23
+						b := a ** 10
+					`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).ExponentiateSmallInt(value.SmallInt(10))
+}
+`,
+		},
+		"exp smallint bigint": {
+			input: `
+				val a = 23
+				b := a ** 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).ExponentiateBigInt(bi0)
+}
+`,
+		},
+		"exp smallint float": {
+			input: `
+				val a = 23
+				b := a ** 2.5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Float // var b: Std::Float
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).ExponentiateFloat(value.Float(2.5))
+}
+`,
+		},
+		"exp smallint bigfloat": {
+			input: `
+				val a = 23
+				b := a ** 2.5bf
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 *value.BigFloat // var b: Std::BigFloat
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).ExponentiateBigFloat(bf0)
+}
+`,
+		},
+		"exp smallint int": {
+			input: `
+				val a = 23
+				b := 5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (value.SmallInt(5)).ToValue()
+	l2 = (l0).ExponentiateInt(l1)
+}
+`,
+		},
+		"exp smallint value": {
+			input: `
+				val a = 23
+				var b: Int | Float = 5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int | Std::Float
+	_ = l1
+	var l2 value.Value // var c: Std::CoercibleNumeric
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ExponentiateVal(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"exp bigint smallint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.SmallInt // var b: 5
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.SmallInt(5)
+	l2 = (l0).ExponentiateSmallInt(l1)
+}
+`,
+		},
+		"exp bigint float": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5.5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Float // var b: 5.5
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.Float(5.5)
+	l2 = (l0).ExponentiateFloat(l1)
+}
+`,
+		},
+		"exp bigint bigfloat": {
+			input: `
+				val a = 18446744073709551616
+				val b = 5.5bf
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+var bf0 = value.ParseBigFloatPanic("5.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 *value.BigFloat // var b: 5.5bf
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = bf0
+	l2 = (l0).ExponentiateBigFloat(l1)
+}
+`,
+		},
+		"exp bigint bigint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 18446744073709551616
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 *value.BigInt // var b: 18446744073709551616
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = bi0
+	l2 = (l0).ExponentiateBigInt(l1)
+}
+`,
+		},
+		"exp bigint int": {
+			input: `
+				val a = 18446744073709551616
+				b := 5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (value.SmallInt(5)).ToValue()
+	l2 = (l0).ExponentiateInt(l1)
+}
+`,
+		},
+		"exp bigint value": {
+			input: `
+				var a: Int | Float = 10
+				b := 5
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Std::Float
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::CoercibleNumeric
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(10)).ToValue()
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.ExponentiateVal(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"exp int64": {
+			input: `
+				a := 6i64
+				b := 5i64
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Int64 // var b: Std::Int64
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(6)
+	l1 = value.Int64(5)
+	l2 = (l0).ExponentiateInt64(l1)
+}
+`,
+		},
+
+		"exp int32": {
+			input: `
+				a := 6i32
+				b := 5i32
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Int32 // var b: Std::Int32
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(6)
+	l1 = value.Int32(5)
+	l2 = (l0).ExponentiateInt32(l1)
+}
+`,
+		},
+
+		"exp int16": {
+			input: `
+				a := 6i16
+				b := 5i16
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Int16 // var b: Std::Int16
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(6)
+	l1 = value.Int16(5)
+	l2 = (l0).ExponentiateInt16(l1)
+}
+`,
+		},
+
+		"exp int8": {
+			input: `
+				a := 6i8
+				b := 5i8
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Int8 // var b: Std::Int8
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(6)
+	l1 = value.Int8(5)
+	l2 = (l0).ExponentiateInt8(l1)
+}
+`,
+		},
+
+		"exp uint": {
+			input: `
+				a := 6u
+				b := 5u
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt // var a: Std::UInt
+	_ = l0
+	var l1 value.UInt // var b: Std::UInt
+	_ = l1
+	var l2 value.UInt // var c: Std::UInt
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt(6)
+	l1 = value.UInt(5)
+	l2 = (l0).ExponentiateUInt(l1)
+}
+`,
+		},
+
+		"exp uint64": {
+			input: `
+				a := 6u64
+				b := 5u64
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.UInt64 // var b: Std::UInt64
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(6)
+	l1 = value.UInt64(5)
+	l2 = (l0).ExponentiateUInt64(l1)
+}
+`,
+		},
+
+		"exp uint32": {
+			input: `
+				a := 6u32
+				b := 5u32
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.UInt32 // var b: Std::UInt32
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(6)
+	l1 = value.UInt32(5)
+	l2 = (l0).ExponentiateUInt32(l1)
+}
+`,
+		},
+
+		"exp uint16": {
+			input: `
+				a := 6u16
+				b := 5u16
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.UInt16 // var b: Std::UInt16
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(6)
+	l1 = value.UInt16(5)
+	l2 = (l0).ExponentiateUInt16(l1)
+}
+`,
+		},
+
+		"exp uint8": {
+			input: `
+				a := 6u8
+				b := 5u8
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.UInt8 // var b: Std::UInt8
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(6)
+	l1 = value.UInt8(5)
+	l2 = (l0).ExponentiateUInt8(l1)
+}
+`,
+		},
+
+		"exp float smallint": {
+			input: `
+				a := 2.5
+				val b = 20
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.SmallInt // var b: 20
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = value.SmallInt(20)
+	l2 = (l0).ExponentiateSmallInt(l1)
+}
+`,
+		},
+		"exp float bigint": {
+			input: `
+				a := 2.5
+				c := a ** 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.Float // var c: Std::Float
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = (l0).ExponentiateBigInt(bi0)
+}
+`,
+		},
+		"exp float float": {
+			input: `
+				a := 2.5
+				b := 0.1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.Float // var b: Std::Float
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = value.Float(0.1)
+	l2 = (l0).ExponentiateFloat(l1)
+}
+`,
+		},
+		"exp float bigfloat": {
+			input: `
+				a := 2.5
+				b := 0.1bf
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("0.1")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 *value.BigFloat // var b: Std::BigFloat
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = bf0
+	l2 = (l0).ExponentiateBigFloat(l1)
+}
+`,
+		},
+		"exp float int": {
+			input: `
+				a := 2.5
+				b := 1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(2.5)
+	l1 = (value.SmallInt(1)).ToValue()
+	l2 = (l0).ExponentiateInt(l1)
+}
+`,
+		},
+		"exp float value": {
+			input: `
+				var a: Float | Int = 2.5
+				b := 1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Float | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::CoercibleNumeric
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.Float(2.5)).ToValue()
+	l1 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.ExponentiateVal(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+
+		"exp float64": {
+			input: `
+				a := 2.5f64
+				b := 1f64
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float64 // var a: Std::Float64
+	_ = l0
+	var l1 value.Float64 // var b: Std::Float64
+	_ = l1
+	var l2 value.Float64 // var c: Std::Float64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float64(2.5)
+	l1 = value.Float64(1)
+	l2 = (l0).ExponentiateFloat64(l1)
+}
+`,
+		},
+
+		"exp float32": {
+			input: `
+				a := 2.5f32
+				b := 1f32
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float32 // var a: Std::Float32
+	_ = l0
+	var l1 value.Float32 // var b: Std::Float32
+	_ = l1
+	var l2 value.Float32 // var c: Std::Float32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float32(2.5)
+	l1 = value.Float32(1)
+	l2 = (l0).ExponentiateFloat32(l1)
+}
+`,
+		},
+
+		"exp bigfloat smallint": {
+			input: `
+				a := 2.5bf
+				val b = 1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 value.SmallInt // var b: 1
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = value.SmallInt(1)
+	l2 = (l0).ExponentiateSmallInt(l1)
+}
+`,
+		},
+
+		"exp bigfloat bigint": {
+			input: `
+				a := 2.5bf
+				c := a ** 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 *value.BigFloat // var c: Std::BigFloat
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = (l0).ExponentiateBigInt(bi0)
+}
+`,
+		},
+		"exp bigfloat float": {
+			input: `
+				a := 2.5bf
+				val b = 1.0
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 value.Float // var b: 1.0
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = value.Float(1)
+	l2 = (l0).ExponentiateFloat(l1)
+}
+`,
+		},
+		"exp bigfloat bigfloat": {
+			input: `
+				a := 2.5bf
+				val b = 1.0bf
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+var bf1 = value.ParseBigFloatPanic("1.0")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 *value.BigFloat // var b: 1.0bf
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = bf1
+	l2 = (l0).ExponentiateBigFloat(l1)
+}
+`,
+		},
+		"exp bigfloat int": {
+			input: `
+				a := 2.5bf
+				b := 1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = (value.SmallInt(1)).ToValue()
+	l2 = (l0).ExponentiateInt(l1)
+}
+`,
+		},
+		"exp bigfloat value": {
+			input: `
+				a := 2.5bf
+				var b: Int | Float = 1
+				c := a ** b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bf0 = value.ParseBigFloatPanic("2.5")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigFloat // var a: Std::BigFloat
+	_ = l0
+	var l1 value.Value // var b: Std::Int | Std::Float
+	_ = l1
+	var l2 *value.BigFloat // var c: Std::BigFloat
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bf0
+	l1 = (value.SmallInt(1)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).ExponentiateVal(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = (*value.BigFloat)((t1).Pointer())
+}
+`,
+		},
+
+		"exp builtin values": {
+			input: `
+				var a: Float | Int = 2.5
+				b := a ** 0.1
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Float | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.Float(2.5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = value.ExponentiateVal(l0, (value.Float(0.1)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+
+		"exponentiate optimised value": {
+			input: `
+				module Foo
+					def **(other: Int): Int
+						5 ** other
+					end
+				end
+				a := Foo
+				b := a ** 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::**")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__exp_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::**, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(5)).ExponentiateInt(l0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = Foo_ns__exp_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: **
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__exp_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"exponentiate unoptimised value": {
+			input: `
+				module Foo
+					def **(other: CoercibleNumeric): CoercibleNumeric
+						5 ** other
+					end
+				end
+				var a: Int | Foo = Foo
+				b := a ** 5
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::**")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__exp_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::**, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).ExponentiateVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int | Foo
+	_ = l0
+	var l1 value.Value // var b: Std::CoercibleNumeric
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpExponentiate, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: **
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__exp_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"resolve static nested exp": {
+			input: "a := 2 ** 3 ** 2",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(512)).ToValue()
 }
 `,
 		},
