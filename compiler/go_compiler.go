@@ -6361,7 +6361,7 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
 		return c.compileGreaterEqualCoercibleNumeric(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
 		"value.Float64", "value.Float32":
 		return c.compileGreaterEqualStrictNumeric(narrowLeft, right)
 	}
@@ -6482,6 +6482,14 @@ func (c *GoCompiler) compileGreaterEqualCoercibleNumeric(left, right *goValue, l
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).GreaterThanEqualSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanEqualBigInt(%s))", left.value, narrowRight.value),
 			types.Bool{},
 			value.FetchGoType("value.Bool"),
 			left,
@@ -6743,7 +6751,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 	case "value.String", "value.Char":
 		return c.compileLessStringlike(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
 		"value.Float64", "value.Float32":
 		return c.compileLessStrictNumeric(narrowLeft, right)
 	}
@@ -6813,7 +6821,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 		left.elkType,
 		typ,
 		"symbol.OpLessThan",
-		">",
+		"<",
 		[]*goValue{
 			left,
 			right,
@@ -6864,6 +6872,14 @@ func (c *GoCompiler) compileLessCoercibleNumeric(left, right *goValue, loc *posi
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).LessThanSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanBigInt(%s))", left.value, narrowRight.value),
 			types.Bool{},
 			value.FetchGoType("value.Bool"),
 			left,
@@ -6930,7 +6946,7 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 	case "value.String", "value.Char":
 		return c.compileLessEqualStringlike(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
 		"value.Float64", "value.Float32":
 		return c.compileLessEqualStrictNumeric(narrowLeft, right)
 	}
@@ -7051,6 +7067,14 @@ func (c *GoCompiler) compileLessEqualCoercibleNumeric(left, right *goValue, loc 
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).LessThanEqualSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LessThanEqualBigInt(%s))", left.value, narrowRight.value),
 			types.Bool{},
 			value.FetchGoType("value.Bool"),
 			left,
