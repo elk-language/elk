@@ -6548,7 +6548,7 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 	case "value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
 		return c.compileGreaterCoercibleNumeric(narrowLeft, right, loc)
 	case "value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
 		"value.Float64", "value.Float32":
 		return c.compileGreaterStrictNumeric(narrowLeft, right)
 	}
@@ -6669,6 +6669,14 @@ func (c *GoCompiler) compileGreaterCoercibleNumeric(left, right *goValue, loc *p
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).GreaterThanSmallInt(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left,
+			narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).GreaterThanBigInt(%s))", left.value, narrowRight.value),
 			types.Bool{},
 			value.FetchGoType("value.Bool"),
 			left,
