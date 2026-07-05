@@ -11507,7 +11507,7 @@ func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, lo
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).EqualBigInt(%s))", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.Bool"),
 			left, narrowRight,
 		)
 	}
@@ -11516,7 +11516,7 @@ func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, lo
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).EqualInt(%s))", left.value, c.convertToValue(right).value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.Bool"),
 			left, right,
 		)
 	}
