@@ -3497,6 +3497,26 @@ func Equal(left, right Value) bool {
 	}
 }
 
+func EqualInt(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.Equal(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.Equal(right)
+}
+
+func EqualInts(left, right Value) bool {
+	if left.IsReference() {
+		l := (*BigInt)(left.Pointer())
+		return l.EqualInt(right)
+	}
+
+	l := left.AsSmallInt()
+	return l.EqualInt(right)
+}
+
 // Check whether left is not equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).

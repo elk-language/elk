@@ -4161,7 +4161,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = (value.SmallInt(10)).ToValue()
-	if value.Bool(value.Equal(l1, (value.SmallInt(40)).ToValue())) {
+	if value.Bool(value.EqualInts(l1, (value.SmallInt(40)).ToValue())) {
 		l2 = (value.SmallInt(5)).ToValue()
 		l3 = (value.SmallInt(9)).ToValue()
 		l4 = (value.SmallInt(20)).ToValue()
@@ -4174,7 +4174,7 @@ func main() { // loc: <main>
 			position.NewLocation("<main>", position.NewSpan(position.New(87, 9, 11), position.New(87, 9, 11))),
 		)
 		l5 = t1
-		if value.Bool(value.Equal(l0, (value.SmallInt(20)).ToValue())) {
+		if value.Bool(value.EqualInts(l0, (value.SmallInt(20)).ToValue())) {
 			l6 = (value.SmallInt(10)).ToValue()
 			l7 = (value.SmallInt(50)).ToValue()
 			l8 = (value.SmallInt(30)).ToValue()

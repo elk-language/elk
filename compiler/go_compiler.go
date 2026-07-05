@@ -11396,6 +11396,8 @@ func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type,
 		return c.compileEqualPrimitive("value.UInt16", narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileEqualPrimitive("value.UInt8", narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileEqualPrimitive("value.UInt", narrowLeft, right, valueIsIgnored)
 	case "value.Float":
 		return c.compileEqualPrimitive("value.Float", narrowLeft, right, valueIsIgnored)
 	case "value.Float64":
@@ -11408,6 +11410,28 @@ func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type,
 		return c.compileEqualPrimitive("value.Char", narrowLeft, right, valueIsIgnored)
 	case "*value.BigFloat":
 		return c.compileEqualBigFloat(narrowLeft, right, valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.EqualInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
+
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool(value.EqualInt(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
@@ -11497,15 +11521,11 @@ func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, lo
 		)
 	}
 
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = (%s).EqualVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool(value.Equal(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
 		typ,
+		value.FetchGoType("value.Bool"),
+		left, right,
 	)
 }
 
@@ -11520,7 +11540,7 @@ func (c *GoCompiler) compileEqualSmallInt(left, right *goValue, typ types.Type, 
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).EqualSmallInt(%s))", left.value, narrowRight.value),
 			typ,
-			goValueType,
+			value.FetchGoType("value.Bool"),
 			left, narrowRight,
 		)
 	case "*value.BigInt":
@@ -11541,15 +11561,11 @@ func (c *GoCompiler) compileEqualSmallInt(left, right *goValue, typ types.Type, 
 		)
 	}
 
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = (%s).EqualVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool(value.Equal(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
 		typ,
+		value.FetchGoType("value.Bool"),
+		left, right,
 	)
 }
 
