@@ -117,26 +117,30 @@ func (r *Regex) InstanceVariables() *InstanceVariables {
 }
 
 func (r *Regex) LaxEqual(other Value) Value {
-	return r.Equal(other)
+	return r.EqualVal(other)
 }
 
 // Check whether r is equal to other
-func (r *Regex) Equal(other Value) Value {
+func (r *Regex) EqualVal(other Value) Value {
+	return Bool(r.Equal(other)).ToValue()
+}
+
+func (r *Regex) Equal(other Value) bool {
 	if !other.IsReference() {
-		return False.ToValue()
+		return false
 	}
 
 	switch o := other.AsReference().(type) {
 	case *Regex:
-		return Bool(r.Flags == o.Flags && r.Source == o.Source).ToValue()
+		return r.Flags == o.Flags && r.Source == o.Source
 	default:
-		return False.ToValue()
+		return false
 	}
 }
 
 // Check whether r is equal to other
 func (r *Regex) LaxEqualVal(other Value) Value {
-	return r.Equal(other)
+	return r.EqualVal(other)
 }
 
 func (r *Regex) Hash() UInt64 {

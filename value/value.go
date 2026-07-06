@@ -3325,6 +3325,79 @@ func LaxEqualVal(left, right Value) Value {
 	}
 }
 
+func LaxEqual(left, right Value) bool {
+	if left.IsReference() {
+		switch l := left.AsReference().(type) {
+		case *BigInt:
+			return l.LaxEqual(right)
+		case *BigFloat:
+			return l.LaxEqual(right)
+		case String:
+			return l.LaxEqual(right)
+		case *Regex:
+			return l.Equal(right)
+		case Float64:
+			return StrictFloatLaxEqual(l, right)
+		case Int64:
+			return StrictSignedIntLaxEqual(l, right)
+		case UInt64:
+			return StrictUnsignedIntLaxEqual(l, right)
+		default:
+			return false
+		}
+	}
+
+	switch left.ValueFlag() {
+	case SMALL_INT_FLAG:
+		l := left.AsSmallInt()
+		return l.LaxEqual(right)
+	case FLOAT_FLAG:
+		l := left.AsFloat()
+		return l.LaxEqual(right)
+	case CHAR_FLAG:
+		l := left.AsChar()
+		return l.LaxEqual(right)
+	case SYMBOL_FLAG:
+		l := left.AsInlineSymbol()
+		return l.LaxEqual(right)
+	case FLOAT64_FLAG:
+		l := left.AsInlineFloat64()
+		return StrictFloatLaxEqual(l, right)
+	case FLOAT32_FLAG:
+		l := left.AsFloat32()
+		return StrictFloatLaxEqual(l, right)
+	case INT64_FLAG:
+		l := left.AsInlineInt64()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT32_FLAG:
+		l := left.AsInt32()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT16_FLAG:
+		l := left.AsInt16()
+		return StrictSignedIntLaxEqual(l, right)
+	case INT8_FLAG:
+		l := left.AsInt8()
+		return StrictSignedIntLaxEqual(l, right)
+	case UINT_FLAG:
+		l := left.AsUInt()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT64_FLAG:
+		l := left.AsInlineUInt64()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT32_FLAG:
+		l := left.AsUInt32()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT16_FLAG:
+		l := left.AsUInt16()
+		return StrictUnsignedIntLaxEqual(l, right)
+	case UINT8_FLAG:
+		l := left.AsUInt8()
+		return StrictUnsignedIntLaxEqual(l, right)
+	default:
+		return false
+	}
+}
+
 // Check whether left is not equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).

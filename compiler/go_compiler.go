@@ -11147,20 +11147,55 @@ func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Ty
 	narrowLeft := c.valueToNarrowerType(left)
 
 	switch narrowLeft.goType.Name {
-	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
-		"value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return newGoValueWithDependencies(
-			fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", narrowLeft.value, c.convertToValue(right).value),
-			typ,
-			value.FetchGoType("value.Bool"),
-			narrowLeft, right,
-		)
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8":
-		return c.compileLaxEqualStrictSignedInt(narrowLeft, right)
-	case "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
-		return c.compileLaxEqualStrictUnsignedInt(narrowLeft, right)
-	case "value.Float64", "value.Float32":
-		return c.compileLaxEqualStrictFloat(narrowLeft, right)
+	case "value.SmallInt":
+		return c.compileLaxEqualSmallInt(narrowLeft, right, typ, loc, valueIsIgnored)
+	case "*value.BigInt":
+		return c.compileLaxEqualBigInt(narrowLeft, right, typ, loc, valueIsIgnored)
+	case "value.Int64":
+		return c.compileLaxEqualStrictSignedInt("value.Int64", narrowLeft, right, valueIsIgnored)
+	case "value.Int32":
+		return c.compileLaxEqualStrictSignedInt("value.Int32", narrowLeft, right, valueIsIgnored)
+	case "value.Int16":
+		return c.compileLaxEqualStrictSignedInt("value.Int16", narrowLeft, right, valueIsIgnored)
+	case "value.Int8":
+		return c.compileLaxEqualStrictSignedInt("value.Int8", narrowLeft, right, valueIsIgnored)
+	case "value.UInt64":
+		return c.compileLaxEqualStrictUnsignedInt("value.UInt64", narrowLeft, right, valueIsIgnored)
+	case "value.UInt32":
+		return c.compileLaxEqualStrictUnsignedInt("value.UInt32", narrowLeft, right, valueIsIgnored)
+	case "value.UInt16":
+		return c.compileLaxEqualStrictUnsignedInt("value.UInt16", narrowLeft, right, valueIsIgnored)
+	case "value.UInt8":
+		return c.compileLaxEqualStrictUnsignedInt("value.UInt8", narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileLaxEqualStrictUnsignedInt("value.UInt", narrowLeft, right, valueIsIgnored)
+	case "value.Float":
+		return c.compileLaxEqualPrimitive("value.Float", narrowLeft, right, valueIsIgnored)
+	case "value.Float64":
+		return c.compileLaxEqualStrictFloat("value.Float64", narrowLeft, right, valueIsIgnored)
+	case "value.Float32":
+		return c.compileLaxEqualStrictFloat("value.Float32", narrowLeft, right, valueIsIgnored)
+	case "value.String":
+		return c.compileLaxEqualPrimitive("value.String", narrowLeft, right, valueIsIgnored)
+	case "value.Char":
+		return c.compileLaxEqualPrimitive("value.Char", narrowLeft, right, valueIsIgnored)
+	case "*value.BigFloat":
+		return c.compileLaxEqualBigFloat(narrowLeft, right, valueIsIgnored)
+	}
+
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+			return newGoValueWithDependencies(
+				fmt.Sprintf("value.Bool(value.EqualInts(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+				types.Bool{},
+				value.FetchGoType("value.Bool"),
+				left, right,
+			)
+		}
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
@@ -11168,15 +11203,11 @@ func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Ty
 			return nilGoValue
 		}
 
-		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
-		c.emitSetCallFrameLineNumber(loc)
-		c.emit("%s, err = value.LaxEqualVal(%s, %s)\n", tmp.name, c.convertToValue(left).fetchValue(), c.convertToValue(right).fetchValue())
-		c.emitErrorPropagation()
-
-		return newGoValueWithLocal(
-			tmp,
-			typ,
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool(value.LaxEqual(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
 		)
 	}
 
@@ -11243,15 +11274,6 @@ func (c *GoCompiler) compileLaxNotEqual(left *goValue, right *goValue, typ types
 	)
 }
 
-func (c *GoCompiler) compileLaxEqualStrictSignedInt(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(value.StrictSignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
-	)
-}
-
 func (c *GoCompiler) compileLaxNotEqualStrictSignedInt(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("value.Bool(!value.StrictSignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
@@ -11261,27 +11283,9 @@ func (c *GoCompiler) compileLaxNotEqualStrictSignedInt(left, right *goValue) *go
 	)
 }
 
-func (c *GoCompiler) compileLaxEqualStrictUnsignedInt(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(value.StrictUnsignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
-	)
-}
-
 func (c *GoCompiler) compileLaxNotEqualStrictUnsignedInt(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("value.Bool(!value.StrictUnsignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
-	)
-}
-
-func (c *GoCompiler) compileLaxEqualStrictFloat(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(value.StrictFloatLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
 		types.Bool{},
 		value.FetchGoType("value.Bool"),
 		left, right,
@@ -11489,6 +11493,30 @@ func (c *GoCompiler) compileEqualBigFloat(left, right *goValue, valueIsIgnored b
 	}
 }
 
+func (c *GoCompiler) compileLaxEqualBigFloat(left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualBigFloat(%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+}
+
 func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	if valueIsIgnored {
 		return nilGoValue
@@ -11522,7 +11550,47 @@ func (c *GoCompiler) compileEqualBigInt(left, right *goValue, typ types.Type, lo
 	}
 
 	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(value.Equal(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+		fmt.Sprintf("value.Bool((%s).Equal(%s))", left.value, c.convertToValue(right).value),
+		typ,
+		value.FetchGoType("value.Bool"),
+		left, right,
+	)
+}
+
+func (c *GoCompiler) compileLaxEqualBigInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualSmallInt(%s))", left.value, narrowRight.value),
+			typ,
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualBigInt(%s))", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualInt(%s))", left.value, c.convertToValue(right).value),
+			left.elkType,
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", left.value, c.convertToValue(right).value),
 		typ,
 		value.FetchGoType("value.Bool"),
 		left, right,
@@ -11562,7 +11630,7 @@ func (c *GoCompiler) compileEqualSmallInt(left, right *goValue, typ types.Type, 
 	}
 
 	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(value.Equal(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
+		fmt.Sprintf("value.Bool((%s).Equal(%s))", left.value, c.convertToValue(right).value),
 		typ,
 		value.FetchGoType("value.Bool"),
 		left, right,
@@ -11586,6 +11654,142 @@ func (c *GoCompiler) compileEqualPrimitive(typeName string, left, right *goValue
 	default:
 		return newGoValueWithDependencies(
 			fmt.Sprintf("value.Bool((%s).Equal(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+}
+
+func (c *GoCompiler) compileLaxEqualSmallInt(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.SmallInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualSmallInt(%s))", left.value, narrowRight.value),
+			typ,
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualBigInt(%s))", left.value, narrowRight.value),
+			typ,
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	}
+
+	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).EqualInt(%s))", left.value, c.convertToValue(right).value),
+			typ,
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+
+	return newGoValueWithDependencies(
+		fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", left.value, c.convertToValue(right).value),
+		typ,
+		value.FetchGoType("value.Bool"),
+		left, right,
+	)
+}
+
+func (c *GoCompiler) compileLaxEqualPrimitive(typeName string, left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case typeName:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s) == (%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s).LaxEqual(%s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+}
+
+func (c *GoCompiler) compileLaxEqualStrictSignedInt(typeName string, left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case typeName:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s) == (%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool(value.StrictSignedIntLaxEqual(%s, %s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+}
+
+func (c *GoCompiler) compileLaxEqualStrictUnsignedInt(typeName string, left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case typeName:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s) == (%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool(value.StrictUnsignedIntLaxEqual(%s, %s))", left.value, c.convertToValue(right).value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, right,
+		)
+	}
+}
+
+func (c *GoCompiler) compileLaxEqualStrictFloat(typeName string, left, right *goValue, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case typeName:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool((%s) == (%s))", left.value, narrowRight.value),
+			types.Bool{},
+			value.FetchGoType("value.Bool"),
+			left, narrowRight,
+		)
+	default:
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.Bool(value.StrictFloatLaxEqual(%s, %s))", left.value, c.convertToValue(right).value),
 			types.Bool{},
 			value.FetchGoType("value.Bool"),
 			left, right,
