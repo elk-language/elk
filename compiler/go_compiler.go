@@ -6239,7 +6239,7 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 	case token.LAX_EQUAL:
 		return c.compileLaxEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.LAX_NOT_EQUAL:
-		return c.compileLaxNotEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileNegate(c.compileLaxEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
 	case token.EQUAL_EQUAL:
 		return c.compileEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
 	case token.NOT_EQUAL:
@@ -11222,82 +11222,6 @@ func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Ty
 		},
 		loc,
 		valueIsIgnored,
-	)
-}
-
-func (c *GoCompiler) compileLaxNotEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	narrowLeft := c.valueToNarrowerType(left)
-
-	switch narrowLeft.goType.Name {
-	case "value.String", "*value.Regex", "value.Symbol", "value.Char",
-		"value.SmallInt", "*value.BigInt", "value.Float", "*value.BigFloat":
-		return newGoValueWithDependencies(
-			fmt.Sprintf("value.Bool(!(%s).LaxEqual(%s))", narrowLeft.value, c.convertToValue(right).value),
-			typ,
-			value.FetchGoType("value.Bool"),
-			left, right,
-		)
-	case "value.Int64", "value.Int32", "value.Int16", "value.Int8":
-		return c.compileLaxNotEqualStrictSignedInt(narrowLeft, right)
-	case "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
-		return c.compileLaxNotEqualStrictUnsignedInt(narrowLeft, right)
-	case "value.Float64", "value.Float32":
-		return c.compileLaxNotEqualStrictFloat(narrowLeft, right)
-	}
-
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinEquatable)) {
-		return newGoValueWithDependencies(
-			fmt.Sprintf("value.ToNotBool(value.LaxEqual(%s, %s))", c.convertToValue(left).value, c.convertToValue(right).value),
-			typ,
-			value.FetchGoType("value.Bool"),
-			left, right,
-		)
-	}
-
-	result := c.compileMethodCallWithLiteralArgValuesAndName(
-		left.elkType,
-		typ,
-		"symbol.OpLaxEqual",
-		"=~",
-		[]*goValue{
-			left,
-			right,
-		},
-		loc,
-		valueIsIgnored,
-	)
-
-	return result.newGoValue(
-		fmt.Sprintf("value.ToNotBool(%s)", result.value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-	)
-}
-
-func (c *GoCompiler) compileLaxNotEqualStrictSignedInt(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(!value.StrictSignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
-	)
-}
-
-func (c *GoCompiler) compileLaxNotEqualStrictUnsignedInt(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(!value.StrictUnsignedIntLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
-	)
-}
-
-func (c *GoCompiler) compileLaxNotEqualStrictFloat(left, right *goValue) *goValue {
-	return newGoValueWithDependencies(
-		fmt.Sprintf("value.Bool(!value.StrictFloatLaxEqual(%s, %s))", left.value, c.valueToNarrowerType(right).value),
-		types.Bool{},
-		value.FetchGoType("value.Bool"),
-		left, right,
 	)
 }
 
