@@ -11249,6 +11249,8 @@ func (c *GoCompiler) compileStrictEqual(left *goValue, right *goValue, typ types
 		return c.compileEqualPrimitive("value.UInt16", narrowLeft, right, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileEqualPrimitive("value.UInt8", narrowLeft, right, valueIsIgnored)
+	case "value.UInt":
+		return c.compileEqualPrimitive("value.UInt", narrowLeft, right, valueIsIgnored)
 	case "value.Float":
 		return c.compileEqualPrimitive("value.Float", narrowLeft, right, valueIsIgnored)
 	case "value.Float64":
