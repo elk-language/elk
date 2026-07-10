@@ -1809,6 +1809,8 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode, checker types.Check
 		result, err = value.LessThanVal(left, right)
 	case token.LESS_EQUAL:
 		result, err = value.LessThanEqualVal(left, right)
+	case token.SPACESHIP_OP:
+		result, err = value.CompareVal(left, right)
 	default:
 		return value.Undefined
 	}

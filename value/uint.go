@@ -239,13 +239,17 @@ func (i UInt) CompareVal(other Value) (Value, Value) {
 	}
 	o := other.AsUInt()
 
-	if i > o {
-		return SmallInt(1).ToValue(), Undefined
+	return i.CompareUInt(o).ToValue(), Undefined
+}
+
+func (i UInt) CompareUInt(other UInt) SmallInt {
+	if i > other {
+		return SmallInt(1)
 	}
-	if i < o {
-		return SmallInt(-1).ToValue(), Undefined
+	if i < other {
+		return SmallInt(-1)
 	}
-	return SmallInt(0).ToValue(), Undefined
+	return SmallInt(0)
 }
 
 func (i UInt) GreaterThanVal(other Value) (Value, Value) {

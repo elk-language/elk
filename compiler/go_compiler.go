@@ -853,7 +853,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	c.emitAddCallFrame(loc)
 	returnVal := c.compileStatements(body, false)
 
-	c.emitReturn(c.valueToNarrowerType(returnVal).fetchValue())
+	c.emitReturn(c.methodReturnValue(returnVal))
 
 	fmt.Fprintf(&funcBuffer, ") (result %s, err value.Value) { // method: %s, loc: %s\n", goReturnType, types.Inspect(c.method), loc.String())
 	c.compileLocalsTo(&funcBuffer)
@@ -4906,16 +4906,7 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 
 	if node.Value != nil {
 		expr := c.compileExpression(node.Value, false)
-		if c.method == nil {
-			val = c.convertToValue(expr).fetchValue()
-		} else {
-			goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)
-			if goReturnType.Name == "value.Value" {
-				val = c.convertToValue(expr).fetchValue()
-			} else {
-				val = c.valueToNarrowerType(expr).fetchValue()
-			}
-		}
+		val = c.methodReturnValue(expr)
 	} else {
 		val = "value.Nil"
 	}
@@ -4923,6 +4914,19 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 	c.emitReturn(val)
 
 	return neverGoValue
+}
+
+func (c *GoCompiler) methodReturnValue(val *goValue) string {
+	if c.method == nil {
+		return c.convertToValue(val).fetchValue()
+	}
+
+	goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)
+	if goReturnType.Name == "value.Value" {
+		return c.convertToValue(val).fetchValue()
+	} else {
+		return c.valueToNarrowerType(val).fetchValue()
+	}
 }
 
 func (c *GoCompiler) compilePublicConstantNode(node *ast.PublicConstantNode) *goValue {
@@ -7156,6 +7160,8 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return c.compileCompareUInt16(narrowLeft, right)
 	case "value.UInt8":
 		return c.compileCompareUInt8(narrowLeft, right)
+	case "value.UInt":
+		return c.compileCompareUInt(narrowLeft, right)
 	case "value.Float64":
 		return c.compileCompareFloat64(narrowLeft, right)
 	case "value.Float32":
@@ -7273,6 +7279,14 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 			left,
 			narrowRight,
 		)
+	case "*value.BigInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).CompareBigInt(%s)", left.value, narrowRight.value),
+			c.checker.Std(symbol.Int),
+			value.FetchGoType("value.SmallInt"),
+			left,
+			narrowRight,
+		)
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareFloat(%s)", left.value, narrowRight.value),
@@ -7295,9 +7309,9 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit(
-		"%s, err = value.CompareVal(%s, %s)\n",
+		"%s, err = (%s).CompareVal(%s)\n",
 		tmp.name,
-		c.convertToValue(left).fetchValue(),
+		c.valueToNarrowerType(left).fetchValue(),
 		c.convertToValue(right).fetchValue(),
 	)
 	c.emitErrorPropagation()
@@ -7381,6 +7395,16 @@ func (c *GoCompiler) compileCompareUInt16(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt8(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt8(%s)", left.value, c.valueToNarrowerType(right).value),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+		left,
+		right,
+	)
+}
+
+func (c *GoCompiler) compileCompareUInt(left, right *goValue) *goValue {
+	return newGoValueWithDependencies(
+		fmt.Sprintf("(%s).CompareUInt(%s)", left.value, c.valueToNarrowerType(right).value),
 		c.checker.Std(symbol.Int),
 		value.FetchGoType("value.SmallInt"),
 		left,

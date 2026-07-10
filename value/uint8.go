@@ -239,13 +239,17 @@ func (i UInt8) CompareVal(other Value) (Value, Value) {
 	}
 	o := other.AsUInt8()
 
-	if i > o {
-		return SmallInt(1).ToValue(), Undefined
+	return i.CompareUInt8(o).ToValue(), Undefined
+}
+
+func (i UInt8) CompareUInt8(other UInt8) SmallInt {
+	if i > other {
+		return SmallInt(1)
 	}
-	if i < o {
-		return SmallInt(-1).ToValue(), Undefined
+	if i < other {
+		return SmallInt(-1)
 	}
-	return SmallInt(0).ToValue(), Undefined
+	return SmallInt(0)
 }
 
 func (i UInt8) GreaterThanVal(other Value) (Value, Value) {
