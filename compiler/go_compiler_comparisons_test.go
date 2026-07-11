@@ -23780,7 +23780,6 @@ func methodDefinitions() {
 }
 `,
 		},
-
 	}
 
 	for name, tc := range tests {

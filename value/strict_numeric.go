@@ -364,6 +364,19 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, Value) {
 	}
 }
 
+func StrictIntLeftBitshiftValue[T StrictInt](left T, right Value) Value {
+	r, err := StrictIntLeftBitshift(left, right)
+	if err.IsNotUndefined() {
+		return err
+	}
+	return r.ToValue()
+}
+
+func StrictIntLeftBitshiftVal[T StrictInt](left T, right Value) (Value, Value) {
+	r, err := StrictIntLeftBitshift(left, right)
+	return r.ToValue(), err
+}
+
 // Check whether the left float is equal to right.
 func StrictFloatLaxEqualVal[T StrictFloat](left T, right Value) Value {
 	return BoolVal(StrictFloatLaxEqual(left, right))
@@ -488,7 +501,7 @@ func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) bool {
 		return left == T(r)
 	case UINT_FLAG:
 		r := right.AsUInt()
-		if r > math.MaxInt64 {
+		if r > MaxInt64ForUInt {
 			return false
 		}
 		return int64(left) == int64(r)

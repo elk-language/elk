@@ -166,6 +166,13 @@ func (i Int32) BitwiseXor(other Value) (Int32, Value) {
 	return i ^ o, Undefined
 }
 
+func (i Int32) LeftBitshiftInt32(other Int32) Int32 {
+	if other < 0 {
+		return i >> -other
+	}
+	return i << other
+}
+
 func (i Int32) ExponentiateVal(other Value) (Int32, Value) {
 	if !other.IsInt32() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))

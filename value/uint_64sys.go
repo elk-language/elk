@@ -2,4 +2,8 @@
 
 package value
 
+import "math"
+
 type UInt uint64
+
+const MaxInt64ForUInt = math.MaxInt64

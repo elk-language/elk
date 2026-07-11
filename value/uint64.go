@@ -203,6 +203,10 @@ func (i UInt64) BitwiseXor(other Value) (UInt64, Value) {
 	return i ^ o, Undefined
 }
 
+func (i UInt64) LeftBitshiftUInt64(other UInt64) UInt64 {
+	return i << other
+}
+
 func (i UInt64) ExponentiateVal(other Value) (UInt64, Value) {
 	switch o := other.SafeAsReference().(type) {
 	case UInt64:

@@ -4062,3 +4062,2224 @@ func methodDefinitions() {
 		})
 	}
 }
+
+func TestGoLeftBitshift(t *testing.T) {
+	tests := goTestTable{
+		"resolve static left bitshift": {
+			input: "a := 23 << 10",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23552)).ToValue()
+}
+`,
+		},
+		"resolve static nested left bitshift": {
+			input: "a := 23 << 15 << 46",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("53034389211914960896", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (bi0).ToValue()
+}
+`,
+		},
+		"left bitshift smallint smallint": {
+			input: `
+				val a = 23
+				val b = 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.SmallInt // var b: 10
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = value.SmallInt(10)
+	l2 = (l0).LeftBitshiftSmallInt(l1)
+}
+`,
+		},
+		"left bitshift smallint bigint": {
+			input: `
+				val a = 23
+				c := a << 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftBigInt(bi0)
+}
+`,
+		},
+		"left bitshift smallint int": {
+			input: `
+				val a = 23
+				b := 5
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).LeftBitshiftVal(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift smallint int64": {
+			input: `
+				val a = 23
+				c := a << 10i64
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftInt64(value.Int64(10))
+}
+`,
+		},
+		"left bitshift smallint int32": {
+			input: `
+				val a = 23
+				c := a << 10i32
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftInt32(value.Int32(10))
+}
+`,
+		},
+		"left bitshift smallint int16": {
+			input: `
+				val a = 23
+				c := a << 10i16
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftInt16(value.Int16(10))
+}
+`,
+		},
+		"left bitshift smallint int8": {
+			input: `
+				val a = 23
+				c := a << 10i8
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftInt8(value.Int8(10))
+}
+`,
+		},
+		"left bitshift smallint uint64": {
+			input: `
+				val a = 23
+				c := a << 10u64
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftUInt64(value.UInt64(10))
+}
+`,
+		},
+		"left bitshift smallint uint32": {
+			input: `
+				val a = 23
+				c := a << 10u32
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftUInt32(value.UInt32(10))
+}
+`,
+		},
+		"left bitshift smallint uint16": {
+			input: `
+				val a = 23
+				c := a << 10u16
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftUInt16(value.UInt16(10))
+}
+`,
+		},
+		"left bitshift smallint uint8": {
+			input: `
+				val a = 23
+				c := a << 10u8
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var a: 23
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(23)
+	l1 = (l0).LeftBitshiftUInt8(value.UInt8(10))
+}
+`,
+		},
+		"left bitshift bigint smallint": {
+			input: `
+				val a = 18446744073709551616
+				val b = 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.SmallInt // var b: 10
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = value.SmallInt(10)
+	l2 = (l0).LeftBitshiftSmallInt(l1)
+}
+`,
+		},
+		"left bitshift bigint bigint": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftBigInt(bi0)
+}
+`,
+		},
+		"left bitshift bigint int": {
+			input: `
+				val a = 18446744073709551616
+				b := 5
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (l0).LeftBitshiftVal(l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift bigint int64": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10i64
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftInt64(value.Int64(10))
+}
+`,
+		},
+		"left bitshift bigint int32": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10i32
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftInt32(value.Int32(10))
+}
+`,
+		},
+		"left bitshift bigint int16": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10i16
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftInt16(value.Int16(10))
+}
+`,
+		},
+		"left bitshift bigint int8": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10i8
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftInt8(value.Int8(10))
+}
+`,
+		},
+		"left bitshift bigint uint64": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10u64
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftUInt64(value.UInt64(10))
+}
+`,
+		},
+		"left bitshift bigint uint32": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10u32
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftUInt32(value.UInt32(10))
+}
+`,
+		},
+		"left bitshift bigint uint16": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10u16
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftUInt16(value.UInt16(10))
+}
+`,
+		},
+		"left bitshift bigint uint8": {
+			input: `
+				val a = 18446744073709551616
+				c := a << 10u8
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.BigInt // var a: 18446744073709551616
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = bi0
+	l1 = (l0).LeftBitshiftUInt8(value.UInt8(10))
+}
+`,
+		},
+		"left bitshift int64 int": {
+			input: `
+				a := 23i64
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var t1 value.Int64
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift int64": {
+			input: `
+				a := 23i64
+				b := 10i64
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int64 // var a: Std::Int64
+	_ = l0
+	var l1 value.Int64 // var b: Std::Int64
+	_ = l1
+	var l2 value.Int64 // var c: Std::Int64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int64(23)
+	l1 = value.Int64(10)
+	l2 = (l0).LeftBitshiftInt64(l1)
+}
+`,
+		},
+		"left bitshift int32 int": {
+			input: `
+				a := 23i32
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var t1 value.Int32
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift int32": {
+			input: `
+				a := 23i32
+				b := 10i32
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int32 // var a: Std::Int32
+	_ = l0
+	var l1 value.Int32 // var b: Std::Int32
+	_ = l1
+	var l2 value.Int32 // var c: Std::Int32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int32(23)
+	l1 = value.Int32(10)
+	l2 = (l0).LeftBitshiftInt32(l1)
+}
+`,
+		},
+		"left bitshift int16 int": {
+			input: `
+				a := 23i16
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var t1 value.Int16
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift int16": {
+			input: `
+				a := 23i16
+				b := 10i16
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int16 // var a: Std::Int16
+	_ = l0
+	var l1 value.Int16 // var b: Std::Int16
+	_ = l1
+	var l2 value.Int16 // var c: Std::Int16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int16(23)
+	l1 = value.Int16(10)
+	l2 = (l0).LeftBitshiftInt16(l1)
+}
+`,
+		},
+		"left bitshift int8 int": {
+			input: `
+				a := 23i8
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var t1 value.Int8
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift int8": {
+			input: `
+				a := 23i8
+				b := 10i8
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Int8 // var a: Std::Int8
+	_ = l0
+	var l1 value.Int8 // var b: Std::Int8
+	_ = l1
+	var l2 value.Int8 // var c: Std::Int8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Int8(23)
+	l1 = value.Int8(10)
+	l2 = (l0).LeftBitshiftInt8(l1)
+}
+`,
+		},
+		"left bitshift uint64": {
+			input: `
+				a := 23u64
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var t1 value.UInt64
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift uint64 uint64": {
+			input: `
+				a := 23u64
+				b := 10u64
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt64 // var a: Std::UInt64
+	_ = l0
+	var l1 value.UInt64 // var b: Std::UInt64
+	_ = l1
+	var l2 value.UInt64 // var c: Std::UInt64
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt64(23)
+	l1 = value.UInt64(10)
+	l2 = (l0).LeftBitshiftUInt64(l1)
+}
+`,
+		},
+		"left bitshift uint32": {
+			input: `
+				a := 23u32
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var t1 value.UInt32
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift uint32 uint32": {
+			input: `
+				a := 23u32
+				b := 10u32
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt32 // var a: Std::UInt32
+	_ = l0
+	var l1 value.UInt32 // var b: Std::UInt32
+	_ = l1
+	var l2 value.UInt32 // var c: Std::UInt32
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt32(23)
+	l1 = value.UInt32(10)
+	l2 = (l0).LeftBitshiftUInt32(l1)
+}
+`,
+		},
+		"left bitshift uint16": {
+			input: `
+				a := 23u16
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var t1 value.UInt16
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift uint16 uint16": {
+			input: `
+				a := 23u16
+				b := 10u16
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt16 // var a: Std::UInt16
+	_ = l0
+	var l1 value.UInt16 // var b: Std::UInt16
+	_ = l1
+	var l2 value.UInt16 // var c: Std::UInt16
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt16(23)
+	l1 = value.UInt16(10)
+	l2 = (l0).LeftBitshiftUInt16(l1)
+}
+`,
+		},
+		"left bitshift uint8": {
+			input: `
+				a := 23u8
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var t1 value.UInt8
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift uint8 uint8": {
+			input: `
+				a := 23u8
+				b := 10u8
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt8 // var a: Std::UInt8
+	_ = l0
+	var l1 value.UInt8 // var b: Std::UInt8
+	_ = l1
+	var l2 value.UInt8 // var c: Std::UInt8
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt8(23)
+	l1 = value.UInt8(10)
+	l2 = (l0).LeftBitshiftUInt8(l1)
+}
+`,
+		},
+		"left bitshift uint": {
+			input: `
+				a := 23u
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.UInt // var a: Std::UInt
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.UInt // var c: Std::UInt
+	_ = l2
+	var t1 value.UInt
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.UInt(23)
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.StrictIntLeftBitshift(l0, l1)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+`,
+		},
+		"left bitshift int bigint": {
+			input: `
+				var a: Int = 23
+				c := a << 18446744073709551616
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var bi0 = value.ParseBigIntPanic("18446744073709551616", 0)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	l1 = value.LeftBitshiftInts(l0, (bi0).ToValue())
+}
+`,
+		},
+		"left bitshift ints": {
+			input: `
+				a := 23
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	l2 = value.LeftBitshiftInts(l0, l1)
+}
+`,
+		},
+		"left bitshift int int64": {
+			input: `
+				var a: Int = 23
+				c := a << 10i64
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var c: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(23)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = value.LeftBitshiftInt(l0, (value.Int64(10)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
+		"left bitshift optimised value": {
+			input: `
+				module Foo
+					def <<(other: Int): Int
+						5 << other
+					end
+				end
+
+				a := Foo
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::<<")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__lsh_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<<, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).LeftBitshiftVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(10)
+	t1, err = Foo_ns__lsh_(thread, l0, l1) // receiver: Foo, name: <<
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "<<", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__lsh_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"left bitshift unoptimised value": {
+			input: `
+				module Foo
+					def <<(other: Int): Int
+						5 << other
+					end
+				end
+
+				var a: Foo | Int = Foo
+				b := 10
+				c := a << b
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var cc_main_1 = &value.CallCache{}
+
+var Foo *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo::<<")
+var sym2 = value.ToSymbol("<main>")
+
+func Foo_ns__lsh_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<<, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = (value.SmallInt(5)).LeftBitshiftVal(l0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo | Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (Foo).ToValue()
+	l1 = (value.SmallInt(10)).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = l1
+	callFrame.SetNativeLineNumber(10)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpLeftBitshift, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: <<
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l2 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	Foo = value.NewModule()
+	namespace = value.Ref(Foo)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (Foo).SingletonClass() // Foo
+	vm.Def(&class.MethodContainer, "<<", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := Foo_ns__lsh_(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}

@@ -163,6 +163,13 @@ func (i Int8) BitwiseXor(other Value) (Int8, Value) {
 	return i ^ o, Undefined
 }
 
+func (i Int8) LeftBitshiftInt8(other Int8) Int8 {
+	if other < 0 {
+		return i >> -other
+	}
+	return i << other
+}
+
 func (i Int8) ExponentiateVal(other Value) (Int8, Value) {
 	if !other.IsInt8() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
