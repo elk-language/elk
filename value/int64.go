@@ -210,6 +210,13 @@ func (i Int64) LeftBitshiftInt64(other Int64) Int64 {
 	return i << other
 }
 
+func (i Int64) RightBitshiftInt64(other Int64) Int64 {
+	if other < 0 {
+		return i << -other
+	}
+	return i >> other
+}
+
 func (i Int64) ExponentiateVal(other Value) (Int64, Value) {
 	switch o := other.SafeAsReference().(type) {
 	case Int64:

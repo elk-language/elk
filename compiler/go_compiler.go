@@ -9254,6 +9254,8 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, loc)
 	case "value.UInt8":
 		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, loc)
+	case "value.UInt":
+		return c.compileRightBitshiftUInt(narrowLeft, right, typ, loc)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
@@ -9534,7 +9536,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).RightBitshiftUInt64(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.SmallInt"),
 			left,
 			right,
 		)
@@ -9542,7 +9544,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).RightBitshiftUInt32(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.SmallInt"),
 			left,
 			right,
 		)
@@ -9550,7 +9552,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).RightBitshiftUInt16(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.SmallInt"),
 			left,
 			right,
 		)
@@ -9558,7 +9560,15 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).RightBitshiftUInt8(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("value.SmallInt"),
+			left,
+			right,
+		)
+	case "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.SmallInt"),
 			left,
 			right,
 		)
@@ -9635,7 +9645,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).LeftBitshiftUInt64(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("*value.BigInt"),
 			left,
 			right,
 		)
@@ -9643,7 +9653,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).LeftBitshiftUInt32(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("*value.BigInt"),
 			left,
 			right,
 		)
@@ -9651,7 +9661,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).LeftBitshiftUInt16(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("*value.BigInt"),
 			left,
 			right,
 		)
@@ -9659,7 +9669,15 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).LeftBitshiftUInt8(%s)", left.value, narrowRight.value),
 			left.elkType,
-			goValueType,
+			value.FetchGoType("*value.BigInt"),
+			left,
+			right,
+		)
+	case "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).LeftBitshiftUInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("*value.BigInt"),
 			left,
 			right,
 		)
@@ -10093,6 +10111,14 @@ func (c *GoCompiler) compileRightBitshiftBigInt(left, right *goValue, typ types.
 			left,
 			right,
 		)
+	case "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			goValueType,
+			left,
+			right,
+		)
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
@@ -10160,6 +10186,18 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt8(left, right *goValue, typ t
 }
 
 func (c *GoCompiler) compileRightBitshiftInt64(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.Int64":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftInt64(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Int64"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10173,6 +10211,18 @@ func (c *GoCompiler) compileRightBitshiftInt64(left, right *goValue, typ types.T
 }
 
 func (c *GoCompiler) compileRightBitshiftInt32(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.Int32":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftInt32(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Int32"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10186,6 +10236,18 @@ func (c *GoCompiler) compileRightBitshiftInt32(left, right *goValue, typ types.T
 }
 
 func (c *GoCompiler) compileRightBitshiftInt16(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.Int16":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftInt16(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Int16"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10199,6 +10261,18 @@ func (c *GoCompiler) compileRightBitshiftInt16(left, right *goValue, typ types.T
 }
 
 func (c *GoCompiler) compileRightBitshiftInt8(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.Int8":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftInt8(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.Int8"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10212,6 +10286,18 @@ func (c *GoCompiler) compileRightBitshiftInt8(left, right *goValue, typ types.Ty
 }
 
 func (c *GoCompiler) compileRightBitshiftUInt64(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.UInt64":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt64(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.UInt64"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt64"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10225,6 +10311,18 @@ func (c *GoCompiler) compileRightBitshiftUInt64(left, right *goValue, typ types.
 }
 
 func (c *GoCompiler) compileRightBitshiftUInt32(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.UInt32":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt32(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.UInt32"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt32"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10238,6 +10336,18 @@ func (c *GoCompiler) compileRightBitshiftUInt32(left, right *goValue, typ types.
 }
 
 func (c *GoCompiler) compileRightBitshiftUInt16(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.UInt16":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt16(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.UInt16"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt16"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
@@ -10251,7 +10361,44 @@ func (c *GoCompiler) compileRightBitshiftUInt16(left, right *goValue, typ types.
 }
 
 func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.UInt8":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt8(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.UInt8"),
+			left,
+			narrowRight,
+		)
+	}
+
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt8"))
+	c.registerErr()
+	c.emitSetCallFrameLineNumber(loc)
+	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
+	c.emitErrorPropagation()
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileRightBitshiftUInt(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
+	narrowRight := c.valueToNarrowerType(right)
+	switch narrowRight.goType.Name {
+	case "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).RightBitshiftUInt(%s)", left.value, narrowRight.value),
+			left.elkType,
+			value.FetchGoType("value.UInt"),
+			left,
+			narrowRight,
+		)
+	}
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt"))
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())

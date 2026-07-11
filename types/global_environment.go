@@ -167,6 +167,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt32, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt16, valueClass, env)
 	stdModule.DefineClass("", false, true, true, true, symbol.UInt8, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, symbol.UInt, valueClass, env)
 	stdModule.DefineClass("", false, true, true, false, symbol.ArrayList, objectClass, env)
 	stdModule.DefineClass("", false, true, true, false, symbol.ArrayTuple, objectClass, env)
 	stdModule.DefineClass("", false, true, true, false, symbol.HashMap, objectClass, env)

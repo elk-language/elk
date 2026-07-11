@@ -167,6 +167,10 @@ func (i UInt8) LeftBitshiftUInt8(other UInt8) UInt8 {
 	return i << other
 }
 
+func (i UInt8) RightBitshiftUInt8(other UInt8) UInt8 {
+	return i >> other
+}
+
 func (i UInt8) ExponentiateVal(other Value) (UInt8, Value) {
 	if !other.IsUInt8() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))

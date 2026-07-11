@@ -1095,6 +1095,11 @@ func leftBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {
 	return Ref(ToElkBigInt(iGo.Lsh(iGo, uint(other))))
 }
 
+func leftBitshiftBigIntUnsigned[T SimpleInt](i *BigInt, other T) *BigInt {
+	iGo := i.ToGoBigInt()
+	return ToElkBigInt(iGo.Lsh(iGo, uint(other)))
+}
+
 // Bitshift to the left by another integer value and return an error
 // if something went wrong.
 func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
@@ -1103,7 +1108,7 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 		case Int64:
 			return i.LeftBitshiftInt64(o), Undefined
 		case UInt64:
-			return i.LeftBitshiftUInt64(o), Undefined
+			return i.LeftBitshiftUInt64(o).ToValue(), Undefined
 		case *BigInt:
 			return i.LeftBitshiftBigInt(o), Undefined
 		default:
@@ -1114,9 +1119,6 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 	case SMALL_INT_FLAG:
 		o := other.AsSmallInt()
 		return i.LeftBitshiftSmallInt(o), Undefined
-	case UINT_FLAG:
-		o := other.AsUInt()
-		return i.LeftBitshiftUInt(o), Undefined
 	case INT64_FLAG:
 		o := other.AsInlineInt64()
 		return i.LeftBitshiftInt64(o), Undefined
@@ -1129,18 +1131,21 @@ func (i *BigInt) LeftBitshiftVal(other Value) (Value, Value) {
 	case INT8_FLAG:
 		o := other.AsInt8()
 		return i.LeftBitshiftInt8(o), Undefined
+	case UINT_FLAG:
+		o := other.AsUInt()
+		return i.LeftBitshiftUInt(o).ToValue(), Undefined
 	case UINT64_FLAG:
 		o := other.AsInlineUInt64()
-		return i.LeftBitshiftUInt64(o), Undefined
+		return i.LeftBitshiftUInt64(o).ToValue(), Undefined
 	case UINT32_FLAG:
 		o := other.AsUInt32()
-		return i.LeftBitshiftUInt32(o), Undefined
+		return i.LeftBitshiftUInt32(o).ToValue(), Undefined
 	case UINT16_FLAG:
 		o := other.AsUInt16()
-		return i.LeftBitshiftUInt16(o), Undefined
+		return i.LeftBitshiftUInt16(o).ToValue(), Undefined
 	case UINT8_FLAG:
 		o := other.AsUInt8()
-		return i.LeftBitshiftUInt8(o), Undefined
+		return i.LeftBitshiftUInt8(o).ToValue(), Undefined
 	default:
 		return Undefined, Ref(NewBitshiftOperandError(other))
 	}
@@ -1181,24 +1186,24 @@ func (i *BigInt) LeftBitshiftInt8(other Int8) Value {
 	return leftBitshiftBigInt(i, other)
 }
 
-func (i *BigInt) LeftBitshiftUInt(other UInt) Value {
-	return leftBitshiftBigInt(i, other)
+func (i *BigInt) LeftBitshiftUInt(other UInt) *BigInt {
+	return leftBitshiftBigIntUnsigned(i, other)
 }
 
-func (i *BigInt) LeftBitshiftUInt64(other UInt64) Value {
-	return leftBitshiftBigInt(i, other)
+func (i *BigInt) LeftBitshiftUInt64(other UInt64) *BigInt {
+	return leftBitshiftBigIntUnsigned(i, other)
 }
 
-func (i *BigInt) LeftBitshiftUInt32(other UInt32) Value {
-	return leftBitshiftBigInt(i, other)
+func (i *BigInt) LeftBitshiftUInt32(other UInt32) *BigInt {
+	return leftBitshiftBigIntUnsigned(i, other)
 }
 
-func (i *BigInt) LeftBitshiftUInt16(other UInt16) Value {
-	return leftBitshiftBigInt(i, other)
+func (i *BigInt) LeftBitshiftUInt16(other UInt16) *BigInt {
+	return leftBitshiftBigIntUnsigned(i, other)
 }
 
-func (i *BigInt) LeftBitshiftUInt8(other UInt8) Value {
-	return leftBitshiftBigInt(i, other)
+func (i *BigInt) LeftBitshiftUInt8(other UInt8) *BigInt {
+	return leftBitshiftBigIntUnsigned(i, other)
 }
 
 // Perform bitwise AND with another value and return an error

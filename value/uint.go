@@ -167,6 +167,10 @@ func (i UInt) LeftBitshiftUInt(other UInt) UInt {
 	return i << other
 }
 
+func (i UInt) RightBitshiftUInt(other UInt) UInt {
+	return i >> other
+}
+
 func (i UInt) ExponentiateVal(other Value) (UInt, Value) {
 	if !other.IsUInt() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))

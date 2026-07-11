@@ -173,6 +173,13 @@ func (i Int16) LeftBitshiftInt16(other Int16) Int16 {
 	return i << other
 }
 
+func (i Int16) RightBitshiftInt16(other Int16) Int16 {
+	if other < 0 {
+		return i << -other
+	}
+	return i >> other
+}
+
 func (i Int16) ExponentiateVal(other Value) (Int16, Value) {
 	if !other.IsInt16() {
 		return 0, Ref(NewCoerceError(i.Class(), other.Class()))
