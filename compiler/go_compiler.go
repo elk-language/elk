@@ -9182,13 +9182,13 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 
 	switch narrowLeft.goType.Name {
 	case "value.Int64":
-		return c.compileLogicalLeftBitshiftInt64(narrowLeft, right, typ, loc, valueIsIgnored)
+		return c.compileLeftBitshiftInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int32":
-		return c.compileLogicalLeftBitshiftInt32(narrowLeft, right, typ, loc, valueIsIgnored)
+		return c.compileLeftBitshiftInt32(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int16":
-		return c.compileLogicalLeftBitshiftInt16(narrowLeft, right, typ, loc, valueIsIgnored)
+		return c.compileLeftBitshiftInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.Int8":
-		return c.compileLogicalLeftBitshiftInt8(narrowLeft, right, typ, loc, valueIsIgnored)
+		return c.compileLeftBitshiftInt8(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt64":
 		return c.compileLeftBitshiftUInt64(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt32":
@@ -9197,6 +9197,8 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 		return c.compileLeftBitshiftUInt16(narrowLeft, right, typ, loc, valueIsIgnored)
 	case "value.UInt8":
 		return c.compileLeftBitshiftUInt8(narrowLeft, right, typ, loc, valueIsIgnored)
+	case "value.UInt":
+		return c.compileLeftBitshiftUInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
@@ -9335,6 +9337,8 @@ func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, 
 		return c.compileRightBitshiftUInt16(narrowLeft, right, typ, loc)
 	case "value.UInt8":
 		return c.compileRightBitshiftUInt8(narrowLeft, right, typ, loc)
+	case "value.UInt":
+		return c.compileRightBitshiftUInt(narrowLeft, right, typ, loc)
 	}
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinLogicBitshiftable)) {
@@ -9687,74 +9691,6 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 	c.registerErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LeftBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
-		typ,
-	)
-}
-
-func (c *GoCompiler) compileLogicalLeftBitshiftInt64(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
-	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
-		typ,
-	)
-}
-
-func (c *GoCompiler) compileLogicalLeftBitshiftInt32(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
-	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
-		typ,
-	)
-}
-
-func (c *GoCompiler) compileLogicalLeftBitshiftInt16(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
-	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
-	c.emitErrorPropagation()
-
-	return newGoValueWithLocal(
-		tmp,
-		typ,
-	)
-}
-
-func (c *GoCompiler) compileLogicalLeftBitshiftInt8(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
-	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
-	c.registerErr()
-	c.emitSetCallFrameLineNumber(loc)
-	c.emit("%s, err = value.StrictIntLogicalLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertToValue(right).fetchValue())
 	c.emitErrorPropagation()
 
 	return newGoValueWithLocal(
