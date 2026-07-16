@@ -6215,15 +6215,15 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 		return resolved
 	}
 
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
 	loc := node.Location()
 	typ := c.typeOf(node)
 	receiver := c.compileExpression(node.Receiver, false)
-	narrowReceiver := c.valueToNarrowerType(receiver)
 	key := c.compileExpression(node.Key, false)
+	return c.compileSubscript(receiver, key, typ, loc, valueIsIgnored)
+}
+
+func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	narrowReceiver := c.valueToNarrowerType(receiver)
 	narrowKey := c.valueToNarrowerType(key)
 
 	switch narrowReceiver.goType.Name {
@@ -6232,7 +6232,7 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
 			return newGoValueWithLocal(
@@ -6245,7 +6245,7 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(narrowReceiver.goType.TypeArgs[0])
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
 			return newGoValueWithLocal(
@@ -6284,7 +6284,7 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerErr()
-			c.emitSetCallFrameLineNumber(node.Location())
+			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).SubscriptInt(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
 			return newGoValueWithLocal(
@@ -6295,7 +6295,7 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).Subscript(%s)\n", tmp.name, narrowReceiver.fetchValue(), key.fetchValue())
 		c.emitErrorPropagation()
 
@@ -6308,7 +6308,7 @@ func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressio
 	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashRecord)) {
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(node.Location())
+		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).GetValNil(thread, %s)\n", tmp.name, narrowReceiver.fetchValue(), c.convertToValue(key).fetchValue())
 		c.emitErrorPropagation()
 
