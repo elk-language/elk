@@ -2160,6 +2160,16 @@ func IncrementVal(operand Value) Value {
 	}
 }
 
+func IncrementInt(val Value) Value {
+	if val.IsReference() {
+		l := (*BigInt)(val.Pointer())
+		return l.Increment().ToValue()
+	}
+
+	l := val.AsSmallInt()
+	return l.Increment()
+}
+
 func ToString(v Value) (String, bool) {
 	switch v := v.ToInterface().(type) {
 	case String:

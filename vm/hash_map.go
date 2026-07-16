@@ -42,14 +42,7 @@ func initHashMap() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(HashMap)
 			key := args[1]
-			result, err := self.GetVal(vm, key)
-			if !err.IsUndefined() {
-				return value.Undefined, err
-			}
-			if result.IsUndefined() {
-				return value.Nil, value.Undefined
-			}
-			return result, value.Undefined
+			return self.GetValNil(vm, key)
 		},
 		DefWithParameters(1),
 	)
@@ -393,7 +386,7 @@ func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord
 			continue
 		}
 
-		yVal, err := y.GetVal(vm, xPair.Key())
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
 		if !err.IsUndefined() {
 			return false, err
 		}
@@ -423,7 +416,7 @@ func HashRecordLaxEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Val
 			continue
 		}
 
-		yVal, err := y.GetVal(vm, xPair.Key())
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
 		if !err.IsUndefined() {
 			return false, err
 		}
@@ -506,7 +499,7 @@ func HashMapOfValueEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (
 			continue
 		}
 
-		yVal, err := y.GetVal(vm, xPair.Key())
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
 		if !err.IsUndefined() {
 			return false, err
 		}
@@ -535,7 +528,7 @@ func HashRecordEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Value)
 	}
 
 	for pair := range x.All() {
-		yVal, err := y.GetVal(vm, pair.Key())
+		yVal, err := y.GetValUndefined(vm, pair.Key())
 		if !err.IsUndefined() {
 			return false, err
 		}

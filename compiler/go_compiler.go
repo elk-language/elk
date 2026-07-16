@@ -1585,6 +1585,8 @@ type goMangleMapping struct {
 }
 
 var goMangleMap = []goMangleMapping{
+	{"[]=", "_subs_"},
+	{"[]", "_sub_"},
 	{"===", "_eqq_"},
 	{"<=>", "_cmp_"},
 	{"<<<", "_llsh_"},
@@ -1856,6 +1858,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return newGoValue("value.False", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
+	case *ast.SubscriptExpressionNode:
+		return c.compileSubscriptExpressionNode(node, valueIsIgnored)
 	case *ast.PostfixExpressionNode:
 		return c.compilePostfixExpressionNode(node, valueIsIgnored)
 	case *ast.LogicalExpressionNode:
@@ -3140,7 +3144,7 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 			c.emit(
 				"err = %s.AppendAtInt(%s, %s)\n",
 				tmp.name,
-				c.convertToNativeInt(key).fetchValue(),
+				c.mustConvertToNativeInt(key).fetchValue(),
 				c.convertToValue(value).fetchValue(),
 			)
 		default:
@@ -3355,9 +3359,9 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 
 	dependencies = append(dependencies, capacity)
 	if goType.Name == "*value.ArrayListOfValue" {
-		fmt.Fprintf(&buff, "value.NewArrayListOfValueWithElementsAndTotalCapacity(%d + %s,", len(node.Elements), c.convertToNativeInt(capacity).value)
+		fmt.Fprintf(&buff, "value.NewArrayListOfValueWithElementsAndTotalCapacity(%d + %s,", len(node.Elements), c.mustConvertToNativeInt(capacity).value)
 	} else {
-		fmt.Fprintf(&buff, "value.NewNativeArrayListWithElementsAndTotalCapacity[%s](%d + %s,", goElementType.String(), len(node.Elements), c.convertToNativeInt(capacity).value)
+		fmt.Fprintf(&buff, "value.NewNativeArrayListWithElementsAndTotalCapacity[%s](%d + %s,", goElementType.String(), len(node.Elements), c.mustConvertToNativeInt(capacity).value)
 	}
 
 	for i := 0; i < len(node.Elements); i++ {
@@ -3604,9 +3608,9 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 
 	dependencies = append(dependencies, capacity)
 	if goType.Name == "*vm.HashSetOfValue" {
-		fmt.Fprintf(&buff, "vm.NewHashSetOfValueWithCapacityAndElements(thread, %d + %s,", len(node.Elements), c.convertToNativeInt(capacity).value)
+		fmt.Fprintf(&buff, "vm.NewHashSetOfValueWithCapacityAndElements(thread, %d + %s,", len(node.Elements), c.mustConvertToNativeInt(capacity).value)
 	} else {
-		fmt.Fprintf(&buff, "vm.NewNativeHashSetWithElementsAndTotalCapacity[%s](%d + %s,", goElementType.String(), len(node.Elements), c.convertToNativeInt(capacity).value)
+		fmt.Fprintf(&buff, "vm.NewNativeHashSetWithElementsAndTotalCapacity[%s](%d + %s,", goElementType.String(), len(node.Elements), c.mustConvertToNativeInt(capacity).value)
 	}
 
 	for i := 0; i < len(node.Elements); i++ {
@@ -3841,7 +3845,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			&buff,
 			"vm.NewHashMapOfValueWithCapacityAndElements(thread, %d + %s,",
 			len(node.Elements),
-			c.convertToNativeInt(capacity).value,
+			c.mustConvertToNativeInt(capacity).value,
 		)
 	case "*vm.NativeKeyHashMap":
 		fmt.Fprintf(
@@ -3849,7 +3853,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			"vm.NewNativeKeyHashMapWithElementsAndTotalCapacity[%s](%d + %s,",
 			goKeyType.String(),
 			len(node.Elements),
-			c.convertToNativeInt(capacity).value,
+			c.mustConvertToNativeInt(capacity).value,
 		)
 	case "*vm.NativeHashMap":
 		fmt.Fprintf(
@@ -3858,7 +3862,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 			goKeyType.String(),
 			goValType.String(),
 			len(node.Elements),
-			c.convertToNativeInt(capacity).value,
+			c.mustConvertToNativeInt(capacity).value,
 		)
 	default:
 		panic(fmt.Sprintf("invalid hash map go type: %s", goType.String()))
@@ -5225,6 +5229,9 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 
 func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
+	if method == nil {
+		panic(fmt.Sprintf("method `%s` does not exist on receiver `%s`", name, types.Inspect(receiverType)))
+	}
 	c.globalData.methodCache.Lock()
 
 	namespacedMethodName := method.NamespacedName()
@@ -6096,42 +6103,42 @@ func (c *GoCompiler) compileNilCoalescing(node *ast.LogicalExpressionNode, value
 }
 
 func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNode, valueIsIgnored bool) *goValue {
-	return nilGoValue
-	// TODO: increment/decrement
-	// switch n := node.Expression.(type) {
-	// case *ast.PublicIdentifierNode:
-	// 	// get variable value
-	// 	local := c.compileLocalVariableAccess(n.Value, c.typeOf(node))
-	// 	value := c.compileExpression(node.Expression, false)
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
 
-	// 	var result *goValue
-	// 	switch node.Op.Type {
-	// 	case token.PLUS_PLUS:
-	// 		result = c.compileAdd(local, value, c.typeOf(node), node.Location(), false)
-	// 	case token.MINUS_MINUS:
-	// 		result = c.compileSubtract(local, value, c.typeOf(node), node.Location(), false)
-	// 	default:
-	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
-	// 	}
+	switch n := node.Expression.(type) {
+	case *ast.PublicIdentifierNode:
+		// get variable value
+		local := c.compileLocalVariableAccess(n.Value, c.typeOf(node))
 
-	// 	c.setLocal(n.Value, )
-	// 	// set variable
-	// 	return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
-	// case *ast.PrivateIdentifierNode:
-	// 	// get variable value
-	// 	c.compileLocalVariableAccess(n.Value, n.Location())
+		var result *goValue
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			result = c.compileIncrement(local, c.typeOf(node), node.Location(), false)
+		case token.MINUS_MINUS:
+			result = c.compileDecrement(local, c.typeOf(node), node.Location(), false)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
 
-	// 	switch node.Op.Type {
-	// 	case token.PLUS_PLUS:
-	// 		c.compileIncrement(c.typeOf(n), node.Location())
-	// 	case token.MINUS_MINUS:
-	// 		c.compileDecrement(c.typeOf(n), node.Location())
-	// 	default:
-	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
-	// 	}
+		return c.emitSetLocal(n.Value, result)
+	case *ast.PrivateIdentifierNode:
+		// get variable value
+		local := c.compileLocalVariableAccess(n.Value, c.typeOf(node))
 
-	// 	// set variable
-	// 	return c.setLocalWithoutValue(n.Value, n.Location(), valueIsIgnored)
+		var result *goValue
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			result = c.compileIncrement(local, c.typeOf(node), node.Location(), false)
+		case token.MINUS_MINUS:
+			result = c.compileDecrement(local, c.typeOf(node), node.Location(), false)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		return c.emitSetLocal(n.Value, result)
+		// Compile subscript
 	// case *ast.SubscriptExpressionNode:
 	// 	// get value
 	// 	c.compileNodeWithResult(n.Receiver)
@@ -6141,17 +6148,18 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 	// 	receiverType := c.typeOf(n.Receiver)
 	// 	c.compileSubscript(receiverType, node.Location())
 
+	// 	var result *goValue
 	// 	switch node.Op.Type {
 	// 	case token.PLUS_PLUS:
-	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 		result = c.compileIncrement(local, c.typeOf(node), node.Location(), false)
 	// 	case token.MINUS_MINUS:
-	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 		result = c.compileDecrement(local, c.typeOf(node), node.Location(), false)
 	// 	default:
 	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 	// 	}
-
 	// 	// set value
 	// 	c.compileSubscriptSet(receiverType, node.Location())
+	// Implement instance variables
 	// case *ast.PublicInstanceVariableNode:
 	// 	switch c.mode {
 	// 	case topLevelBytecodeCompilerMode:
@@ -6176,32 +6184,152 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 	// 	// set instance variable
 	// 	c.emitSetInstanceVariable(ivarSymbol, node.Location(), valueIsIgnored)
 	// 	return valueIgnoredToResult(valueIsIgnored)
+	// Implement Attribute Access
 	// case *ast.AttributeAccessNode:
 	// 	// get value
-	// 	c.compileNodeWithResult(n.Receiver)
-	// 	name := identifierToName(n.AttributeName)
-	// 	nameSymbol := value.ToSymbol(name)
-	// 	callInfo := value.NewCallSiteInfo(nameSymbol, 0)
-	// 	c.emitCallMethod(callInfo, node.Location(), false)
+	// 	val := c.compileAttributeAccessNode(n, valueIsIgnored)
 
+	// 	var result *goValue
 	// 	switch node.Op.Type {
 	// 	case token.PLUS_PLUS:
-	// 		c.compileIncrement(c.typeOf(n), node.Location())
+	// 		result = c.compileIncrement(val, val.Type, node.Location(), valueIsIgnored)
 	// 	case token.MINUS_MINUS:
-	// 		c.compileDecrement(c.typeOf(n), node.Location())
+	// 		result = c.compileDecrement(val, val.Type, node.Location(), valueIsIgnored)
 	// 	default:
 	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
 	// 	}
 
 	// 	// set attribute
 	// 	c.emitSetterCall(name, node.Location())
-	// default:
-	// 	c.addFailure(
-	// 		fmt.Sprintf("cannot assign to: %T", node.Expression),
-	// 		node.Location(),
-	// 	)
-	// 	return nilGoValue
-	// }
+	default:
+		c.addFailure(
+			fmt.Sprintf("cannot assign to: %T", node.Expression),
+			node.Location(),
+		)
+		return nilGoValue
+	}
+}
+
+func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode, valueIsIgnored bool) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	loc := node.Location()
+	typ := c.typeOf(node)
+	receiver := c.compileExpression(node.Receiver, false)
+	narrowReceiver := c.valueToNarrowerType(receiver)
+	key := c.compileExpression(node.Key, false)
+	narrowKey := c.valueToNarrowerType(key)
+
+	switch narrowReceiver.goType.Name {
+	case "*value.ArrayListOfValue", "*value.ArrayTupleOfValue":
+		intKey := c.convertToNativeInt(key)
+		if intKey != nil {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				typ,
+			)
+		}
+	case "*value.NativeArrayList", "*value.NativeArrayTuple":
+		intKey := c.convertToNativeInt(key)
+		if intKey != nil {
+			tmp := c.defineTmpGoLocal(narrowReceiver.goType.TypeArgs[0])
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				typ,
+			)
+		}
+	case "*vm.NativeKeyHashMap", "vm.NativeKeyHashRecord":
+		switch narrowKey.goType.Name {
+		case narrowReceiver.goType.TypeArgs[0].Name:
+			return newGoValueWithDependencies(
+				fmt.Sprintf("(%s).Get(%s)", narrowReceiver.value, narrowKey.value),
+				typ,
+				goValueType,
+				narrowReceiver,
+				narrowKey,
+			)
+		}
+	case "*vm.NativeHashMap", "vm.NativeHashRecord":
+		expectedKeyGoType := narrowReceiver.goType.TypeArgs[0]
+		expectedValueGoType := narrowReceiver.goType.TypeArgs[1]
+		switch narrowKey.goType.Name {
+		case expectedKeyGoType.Name:
+			return newGoValueWithDependencies(
+				fmt.Sprintf("(%s).Get(%s)", narrowReceiver.value, narrowKey.value),
+				typ,
+				expectedValueGoType,
+				narrowReceiver,
+				narrowKey,
+			)
+		}
+	}
+
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayList)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayTuple)) {
+		intKey := c.convertToNativeInt(key)
+		if intKey != nil {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(node.Location())
+			c.emit("%s, err = (%s).SubscriptInt(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				typ,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = (%s).Subscript(%s)\n", tmp.name, narrowReceiver.fetchValue(), key.fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashRecord)) {
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(node.Location())
+		c.emit("%s, err = (%s).GetValNil(thread, %s)\n", tmp.name, narrowReceiver.fetchValue(), c.convertToValue(key).fetchValue())
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			typ,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		receiver.elkType,
+		typ,
+		"symbol.OpSubscript",
+		"[]",
+		[]*goValue{
+			receiver,
+			key,
+		},
+		loc,
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode, valueIsIgnored bool) *goValue {
@@ -11385,6 +11513,122 @@ func (c *GoCompiler) compileSubtractUInt(left, right *goValue, valueIsIgnored bo
 	)
 }
 
+func (c *GoCompiler) compileIncrement(val *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowVal := c.valueToNarrowerType(val)
+	switch narrowVal.goType.Name {
+	case "value.SmallInt", "*value.BigInt",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
+		"value.Float", "value.Float64", "value.Float32", "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).Increment()", narrowVal.value),
+			val.elkType,
+			narrowVal.goType,
+			val,
+		)
+	}
+
+	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.IncrementInt(%s)", c.convertToValue(val).value),
+			val.elkType,
+			goValueType,
+			val,
+		)
+	}
+
+	if c.checker.IsSubtype(val.elkType, c.checker.Std(symbol.S_BuiltinIncrementable)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.IncrementVal(%s)", c.convertToValue(val).value),
+			val.elkType,
+			goValueType,
+			val,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		val.elkType,
+		typ,
+		"symbol.OpIncrement",
+		"++",
+		[]*goValue{
+			val,
+		},
+		loc,
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileDecrement(val *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	narrowVal := c.valueToNarrowerType(val)
+	switch narrowVal.goType.Name {
+	case "value.SmallInt", "*value.BigInt",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
+		"value.Float", "value.Float64", "value.Float32", "*value.BigFloat":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s).Decrement()", narrowVal.value),
+			val.elkType,
+			narrowVal.goType,
+			val,
+		)
+	}
+
+	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.Int)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.DecrementInt(%s)", c.convertToValue(val).value),
+			val.elkType,
+			goValueType,
+			val,
+		)
+	}
+
+	if c.checker.IsSubtype(val.elkType, c.checker.Std(symbol.S_BuiltinIncrementable)) {
+		if valueIsIgnored {
+			return nilGoValue
+		}
+
+		return newGoValueWithDependencies(
+			fmt.Sprintf("value.DecrementVal(%s)", c.convertToValue(val).value),
+			val.elkType,
+			goValueType,
+			val,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		val.elkType,
+		typ,
+		"symbol.OpDecrement",
+		"--",
+		[]*goValue{
+			val,
+		},
+		loc,
+		valueIsIgnored,
+	)
+}
+
 func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	narrowLeft := c.valueToNarrowerType(left)
 
@@ -13330,31 +13574,76 @@ func (c *GoCompiler) convertToValue(v *goValue) *goValue {
 
 func (c *GoCompiler) convertToNativeInt(v *goValue) *goValue {
 	if v == nil || types.IsNever(v.elkType) {
+		return nil
+	}
+	narrowV := c.valueToNarrowerType(v)
+
+	switch narrowV.goType.Name {
+	case "int":
+		return narrowV
+	case "value.SmallInt", "value.Float",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return narrowV.newGoValue(
+			fmt.Sprintf("int(%s)", narrowV.value),
+			narrowV.elkType,
+			value.FetchGoType("int"),
+		)
+	case "*value.BigInt":
+		return narrowV.newGoValue(
+			fmt.Sprintf("int((%s).ToSmallInt())", narrowV.value),
+			narrowV.elkType,
+			value.FetchGoType("int"),
+		)
+	default:
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+			return v.newGoValue(
+				fmt.Sprintf("(%s).AsInt()", c.convertToValue(v).value),
+				v.elkType,
+				value.FetchGoType("int"),
+			)
+		}
+
+		return nil
+	}
+}
+
+func (c *GoCompiler) mustConvertToNativeInt(v *goValue) *goValue {
+	if v == nil || types.IsNever(v.elkType) {
 		return newGoValue(
 			"0",
 			types.Any{},
 			value.FetchGoType("int"),
 		)
 	}
+	narrowV := c.valueToNarrowerType(v)
 
-	switch v.goType.Name {
+	switch narrowV.goType.Name {
 	case "int":
-		return v
+		return narrowV
 	case "value.SmallInt", "value.Float",
 		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
 		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
-		return v.newGoValue(
-			fmt.Sprintf("int(%s)", v.value),
-			v.elkType,
+		return narrowV.newGoValue(
+			fmt.Sprintf("int(%s)", narrowV.value),
+			narrowV.elkType,
 			value.FetchGoType("int"),
 		)
 	case "*value.BigInt":
-		return v.newGoValue(
-			fmt.Sprintf("int((%s).ToSmallInt())", v.value),
-			v.elkType,
+		return narrowV.newGoValue(
+			fmt.Sprintf("int((%s).ToSmallInt())", narrowV.value),
+			narrowV.elkType,
 			value.FetchGoType("int"),
 		)
 	default:
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+			return v.newGoValue(
+				fmt.Sprintf("(%s).AsInt()", c.convertToValue(v).value),
+				v.elkType,
+				value.FetchGoType("int"),
+			)
+		}
+
 		return v.newGoValue(
 			fmt.Sprintf("(%s).AsAnyInt()", c.convertToValue(v).value),
 			v.elkType,
@@ -14279,7 +14568,7 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 	if goKeyType.Name == "value.Value" {
 		return c.hashMapOfValueToGoSource(v)
 	}
-	goValType := c.elkTypeToGoKeyType(valType)
+	goValType := c.elkTypeToGoType(valType, false)
 
 	if goValType.Name == "value.Value" {
 		var buff strings.Builder
@@ -14311,10 +14600,9 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 			buff.String(),
 			c.checker.Std(symbol.HashMap),
 			value.FetchGenericGoType(
-				"*vm.NativeHashMap",
+				"*vm.NativeKeyHashMap",
 				[]*value.GoType{
 					goKeyType,
-					goValType,
 				},
 			),
 			dependencies...,
@@ -14413,10 +14701,9 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 			buff.String(),
 			c.checker.Std(symbol.HashMap),
 			value.FetchGenericGoType(
-				"vm.NativeHashRecord",
+				"vm.NativeKeyHashRecord",
 				[]*value.GoType{
 					goKeyType,
-					goValType,
 				},
 			),
 			dependencies...,

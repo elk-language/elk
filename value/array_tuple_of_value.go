@@ -214,6 +214,11 @@ func (t *ArrayTupleOfValue) Subscript(key Value) (Value, Value) {
 	return t.Get(i)
 }
 
+// Get an element under the given index.
+func (t *ArrayTupleOfValue) SubscriptInt(key int) (Value, Value) {
+	return t.Get(key)
+}
+
 // Set an element under the given index.
 func (t *ArrayTupleOfValue) Set(index int, val Value) Value {
 	return SetInSlice((*[]Value)(t), index, val)

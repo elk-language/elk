@@ -309,6 +309,10 @@ func (l *ArrayListOfValue) Subscript(key Value) (Value, Value) {
 	return l.Get(i)
 }
 
+func (l *ArrayListOfValue) SubscriptInt(key int) (Value, Value) {
+	return l.Get(key)
+}
+
 // Set an element under the given index.
 func (l *ArrayListOfValue) Set(index int, val Value) Value {
 	return SetInSlice((*[]Value)(l), index, val)

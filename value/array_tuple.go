@@ -21,6 +21,7 @@ type ArrayTuple interface {
 	Length() int
 	ImmutableBoxOfVal(index Value) (Value, Value)
 	AtVal(int) Value
+	SubscriptInt(index int) (Value, Value)
 	Subscript(index Value) (Value, Value)
 	ConcatVal(Value) (Value, Value)
 	RepeatVal(Value) (Value, Value)

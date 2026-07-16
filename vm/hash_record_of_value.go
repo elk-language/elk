@@ -78,8 +78,19 @@ func (h *HashRecordOfValue) IterRecord() value.NativeResettableIterator {
 	return h.IterNative()
 }
 
-func (h *HashRecordOfValue) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
+func (h *HashRecordOfValue) GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value) {
 	return HashRecordOfValueGet(thread, h, key)
+}
+
+func (h *HashRecordOfValue) GetValNil(thread *Thread, key value.Value) (value.Value, value.Value) {
+	val, err := h.GetValUndefined(thread, key)
+	if err.IsNotUndefined() {
+		return value.Undefined, err
+	}
+	if val.IsUndefined() {
+		return value.Nil, value.Undefined
+	}
+	return val, value.Undefined
 }
 
 func (h *HashRecordOfValue) SetVal(thread *Thread, key, val value.Value) value.Value {

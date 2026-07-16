@@ -321,6 +321,10 @@ func (l *NativeArrayList[T]) Subscript(key Value) (t Value, err Value) {
 	return ToValueErr(l.Get(i))
 }
 
+func (l *NativeArrayList[T]) SubscriptInt(key int) (t Value, err Value) {
+	return ToValueErr(l.Get(key))
+}
+
 // Set an element under the given index.
 func (l *NativeArrayList[T]) Set(index int, val T) Value {
 	return SetInSlice((*[]T)(l), index, val)

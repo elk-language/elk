@@ -14,7 +14,10 @@ type HashRecord interface {
 	IterRecord() value.NativeResettableIterator
 	All() iter.Seq[value.PairOfValue]
 	Length() int
-	GetVal(thread *Thread, key value.Value) (value.Value, value.Value)
+	// If the key is not present should return (Undefined, Undefined)
+	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
+	// If the key is not present should return (Nil, Undefined)
+	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
 	ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value)
 	Contains(thread *Thread, pair value.Pair) (bool, value.Value)
 	ContainsKey(thread *Thread, key value.Value) (bool, value.Value)
@@ -53,14 +56,7 @@ func initHashRecord() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(HashRecord)
 			key := args[1]
-			result, err := self.GetVal(vm, key)
-			if !err.IsUndefined() {
-				return value.Undefined, err
-			}
-			if result.IsUndefined() {
-				return value.Nil, value.Undefined
-			}
-			return result, value.Undefined
+			return self.GetValNil(vm, key)
 		},
 		DefWithParameters(1),
 	)
@@ -405,7 +401,7 @@ func NewHashRecordComparer(opts *cmp.Options) cmp.Option {
 		result := DefaultThreadPool.Call(func(vm *Thread) (result value.Value, err value.Value) {
 			v := New()
 			for xPair := range x.All() {
-				yVal, err := y.GetVal(v, xPair.Key())
+				yVal, err := y.GetValUndefined(v, xPair.Key())
 				if !err.IsUndefined() {
 					return value.False.ToValue(), value.Undefined
 				}

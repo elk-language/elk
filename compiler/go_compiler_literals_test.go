@@ -3719,7 +3719,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
-	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
+	l1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(4+(l0).AsInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 }
 `,
 		},
@@ -4931,7 +4931,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+(l0).AsAnyInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 4+(l0).AsInt(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.SmallInt(5)).ToValue(), (value.Float(5.6)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5879,7 +5879,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+(l0).AsAnyInt(), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym2).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.6)).ToValue()))
+	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+(l0).AsInt(), value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()), value.MakePairOfValue((sym2).ToValue(), (value.SmallInt(5)).ToValue()), value.MakePairOfValue((value.String("bar")).ToValue(), (value.Float(5.6)).ToValue()))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

@@ -100,19 +100,39 @@ func (h NativeKeyHashRecord[K]) Iter() value.NativeIterator {
 	return h.IterNative()
 }
 
-func (h NativeKeyHashRecord[K]) Get(key K) (value.Value, bool) {
+func (h NativeKeyHashRecord[K]) GetOk(key K) (value.Value, bool) {
 	v, ok := h[key]
 	return v, ok
 }
 
-func (h NativeKeyHashRecord[K]) GetVal(thread *Thread, key value.Value) (value.Value, value.Value) {
+func (h NativeKeyHashRecord[K]) Get(key K) value.Value {
+	v, ok := h[key]
+	if !ok {
+		return value.Nil
+	}
+	return v
+}
+
+func (h NativeKeyHashRecord[K]) GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value) {
 	k, ok := value.Downcast[K](key)
 	if !ok {
 		return value.Undefined, value.Undefined
 	}
-	v, ok := h.Get(k)
+	v, ok := h.GetOk(k)
 	if !ok {
 		return value.Undefined, value.Undefined
+	}
+	return v.ToValue(), value.Undefined
+}
+
+func (h NativeKeyHashRecord[K]) GetValNil(thread *Thread, key value.Value) (value.Value, value.Value) {
+	k, ok := value.Downcast[K](key)
+	if !ok {
+		return value.Nil, value.Undefined
+	}
+	v, ok := h.GetOk(k)
+	if !ok {
+		return value.Nil, value.Undefined
 	}
 	return v.ToValue(), value.Undefined
 }
@@ -171,7 +191,7 @@ func (h NativeKeyHashRecord[K]) ConcatVal(thread *Thread, other value.Value) (va
 }
 
 func (h NativeKeyHashRecord[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {
-	v, ok := h.Get(other.NativeKey())
+	v, ok := h.GetOk(other.NativeKey())
 	if !ok {
 		return false, value.Undefined
 	}
@@ -185,7 +205,7 @@ func (h NativeKeyHashRecord[K]) ContainsNativePair(thread *Thread, other *value.
 }
 
 func (h NativeKeyHashRecord[K]) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
-	v, err := h.GetVal(thread, other.Key())
+	v, err := h.GetValUndefined(thread, other.Key())
 	if err.IsNotUndefined() {
 		return false, err
 	}
@@ -214,7 +234,7 @@ func (h NativeKeyHashRecord[K]) ContainsValue(thread *Thread, val value.Value) (
 }
 
 func (h NativeKeyHashRecord[K]) ContainsNativeKey(thread *Thread, key K) bool {
-	_, ok := h.Get(key)
+	_, ok := h.GetOk(key)
 	return ok
 }
 

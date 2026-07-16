@@ -394,7 +394,7 @@ func SubscriptBuiltin(vm *Thread, collection, key value.Value) (result, err valu
 	case value.ArrayTuple:
 		return c.Subscript(key)
 	case HashRecord:
-		return c.GetVal(vm, key)
+		return c.GetValUndefined(vm, key)
 	default:
 		return value.Undefined, value.Undefined
 	}

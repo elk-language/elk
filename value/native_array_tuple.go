@@ -275,6 +275,11 @@ func (t *NativeArrayTuple[T]) Subscript(key Value) (Value, Value) {
 	return ToValueErr(t.Get(i))
 }
 
+// Get an element under the given index.
+func (t *NativeArrayTuple[T]) SubscriptInt(key int) (Value, Value) {
+	return ToValueErr(t.Get(key))
+}
+
 // Set an element under the given index.
 func (t *NativeArrayTuple[T]) Set(index int, val T) Value {
 	return SetInSlice((*[]T)(t), index, val)
