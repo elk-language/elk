@@ -1098,7 +1098,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("to_string")
-var Std_ns_Int_im_to_string vm.NativeFunction // Std::Int.:to_string
+var fn_method0 vm.NativeFunction // Std::Int.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1115,13 +1115,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Int_im_to_string = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(5)).ToValue()
-	t1, err = Std_ns_Int_im_to_string(thread, t2) // receiver: Std::Int, name: to_string
+	t1, err = fn_method0(thread, t2) // receiver: Std::Int, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5606,7 +5606,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5621,7 +5621,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -5630,7 +5630,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -5663,7 +5663,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5678,7 +5678,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -5687,7 +5687,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -6540,7 +6540,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6555,7 +6555,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -6564,7 +6564,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -7402,7 +7402,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7417,7 +7417,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -7426,7 +7426,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -7459,7 +7459,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7474,7 +7474,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -7483,7 +7483,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -8206,7 +8206,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("println@1")
-var Std_ns_Kernel_ns_println_at_1 vm.NativeFunction // Std::Kernel::println@1
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8221,7 +8221,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	Std_ns_Kernel_ns_println_at_1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
@@ -8230,7 +8230,7 @@ func main() { // loc: <main>
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = Std_ns_Kernel_ns_println_at_1(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)

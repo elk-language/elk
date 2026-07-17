@@ -1495,7 +1495,7 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	}
 
 	val := c.emitDynamicGetConst(fullName, elkType)
-	goIdent := MangleGoIdentifier(fullNameString)
+	goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
 	c.emitPackage("var %s %s // %s\n", goIdent, val.goType, fullNameString)
 	c.globalData.constantCache.SetUnsafe(
 		fullNameString,
@@ -5261,7 +5261,7 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 	namespacedMethodName := method.NamespacedName()
 	goMethodName, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
-		goIdent := MangleGoIdentifier(namespacedMethodName)
+		goIdent := fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
 		nameSym := c.emitSymbol(name)
 		goMethodName = &nativeMethod{
 			ident: goIdent,

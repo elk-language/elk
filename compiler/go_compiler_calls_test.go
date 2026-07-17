@@ -1350,7 +1350,7 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.String) (result va
 var sym1 = value.ToSymbol("Foo::[]@1")
 var sym2 = value.ToSymbol("<main>")
 var sym3 = value.ToSymbol("to_float")
-var Std_ns_Int_im_to_float vm.NativeFunction // Std::Int.:to_float
+var fn_method2 vm.NativeFunction // Std::Int.:to_float
 func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Float, err value.Value) { // method: Foo::[]@1, loc: <main>:4:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1363,7 +1363,7 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = l0
-	t1, err = Std_ns_Int_im_to_float(thread, t2) // receiver: Std::Int, name: to_float
+	t1, err = fn_method2(thread, t2) // receiver: Std::Int, name: to_float
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		return result, err
@@ -1395,7 +1395,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	methodDefinitions()
-	Std_ns_Int_im_to_float = vm.MethodToFunc((value.IntClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc((value.IntClass).LookupMethod(sym3))
 
 	callFrame = thread.AddNativeCallFrame(sym5, sym2, 1)
 	defer thread.PopNativeCallFrame()
