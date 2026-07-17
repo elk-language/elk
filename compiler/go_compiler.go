@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"unicode"
 
 	"github.com/elk-language/elk/bitfield"
@@ -466,7 +467,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
 	elkType := c.typeOf(node)
 	goType := init.goType
-	goIdent := MangleGoIdentifier(fullConstName)
+	goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
 	c.globalData.constantCache.SetUnsafe(
 		fullConstName,
 		&nativeConstant{
@@ -477,7 +478,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	)
 
 	constNameSymbol := c.emitSymbol(constName.String())
-	c.emitPackage("var %s %s\n", goIdent, goType)
+	c.emitPackage("var %s %s // constant: %s, loc: %s\n", goIdent, goType, fullConstName, node.Location().String())
 	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, c.convertToValue(init).fetchValue())
 	c.emit("%s = %s\n", goIdent, init.fetchValue())
 }
@@ -516,13 +517,16 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 }
 
 type globalData struct {
-	bigFloatCache *concurrent.Map[string, *nativeBigFloat]
-	bigIntCache   *concurrent.Map[string, *nativeBigInt]
-	symbolCache   *concurrent.Map[string, *nativeSymbol]
-	valueCache    *concurrent.Map[string, *nativeValue]
-	methodCache   *concurrent.OrderedMap[string, *nativeMethod]
-	constantCache *concurrent.Map[string, *nativeConstant]
-	goImports     *concurrent.OrderedMap[string, *goImportEntry]
+	bigFloatCache        *concurrent.Map[string, *nativeBigFloat]
+	bigIntCache          *concurrent.Map[string, *nativeBigInt]
+	symbolCache          *concurrent.Map[string, *nativeSymbol]
+	valueCache           *concurrent.Map[string, *nativeValue]
+	methodCache          *concurrent.OrderedMap[string, *nativeMethod]
+	constantCache        *concurrent.Map[string, *nativeConstant]
+	goImports            *concurrent.OrderedMap[string, *goImportEntry]
+	fileNames            *concurrent.Map[string, string]
+	constNames           *concurrent.Map[string, string]
+	namespaceBodyCounter atomic.Int64 // Number of namespace bodies already compiled
 }
 
 func newGlobalData() *globalData {
@@ -534,6 +538,7 @@ func newGlobalData() *globalData {
 		methodCache:   concurrent.NewOrderedMap[string, *nativeMethod](),
 		constantCache: concurrent.NewMap[string, *nativeConstant](),
 		goImports:     concurrent.NewOrderedMap[string, *goImportEntry](),
+		fileNames:     concurrent.NewMap[string, string](),
 	}
 }
 
@@ -1326,7 +1331,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("parentNamespace = %s\n", c.convertToValue(namespaceVal).fetchValue())
 		}
 
-		goIdent := MangleGoIdentifier(constName.String())
+		goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
 		var elkType types.Type
 		var goType *value.GoType
 
@@ -1646,12 +1651,8 @@ func MangleGoIdentifier(name string) string {
 	return b.String()
 }
 
-func mangleFileName(name string) string {
-	return fmt.Sprintf("__file_%s", MangleGoIdentifier(name))
-}
-
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
-	name := mangleFileName(location.FilePath)
+	name := c.getGoIdentForFileName(location.FilePath)
 	exprCompiler := NewGoCompiler(location.FilePath, name, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
 	exprCompiler.SetParent(c)
 	exprCompiler.Errors = c.Errors
@@ -1667,9 +1668,13 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	}
 
 	c.emitAddCallFrame(node.Location())
+
+	buffLenBeforeStatements := c.buff.Len()
 	c.compileProgram(node, true)
 
-	if c.buff.Len() == 0 && c.goName != "main" {
+	if c.buff.Len() == buffLenBeforeStatements && c.goName != "main" {
+		c.buff.Reset()
+		c.packageBuff.Reset()
 		return
 	}
 
@@ -5120,7 +5125,7 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
 		goName = entry.ident
 	} else {
-		goName = MangleGoIdentifier(methodName)
+		goName = fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
 		c.globalData.methodCache.SetUnsafe(
 			methodName,
 			&nativeMethod{
@@ -5132,6 +5137,25 @@ func (c *GoCompiler) registerElkMethodName(methodName string) string {
 	c.globalData.methodCache.Unlock()
 
 	return goName
+}
+
+func (c *GoCompiler) getGoIdentForNamespaceBody() string {
+	id := c.globalData.namespaceBodyCounter.Add(1) - 1
+	return fmt.Sprintf("fn_ns_expr%d", id)
+}
+
+func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
+	c.globalData.fileNames.Lock()
+	defer c.globalData.fileNames.Unlock()
+
+	ident, ok := c.globalData.fileNames.GetUnsafe(fileName)
+	if ok {
+		return ident
+	}
+
+	ident = fmt.Sprintf("fn_file_expr%d", c.globalData.fileNames.Len())
+	c.globalData.fileNames.SetUnsafe(fileName, ident)
+	return ident
 }
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
@@ -5392,7 +5416,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Module)
 	elkName := fmt.Sprintf("<module: %s>", typ.Name())
-	goName := fmt.Sprintf("module_%s", MangleGoIdentifier(typ.Name()))
+	goName := c.getGoIdentForNamespaceBody()
 
 	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
@@ -5400,7 +5424,7 @@ func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNod
 func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Interface)
 	elkName := fmt.Sprintf("<interface: %s>", typ.Name())
-	goName := fmt.Sprintf("interface_%s", MangleGoIdentifier(typ.Name()))
+	goName := c.getGoIdentForNamespaceBody()
 
 	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
@@ -5408,7 +5432,7 @@ func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarat
 func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Mixin)
 	elkName := fmt.Sprintf("<mixin: %s>", typ.Name())
-	goName := fmt.Sprintf("mixin_%s", MangleGoIdentifier(typ.Name()))
+	goName := c.getGoIdentForNamespaceBody()
 
 	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
@@ -5416,7 +5440,7 @@ func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode)
 func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) *goValue {
 	typ := c.typeOf(node).(*types.Class)
 	elkName := fmt.Sprintf("<class: %s>", typ.Name())
-	goName := fmt.Sprintf("class_%s", MangleGoIdentifier(typ.Name()))
+	goName := c.getGoIdentForNamespaceBody()
 
 	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
@@ -5430,15 +5454,19 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, bod
 	classCompiler.SetParent(c)
 	classCompiler.Errors = c.Errors
 
-	classCompiler.compileNamespaceBody(body, typ)
+	classCompiler.compileNamespaceBody(body, typ, loc)
 
 	return nilGoValue
 }
 
-func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace) {
+func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace, loc *position.Location) {
 	c.registerGoLocal("self", goValueType)
+	c.emitAddCallFrame(loc)
+	buffLenBeforeStatements := c.buff.Len()
 	c.compileStatements(body, true)
-	if c.buff.Len() == 0 {
+	if c.buff.Len() == buffLenBeforeStatements {
+		c.buff.Reset()
+		c.packageBuff.Reset()
 		return
 	}
 

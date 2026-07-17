@@ -1778,13 +1778,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::>")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__gt_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -1817,9 +1817,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__gt_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: >
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: >
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1840,8 +1840,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -1850,9 +1850,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, ">", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__gt_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -1884,13 +1884,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::>")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__gt_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -1925,7 +1925,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -1951,8 +1951,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -1961,9 +1961,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, ">", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__gt_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -3915,13 +3915,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::>=")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__gte_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>=, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>=, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -3954,9 +3954,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__gte_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: >=
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: >=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3977,8 +3977,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -3987,9 +3987,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, ">=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__gte_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -4021,13 +4021,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::>=")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__gte_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>=, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::>=, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -4062,7 +4062,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -4088,8 +4088,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -4098,9 +4098,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, ">=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__gte_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -6052,13 +6052,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__lt_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -6091,9 +6091,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__lt_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6114,8 +6114,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -6124,9 +6124,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__lt_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -6158,13 +6158,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__lt_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -6199,7 +6199,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -6225,8 +6225,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -6235,9 +6235,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__lt_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -8189,13 +8189,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<=")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__lte_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<=, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<=, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -8228,9 +8228,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__lte_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <=
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -8251,8 +8251,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -8261,9 +8261,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__lte_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -8295,13 +8295,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<=")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__lte_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<=, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::<=, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -8336,7 +8336,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -8362,8 +8362,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -8372,9 +8372,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__lte_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -10532,13 +10532,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<=>")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__cmp_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<=>, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<=>, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -10571,9 +10571,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__cmp_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <=>
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: <=>
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -10594,8 +10594,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -10604,9 +10604,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<=>", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__cmp_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
 }
@@ -10637,13 +10637,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::<=>")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__cmp_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<=>, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Foo::<=>, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -10678,7 +10678,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -10704,8 +10704,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -10714,9 +10714,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "<=>", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__cmp_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
 }
@@ -12741,13 +12741,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -12780,9 +12780,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__eq_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: ==
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -12803,8 +12803,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -12813,9 +12813,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -12846,13 +12846,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -12887,7 +12887,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -12913,8 +12913,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -12923,9 +12923,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -14950,13 +14950,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -14989,9 +14989,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__eq_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: ==
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -15012,8 +15012,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -15022,9 +15022,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -15055,13 +15055,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -15096,7 +15096,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -15122,8 +15122,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -15132,9 +15132,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -17087,13 +17087,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::=~")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__leq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -17126,9 +17126,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__leq_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: =~
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -17149,8 +17149,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -17159,9 +17159,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "=~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__leq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -17192,13 +17192,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::=~")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__leq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -17233,7 +17233,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -17259,8 +17259,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -17269,9 +17269,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "=~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__leq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -19224,13 +19224,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::=~")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__leq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -19263,9 +19263,9 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = Foo_ns__leq_(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: =~
+	t1, err = fn_method0(thread, l0, (value.SmallInt(5)).ToValue()) // receiver: Foo, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -19286,8 +19286,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -19296,9 +19296,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "=~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__leq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -19329,13 +19329,13 @@ var _ = value.Truthy
 var sym3 = value.ToSymbol("main")
 var cc_main_1 = &value.CallCache{}
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::=~")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__leq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::=~, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -19370,7 +19370,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
@@ -19396,8 +19396,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -19406,9 +19406,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "=~", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__leq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -21433,13 +21433,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -21468,7 +21468,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	l1 = value.Bool(value.StrictEqual(l0, (value.SmallInt(5)).ToValue()))
 }
 
@@ -21485,8 +21485,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -21495,9 +21495,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -21527,13 +21527,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -21562,7 +21562,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	l1 = value.Bool(value.StrictEqual(l0, (value.SmallInt(5)).ToValue()))
 }
 
@@ -21579,8 +21579,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -21589,9 +21589,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -23616,13 +23616,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -23651,7 +23651,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	l1 = !(value.Bool(value.StrictEqual(l0, (value.SmallInt(5)).ToValue())))
 }
 
@@ -23668,8 +23668,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -23678,9 +23678,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
@@ -23710,13 +23710,13 @@ var _ = value.Truthy
 
 var sym3 = value.ToSymbol("main")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym1 = value.ToSymbol("Foo::==")
 var sym2 = value.ToSymbol("<main>")
 
-func Foo_ns__eq_(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Bool, err value.Value) { // method: Foo::==, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -23745,7 +23745,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = (Foo).ToValue()
+	l0 = (const0).ToValue()
 	l1 = !(value.Bool(value.StrictEqual(l0, (value.SmallInt(5)).ToValue())))
 }
 
@@ -23762,8 +23762,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -23772,9 +23772,9 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "==", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__eq_(thread, args[0], args[1])
+		result, err := fn_method0(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }
