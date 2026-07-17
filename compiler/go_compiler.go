@@ -5500,7 +5500,7 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
 		// TODO: Implement all assignment types
 	// case *ast.SubscriptExpressionNode:
-	// 	return c.subscriptAssignment(node, n, valueIsIgnored)
+	// 	return c.subscriptAssignment(node, n)
 	// case *ast.PublicInstanceVariableNode:
 	// 	return c.instanceVariableAssignment(node, n, valueIsIgnored)
 	// case *ast.AttributeAccessNode:
@@ -5516,45 +5516,6 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 
 func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, varType, assignmentType types.Type, loc *position.Location) *goValue {
 	switch operator.Type {
-	case token.OR_OR_EQUAL:
-		varIdent := c.compileLocalVariableAccess(name, varType)
-		switch varIdent.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if !(%s) {\n", varIdent.value)
-		default:
-			c.emit("if value.Falsy(%s) {\n", c.convertToValue(varIdent).value)
-		}
-
-		rightVal := c.compileExpression(right, false)
-		c.emitAssignGoLocalInValue(varIdent, rightVal)
-		c.emit("}\n")
-
-		return varIdent
-	case token.AND_AND_EQUAL:
-		varIdent := c.compileLocalVariableAccess(name, varType)
-		switch varIdent.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if %s {\n", varIdent.value)
-		default:
-			c.emit("if value.Truthy(%s) {\n", c.convertToValue(varIdent).value)
-		}
-
-		rightVal := c.compileExpression(right, false)
-		c.emitAssignGoLocalInValue(varIdent, rightVal)
-
-		c.emit("}\n")
-
-		return varIdent
-	case token.QUESTION_QUESTION_EQUAL:
-		varIdent := c.compileLocalVariableAccess(name, varType)
-		c.emit("if value.IsNil(%s) {\n", c.convertToValue(varIdent).value)
-
-		rightVal := c.compileExpression(right, false)
-		c.emitAssignGoLocalInValue(varIdent, rightVal)
-
-		c.emit("}\n")
-
-		return varIdent
 	case token.EQUAL_OP:
 		return c.setLocal(name, right)
 	case token.COLON_EQUAL:
