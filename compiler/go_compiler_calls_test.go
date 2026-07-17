@@ -1330,14 +1330,14 @@ var _ = vm.New
 var _ = value.Truthy
 
 var sym5 = value.ToSymbol("main")
-var sym6 = value.ToSymbol("[]@1")
+var sym7 = value.ToSymbol("[]@1")
 
-var Foo *value.Module // Foo
+var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
 
 var sym4 = value.ToSymbol("Foo::[]")
 
-func Foo_ns__sub_(thread *vm.Thread, self value.Value, l0 value.String) (result value.String, err value.Value) { // method: Foo::[], loc: <main>:3:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.String) (result value.String, err value.Value) { // method: Foo::[], loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -1351,7 +1351,7 @@ var sym1 = value.ToSymbol("Foo::[]@1")
 var sym2 = value.ToSymbol("<main>")
 var sym3 = value.ToSymbol("to_float")
 var Std_ns_Int_im_to_float vm.NativeFunction // Std::Int.:to_float
-func Foo_ns__sub__at_1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Float, err value.Value) { // method: Foo::[]@1, loc: <main>:4:6
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Float, err value.Value) { // method: Foo::[]@1, loc: <main>:4:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var t1 value.Value
@@ -1400,14 +1400,14 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym5, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(7)
-	t1, err = Foo_ns__sub_(thread, (Foo).ToValue(), value.String("lol")) // receiver: Foo, name: []
+	t1, err = fn_method0(thread, (const0).ToValue(), value.String("lol")) // receiver: Foo, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	l0 = t1
 	callFrame.SetNativeLineNumber(8)
-	t2, err = Foo_ns__sub__at_1(thread, (Foo).ToValue(), (value.SmallInt(1)).ToValue()) // receiver: Foo, name: []@1
+	t2, err = fn_method1(thread, (const0).ToValue(), (value.SmallInt(1)).ToValue()) // receiver: Foo, name: []@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1428,8 +1428,8 @@ func initGlobalEnv() {
 	_ = mixin
 
 	parentNamespace = (value.RootModule).ToValue()
-	Foo = value.NewModule()
-	namespace = value.Ref(Foo)
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
 	value.AddConstant(parentNamespace, sym0, namespace)
 
 }
@@ -1438,13 +1438,13 @@ func methodDefinitions() {
 	var class *value.Class
 	_ = class
 
-	class = (Foo).SingletonClass() // Foo
+	class = (const0).SingletonClass() // Foo
 	vm.Def(&class.MethodContainer, "[]", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__sub_(thread, args[0], (args[1]).AsString())
+		result, err := fn_method0(thread, args[0], (args[1]).AsString())
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 	vm.Def(&class.MethodContainer, "[]@1", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := Foo_ns__sub__at_1(thread, args[0], args[1])
+		result, err := fn_method1(thread, args[0], args[1])
 		return (result).ToValue(), err
 	}, vm.DefWithParameters(1))
 }

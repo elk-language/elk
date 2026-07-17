@@ -1668,9 +1668,13 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	}
 
 	c.emitAddCallFrame(node.Location())
+
+	buffLenBeforeStatements := c.buff.Len()
 	c.compileProgram(node, true)
 
-	if c.buff.Len() == 0 && c.goName != "main" {
+	if c.buff.Len() == buffLenBeforeStatements && c.goName != "main" {
+		c.buff.Reset()
+		c.packageBuff.Reset()
 		return
 	}
 
@@ -5458,8 +5462,11 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, bod
 func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Namespace, loc *position.Location) {
 	c.registerGoLocal("self", goValueType)
 	c.emitAddCallFrame(loc)
+	buffLenBeforeStatements := c.buff.Len()
 	c.compileStatements(body, true)
-	if c.buff.Len() == 0 {
+	if c.buff.Len() == buffLenBeforeStatements {
+		c.buff.Reset()
+		c.packageBuff.Reset()
 		return
 	}
 
