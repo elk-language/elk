@@ -363,6 +363,15 @@ func (l *NativeArrayList[T]) SubscriptSet(key Value, val Value) Value {
 	return l.Set(i, v)
 }
 
+// Set an element under the given int index.
+func (l *NativeArrayList[T]) SubscriptSetInt(key int, val Value) Value {
+	v, ok := Downcast[T](val)
+	if !ok {
+		return NewInvalidElementInTypedArray(l, val.Class()).ToValue()
+	}
+	return l.Set(key, v)
+}
+
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
 func (l *NativeArrayList[T]) ConcatVal(other Value) (Value, Value) {

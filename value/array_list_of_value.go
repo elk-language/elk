@@ -342,6 +342,10 @@ func (l *ArrayListOfValue) SubscriptSet(key, val Value) Value {
 	return l.Set(i, val)
 }
 
+func (l *ArrayListOfValue) SubscriptSetInt(key int, val Value) Value {
+	return l.Set(key, val)
+}
+
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
 func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {

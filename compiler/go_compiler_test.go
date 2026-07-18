@@ -20,6 +20,9 @@ import (
 
 func init() {
 	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
+	// Keep method-body checking sequential so generated symbol IDs in
+	// assertions stay deterministic (bodies are otherwise checked in parallel).
+	checker.MethodCheckConcurrencyLimit = 1
 }
 
 // Represents a single go compiler test case.

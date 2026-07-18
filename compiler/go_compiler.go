@@ -1904,7 +1904,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 	case *ast.HashRecordLiteralNode:
 		return c.compileHashRecordLiteralNode(node)
 	case *ast.AssignmentExpressionNode:
-		return c.compileAssignmentExpressionNode(node)
+		return c.compileAssignmentExpressionNode(node, valueIsIgnored)
 	case *ast.PublicIdentifierNode:
 		return c.compileLocalVariableAccess(node.Value, c.typeOf(node))
 	case *ast.PrivateIdentifierNode:
@@ -5492,15 +5492,15 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 	c.emit("}\n")
 }
 
-func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode) *goValue {
+func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode, valueIsIgnored bool) *goValue {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
 		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
 	case *ast.PrivateIdentifierNode:
 		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
+	case *ast.SubscriptExpressionNode:
+		return c.compileSubscriptAssignmentNode(n.Receiver, n.Key, node.Op, node.Right, node.Location(), valueIsIgnored)
 		// TODO: Implement all assignment types
-	// case *ast.SubscriptExpressionNode:
-	// 	return c.subscriptAssignment(node, n)
 	// case *ast.PublicInstanceVariableNode:
 	// 	return c.instanceVariableAssignment(node, n, valueIsIgnored)
 	// case *ast.AttributeAccessNode:
@@ -5512,6 +5512,140 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		)
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileSubscriptAssignmentNode(receiverNode ast.ExpressionNode, keyNode ast.ExpressionNode, operator *token.Token, valNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
+	switch operator.Type {
+	case token.EQUAL_OP:
+		receiver := c.compileExpression(receiverNode, false)
+		key := c.compileExpression(keyNode, false)
+		val := c.compileExpression(valNode, false)
+		return c.compileSubscriptAssignment(receiver, key, val, loc, valueIsIgnored)
+	default:
+		c.addFailure(
+			fmt.Sprintf("subscript assignment using this operator has not been implemented: %s", operator.Type.Name()),
+			loc,
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc *position.Location, valueIsIgnored bool) *goValue {
+	narrowReceiver := c.valueToNarrowerType(receiver)
+	narrowKey := c.valueToNarrowerType(key)
+	narrowVal := c.valueToNarrowerType(val)
+
+	switch narrowReceiver.goType.Name {
+	case "*value.ArrayListOfValue":
+		intKey := c.convertToNativeInt(key)
+		if intKey != nil {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.registerErr()
+			c.emit("%s = %s\n", tmp.name, c.convertToValue(val).fetchValue())
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit("err = (%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				val.elkType,
+			)
+		}
+	case "*value.NativeArrayList":
+		intKey := c.convertToNativeInt(key)
+		expectedElementGoType := narrowReceiver.goType.TypeArgs[0]
+		if intKey != nil && narrowVal.goType.Name == expectedElementGoType.Name {
+			tmp := c.defineTmpGoLocal(expectedElementGoType)
+			c.registerErr()
+			c.emit("%s = %s\n", tmp.name, narrowVal.fetchValue())
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit("err = (%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				val.elkType,
+			)
+		}
+	case "*vm.NativeKeyHashMap":
+		expectedKeyGoType := narrowReceiver.goType.TypeArgs[0]
+		switch narrowKey.goType.Name {
+		case expectedKeyGoType.Name:
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.emit("%s = %s\n", tmp.name, c.convertToValue(val).fetchValue())
+			c.emit("(%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), narrowKey.fetchValue(), tmp.name)
+			return newGoValueWithLocal(
+				tmp,
+				val.elkType,
+			)
+		}
+	case "*vm.NativeHashMap":
+		expectedKeyGoType := narrowReceiver.goType.TypeArgs[0]
+		expectedValueGoType := narrowReceiver.goType.TypeArgs[1]
+		if narrowKey.goType.Name == expectedKeyGoType.Name && narrowVal.goType.Name == expectedValueGoType.Name {
+			tmp := c.defineTmpGoLocal(expectedValueGoType)
+			c.emit("%s = %s\n", tmp.name, narrowVal.fetchValue())
+			c.emit("(%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), narrowKey.fetchValue(), tmp.name)
+			return newGoValueWithLocal(
+				tmp,
+				val.elkType,
+			)
+		}
+	}
+
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayList)) {
+		intKey := c.convertToNativeInt(key)
+		if intKey != nil {
+			tmp := c.defineTmpGoLocal(goValueType)
+			c.emit("%s = %s\n", tmp.name, c.convertToValue(val).fetchValue())
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit("err = (%s).SubscriptSetInt(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
+			c.emitErrorPropagation()
+			return newGoValueWithLocal(
+				tmp,
+				val.elkType,
+			)
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.emit("%s = %s\n", tmp.name, c.convertToValue(val).fetchValue())
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit("err = (%s).SubscriptSet(%s, %s)\n", narrowReceiver.fetchValue(), c.convertToValue(key).fetchValue(), tmp.name)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			val.elkType,
+		)
+	}
+
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) {
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.emit("%s = %s\n", tmp.name, c.convertToValue(val).fetchValue())
+		c.registerErr()
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit("err = (%s).SetVal(thread, %s, %s)\n", narrowReceiver.fetchValue(), c.convertToValue(key).fetchValue(), tmp.name)
+		c.emitErrorPropagation()
+
+		return newGoValueWithLocal(
+			tmp,
+			val.elkType,
+		)
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		receiver.elkType,
+		val.elkType,
+		"symbol.OpSubscriptSet",
+		"[]=",
+		[]*goValue{
+			receiver,
+			key,
+			val,
+		},
+		loc,
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, varType, assignmentType types.Type, loc *position.Location) *goValue {
