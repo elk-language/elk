@@ -1050,7 +1050,7 @@ func (c *GoCompiler) emitReturn(val string) {
 		// 	c.emit(location.EndPos.Line, bytecode.GET_LOCAL8, 1)
 		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		// } else {
-		c.emit("return args[1], value.Undefined\n")
+		c.emit("return l0, value.Undefined\n")
 		// }
 	case initMethodGoCompilerMode:
 		// TODO: implement finally
@@ -5495,16 +5495,16 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpressionNode, valueIsIgnored bool) *goValue {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
+		return c.compileLocalVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
 	case *ast.PrivateIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
+		return c.compileLocalVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
 	case *ast.SubscriptExpressionNode:
 		return c.compileSubscriptAssignmentNode(n.Receiver, n.Key, node.Op, node.Right, node.Location(), valueIsIgnored)
 		// TODO: Implement all assignment types
 	// case *ast.PublicInstanceVariableNode:
 	// 	return c.instanceVariableAssignment(node, n, valueIsIgnored)
-	// case *ast.AttributeAccessNode:
-	// 	return c.attributeAssignment(node, n)
+	case *ast.AttributeAccessNode:
+		return c.compileAttributeAssignmentNode(n.Receiver, n.AttributeName, node.Op, node.Right, node.Location(), valueIsIgnored)
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
@@ -5512,6 +5512,39 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		)
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileAttributeAssignmentNode(receiverNode ast.ExpressionNode, attrName ast.IdentifierNode, operator *token.Token, valNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
+	switch operator.Type {
+	case token.EQUAL_OP:
+		receiver := c.compileExpression(receiverNode, false)
+		val := c.compileExpression(valNode, false)
+		return c.compileAttributeAssignment(receiver, identifierToName(attrName), val, loc, valueIsIgnored)
+	default:
+		c.addFailure(
+			fmt.Sprintf("subscript assignment using this operator has not been implemented: %s", operator.Type.Name()),
+			loc,
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compileAttributeAssignment(receiver *goValue, attrName string, val *goValue, loc *position.Location, valueIsIgnored bool) *goValue {
+	methodName := attrName + "="
+	methodNameSym := c.emitSymbol(methodName)
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		receiver.elkType,
+		val.elkType,
+		methodNameSym,
+		methodName,
+		[]*goValue{
+			receiver,
+			val,
+		},
+		loc,
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) compileSubscriptAssignmentNode(receiverNode ast.ExpressionNode, keyNode ast.ExpressionNode, operator *token.Token, valNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -5648,7 +5681,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 	)
 }
 
-func (c *GoCompiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, varType, assignmentType types.Type, loc *position.Location) *goValue {
+func (c *GoCompiler) compileLocalVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, varType, assignmentType types.Type, loc *position.Location) *goValue {
 	switch operator.Type {
 	case token.EQUAL_OP:
 		return c.setLocal(name, right)

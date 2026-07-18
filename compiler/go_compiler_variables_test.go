@@ -3713,6 +3713,44 @@ func main() { // loc: <main>
 }
 `,
 		},
+		"short add set": {
+			input: `
+				var a = 'foo'
+				a += 'bar'
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.String // var a: Std::String
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.String("foo")
+	l0 = l0.ConcatString(value.String("bar"))
+}
+`,
+		},
 		"read uninitialised": {
 			input: `
 				var a: Int
