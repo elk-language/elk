@@ -62,7 +62,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int, loc: <main>:2:35
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
 			var callFrame *vm.CallFrame
@@ -170,7 +170,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int, loc: <main>:2:35
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
 			var callFrame *vm.CallFrame
@@ -279,7 +279,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int, loc: <main>:3:13
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
 			var callFrame *vm.CallFrame

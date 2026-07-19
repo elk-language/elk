@@ -1219,6 +1219,11 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	return val, Undefined
 }
 
+// Get an object's instance variable with the given index
+func GetInstanceVariable(object Value, index int) Value {
+	return object.InstanceVariables().Get(index)
+}
+
 type Inspectable interface {
 	Inspect() string
 }

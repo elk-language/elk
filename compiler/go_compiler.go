@@ -834,7 +834,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 					local.goLocal.goType,
 				),
 			)
-			c.emitSetInstanceVariable(value.ToSymbol(pName), val.fetchValue())
+			c.emitSetInstanceVariable(value.ToSymbol(pName), val)
 		}
 	}
 
@@ -897,7 +897,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, loc *position.Location) {
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s \n", c.goName, types.Inspect(typ))
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(typ), loc.String())
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
@@ -1010,7 +1010,7 @@ func (c *GoCompiler) emitReturn(val string) {
 	}
 }
 
-func (c *GoCompiler) emitSetInstanceVariable(name value.Symbol, val string) {
+func (c *GoCompiler) emitSetInstanceVariable(name value.Symbol, val *goValue) {
 	self := c.checker.SelfType()
 
 	switch self := self.(type) {
@@ -1023,16 +1023,55 @@ func (c *GoCompiler) emitSetInstanceVariable(name value.Symbol, val string) {
 }
 
 // Emit an instruction that sets the value of an instance variable by its index
-func (c *GoCompiler) emitSetInstanceVariableByIndex(index int, val string) {
-	c.emit("value.SetInstanceVariable(self, %d, %s)\n", index, val)
+func (c *GoCompiler) emitSetInstanceVariableByIndex(index int, val *goValue) {
+	c.emit("value.SetInstanceVariable(self, %d, %s)\n", index, c.convertToValue(val).fetchValue())
 }
 
 // Emit an instruction that sets the value of an instance variable by name
-func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val string) {
+func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val *goValue) {
 	c.registerGoLocal("err", goValueType)
 	symbol := c.emitSymbol(name.String())
-	c.emit("err = value.SetInstanceVariableByName(self, %s, %s)\n", symbol, val)
+	c.emit("err = value.SetInstanceVariableByName(self, %s, %s)\n", symbol, c.convertToValue(val).fetchValue())
 	c.emit("if err.IsNotUndefined() { panic(err) }\n")
+}
+
+func (c *GoCompiler) emitGetInstanceVariable(name value.Symbol, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	self := c.checker.SelfType()
+
+	switch self := self.(type) {
+	case types.NamespaceWithIvarIndices:
+		index := self.IvarIndices().GetIndex(name)
+		return c.emitGetInstanceVariableByIndex(index, typ)
+	default:
+		return c.emitGetInstanceVariableByName(name, typ, valueIsIgnored)
+	}
+}
+
+// Emit an instruction that gets the value of an instance variable by its index
+func (c *GoCompiler) emitGetInstanceVariableByIndex(index int, typ types.Type) *goValue {
+	return newGoValue(
+		fmt.Sprintf("value.GetInstanceVariable(self, %d)", index),
+		typ,
+		goValueType,
+	)
+}
+
+// Emit an instruction that gets the value of an instance variable by name
+func (c *GoCompiler) emitGetInstanceVariableByName(name value.Symbol, typ types.Type, valueIsIgnored bool) *goValue {
+	c.registerErr()
+	symbol := c.emitSymbol(name.String())
+	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+	c.emit("%s, err = value.GetInstanceVariableByName(self, %s)\n", tmpName, symbol)
+	c.emit("if err.IsNotUndefined() { panic(err) }\n")
+
+	if valueIsIgnored {
+		return nilGoValue
+	}
+
+	return newGoValueWithLocal(
+		tmp,
+		typ,
+	)
 }
 
 func (c *GoCompiler) compileMethodsWithinInterface(iface *types.Interface, location *position.Location) {
@@ -1276,7 +1315,6 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			elkType = c.checker.Std(symbol.Mixin)
 			goType = value.FetchGoType("*value.Mixin")
 			c.emit("%s = value.NewMixin()\n", goIdent)
-			c.emit("%s = value.NewMixin()\n", goIdent)
 		case *types.Interface:
 			elkType = c.checker.Std(symbol.Interface)
 			goType = value.FetchGoType("*value.Interface")
@@ -1487,7 +1525,7 @@ func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, l
 		c.emit("class = %s\n", c.valueToNarrowerType(namespaceVal).fetchValue())
 	}
 
-	c.emit("class.IvarIndices = %s\n", target.IvarIndices().ToGoSource())
+	c.emit("class.IvarIndices = %s\n", c.ivarIndicesToGoSource(target.IvarIndices()))
 }
 
 func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
@@ -1699,6 +1737,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return nilGoValue
 	case *ast.TypeofExpressionNode:
 		return c.compileExpression(node.Value, valueIsIgnored)
+	case *ast.SingletonBlockExpressionNode:
+		return c.compileSingletonBlockExpressionNode(node)
 	case *ast.ClassDeclarationNode:
 		return c.compileClassDeclarationNode(node)
 	case *ast.ModuleDeclarationNode:
@@ -1831,6 +1871,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileHashRecordLiteralNode(node)
 	case *ast.AttributeAccessNode:
 		return c.compileAttributeAccessNode(node, valueIsIgnored)
+	case *ast.PublicInstanceVariableNode:
+		return c.compilePublicInstanceVariableNode(node, valueIsIgnored)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node, valueIsIgnored)
 	case *ast.PublicIdentifierNode:
@@ -2786,7 +2828,7 @@ func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, val
 		result = val
 	} else {
 		tmpVar := c.defineTmpGoLocal(narrowVal.goType)
-		result = newGoValueWithLocal(tmpVar, narrowVal.elkType)
+		result = newGoValueWithLocal(tmpVar, c.typeOf(node))
 		c.emitAssignGoLocal(tmpVar, narrowVal)
 	}
 
@@ -5441,6 +5483,14 @@ func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode)
 	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
 }
 
+func (c *GoCompiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) *goValue {
+	typ := c.typeOf(node).(*types.SingletonClass)
+	elkName := fmt.Sprintf("<singleton: %s>", typ.Name())
+	goName := c.getGoIdentForNamespaceBody()
+
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+}
+
 func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {
 	if len(body) <= 0 {
 		return nilGoValue
@@ -5496,9 +5546,8 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		return c.compileLocalVariableAssignment(n.Value, node.Op, node.Right, c.typeOf(node.Left), c.typeOf(node), node.Location())
 	case *ast.SubscriptExpressionNode:
 		return c.compileSubscriptAssignmentNode(n.Receiver, n.Key, node.Op, node.Right, node.Location(), valueIsIgnored)
-		// TODO: Implement all assignment types
-	// case *ast.PublicInstanceVariableNode:
-	// 	return c.instanceVariableAssignment(node, n, valueIsIgnored)
+	case *ast.PublicInstanceVariableNode:
+		return c.compileInstanceVariableAssignment(node, n, valueIsIgnored)
 	case *ast.AttributeAccessNode:
 		return c.compileAttributeAssignmentNode(n.Receiver, n.AttributeName, node.Op, node.Right, node.Location(), valueIsIgnored)
 	default:
@@ -5508,6 +5557,31 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		)
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileInstanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.PublicInstanceVariableNode, valueIsIgnored bool) *goValue {
+	ivarSymbol := value.ToSymbol(ivar.Value)
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		expr := c.compileExpression(node.Right, false)
+		if valueIsIgnored {
+			c.emitSetInstanceVariable(ivarSymbol, expr)
+			return nilGoValue
+		}
+
+		tmp := c.defineTmpGoLocal(goValueType)
+		c.emit("%s = %s\n", tmp.name, c.convertToValue(expr).fetchValue())
+		val := newGoValueWithLocal(tmp, expr.elkType)
+		c.emitSetInstanceVariable(ivarSymbol, val)
+		return val
+	default:
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compilePublicInstanceVariableNode(node *ast.PublicInstanceVariableNode, valueIsIgnored bool) *goValue {
+	return c.emitGetInstanceVariable(value.ToSymbol(node.Value), c.typeOf(node), node.Location(), valueIsIgnored)
 }
 
 func (c *GoCompiler) compileAttributeAccessNode(node *ast.AttributeAccessNode, valueIsIgnored bool) *goValue {
@@ -13460,6 +13534,18 @@ func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
 	}
 
 	return c.valueToGoSource(result, c.typeOf(node), true)
+}
+
+func (c *GoCompiler) ivarIndicesToGoSource(ivars *value.IvarIndices) string {
+	var buff strings.Builder
+
+	buff.WriteString("value.IvarIndices{")
+	for _, key := range symbol.SortKeys(*ivars) {
+		val := ivars.GetIndex(key)
+		fmt.Fprintf(&buff, "value.ToSymbol(%q): %d,", key.String(), val)
+	}
+	buff.WriteString("}")
+	return buff.String()
 }
 
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
