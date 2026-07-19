@@ -527,6 +527,7 @@ type globalData struct {
 	fileNames            *concurrent.Map[string, string]
 	constNames           *concurrent.Map[string, string]
 	namespaceBodyCounter atomic.Int64 // Number of namespace bodies already compiled
+	closureCounter       atomic.Int64 // Number of closures already compiled
 }
 
 func newGlobalData() *globalData {
@@ -874,11 +875,13 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 		return nilGoValue
 	}
 
-	closureCompiler := NewGoCompiler("<closure>", "<closure>", closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
+	typ := c.typeOf(node)
+	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureCompiler := NewGoCompiler("<closure>", fmt.Sprintf("fn_cl%d", closureId), closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, node.Location())
+	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Location())
 
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 
@@ -887,14 +890,14 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 
 	return newGoValueWithLocal(
 		tmp,
-		c.typeOf(node),
+		typ,
 	)
 }
 
-func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, loc *position.Location) {
+func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, loc *position.Location) {
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s \n", c.goName, types.Inspect(typ))
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
@@ -934,8 +937,8 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 		}
 	}
 
+	c.emitAddCallFrame(loc)
 	val := c.compileStatements(body, false)
-
 	c.emitReturn(c.convertToValue(val).fetchValue())
 
 	c.registerGoImport("github.com/elk-language/elk/position", "")
@@ -950,83 +953,6 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.emit("position.New(%d, %d, %d),", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
 	c.emit("position.New(%d, %d, %d)", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
 	c.emit(")),\n)")
-}
-
-func (c *GoCompiler) compileMethodFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode) {
-	c.registerGoLocal("self", goValueType)
-	c.emit("self = args[0]\n")
-
-	for i, param := range parameters {
-		p := param.(*ast.MethodParameterNode)
-		pSpan := p.Location()
-
-		pName := identifierToName(p.Name)
-		paramType := c.typeOf(p).(*types.Parameter)
-		typ := paramType.Type
-		local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
-		if local == nil {
-			return
-		}
-
-		localName := local.goIdent()
-		if p.Initialiser != nil {
-			argVal := newGoValue(
-				fmt.Sprintf("args[%d]", i+1),
-				typ,
-				goValueType,
-			)
-			c.emit("if (%s).IsUndefined() {\n", argVal.value)
-			val := c.compileExpression(p.Initialiser, false)
-			c.emitAssignGoLocal(local.goLocal, val)
-			c.emit("} else {\n")
-
-			c.emitAssignGoLocal(local.goLocal, argVal)
-
-			c.emit("}\n")
-		} else {
-			argVal := newGoValue(
-				fmt.Sprintf("args[%d]", i+1),
-				typ,
-				goValueType,
-			)
-			c.emitAssignGoLocal(local.goLocal, argVal)
-		}
-
-		if p.SetInstanceVariable {
-			val := c.convertToValue(
-				newGoValue(
-					localName,
-					local.elkType,
-					local.goLocal.goType,
-				),
-			)
-			c.emitSetInstanceVariable(value.ToSymbol(pName), val.fetchValue())
-		}
-	}
-
-	// TODO: implement async and generators
-
-	// paramCount := len(parameters)
-	// if c.isGenerator {
-	// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
-	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-	// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
-	// } else if c.isAsync {
-	// 	poolVar := c.defineLocal("_pool", location)
-	// 	paramCount++
-	// 	c.predefinedLocals++
-	// 	c.bytecode.IncrementOptionalParameterCount()
-
-	// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
-	// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
-	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-	// }
-
-	val := c.compileStatements(body, false)
-
-	c.emitReturn(c.convertToValue(val).fetchValue())
-	// TODO: implement generators
-	// c.emitFinalReturn(location, nil)
 }
 
 func (c *GoCompiler) emitReturn(val string) {
@@ -1903,6 +1829,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileHashMapLiteralNode(node)
 	case *ast.HashRecordLiteralNode:
 		return c.compileHashRecordLiteralNode(node)
+	case *ast.AttributeAccessNode:
+		return c.compileAttributeAccessNode(node, valueIsIgnored)
 	case *ast.AssignmentExpressionNode:
 		return c.compileAssignmentExpressionNode(node, valueIsIgnored)
 	case *ast.PublicIdentifierNode:
@@ -4947,69 +4875,17 @@ func (c *GoCompiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) *
 }
 
 func (c *GoCompiler) compileCallNode(node *ast.CallNode, valueIsIgnored bool) *goValue {
-	return c.compileCall(
-		c.compileExpression(node.Receiver, false),
+	receiver := c.compileExpression(node.Receiver, false)
+
+	return c.compileMethodCallWithArgNodes(
+		receiver,
+		receiver.elkType,
 		c.typeOf(node),
+		"call",
 		node.PositionalArguments,
 		node.Location(),
 		valueIsIgnored,
 	)
-}
-
-func (c *GoCompiler) compileCall(receiver *goValue, returnType types.Type, args []ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
-	narrowReceiver := c.valueToNarrowerType(receiver)
-	switch narrowReceiver.goType.Name {
-	case "*vm.NativeClosure":
-		return c.compileNativeClosureCall(narrowReceiver, returnType, args, loc, valueIsIgnored)
-	}
-
-	var argValues []*goValue
-	for _, argNode := range args {
-		argValues = append(argValues, c.compileExpression(argNode, false))
-	}
-
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emit(
-		"%s, err = thread.CallCallable(%s,",
-		tmp.name,
-		c.convertToValue(receiver).fetchValue(),
-	)
-	for _, argValue := range argValues {
-		c.emit("%s,", c.convertToValue(argValue).fetchValue())
-	}
-	c.emit(")\n")
-	c.emitErrorPropagation()
-
-	return c.valueToNarrowerType(newGoValueWithLocal(
-		tmp,
-		returnType,
-	))
-}
-
-func (c *GoCompiler) compileNativeClosureCall(receiver *goValue, returnType types.Type, args []ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {
-	var argValues []*goValue
-	for _, argNode := range args {
-		argValues = append(argValues, c.compileExpression(argNode, false))
-	}
-
-	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
-	c.emit(
-		"%s, err = thread.CallNativeClosure(%s,",
-		tmp.name,
-		receiver.fetchValue(),
-	)
-	for _, argValue := range argValues {
-		c.emit("%s,", c.convertToValue(argValue).fetchValue())
-	}
-	c.emit(")\n")
-	c.emitErrorPropagation()
-
-	return c.valueToNarrowerType(newGoValueWithLocal(
-		tmp,
-		returnType,
-	))
 }
 
 func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgnored bool) *goValue {
@@ -5081,16 +4957,6 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 }
 
 func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType types.Type, name string, op *token.Token, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
-	// TODO: implement closures and optimised increments/decrements
-	switch name {
-	case "call":
-		return c.compileCall(receiver, typ, args, location, valueIsIgnored)
-		// case "++":
-		// 	return c.compileIncrement(receiverType, location)
-		// case "--":
-		// 	return c.compileDecrement(receiverType, location)
-	}
-
 	return c.compileMethodCallWithArgNodes(receiver, receiverType, typ, name, args, location, valueIsIgnored)
 }
 
@@ -5358,6 +5224,22 @@ func (c *GoCompiler) _compileOptimizedNativeMethodCall(receiverType, returnType 
 	return c.valueToNarrowerType(result)
 }
 
+func (c *GoCompiler) defineTmpGoLocalIfNotIgnored(goType *value.GoType, valueIsIgnored bool) (tmpName string, tmp *goLocal) {
+	if valueIsIgnored {
+		tmpName = "_"
+	} else {
+		tmp = c.defineTmpGoLocal(goValueType)
+		tmpName = tmp.name
+	}
+	return tmpName, tmp
+}
+
+func (c *GoCompiler) defineCallArgs(argsLen int) *goLocal {
+	callArgsVar := c.defineTmpGoLocal(value.FetchGoType("[]value.Value"))
+	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, argsLen+1)
+	return callArgsVar
+}
+
 func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, returnType types.Type, nameSym, name string, args []*goValue, loc *position.Location, valueIsIgnored bool) *goValue {
 	result := c.compileOptimizedNativeMethodCall(
 		receiverType,
@@ -5371,19 +5253,133 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 		return result
 	}
 
-	callCache := c.emitCallCache()
+	if name == "call" {
+		receiver := args[0]
+		narrowReceiver := c.valueToNarrowerType(receiver)
+		switch narrowReceiver.goType.Name {
+		case "*vm.BytecodeClosure":
+			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+			callArgsVar := c.defineCallArgs(len(args))
 
-	var tmp *goLocal
-	var tmpName string
-	if valueIsIgnored {
-		tmpName = "_"
-	} else {
-		tmp = c.defineTmpGoLocal(goValueType)
-		tmpName = tmp.name
+			for i, posArg := range args[1:] {
+				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg).fetchValue())
+			}
+
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit(
+				"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
+				tmpName,
+				narrowReceiver.fetchValue(),
+				callArgsVar.name,
+				types.Inspect(receiverType),
+				name,
+			)
+			c.emitErrorPropagation()
+
+			if valueIsIgnored {
+				return nilGoValue
+			}
+
+			result := newGoValueWithLocal(
+				tmp,
+				returnType,
+			)
+			return c.valueToNarrowerType(result)
+		case "*vm.NativeClosure":
+			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+			callArgsVar := c.defineCallArgs(len(args))
+
+			for i, posArg := range args[1:] {
+				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg).fetchValue())
+			}
+
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit(
+				"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
+				tmpName,
+				narrowReceiver.fetchValue(),
+				callArgsVar.name,
+				types.Inspect(receiverType),
+				name,
+			)
+			c.emitErrorPropagation()
+
+			if valueIsIgnored {
+				return nilGoValue
+			}
+
+			result := newGoValueWithLocal(
+				tmp,
+				returnType,
+			)
+			return c.valueToNarrowerType(result)
+		case "vm.Closure":
+			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+			callArgsVar := c.defineCallArgs(len(args))
+
+			for i, posArg := range args[1:] {
+				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg).fetchValue())
+			}
+
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit(
+				"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
+				tmpName,
+				narrowReceiver.fetchValue(),
+				callArgsVar.name,
+				types.Inspect(receiverType),
+				name,
+			)
+			c.emitErrorPropagation()
+
+			if valueIsIgnored {
+				return nilGoValue
+			}
+
+			result := newGoValueWithLocal(
+				tmp,
+				returnType,
+			)
+			return c.valueToNarrowerType(result)
+		default:
+			callCache := c.emitCallCache()
+			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+			callArgsVar := c.defineCallArgs(len(args))
+
+			for i, posArg := range args {
+				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg).fetchValue())
+			}
+
+			c.registerErr()
+			c.emitSetCallFrameLineNumber(loc)
+			c.emit(
+				"%s, err = thread.CallCallableWithCache(&%s, %s...) // receiver: %s, name: %s\n",
+				tmpName,
+				callCache,
+				callArgsVar.name,
+				types.Inspect(receiverType),
+				name,
+			)
+			c.emitErrorPropagation()
+
+			if valueIsIgnored {
+				return nilGoValue
+			}
+
+			result = newGoValueWithLocal(
+				tmp,
+				returnType,
+			)
+			return c.valueToNarrowerType(result)
+		}
 	}
 
-	callArgsVar := c.defineTmpGoLocal(value.FetchGoType("[]value.Value"))
-	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, len(args)+1)
+	callCache := c.emitCallCache()
+	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
+	callArgsVar := c.defineCallArgs(len(args))
 
 	for i, posArg := range args {
 		c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertToValue(posArg).fetchValue())
@@ -5512,6 +5508,21 @@ func (c *GoCompiler) compileAssignmentExpressionNode(node *ast.AssignmentExpress
 		)
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileAttributeAccessNode(node *ast.AttributeAccessNode, valueIsIgnored bool) *goValue {
+	receiver := c.compileExpression(node.Receiver, false)
+	name := identifierToName(node.AttributeName)
+
+	return c.compileMethodCallWithArgNodes(
+		receiver,
+		receiver.elkType,
+		c.typeOf(node),
+		name,
+		nil,
+		node.Location(),
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) compileAttributeAssignmentNode(receiverNode ast.ExpressionNode, attrName ast.IdentifierNode, operator *token.Token, valNode ast.ExpressionNode, loc *position.Location, valueIsIgnored bool) *goValue {

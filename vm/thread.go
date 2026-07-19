@@ -282,6 +282,19 @@ func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	}
 }
 
+// Call a callable value from Go code, preserving the state of the VM with call cache
+func (vm *Thread) CallCallableWithCache(cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
+	function := args[0]
+	switch f := function.SafeAsReference().(type) {
+	case *BytecodeClosure:
+		return vm.CallBytecodeClosure(f, args[1:]...)
+	case *NativeClosure:
+		return vm.CallNativeClosure(f, args[1:]...)
+	default:
+		return vm.CallMethodByNameWithCache(symbol.L_call, cc, args...)
+	}
+}
+
 func (vm *Thread) callGo(closure *BytecodeClosure) {
 	vm.bytecode = closure.Bytecode
 	vm.fp = vm.sp
@@ -382,7 +395,7 @@ func (vm *Thread) CallMethodByName(name value.Symbol, args ...value.Value) (valu
 	return vm.CallMethod(method, args...)
 }
 
-// Call an Elk method from Go code, preserving the state of the VM.
+// Call an Elk method from Go code, preserving the state of the VM with call cache
 func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()

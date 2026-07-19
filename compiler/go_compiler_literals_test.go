@@ -36,6 +36,11 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("call")
+var cc_fn_cl0_1 = &value.CallCache{}
+var cc_fn_cl0_2 = &value.CallCache{}
+var cc_main_1 = &value.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -46,7 +51,7 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 *vm.NativeClosure
 	_ = t1
-	var t2 value.Value
+	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
@@ -57,37 +62,56 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
+			var callFrame *vm.CallFrame
+			_ = callFrame
 			var t1 value.Value
 			_ = t1
+			var t2 []value.Value
+			_ = t2
 			var err value.Value
 			_ = err
-			var t2 value.Value
-			_ = t2
+			var t3 value.Value
+			_ = t3
+			var t4 []value.Value
+			_ = t4
 
 			lc1_0 = args[0]
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 2)
+			defer thread.PopNativeCallFrame()
 			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
 				return (value.SmallInt(1)).ToValue(), value.Undefined
 			}
-			t1, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue()))
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = l0
+			t2[1] = value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue())
+			callFrame.SetNativeLineNumber(5)
+			t1, err = thread.CallCallableWithCache(&cc_fn_cl0_1, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			t2, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue()))
+			t4 = value.ResizeNativeArgs(t4, 3)
+			t4[0] = l0
+			t4[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
+			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t4...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			return value.AddInts(t1, t2), value.Undefined
+			return value.AddInts(t1, t3), value.Undefined
 		},
 		1,
 		position.NewLocation("<main>", position.NewSpan(position.New(35, 2, 35), position.New(35, 2, 35))),
 	)
 	l0 = (t1).ToValue()
-	t2, err = thread.CallCallable(l0, (value.SmallInt(10)).ToValue())
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = thread.CallCallableWithCache(&cc_main_1, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -120,6 +144,11 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("call")
+var cc_fn_cl0_1 = &value.CallCache{}
+var cc_fn_cl0_2 = &value.CallCache{}
+var cc_main_1 = &value.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -130,7 +159,7 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 *vm.NativeClosure
 	_ = t1
-	var t2 value.Value
+	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
@@ -141,37 +170,56 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
+			var callFrame *vm.CallFrame
+			_ = callFrame
 			var t1 value.Value
 			_ = t1
+			var t2 []value.Value
+			_ = t2
 			var err value.Value
 			_ = err
-			var t2 value.Value
-			_ = t2
+			var t3 value.Value
+			_ = t3
+			var t4 []value.Value
+			_ = t4
 
 			lc1_0 = args[0]
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 2)
+			defer thread.PopNativeCallFrame()
 			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
 				return (value.SmallInt(1)).ToValue(), value.Undefined
 			}
-			t1, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue()))
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = l0
+			t2[1] = value.SubtractInts(lc1_0, (value.SmallInt(2)).ToValue())
+			callFrame.SetNativeLineNumber(5)
+			t1, err = thread.CallCallableWithCache(&cc_fn_cl0_1, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			t2, err = thread.CallCallable(l0, value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue()))
+			t4 = value.ResizeNativeArgs(t4, 3)
+			t4[0] = l0
+			t4[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
+			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t4...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			return value.AddInts(t1, t2), value.Undefined
+			return value.AddInts(t1, t3), value.Undefined
 		},
 		1,
 		position.NewLocation("<main>", position.NewSpan(position.New(35, 2, 35), position.New(35, 2, 35))),
 	)
 	l0 = (t1).ToValue()
-	t2, err = thread.CallCallable(l0, (value.SmallInt(10)).ToValue())
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = (value.SmallInt(10)).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = thread.CallCallableWithCache(&cc_main_1, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -205,6 +253,8 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("call")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -217,7 +267,7 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 *vm.NativeClosure
 	_ = t1
-	var t2 value.Value
+	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
@@ -229,11 +279,15 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int
 			var lc1_0 value.Value // var n: Std::Int
 			_ = lc1_0
+			var callFrame *vm.CallFrame
+			_ = callFrame
 
 			lc1_0 = args[0]
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+			defer thread.PopNativeCallFrame()
 			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
 				return (value.SmallInt(1)).ToValue(), value.Undefined
 			}
@@ -243,7 +297,10 @@ func main() { // loc: <main>
 		position.NewLocation("<main>", position.NewSpan(position.New(24, 3, 13), position.New(24, 3, 13))),
 	)
 	l1 = t1
-	t2, err = thread.CallCallable((l1).ToValue(), (value.SmallInt(5)).ToValue())
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(9)
+	_, err = thread.CallClosure(l1, t2...) // receiver: %|n: Std::Int|: Std::Int, name: call
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

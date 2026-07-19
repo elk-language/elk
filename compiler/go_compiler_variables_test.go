@@ -4080,7 +4080,8 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("println@1")
 var fn_method0 vm.NativeFunction // Std::Kernel::println@1
 
 func main() { // loc: <main>
@@ -4098,13 +4099,15 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %||: void
+			var callFrame *vm.CallFrame
+			_ = callFrame
 			var t1 value.Value
 			_ = t1
 			var t2 []value.Value
@@ -4112,10 +4115,11 @@ func main() { // loc: <main>
 			var err value.Value
 			_ = err
 
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+			defer thread.PopNativeCallFrame()
 			t2 = value.ResizeNativeArgs(t2, 3)
 			t2[0] = (value.KernelModule).ToValue()
 			t2[1] = l0
-			callFrame.SetNativeLineNumber(3)
 			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
@@ -4163,6 +4167,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4204,8 +4209,12 @@ func main() { // loc: <main>
 		l3 = (value.SmallInt(9)).ToValue()
 		l4 = (value.SmallInt(20)).ToValue()
 		t1 = vm.NewNativeClosure(
-			func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %||: Std::Int
+				var callFrame *vm.CallFrame
+				_ = callFrame
 
+				callFrame = thread.AddNativeCallFrame(sym2, sym1, 9)
+				defer thread.PopNativeCallFrame()
 				return value.AddInts(l2, l4), value.Undefined
 			},
 			0,
@@ -4217,8 +4226,12 @@ func main() { // loc: <main>
 			l7 = (value.SmallInt(50)).ToValue()
 			l8 = (value.SmallInt(30)).ToValue()
 			t1 = vm.NewNativeClosure(
-				func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+				func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl1, sig: %||: Std::Int
+					var callFrame *vm.CallFrame
+					_ = callFrame
 
+					callFrame = thread.AddNativeCallFrame(sym2, sym1, 14)
+					defer thread.PopNativeCallFrame()
 					return value.AddInts(value.AddInts(l6, l7), l8), value.Undefined
 				},
 				0,

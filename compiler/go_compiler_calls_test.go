@@ -2654,3 +2654,117 @@ func methodDefinitions() {
 		})
 	}
 }
+
+func TestGoAttributeGet(t *testing.T) {
+	tests := goTestTable{
+		"get attribute": {
+			input: `
+				module Bar
+					def foo: Int then 3
+				end
+				a := Bar
+				b := a.foo
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var sym5 = value.ToSymbol("foo")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(3)).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	callFrame.SetNativeLineNumber(6)
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
