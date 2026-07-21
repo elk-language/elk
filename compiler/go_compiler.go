@@ -976,7 +976,10 @@ func (c *GoCompiler) emitReturn(val string) {
 		// 	c.emit(location.EndPos.Line, bytecode.GET_LOCAL8, 1)
 		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 		// } else {
-		c.emit("return l0, value.Undefined\n")
+		firstArg := c.goLocals.Get("l0")
+		result := newGoValueWithLocal(firstArg, c.method.ReturnType)
+		val = c.methodReturnValue(result)
+		c.emit("return %s, value.Undefined\n", val)
 		// }
 	case initMethodGoCompilerMode:
 		// TODO: implement finally
@@ -5588,13 +5591,23 @@ func (c *GoCompiler) compileAttributeAccessNode(node *ast.AttributeAccessNode, v
 	receiver := c.compileExpression(node.Receiver, false)
 	name := identifierToName(node.AttributeName)
 
+	return c.compileAttributeAccess(
+		receiver,
+		name,
+		c.typeOf(node),
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileAttributeAccess(receiver *goValue, name string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	return c.compileMethodCallWithArgNodes(
 		receiver,
 		receiver.elkType,
-		c.typeOf(node),
+		typ,
 		name,
 		nil,
-		node.Location(),
+		loc,
 		valueIsIgnored,
 	)
 }
@@ -6178,6 +6191,18 @@ func (c *GoCompiler) defineTmpGoLocal(goType *value.GoType) *goLocal {
 	return c.registerGoLocal(tmp, goType)
 }
 
+func (c *GoCompiler) defineTmpGoLocalForValue(val *goValue) *goLocal {
+	tmp := c.defineTmpGoLocal(val.goType)
+	c.emit("%s = %s\n", tmp.name, val.fetchValue())
+	return tmp
+}
+
+func (c *GoCompiler) wrapValueInTmpGoLocal(val *goValue) (*goLocal, *goValue) {
+	tmp := c.defineTmpGoLocalForValue(val)
+	tmpVal := newGoValueWithLocal(tmp, val.elkType)
+	return tmp, tmpVal
+}
+
 func (c *GoCompiler) emitErrorPropagation() {
 	switch c.mode {
 	case topLevelGoCompilerMode:
@@ -6379,69 +6404,81 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 		}
 
 		return c.emitSetLocal(n.Value, result)
-		// Compile subscript
-	// case *ast.SubscriptExpressionNode:
-	// 	// get value
-	// 	c.compileNodeWithResult(n.Receiver)
-	// 	c.compileNodeWithResult(n.Key)
-	// 	c.emit(node.Location().EndPos.Line, bytecode.DUP_2)
+	case *ast.SubscriptExpressionNode:
+		loc := node.Location()
+		typ := c.typeOf(node)
 
-	// 	receiverType := c.typeOf(n.Receiver)
-	// 	c.compileSubscript(receiverType, node.Location())
+		receiver := c.compileExpression(n.Receiver, false)
+		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
 
-	// 	var result *goValue
-	// 	switch node.Op.Type {
-	// 	case token.PLUS_PLUS:
-	// 		result = c.compileIncrement(local, c.typeOf(node), node.Location(), false)
-	// 	case token.MINUS_MINUS:
-	// 		result = c.compileDecrement(local, c.typeOf(node), node.Location(), false)
-	// 	default:
-	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
-	// 	}
-	// 	// set value
-	// 	c.compileSubscriptSet(receiverType, node.Location())
-	// Implement instance variables
-	// case *ast.PublicInstanceVariableNode:
-	// 	switch c.mode {
-	// 	case topLevelBytecodeCompilerMode:
-	// 		c.addFailure(
-	// 			"instance variables cannot be set in the top level",
-	// 			node.Location(),
-	// 		)
-	// 	}
-	// 	// get value
-	// 	ivarSymbol := value.ToSymbol(n.Value)
-	// 	c.emitGetInstanceVariableByName(ivarSymbol, n.Location())
+		key := c.compileExpression(n.Key, false)
+		_, keyTmpVal := c.wrapValueInTmpGoLocal(key)
 
-	// 	switch node.Op.Type {
-	// 	case token.PLUS_PLUS:
-	// 		c.compileIncrement(c.typeOf(n), node.Location())
-	// 	case token.MINUS_MINUS:
-	// 		c.compileDecrement(c.typeOf(n), node.Location())
-	// 	default:
-	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
-	// 	}
+		val := c.compileSubscript(receiverTmpVal, keyTmpVal, typ, loc, valueIsIgnored)
 
-	// 	// set instance variable
-	// 	c.emitSetInstanceVariable(ivarSymbol, node.Location(), valueIsIgnored)
-	// 	return valueIgnoredToResult(valueIsIgnored)
-	// Implement Attribute Access
-	// case *ast.AttributeAccessNode:
-	// 	// get value
-	// 	val := c.compileAttributeAccessNode(n, valueIsIgnored)
+		var result *goValue
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			result = c.compileIncrement(val, c.typeOf(node), node.Location(), false)
+		case token.MINUS_MINUS:
+			result = c.compileDecrement(val, c.typeOf(node), node.Location(), false)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
 
-	// 	var result *goValue
-	// 	switch node.Op.Type {
-	// 	case token.PLUS_PLUS:
-	// 		result = c.compileIncrement(val, val.Type, node.Location(), valueIsIgnored)
-	// 	case token.MINUS_MINUS:
-	// 		result = c.compileDecrement(val, val.Type, node.Location(), valueIsIgnored)
-	// 	default:
-	// 		panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
-	// 	}
+		// set value
+		return c.compileSubscriptAssignment(receiverTmpVal, keyTmpVal, result, node.Location(), valueIsIgnored)
+	case *ast.PublicInstanceVariableNode:
+		// get value
+		ivarSymbol := value.ToSymbol(n.Value)
+		val := c.emitGetInstanceVariable(ivarSymbol, c.typeOf(n), n.Location(), false)
 
-	// 	// set attribute
-	// 	c.emitSetterCall(name, node.Location())
+		var result *goValue
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			result = c.compileIncrement(val, c.typeOf(node), node.Location(), false)
+		case token.MINUS_MINUS:
+			result = c.compileDecrement(val, c.typeOf(node), node.Location(), false)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+		_, resultTmpVal := c.wrapValueInTmpGoLocal(result)
+
+		// set instance variable
+		c.emitSetInstanceVariable(ivarSymbol, resultTmpVal)
+		return resultTmpVal
+	case *ast.AttributeAccessNode:
+		name := identifierToName(n.AttributeName)
+		receiver := c.compileExpression(n.Receiver, false)
+		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
+
+		// get value
+		val := c.compileAttributeAccess(
+			receiverTmpVal,
+			name,
+			c.typeOf(node),
+			n.Location(),
+			false,
+		)
+
+		var result *goValue
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			result = c.compileIncrement(val, val.elkType, node.Location(), false)
+		case token.MINUS_MINUS:
+			result = c.compileDecrement(val, val.elkType, node.Location(), false)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set attribute
+		return c.compileAttributeAssignment(
+			receiverTmpVal,
+			name,
+			result,
+			node.Location(),
+			valueIsIgnored,
+		)
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot assign to: %T", node.Expression),
@@ -11761,12 +11798,17 @@ func (c *GoCompiler) compileIncrement(val *goValue, typ types.Type, loc *positio
 
 	narrowVal := c.valueToNarrowerType(val)
 	switch narrowVal.goType.Name {
-	case "value.SmallInt", "*value.BigInt",
-		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
-		"value.Float", "value.Float64", "value.Float32", "*value.BigFloat":
+	case "value.SmallInt", "*value.BigInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).Increment()", narrowVal.value),
+			val.elkType,
+			narrowVal.goType,
+			val,
+		)
+	case "value.Char", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s) + 1", narrowVal.value),
 			val.elkType,
 			narrowVal.goType,
 			val,
@@ -11819,12 +11861,17 @@ func (c *GoCompiler) compileDecrement(val *goValue, typ types.Type, loc *positio
 
 	narrowVal := c.valueToNarrowerType(val)
 	switch narrowVal.goType.Name {
-	case "value.SmallInt", "*value.BigInt",
-		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
-		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt",
-		"value.Float", "value.Float64", "value.Float32", "*value.BigFloat":
+	case "value.SmallInt", "*value.BigInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).Decrement()", narrowVal.value),
+			val.elkType,
+			narrowVal.goType,
+			val,
+		)
+	case "value.Char", "value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8", "value.UInt":
+		return newGoValueWithDependencies(
+			fmt.Sprintf("(%s) - 1", narrowVal.value),
 			val.elkType,
 			narrowVal.goType,
 			val,

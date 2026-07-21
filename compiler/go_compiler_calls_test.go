@@ -1516,6 +1516,1487 @@ func main() { // loc: <main>
 }
 `,
 		},
+
+		"increment int": {
+			input: `
+				val a = [5, 3]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Value
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = value.IncrementInt(t3)
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment int64": {
+			input: `
+				val a = [5i64, 3i64]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int64] // var a: Std::ArrayList[Std::Int64]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int64]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int64
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int64
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int64](0, value.Int64(5), value.Int64(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment int32": {
+			input: `
+				val a = [5i32, 3i32]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int32] // var a: Std::ArrayList[Std::Int32]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int32]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int32
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int32
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int32](0, value.Int32(5), value.Int32(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment int16": {
+			input: `
+				val a = [5i16, 3i16]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int16] // var a: Std::ArrayList[Std::Int16]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int16]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int16
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int16
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int16](0, value.Int16(5), value.Int16(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment int8": {
+			input: `
+				val a = [5i8, 3i8]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int8] // var a: Std::ArrayList[Std::Int8]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int8]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int8
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int8
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int8](0, value.Int8(5), value.Int8(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment uint64": {
+			input: `
+				val a = [5u64, 3u64]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt64] // var a: Std::ArrayList[Std::UInt64]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt64]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt64
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt64
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt64](0, value.UInt64(5), value.UInt64(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment uint32": {
+			input: `
+				val a = [5u32, 3u32]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt32] // var a: Std::ArrayList[Std::UInt32]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt32]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt32
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt32
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt32](0, value.UInt32(5), value.UInt32(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment uint16": {
+			input: `
+				val a = [5u16, 3u16]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt16] // var a: Std::ArrayList[Std::UInt16]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt16]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt16
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt16
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt16](0, value.UInt16(5), value.UInt16(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment uint8": {
+			input: `
+				val a = [5u8, 3u8]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt8]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt8
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt8
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment uint": {
+			input: `
+				val a = [5u, 3u]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt] // var a: Std::ArrayList[Std::UInt]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElementsAndTotalCapacity[value.UInt](2+0, value.UInt(5), value.UInt(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment char": {
+			input: "val a = [`a`, `b`]; a[1]++",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Char] // var a: Std::ArrayList[Std::Char]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Char]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Char
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Char
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Char](0, value.Char('a'), value.Char('b'))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) + 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"increment union": {
+			input: `
+				val a: ArrayList[Int | Int64] = [5, 3]
+				a[1]++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::Int64]
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Value
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = value.IncrementVal(t3)
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement int": {
+			input: `
+				val a = [5, 3]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Value
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = value.DecrementInt(t3)
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement int64": {
+			input: `
+				val a = [5i64, 3i64]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int64] // var a: Std::ArrayList[Std::Int64]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int64]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int64
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int64
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int64](0, value.Int64(5), value.Int64(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement int32": {
+			input: `
+				val a = [5i32, 3i32]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int32] // var a: Std::ArrayList[Std::Int32]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int32]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int32
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int32
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int32](0, value.Int32(5), value.Int32(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement int16": {
+			input: `
+				val a = [5i16, 3i16]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int16] // var a: Std::ArrayList[Std::Int16]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int16]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int16
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int16
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int16](0, value.Int16(5), value.Int16(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement int8": {
+			input: `
+				val a = [5i8, 3i8]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Int8] // var a: Std::ArrayList[Std::Int8]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Int8]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Int8
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Int8
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Int8](0, value.Int8(5), value.Int8(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement uint64": {
+			input: `
+				val a = [5u64, 3u64]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt64] // var a: Std::ArrayList[Std::UInt64]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt64]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt64
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt64
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt64](0, value.UInt64(5), value.UInt64(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement uint32": {
+			input: `
+				val a = [5u32, 3u32]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt32] // var a: Std::ArrayList[Std::UInt32]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt32]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt32
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt32
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt32](0, value.UInt32(5), value.UInt32(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement uint16": {
+			input: `
+				val a = [5u16, 3u16]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt16] // var a: Std::ArrayList[Std::UInt16]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt16]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt16
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt16
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt16](0, value.UInt16(5), value.UInt16(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement uint8": {
+			input: `
+				val a = [5u8, 3u8]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt8]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt8
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt8
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement uint": {
+			input: `
+				val a = [5u, 3u]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.UInt] // var a: Std::ArrayList[Std::UInt]
+	_ = l0
+	var t1 *value.NativeArrayList[value.UInt]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.UInt
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.UInt
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElementsAndTotalCapacity[value.UInt](2+0, value.UInt(5), value.UInt(3))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement char": {
+			input: "val a = [`a`, `b`]; a[1]--",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.NativeArrayList[value.Char] // var a: Std::ArrayList[Std::Char]
+	_ = l0
+	var t1 *value.NativeArrayList[value.Char]
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Char
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Char
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewNativeArrayListWithElements[value.Char](0, value.Char('a'), value.Char('b'))
+	t1 = l0
+	t2 = value.SmallInt(1)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = (t3) - 1
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
+		"decrement union": {
+			input: `
+				val a: ArrayList[Int | Int64] = [5, 3]
+				a[1]--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::Int64]
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.SmallInt
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var t4 value.Value
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
+	t1 = l0
+	t2 = value.SmallInt(1)
+	callFrame.SetNativeLineNumber(3)
+	t3, err = (t1).Get(int(t2))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t4 = value.DecrementVal(t3)
+	err = (t1).Set(int(t2), t4)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
+
 		"arraylist of value smallint arg": {
 			input: `
 				val a = [5, 3.2]
@@ -2646,6 +4127,3038 @@ func methodDefinitions() {
 }
 `,
 		},
+		"increment int": {
+			input: `
+				module Bar
+					def foo: Int then 3
+					def foo=(value: Int); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(3)).ToValue(), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, value.IncrementInt(t2)) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment union": {
+			input: `
+				module Bar
+					def foo: Int | Int64 then 3
+					def foo=(value: Int | Int64); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(3)).ToValue(), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, value.IncrementVal(t2)) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment int64": {
+			input: `
+				module Bar
+					def foo: Int64 then 3i64
+					def foo=(value: Int64); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int64, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int64(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int64) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int64
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt64())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment int32": {
+			input: `
+				module Bar
+					def foo: Int32 then 3i32
+					def foo=(value: Int32); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int32, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int32(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int32) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int32
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt32())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment int16": {
+			input: `
+				module Bar
+					def foo: Int16 then 3i16
+					def foo=(value: Int16); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int16, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int16(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int16) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int16
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt16())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment int8": {
+			input: `
+				module Bar
+					def foo: Int8 then 3i8
+					def foo=(value: Int8); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int8, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int8(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int8) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int8
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt8())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment uint64": {
+			input: `
+				module Bar
+					def foo: UInt64 then 3u64
+					def foo=(value: UInt64); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt64, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt64(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt64) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt64
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt64())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment uint32": {
+			input: `
+				module Bar
+					def foo: UInt32 then 3u32
+					def foo=(value: UInt32); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt32, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt32(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt32) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt32
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt32())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment uint16": {
+			input: `
+				module Bar
+					def foo: UInt16 then 3u16
+					def foo=(value: UInt16); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt16, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt16(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt16) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt16
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt16())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment uint8": {
+			input: `
+				module Bar
+					def foo: UInt8 then 3u8
+					def foo=(value: UInt8); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt8, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt8(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt8) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt8
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt8())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment uint": {
+			input: `
+				module Bar
+					def foo: UInt then 3u
+					def foo=(value: UInt); end
+				end
+				a := Bar
+				a.foo++
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"increment char": {
+			input: "module Bar; def foo: Char then `a`; def foo=(value: Char); end; end; a := Bar; a.foo++",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Char, err value.Value) { // method: Bar::foo, loc: <main>:1:13
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	return value.Char('a'), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Char) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:1:37
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Char
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsChar())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement int": {
+			input: `
+				module Bar
+					def foo: Int then 3
+					def foo=(value: Int); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(3)).ToValue(), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, value.DecrementInt(t2)) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement union": {
+			input: `
+				module Bar
+					def foo: Int | Int64 then 3
+					def foo=(value: Int | Int64); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return (value.SmallInt(3)).ToValue(), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, value.DecrementVal(t2)) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement int64": {
+			input: `
+				module Bar
+					def foo: Int64 then 3i64
+					def foo=(value: Int64); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int64, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int64(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int64) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int64
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt64())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement int32": {
+			input: `
+				module Bar
+					def foo: Int32 then 3i32
+					def foo=(value: Int32); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int32, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int32(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int32) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int32
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt32())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement int16": {
+			input: `
+				module Bar
+					def foo: Int16 then 3i16
+					def foo=(value: Int16); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int16, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int16(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int16) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int16
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt16())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement int8": {
+			input: `
+				module Bar
+					def foo: Int8 then 3i8
+					def foo=(value: Int8); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Int8, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.Int8(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int8) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Int8
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsInt8())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement uint64": {
+			input: `
+				module Bar
+					def foo: UInt64 then 3u64
+					def foo=(value: UInt64); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt64, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt64(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt64) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt64
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt64())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement uint32": {
+			input: `
+				module Bar
+					def foo: UInt32 then 3u32
+					def foo=(value: UInt32); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt32, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt32(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt32) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt32
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt32())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement uint16": {
+			input: `
+				module Bar
+					def foo: UInt16 then 3u16
+					def foo=(value: UInt16); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt16, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt16(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt16) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt16
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt16())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement uint8": {
+			input: `
+				module Bar
+					def foo: UInt8 then 3u8
+					def foo=(value: UInt8); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt8, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt8(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt8) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt8
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt8())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement uint": {
+			input: `
+				module Bar
+					def foo: UInt then 3u
+					def foo=(value: UInt); end
+				end
+				a := Bar
+				a.foo--
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return value.UInt(3), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.UInt
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	callFrame.SetNativeLineNumber(7)
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsUInt())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
+		"decrement char": {
+			input: "module Bar; def foo: Char then `a`; def foo=(value: Char); end; end; a := Bar; a.foo--",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("foo")
+var sym7 = value.ToSymbol("foo=")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Char, err value.Value) { // method: Bar::foo, loc: <main>:1:13
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	return value.Char('a'), value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar::foo=")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Char) (result value.Value, err value.Value) { // method: Bar::foo=, loc: <main>:1:37
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	return (l0).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Bar
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Char
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const0).ToValue()
+	t1 = l0
+	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+	vm.Def(&class.MethodContainer, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], (args[1]).AsChar())
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+
 	}
 
 	for name, tc := range tests {

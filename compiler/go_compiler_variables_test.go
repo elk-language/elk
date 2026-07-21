@@ -224,6 +224,133 @@ func ivarIndices(thread *vm.Thread) {
 }
 `,
 		},
+		"short set add": {
+			input: `
+				class Foo
+					var @foo: Int
+					init
+						@foo = 3
+					end
+
+					def incr_foo
+						@foo += 2
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
+	defer thread.PopNativeCallFrame()
+	t1 = (value.SmallInt(3)).ToValue()
+	value.SetInstanceVariable(self, 0, t1)
+	return self, value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Foo.:incr_foo")
+
+func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:incr_foo, loc: <main>:8:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 8)
+	defer thread.PopNativeCallFrame()
+	t1 = value.AddInts(value.GetInstanceVariable(self, 0), (value.SmallInt(2)).ToValue())
+	value.SetInstanceVariable(self, 0, t1)
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(&class.MethodContainer, "incr_foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
 		"set instance variable in a class instance method": {
 			input: `
 				class Foo

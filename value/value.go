@@ -2227,7 +2227,7 @@ func DecrementVal(operand Value) Value {
 	if operand.IsReference() {
 		switch o := operand.AsReference().(type) {
 		case *BigInt:
-			return o.DecrementVal()
+			return o.Decrement()
 		case Int64:
 			return (o - 1).ToValue()
 		case UInt64:
@@ -2274,6 +2274,16 @@ func DecrementVal(operand Value) Value {
 	default:
 		return Undefined
 	}
+}
+
+func DecrementInt(val Value) Value {
+	if val.IsReference() {
+		l := (*BigInt)(val.Pointer())
+		return l.Decrement().ToValue()
+	}
+
+	l := val.AsSmallInt()
+	return l.Decrement()
 }
 
 // Perform unary plus on a value

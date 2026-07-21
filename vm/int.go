@@ -57,7 +57,7 @@ func initInt() {
 
 			switch s := self.SafeAsReference().(type) {
 			case *value.BigInt:
-				return s.DecrementVal(), value.Undefined
+				return s.Decrement(), value.Undefined
 			}
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))

@@ -143,8 +143,8 @@ func (i *BigInt) Increment() *BigInt {
 	return result
 }
 
-// DecrementVal the number and return the result.
-func (i *BigInt) DecrementVal() Value {
+// Decrement the number and return the result.
+func (i *BigInt) Decrement() Value {
 	oBigInt := big.NewInt(int64(1))
 	oBigInt.Sub(i.ToGoBigInt(), oBigInt)
 	result := ToElkBigInt(oBigInt)

@@ -3096,7 +3096,7 @@ func (vm *Thread) opDecrementInt() {
 		result = operand.Decrement()
 	} else {
 		operand := operand.AsReference().(*value.BigInt)
-		result = operand.DecrementVal()
+		result = operand.Decrement()
 	}
 	vm.replace(result)
 }
