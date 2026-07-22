@@ -1366,6 +1366,12 @@ func (vm *Thread) run() {
 // Spins up a new goroutine and executes the closure on top of the stack in it.
 func (vm *Thread) opGo() {
 	closure := (*BytecodeClosure)(vm.peek().Pointer())
+	thread := vm.GoBytecode(closure)
+	vm.replace(value.Ref(thread))
+}
+
+// Create a new thread and run the given bytecode closure
+func (vm *Thread) GoBytecode(closure *BytecodeClosure) *Thread {
 	thread := New(
 		WithStdin(vm.Stdin),
 		WithStdout(vm.Stdout),
@@ -1384,7 +1390,30 @@ func (vm *Thread) opGo() {
 		thread.PrintError()
 	}(closure, thread)
 
-	vm.replace(value.Ref(thread))
+	return thread
+}
+
+// Create a new thread and run the given native closure
+func (vm *Thread) GoNative(closure *NativeClosure) *Thread {
+	thread := New(
+		WithStdin(vm.Stdin),
+		WithStdout(vm.Stdout),
+		WithStderr(vm.Stderr),
+		WithAborter(value.NewCancelAborter(vm.Aborter)),
+	)
+
+	go func(closure *NativeClosure, thread *Thread) {
+		thread.state = runningState
+		closure.Function(thread, nil)
+		if thread.state != errorState {
+			thread.state = terminatedState
+			return
+		}
+
+		thread.PrintError()
+	}(closure, thread)
+
+	return thread
 }
 
 func (vm *Thread) opClosedClosure() {

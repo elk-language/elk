@@ -200,6 +200,7 @@ type goLocal struct {
 	goType     *value.GoType
 	comment    string
 	predefined bool
+	upvalue    bool
 	free       bool
 	elkLocal   bool
 }
@@ -212,6 +213,7 @@ func (l *goLocal) toUpvalue() *goLocal {
 		elkLocal:   l.elkLocal,
 		free:       l.free,
 		predefined: true,
+		upvalue:    true,
 	}
 }
 
@@ -881,12 +883,12 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Location())
-
-	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
-	c.emit("%s = %s\n", tmp.name, closureCompiler.buff.String())
+	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
+
+	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
+	c.emitBytes(closureCompiler.buff.Bytes())
 
 	return newGoValueWithLocal(
 		tmp,
@@ -894,7 +896,36 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	)
 }
 
-func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, loc *position.Location) {
+func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIsIgnored bool) *goValue {
+	typ := c.typeOf(node)
+	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureCompiler := NewGoCompiler("<closure>", fmt.Sprintf("fn_cl%d", closureId), closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
+	closureCompiler.closureLevel = c.closureLevel + 1
+	closureCompiler.parent = c
+	closureCompiler.Errors = c.Errors
+
+	closureTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
+	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, true, closureTmp, node.Location())
+	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
+	c.emitBytes(closureCompiler.buff.Bytes())
+
+	if valueIsIgnored {
+		c.emit("thread.GoNative(%s)\n", closureTmp.name)
+		closureTmp.markFree()
+		return nilGoValue
+	}
+
+	threadTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.Thread"))
+	c.emit("%s = thread.GoNative(%s)\n", threadTmp.name, closureTmp.name)
+	closureTmp.markFree()
+
+	return newGoValueWithLocal(
+		threadTmp,
+		typ,
+	)
+}
+
+func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, lambda bool, result *goLocal, loc *position.Location) {
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
 	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(typ), loc.String())
@@ -946,6 +977,18 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 
+	if lambda {
+		var scopeBuffer bytes.Buffer
+		fmt.Fprintf(&scopeBuffer, "{\n")
+		c.compileClosedUpvaluesTo(&scopeBuffer)
+		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+		c.emitPrependBytes(scopeBuffer.Bytes())
+	} else {
+		var scopeBuffer bytes.Buffer
+		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+		c.emitPrependBytes(scopeBuffer.Bytes())
+	}
+
 	c.emit("}, \n")
 	c.emit("%d, \n", len(parameters))
 	c.emit("position.NewLocation(%q, ", loc.FilePath)
@@ -953,6 +996,10 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.emit("position.New(%d, %d, %d),", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
 	c.emit("position.New(%d, %d, %d)", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
 	c.emit(")),\n)")
+
+	if lambda {
+		c.emit("}\n") // close scope
+	}
 }
 
 func (c *GoCompiler) emitReturn(val string) {
@@ -1678,6 +1725,17 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.emit("}\n")
 }
 
+func (c *GoCompiler) compileClosedUpvaluesTo(buff io.Writer) {
+	for _, local := range c.goLocals.All() {
+		if !local.upvalue {
+			continue
+		}
+
+		fmt.Fprintf(buff, "%[1]s := %[1]s // close: %s", local.name, local.comment)
+	}
+	buff.Write([]byte("\n"))
+}
+
 func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 	for _, local := range c.goLocals.All() {
 		if local.predefined {
@@ -1935,6 +1993,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		)
 	case *ast.ClosureLiteralNode:
 		return c.compileClosureLiteralNode(node, valueIsIgnored)
+	case *ast.GoExpressionNode:
+		return c.compileGoExpressionNode(node, valueIsIgnored)
 	// case *ast.ForInExpressionNode:
 	// return c.compileForInExpressionNode("", node)
 	default:
