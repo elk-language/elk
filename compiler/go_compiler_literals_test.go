@@ -3109,12 +3109,41 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: constructor
-		// "with dynamic and keyed elements": {
-		// 	input: "%[Object(), 1, 'foo', 5 => 5,  3 => 5.6]",
-		// 	want: `
-		// 	`,
-		// },
+		"with dynamic and keyed elements": {
+			input: "a := %[Object(), 1, 'foo', 5 => 5,  3 => 5.6]",
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Object | Std::Int | nil | Std::Float]
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(5, value.ObjectClass.CreateInstance(), (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue())
+}
+`,
+		},
 		"with keyed and if elements": {
 			input: `
 				var a: String? = nil
@@ -5692,45 +5721,64 @@ func main() { // loc: <main>
 		// `,
 		// 		},
 
-		// TODO: constructors
-		// "with dynamic elements and if modifiers": {
-		// 	input: `
-		// 		var a: Int? = nil
-		// 		^[Object(), 5 if a]
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.INSTANTIATE8), 0,
-		// 			byte(bytecode.NEW_HASH_SET8), 1,
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.JUMP), 0, 0,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(46, 3, 24)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 18),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(vm.MustNewHashSetWithCapacityAndElements(
-		// 				nil,
-		// 				2,
-		// 			)),
-		// 			value.ToSymbol("Std::Object").ToValue(),
-		// 		},
-		// 	),
-		// },
+		"with dynamic elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := ^[Object(), 5 if a]
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 vm.HashSet // var b: Std::HashSet[Std::Object | Std::Int]
+	_ = l1
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	callFrame.SetNativeLineNumber(3)
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 2+0, value.ObjectClass.CreateInstance())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.Truthy(l0) {
+		_, err = t1.AppendVal(thread, (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	l1 = t1
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -6476,49 +6524,70 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: constructors
-		// 		"with dynamic elements and if modifiers": {
-		// 			input: `
-		// 				var a: Int? = nil
-		// 				{ Object() => 5 if a, 0 => [:foo] }
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.PREP_LOCALS8), 1,
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.SET_LOCAL_1),
-		// 					byte(bytecode.UNDEFINED),
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.NEW_HASH_MAP8), 0,
-		// 					byte(bytecode.GET_LOCAL_1),
-		// 					byte(bytecode.JUMP_UNLESS), 0, 9,
-		// 					byte(bytecode.GET_CONST8), 1,
-		// 					byte(bytecode.INSTANTIATE8), 0,
-		// 					byte(bytecode.INT_5),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.JUMP), 0, 0,
-		// 					byte(bytecode.INT_0),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.COPY),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(62, 3, 40)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 2),
-		// 					bytecode.NewLineInfo(2, 2),
-		// 					bytecode.NewLineInfo(3, 22),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(value.NewHashMap(2)),
-		// 					value.ToSymbol("Std::Object").ToValue(),
-		// 					value.Ref(&value.ArrayList{
-		// 						value.ToSymbol("foo").ToValue(),
-		// 					}),
-		// 				},
-		// 			),
-		// 		},
+		"with dynamic elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := { Object() => 5 if a, 0 => [:foo] }
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 vm.HashMap // var b: Std::HashMap[Std::Object | Std::Int, Std::Int | Std::ArrayList[Std::Symbol]]
+	_ = l1
+	var t1 *vm.HashMapOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	callFrame.SetNativeLineNumber(3)
+	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 2+0)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.Truthy(l0) {
+		err = t1.SetVal(thread, value.ObjectClass.CreateInstance(), (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	err = t1.SetVal(thread, (value.SmallInt(0)).ToValue(), (value.NewNativeArrayListWithElements[value.Symbol](0, sym2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -7124,47 +7193,70 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: constructors
-		// 		"with dynamic elements and if modifiers": {
-		// 			input: `
-		// 				var a: Int? = nil
-		// 				%{ Object() => 5 if a, 0 => [:foo] }
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.PREP_LOCALS8), 1,
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.SET_LOCAL_1),
-		// 					byte(bytecode.UNDEFINED),
-		// 					byte(bytecode.NEW_HASH_RECORD8), 0,
-		// 					byte(bytecode.GET_LOCAL_1),
-		// 					byte(bytecode.JUMP_UNLESS), 0, 9,
-		// 					byte(bytecode.GET_CONST8), 0,
-		// 					byte(bytecode.INSTANTIATE8), 0,
-		// 					byte(bytecode.INT_5),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.JUMP), 0, 0,
-		// 					byte(bytecode.INT_0),
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.COPY),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(63, 3, 41)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 2),
-		// 					bytecode.NewLineInfo(2, 2),
-		// 					bytecode.NewLineInfo(3, 21),
-		// 				},
-		// 				[]value.Value{
-		// 					value.ToSymbol("Std::Object").ToValue(),
-		// 					value.Ref(&value.ArrayList{
-		// 						value.ToSymbol("foo").ToValue(),
-		// 					}),
-		// 				},
-		// 			),
-		// 		},
+		"with dynamic elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				b := %{ Object() => 5 if a, 0 => [:foo] }
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var l1 vm.HashRecord // var b: Std::HashRecord[Std::Object | Std::Int, Std::Int | Std::ArrayList[Std::Symbol]]
+	_ = l1
+	var t1 *vm.HashRecordOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	callFrame.SetNativeLineNumber(3)
+	t1, err = vm.NewHashRecordOfValueWithElements(thread)
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.Truthy(l0) {
+		err = t1.SetVal(thread, value.ObjectClass.CreateInstance(), (value.SmallInt(5)).ToValue())
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	err = t1.SetVal(thread, (value.SmallInt(0)).ToValue(), (value.NewNativeArrayListWithElements[value.Symbol](0, sym2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
