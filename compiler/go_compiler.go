@@ -362,6 +362,7 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 func (c *GoCompiler) InitMainCompiler() {
 	c.registerGoPackageClause("main")
 
+	c.registerGoImport("github.com/elk-language/elk", "_")
 	c.registerGoImport("github.com/elk-language/elk/value", "")
 	c.registerGoImport("github.com/elk-language/elk/vm", "")
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
@@ -524,7 +525,7 @@ type globalData struct {
 	symbolCache          *concurrent.Map[string, *nativeSymbol]
 	valueCache           *concurrent.Map[string, *nativeValue]
 	methodCache          *concurrent.OrderedMap[string, *nativeMethod]
-	constantCache        *concurrent.Map[string, *nativeConstant]
+	constantCache        *concurrent.OrderedMap[string, *nativeConstant]
 	goImports            *concurrent.OrderedMap[string, *goImportEntry]
 	fileNames            *concurrent.Map[string, string]
 	constNames           *concurrent.Map[string, string]
@@ -539,7 +540,7 @@ func newGlobalData() *globalData {
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
 		valueCache:    concurrent.NewMap[string, *nativeValue](),
 		methodCache:   concurrent.NewOrderedMap[string, *nativeMethod](),
-		constantCache: concurrent.NewMap[string, *nativeConstant](),
+		constantCache: concurrent.NewOrderedMap[string, *nativeConstant](),
 		goImports:     concurrent.NewOrderedMap[string, *goImportEntry](),
 		fileNames:     concurrent.NewMap[string, string](),
 	}
@@ -1712,6 +1713,19 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 			c.emitPrependBytes(methodVarsBuff.Bytes())
 		}
 
+		var constVarsBuff bytes.Buffer
+		for _, nativeConst := range c.globalData.constantCache.Map.All() {
+			if nativeConst.init == "" {
+				continue
+			}
+
+			fmt.Fprintf(&constVarsBuff, "%s = %s\n", nativeConst.goIdent(), nativeConst.init)
+		}
+		if constVarsBuff.Len() > 0 {
+			fmt.Fprintln(&constVarsBuff)
+			c.emitPrependBytes(constVarsBuff.Bytes())
+		}
+
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
@@ -1824,6 +1838,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileVariableDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
 		return c.compileValueDeclarationNode(node)
+	case *ast.NewExpressionNode:
+		return c.compileNewExpressionNode(node, valueIsIgnored)
+	case *ast.ConstructorCallNode:
+		return c.compileConstructorCallNode(node, valueIsIgnored)
+	case *ast.GenericConstructorCallNode:
+		return c.compileGenericConstructorCallNode(node, valueIsIgnored)
 	case *ast.MethodCallNode:
 		return c.compileMethodCallNode(node, valueIsIgnored)
 	case *ast.GenericMethodCallNode:
@@ -5015,6 +5035,67 @@ func (c *GoCompiler) compileCallNode(node *ast.CallNode, valueIsIgnored bool) *g
 	)
 }
 
+func (c *GoCompiler) compileConstructorCallNode(node *ast.ConstructorCallNode, valueIsIgnored bool) *goValue {
+	class := c.compileExpression(node.ClassNode, false)
+	return c.compileConstructorCall(
+		node.Method,
+		class,
+		node.PositionalArguments,
+		c.typeOf(node),
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileGenericConstructorCallNode(node *ast.GenericConstructorCallNode, valueIsIgnored bool) *goValue {
+	class := c.compileExpression(node.ClassNode, false)
+	return c.compileConstructorCall(
+		node.Method,
+		class,
+		node.PositionalArguments,
+		c.typeOf(node),
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileNewExpressionNode(node *ast.NewExpressionNode, valueIsIgnored bool) *goValue {
+	return c.compileConstructorCall(
+		node.Method,
+		newGoValue(
+			"self",
+			c.checker.SelfType(),
+			goValueType,
+		),
+		node.PositionalArguments,
+		c.typeOf(node),
+		node.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileConstructorCall(method *types.Method, class *goValue, posArgs []ast.ExpressionNode, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	class = c.valueToNarrowerType(class)
+	instance := newGoValue(
+		fmt.Sprintf("%s.CreateInstance()", class.fetchValue()),
+		typ,
+		goValueType,
+	)
+	if method == nil {
+		return instance
+	}
+
+	return c.compileMethodCallWithArgNodes(
+		instance,
+		instance.elkType,
+		typ,
+		"#init",
+		posArgs,
+		loc,
+		valueIsIgnored,
+	)
+}
+
 func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgnored bool) *goValue {
 	return c.compileMethodCall(
 		node.Receiver,
@@ -5238,6 +5319,9 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value)
 	case *types.Class:
 		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Class))
+		return c.valueToNarrowerType(namespaceVal).value
+	case *types.Mixin:
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Mixin))
 		return c.valueToNarrowerType(namespaceVal).value
 	default:
 		panic(fmt.Sprintf("invalid namespace: %T", typ))

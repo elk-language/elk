@@ -25,8 +25,6 @@ module ::Std::Elk::AST
 		]##
 		def to_ast_node: self; end
 
-		def inspect: String; end
-
 		##[
 			Visit all nodes of this AST
 			passing them as arguments to the given closure.

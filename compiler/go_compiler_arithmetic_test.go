@@ -11,6 +11,7 @@ func TestGoModulo(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -48,6 +49,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -98,6 +100,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -149,6 +152,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -199,6 +203,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -250,6 +255,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -290,6 +296,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -332,6 +339,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -386,6 +394,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -441,6 +450,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -496,6 +506,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -541,6 +552,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -587,6 +599,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -642,6 +655,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -697,6 +711,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -752,6 +767,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -807,6 +823,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -862,6 +879,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -917,6 +935,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -972,6 +991,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1027,6 +1047,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1082,6 +1103,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1137,6 +1159,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1192,6 +1215,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1247,6 +1271,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1290,6 +1315,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1332,6 +1358,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1376,6 +1403,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1421,6 +1449,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1465,6 +1494,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1520,6 +1550,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1565,6 +1596,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1610,6 +1642,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1654,6 +1687,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1697,6 +1731,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1742,6 +1777,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1788,6 +1824,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1833,6 +1870,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1888,6 +1926,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1944,6 +1983,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2057,6 +2097,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2168,6 +2209,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2213,6 +2255,7 @@ func TestGoDivide(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2250,6 +2293,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2300,6 +2344,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2351,6 +2396,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2401,6 +2447,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2452,6 +2499,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2492,6 +2540,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2534,6 +2583,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2588,6 +2638,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2643,6 +2694,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2698,6 +2750,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2743,6 +2796,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2789,6 +2843,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2844,6 +2899,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2899,6 +2955,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2954,6 +3011,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3009,6 +3067,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3064,6 +3123,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3119,6 +3179,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3174,6 +3235,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3229,6 +3291,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3284,6 +3347,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3339,6 +3403,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3394,6 +3459,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3449,6 +3515,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3492,6 +3559,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3534,6 +3602,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3578,6 +3647,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3623,6 +3693,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3667,6 +3738,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3722,6 +3794,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3767,6 +3840,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3812,6 +3886,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3857,6 +3932,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3900,6 +3976,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3945,6 +4022,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3991,6 +4069,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4036,6 +4115,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4091,6 +4171,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4147,6 +4228,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4260,6 +4342,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4371,6 +4454,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4416,6 +4500,7 @@ func TestGoAdd(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4453,6 +4538,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4493,6 +4579,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4544,6 +4631,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4584,6 +4672,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4625,6 +4714,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4665,6 +4755,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4707,6 +4798,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4751,6 +4843,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4806,6 +4899,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4851,6 +4945,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4896,6 +4991,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4942,6 +5038,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4987,6 +5084,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5032,6 +5130,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5087,6 +5186,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5132,6 +5232,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5177,6 +5278,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5222,6 +5324,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5267,6 +5370,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5312,6 +5416,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5357,6 +5462,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5402,6 +5508,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5447,6 +5554,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5492,6 +5600,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5535,6 +5644,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5577,6 +5687,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5621,6 +5732,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5666,6 +5778,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5710,6 +5823,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5765,6 +5879,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5810,6 +5925,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5855,6 +5971,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5900,6 +6017,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5943,6 +6061,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5988,6 +6107,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6034,6 +6154,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6079,6 +6200,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6134,6 +6256,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6190,6 +6313,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6295,6 +6419,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6406,6 +6531,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6451,6 +6577,7 @@ func TestGoSubtract(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6488,6 +6615,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6528,6 +6656,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6579,6 +6708,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6619,6 +6749,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6660,6 +6791,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6700,6 +6832,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6742,6 +6875,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6786,6 +6920,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6841,6 +6976,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6886,6 +7022,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6931,6 +7068,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6977,6 +7115,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7022,6 +7161,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7067,6 +7207,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7122,6 +7263,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7167,6 +7309,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7212,6 +7355,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7257,6 +7401,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7302,6 +7447,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7347,6 +7493,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7392,6 +7539,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7437,6 +7585,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7482,6 +7631,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7527,6 +7677,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7570,6 +7721,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7612,6 +7764,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7656,6 +7809,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7701,6 +7855,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7745,6 +7900,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7800,6 +7956,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7845,6 +8002,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7890,6 +8048,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7935,6 +8094,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7978,6 +8138,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8023,6 +8184,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8069,6 +8231,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8114,6 +8277,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8169,6 +8333,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8225,6 +8390,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8330,6 +8496,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8441,6 +8608,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8486,6 +8654,7 @@ func TestGoMultiply(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8523,6 +8692,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8563,6 +8733,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8614,6 +8785,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8654,6 +8826,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8695,6 +8868,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8735,6 +8909,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8777,6 +8952,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8821,6 +8997,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8876,6 +9053,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8921,6 +9099,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8966,6 +9145,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9012,6 +9192,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9057,6 +9238,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9102,6 +9284,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9157,6 +9340,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9202,6 +9386,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9247,6 +9432,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9292,6 +9478,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9337,6 +9524,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9382,6 +9570,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9427,6 +9616,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9472,6 +9662,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9517,6 +9708,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9562,6 +9754,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9605,6 +9798,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9647,6 +9841,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9691,6 +9886,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9736,6 +9932,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9780,6 +9977,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9835,6 +10033,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9880,6 +10079,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9925,6 +10125,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9970,6 +10171,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10013,6 +10215,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10058,6 +10261,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10104,6 +10308,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10149,6 +10354,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10204,6 +10410,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10260,6 +10467,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10365,6 +10573,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10476,6 +10685,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10521,6 +10731,7 @@ func TestGoExponentiate(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10558,6 +10769,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10598,6 +10810,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10649,6 +10862,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10689,6 +10903,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10730,6 +10945,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10770,6 +10986,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10812,6 +11029,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10856,6 +11074,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10911,6 +11130,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10956,6 +11176,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11001,6 +11222,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11047,6 +11269,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11092,6 +11315,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11137,6 +11361,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11192,6 +11417,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11237,6 +11463,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11282,6 +11509,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11327,6 +11555,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11372,6 +11601,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11417,6 +11647,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11462,6 +11693,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11507,6 +11739,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11552,6 +11785,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11597,6 +11831,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11640,6 +11875,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11682,6 +11918,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11726,6 +11963,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11771,6 +12009,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11815,6 +12054,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11870,6 +12110,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11915,6 +12156,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11960,6 +12202,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12005,6 +12248,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12048,6 +12292,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12093,6 +12338,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12139,6 +12385,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12184,6 +12431,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12239,6 +12487,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12295,6 +12544,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12400,6 +12650,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -12511,6 +12762,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"

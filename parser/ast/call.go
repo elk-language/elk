@@ -14,12 +14,14 @@ import (
 // Represents a new expression eg. `new(123)`
 type NewExpressionNode struct {
 	TypedNodeBase
+	Method              *types.Method
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
 
 func (n *NewExpressionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &NewExpressionNode{
+		Method:              n.Method,
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),
 		NamedArguments:      SpliceSlice(n.NamedArguments, loc, args, unquote),
@@ -199,6 +201,7 @@ func (n *NewExpressionNode) Error() string {
 // Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`
 type GenericConstructorCallNode struct {
 	TypedNodeBase
+	Method              *types.Method
 	ClassNode           ComplexConstantNode // class that is being instantiated
 	TypeArguments       []TypeNode
 	PositionalArguments []ExpressionNode
@@ -437,6 +440,7 @@ func NewGenericConstructorCallNode(loc *position.Location, class ComplexConstant
 // Represents a constructor call eg. `String(123)`
 type ConstructorCallNode struct {
 	TypedNodeBase
+	Method              *types.Method
 	ClassNode           ComplexConstantNode // class that is being instantiated
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
@@ -444,6 +448,7 @@ type ConstructorCallNode struct {
 
 func (n *ConstructorCallNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ConstructorCallNode{
+		Method:              n.Method,
 		TypedNodeBase:       TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		ClassNode:           n.ClassNode.splice(loc, args, unquote).(ComplexConstantNode),
 		PositionalArguments: SpliceSlice(n.PositionalArguments, loc, args, unquote),

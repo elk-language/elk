@@ -2,6 +2,8 @@ package compiler_test
 
 import (
 	"testing"
+
+	"github.com/elk-language/elk/position/diagnostic"
 )
 
 func TestGoSubscript(t *testing.T) {
@@ -11,6 +13,7 @@ func TestGoSubscript(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -48,6 +51,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -112,6 +116,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -162,6 +167,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -214,6 +220,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -268,6 +275,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -323,6 +331,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -377,6 +386,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -432,6 +442,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -486,6 +497,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -542,6 +554,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -596,6 +609,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -651,6 +665,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -706,6 +721,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -762,6 +778,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -816,6 +833,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -871,6 +889,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -925,6 +944,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -980,6 +1000,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1034,6 +1055,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1090,6 +1112,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1144,6 +1167,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1200,6 +1224,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1244,6 +1269,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1290,6 +1316,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1334,6 +1361,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1384,6 +1412,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1533,6 +1562,7 @@ func TestGoSubscriptSet(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1589,6 +1619,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1651,6 +1682,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1713,6 +1745,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1775,6 +1808,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1837,6 +1871,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1899,6 +1934,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1961,6 +1997,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2023,6 +2060,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2085,6 +2123,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2147,6 +2186,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2206,6 +2246,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2267,6 +2308,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2329,6 +2371,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2391,6 +2434,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2453,6 +2497,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2515,6 +2560,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2577,6 +2623,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2639,6 +2686,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2701,6 +2749,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2763,6 +2812,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2825,6 +2875,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2887,6 +2938,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2946,6 +2998,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3007,6 +3060,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3069,6 +3123,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3118,6 +3173,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3170,6 +3226,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3223,6 +3280,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3275,6 +3333,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3327,6 +3386,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3379,6 +3439,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3432,6 +3493,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3484,6 +3546,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3536,6 +3599,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3587,6 +3651,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3640,6 +3705,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3692,6 +3758,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3737,6 +3804,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3781,6 +3849,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3836,6 +3905,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3965,6 +4035,7 @@ func TestGoAttributeSet(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4080,6 +4151,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4203,6 +4275,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4330,6 +4403,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4457,6 +4531,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4584,6 +4659,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4711,6 +4787,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4838,6 +4915,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4965,6 +5043,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5092,6 +5171,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5219,6 +5299,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5346,6 +5427,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5473,6 +5555,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5593,6 +5676,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5719,6 +5803,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5846,6 +5931,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5973,6 +6059,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6100,6 +6187,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6227,6 +6315,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6354,6 +6443,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6481,6 +6571,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6608,6 +6699,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6735,6 +6827,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6862,6 +6955,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6989,6 +7083,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7109,6 +7204,7 @@ func methodDefinitions() {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7244,6 +7340,7 @@ func TestGoAttributeGet(t *testing.T) {
 			want: `package main
 
 import (
+	_ "github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7335,6 +7432,612 @@ func methodDefinitions() {
 	})
 }
 `,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoInstantiate(t *testing.T) {
+	tests := goTestTable{
+		"without arguments and unused": {
+			input: `
+				class Foo; end
+				::Foo()
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"without arguments": {
+			input: `
+				class Foo; end
+				a := ::Foo()
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = const0.CreateInstance()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"without arguments native": {
+			input: `
+				a := Elk::AST::BreakpointNode()
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("Std::Elk::AST::BreakpointNode")
+var const0 *value.Class // Std::Elk::AST::BreakpointNode
+var sym3 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::Elk::AST::BreakpointNode.:#init
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Elk::AST::BreakpointNode
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	const0 = (*value.Class)((value.GetConstant(sym2)).Pointer())
+
+	fn_method0 = vm.MethodToFunc((const0).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = const0.CreateInstance()
+	t2[1] = value.Undefined
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::BreakpointNode, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+}
+`,
+		},
+		"complex constant": {
+			input: `
+				module Foo
+					module Bar
+						class Baz; end
+					end
+				end
+				a := ::Foo::Bar::Baz()
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym5 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+var const1 *value.Module // Bar
+var sym1 = value.ToSymbol("Bar")
+var sym2 = value.ToSymbol("Foo::Bar")
+var const2 value.Value  // Foo::Bar
+var const3 *value.Class // Baz
+var sym3 = value.ToSymbol("Baz")
+var sym4 = value.ToSymbol("Foo::Bar::Baz")
+var const4 *value.Class // Foo::Bar::Baz
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo::Bar::Baz
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	const2 = value.GetConstant(sym2)
+	const4 = (*value.Class)((value.GetConstant(sym4)).Pointer())
+
+	callFrame = thread.AddNativeCallFrame(sym5, sym6, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = const4.CreateInstance()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewModule()
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	parentNamespace = const2
+	const3 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const3)
+	value.AddConstant(parentNamespace, sym3, namespace)
+
+	class = const4
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"with positional arguments and unused": {
+			input: `
+				class Foo
+					init(a: Int, b: String); end
+				end
+				::Foo(1, 'lol')
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var sym5 = value.ToSymbol("#init")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.String) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return self, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(5)
+	_, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], (args[2]).AsString())
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"with positional arguments": {
+			input: `
+				class Foo
+					init(a: Int, b: String); end
+				end
+				a := ::Foo(1, 'lol')
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var sym5 = value.ToSymbol("#init")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.String) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return self, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(5)
+	t1, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], (args[2]).AsString())
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"with named args": {
+			input: `
+				class Foo
+					init(a: Int, b: String); end
+				end
+				a := ::Foo(1, b: 'lol')
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym3 = value.ToSymbol("main")
+var sym5 = value.ToSymbol("#init")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.String) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
+	return self, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Foo
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(5)
+	t1, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], (args[2]).AsString())
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"with duplicated named args": {
+			input: `
+				class Foo
+					init(a: String, b: Int); end
+				end
+				::Foo(b: 1, a: 'lol', b: 2)
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(83, 5, 27), P(86, 5, 30)),
+					"duplicated argument `b` in call to `Foo.:#init`",
+				),
+			},
 		},
 	}
 

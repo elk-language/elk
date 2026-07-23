@@ -5525,6 +5525,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		method = c.GetMethod(class, symbol.S_init, nil)
 	}
 
+	node.Method = method
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -5582,6 +5583,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 		node.SetType(types.Untyped{})
 		return node
 	}
+	node.ClassNode.SetType(class.Singleton())
 
 	if class.IsAbstract() {
 		c.addFailure(
@@ -5608,6 +5610,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 
 	generic := types.NewGeneric(class, typeArgs)
 	method := c.GetMethod(generic, symbol.S_init, nil)
+	node.Method = method
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -5659,6 +5662,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.ClassNode.Location(),
 		fullName,
 	)
+
 	class, isClass := classType.(*types.Class)
 	if !isClass {
 		c.addFailure(
@@ -5670,6 +5674,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Untyped{})
 		return node
 	}
+	node.ClassNode.SetType(class.Singleton())
 
 	if class.IsAbstract() {
 		c.addFailure(
@@ -5683,6 +5688,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 
 	if !class.IsGeneric() {
 		method := c.GetMethod(class, symbol.S_init, nil)
+		node.Method = method
+
 		if method == nil {
 			method = types.NewMethod(
 				"",
@@ -5713,6 +5720,8 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	}
 
 	method := c._getMethodInNamespace(class, class, symbol.S_init, nil, false)
+	node.Method = method
+
 	if method == nil {
 		method = types.NewMethod(
 			"",
