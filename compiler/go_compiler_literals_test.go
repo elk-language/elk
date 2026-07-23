@@ -278,24 +278,27 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
-	t1 = vm.NewNativeClosure(
-		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int, loc: <main>:3:13
-			var lc1_0 value.Value // var n: Std::Int
-			_ = lc1_0
-			var callFrame *vm.CallFrame
-			_ = callFrame
+	{
+		l0 := l0 // close: var a: Std::Int
+		t1 = vm.NewNativeClosure(
+			func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %|n: Std::Int|: Std::Int, loc: <main>:3:13
+				var lc1_0 value.Value // var n: Std::Int
+				_ = lc1_0
+				var callFrame *vm.CallFrame
+				_ = callFrame
 
-			lc1_0 = args[0]
-			callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
-			defer thread.PopNativeCallFrame()
-			if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
-				return (value.SmallInt(1)).ToValue(), value.Undefined
-			}
-			return value.MultiplyInts(lc1_0, l0), value.Undefined
-		},
-		1,
-		position.NewLocation("<main>", position.NewSpan(position.New(24, 3, 13), position.New(24, 3, 13))),
-	)
+				lc1_0 = args[0]
+				callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+				defer thread.PopNativeCallFrame()
+				if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
+					return (value.SmallInt(1)).ToValue(), value.Undefined
+				}
+				return value.MultiplyInts(lc1_0, l0), value.Undefined
+			},
+			1,
+			position.NewLocation("<main>", position.NewSpan(position.New(24, 3, 13), position.New(24, 3, 13))),
+		)
+	}
 	l1 = t1
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = (value.SmallInt(5)).ToValue()

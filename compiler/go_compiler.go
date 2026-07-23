@@ -977,7 +977,8 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.compileLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 
-	if lambda {
+	hasUpvalues := c.hasUpvalues()
+	if lambda && hasUpvalues {
 		var scopeBuffer bytes.Buffer
 		fmt.Fprintf(&scopeBuffer, "{\n")
 		c.compileClosedUpvaluesTo(&scopeBuffer)
@@ -995,9 +996,9 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.emit("position.NewSpan(")
 	c.emit("position.New(%d, %d, %d),", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
 	c.emit("position.New(%d, %d, %d)", loc.StartPos.ByteOffset, loc.StartPos.Line, loc.StartPos.Column)
-	c.emit(")),\n)")
+	c.emit(")),\n)\n")
 
-	if lambda {
+	if lambda && hasUpvalues {
 		c.emit("}\n") // close scope
 	}
 }
@@ -1723,6 +1724,15 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.emitPrependBytes(funcBuffer.Bytes())
 
 	c.emit("}\n")
+}
+
+func (c *GoCompiler) hasUpvalues() bool {
+	for _, local := range c.goLocals.All() {
+		if local.upvalue {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *GoCompiler) compileClosedUpvaluesTo(buff io.Writer) {

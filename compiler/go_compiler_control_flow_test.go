@@ -6,118 +6,243 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
-// func TestBytecodeGoExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"with a single expression": {
-// 			input: "go println('foo')",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.CLOSED_CLOSURE), 0xff,
-// 					byte(bytecode.GO),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						value.ToSymbol("<closure>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.CALL_METHOD8), 2,
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(16, 1, 17)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 6),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(value.String("foo")),
-// 							value.Ref(value.NewCallSiteInfo(
-// 								value.ToSymbol("println@1"),
-// 								1,
-// 							)),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with outer variables": {
-// 			input: `
-// 				a := 5
-// 				go
-// 					println("foo")
-// 					println(a)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.CLOSED_CLOSURE), 0x02, 0x01, 0xff,
-// 					byte(bytecode.GO),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(62, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 6),
-// 					bytecode.NewLineInfo(6, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
-// 						value.ToSymbol("<closure>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.CALL_METHOD8), 2,
-// 							byte(bytecode.POP),
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_UPVALUE_0),
-// 							byte(bytecode.CALL_METHOD8), 3,
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(16, 3, 5), P(54, 5, 16)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(4, 6),
-// 							bytecode.NewLineInfo(5, 6),
-// 						},
-// 						0,
-// 						0,
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(value.String("foo")),
-// 							value.Ref(value.NewCallSiteInfo(
-// 								value.ToSymbol("println@1"),
-// 								1,
-// 							)),
-// 							value.Ref(value.NewCallSiteInfo(
-// 								value.ToSymbol("println@1"),
-// 								1,
-// 							)),
-// 						},
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoGoExpression(t *testing.T) {
+	tests := goTestTable{
+		"with a single expression": {
+			input: "go println('foo')",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *vm.NativeClosure
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: Std::Thread, loc: <main>:1:1
+			var callFrame *vm.CallFrame
+			_ = callFrame
+			var t1 value.Value
+			_ = t1
+			var t2 []value.Value
+			_ = t2
+			var err value.Value
+			_ = err
+
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+			defer thread.PopNativeCallFrame()
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = (value.String("foo")).ToValue()
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			return t1, value.Undefined
+		},
+		0,
+		position.NewLocation("<main>", position.NewSpan(position.New(0, 1, 1), position.New(0, 1, 1))),
+	)
+	thread.GoNative(t1)
+}
+`,
+		},
+		"with captured thread": {
+			input: "a := go println('foo')",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Thread
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var t2 *vm.Thread
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: Std::Thread, loc: <main>:1:6
+			var callFrame *vm.CallFrame
+			_ = callFrame
+			var t1 value.Value
+			_ = t1
+			var t2 []value.Value
+			_ = t2
+			var err value.Value
+			_ = err
+
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+			defer thread.PopNativeCallFrame()
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = (value.String("foo")).ToValue()
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				return value.Undefined, err
+			}
+			return t1, value.Undefined
+		},
+		0,
+		position.NewLocation("<main>", position.NewSpan(position.New(5, 1, 6), position.New(5, 1, 6))),
+	)
+	t2 = thread.GoNative(t1)
+	l0 = (t2).ToValue()
+}
+`,
+		},
+		"with outer variables": {
+			input: `
+				a := 5
+				go
+					println("foo")
+					println(a)
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	{
+		l0 := l0 // close: var a: Std::Int
+		t1 = vm.NewNativeClosure(
+			func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: Std::Thread, loc: <main>:3:5
+				var callFrame *vm.CallFrame
+				_ = callFrame
+				var t1 []value.Value
+				_ = t1
+				var err value.Value
+				_ = err
+				var t2 value.Value
+				_ = t2
+				var t3 []value.Value
+				_ = t3
+
+				callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+				defer thread.PopNativeCallFrame()
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = (value.String("foo")).ToValue()
+				callFrame.SetNativeLineNumber(4)
+				_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+				t3 = value.ResizeNativeArgs(t3, 3)
+				t3[0] = (value.KernelModule).ToValue()
+				t3[1] = l0
+				callFrame.SetNativeLineNumber(5)
+				t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+				return t2, value.Undefined
+			},
+			0,
+			position.NewLocation("<main>", position.NewSpan(position.New(16, 3, 5), position.New(16, 3, 5))),
+		)
+	}
+	thread.GoNative(t1)
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeForInExpression(t *testing.T) {
 // 	tests := bytecodeTestTable{
