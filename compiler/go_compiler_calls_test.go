@@ -40,6 +40,70 @@ func main() { // loc: <main>
 }
 `,
 		},
+		"dynamic nil safe": {
+			input: `
+				var arr: List[Int]? = [5, 3]
+				b := arr?[1]
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var cc_main_1 = &value.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var arr: Std::List[Std::Int]?
+	_ = l0
+	var l1 value.Value // var b: Std::Int?
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var t3 []value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()
+	t1 = l0
+	if value.IsNil(t1) {
+		t3 = value.ResizeNativeArgs(t3, 3)
+		t3[0] = t1
+		t3[1] = (value.SmallInt(1)).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		t1, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_1, t3...) // receiver: Std::List[Std::Int]?, name: []
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = t1
+	} else {
+		t2 = value.Nil
+	}
+	l1 = t2
+}
+`,
+		},
 		"arraylist of value smallint arg": {
 			input: `
 				val a = [5, 3.2]

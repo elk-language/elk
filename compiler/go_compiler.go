@@ -1808,6 +1808,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return nilGoValue
 	case *ast.TypeofExpressionNode:
 		return c.compileExpression(node.Value, valueIsIgnored)
+	case *ast.ExtendWhereBlockExpressionNode:
+		return c.compileStatements(node.Body, valueIsIgnored)
 	case *ast.SingletonBlockExpressionNode:
 		return c.compileSingletonBlockExpressionNode(node)
 	case *ast.ClassDeclarationNode:
@@ -1888,6 +1890,14 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileSimpleSymbolLiteralNode(node)
 	case *ast.NilLiteralNode:
 		return nilGoValue
+	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
+		return nilGoValue
+	case *ast.UndefinedLiteralNode:
+		return newGoValue(
+			"value.Undefined",
+			types.Untyped{},
+			goValueType,
+		)
 	case *ast.BreakpointNode:
 		c.addFailure(
 			"breakpoint is not available in native mode",
@@ -1900,6 +1910,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return newGoValue("value.False", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.BinaryExpressionNode:
 		return c.compileBinaryExpressionNode(node, valueIsIgnored)
+	case *ast.NilSafeSubscriptExpressionNode:
+		return c.compileNilSafeSubscriptExpressionNode(node, valueIsIgnored)
 	case *ast.SubscriptExpressionNode:
 		return c.compileSubscriptExpressionNode(node, valueIsIgnored)
 	case *ast.PostfixExpressionNode:
@@ -6556,6 +6568,32 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 		)
 		return nilGoValue
 	}
+}
+
+func (c *GoCompiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubscriptExpressionNode, valueIsIgnored bool) *goValue {
+	if resolved := c.resolve(node); resolved != nil {
+		return resolved
+	}
+
+	loc := node.Location()
+	typ := c.typeOf(node)
+	_, receiver := c.wrapValueInTmpGoLocal(c.compileExpression(node.Receiver, false))
+
+	return c.compileIf(
+		isNilConditionType,
+		func() *goValue {
+			return receiver
+		},
+		func() *goValue {
+			key := c.compileExpression(node.Key, false)
+			return c.compileSubscript(receiver, key, typ, loc, false)
+		},
+		func() *goValue {
+			return nilGoValue
+		},
+		typ,
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) compileSubscriptExpressionNode(node *ast.SubscriptExpressionNode, valueIsIgnored bool) *goValue {
