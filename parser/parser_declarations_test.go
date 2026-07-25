@@ -6994,6 +6994,53 @@ func TestMethodDefinition(t *testing.T) {
 				diagnostic.NewFailure(L(S(P(0, 1, 1), P(7, 1, 8))), "the overload modifier can only be attached once"),
 			},
 		},
+		"can be pure": {
+			input: "pure def foo; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(16, 1, 17))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(16, 1, 17))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(16, 1, 17))),
+							"",
+							ast.METHOD_PURE_FLAG,
+							ast.NewPublicIdentifierNode(L(S(P(9, 1, 10), P(11, 1, 12))), "foo"),
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot repeat pure": {
+			input: "pure pure def foo; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(21, 1, 22))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(21, 1, 22))),
+						ast.NewMethodDefinitionNode(
+							L(S(P(0, 1, 1), P(21, 1, 22))),
+							"",
+							ast.METHOD_PURE_FLAG,
+							ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "foo"),
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(3, 1, 4))), "the pure modifier can only be attached once"),
+			},
+		},
 		"cannot repeat async": {
 			input: "async async def foo; end",
 			want: ast.NewProgramNode(

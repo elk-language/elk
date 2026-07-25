@@ -752,6 +752,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.asyncModifier(allowed)
 	case token.OVERLOAD:
 		return p.overloadModifier(allowed)
+	case token.PURE:
+		return p.pureModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -5859,6 +5861,26 @@ func (p *Parser) overloadModifier(allowed bool) ast.ExpressionNode {
 		n.SetLocation(overloadTok.Location().Join(n.Location()))
 	default:
 		p.errorMessageLocation("the overload modifier can only be attached to methods", node.Location())
+	}
+
+	return node
+}
+
+// pureModifier = "pure" declarationExpression
+func (p *Parser) pureModifier(allowed bool) ast.ExpressionNode {
+	overloadTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		if n.IsPure() {
+			p.errorMessageLocation("the pure modifier can only be attached once", overloadTok.Location())
+		}
+		n.SetPure()
+		n.SetLocation(overloadTok.Location().Join(n.Location()))
+	default:
+		p.errorMessageLocation("the pure modifier can only be attached to methods", node.Location())
 	}
 
 	return node

@@ -318,12 +318,21 @@ func (m *MethodDefinitionNode) SetOverload() {
 	m.Flags.SetFlag(METHOD_OVERLOAD_FLAG)
 }
 
+func (m *MethodDefinitionNode) IsPure() bool {
+	return m.Flags.HasFlag(METHOD_PURE_FLAG)
+}
+
+func (m *MethodDefinitionNode) SetPure() {
+	m.Flags.SetFlag(METHOD_PURE_FLAG)
+}
+
 const (
 	METHOD_ABSTRACT_FLAG bitfield.BitFlag8 = 1 << iota
 	METHOD_SEALED_FLAG
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
 	METHOD_OVERLOAD_FLAG
+	METHOD_PURE_FLAG
 )
 
 func (*MethodDefinitionNode) Class() *value.Class {
@@ -347,6 +356,7 @@ func (n *MethodDefinitionNode) Inspect() string {
 	fmt.Fprintf(&buff, ",\n  generator: %t", n.IsGenerator())
 	fmt.Fprintf(&buff, ",\n  async: %t", n.IsAsync())
 	fmt.Fprintf(&buff, ",\n  overload: %t", n.IsOverload())
+	fmt.Fprintf(&buff, ",\n  pure: %t", n.IsPure())
 
 	buff.WriteString(",\n  name: ")
 	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
