@@ -753,7 +753,9 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 	case token.OVERLOAD:
 		return p.overloadModifier(allowed)
 	case token.PURE:
-		return p.pureModifier(allowed)
+		return p.pureExpressionModifier(allowed)
+	case token.IMPURE:
+		return p.impureExpressionModifier(allowed)
 	case token.DOC_COMMENT:
 		return p.docComment(allowed)
 	case token.ALIAS:
@@ -2546,6 +2548,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.abstractModifier(false)
 	case token.OVERLOAD:
 		return p.overloadModifier(false)
+	case token.PURE:
+		return p.pureExpressionModifier(false)
+	case token.IMPURE:
+		return p.impureExpressionModifier(true)
 	case token.PRIMITIVE:
 		return p.primitiveModifier(false)
 	case token.SEALED:
@@ -3809,6 +3815,8 @@ func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 
 	return ast.NewInitDefinitionNode(
 		location,
+		"",
+		ast.METHOD_PURE_FLAG,
 		params,
 		throwType,
 		body,
@@ -4019,6 +4027,7 @@ func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 	return ast.NewGetterDeclarationNode(
 		position.JoinLocationOfLastElement(getterTok.Location(), attrList),
 		"",
+		ast.METHOD_PURE_FLAG,
 		attrList,
 	)
 }
@@ -4059,6 +4068,7 @@ func (p *Parser) attrDeclaration(allowed bool) ast.ExpressionNode {
 	return ast.NewAttrDeclarationNode(
 		position.JoinLocationOfLastElement(attrTok.Location(), attrList),
 		"",
+		ast.METHOD_PURE_FLAG,
 		attrList,
 	)
 }
@@ -5051,6 +5061,10 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.float64()
 	case token.FLOAT32:
 		return p.float32()
+	case token.PURE:
+		return p.pureTypeModifier()
+	case token.IMPURE:
+		return p.impureTypeModifier()
 	case token.NEVER:
 		tok := p.advance()
 		return ast.NewNeverTypeNode(tok.Location())
@@ -5118,6 +5132,7 @@ func (p *Parser) callableType() ast.TypeNode {
 		returnType,
 		throwType,
 		isClosure,
+		false,
 	)
 }
 
@@ -5801,6 +5816,12 @@ func (p *Parser) sealedModifier(allowed bool) ast.ExpressionNode {
 		}
 		n.SetSealed()
 		n.SetLocation(sealedTok.Location().Join(n.Location()))
+	case *ast.InitDefinitionNode:
+		if n.IsSealed() {
+			p.errorMessageLocation("the sealed modifier can only be attached once", sealedTok.Location())
+		}
+		n.SetSealed()
+		n.SetLocation(sealedTok.Location().Join(n.Location()))
 	default:
 		p.errorMessageLocation("the sealed modifier can only be attached to classes and methods", node.Location())
 	}
@@ -5866,21 +5887,107 @@ func (p *Parser) overloadModifier(allowed bool) ast.ExpressionNode {
 	return node
 }
 
-// pureModifier = "pure" declarationExpression
-func (p *Parser) pureModifier(allowed bool) ast.ExpressionNode {
-	overloadTok := p.advance()
+func (p *Parser) invalidPureModifierError(loc *position.Location) {
+	p.errorMessageLocation("the pure modifier can only be attached to methods, closures or callable types", loc)
+}
+
+func (p *Parser) invalidImpureModifierError(loc *position.Location) {
+	p.errorMessageLocation("the impure modifier can only be attached to methods, closures or callable types", loc)
+}
+
+// pureExpressionModifier = "pure" declarationExpression
+func (p *Parser) pureExpressionModifier(allowed bool) ast.ExpressionNode {
+	pureTok := p.advance()
 
 	p.swallowNewlines()
 	node := p.declarationExpression(allowed)
 	switch n := node.(type) {
 	case *ast.MethodDefinitionNode:
 		if n.IsPure() {
-			p.errorMessageLocation("the pure modifier can only be attached once", overloadTok.Location())
+			p.errorMessageLocation("the pure modifier can only be attached once", pureTok.Location())
 		}
 		n.SetPure()
-		n.SetLocation(overloadTok.Location().Join(n.Location()))
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.InitDefinitionNode:
+		if n.IsPure() {
+			p.errorMessageLocation("the pure modifier can only be attached once", pureTok.Location())
+		}
+		n.SetPure()
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.ClosureLiteralNode:
+		if n.Pure {
+			p.errorMessageLocation("the pure modifier can only be attached once", pureTok.Location())
+		}
+		n.Pure = true
+		n.SetLocation(pureTok.Location().Join(n.Location()))
 	default:
-		p.errorMessageLocation("the pure modifier can only be attached to methods", node.Location())
+		p.invalidPureModifierError(node.Location())
+	}
+
+	return node
+}
+
+// impureExpressionModifier = "impure" declarationExpression
+func (p *Parser) impureExpressionModifier(allowed bool) ast.ExpressionNode {
+	pureTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.MethodDefinitionNode:
+		n.SetImpure()
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.InitDefinitionNode:
+		n.SetImpure()
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.GetterDeclarationNode:
+		n.SetImpure()
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.AttrDeclarationNode:
+		n.SetImpure()
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	case *ast.ClosureLiteralNode:
+		n.Pure = false
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	default:
+		p.invalidImpureModifierError(node.Location())
+	}
+
+	return node
+}
+
+// pureTypeModifier = "pure" typeAnnotation
+func (p *Parser) pureTypeModifier() ast.TypeNode {
+	pureTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.typeAnnotation()
+	switch n := node.(type) {
+	case *ast.CallableTypeNode:
+		if n.IsPure {
+			p.errorMessageLocation("the pure modifier can only be attached once", pureTok.Location())
+		}
+		n.IsPure = true
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	default:
+		p.invalidPureModifierError(node.Location())
+	}
+
+	return node
+}
+
+// impureTypeModifier = "impure" typeAnnotation
+func (p *Parser) impureTypeModifier() ast.TypeNode {
+	pureTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.typeAnnotation()
+	switch n := node.(type) {
+	case *ast.CallableTypeNode:
+		n.IsPure = false
+		n.SetLocation(pureTok.Location().Join(n.Location()))
+	default:
+		p.invalidImpureModifierError(node.Location())
 	}
 
 	return node
@@ -7804,6 +7911,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.Pa
 			throwType,
 			body,
 			lambda,
+			false,
 		)
 	}
 
@@ -7834,6 +7942,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Location, params []ast.Pa
 		throwType,
 		body,
 		lambda,
+		false,
 	)
 }
 

@@ -5,17 +5,25 @@ module Std::Elk::AST
   sealed primitive class InitDefinitionNode
     include ExpressionNode
 
+    const PURE_FLAG: UInt8
+
     init(
       parameters: ArrayTuple[ParameterNode] = loop; end,
       body: ArrayTuple[StatementNode] = loop; end,
       throw_type: TypeNode? = nil,
+      flags: UInt8 = 0u8,
+      doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
 
     def parameters: ArrayTuple[ParameterNode]; end
     def throw_type: TypeNode?; end
     def body: ArrayTuple[StatementNode]; end
+    def doc_comment: String; end
+    def flags: UInt8; end
     def location: FS::Location; end
-    def location: FS::Location; end
+
+    def is_sealed: bool; end
+    def is_pure: bool; end
   end
 end

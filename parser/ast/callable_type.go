@@ -17,6 +17,7 @@ type CallableTypeNode struct {
 	ReturnType TypeNode
 	ThrowType  TypeNode
 	IsClosure  bool
+	IsPure     bool
 }
 
 func (n *CallableTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -38,6 +39,7 @@ func (n *CallableTypeNode) splice(loc *position.Location, args *[]Node, unquote 
 		ReturnType:    returnType,
 		ThrowType:     throwType,
 		IsClosure:     n.IsClosure,
+		IsPure:        n.IsPure,
 	}
 }
 
@@ -105,12 +107,16 @@ func (n *CallableTypeNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.loc.Equal(o.loc) && n.IsClosure == o.IsClosure
+	return n.loc.Equal(o.loc) && n.IsClosure == o.IsClosure && n.IsPure == o.IsPure
 }
 
 // Return a string representation of the node.
 func (n *CallableTypeNode) String() string {
 	var buff strings.Builder
+
+	if n.IsPure {
+		buff.WriteString("pure ")
+	}
 
 	if n.IsClosure {
 		buff.WriteString("%|")
@@ -167,9 +173,10 @@ func (n *CallableTypeNode) Inspect() string {
 
 	fmt.Fprintf(
 		&buff,
-		"Std::Elk::AST::CallableTypeNode{\n  location: %s, is_closure: %t",
+		"Std::Elk::AST::CallableTypeNode{\n  location: %s, is_closure: %t, is_pure: %t",
 		(*value.Location)(n.loc).Inspect(),
 		n.IsClosure,
+		n.IsPure,
 	)
 
 	buff.WriteString(",\n  return_type: ")
@@ -209,12 +216,13 @@ func (*CallableTypeNode) IsStatic() bool {
 }
 
 // Create a new closure type node eg. `|i: Int|: String`
-func NewCallableTypeNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, closure bool) *CallableTypeNode {
+func NewCallableTypeNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, closure bool, pure bool) *CallableTypeNode {
 	return &CallableTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
 		ReturnType:    retType,
 		ThrowType:     throwType,
 		IsClosure:     closure,
+		IsPure:        pure,
 	}
 }

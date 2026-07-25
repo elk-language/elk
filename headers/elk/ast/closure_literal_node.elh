@@ -10,7 +10,8 @@ module Std::Elk::AST
       return_type: TypeNode? = nil,
       throw_type: TypeNode? = nil,
       body: ArrayTuple[StatementNode] = loop; end,
-      lambda: bool = false,
+      is_lambda: bool = false,
+      is_pure: bool = false,
       location: FS::Location = loop; end,
     ); end
 
@@ -18,7 +19,8 @@ module Std::Elk::AST
     def return_type: TypeNode?; end
     def throw_type: TypeNode?; end
     def body: ArrayTuple[StatementNode]; end
-    def lambda: bool; end
+    def is_lambda: bool; end
+    def is_pure: bool; end
     def location: FS::Location; end
   end
 end

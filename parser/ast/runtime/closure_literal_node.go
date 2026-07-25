@@ -41,14 +41,19 @@ func initClosureLiteralNode() {
 
 			var argLambda bool
 			if !args[5].IsUndefined() {
-				argThrowType = args[5].MustReference().(ast.TypeNode)
+				argLambda = value.Truthy(args[5])
+			}
+
+			var argPure bool
+			if !args[6].IsUndefined() {
+				argPure = value.Truthy(args[6])
 			}
 
 			var argLoc *position.Location
-			if args[6].IsUndefined() {
+			if args[7].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[6].Pointer())
+				argLoc = (*position.Location)(args[7].Pointer())
 			}
 			self := ast.NewClosureLiteralNode(
 				argLoc,
@@ -57,11 +62,12 @@ func initClosureLiteralNode() {
 				argThrowType,
 				argBody,
 				argLambda,
+				argPure,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(6),
+		vm.DefWithParameters(7),
 	)
 
 	vm.Def(
@@ -76,10 +82,19 @@ func initClosureLiteralNode() {
 
 	vm.Def(
 		c,
-		"lambda",
+		"is_lambda",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			return value.BoolVal(self.Lambda), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_pure",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ClosureLiteralNode)
+			return value.BoolVal(self.Pure), value.Undefined
 		},
 	)
 

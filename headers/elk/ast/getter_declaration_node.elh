@@ -3,8 +3,13 @@ module Std::Elk::AST
     Represents a new getter declaration eg. `getter foo: String`
   ]##
   sealed primitive class GetterDeclarationNode
+    include ExpressionNode
+
+    const PURE_FLAG: UInt8
+
     init(
       entries: ArrayTuple[ParameterNode],
+      flags: UInt8 = 0u8,
       doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
@@ -12,5 +17,8 @@ module Std::Elk::AST
     def doc_comment: String; end
     def entries: ArrayTuple[ParameterNode]; end
     def location: FS::Location; end
+    def flags: UInt8; end
+
+    def is_pure: bool; end
   end
 end

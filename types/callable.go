@@ -240,6 +240,9 @@ func (c *Callable) DefineInterface(docComment string, name value.Symbol, env *Gl
 
 func (c *Callable) inspect() string {
 	buffer := new(strings.Builder)
+	if c.Body.IsPure() {
+		buffer.WriteString("pure ")
+	}
 	if c.IsClosure {
 		buffer.WriteString("%|")
 	} else {

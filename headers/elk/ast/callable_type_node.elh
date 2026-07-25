@@ -11,12 +11,14 @@ module Std::Elk::AST
       throw_type: TypeNode? = nil,
       location: FS::Location = loop; end,
       is_closure: bool = false,
+      is_pure: bool = false,
     ); end
 
     def parameters: ArrayTuple[ParameterNode]; end
     def return_type: TypeNode?; end
     def throw_type: TypeNode?; end
     def is_closure: bool; end
+    def is_pure: bool; end
     def location: FS::Location; end
   end
 end

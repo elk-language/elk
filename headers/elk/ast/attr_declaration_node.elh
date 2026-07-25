@@ -5,6 +5,8 @@ module Std::Elk::AST
   sealed primitive class AttrDeclarationNode
     include ExpressionNode
 
+    const PURE_FLAG: UInt8
+
     init(
       entries: ArrayTuple[ParameterNode],
       doc_comment: String = "",
@@ -14,5 +16,8 @@ module Std::Elk::AST
     def doc_comment: String; end
     def entries: ArrayTuple[ParameterNode]; end
     def location: FS::Location; end
+    def flags: UInt8; end
+
+    def is_pure: bool; end
   end
 end

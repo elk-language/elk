@@ -994,6 +994,8 @@ func initElkAST() {
 	MethodDefinitionNodeClass.AddConstantString("SEALED_FLAG", UInt8(2).ToValue())
 	MethodDefinitionNodeClass.AddConstantString("GENERATOR_FLAG", UInt8(4).ToValue())
 	MethodDefinitionNodeClass.AddConstantString("ASYNC_FLAG", UInt8(8).ToValue())
+	MethodDefinitionNodeClass.AddConstantString("OVERLOAD_FLAG", UInt8(16).ToValue())
+	MethodDefinitionNodeClass.AddConstantString("PURE_FLAG", UInt8(32).ToValue())
 	ElkASTModule.AddConstantString("MethodDefinitionNode", Ref(MethodDefinitionNodeClass))
 
 	MacroDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1002,6 +1004,12 @@ func initElkAST() {
 
 	InitDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InitDefinitionNodeClass.IncludeMixin(ExpressionNodeMixin)
+	InitDefinitionNodeClass.AddConstantString("ABSTRACT_FLAG", UInt8(1).ToValue())
+	InitDefinitionNodeClass.AddConstantString("SEALED_FLAG", UInt8(2).ToValue())
+	InitDefinitionNodeClass.AddConstantString("GENERATOR_FLAG", UInt8(4).ToValue())
+	InitDefinitionNodeClass.AddConstantString("ASYNC_FLAG", UInt8(8).ToValue())
+	InitDefinitionNodeClass.AddConstantString("OVERLOAD_FLAG", UInt8(16).ToValue())
+	InitDefinitionNodeClass.AddConstantString("PURE_FLAG", UInt8(32).ToValue())
 	ElkASTModule.AddConstantString("InitDefinitionNode", Ref(InitDefinitionNodeClass))
 
 	MethodSignatureDefinitionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1037,6 +1045,7 @@ func initElkAST() {
 
 	GetterDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	GetterDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	GetterDeclarationNodeClass.AddConstantString("PURE_FLAG", UInt8(32).ToValue())
 	ElkASTModule.AddConstantString("GetterDeclarationNode", Ref(GetterDeclarationNodeClass))
 
 	SetterDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
@@ -1045,6 +1054,7 @@ func initElkAST() {
 
 	AttrDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	AttrDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	AttrDeclarationNodeClass.AddConstantString("PURE_FLAG", UInt8(32).ToValue())
 	ElkASTModule.AddConstantString("AttrDeclarationNode", Ref(AttrDeclarationNodeClass))
 
 	UsingExpressionNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))

@@ -92,7 +92,7 @@ func TestAttrDefinition(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(53, 4, 16), P(55, 4, 18)), "type `Std::Int` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
 				diagnostic.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "method `Foo.:foo=` is not a valid override of `Foo.:foo=`\n  is:        `def foo=(foo: Std::Int): void`\n  should be: `def foo=(foo: Std::String?): void`\n\n  - has an incompatible parameter, is `foo: Std::Int`, should be `foo: Std::String?`"),
-				diagnostic.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "method `Foo.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int`\n  should be: `def foo(): Std::String?`\n\n  - has a different return type, is `Std::Int`, should be `Std::String?`"),
+				diagnostic.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "method `Foo.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::Int`\n  should be: `pure def foo(): Std::String?`\n\n  - has a different return type, is `Std::Int`, should be `Std::String?`"),
 				diagnostic.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 				diagnostic.NewFailure(L("<main>", P(48, 4, 11), P(55, 4, 18)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
@@ -141,7 +141,7 @@ func TestAttrDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(78, 6, 16), P(84, 6, 22)), "type `Std::String?` cannot be assigned to instance variable `@foo` of type `Std::Int?`"),
 				diagnostic.NewFailure(L("<main>", P(73, 6, 11), P(84, 6, 22)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::Int?`, previous definition found in `Foo`"),
 				diagnostic.NewFailure(L("<main>", P(73, 6, 11), P(84, 6, 22)), "method `Bar.:foo=` is not a valid override of `Foo.:foo=`\n  is:        `def foo=(foo: Std::String?): void`\n  should be: `def foo=(foo: Std::Int?): void`\n\n  - has an incompatible parameter, is `foo: Std::String?`, should be `foo: Std::Int?`"),
-				diagnostic.NewFailure(L("<main>", P(73, 6, 11), P(84, 6, 22)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::String?`\n  should be: `def foo(): Std::Int?`\n\n  - has a different return type, is `Std::String?`, should be `Std::Int?`"),
+				diagnostic.NewFailure(L("<main>", P(73, 6, 11), P(84, 6, 22)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::String?`\n  should be: `pure def foo(): Std::Int?`\n\n  - has a different return type, is `Std::String?`, should be `Std::Int?`"),
 				diagnostic.NewFailure(L("<main>", P(73, 6, 11), P(84, 6, 22)), "type `Std::Int?` cannot be assigned to type `Std::String?`"),
 			},
 		},
@@ -203,7 +203,20 @@ func TestAttrDefinition(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(85, 6, 11), P(93, 6, 19)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int?`\n  should be: `def foo(): Std::String`\n\n  - has a different return type, is `Std::Int?`, should be `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(85, 6, 11), P(93, 6, 19)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::Int?`\n  should be: `def foo(): Std::String`\n\n  - has a different return type, is `Std::Int?`, should be `Std::String`"),
+			},
+		},
+		"override an attr using an impure method in a child class": {
+			input: `
+				class Foo
+					attr foo: Int?
+				end
+				class Bar < Foo
+					def foo: Int? then nil
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(68, 6, 6), P(89, 6, 27)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int?`\n  should be: `pure def foo(): Std::Int?`\n\n  - has a different modifier, is `default`, should be `pure`"),
 			},
 		},
 	}
@@ -300,7 +313,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "method `Foo.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int`\n  should be: `def foo(): Std::String?`\n\n  - has a different return type, is `Std::Int`, should be `Std::String?`"),
+				diagnostic.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "method `Foo.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::Int`\n  should be: `pure def foo(): Std::String?`\n\n  - has a different return type, is `Std::Int`, should be `Std::String?`"),
 				diagnostic.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "cannot redeclare instance variable `@foo` with a different type, is `Std::Int`, should be `Std::String?`, previous definition found in `Foo`"),
 				diagnostic.NewFailure(L("<main>", P(52, 4, 13), P(59, 4, 20)), "type `Std::String?` cannot be assigned to type `Std::Int`"),
 			},
@@ -346,7 +359,7 @@ func TestGetterDefinition(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(77, 6, 13), P(88, 6, 24)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String?`, should be `Std::Int?`, previous definition found in `Foo`"),
-				diagnostic.NewFailure(L("<main>", P(77, 6, 13), P(88, 6, 24)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::String?`\n  should be: `def foo(): Std::Int?`\n\n  - has a different return type, is `Std::String?`, should be `Std::Int?`"),
+				diagnostic.NewFailure(L("<main>", P(77, 6, 13), P(88, 6, 24)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::String?`\n  should be: `pure def foo(): Std::Int?`\n\n  - has a different return type, is `Std::String?`, should be `Std::Int?`"),
 				diagnostic.NewFailure(L("<main>", P(77, 6, 13), P(88, 6, 24)), "type `Std::Int?` cannot be assigned to type `Std::String?`"),
 			},
 		},
@@ -394,7 +407,7 @@ func TestGetterDefinition(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(87, 6, 13), P(95, 6, 21)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int?`\n  should be: `def foo(): Std::String`\n\n  - has a different return type, is `Std::Int?`, should be `Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(87, 6, 13), P(95, 6, 21)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::Int?`\n  should be: `def foo(): Std::String`\n\n  - has a different return type, is `Std::Int?`, should be `Std::String`"),
 			},
 		},
 	}

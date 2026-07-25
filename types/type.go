@@ -149,8 +149,11 @@ func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
 	}
 }
 
-func InspectModifier(abstract, sealed, primitive, noinit bool) string {
+func InspectModifier(abstract, sealed, primitive, noinit, pure bool) string {
 	str := ""
+	if pure {
+		str += " pure"
+	}
 	if abstract {
 		str += " abstract"
 	}

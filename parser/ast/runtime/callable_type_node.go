@@ -42,17 +42,23 @@ func initCallableTypeNode() {
 			if !args[5].IsUndefined() {
 				argClosure = value.Truthy(args[5])
 			}
+
+			var argPure bool
+			if !args[6].IsUndefined() {
+				argPure = value.Truthy(args[6])
+			}
 			self := ast.NewCallableTypeNode(
 				argLoc,
 				argParams,
 				argReturnType,
 				argThrowType,
 				argClosure,
+				argPure,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(5),
+		vm.DefWithParameters(6),
 	)
 
 	vm.Def(
@@ -106,6 +112,15 @@ func initCallableTypeNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CallableTypeNode)
 			result := value.BoolVal(self.IsClosure)
+			return result, value.Undefined
+		},
+	)
+	vm.Def(
+		c,
+		"is_pure",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.CallableTypeNode)
+			result := value.BoolVal(self.IsPure)
 			return result, value.Undefined
 		},
 	)

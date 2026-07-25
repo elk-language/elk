@@ -194,8 +194,8 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 			fmt.Sprintf(
 				"%s modifier mismatch, previous: %s, now: %s",
 				InspectWithColor(class),
-				InspectModifier(class.IsAbstract(), class.IsSealed(), class.IsPrimitive(), class.IsNoInit()),
-				InspectModifier(abstract, sealed, primitive, noinit),
+				InspectModifier(class.IsAbstract(), class.IsSealed(), class.IsPrimitive(), class.IsNoInit(), false),
+				InspectModifier(abstract, sealed, primitive, noinit, false),
 			),
 		)
 	}
@@ -246,8 +246,8 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name va
 			fmt.Sprintf(
 				"%s modifier mismatch, previous: %s, now: %s",
 				InspectWithColor(mixin),
-				InspectModifier(mixin.IsAbstract(), false, false, false),
-				InspectModifier(abstract, false, false, false),
+				InspectModifier(mixin.IsAbstract(), false, false, false, false),
+				InspectModifier(abstract, false, false, false, false),
 			),
 		)
 	}

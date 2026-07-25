@@ -162,6 +162,7 @@ const (
 	METHOD_GENERATOR_FLAG
 	METHOD_ASYNC_FLAG
 	METHOD_OVERLOAD_FLAG
+	METHOD_PURE_FLAG
 	METHOD_MACRO_FLAG
 	METHOD_HAS_DEFER_FLAG
 	// used in using expression placeholders
@@ -430,6 +431,15 @@ func (m *Method) SetOverload(val bool) *Method {
 	return m
 }
 
+func (m *Method) IsPure() bool {
+	return m.Flags.HasFlag(METHOD_PURE_FLAG)
+}
+
+func (m *Method) SetPure(val bool) *Method {
+	m.SetFlag(METHOD_PURE_FLAG, val)
+	return m
+}
+
 func (m *Method) IsRegisteredOverload() bool {
 	return m.OverloadId != 0
 }
@@ -678,6 +688,9 @@ func inspectMethod(namespace Namespace, methodName value.Symbol) string {
 func (m *Method) InspectSignature(showModifiers bool) string {
 	buffer := new(strings.Builder)
 	if showModifiers {
+		if m.IsPure() {
+			buffer.WriteString("pure ")
+		}
 		if m.IsAbstract() {
 			buffer.WriteString("abstract ")
 		}

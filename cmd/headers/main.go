@@ -385,6 +385,9 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName value.Symbol, m
 	if method.IsAsync() {
 		buffer.WriteString("| METHOD_ASYNC_FLAG")
 	}
+	if method.IsPure() {
+		buffer.WriteString("| METHOD_PURE_FLAG")
+	}
 
 	fmt.Fprintf(
 		buffer,

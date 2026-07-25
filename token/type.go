@@ -547,6 +547,7 @@ const (
 	OVERLOAD          // Keyword `overload`
 	UNSAFE            // Keyword `unsafe`
 	PURE              // Keyword `pure`
+	IMPURE            // Keyword `impure`
 	PATTERN           // Keyword `pattern`
 	LABEL_KEYWORD_END // Keywords end here
 )
@@ -657,6 +658,7 @@ var Keywords = map[string]Type{
 	"overload":        OVERLOAD,
 	"unsafe":          UNSAFE,
 	"pure":            PURE,
+	"impure":          IMPURE,
 	"pattern":         PATTERN,
 }
 
@@ -937,5 +939,6 @@ var tokenNames = [...]string{
 	OVERLOAD:        "overload",
 	UNSAFE:          "unsafe",
 	PURE:            "pure",
+	IMPURE:          "impure",
 	PATTERN:         "pattern",
 }

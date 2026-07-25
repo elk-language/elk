@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -35,14 +36,26 @@ func initInitDefinitionNode() {
 				argThrowType = args[3].MustReference().(ast.TypeNode)
 			}
 
+			var argFlags bitfield.BitFlag8
+			if !args[4].IsUndefined() {
+				argFlags = bitfield.BitFlag8(args[4].AsUInt8())
+			}
+
+			var argDocComment string
+			if !args[5].IsUndefined() {
+				argDocComment = string(args[5].MustReference().(value.String))
+			}
+
 			var argLocation *position.Location
-			if args[4].IsUndefined() {
+			if args[6].IsUndefined() {
 				argLocation = position.ZeroLocation
 			} else {
-				argLocation = (*position.Location)(args[4].Pointer())
+				argLocation = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewInitDefinitionNode(
 				argLocation,
+				argDocComment,
+				argFlags,
 				argParameters,
 				argThrowType,
 				argBody,
@@ -50,7 +63,7 @@ func initInitDefinitionNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(4),
+		vm.DefWithParameters(6),
 	)
 
 	vm.Def(
@@ -94,6 +107,39 @@ func initInitDefinitionNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InitDefinitionNode)
 			result := value.Ref((*value.Location)(self.Location()))
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"flags",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InitDefinitionNode)
+			result := value.UInt8(self.Flags.Byte()).ToValue()
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_sealed",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InitDefinitionNode)
+			result := value.BoolVal(self.IsSealed())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_pure",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InitDefinitionNode)
+			result := value.BoolVal(self.IsPure())
 			return result, value.Undefined
 
 		},

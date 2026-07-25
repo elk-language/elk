@@ -54,6 +54,44 @@ func TestCallableType(t *testing.T) {
 								nil,
 								nil,
 								false,
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"pure callable with arguments, return type and throw type": {
+			input: "type pure |a: String, b?: Int|: Int ! :dupa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(42, 1, 43))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(42, 1, 43))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(42, 1, 43))),
+							ast.NewCallableTypeNode(
+								L(S(P(5, 1, 6), P(42, 1, 43))),
+								[]ast.ParameterNode{
+									ast.NewSignatureParameterNode(
+										L(S(P(11, 1, 12), P(19, 1, 20))),
+										ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "a"),
+										ast.NewPublicConstantNode(L(S(P(14, 1, 15), P(19, 1, 20))), "String"),
+										false,
+										ast.NormalParameterKind,
+									),
+									ast.NewSignatureParameterNode(
+										L(S(P(22, 1, 23), P(28, 1, 29))),
+										ast.NewPublicIdentifierNode(L(S(P(22, 1, 23), P(22, 1, 23))), "b"),
+										ast.NewPublicConstantNode(L(S(P(26, 1, 27), P(28, 1, 29))), "Int"),
+										true,
+										ast.NormalParameterKind,
+									),
+								},
+								ast.NewPublicConstantNode(L(S(P(32, 1, 33), P(34, 1, 35))), "Int"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(38, 1, 39), P(42, 1, 43))), "dupa"),
+								false,
+								true,
 							),
 						),
 					),
@@ -90,6 +128,7 @@ func TestCallableType(t *testing.T) {
 								ast.NewPublicConstantNode(L(S(P(27, 1, 28), P(29, 1, 30))), "Int"),
 								ast.NewSimpleSymbolLiteralNode(L(S(P(33, 1, 34), P(37, 1, 38))), "dupa"),
 								false,
+								false,
 							),
 						),
 					),
@@ -125,6 +164,44 @@ func TestCallableType(t *testing.T) {
 								},
 								ast.NewPublicConstantNode(L(S(P(28, 1, 29), P(30, 1, 31))), "Int"),
 								ast.NewSimpleSymbolLiteralNode(L(S(P(34, 1, 35), P(38, 1, 39))), "dupa"),
+								true,
+								false,
+							),
+						),
+					),
+				},
+			),
+		},
+		"pure closure with arguments, return type and throw type": {
+			input: "type pure %|a: String, b?: Int|: Int ! :dupa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(43, 1, 44))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(43, 1, 44))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(43, 1, 44))),
+							ast.NewCallableTypeNode(
+								L(S(P(5, 1, 6), P(43, 1, 44))),
+								[]ast.ParameterNode{
+									ast.NewSignatureParameterNode(
+										L(S(P(12, 1, 13), P(20, 1, 21))),
+										ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(12, 1, 13))), "a"),
+										ast.NewPublicConstantNode(L(S(P(15, 1, 16), P(20, 1, 21))), "String"),
+										false,
+										ast.NormalParameterKind,
+									),
+									ast.NewSignatureParameterNode(
+										L(S(P(23, 1, 24), P(29, 1, 30))),
+										ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(23, 1, 24))), "b"),
+										ast.NewPublicConstantNode(L(S(P(27, 1, 28), P(29, 1, 30))), "Int"),
+										true,
+										ast.NormalParameterKind,
+									),
+								},
+								ast.NewPublicConstantNode(L(S(P(33, 1, 34), P(35, 1, 36))), "Int"),
+								ast.NewSimpleSymbolLiteralNode(L(S(P(39, 1, 40), P(43, 1, 44))), "dupa"),
+								true,
 								true,
 							),
 						),

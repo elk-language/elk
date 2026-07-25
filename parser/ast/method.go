@@ -326,6 +326,10 @@ func (m *MethodDefinitionNode) SetPure() {
 	m.Flags.SetFlag(METHOD_PURE_FLAG)
 }
 
+func (m *MethodDefinitionNode) SetImpure() {
+	m.Flags.UnsetFlag(METHOD_PURE_FLAG)
+}
+
 const (
 	METHOD_ABSTRACT_FLAG bitfield.BitFlag8 = 1 << iota
 	METHOD_SEALED_FLAG
@@ -461,9 +465,30 @@ func NewMethodDefinitionNode(
 type InitDefinitionNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	Flags      bitfield.BitField8
 	Parameters []ParameterNode // formal parameters
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the method
+}
+
+func (m *InitDefinitionNode) IsPure() bool {
+	return m.Flags.HasFlag(METHOD_PURE_FLAG)
+}
+
+func (m *InitDefinitionNode) SetPure() {
+	m.Flags.SetFlag(METHOD_PURE_FLAG)
+}
+
+func (m *InitDefinitionNode) SetImpure() {
+	m.Flags.UnsetFlag(METHOD_PURE_FLAG)
+}
+
+func (m *InitDefinitionNode) IsSealed() bool {
+	return m.Flags.HasFlag(METHOD_SEALED_FLAG)
+}
+
+func (m *InitDefinitionNode) SetSealed() {
+	m.Flags.SetFlag(METHOD_SEALED_FLAG)
 }
 
 func (n *InitDefinitionNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -482,6 +507,7 @@ func (n *InitDefinitionNode) splice(loc *position.Location, args *[]Node, unquot
 		Parameters:             params,
 		ThrowType:              throwType,
 		Body:                   body,
+		Flags:                  n.Flags,
 	}
 }
 
@@ -526,7 +552,7 @@ func (n *InitDefinitionNode) Equal(other value.Value) bool {
 	}
 
 	if !n.loc.Equal(o.loc) ||
-		n.comment != o.comment {
+		n.comment != o.comment || n.Flags != o.Flags {
 		return false
 	}
 
@@ -566,6 +592,10 @@ func (n *InitDefinitionNode) String() string {
 		buff.WriteString("##[\n")
 		indent.IndentString(&buff, doc, 1)
 		buff.WriteString("\n]##\n")
+	}
+
+	if !n.IsPure() {
+		buff.WriteString("impure ")
 	}
 
 	buff.WriteString("init")
@@ -611,7 +641,7 @@ func (*InitDefinitionNode) DirectClass() *value.Class {
 func (n *InitDefinitionNode) Inspect() string {
 	var buff strings.Builder
 
-	fmt.Fprintf(&buff, "Std::Elk::AST::InitDefinitionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+	fmt.Fprintf(&buff, "Std::Elk::AST::InitDefinitionNode{\n  location: %s, pure: %t", (*value.Location)(n.loc).Inspect(), n.IsPure())
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
@@ -665,12 +695,16 @@ func (n *InitDefinitionNode) Error() string {
 }
 
 // Create a constructor definition node eg. `init then 'hello world'`
-func NewInitDefinitionNode(loc *position.Location, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
+func NewInitDefinitionNode(loc *position.Location, docComment string, flags bitfield.BitFlag8, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
 	return &InitDefinitionNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
-		Parameters:    params,
-		ThrowType:     throwType,
-		Body:          body,
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Flags:      bitfield.BitField8FromBitFlag(flags),
+		Parameters: params,
+		ThrowType:  throwType,
+		Body:       body,
 	}
 }
 
@@ -1180,6 +1214,7 @@ func NewAliasDeclarationNode(loc *position.Location, entries []*AliasDeclaration
 type GetterDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	Flags   bitfield.BitField8
 	Entries []ParameterNode
 }
 
@@ -1188,6 +1223,7 @@ func (n *GetterDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
+		Flags:                  n.Flags,
 	}
 }
 
@@ -1220,7 +1256,7 @@ func (n *GetterDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	if !n.loc.Equal(o.loc) ||
-		n.comment != o.comment {
+		n.comment != o.comment || n.Flags != o.Flags {
 		return false
 	}
 
@@ -1237,6 +1273,18 @@ func (n *GetterDeclarationNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (m *GetterDeclarationNode) IsPure() bool {
+	return m.Flags.HasFlag(METHOD_PURE_FLAG)
+}
+
+func (m *GetterDeclarationNode) SetPure() {
+	m.Flags.SetFlag(METHOD_PURE_FLAG)
+}
+
+func (m *GetterDeclarationNode) SetImpure() {
+	m.Flags.UnsetFlag(METHOD_PURE_FLAG)
+}
+
 // String returns the string representation of this node.
 func (n *GetterDeclarationNode) String() string {
 	var buff strings.Builder
@@ -1246,6 +1294,10 @@ func (n *GetterDeclarationNode) String() string {
 		buff.WriteString("##[\n")
 		indent.IndentString(&buff, doc, 1)
 		buff.WriteString("\n]##\n")
+	}
+
+	if !n.IsPure() {
+		buff.WriteString("impure ")
 	}
 
 	buff.WriteString("getter ")
@@ -1280,6 +1332,8 @@ func (n *GetterDeclarationNode) Inspect() string {
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
 
+	fmt.Fprintf(&buff, ",\n  pure: %t", n.IsPure())
+
 	buff.WriteString(",\n  entries: %[")
 	if len(n.Entries) > 0 {
 		buff.WriteRune('\n')
@@ -1308,12 +1362,13 @@ func (n *GetterDeclarationNode) Error() string {
 }
 
 // Create a getter declaration node eg. `getter foo: String`
-func NewGetterDeclarationNode(loc *position.Location, docComment string, entries []ParameterNode) *GetterDeclarationNode {
+func NewGetterDeclarationNode(loc *position.Location, docComment string, flags bitfield.BitFlag8, entries []ParameterNode) *GetterDeclarationNode {
 	return &GetterDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
+		Flags:   bitfield.BitField8FromBitFlag(flags),
 		Entries: entries,
 	}
 }
@@ -1458,6 +1513,7 @@ type AttrDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
 	Entries []ParameterNode
+	Flags   bitfield.BitField8
 }
 
 func (n *AttrDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -1465,6 +1521,7 @@ func (n *AttrDeclarationNode) splice(loc *position.Location, args *[]Node, unquo
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
 		Entries:                SpliceSlice(n.Entries, loc, args, unquote),
+		Flags:                  n.Flags,
 	}
 }
 
@@ -1501,6 +1558,18 @@ func (*AttrDeclarationNode) DirectClass() *value.Class {
 	return value.AttrDeclarationNodeClass
 }
 
+func (m *AttrDeclarationNode) IsPure() bool {
+	return m.Flags.HasFlag(METHOD_PURE_FLAG)
+}
+
+func (m *AttrDeclarationNode) SetPure() {
+	m.Flags.SetFlag(METHOD_PURE_FLAG)
+}
+
+func (m *AttrDeclarationNode) SetImpure() {
+	m.Flags.UnsetFlag(METHOD_PURE_FLAG)
+}
+
 func (n *AttrDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
@@ -1508,6 +1577,8 @@ func (n *AttrDeclarationNode) Inspect() string {
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)
+
+	fmt.Fprintf(&buff, ",\n  pure: %t", n.IsPure())
 
 	buff.WriteString(",\n  entries: %[")
 	if len(n.Entries) > 0 {
@@ -1542,7 +1613,7 @@ func (n *AttrDeclarationNode) Equal(other value.Value) bool {
 		return false
 	}
 
-	if n.DocComment() != o.DocComment() {
+	if n.DocComment() != o.DocComment() || n.Flags != o.Flags {
 		return false
 	}
 
@@ -1568,6 +1639,11 @@ func (n *AttrDeclarationNode) String() string {
 		indent.IndentString(&buff, doc, 1)
 		buff.WriteString("\n]##\n")
 	}
+
+	if !n.IsPure() {
+		buff.WriteString("impure ")
+	}
+
 	buff.WriteString("attr ")
 
 	for i, entry := range n.Entries {
@@ -1585,12 +1661,13 @@ func (n *AttrDeclarationNode) Error() string {
 }
 
 // Create an attribute declaration node eg. `attr foo: String`
-func NewAttrDeclarationNode(loc *position.Location, docComment string, entries []ParameterNode) *AttrDeclarationNode {
+func NewAttrDeclarationNode(loc *position.Location, docComment string, flags bitfield.BitFlag8, entries []ParameterNode) *AttrDeclarationNode {
 	return &AttrDeclarationNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
+		Flags:   bitfield.BitField8FromBitFlag(flags),
 		Entries: entries,
 	}
 }

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -18,26 +19,32 @@ func initGetterDeclarationNode() {
 				return v.AsReference().(ast.ParameterNode)
 			}).ToSlice()
 
-			var argDocComment string
+			var argFlags bitfield.BitFlag8
 			if !args[2].IsUndefined() {
-				argDocComment = string(args[2].MustReference().(value.String))
+				argFlags = bitfield.BitFlag8(args[2].AsUInt8())
+			}
+
+			var argDocComment string
+			if !args[3].IsUndefined() {
+				argDocComment = string(args[3].MustReference().(value.String))
 			}
 
 			var argLoc *position.Location
-			if args[3].IsUndefined() {
+			if args[4].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[3].Pointer())
+				argLoc = (*position.Location)(args[4].Pointer())
 			}
 			self := ast.NewGetterDeclarationNode(
 				argLoc,
 				argDocComment,
+				argFlags,
 				argEntries,
 			)
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(4),
 	)
 
 	vm.Def(
@@ -56,6 +63,28 @@ func initGetterDeclarationNode() {
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GetterDeclarationNode)
 			result := value.Ref((value.String)(self.DocComment()))
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"flags",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.GetterDeclarationNode)
+			result := value.UInt8(self.Flags.Byte()).ToValue()
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_pure",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.GetterDeclarationNode)
+			result := value.BoolVal(self.IsPure())
 			return result, value.Undefined
 
 		},

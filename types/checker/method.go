@@ -526,6 +526,7 @@ func (c *Checker) checkSignatureOfMethodDefinition(node *ast.MethodDefinitionNod
 		node.IsGenerator(),
 		node.IsAsync(),
 		node.IsOverload(),
+		node.IsPure(),
 		value.ToSymbol(c.identifierToName(node.Name)),
 		node.TypeParameters,
 		node.Parameters,
@@ -550,6 +551,7 @@ func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSign
 		c.currentMethodScope().container,
 		node.DocComment(),
 		true,
+		false,
 		false,
 		false,
 		false,
@@ -724,7 +726,7 @@ func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds
 	}
 }
 
-func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string) {
+func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string, pure bool) {
 	name := c.identifierToName(node.Name)
 	method, mod := c.declareMethod(
 		c.currentMethodScope().container,
@@ -735,6 +737,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		false,
 		false,
 		false,
+		pure,
 		value.ToSymbol(name),
 		nil,
 		nil,
@@ -847,6 +850,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 	method, mod := c.declareMethod(
 		methodScope.container,
 		docComment,
+		false,
 		false,
 		false,
 		false,
@@ -995,12 +999,12 @@ func (c *Checker) _checkMethodOverride(
 		)
 		areIncompatible = true
 	}
-	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() {
+	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() || baseMethod.IsPure() && !overrideMethod.IsPure() {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has a different modifier, is `%s`, should be `%s`",
-			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false, false),
-			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false, false),
+			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false, false, overrideMethod.IsPure()),
+			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false, false, baseMethod.IsPure()),
 		)
 		areIncompatible = true
 	}
@@ -2159,7 +2163,7 @@ func (c *Checker) checkSimpleMethodCall(
 	receiver = c.checkExpression(receiver)
 	receiverType := c.TypeOf(receiver)
 
-	// Allow arbitrary method calls on `never` and `nothing`.
+	// Allow arbitrary method calls on `never` and `untyped`.
 	// Typecheck the arguments.
 	if types.IsNever(receiverType) || types.IsUntyped(receiverType) {
 		var typedPositionalArguments []ast.ExpressionNode
@@ -2227,6 +2231,9 @@ func (c *Checker) checkSimpleMethodCall(
 		returnType = receiverType
 	}
 
+	if !method.IsPure() {
+		c.addImpureErrorIfInPureContext(location)
+	}
 	c.checkCalledMethodThrowType(method, location)
 
 	return method.Name, receiver, typedPositionalArguments, returnType
@@ -2296,6 +2303,7 @@ func (c *Checker) declareMethod(
 	generator bool,
 	async bool,
 	overload bool,
+	pure bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -2314,6 +2322,7 @@ func (c *Checker) declareMethod(
 		generator,
 		async,
 		overload,
+		pure,
 		name,
 		typeParamNodes,
 		paramNodes,
@@ -2334,6 +2343,7 @@ func (c *Checker) declareMethodWithBase(
 	generator bool,
 	async bool,
 	overload bool,
+	pure bool,
 	name value.Symbol,
 	typeParamNodes []ast.TypeParameterNode,
 	paramNodes []ast.ParameterNode,
@@ -2356,13 +2366,13 @@ func (c *Checker) declareMethodWithBase(
 	}
 	oldMethod := methodNamespace.Method(name)
 	if !overload && oldMethod != nil {
-		if sealed && !oldMethod.IsSealed() {
+		if sealed && !oldMethod.IsSealed() || !pure && oldMethod.IsPure() {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name.String(),
-					types.InspectModifier(abstract, sealed, false, false),
-					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false, false),
+					types.InspectModifier(abstract, sealed, false, false, pure),
+					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false, false, oldMethod.IsPure()),
 				),
 				location,
 			)
@@ -2657,6 +2667,9 @@ func (c *Checker) declareMethodWithBase(
 	}
 	if overload {
 		flags |= types.METHOD_OVERLOAD_FLAG
+	}
+	if pure {
+		flags |= types.METHOD_PURE_FLAG
 	}
 	newMethod := types.NewMethod(
 		docComment,

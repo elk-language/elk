@@ -18,6 +18,7 @@ type ClosureLiteralNode struct {
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the closure
 	Lambda     bool
+	Pure       bool
 }
 
 func (n *ClosureLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -40,6 +41,8 @@ func (n *ClosureLiteralNode) splice(loc *position.Location, args *[]Node, unquot
 		Parameters:    params,
 		ReturnType:    returnType,
 		ThrowType:     throwType,
+		Pure:          n.Pure,
+		Lambda:        n.Lambda,
 		Body:          body,
 	}
 }
@@ -120,12 +123,15 @@ func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 		}
 	}
 
-	return n.loc.Equal(o.loc) && n.Lambda == o.Lambda
+	return n.loc.Equal(o.loc) && n.Lambda == o.Lambda && n.Pure == o.Pure
 }
 
 func (n *ClosureLiteralNode) String() string {
 	var buff strings.Builder
 
+	if n.Pure {
+		buff.WriteString("pure ")
+	}
 	buff.WriteString("|")
 	for i, param := range n.Parameters {
 		if i != 0 {
@@ -179,7 +185,7 @@ func (*ClosureLiteralNode) IsStatic() bool {
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode, lambda bool) *ClosureLiteralNode {
+func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode, lambda bool, pure bool) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		Parameters:    params,
@@ -187,6 +193,7 @@ func NewClosureLiteralNode(loc *position.Location, params []ParameterNode, retTy
 		ThrowType:     throwType,
 		Body:          body,
 		Lambda:        lambda,
+		Pure:          pure,
 	}
 }
 

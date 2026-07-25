@@ -5868,6 +5868,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 		false,
 		false,
 		false,
+		false,
 		symbol.L_call,
 		nil,
 		node.Parameters,
@@ -5911,6 +5912,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 		false,
 		false,
 		false,
+		node.Pure,
 		symbol.L_call,
 		nil,
 		node.Parameters,
@@ -5946,10 +5948,22 @@ func (c *Checker) checkClosureLiteralNode(node *ast.ClosureLiteralNode) ast.Expr
 	return c.checkClosureLiteralNodeWithBase(node, nil, nil)
 }
 
+func (c *Checker) addImpureErrorIfInPureContext(loc *position.Location) {
+	if c.method == nil || !c.method.IsPure() {
+		return
+	}
+
+	c.addFailure(
+		"cannot perform an impure operation in a pure context",
+		loc,
+	)
+}
+
 func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.ExpressionNode {
 	prevHasDefer := c.hasDefer()
 	c.setHasDefer(false)
 
+	c.addImpureErrorIfInPureContext(node.Location())
 	c.pushNestedLocalEnv(defaultLocalEnvType)
 	c.checkStatements(node.Body, false)
 	c.popLocalEnv()
@@ -6161,6 +6175,10 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 
 func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
 	ivarType := c.checkInstanceVariable(name, node.Left.Location())
+
+	if c.mode != initMode {
+		c.addImpureErrorIfInPureContext(node.Location())
+	}
 
 	node.Right = c.checkExpressionWithType(node.Right, ivarType)
 	assignedType := c.typeOfGuardVoid(node.Right)
@@ -7637,6 +7655,7 @@ func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode
 		false,
 		false,
 		false,
+		node.IsPure,
 		symbol.L_call,
 		nil,
 		node.Parameters,
@@ -7761,7 +7780,7 @@ func (c *Checker) checkSignatureOfGetterDeclaration(node *ast.GetterDeclarationN
 			continue
 		}
 
-		c.declareMethodForGetter(attribute, node.DocComment())
+		c.declareMethodForGetter(attribute, node.DocComment(), node.IsPure())
 		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
 	}
 }
@@ -7796,7 +7815,7 @@ func (c *Checker) checkSignatureOfAttrDeclaration(node *ast.AttrDeclarationNode)
 		}
 
 		c.declareMethodForSetter(attribute, node.DocComment())
-		c.declareMethodForGetter(attribute, node.DocComment())
+		c.declareMethodForGetter(attribute, node.DocComment(), node.IsPure())
 		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
 	}
 }
@@ -8604,8 +8623,8 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						lexer.Colorize(fullConstantName),
-						lexer.Colorize(types.InspectModifier(abstract, sealed, primitive, noinit)),
-						lexer.Colorize(types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit())),
+						lexer.Colorize(types.InspectModifier(abstract, sealed, primitive, noinit, false)),
+						lexer.Colorize(types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit(), false)),
 					),
 					location,
 				)
@@ -8738,6 +8757,8 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 
 	init := ast.NewInitDefinitionNode(
 		structNode.Location(),
+		"",
+		ast.METHOD_PURE_FLAG,
 		nil,
 		nil,
 		nil,
@@ -8745,6 +8766,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 	attrDeclaration := ast.NewAttrDeclarationNode(
 		structNode.Location(),
 		"",
+		ast.METHOD_PURE_FLAG,
 		nil,
 	)
 	newStatements := []ast.StatementNode{
@@ -9353,8 +9375,8 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, false, false, false),
-						types.InspectModifier(t.IsAbstract(), false, false, false),
+						types.InspectModifier(abstract, false, false, false, false),
+						types.InspectModifier(t.IsAbstract(), false, false, false, false),
 					),
 					location,
 				)

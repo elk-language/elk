@@ -3733,6 +3733,7 @@ func TestGetterDeclaration(t *testing.T) {
 							ast.NewGetterDeclarationNode(
 								L(S(P(4, 1, 5), P(13, 1, 14))),
 								"",
+								ast.METHOD_PURE_FLAG,
 								[]ast.ParameterNode{
 									ast.NewAttributeParameterNode(
 										L(S(P(11, 1, 12), P(13, 1, 14))),
@@ -3760,6 +3761,7 @@ func TestGetterDeclaration(t *testing.T) {
 						ast.NewGetterDeclarationNode(
 							L(S(P(0, 1, 1), P(15, 1, 16))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(7, 1, 8), P(15, 1, 16))),
@@ -3767,6 +3769,33 @@ func TestGetterDeclaration(t *testing.T) {
 									ast.NewNilableTypeNode(
 										L(S(P(12, 1, 13), P(15, 1, 16))),
 										ast.NewPublicConstantNode(L(S(P(12, 1, 13), P(14, 1, 15))), "Bar"),
+									),
+									nil,
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be impure": {
+			input: "impure getter foo: Bar?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(22, 1, 23))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(22, 1, 23))),
+						ast.NewGetterDeclarationNode(
+							L(S(P(0, 1, 1), P(22, 1, 23))),
+							"",
+							0,
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									L(S(P(14, 1, 15), P(22, 1, 23))),
+									ast.NewPublicIdentifierNode(L(S(P(14, 1, 15), P(16, 1, 17))), "foo"),
+									ast.NewNilableTypeNode(
+										L(S(P(19, 1, 20), P(22, 1, 23))),
+										ast.NewPublicConstantNode(L(S(P(19, 1, 20), P(21, 1, 22))), "Bar"),
 									),
 									nil,
 								),
@@ -3786,6 +3815,7 @@ func TestGetterDeclaration(t *testing.T) {
 						ast.NewGetterDeclarationNode(
 							L(S(P(0, 1, 1), P(38, 1, 39))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(7, 1, 8), P(15, 1, 16))),
@@ -3834,6 +3864,7 @@ func TestGetterDeclaration(t *testing.T) {
 						ast.NewGetterDeclarationNode(
 							L(S(P(5, 2, 5), P(59, 4, 24))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(12, 2, 12), P(20, 2, 20))),
@@ -4082,6 +4113,7 @@ func TestAccessorDeclaration(t *testing.T) {
 							ast.NewAttrDeclarationNode(
 								L(S(P(4, 1, 5), P(15, 1, 16))),
 								"",
+								ast.METHOD_PURE_FLAG,
 								[]ast.ParameterNode{
 									ast.NewAttributeParameterNode(
 										L(S(P(13, 1, 14), P(15, 1, 16))),
@@ -4109,6 +4141,7 @@ func TestAccessorDeclaration(t *testing.T) {
 						ast.NewAttrDeclarationNode(
 							L(S(P(0, 1, 1), P(17, 1, 18))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(9, 1, 10), P(17, 1, 18))),
@@ -4116,6 +4149,33 @@ func TestAccessorDeclaration(t *testing.T) {
 									ast.NewNilableTypeNode(
 										L(S(P(14, 1, 15), P(17, 1, 18))),
 										ast.NewPublicConstantNode(L(S(P(14, 1, 15), P(16, 1, 17))), "Bar"),
+									),
+									nil,
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be impure": {
+			input: "impure attr foo: Bar?",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewAttrDeclarationNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							"",
+							0,
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									L(S(P(12, 1, 13), P(20, 1, 21))),
+									ast.NewPublicIdentifierNode(L(S(P(12, 1, 13), P(14, 1, 15))), "foo"),
+									ast.NewNilableTypeNode(
+										L(S(P(17, 1, 18), P(20, 1, 21))),
+										ast.NewPublicConstantNode(L(S(P(17, 1, 18), P(19, 1, 20))), "Bar"),
 									),
 									nil,
 								),
@@ -4135,6 +4195,7 @@ func TestAccessorDeclaration(t *testing.T) {
 						ast.NewAttrDeclarationNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(9, 1, 10), P(21, 1, 22))),
@@ -4163,6 +4224,7 @@ func TestAccessorDeclaration(t *testing.T) {
 						ast.NewAttrDeclarationNode(
 							L(S(P(0, 1, 1), P(40, 1, 41))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(9, 1, 10), P(17, 1, 18))),
@@ -4211,6 +4273,7 @@ func TestAccessorDeclaration(t *testing.T) {
 						ast.NewAttrDeclarationNode(
 							L(S(P(5, 2, 5), P(61, 4, 24))),
 							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewAttributeParameterNode(
 									L(S(P(14, 2, 14), P(22, 2, 22))),
@@ -9044,6 +9107,8 @@ func TestInitDefinition(t *testing.T) {
 							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "bar"),
 							ast.NewInitDefinitionNode(
 								L(S(P(6, 1, 7), P(14, 1, 15))),
+								"",
+								ast.METHOD_PURE_FLAG,
 								nil,
 								nil,
 								nil,
@@ -9065,6 +9130,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(10, 1, 11))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(10, 1, 11))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							nil,
 							nil,
 							nil,
@@ -9082,6 +9149,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(17, 1, 18))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(17, 1, 18))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							nil,
 							nil,
 							[]ast.StatementNode{
@@ -9111,12 +9180,89 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(35, 1, 36))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(35, 1, 36))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							nil,
 							ast.NewBinaryTypeNode(
 								L(S(P(6, 1, 7), P(30, 1, 31))),
 								T(L(S(P(20, 1, 21), P(20, 1, 21))), token.OR),
 								ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(18, 1, 19))), "NoMethodError"),
 								ast.NewPublicConstantNode(L(S(P(22, 1, 23), P(30, 1, 31))), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"cannot attach pure": {
+			input: "pure init! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(40, 1, 41))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(40, 1, 41))),
+						ast.NewInitDefinitionNode(
+							L(S(P(0, 1, 1), P(40, 1, 41))),
+							"",
+							ast.METHOD_PURE_FLAG,
+							nil,
+							ast.NewBinaryTypeNode(
+								L(S(P(11, 1, 12), P(35, 1, 36))),
+								T(L(S(P(25, 1, 26), P(25, 1, 26))), token.OR),
+								ast.NewPublicConstantNode(L(S(P(11, 1, 12), P(23, 1, 24))), "NoMethodError"),
+								ast.NewPublicConstantNode(L(S(P(27, 1, 28), P(35, 1, 36))), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(3, 1, 4))), "the pure modifier can only be attached once"),
+			},
+		},
+		"can be impure": {
+			input: "impure init! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(42, 1, 43))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(42, 1, 43))),
+						ast.NewInitDefinitionNode(
+							L(S(P(0, 1, 1), P(42, 1, 43))),
+							"",
+							0,
+							nil,
+							ast.NewBinaryTypeNode(
+								L(S(P(13, 1, 14), P(37, 1, 38))),
+								T(L(S(P(27, 1, 28), P(27, 1, 28))), token.OR),
+								ast.NewPublicConstantNode(L(S(P(13, 1, 14), P(25, 1, 26))), "NoMethodError"),
+								ast.NewPublicConstantNode(L(S(P(29, 1, 30), P(37, 1, 38))), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be sealed": {
+			input: "sealed init! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(42, 1, 43))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(42, 1, 43))),
+						ast.NewInitDefinitionNode(
+							L(S(P(0, 1, 1), P(42, 1, 43))),
+							"",
+							ast.METHOD_SEALED_FLAG|ast.METHOD_PURE_FLAG,
+							nil,
+							ast.NewBinaryTypeNode(
+								L(S(P(13, 1, 14), P(37, 1, 38))),
+								T(L(S(P(27, 1, 28), P(27, 1, 28))), token.OR),
+								ast.NewPublicConstantNode(L(S(P(13, 1, 14), P(25, 1, 26))), "NoMethodError"),
+								ast.NewPublicConstantNode(L(S(P(29, 1, 30), P(37, 1, 38))), "TypeError"),
 							),
 							nil,
 						),
@@ -9133,6 +9279,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(14, 1, 15))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9167,6 +9315,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(18, 1, 19))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(18, 1, 19))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9209,6 +9359,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(21, 1, 22))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9259,6 +9411,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(22, 1, 23))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9312,6 +9466,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(26, 1, 27))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(26, 1, 27))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9354,6 +9510,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(19, 1, 20))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9396,6 +9554,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(27, 1, 28))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(27, 1, 28))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9438,6 +9598,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(22, 1, 23))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(22, 1, 23))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9491,6 +9653,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(23, 1, 24))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(23, 1, 24))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(5, 1, 6))),
@@ -9541,6 +9705,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(28, 1, 29))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(28, 1, 29))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(10, 1, 11))),
@@ -9578,6 +9744,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(35, 1, 36))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(35, 1, 36))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(10, 1, 11))),
@@ -9612,6 +9780,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(37, 1, 38))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(37, 1, 38))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(11, 1, 12))),
@@ -9646,6 +9816,8 @@ func TestInitDefinition(t *testing.T) {
 						L(S(P(0, 1, 1), P(40, 1, 41))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(40, 1, 41))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
 									L(S(P(5, 1, 6), P(10, 1, 11))),
@@ -9703,6 +9875,8 @@ end`,
 						L(S(P(0, 1, 1), P(27, 4, 3))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(27, 4, 3))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							nil,
 							nil,
 							[]ast.StatementNode{
@@ -9739,6 +9913,8 @@ end`,
 						L(S(P(0, 1, 1), P(16, 1, 17))),
 						ast.NewInitDefinitionNode(
 							L(S(P(0, 1, 1), P(16, 1, 17))),
+							"",
+							ast.METHOD_PURE_FLAG,
 							nil,
 							nil,
 							[]ast.StatementNode{

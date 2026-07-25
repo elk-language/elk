@@ -229,6 +229,17 @@ func initMethodDefinitionNode() {
 
 	vm.Def(
 		c,
+		"is_pure",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.MethodDefinitionNode)
+			result := value.BoolVal(self.IsPure())
+			return result, value.Undefined
+
+		},
+	)
+
+	vm.Def(
+		c,
 		"location",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.MethodDefinitionNode)
