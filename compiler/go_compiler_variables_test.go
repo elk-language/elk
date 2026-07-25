@@ -1695,485 +1695,652 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 `,
 		},
 
-		// TODO: fix
-		// 		"get box of instance variable in a class instance method": {
-		// 			input: `
-		// 				class Foo
-		// 					var @foo: Int?
+		"get box of instance variable in a class instance method": {
+			input: `
+				class Foo
+					var @foo: Int?
 
-		// 					def foo: ^Int?
-		// 				  	&@foo
-		// 					end
-		// 				end
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(85, 8, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 9),
-		// 					bytecode.NewLineInfo(8, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						namespaceDefinitionsSymbol,
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_NAMESPACE), 1,
-		// 							byte(bytecode.GET_CONST8), 1,
-		// 							byte(bytecode.GET_CONST8), 2,
-		// 							byte(bytecode.SET_SUPERCLASS),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(85, 8, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 10),
-		// 							bytecode.NewLineInfo(8, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Root").ToValue(),
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.ToSymbol("Std::Object").ToValue(),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<ivarIndices>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_IVARS),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(85, 8, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 4),
-		// 							bytecode.NewLineInfo(8, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(&value.IvarIndices{
-		// 								value.ToSymbol("foo"): 0,
-		// 							}),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<methodDefinitions>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_METHOD),
-		// 							byte(bytecode.POP),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(85, 8, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 6),
-		// 							bytecode.NewLineInfo(8, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 								value.ToSymbol("Foo.:foo"),
-		// 								[]byte{
-		// 									byte(bytecode.INT_0),
-		// 									byte(bytecode.CALL_METHOD8), 0,
-		// 									byte(bytecode.RETURN),
-		// 								},
-		// 								L(P(41, 5, 6), P(76, 7, 8)),
-		// 								bytecode.LineInfoList{
-		// 									bytecode.NewLineInfo(6, 3),
-		// 									bytecode.NewLineInfo(7, 1),
-		// 								},
-		// 								[]value.Value{
-		// 									value.Ref(&value.CallSiteInfo{
-		// 										Name:          value.ToSymbol("#box_of_ivar_index"),
-		// 										ArgumentCount: 1,
-		// 									}),
-		// 								},
-		// 							)),
-		// 							value.ToSymbol("foo").ToValue(),
-		// 						},
-		// 					)),
-		// 				},
-		// 			),
-		// 		},
+					def foo: ^Int?
+						&@foo
+					end
+				end
+			`,
+			want: `package main
 
-		// TODO: fix
-		// 		"get box of instance variable from parent in a class instance method": {
-		// 			input: `
-		// 				class Bar
-		// 					var @foo: Int?
-		// 				end
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-		// 				class Foo < Bar
-		// 					def foo: ^Int?
-		// 				  	&@foo
-		// 					end
-		// 				end
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(113, 10, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 9),
-		// 					bytecode.NewLineInfo(10, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						namespaceDefinitionsSymbol,
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_NAMESPACE), 1,
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_NAMESPACE), 1,
-		// 							byte(bytecode.GET_CONST8), 1,
-		// 							byte(bytecode.GET_CONST8), 3,
-		// 							byte(bytecode.SET_SUPERCLASS),
-		// 							byte(bytecode.GET_CONST8), 2,
-		// 							byte(bytecode.GET_CONST8), 1,
-		// 							byte(bytecode.SET_SUPERCLASS),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(113, 10, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 20),
-		// 							bytecode.NewLineInfo(10, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Root").ToValue(),
-		// 							value.ToSymbol("Bar").ToValue(),
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.ToSymbol("Std::Object").ToValue(),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<ivarIndices>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_IVARS),
-		// 							byte(bytecode.GET_CONST8), 2,
-		// 							byte(bytecode.LOAD_VALUE_3),
-		// 							byte(bytecode.DEF_IVARS),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(113, 10, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 8),
-		// 							bytecode.NewLineInfo(10, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Bar").ToValue(),
-		// 							value.Ref(&value.IvarIndices{
-		// 								value.ToSymbol("foo"): 0,
-		// 							}),
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(&value.IvarIndices{
-		// 								value.ToSymbol("foo"): 0,
-		// 							}),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<methodDefinitions>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_METHOD),
-		// 							byte(bytecode.POP),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(113, 10, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 6),
-		// 							bytecode.NewLineInfo(10, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 								value.ToSymbol("Foo.:foo"),
-		// 								[]byte{
-		// 									byte(bytecode.INT_0),
-		// 									byte(bytecode.CALL_METHOD8), 0,
-		// 									byte(bytecode.RETURN),
-		// 								},
-		// 								L(P(69, 7, 6), P(104, 9, 8)),
-		// 								bytecode.LineInfoList{
-		// 									bytecode.NewLineInfo(8, 3),
-		// 									bytecode.NewLineInfo(9, 1),
-		// 								},
-		// 								[]value.Value{
-		// 									value.Ref(&value.CallSiteInfo{
-		// 										Name:          value.ToSymbol("#box_of_ivar_index"),
-		// 										ArgumentCount: 1,
-		// 									}),
-		// 								},
-		// 							)),
-		// 							value.ToSymbol("foo").ToValue(),
-		// 						},
-		// 					)),
-		// 				},
-		// 			),
-		// 		},
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
 
-		// TODO: fix
-		// 		"get box of instance variable from mixin in a class instance method": {
-		// 			input: `
-		// 				mixin Bar
-		// 					var @foo: Int?
-		// 				end
+var sym3 = value.ToSymbol("main")
 
-		// 				class Foo
-		// 					include Bar
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
 
-		// 					def foo: ^Int?
-		// 				  	&@foo
-		// 					end
-		// 				end
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(125, 12, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 9),
-		// 					bytecode.NewLineInfo(12, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						namespaceDefinitionsSymbol,
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_NAMESPACE), 2,
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_NAMESPACE), 1,
-		// 							byte(bytecode.GET_CONST8), 2,
-		// 							byte(bytecode.GET_CONST8), 3,
-		// 							byte(bytecode.SET_SUPERCLASS),
-		// 							byte(bytecode.GET_CONST8), 2,
-		// 							byte(bytecode.GET_CONST8), 1,
-		// 							byte(bytecode.INCLUDE),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(125, 12, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 20),
-		// 							bytecode.NewLineInfo(12, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Root").ToValue(),
-		// 							value.ToSymbol("Bar").ToValue(),
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.ToSymbol("Std::Object").ToValue(),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<ivarIndices>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_IVARS),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(125, 12, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 4),
-		// 							bytecode.NewLineInfo(12, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(&value.IvarIndices{
-		// 								value.ToSymbol("foo"): 0,
-		// 							}),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<methodDefinitions>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_METHOD),
-		// 							byte(bytecode.POP),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(125, 12, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 6),
-		// 							bytecode.NewLineInfo(12, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 								value.ToSymbol("Foo.:foo"),
-		// 								[]byte{
-		// 									byte(bytecode.INT_0),
-		// 									byte(bytecode.CALL_METHOD8), 0,
-		// 									byte(bytecode.RETURN),
-		// 								},
-		// 								L(P(81, 9, 6), P(116, 11, 8)),
-		// 								bytecode.LineInfoList{
-		// 									bytecode.NewLineInfo(10, 3),
-		// 									bytecode.NewLineInfo(11, 1),
-		// 								},
-		// 								[]value.Value{
-		// 									value.Ref(&value.CallSiteInfo{
-		// 										Name:          value.ToSymbol("#box_of_ivar_index"),
-		// 										ArgumentCount: 1,
-		// 									}),
-		// 								},
-		// 							)),
-		// 							value.ToSymbol("foo").ToValue(),
-		// 						},
-		// 					)),
-		// 				},
-		// 			),
-		// 		},
+var sym1 = value.ToSymbol("Foo.:foo")
+var sym2 = value.ToSymbol("<main>")
 
-		// TODO: fix
-		// 		"get box of instance variable in a mixin instance method": {
-		// 			input: `
-		// 				mixin Foo
-		// 					var @foo: Int?
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
 
-		// 					def foo: ^Int?
-		// 				  	&@foo
-		// 					end
-		// 				end
-		// 			`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.EXEC),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(85, 8, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 6),
-		// 					bytecode.NewLineInfo(8, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						namespaceDefinitionsSymbol,
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.DEF_NAMESPACE), 2,
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(85, 8, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 5),
-		// 							bytecode.NewLineInfo(8, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Root").ToValue(),
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 						},
-		// 					)),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						value.ToSymbol("<methodDefinitions>"),
-		// 						[]byte{
-		// 							byte(bytecode.GET_CONST8), 0,
-		// 							byte(bytecode.LOAD_VALUE_1),
-		// 							byte(bytecode.LOAD_VALUE_2),
-		// 							byte(bytecode.DEF_METHOD),
-		// 							byte(bytecode.POP),
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(0, 1, 1), P(85, 8, 8)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(1, 6),
-		// 							bytecode.NewLineInfo(8, 2),
-		// 						},
-		// 						[]value.Value{
-		// 							value.ToSymbol("Foo").ToValue(),
-		// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 								value.ToSymbol("Foo.:foo"),
-		// 								[]byte{
-		// 									byte(bytecode.LOAD_VALUE_0),
-		// 									byte(bytecode.CALL_METHOD8), 1,
-		// 									byte(bytecode.RETURN),
-		// 								},
-		// 								L(P(41, 5, 6), P(76, 7, 8)),
-		// 								bytecode.LineInfoList{
-		// 									bytecode.NewLineInfo(6, 3),
-		// 									bytecode.NewLineInfo(7, 1),
-		// 								},
-		// 								[]value.Value{
-		// 									value.ToSymbol("foo").ToValue(),
-		// 									value.Ref(&value.CallSiteInfo{
-		// 										Name:          value.ToSymbol("#box_of_ivar_name"),
-		// 										ArgumentCount: 1,
-		// 									}),
-		// 								},
-		// 							)),
-		// 							value.ToSymbol("foo").ToValue(),
-		// 						},
-		// 					)),
-		// 				},
-		// 			),
-		// 		},
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	defer thread.PopNativeCallFrame()
+	return value.GetBoxOfInstanceVariable(self, 0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+}
+`,
+		},
+
+		"get the value of a box of instance variable": {
+			input: `
+				class Foo
+					var @foo: Int?
+
+					def foo: Int?
+						box := &@foo
+						box.get
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:foo")
+var sym2 = value.ToSymbol("<main>")
+var sym3 = value.ToSymbol("get")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Box // var box: Std::Box[Std::Int?]
+	_ = l0
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	defer thread.PopNativeCallFrame()
+	l0 = value.GetBoxOfInstanceVariable(self, 0)
+	return (l0).GetValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
+
+		"set the value of a box of instance variable": {
+			input: `
+				class Foo
+					var @foo: Int?
+
+					def foo: Int?
+						box := &@foo
+						box.set(20)
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:foo")
+var sym2 = value.ToSymbol("<main>")
+var sym3 = value.ToSymbol("set")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Box // var box: Std::Box[Std::Int?]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	defer thread.PopNativeCallFrame()
+	l0 = value.GetBoxOfInstanceVariable(self, 0)
+	t1 = (value.SmallInt(20)).ToValue()
+	(l0).SetValue(t1)
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
+
+		"get box of instance variable from parent in a class instance method": {
+			input: `
+				class Bar
+					var @foo: Int?
+				end
+
+				class Foo < Bar
+					def foo: ^Int?
+						&@foo
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Class // Foo
+var sym1 = value.ToSymbol("Foo")
+
+var sym2 = value.ToSymbol("Foo.:foo")
+var sym3 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:7:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 7)
+	defer thread.PopNativeCallFrame()
+	return value.GetBoxOfInstanceVariable(self, 0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const1
+	superclass = const0
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class = const1
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const1 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+}
+`,
+		},
+
+		"get box of instance variable from mixin in a class instance method": {
+			input: `
+				mixin Bar
+					var @foo: Int?
+				end
+
+				class Foo
+					include Bar
+
+					def foo: ^Int?
+						&@foo
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Mixin // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Class // Foo
+var sym1 = value.ToSymbol("Foo")
+
+var sym2 = value.ToSymbol("Foo.:foo")
+var sym3 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 9)
+	defer thread.PopNativeCallFrame()
+	return value.GetBoxOfInstanceVariable(self, 0), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const1
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const1
+	mixin = const0
+	class.IncludeMixin(mixin)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const1
+	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const1 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+}
+`,
+		},
+
+		"get box of instance variable in a mixin instance method": {
+			input: `
+				mixin Foo
+					var @foo: Int?
+
+					def foo: ^Int?
+						&@foo
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Mixin // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym1 = value.ToSymbol("Foo.:foo")
+var sym2 = value.ToSymbol("<main>")
+var sym3 = value.ToSymbol("foo")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *value.BoxOfValue
+	_ = t1
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	defer thread.PopNativeCallFrame()
+	t1, err = value.GetBoxOfInstanceVariableByName(self, sym3)
+	if err.IsNotUndefined() {
+		panic(err)
+	}
+	return t1, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+}
+`,
+		},
 
 		"get instance variable in a class instance method": {
 			input: `
@@ -3817,6 +3984,280 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+		"get box of value": {
+			input: `
+				a := 5
+				box := &a
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Box // var box: Std::Box[Std::Int]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = (*value.BoxOfValue)(&l0)
+}
+`,
+		},
+		"get the value of box of value": {
+			input: `
+				a := 5
+				box := &a
+				c := box.get
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("get")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Box // var box: Std::Box[Std::Int]
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = (*value.BoxOfValue)(&l0)
+	l2 = (l1).GetValue()
+}
+`,
+		},
+		"set the value of box of value": {
+			input: `
+				a := 5
+				box := &a
+				c := box.set(20)
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("set")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Box // var box: Std::Box[Std::Int]
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var t1 value.Value
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	l1 = (*value.BoxOfValue)(&l0)
+	t1 = (value.SmallInt(20)).ToValue()
+	(l1).SetValue(t1)
+	l2 = t1
+}
+`,
+		},
+		"get native box": {
+			input: `
+				a := 5.5
+				box := &a
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 value.Box // var box: Std::Box[Std::Float]
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(5.5)
+	l1 = value.NewNativeBox(&l0)
+}
+`,
+		},
+		"get the value of native box": {
+			input: `
+				a := 5.5
+				val box = &a
+				c := box.get
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("get")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 *value.NativeBox[value.Float] // var box: Std::Box[Std::Float]
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(5.5)
+	l1 = value.NewNativeBox(&l0)
+	l2 = (l1).Get()
+}
+`,
+		},
+		"set the value of native box": {
+			input: `
+				a := 5.5
+				val box = &a
+				c := box.set(0.69)
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("set")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Float // var a: Std::Float
+	_ = l0
+	var l1 *value.NativeBox[value.Float] // var box: Std::Box[Std::Float]
+	_ = l1
+	var l2 value.Float // var c: Std::Float
+	_ = l2
+	var t1 value.Float
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Float(5.5)
+	l1 = value.NewNativeBox(&l0)
+	t1 = value.Float(0.69)
+	(l1).Set(t1)
+	l2 = t1
 }
 `,
 		},

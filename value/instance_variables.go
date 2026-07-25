@@ -13,6 +13,12 @@ func (i *InstanceVariables) BoxOf(index int) *BoxOfValue {
 	return (*BoxOfValue)(&(*i)[index])
 }
 
+func (i *InstanceVariables) ImmutableBoxOf(index int) *ImmutableBoxOfValue {
+	i.ExpandUpToIndex(index)
+
+	return (*ImmutableBoxOfValue)(&(*i)[index])
+}
+
 func (i InstanceVariables) Get(index int) Value {
 	if i.Length() <= index {
 		return Undefined

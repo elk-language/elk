@@ -8024,30 +8024,59 @@ func (c *BytecodeCompiler) compileBoxOfExpressionNode(node *ast.BoxOfExpressionN
 	case *ast.PrivateIdentifierNode:
 		c.compileBoxOfLocal(n.Value, c.typeOf(node), node.Location())
 	case *ast.PublicInstanceVariableNode:
-		location := n.Location()
-		ivarName := value.ToSymbol(n.Value)
-		self := c.checker.SelfType()
+		c.compileBoxOfInstanceVariable(node, n)
+	default:
+		c.addFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+	}
+}
 
-		switch self := self.(type) {
-		case types.NamespaceWithIvarIndices:
-			ivarIndices := self.IvarIndices()
-			index := ivarIndices.GetIndex(ivarName)
-			c.emitSmallInt(value.SmallInt(index), location)
-			callInfo := value.NewCallSiteInfo(
+func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressionNode, ivarNode *ast.PublicInstanceVariableNode) {
+	location := ivarNode.Location()
+	ivarName := value.ToSymbol(ivarNode.Value)
+	typ := c.typeOf(node)
+	self := c.checker.SelfType()
+
+	generic := typ.(*types.Generic)
+	var immutable bool
+	if generic.Namespace.Name() == "Std::ImmutableBox" {
+		immutable = true
+	}
+
+	switch self := self.(type) {
+	case types.NamespaceWithIvarIndices:
+		ivarIndices := self.IvarIndices()
+		index := ivarIndices.GetIndex(ivarName)
+		c.emitSmallInt(value.SmallInt(index), location)
+
+		var callInfo *value.CallSiteInfo
+		if immutable {
+			callInfo = value.NewCallSiteInfo(
+				value.ToSymbol("#immutable_box_of_ivar_index"),
+				1,
+			)
+		} else {
+			callInfo = value.NewCallSiteInfo(
 				value.ToSymbol("#box_of_ivar_index"),
 				1,
 			)
-			c.emitCallMethod(callInfo, location, false)
-		default:
-			c.emitValue(ivarName.ToValue(), location)
-			callInfo := value.NewCallSiteInfo(
+		}
+		c.emitCallMethod(callInfo, location, false)
+	default:
+		c.emitValue(ivarName.ToValue(), location)
+
+		var callInfo *value.CallSiteInfo
+		if immutable {
+			callInfo = value.NewCallSiteInfo(
+				value.ToSymbol("#immutable_box_of_ivar_name"),
+				1,
+			)
+		} else {
+			callInfo = value.NewCallSiteInfo(
 				value.ToSymbol("#box_of_ivar_name"),
 				1,
 			)
-			c.emitCallMethod(callInfo, location, false)
 		}
-	default:
-		c.addFailure(fmt.Sprintf("cannot take the address of: `%s`", node.Expression.Inspect()), node.Location())
+		c.emitCallMethod(callInfo, location, false)
 	}
 }
 

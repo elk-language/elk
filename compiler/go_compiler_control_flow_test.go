@@ -205,8 +205,6 @@ func main() { // loc: <main>
 				_ = err
 				var t2 value.Value
 				_ = t2
-				var t3 []value.Value
-				_ = t3
 
 				callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
 				defer thread.PopNativeCallFrame()
@@ -219,11 +217,11 @@ func main() { // loc: <main>
 					thread.CaptureStackTrace()
 					return value.Undefined, err
 				}
-				t3 = value.ResizeNativeArgs(t3, 3)
-				t3[0] = (value.KernelModule).ToValue()
-				t3[1] = l0
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = l0
 				callFrame.SetNativeLineNumber(5)
-				t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println@1
+				t2, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
 				if err.IsNotUndefined() {
 					thread.CaptureStackTrace()
 					return value.Undefined, err

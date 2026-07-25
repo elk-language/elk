@@ -1219,9 +1219,45 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 	return val, Undefined
 }
 
+// Get a box of (pointer to) the object's instance variable with the given name
+func GetBoxOfInstanceVariableByName(object Value, name Symbol) (val *BoxOfValue, err Value) {
+	class := object.DirectClass()
+	ivars := object.InstanceVariables()
+	if ivars == nil {
+		return nil, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
+	}
+
+	ivarIndex := class.IvarIndices[name]
+	val = ivars.BoxOf(ivarIndex)
+	return val, Undefined
+}
+
+// Get an immutable box of (pointer to) the object's instance variable with the given name
+func GetImmutableBoxOfInstanceVariableByName(object Value, name Symbol) (val *ImmutableBoxOfValue, err Value) {
+	class := object.DirectClass()
+	ivars := object.InstanceVariables()
+	if ivars == nil {
+		return nil, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
+	}
+
+	ivarIndex := class.IvarIndices[name]
+	val = ivars.ImmutableBoxOf(ivarIndex)
+	return val, Undefined
+}
+
 // Get an object's instance variable with the given index
 func GetInstanceVariable(object Value, index int) Value {
 	return object.InstanceVariables().Get(index)
+}
+
+// Get a box of (pointer to) the object's instance variable with the given index
+func GetBoxOfInstanceVariable(object Value, index int) *BoxOfValue {
+	return object.InstanceVariables().BoxOf(index)
+}
+
+// Get an immutable box of (pointer to) the object's instance variable with the given index
+func GetImmutableBoxOfInstanceVariable(object Value, index int) *ImmutableBoxOfValue {
+	return object.InstanceVariables().ImmutableBoxOf(index)
 }
 
 type Inspectable interface {

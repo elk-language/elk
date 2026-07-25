@@ -90,6 +90,30 @@ func initValue() {
 	)
 	Def(
 		c,
+		"#immutable_box_of_ivar_index",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			ivars := self.InstanceVariables()
+			if ivars == nil {
+				return value.Undefined, value.Ref(
+					value.NewError(
+						value.PrimitiveValueErrorClass,
+						"cannot access instance variables in a primitive value",
+					),
+				)
+			}
+
+			index := int(args[1].AsSmallInt())
+			box := ivars.BoxOf(index)
+			if box.Get().IsUndefined() {
+				box.Set(value.Nil)
+			}
+			return box.ToImmutableBox().ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"#box_of_ivar_name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -120,6 +144,41 @@ func initValue() {
 				box.Set(value.Nil)
 			}
 			return value.Ref(box), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"#immutable_box_of_ivar_name",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			ivars := self.InstanceVariables()
+			if ivars == nil {
+				return value.Undefined, value.Ref(
+					value.NewError(
+						value.PrimitiveValueErrorClass,
+						"cannot access instance variables in a primitive value",
+					),
+				)
+			}
+
+			class := self.DirectClass()
+			name := args[1].AsInlineSymbol()
+			index, ok := class.IvarIndices.GetIndexOk(name)
+			if !ok {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.PrimitiveValueErrorClass,
+						"no such instance variable: `@%s`",
+						name.String(),
+					),
+				)
+			}
+			box := ivars.BoxOf(index)
+			if box.Get().IsUndefined() {
+				box.Set(value.Nil)
+			}
+			return box.ToImmutableBox().ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

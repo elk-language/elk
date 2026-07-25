@@ -76,8 +76,6 @@ func main() { // loc: <main>
 			_ = err
 			var t3 value.Value
 			_ = t3
-			var t4 []value.Value
-			_ = t4
 
 			lc1_0 = args[0]
 			callFrame = thread.AddNativeCallFrame(sym2, sym1, 2)
@@ -94,10 +92,10 @@ func main() { // loc: <main>
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			t4 = value.ResizeNativeArgs(t4, 3)
-			t4[0] = l0
-			t4[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
-			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t4...) // receiver: |n: Std::Int|: Std::Int, name: call
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = l0
+			t2[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
+			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
@@ -185,8 +183,6 @@ func main() { // loc: <main>
 			_ = err
 			var t3 value.Value
 			_ = t3
-			var t4 []value.Value
-			_ = t4
 
 			lc1_0 = args[0]
 			callFrame = thread.AddNativeCallFrame(sym2, sym1, 2)
@@ -203,10 +199,10 @@ func main() { // loc: <main>
 				thread.CaptureStackTrace()
 				return value.Undefined, err
 			}
-			t4 = value.ResizeNativeArgs(t4, 3)
-			t4[0] = l0
-			t4[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
-			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t4...) // receiver: |n: Std::Int|: Std::Int, name: call
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = l0
+			t2[1] = value.SubtractInts(lc1_0, (value.SmallInt(1)).ToValue())
+			t3, err = thread.CallCallableWithCache(&cc_fn_cl0_2, t2...) // receiver: |n: Std::Int|: Std::Int, name: call
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				return value.Undefined, err
@@ -474,12 +470,8 @@ func main() { // loc: <main>
 	_ = l2
 	var l3 value.String // var a: Std::String
 	_ = l3
-	var t3 []value.Value
+	var t3 value.Value
 	_ = t3
-	var t4 value.Value
-	_ = t4
-	var t5 []value.Value
-	_ = t5
 	var self value.Value
 	_ = self
 
@@ -501,22 +493,22 @@ func main() { // loc: <main>
 	}
 	l1 = (t1).AsTime()
 	l2 = (value.SmallInt(1)).ToValue()
-	t3 = value.ResizeNativeArgs(t3, 2)
-	t3[0] = value.AddInts(l2, (value.SmallInt(2)).ToValue())
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = value.AddInts(l2, (value.SmallInt(2)).ToValue())
 	callFrame.SetNativeLineNumber(5)
-	t1, err = fn_method1(thread, t3) // receiver: Std::Int, name: to_string
+	t1, err = fn_method1(thread, t2) // receiver: Std::Int, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t5 = value.ResizeNativeArgs(t5, 2)
-	t5[0] = (l1).ToValue()
-	t4, err = fn_method2(thread, t5) // receiver: Std::Time, name: to_string
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (l1).ToValue()
+	t3, err = fn_method2(thread, t2) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l3 = value.String("foo: ") + (t1).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t4).AsString()
+	l3 = value.String("foo: ") + (t1).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t3).AsString()
 }
 `,
 		},
@@ -749,12 +741,8 @@ func main() { // loc: <main>
 	_ = l2
 	var l3 value.Symbol // var a: Std::Symbol
 	_ = l3
-	var t3 []value.Value
+	var t3 value.Value
 	_ = t3
-	var t4 value.Value
-	_ = t4
-	var t5 []value.Value
-	_ = t5
 	var self value.Value
 	_ = self
 
@@ -776,22 +764,22 @@ func main() { // loc: <main>
 	}
 	l1 = (t1).AsTime()
 	l2 = (value.SmallInt(1)).ToValue()
-	t3 = value.ResizeNativeArgs(t3, 2)
-	t3[0] = value.AddInts(l2, (value.SmallInt(2)).ToValue())
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = value.AddInts(l2, (value.SmallInt(2)).ToValue())
 	callFrame.SetNativeLineNumber(5)
-	t1, err = fn_method1(thread, t3) // receiver: Std::Int, name: to_string
+	t1, err = fn_method1(thread, t2) // receiver: Std::Int, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t5 = value.ResizeNativeArgs(t5, 2)
-	t5[0] = (l1).ToValue()
-	t4, err = fn_method2(thread, t5) // receiver: Std::Time, name: to_string
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (l1).ToValue()
+	t3, err = fn_method2(thread, t2) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l3 = (value.String("foo: ") + (t1).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t4).AsString()).ToSymbol()
+	l3 = (value.String("foo: ") + (t1).AsString() + value.String(", bar: ") + (l0).ToString() + value.String(", baz: ") + (t3).AsString()).ToSymbol()
 }
 `,
 		},
@@ -2849,7 +2837,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), ((t1).AsString()).ToValue())
+	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(7, (value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue(), value.Nil, (value.Float(5.6)).ToValue(), value.Nil, (value.SmallInt(5)).ToValue(), t1)
 	err = t3.AppendAt(l0, (value.SmallInt(12)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -3100,7 +3088,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, ((t1).AsString()).ToValue())
+	t3 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, t1)
 	if value.Truthy(l0) {
 		t3.Append((value.SmallInt(5)).ToValue())
 	}
@@ -7573,8 +7561,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t3 *value.Regex
 	_ = t3
-	var t4 []value.Value
-	_ = t4
 	var self value.Value
 	_ = self
 
@@ -7593,10 +7579,10 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	l0 = (t1).AsTime()
-	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = (l0).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (l0).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method1(thread, t4) // receiver: Std::Time, name: to_string
+	t1, err = fn_method1(thread, t2) // receiver: Std::Time, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
