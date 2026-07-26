@@ -5,5 +5,5 @@ noinit class ::Std::Mixin < Object
 	##[
 		Returns the name of the mixin.
 	]##
-	def name: String; end
+	pure def name: String; end
 end

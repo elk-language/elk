@@ -71,7 +71,7 @@ sealed primitive class ::Std::Aborter
 		##[
 			Create a new `Aborter` that is closed.
 		]##
-		def closed: Aborter; end
+		pure def closed: Aborter; end
 
 		##[
 			Create a new `Aborter` that gets automatically closed after the given time span.
@@ -98,12 +98,12 @@ sealed primitive class ::Std::Aborter
 	##[
 		Returns `true` when the aborter is closed.
 	]##
-	def is_closed: bool; end
+	pure def is_closed: bool; end
 
 	##[
 		Returns `true` when the aborter can be closed.
 	]##
-	def is_closable: bool; end
+	pure def is_closable: bool; end
 
 	##[
 		Returns a channel that gets closed when the aborter is closed.

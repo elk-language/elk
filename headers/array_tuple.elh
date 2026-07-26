@@ -10,13 +10,13 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 	##[
 		Returns the number of elements present in the tuple.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns the immutable box/pointer
 		to the slot with the given index.
 	]##
-	def immutable_box_of[V := Val](index: Int): ImmutableBox[V]; end
+	pure def immutable_box_of[V := Val](index: Int): ImmutableBox[V]; end
 
 	##[
 		Get the element under the given index.
@@ -24,7 +24,7 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	overload def [](index: AnyInt): Val; end
+	overload pure def [](index: AnyInt): Val; end
 	##[
 		Return an ArrayTuple that contains the elements from the given range of indices.
 		This new tuple will be backed by the same underlying data structure as the original tuple.
@@ -32,7 +32,7 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Throws an unchecked error if the range contains indices that are negative
 		or are greater or equal to `length`.
 	]##
-	overload def [](range: Range[Int]): ArrayTuple[Val]; end
+	overload pure def [](range: Range[Int]): ArrayTuple[Val]; end
 
 	##[
 		Get the element under the given index.
@@ -40,7 +40,7 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Throws an error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def at(index: AnyInt): Val ! OutOfRangeError; end
+	pure def at(index: AnyInt): Val ! OutOfRangeError; end
 
 	##[
 		Return an ArrayTuple that contains the elements from the given range of indices.
@@ -49,19 +49,19 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Throws an unchecked error if the range contains indices that are negative
 		or are greater or equal to `length`.
 	]##
-	def view(range: Range[Int]): ArrayTuple[Val]; end
+	pure def view(range: Range[Int]): ArrayTuple[Val]; end
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[V](other: Tuple[V]): ArrayTuple[Val | V]; end
+	sealed pure def +[V](other: Tuple[V]): ArrayTuple[Val | V]; end
 
 	##[
 		Create a new `ArrayTuple` containing the elements of `self`
 		repeated `n` times.
 	]##
-	sealed def *(n: Int): ArrayTuple[Val]; end
+	pure sealed def *(n: Int): ArrayTuple[Val]; end
 
 	##[
 		Check whether the given value is an `ArrayTuple`
@@ -88,7 +88,7 @@ sealed primitive class ::Std::ArrayTuple[+Val]
 		Returns an iterator that iterates
 		over each element of the tuple.
 	]##
-	def iter: Iterator[Val]; end
+	pure def iter: Iterator[Val]; end
 
 	sealed primitive class Iterator[+Val]
 		include ::Std::ResettableIterator::Base[Val]

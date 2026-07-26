@@ -24,44 +24,44 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def doc_comment: String; end
-    def name: IdentifierNode; end
-    def type_parameters: ArrayTuple[TypeParameterNode]; end
-    def parameters: ArrayTuple[ParameterNode]; end
-    def return_type: TypeNode; end
-    def throw_type: TypeNode; end
-    def body: ArrayTuple[StatementNode]; end
-    def flags: UInt8; end
-    def location: FS::Location; end
+    pure def doc_comment: String; end
+    pure def name: IdentifierNode; end
+    pure def type_parameters: ArrayTuple[TypeParameterNode]; end
+    pure def parameters: ArrayTuple[ParameterNode]; end
+    pure def return_type: TypeNode; end
+    pure def throw_type: TypeNode; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def flags: UInt8; end
+    pure def location: FS::Location; end
 
     ##[
       Whether the method is abstract eg. `abstract def foo; end`
     ]##
-    def is_abstract: bool; end
+    pure def is_abstract: bool; end
 
     ##[
       Whether the method is sealed eg. `sealed def foo; end`
     ]##
-    def is_sealed: bool; end
+    pure def is_sealed: bool; end
 
     ##[
       Whether the method is a generator eg. `def* foo; end`
     ]##
-    def is_generator: bool; end
+    pure def is_generator: bool; end
 
     ##[
       Whether the method is asynchronous eg. `async def foo; end`
     ]##
-    def is_async: bool; end
+    pure def is_async: bool; end
 
     ##[
       Whether the method is an overload eg. `overload def foo; end`
     ]##
-    def is_overload: bool; end
+    pure def is_overload: bool; end
 
     ##[
       Whether the method is pure so has no side effects.
     ]##
-    def is_pure: bool; end
+    pure def is_pure: bool; end
   end
 end

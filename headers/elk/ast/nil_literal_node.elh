@@ -9,6 +9,6 @@ module Std::Elk::AST
             ComplexConstantNode
 
     init(location: FS::Location = loop; end); end
-    def location: FS::Location; end
+    pure def location: FS::Location; end
   end
 end

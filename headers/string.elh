@@ -9,7 +9,7 @@ sealed noinit primitive class ::Std::String
 		Creates a new `String` containing the content
 		of both operands.
 	]##
-	sealed def +(other: String | Char): String; end
+	pure sealed def +(other: String | Char): String; end
 	alias concat +
 
 	##[
@@ -22,88 +22,88 @@ sealed noinit primitive class ::Std::String
 		a new `String` gets created and returned that doesn't contain
 		the suffix.
 	]##
-	sealed def -(suffix: String | Char): String; end
+	pure sealed def -(suffix: String | Char): String; end
 	alias remove_suffix -
 
 	##[
 		Creates a new `String` that contains the
 		content of `self` repeated `n` times.
 	]##
-	sealed def *(n: Int): String; end
+	pure sealed def *(n: Int): String; end
 	alias repeat *
 
-	sealed def <=>(other: String | Char): Int; end
+	pure sealed def <=>(other: String | Char): Int; end
 
-	sealed def <=(other: String | Char): bool; end
+	pure sealed def <=(other: String | Char): bool; end
 
-	sealed def <(other: String | Char): bool; end
+	pure sealed def <(other: String | Char): bool; end
 
-	sealed def >=(other: String | Char): bool; end
+	pure sealed def >=(other: String | Char): bool; end
 
-	sealed def >(other: String | Char): bool; end
+	pure sealed def >(other: String | Char): bool; end
 
-	sealed def ==(other: any): bool; end
+	pure sealed def ==(other: any): bool; end
 
 	##[
 		Get the Unicode code point with the given index.
 		Indices start at 0.
 	]##
-	def char_at(index: AnyInt): Char; end
+	pure def char_at(index: AnyInt): Char; end
 
 	##[
 		Get the byte with the given index.
 		Indices start at 0.
 	]##
-	def byte_at(index: AnyInt): UInt8; end
+	pure def byte_at(index: AnyInt): UInt8; end
 
 	##[
 		Get the Unicode grapheme cluster with the given index.
 		Indices start at 0.
 	]##
-	def grapheme_at(index: AnyInt): String; end
+	pure def grapheme_at(index: AnyInt): String; end
 
 	##[
 		Create a new string with all of the characters
 		of this one turned into uppercase.
 	]##
-	def uppercase: String; end
+	pure def uppercase: String; end
 
 	##[
 		Create a new string with all of the characters
 		of this one turned into lowercase.
 	]##
-	def lowercase: String; end
+	pure def lowercase: String; end
 
 	##[
 		Create a new string right justified
 		to the given length using the given char for padding.
 	]##
-	def rjust(len: Int, padding: Char): String; end
+	pure def rjust(len: Int, padding: Char): String; end
 
 	##[
 		Create a new string left justified
 		to the given length using the given char for padding.
 	]##
-	def ljust(len: Int, padding: Char): String; end
+	pure def ljust(len: Int, padding: Char): String; end
 
 	##[
 		Get the number of Unicode code points
 		that this `String` contains.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 	alias char_count length
 
 	##[
 		Get the number of bytes that this
 		string contains.
 	]##
-	def byte_count: Int; end
+	pure def byte_count: Int; end
 
 	##[
 		Get the number of unicode grapheme clusters
 		present in this string.
 	]##
-	def grapheme_count: Int; end
+	pure def grapheme_count: Int; end
 
 	##[
 		Convert the `String` to a `Symbol`.
@@ -122,43 +122,43 @@ sealed noinit primitive class ::Std::String
 		- `0o` - base 8
 		- `0b` - base 2
 	]##
-	def to_int(base: Int = 0): Int ! FormatError; end
+	pure def to_int(base: Int = 0): Int ! FormatError; end
 
 	##[
 		Returns itself.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Check whether the `String` is empty.
 	]##
-	def is_empty: bool; end
+	pure def is_empty: bool; end
 
 	##[
 		Iterates over all unicode code points of a `String`.
 	]##
-	def iter: CharIterator; end
+	pure def iter: CharIterator; end
 	alias char_iter iter
 
 	##[
 		Iterates over all grapheme clusters of a `String`.
 	]##
-	def grapheme_iter: GraphemeIterator; end
+	pure def grapheme_iter: GraphemeIterator; end
 
 	##[
 		Iterates over all bytes of a `String`.
 	]##
-	def byte_iter: ByteIterator; end
+	pure def byte_iter: ByteIterator; end
 
 	##[
 		Calculates a hash of the string.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::DoubleQuotedStringLiteralNode; end
+	pure def to_ast_node: Elk::AST::DoubleQuotedStringLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,
@@ -167,17 +167,17 @@ sealed noinit primitive class ::Std::String
 	##[
 		Returns the identifier AST Node with the same value.
 	]##
-	def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
+	pure def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
 
 	##[
 		Returns the constant AST Node with the same value.
 	]##
-	def to_ast_const_node: Elk::AST::PublicConstantNode; end
+	pure def to_ast_const_node: Elk::AST::PublicConstantNode; end
 
 	##[
 		Returns the instance variable AST Node with the same value.
 	]##
-	def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
+	pure def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
 
 	##[
 		Iterates over all unicode code points of a `String`.
@@ -196,7 +196,7 @@ sealed noinit primitive class ::Std::String
 		##[
 			Returns itself.
 		]##
-		def iter: CharIterator; end
+		pure def iter: CharIterator; end
 
 		##[
 			Resets the state of the iterator.
@@ -221,7 +221,7 @@ sealed noinit primitive class ::Std::String
 		##[
 			Returns itself.
 		]##
-		def iter: ByteIterator; end
+		pure def iter: ByteIterator; end
 
 		##[
 			Resets the state of the iterator.
@@ -246,7 +246,7 @@ sealed noinit primitive class ::Std::String
 		##[
 			Returns itself.
 		]##
-		def iter: GraphemeIterator; end
+		pure def iter: GraphemeIterator; end
 
 		##[
 			Resets the state of the iterator.

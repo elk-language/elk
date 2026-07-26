@@ -6,7 +6,7 @@ module Std::Elk::AST
     include StatementNode
 
     init(path: StringLiteralNode, location: FS::Location = loop; end); end
-    def path: StringLiteralNode; end
-    def location: FS::Location; end
+    pure def path: StringLiteralNode; end
+    pure def location: FS::Location; end
   end
 end

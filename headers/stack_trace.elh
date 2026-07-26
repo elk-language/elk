@@ -7,17 +7,17 @@ sealed noinit primitive class ::Std::StackTrace
 	##[
 		Returns the string representation of the stack trace.
 	]##
-	sealed def to_string: String; end
+	pure sealed def to_string: String; end
 
-	def [](index: Int): CallFrame; end
+	pure def [](index: Int): CallFrame; end
 
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns an iterator that iterates
 		over each call frame of the stack trace.
 	]##
-	def iter: Iterator; end
+	pure def iter: Iterator; end
 
 	sealed noinit primitive class Iterator
 		include ::Std::ResettableIterator::Base[CallFrame]

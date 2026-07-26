@@ -5,27 +5,27 @@ sealed noinit primitive class ::Std::CallFrame
 	##[
 		Returns the string representation of the call frame.
 	]##
-	sealed def to_string: String; end
+	pure sealed def to_string: String; end
 
 	##[
 		Name of the called function.
 	]##
-	sealed def func_name: String; end
+	pure sealed def func_name: String; end
 
 	##[
 		Name of the source file where the called function
 		is defined.
 	]##
-	sealed def file_name: String; end
+	pure sealed def file_name: String; end
 
 	##[
 		Number of the line in the source file
 		where the definition of the called function starts.
 	]##
-	sealed def line_number: Int; end
+	pure sealed def line_number: Int; end
 
 	##[
 		Number of optimised tail calls before this call.
 	]##
-	sealed def tail_calls: Int; end
+	pure sealed def tail_calls: Int; end
 end

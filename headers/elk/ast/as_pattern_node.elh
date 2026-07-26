@@ -6,8 +6,8 @@ module Std::Elk::AST
     include PatternNode
 
     init(pattern_node: PatternNode, name: IdentifierNode, location: FS::Location = loop; end); end
-    def pattern_node: PatternNode; end
-    def name: IdentifierNode; end
-    def location: FS::Location; end
+    pure def pattern_node: PatternNode; end
+    pure def name: IdentifierNode; end
+    pure def location: FS::Location; end
   end
 end

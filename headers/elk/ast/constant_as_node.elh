@@ -8,8 +8,8 @@ module Std::Elk::AST
             UsingEntryNode
 
     init(constant: ComplexConstantNode, as_name: String, location: FS::Location = loop; end); end
-    def constant: ComplexConstantNode; end
-    def as_name: String; end
-    def location: FS::Location; end
+    pure def constant: ComplexConstantNode; end
+    pure def as_name: String; end
+    pure def location: FS::Location; end
   end
 end

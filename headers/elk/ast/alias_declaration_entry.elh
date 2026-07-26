@@ -6,8 +6,8 @@ module Std::Elk::AST
     include Node
 
     init(new_name: IdentifierNode, old_name: IdentifierNode, location: FS::Location = loop; end); end
-    def new_name: IdentifierNode; end
-    def old_name: IdentifierNode; end
-    def location: FS::Location; end
+    pure def new_name: IdentifierNode; end
+    pure def old_name: IdentifierNode; end
+    pure def location: FS::Location; end
   end
 end

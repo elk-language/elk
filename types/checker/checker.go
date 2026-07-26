@@ -5359,6 +5359,10 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	if len(c.catchScopes) < 1 {
 		newNode.TailCall = tailPosition
 	}
+
+	if !method.IsPure() {
+		c.addImpureErrorIfInPureContext(node.MethodName.Location())
+	}
 	c.checkCalledMethodThrowType(method, node.MethodName.Location())
 
 	newNode.SetType(method.ReturnType)

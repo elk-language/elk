@@ -12,20 +12,20 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def name: IdentifierNode; end
-    def type_node: TypeNode?; end
-    def initialiser: ExpressionNode?; end
-    def location: FS::Location; end
+    pure def name: IdentifierNode; end
+    pure def type_node: TypeNode?; end
+    pure def initialiser: ExpressionNode?; end
+    pure def location: FS::Location; end
 
 		##[
 			Whether the parameter is optional.
 			eg. `foo?: String`
 		]##
-		def is_optional: bool; end
+		pure def is_optional: bool; end
 
-		def is_normal: bool; end
-		def is_positional_rest: bool; end
-		def is_named_rest: bool; end
+		pure def is_normal: bool; end
+		pure def is_positional_rest: bool; end
+		pure def is_named_rest: bool; end
 
   end
 end

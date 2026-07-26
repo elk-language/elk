@@ -10,7 +10,7 @@ abstract mixin ::Std::Range[Element < Comparable[Element]]
 		Returns `true` when the range is left-open.
 		Otherwise, the range is left-closed.
 	]##
-	def is_left_open: bool; end
+	pure def is_left_open: bool; end
 
 	##[
 		Returns `true` when the range is left-closed.
@@ -22,7 +22,7 @@ abstract mixin ::Std::Range[Element < Comparable[Element]]
 		Returns `true` when the range is right-open.
 		Otherwise, the range is right-closed.
 	]##
-	def is_right_open: bool; end
+	pure def is_right_open: bool; end
 
 	##[
 		Returns `true` when the range is right-closed.
@@ -34,11 +34,11 @@ abstract mixin ::Std::Range[Element < Comparable[Element]]
 		Returns the lower bound of the range.
 		Returns `nil` if the Range is beginless.
 	]##
-	def start: Element?; end
+	pure def start: Element?; end
 
 	##[
 		Returns the upper bound of the range.
 		Returns `nil` if the range is endless.
 	]##
-	def end: Element?; end
+	pure def end: Element?; end
 end

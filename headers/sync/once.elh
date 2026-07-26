@@ -10,7 +10,7 @@ sealed primitive class ::Std::Sync::Once
 			of the original function so that the internal function
 			can only get called once.
 		]##
-		sealed def fn(fn: ||: void): ||: void; end
+		pure sealed def fn(fn: ||: void): ||: void; end
 
 		##[
 			Returns a function that wraps the given function.
@@ -18,7 +18,7 @@ sealed primitive class ::Std::Sync::Once
 			of the original function so that the internal function
 			can only get called once.
 		]##
-		sealed def memo[V, E](fn: ||: V ! E): ||: V ! E; end
+		pure sealed def memo[V, E](fn: ||: V ! E): ||: V ! E; end
 	end
 
 	##[

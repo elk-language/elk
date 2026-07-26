@@ -12,9 +12,9 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def then_expression: ExpressionNode; end
-    def pattern_node: PatternNode; end
-    def in_expression: ExpressionNode; end
-    def location: FS::Location; end
+    pure def then_expression: ExpressionNode; end
+    pure def pattern_node: PatternNode; end
+    pure def in_expression: ExpressionNode; end
+    pure def location: FS::Location; end
   end
 end

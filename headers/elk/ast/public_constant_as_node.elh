@@ -8,8 +8,8 @@ module Std::Elk::AST
             UsingSubentryNode
 
     init(target: PublicConstantNode, as_name: String, location: FS::Location = loop; end); end
-    def target: PublicConstantNode; end
-    def as_name: String; end
-    def location: FS::Location; end
+    pure def target: PublicConstantNode; end
+    pure def as_name: String; end
+    pure def location: FS::Location; end
   end
 end

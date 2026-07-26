@@ -5,5 +5,5 @@ noinit class ::Std::Module < Object
 	##[
 		Returns the name of the module.
 	]##
-	def name: String; end
+	pure def name: String; end
 end

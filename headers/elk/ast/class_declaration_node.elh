@@ -18,15 +18,15 @@ module Std::Elk::AST
       location: FS::Location = loop; end
     ); end
 
-    def doc_comment: Bool; end
-    def is_abstract: Bool; end
-    def is_sealed: Bool; end
-    def is_primitive: Bool; end
-    def is_no_init: Bool; end
-    def constant: ExpressionNode?; end
-    def type_parameters: ArrayTuple[TypeParameterNode]; end
-    def superclass: ExpressionNode; end
-    def body: ArrayTuple[StatementNode]; end
-    def location: FS::Location; end
+    pure def doc_comment: Bool; end
+    pure def is_abstract: Bool; end
+    pure def is_sealed: Bool; end
+    pure def is_primitive: Bool; end
+    pure def is_no_init: Bool; end
+    pure def constant: ExpressionNode?; end
+    pure def type_parameters: ArrayTuple[TypeParameterNode]; end
+    pure def superclass: ExpressionNode; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def location: FS::Location; end
   end
 end

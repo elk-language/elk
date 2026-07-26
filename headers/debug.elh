@@ -19,5 +19,5 @@ module Std::Debug
   ##[
     Returns the name of the native type of the value.
   ]##
-  def inspect_native_type(value: any): String; end
+  pure def inspect_native_type(value: any): String; end
 end

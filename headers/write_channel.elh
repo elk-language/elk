@@ -36,17 +36,17 @@ sealed noinit primitive class ::Std::WriteChannel[V]
 		Returns the size of the buffer that can hold elements
 		until they're popped.
 	]##
-	def capacity: Int; end
+	pure def capacity: Int; end
 
 	##[
 		Returns the amount of elements present in the buffer.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns the amount of slots in the buffer that are available for new elements.
 	]##
-	def left_capacity: Int; end
+	pure def left_capacity: Int; end
 
 	##[
 		Pushes a new element to the channel.

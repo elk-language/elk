@@ -10,24 +10,24 @@ sealed primitive class ::Std::HashMap[Key, Value]
 	##[
 		Returns the number of key-value pairs present in the map.
 	]##
-	def length: Int; end
+	pure sealed def length: Int; end
 
 	##[
 		Get the element under the given key.
 		Returns `nil` when the key is not present.
 	]##
-	def [](key: Key): Value?; end
+	pure sealed def [](key: Key): Value?; end
 
 	##[
 		Set the element under the given index to the given value.
 	]##
-	def []=(key: Key, value: Value); end
+	sealed def []=(key: Key, value: Value); end
 
 	##[
 		Create a new `HashMap` containing the pairs of `self`
 		and another given record/map.
 	]##
-	sealed def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
+	sealed pure def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this map.
@@ -96,7 +96,7 @@ sealed primitive class ::Std::HashMap[Key, Value]
 		Returns an iterator that iterates
 		over each element of the map.
 	]##
-	def iter: Iterator[Key, Value]; end
+	pure def iter: Iterator[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]

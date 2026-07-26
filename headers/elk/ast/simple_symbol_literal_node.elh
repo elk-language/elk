@@ -9,10 +9,10 @@ module Std::Elk::AST
             SymbolLiteralNode
 
     init(content: String, location: FS::Location = loop; end); end
-    def content: String; end
-    def location: FS::Location; end
-    def to_symbol: Symbol; end
+    pure def content: String; end
+    pure def location: FS::Location; end
+    pure def to_symbol: Symbol; end
 
-    def to_ast_ident_node: IdentifierNode; end
+    pure def to_ast_ident_node: IdentifierNode; end
   end
 end

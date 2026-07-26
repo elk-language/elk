@@ -16,14 +16,14 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def parameters: ArrayTuple[ParameterNode]; end
-    def throw_type: TypeNode?; end
-    def body: ArrayTuple[StatementNode]; end
-    def doc_comment: String; end
-    def flags: UInt8; end
-    def location: FS::Location; end
+    pure def parameters: ArrayTuple[ParameterNode]; end
+    pure def throw_type: TypeNode?; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def doc_comment: String; end
+    pure def flags: UInt8; end
+    pure def location: FS::Location; end
 
-    def is_sealed: bool; end
-    def is_pure: bool; end
+    pure def is_sealed: bool; end
+    pure def is_pure: bool; end
   end
 end

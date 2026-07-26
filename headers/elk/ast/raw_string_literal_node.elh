@@ -10,7 +10,7 @@ module Std::Elk::AST
             SimpleStringLiteralNode
 
     init(value: String, location: FS::Location = loop; end); end
-    def value: String; end
-    def location: FS::Location; end
+    pure def value: String; end
+    pure def location: FS::Location; end
   end
 end

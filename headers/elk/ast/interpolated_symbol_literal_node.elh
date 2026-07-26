@@ -8,7 +8,7 @@ module Std::Elk::AST
             SymbolLiteralNode
 
     init(content: InterpolatedStringLiteralNode, location: FS::Location = loop; end); end
-    def content: InterpolatedStringLiteralNode; end
-    def location: FS::Location; end
+    pure def content: InterpolatedStringLiteralNode; end
+    pure def location: FS::Location; end
   end
 end

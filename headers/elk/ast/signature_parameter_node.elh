@@ -13,9 +13,9 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def name: IdentifierNode; end
-    def type_node: TypeNode; end
-    def location: FS::Location; end
+    pure def name: IdentifierNode; end
+    pure def type_node: TypeNode; end
+    pure def location: FS::Location; end
 
     ##[
       Returns an integer that determines whether
@@ -26,13 +26,13 @@ module Std::Elk::AST
       - `POSITIONAL_REST_KIND`
       - `NAMED_REST_KIND`
     ]##
-    def kind: UInt8; end
+    pure def kind: UInt8; end
 
 		##[
 			Whether the parameter is optional.
 			eg. `foo?: String`
 		]##
-		def is_optional: bool; end
+		pure def is_optional: bool; end
 
 		##[
 			Whether the parameter is normal
@@ -40,16 +40,16 @@ module Std::Elk::AST
 
 			eg. `foo: String`
 		]##
-		def is_normal: bool; end
+		pure def is_normal: bool; end
 
 		##[
 			Whether it's a positional rest parameter eg `*foo: String`
 		]##
-		def is_positional_rest: bool; end
+		pure def is_positional_rest: bool; end
 
 		##[
 			Whether it's a named rest parameter eg `**foo: String`
 		]##
-		def is_named_rest: bool; end
+		pure def is_named_rest: bool; end
   end
 end

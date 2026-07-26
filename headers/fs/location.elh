@@ -10,12 +10,12 @@ module ::Std::FS
     ##[
       Returns the position of the file fragment.
     ]##
-    def span: String::Span; end
+    pure def span: String::Span; end
 
     ##[
       Returns the path of the file
       where the piece of text is located.
     ]##
-    def file_path: Path; end
+    pure def file_path: Path; end
   end
 end

@@ -83,17 +83,17 @@ sealed primitive class ::Std::Channel[V]
 		Returns the size of the buffer that can hold elements
 		until they're popped.
 	]##
-	def capacity: Int; end
+	pure def capacity: Int; end
 
 	##[
 		Returns the amount of elements present in the buffer.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns the amount of slots in the buffer that are available for new elements.
 	]##
-	def left_capacity: Int; end
+	pure def left_capacity: Int; end
 
 	##[
 		Pushes a new element to the channel.
@@ -136,15 +136,15 @@ sealed primitive class ::Std::Channel[V]
 
 	def next: V ! :stop_iteration; end
 
-	def iter: self; end
+	pure def iter: self; end
 
 	##[
 		Obtain a read-only view of the channel.
 	]##
-	def readonly: ReadChannel[V]; end
+	pure def readonly: ReadChannel[V]; end
 
 	##[
 		Obtain a write-only view of the channel.
 	]##
-	def writeonly: WriteChannel[V]; end
+	pure def writeonly: WriteChannel[V]; end
 end

@@ -11,8 +11,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def elements: ArrayTuple[WordCollectionContentNode]; end
-    def capacity: ExpressionNode?; end
-    def location: FS::Location; end
+    pure def elements: ArrayTuple[WordCollectionContentNode]; end
+    pure def capacity: ExpressionNode?; end
+    pure def location: FS::Location; end
   end
 end

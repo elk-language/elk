@@ -26,7 +26,7 @@ sealed noinit primitive class ::Std::BigFloat
 	##[
 		returns the mantissa precision of `self` in bits.
 	]##
-	def precision: UInt64; end
+	pure def precision: UInt64; end
 
 	##[
 		Returns itself.
@@ -36,7 +36,7 @@ sealed noinit primitive class ::Std::BigFloat
 			+a #=> 1.2bf
 		```
 	]##
-	sealed def +@: BigFloat; end
+	pure sealed def +@: BigFloat; end
 
 	##[
 		Returns the result of negating the number.
@@ -46,47 +46,47 @@ sealed noinit primitive class ::Std::BigFloat
 			-a #=> -1.2bf
 		```
 	]##
-	sealed def -@: BigFloat; end
+	pure sealed def -@: BigFloat; end
 
 	##[
 		Add `other` to this bigfloat.
 	]##
-	sealed overload def +(other: CoercibleNumeric): BigFloat; end
-	sealed overload def +(other: Int): BigFloat; end
-	sealed overload def +(other: Float): BigFloat; end
-	sealed overload def +(other: BigFloat): BigFloat; end
+	pure sealed overload def +(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def +(other: Int): BigFloat; end
+	pure sealed overload def +(other: Float): BigFloat; end
+	pure sealed overload def +(other: BigFloat): BigFloat; end
 
 	##[
 		Subtract `other` from this bigfloat.
 	]##
-	sealed overload def -(other: CoercibleNumeric): BigFloat; end
-	sealed overload def -(other: Int): BigFloat; end
-	sealed overload def -(other: Float): BigFloat; end
-	sealed overload def -(other: BigFloat): BigFloat; end
+	pure sealed overload def -(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def -(other: Int): BigFloat; end
+	pure sealed overload def -(other: Float): BigFloat; end
+	pure sealed overload def -(other: BigFloat): BigFloat; end
 
 	##[
 		Multiply this float by `other`.
 	]##
-	sealed overload def *(other: CoercibleNumeric): BigFloat; end
-	sealed overload def *(other: Int): BigFloat; end
-	sealed overload def *(other: Float): BigFloat; end
-	sealed overload def *(other: BigFloat): BigFloat; end
+	pure sealed overload def *(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def *(other: Int): BigFloat; end
+	pure sealed overload def *(other: Float): BigFloat; end
+	pure sealed overload def *(other: BigFloat): BigFloat; end
 
 	##[
 		Divide this float by another float.
 	]##
-	sealed overload def /(other: CoercibleNumeric): BigFloat; end
-	sealed overload def /(other: Int): BigFloat; end
-	sealed overload def /(other: Float): BigFloat; end
-	sealed overload def /(other: BigFloat): BigFloat; end
+	pure sealed overload def /(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def /(other: Int): BigFloat; end
+	pure sealed overload def /(other: Float): BigFloat; end
+	pure sealed overload def /(other: BigFloat): BigFloat; end
 
 	##[
 		Exponentiate this float, raise it to the power of `other`.
 	]##
-	sealed overload def **(other: CoercibleNumeric): BigFloat; end
-	sealed overload def **(other: Int): BigFloat; end
-	sealed overload def **(other: Float): BigFloat; end
-	sealed overload def **(other: BigFloat): BigFloat; end
+	pure sealed overload def **(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def **(other: Int): BigFloat; end
+	pure sealed overload def **(other: Float): BigFloat; end
+	pure sealed overload def **(other: BigFloat): BigFloat; end
 
 	##[
 		Returns the remainder of dividing by `other`.
@@ -97,107 +97,107 @@ sealed noinit primitive class ::Std::BigFloat
 			a % b #=> 1bf
 		```
 	]##
-	sealed overload def %(other: CoercibleNumeric): BigFloat; end
-	sealed overload def %(other: Int): BigFloat; end
-	sealed overload def %(other: Float): BigFloat; end
-	sealed overload def %(other: BigFloat): BigFloat; end
+	pure sealed overload def %(other: CoercibleNumeric): BigFloat; end
+	pure sealed overload def %(other: Int): BigFloat; end
+	pure sealed overload def %(other: Float): BigFloat; end
+	pure sealed overload def %(other: BigFloat): BigFloat; end
 
 
 	##[
 		Compare this float with another float.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: CoercibleNumeric): Int; end
+	pure sealed def <=>(other: CoercibleNumeric): Int; end
 
-	sealed def >=(other: CoercibleNumeric): Bool; end
+	pure sealed def >=(other: CoercibleNumeric): Bool; end
 
-	sealed def >(other: CoercibleNumeric): Bool; end
+	pure sealed def >(other: CoercibleNumeric): Bool; end
 
-	sealed def <=(other: CoercibleNumeric): Bool; end
+	pure sealed def <=(other: CoercibleNumeric): Bool; end
 
-	sealed def <(other: CoercibleNumeric): Bool; end
+	pure sealed def <(other: CoercibleNumeric): Bool; end
 
-	sealed def ==(other: any): Bool; end
+	pure sealed def ==(other: any): Bool; end
 
 	##[
 		Returns itself.
 	]##
-	def to_bigfloat: BigFloat; end
+	pure def to_bigfloat: BigFloat; end
 
 	##[
 		Converts to a fixed-precision floating point number.
 	]##
-	def to_float: Float; end
+	pure def to_float: Float; end
 
 	##[
 		Converts the bigfloat to an automatically resized integer.
 	]##
-	def to_int: Int; end
+	pure def to_int: Int; end
 
 	##[
 		Converts the bigfloat to a 64-bit floating point number.
 	]##
-	def to_float64: Float64; end
+	pure def to_float64: Float64; end
 
 	##[
 		Converts the bigfloat to a 32-bit floating point number.
 	]##
-	def to_float32: Float32; end
+	pure def to_float32: Float32; end
 
 	##[
 		Converts the bigfloat to a 64-bit integer.
 	]##
-	def to_int64: Int64; end
+	pure def to_int64: Int64; end
 
 	##[
 		Converts the bigfloat to a 32-bit integer.
 	]##
-	def to_int32: Int32; end
+	pure def to_int32: Int32; end
 
 	##[
 		Converts the bigfloat to a 16-bit integer.
 	]##
-	def to_int16: Int16; end
+	pure def to_int16: Int16; end
 
 	##[
 		Converts the bigfloat to a 8-bit integer.
 	]##
-	def to_int8: Int8; end
+	pure def to_int8: Int8; end
 
 	##[
 		Converts the integer to an unsigned integer.
 	]##
-	def to_uint: UInt; end
+	pure def to_uint: UInt; end
 
 	##[
 		Converts the bigfloat to an unsigned 64-bit integer.
 	]##
-	def to_uint64: UInt64; end
+	pure def to_uint64: UInt64; end
 
 	##[
 		Converts the bigfloat to an unsigned 32-bit integer.
 	]##
-	def to_uint32: UInt32; end
+	pure def to_uint32: UInt32; end
 
 	##[
 		Converts the bigfloat to an unsigned 16-bit integer.
 	]##
-	def to_uint16: UInt16; end
+	pure def to_uint16: UInt16; end
 
 	##[
 		Converts the bigfloat to an unsigned 8-bit integer.
 	]##
-	def to_uint8: UInt8; end
+	pure def to_uint8: UInt8; end
 
 	##[
 		Calculates a hash of the float.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::BigFloatLiteralNode; end
+	pure def to_ast_node: Elk::AST::BigFloatLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 				to_ast_type_node to_ast_node,

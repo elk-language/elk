@@ -6,8 +6,8 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(key: IdentifierNode, value: ExpressionNode, location: FS::Location = loop; end); end
-    def key: IdentifierNode; end
-    def value: ExpressionNode; end
-    def location: FS::Location; end
+    pure def key: IdentifierNode; end
+    pure def value: ExpressionNode; end
+    pure def location: FS::Location; end
   end
 end

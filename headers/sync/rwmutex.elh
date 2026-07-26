@@ -31,5 +31,5 @@ sealed primitive class ::Std::Sync::RWMutex
 		Creates a read only wrapper around this mutex
 		that exposes `read_lock` and `read_unlock` methods as `lock` and `unlock`.
 	]##
-	sealed def to_read_only: Sync::ROMutex; end
+	pure sealed def to_read_only: Sync::ROMutex; end
 end

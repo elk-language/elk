@@ -26,13 +26,13 @@ module Std::Elk::AST
             TypeParameterNode
 
     init(token: Elk::Token, location: FS::Location = loop; end); end
-    def token: Elk::Token; end
-    def location: FS::Location; end
-    def is_optional: bool; end
-    def is_normal: bool; end
-    def is_positional_rest: bool; end
-    def is_named_rest: bool; end
+    pure def token: Elk::Token; end
+    pure def location: FS::Location; end
+    pure def is_optional: bool; end
+    pure def is_normal: bool; end
+    pure def is_positional_rest: bool; end
+    pure def is_named_rest: bool; end
 
-    def value: String; end
+    pure def value: String; end
   end
 end

@@ -24,91 +24,91 @@ sealed primitive class ::Std::Date < Value
 		Adds the given date span to this date.
 		Returns a new date value.
 	]##
-	overload def +(other: Span): Date; end
-	overload def +(other: DateTime::Span): DateTime; end
-	overload def +(other: Time::Span): DateTime; end
+	pure overload def +(other: Span): Date; end
+	pure overload def +(other: DateTime::Span): DateTime; end
+	pure overload def +(other: Time::Span): DateTime; end
 
 	##[
 		Subtracts the given date span from the date.
 		Returns a new date value.
 	]##
-	overload def -(other: Span): Date; end
-	overload def -(other: Date): Span; end
-	overload def -(other: DateTime): DateTime::Span; end
+	pure overload def -(other: Span): Date; end
+	pure overload def -(other: Date): Span; end
+	pure overload def -(other: DateTime): DateTime::Span; end
 
 	##[
 		Calculates the difference between two date values.
 		Returns a date span.
 	]##
-	overload def diff(other: Date | DateTime): Duration; end
-	overload def diff(other: Date): Span; end
-	overload def diff(other: DateTime): DateTime::Span; end
+	pure overload def diff(other: Date | DateTime): Duration; end
+	pure overload def diff(other: Date): Span; end
+	pure overload def diff(other: DateTime): DateTime::Span; end
 
 	##[
 		Create a string formatted according to the given format string.
 	]##
-	def strftime(fmt: String): String; end
+	pure def strftime(fmt: String): String; end
 	alias format strftime
 
 	##[
 		Returns the string representation of the date in the format "2025-12-27".
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Converts this `Date` to a `DateTime` with the time component zeroed out.
 	]##
-	def to_datetime: DateTime; end
-	def to_date: Date; end
-	def to_date_span: Span; end
+	pure def to_datetime: DateTime; end
+	pure def to_date: Date; end
+	pure def to_date_span: Span; end
 
 	##[
 		Returns the millenium (year / 1000)
 	]##
-	def millenium: Int; end
+	pure def millenium: Int; end
 
 	##[
 		Returns the century (year / 100)
 	]##
-	def century: Int; end
+	pure def century: Int; end
 
 	##[
 		Returns the year.
 	]##
-	def year: Int; end
+	pure def year: Int; end
 
 	##[
 		Returns the last two digits of the year.
 	]##
-	def year_last_two: Int; end
+	pure def year_last_two: Int; end
 
 	##[
 		Returns the day of the month in range `1...12`
 	]##
-	def month: Int; end
+	pure def month: Int; end
 
 	##[
 		Returns the day in range `1...31`
 	]##
-	def day: Int; end
+	pure def day: Int; end
 	alias month_day day
 
 	##[
 		Returns the ISO 8601 year in which `self` occurs.
 	]##
-	def iso_year: Int; end
+	pure def iso_year: Int; end
 
 	##[
 		Returns the last two digits of the ISO 8601 year in which `self` occurs.
 	]##
-	def iso_year_last_two: Int; end
+	pure def iso_year_last_two: Int; end
 
 	##[
 		The week number of the current year as a decimal number,
 		range 0 to 53, starting with the first Monday
 		as the first day of week 1.
 	]##
-	def week_from_monday: Int; end
+	pure def week_from_monday: Int; end
 	alias week week_from_monday
 
 	##[
@@ -116,83 +116,83 @@ sealed primitive class ::Std::Date < Value
 		range 0 to 53, starting with the first Sunday
 		as the first day of week 01.
 	]##
-	def week_from_sunday: Int; end
+	pure def week_from_sunday: Int; end
 
 	##[
 		Returns the ISO 8601 week number in which `self` occurs.
 		Week ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.
 	]##
-	def iso_week: Int; end
+	pure def iso_week: Int; end
 
 	##[
 		Returns the day of the year.
 	]##
-	def year_day: Int; end
+	pure def year_day: Int; end
 
 	##[
 		Returns the day of the ISO year.
 	]##
-	def iso_year_day: Int; end
+	pure def iso_year_day: Int; end
 
 	##[
 		Returns the name of the day of the week.
 	]##
-	def weekday_name: String; end
+	pure def weekday_name: String; end
 
 	##[
 		Returns the abbreviated (3-letter) name of the day of the week.
 	]##
-	def abbreviated_weekday_name: String; end
+	pure def abbreviated_weekday_name: String; end
 
 	##[
 		Returns the number of the day of the week, where 1 is Monday, 7 is Sunday
 	]##
-	def weekday_from_monday: Int; end
+	pure def weekday_from_monday: Int; end
 	alias weekday weekday_from_monday
 
 	##[
 		Returns the number of the day of the week, where 0 is Sunday, 6 is Saturday
 	]##
-	def weekday_from_sunday: Int; end
+	pure def weekday_from_sunday: Int; end
 
 	##[
 		Checks whether the day of the week is monday.
 	]##
-	def is_monday: bool; end
+	pure def is_monday: bool; end
 
 	##[
 		Checks whether the day of the week is tuesday.
 	]##
-	def is_tuesday: bool; end
+	pure def is_tuesday: bool; end
 
 	##[
 		Checks whether the day of the week is wednesday.
 	]##
-	def is_wednesday: bool; end
+	pure def is_wednesday: bool; end
 
 	##[
 		Checks whether the day of the week is thursday.
 	]##
-	def is_thursday: bool; end
+	pure def is_thursday: bool; end
 
 	##[
 		Checks whether the day of the week is friday.
 	]##
-	def is_friday: bool; end
+	pure def is_friday: bool; end
 
 	##[
 		Checks whether the day of the week is saturday.
 	]##
-	def is_saturday: bool; end
+	pure def is_saturday: bool; end
 
 	##[
 		Checks whether the day of the week is sunday.
 	]##
-	def is_sunday: bool; end
+	pure def is_sunday: bool; end
 
-	sealed def <=>(other: Date | DateTime): Int; end
-	sealed def >=(other: Date | DateTime): bool; end
-	sealed def >(other: Date | DateTime): bool; end
-	sealed def <=(other: Date | DateTime): bool; end
-	sealed def <(other: Date | DateTime): bool; end
+	pure sealed def <=>(other: Date | DateTime): Int; end
+	pure sealed def >=(other: Date | DateTime): bool; end
+	pure sealed def >(other: Date | DateTime): bool; end
+	pure sealed def <=(other: Date | DateTime): bool; end
+	pure sealed def <(other: Date | DateTime): bool; end
 end

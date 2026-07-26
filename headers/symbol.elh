@@ -12,35 +12,35 @@
 sealed noinit primitive class ::Std::Symbol < Value
 	implement Hashable
 
-	sealed def ==(other: any): bool; end
+	pure sealed def ==(other: any): bool; end
 
 	##[
 		Returns the string associated with this symbol.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 	alias name to_string
 
 	##[
 		Returns itself.
 	]##
-	def to_symbol: Symbol; end
+	pure def to_symbol: Symbol; end
 
 	##[
 		Calculates a hash of the symbol.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Return a human readable string
 		representation of this object
 		for debugging etc.
 	]##
-	def inspect: String; end
+	pure def inspect: String; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::SimpleSymbolLiteralNode; end
+	pure def to_ast_node: Elk::AST::SimpleSymbolLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,
@@ -49,15 +49,15 @@ sealed noinit primitive class ::Std::Symbol < Value
 	##[
 		Returns the identifier AST Node with the same value.
 	]##
-	def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
+	pure def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
 
 	##[
 		Returns the constant AST Node with the same value.
 	]##
-	def to_ast_const_node: Elk::AST::PublicConstantNode; end
+	pure def to_ast_const_node: Elk::AST::PublicConstantNode; end
 
 	##[
 		Returns the instance variable AST Node with the same value.
 	]##
-	def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
+	pure def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
 end

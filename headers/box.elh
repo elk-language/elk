@@ -10,10 +10,10 @@ sealed primitive class ::Std::Box[Val] < ImmutableBox[Val]
 	##[
 		Returns `self`
 	]##
-	def to_box: Box[Val]; end
+	pure def to_box: Box[Val]; end
 
 	##[
 		Convert this `Box` to an `ImmutableBox`
 	]##
-	def to_immutable_box: ImmutableBox[Val]; end
+	pure def to_immutable_box: ImmutableBox[Val]; end
 end

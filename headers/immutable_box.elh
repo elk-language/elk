@@ -7,7 +7,7 @@ sealed primitive class ::Std::ImmutableBox[+Val]
 	##[
 		Retrieves the value stored in the `Box`.
 	]##
-	def get: Val; end
+	pure def get: Val; end
 
 	##[
 		Returns the raw address of the pointer as an unsigned integer.
@@ -21,7 +21,7 @@ sealed primitive class ::Std::ImmutableBox[+Val]
 		with a stale address of already freed memory.
 		Reading freed memory is undefined behaviour.
 	]##
-	def address: UInt; end
+	pure def address: UInt; end
 
 	##[
 		Returns self.

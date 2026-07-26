@@ -5,13 +5,13 @@ sealed noinit primitive class ::Std::ThreadPool
 	##[
 		Returns the count of thread workers available in the pool.
 	]##
-	def thread_count: Int; end
+	pure def thread_count: Int; end
 
 	##[
 		Returns the number of available slots in the task
 		queue.
 	]##
-	def task_queue_size: Int; end
+	pure def task_queue_size: Int; end
 
 	##[
 		Closes the thread pool, shuts down all thread workers.

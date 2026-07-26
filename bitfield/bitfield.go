@@ -61,6 +61,10 @@ func (b BitField8) Byte() byte {
 	return byte(b.bitfield)
 }
 
+func (b BitField8) ToBitFlag() BitFlag8 {
+	return b.bitfield
+}
+
 func (b BitField8) AllSetFlags() iter.Seq2[int, BitFlag8] {
 	return func(yield func(int, BitFlag8) bool) {
 		for i := range 8 {

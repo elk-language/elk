@@ -11,7 +11,7 @@ abstract mixin ::Std::Tuple[+Val]
 		Throws an error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	sig at(index: AnyInt): Val ! OutOfRangeError
+	abstract def at(index: AnyInt): Val ! OutOfRangeError; end
 
 	# Base methods
 

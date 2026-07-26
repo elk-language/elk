@@ -14,8 +14,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end
     ); end
 
-    def left: ExpressionNode?; end
-    def right: ComplexConstantNode; end
-    def location: FS::Location; end
+    pure def left: ExpressionNode?; end
+    pure def right: ComplexConstantNode; end
+    pure def location: FS::Location; end
   end
 end

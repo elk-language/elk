@@ -39,12 +39,12 @@ sealed primitive class ::Std::DiagnosticList
 		This value will change when the list gets resized,
 		and the underlying array gets reallocated
 	]##
-	def capacity: Int; end
+	pure def capacity: Int; end
 
 	##[
 		Returns the number of elements present in the list.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns the number of left slots for new elements
@@ -55,7 +55,7 @@ sealed primitive class ::Std::DiagnosticList
 
 		It is always equal to `capacity - length`.
 	]##
-	def left_capacity: Int; end
+	pure def left_capacity: Int; end
 
 	##[
 		Get the element under the given index.
@@ -63,7 +63,7 @@ sealed primitive class ::Std::DiagnosticList
 		Throws an unchecked error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	overload def [](index: AnyInt): Diagnostic; end
+	overload pure def [](index: AnyInt): Diagnostic; end
 	##[
 		Return a DiagnosticList that contains the elements from the given range of indices.
 		This list should be backed by the same buffer as the original list.
@@ -71,7 +71,7 @@ sealed primitive class ::Std::DiagnosticList
 		Throws an unchecked error if the range contains indices that are negative
 		or are greater or equal to `length`.
 	]##
-	overload def [](range: Range[Int]): DiagnosticList; end
+	overload pure def [](range: Range[Int]): DiagnosticList; end
 
 	##[
 		Get the element under the given index.
@@ -79,7 +79,7 @@ sealed primitive class ::Std::DiagnosticList
 		Throws an error if the index is a negative number
 		or is greater or equal to `length`.
 	]##
-	def at(index: AnyInt): Diagnostic ! OutOfRangeError; end
+	pure def at(index: AnyInt): Diagnostic ! OutOfRangeError; end
 
 	##[
 		Set the element under the given index to the given value.
@@ -93,30 +93,30 @@ sealed primitive class ::Std::DiagnosticList
 		Create a new `ArrayList` containing the elements of `self`
 		and another given `Tuple`.
 	]##
-	sealed def +[V](other: Tuple[V]): ArrayList[Diagnostic | V]; end
+	sealed pure def +[V](other: Tuple[V]): ArrayList[Diagnostic | V]; end
 
 	##[
 		Create a new list containing the elements of `self`
 		repeated `n` times.
 	]##
-	sealed def *(n: Int): self; end
+	pure sealed def *(n: Int): self; end
 
 	##[
 		Check whether the given `value` is present in this list.
 	]##
-	def contains[V := Diagnostic](value: V): bool; end
+	pure def contains[V := Diagnostic](value: V): bool; end
 
 	##[
 		Check whether the given value is an `ArrayList`
 		with the same elements.
 	]##
-	sealed def ==(other: any): Bool; end
+	pure sealed def ==(other: any): Bool; end
 
 	##[
 		Check whether the given value is an `ArrayList` or `ArrayTuple`
 		with the same elements.
 	]##
-	sealed def =~(other: any): Bool; end
+	pure sealed def =~(other: any): Bool; end
 
 	##[
 		Adds the given values to the list.
@@ -155,7 +155,7 @@ sealed primitive class ::Std::DiagnosticList
 	##[
 		Check if this diagnostic list contains a fail.
 	]##
-	def is_failure: bool; end
+	pure def is_failure: bool; end
 
 	##[
 		Get the human readable
@@ -171,7 +171,7 @@ sealed primitive class ::Std::DiagnosticList
 		Returns an iterator that iterates
 		over each element of the list.
 	]##
-	def iter: Iterator; end
+	pure def iter: Iterator; end
 
 	sealed primitive class Iterator
 		include ::Std::ResettableIterator::Base[Diagnostic]

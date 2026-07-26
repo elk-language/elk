@@ -15,16 +15,16 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def doc_comment: String; end
-    def name: IdentifierNode; end
-    def parameters: ArrayTuple[ParameterNode]; end
-    def return_type: TypeNode; end
-    def body: ArrayTuple[StatementNode]; end
-    def location: FS::Location; end
+    pure def doc_comment: String; end
+    pure def name: IdentifierNode; end
+    pure def parameters: ArrayTuple[ParameterNode]; end
+    pure def return_type: TypeNode; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def location: FS::Location; end
 
     ##[
       Whether the method is sealed eg. `sealed def foo; end`
     ]##
-    def is_sealed: bool; end
+    pure def is_sealed: bool; end
   end
 end

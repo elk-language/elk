@@ -6,9 +6,9 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(modifier: Elk::Token, left: ExpressionNode, right: ExpressionNode, location: FS::Location = loop; end); end
-    def modifier: Elk::Token; end
-    def left: ExpressionNode; end
-    def right: ExpressionNode; end
-    def location: FS::Location; end
+    pure def modifier: Elk::Token; end
+    pure def left: ExpressionNode; end
+    pure def right: ExpressionNode; end
+    pure def location: FS::Location; end
   end
 end

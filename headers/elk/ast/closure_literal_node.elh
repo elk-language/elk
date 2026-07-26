@@ -15,12 +15,12 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def parameters: ArrayTuple[ParameterNode]; end
-    def return_type: TypeNode?; end
-    def throw_type: TypeNode?; end
-    def body: ArrayTuple[StatementNode]; end
-    def is_lambda: bool; end
-    def is_pure: bool; end
-    def location: FS::Location; end
+    pure def parameters: ArrayTuple[ParameterNode]; end
+    pure def return_type: TypeNode?; end
+    pure def throw_type: TypeNode?; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def is_lambda: bool; end
+    pure def is_pure: bool; end
+    pure def location: FS::Location; end
   end
 end

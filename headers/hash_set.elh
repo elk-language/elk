@@ -23,7 +23,7 @@ sealed primitive class ::Std::HashSet[Val]
 	##[
 		Returns the number of elements present in the set.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Return the union of both sets.
@@ -31,7 +31,7 @@ sealed primitive class ::Std::HashSet[Val]
 		Create a new `HashSet` containing all the elements
 		present in `self` and `other`.
 	]##
-	sealed def +[V](other: ImmutableSet[V]): HashSet[Val | V]; end
+	pure sealed def +[V](other: ImmutableSet[V]): HashSet[Val | V]; end
 	alias | +
 
 	##[
@@ -39,7 +39,7 @@ sealed primitive class ::Std::HashSet[Val]
 		Create a new `HashSet` containing only the elements
 		present both in `self` and `other`.
 	]##
-	sealed def &[V](other: ImmutableSet[V]): HashSet[Val & V]; end
+	pure sealed def &[V](other: ImmutableSet[V]): HashSet[Val & V]; end
 
 	##[
 		Check whether the given `value` is present in this set.
@@ -97,7 +97,7 @@ sealed primitive class ::Std::HashSet[Val]
 		Returns an iterator that iterates
 		over each element of the set.
 	]##
-	def iter: Iterator[Val]; end
+	pure def iter: Iterator[Val]; end
 
 	sealed primitive class Iterator[Val]
 		include ::Std::ResettableIterator::Base[Val]

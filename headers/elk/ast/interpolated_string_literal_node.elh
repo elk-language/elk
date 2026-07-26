@@ -8,7 +8,7 @@ module Std::Elk::AST
             StringLiteralNode
 
     init(content: ArrayTuple[StringLiteralContentNode], location: FS::Location = loop; end); end
-    def content: ArrayTuple[StringLiteralContentNode]; end
-    def location: FS::Location; end
+    pure def content: ArrayTuple[StringLiteralContentNode]; end
+    pure def location: FS::Location; end
   end
 end

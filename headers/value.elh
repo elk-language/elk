@@ -30,7 +30,7 @@ primitive class ::Std::Value < nil
   ##[
 		Returns the class of the value.
 	]##
-	def class: &self; end
+	pure sealed def class: &self; end
 
   ##[
 		Returns a shallow copy of the value.
@@ -43,5 +43,5 @@ primitive class ::Std::Value < nil
     in a HashMap, HashRecord or HashSet
     where the value will be stored.
 	]##
-  def hash: UInt64; end
+  pure def hash: UInt64; end
 end

@@ -11,8 +11,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def condition: ExpressionNode; end
-    def then_body: ArrayTuple[StatementNode]; end
-    def location: FS::Location; end
+    pure def condition: ExpressionNode; end
+    pure def then_body: ArrayTuple[StatementNode]; end
+    pure def location: FS::Location; end
   end
 end

@@ -17,7 +17,7 @@ sealed noinit primitive class ::Std::Int < Value
 			+a #=> 1
 		```
 	]##
-	sealed def +@: Int; end
+	pure sealed def +@: Int; end
 
 	##[
 		Returns the result of negating the integer.
@@ -27,7 +27,7 @@ sealed noinit primitive class ::Std::Int < Value
 			-a #=> -1
 		```
 	]##
-	sealed def -@: Int; end
+	pure sealed def -@: Int; end
 
 	##[
 		Returns the result of applying bitwise NOT on the bits
@@ -37,58 +37,58 @@ sealed noinit primitive class ::Std::Int < Value
 			~4 #=> -5
 		```
 	]##
-	sealed def ~: Int; end
+	pure sealed def ~: Int; end
 
 	##[
 		Get the next integer by incrementing by `1`.
 	]##
-	sealed def ++: Int; end
+	pure sealed def ++: Int; end
 
 	##[
 		Get the previous integer by decrementing by `1`.
 	]##
-	sealed def --: Int; end
+	pure sealed def --: Int; end
 
 	##[
 		Add `other` to this integer.
 	]##
-	sealed overload def +(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def +(other: Int): Int; end
-	sealed overload def +(other: Float): Float; end
-	sealed overload def +(other: BigFloat): BigFloat; end
+	pure sealed overload def +(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def +(other: Int): Int; end
+	pure sealed overload def +(other: Float): Float; end
+	pure sealed overload def +(other: BigFloat): BigFloat; end
 
 	##[
 		Subtract `other` from this integer.
 	]##
-	sealed overload def -(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def -(other: Int): Int; end
-	sealed overload def -(other: Float): Float; end
-	sealed overload def -(other: BigFloat): BigFloat; end
+	pure sealed overload def -(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def -(other: Int): Int; end
+	pure sealed overload def -(other: Float): Float; end
+	pure sealed overload def -(other: BigFloat): BigFloat; end
 
 	##[
 		Multiply this integer by `other`.
 	]##
-	sealed overload def *(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def *(other: Int): Int; end
-	sealed overload def *(other: Float): Float; end
-	sealed overload def *(other: BigFloat): BigFloat; end
+	pure sealed overload def *(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def *(other: Int): Int; end
+	pure sealed overload def *(other: Float): Float; end
+	pure sealed overload def *(other: BigFloat): BigFloat; end
 
 	##[
 		Divide this integer by another integer.
 		Throws an unchecked runtime error when dividing by `0`.
 	]##
-	sealed overload def /(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def /(other: Int): Int; end
-	sealed overload def /(other: Float): Float; end
-	sealed overload def /(other: BigFloat): BigFloat; end
+	pure sealed overload def /(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def /(other: Int): Int; end
+	pure sealed overload def /(other: Float): Float; end
+	pure sealed overload def /(other: BigFloat): BigFloat; end
 
 	##[
 		Exponentiate this integer, raise it to the power of `other`.
 	]##
-	sealed overload def **(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def **(other: Int): Int; end
-	sealed overload def **(other: Float): Float; end
-	sealed overload def **(other: BigFloat): BigFloat; end
+	pure sealed overload def **(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def **(other: Int): Int; end
+	pure sealed overload def **(other: Float): Float; end
+	pure sealed overload def **(other: BigFloat): BigFloat; end
 
 	##[
 		Returns the remainder of dividing by `other`.
@@ -99,10 +99,10 @@ sealed noinit primitive class ::Std::Int < Value
 			a % b #=> 1
 		```
 	]##
-	sealed overload def %(other: CoercibleNumeric): CoercibleNumeric; end
-	sealed overload def %(other: Int): Int; end
-	sealed overload def %(other: Float): Float; end
-	sealed overload def %(other: BigFloat): BigFloat; end
+	pure sealed overload def %(other: CoercibleNumeric): CoercibleNumeric; end
+	pure sealed overload def %(other: Int): Int; end
+	pure sealed overload def %(other: Float): Float; end
+	pure sealed overload def %(other: BigFloat): BigFloat; end
 
 	##[
 		Compare this integer with another integer.
@@ -111,15 +111,15 @@ sealed noinit primitive class ::Std::Int < Value
 		`-1` if it's less than the other,
 		`nil` if it's impossible to compare.
 	]##
-	sealed def <=>(other: CoercibleNumeric): Int?; end
+	pure sealed def <=>(other: CoercibleNumeric): Int?; end
 
-	sealed def >=(other: CoercibleNumeric): Bool; end
+	pure sealed def >=(other: CoercibleNumeric): Bool; end
 
-	sealed def >(other: CoercibleNumeric): Bool; end
+	pure sealed def >(other: CoercibleNumeric): Bool; end
 
-	sealed def <=(other: CoercibleNumeric): Bool; end
+	pure sealed def <=(other: CoercibleNumeric): Bool; end
 
-	sealed def <(other: CoercibleNumeric): Bool; end
+	pure sealed def <(other: CoercibleNumeric): Bool; end
 
 	##[
 		Returns an integer shifted left by `other` positions, or right if `other` is negative.
@@ -134,191 +134,191 @@ sealed noinit primitive class ::Std::Int < Value
 	##[
 		Performs bitwise AND.
 	]##
-	sealed def &(other: Int): Int; end
+	pure sealed def &(other: Int): Int; end
 
 	##[
 		Performs bitwise AND NOT (bit clear).
 	]##
-	sealed def &~(other: Int): Int; end
+	pure sealed def &~(other: Int): Int; end
 
 	##[
 		Performs bitwise OR.
 	]##
-	sealed def |(other: Int): Int; end
+	pure sealed def |(other: Int): Int; end
 
 	##[
 		Performs bitwise XOR.
 	]##
-	sealed def ^(other: Int): Int; end
+	pure sealed def ^(other: Int): Int; end
 
 	##[
 		Returns `true` when the integer is even.
 	]##
-	def is_even: bool; end
+	pure def is_even: bool; end
 
 	##[
 		Returns `true` when the integer is odd.
 	]##
-	def is_odd: bool; end
+	pure def is_odd: bool; end
 
 	##[
 		Returns itself.
 	]##
-	def to_int: Int; end
+	pure def to_int: Int; end
 
 	##[
 		Return a human readable string
 		representation of this object
 		for debugging etc.
 	]##
-	def inspect: String; end
+	pure def inspect: String; end
 
 	##[
 		Converts the integer to a string.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Converts the integer to a floating point number.
 	]##
-	def to_float: Float; end
+	pure def to_float: Float; end
 
 	##[
 		Converts the integer to a 64-bit floating point number.
 	]##
-	def to_float64: Float64; end
+	pure def to_float64: Float64; end
 
 	##[
 		Converts the integer to a 32-bit floating point number.
 	]##
-	def to_float32: Float32; end
+	pure def to_float32: Float32; end
 
 	##[
 		Converts the integer to a 64-bit integer.
 	]##
-	def to_int64: Int64; end
+	pure def to_int64: Int64; end
 
 	##[
 		Converts the integer to a 32-bit integer.
 	]##
-	def to_int32: Int32; end
+	pure def to_int32: Int32; end
 
 	##[
 		Converts the integer to a 16-bit integer.
 	]##
-	def to_int16: Int16; end
+	pure def to_int16: Int16; end
 
 	##[
 		Converts the integer to a 8-bit integer.
 	]##
-	def to_int8: Int8; end
+	pure def to_int8: Int8; end
 
 	##[
 		Converts the integer to an unsigned integer.
 	]##
-	def to_uint: UInt; end
+	pure def to_uint: UInt; end
 
 	##[
 		Converts the integer to an unsigned 64-bit integer.
 	]##
-	def to_uint64: UInt64; end
+	pure def to_uint64: UInt64; end
 
 	##[
 		Converts the integer to an unsigned 32-bit integer.
 	]##
-	def to_uint32: UInt32; end
+	pure def to_uint32: UInt32; end
 
 	##[
 		Converts the integer to an unsigned 16-bit integer.
 	]##
-	def to_uint16: UInt16; end
+	pure def to_uint16: UInt16; end
 
 	##[
 		Converts the integer to an unsigned 8-bit integer.
 	]##
-	def to_uint8: UInt8; end
+	pure def to_uint8: UInt8; end
 
 	##[
 		Calculates a hash of the int.
 	]##
-	def hash: UInt64; end
+	pure sealed def hash: UInt64; end
 
 	##[
 		Returns the duration equivalent to `self` nanoseconds.
 	]##
-	def nanoseconds: Time::Span; end
+	pure def nanoseconds: Time::Span; end
 	alias nanosecond nanoseconds
 
 	##[
 		Returns the duration equivalent to `self` microseconds.
 	]##
-	def microseconds: Time::Span; end
+	pure def microseconds: Time::Span; end
 	alias microsecond microseconds
 
 	##[
 		Returns the duration equivalent to `self` milliseconds.
 	]##
-	def milliseconds: Time::Span; end
+	pure def milliseconds: Time::Span; end
 	alias millisecond milliseconds
 
 	##[
 		Returns the duration equivalent to `self` seconds.
 	]##
-	def seconds: Time::Span; end
+	pure def seconds: Time::Span; end
 	alias second seconds
 
 	##[
 		Returns the duration equivalent to `self` minutes.
 	]##
-	def minutes: Time::Span; end
+	pure def minutes: Time::Span; end
 	alias minute minutes
 
 	##[
 		Returns the duration equivalent to `self` hours.
 	]##
-	def hours: Time::Span; end
+	pure def hours: Time::Span; end
 	alias hour hours
 
 	##[
 		Returns the duration equivalent to `self` days.
 	]##
-	def days: Date::Span; end
+	pure def days: Date::Span; end
 	alias day days
 
 	##[
 		Returns the duration equivalent to `self` months.
 	]##
-	def months: Date::Span; end
+	pure def months: Date::Span; end
 	alias month months
 
 	##[
 		Returns the duration equivalent to `self` weeks.
 	]##
-	def weeks: Date::Span; end
+	pure def weeks: Date::Span; end
 	alias week weeks
 
 	##[
 		Returns the duration equivalent to `self` years.
 	]##
-	def years: Date::Span; end
+	pure def years: Date::Span; end
 	alias year years
 
 	##[
 		Returns the duration equivalent to `self` centuries.
 	]##
-	def centuries: Date::Span; end
+	pure def centuries: Date::Span; end
 	alias century centuries
 
 	##[
 		Returns the duration equivalent to `self` millenia.
 	]##
-	def millenia: Date::Span; end
+	pure def millenia: Date::Span; end
 	alias millenium millenia
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::IntLiteralNode; end
+	pure def to_ast_node: Elk::AST::IntLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,
@@ -328,7 +328,7 @@ sealed noinit primitive class ::Std::Int < Value
 		Returns an iterator that
 		iterates over every integer from `0` to `self`.
 	]##
-	def iter: Iterator; end
+	pure def iter: Iterator; end
 
 	class Iterator
 		include ::Std::Iterator::Base[Int]

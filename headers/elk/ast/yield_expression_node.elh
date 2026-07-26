@@ -11,8 +11,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def value: ExpressionNode?; end
-    def forward: Bool; end
-    def location: FS::Location; end
+    pure def value: ExpressionNode?; end
+    pure def forward: Bool; end
+    pure def location: FS::Location; end
   end
 end

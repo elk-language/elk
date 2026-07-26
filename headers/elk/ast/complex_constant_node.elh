@@ -8,7 +8,7 @@ module ::Std::Elk::AST
 						TypeNode,
 						UsingEntryNode
 
-		def to_ast_complex_const_node: ComplexConstantNode; end
+		pure def to_ast_complex_const_node: ComplexConstantNode; end
 
 		interface Convertible
 			sig to_ast_complex_const_node: ComplexConstantNode

@@ -13,10 +13,10 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def doc_comment: String; end
-    def constant: ExpressionNode?; end
-    def type_parameters: ArrayTuple[TypeParameterNode]; end
-    def body: ArrayTuple[StatementNode]; end
-    def location: FS::Location; end
+    pure def doc_comment: String; end
+    pure def constant: ExpressionNode?; end
+    pure def type_parameters: ArrayTuple[TypeParameterNode]; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def location: FS::Location; end
   end
 end

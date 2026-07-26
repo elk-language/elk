@@ -7,8 +7,8 @@ module Std::Elk::AST
             UsingEntryNode
 
     init(receiver: ExpressionNode, name: IdentifierNode, location: FS::Location = loop; end); end
-    def receiver: ExpressionNode; end
-    def name: IdentifierNode; end
-    def location: FS::Location; end
+    pure def receiver: ExpressionNode; end
+    pure def name: IdentifierNode; end
+    pure def location: FS::Location; end
   end
 end

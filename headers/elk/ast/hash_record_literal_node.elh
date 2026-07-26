@@ -10,7 +10,7 @@ module Std::Elk::AST
       location: FS::Location = loop; end
     ); end
 
-    def elements: ArrayTuple[ExpressionNode]; end
-    def location: FS::Location; end
+    pure def elements: ArrayTuple[ExpressionNode]; end
+    pure def location: FS::Location; end
   end
 end

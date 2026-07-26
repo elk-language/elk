@@ -8,12 +8,12 @@ sealed noinit primitive class ::Std::Char < Value
 	##[
 		Get the next Unicode codepoint by incrementing by 1.
 	]##
-	sealed def ++: Char; end
+	pure sealed def ++: Char; end
 
 	##[
 		Get the previous Unicode codepoint by decrementing by 1.
 	]##
-	sealed def --: Char; end
+	pure sealed def --: Char; end
 
 	##[
 		Concatenate this `Char`
@@ -22,94 +22,94 @@ sealed noinit primitive class ::Std::Char < Value
 		Creates a new `String` containing the content
 		of both operands.
 	]##
-	sealed def +(other: String | Char): String; end
+	pure sealed def +(other: String | Char): String; end
 	alias concat +
 
 	##[
 		Creates a new `String` that contains the
 		content of `self` repeated `n` times.
 	]##
-	sealed def *(n: Int): String; end
+	pure sealed def *(n: Int): String; end
 	alias repeat *
 
 	##[
 		Compare this char with another char or string.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: String | Char): Int; end
+	pure sealed def <=>(other: String | Char): Int; end
 
-	sealed def <=(other: String | Char): bool; end
+	pure sealed def <=(other: String | Char): bool; end
 
-	sealed def <(other: String | Char): bool; end
+	pure sealed def <(other: String | Char): bool; end
 
-	sealed def >=(other: String | Char): bool; end
+	pure sealed def >=(other: String | Char): bool; end
 
-	sealed def >(other: String | Char): bool; end
+	pure sealed def >(other: String | Char): bool; end
 
-	sealed def ==(other: any): bool; end
+	pure sealed def ==(other: any): bool; end
 
 	##[
 		Return the uppercase version of this character.
 	]##
-	def uppercase: Char; end
+	pure def uppercase: Char; end
 
 	##[
 		Return the lowercase version of this character.
 	]##
-	def lowercase: Char; end
+	pure def lowercase: Char; end
 
 	##[
 		Always returns 1.
 		For better compatibility with `String`.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 	alias char_count length
 
 	##[
 		Get the number of bytes that this
 		character contains.
 	]##
-	def byte_count: Int; end
+	pure def byte_count: Int; end
 
 	##[
 		Always returns 1.
 		For better compatibility with `String`.
 	]##
-	def grapheme_count: Int; end
+	pure def grapheme_count: Int; end
 
 	##[
 		Creates a new string with this character.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Converts the `Char` to a `Symbol`.
 	]##
-	def to_symbol: Symbol; end
+	pure def to_symbol: Symbol; end
 
 	##[
 		Return a human readable string
 		representation of this object
 		for debugging etc.
 	]##
-	def inspect: String; end
+	pure def inspect: String; end
 
 	##[
 		Always returns false.
 		For better compatibility with `String`.
 	]##
-	def is_empty: Bool; end
+	pure def is_empty: Bool; end
 
 	##[
 		Calculates a hash of the char.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::CharLiteralNode; end
+	pure def to_ast_node: Elk::AST::CharLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,
@@ -118,16 +118,16 @@ sealed noinit primitive class ::Std::Char < Value
 	##[
 		Returns the identifier AST Node with the same value.
 	]##
-	def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
+	pure def to_ast_ident_node: Elk::AST::PublicIdentifierNode; end
 
 	##[
 		Returns the constant AST Node with the same value.
 	]##
-	def to_ast_const_node: Elk::AST::PublicConstantNode; end
+	pure def to_ast_const_node: Elk::AST::PublicConstantNode; end
 
 	##[
 		Returns the instance variable AST Node with the same value.
 	]##
-	def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
+	pure def to_ast_ivar_node: Elk::AST::PublicInstanceVariableNode; end
 
 end

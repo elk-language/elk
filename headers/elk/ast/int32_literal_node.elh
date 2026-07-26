@@ -13,8 +13,8 @@ module Std::Elk::AST
 		class FormatError < Node::FormatError; end
 
     init(value: String, location: FS::Location = loop; end)! FormatError; end
-    def value: String; end
-    def location: FS::Location; end
-    def to_int32: Int32; end
+    pure def value: String; end
+    pure def location: FS::Location; end
+    pure def to_int32: Int32; end
   end
 end

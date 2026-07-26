@@ -13,7 +13,7 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def node: Node; end
-    def location: FS::Location; end
+    pure def node: Node; end
+    pure def location: FS::Location; end
   end
 end

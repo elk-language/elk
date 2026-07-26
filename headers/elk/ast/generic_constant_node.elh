@@ -9,8 +9,8 @@ module Std::Elk::AST
             ComplexConstantNode
 
     init(constant: ComplexConstantNode, type_arguments: ArrayTuple[TypeNode], location: FS::Location = loop; end); end
-    def constant: ComplexConstantNode; end
-    def type_arguments: ArrayTuple[TypeNode]; end
-    def location: FS::Location; end
+    pure def constant: ComplexConstantNode; end
+    pure def type_arguments: ArrayTuple[TypeNode]; end
+    pure def location: FS::Location; end
   end
 end

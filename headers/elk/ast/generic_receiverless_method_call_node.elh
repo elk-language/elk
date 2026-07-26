@@ -13,10 +13,10 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def method_name: IdentifierNode; end
-    def type_arguments: ArrayTuple[TypeNode]; end
-    def positional_arguments: ArrayTuple[ExpressionNode]; end
-    def named_arguments: ArrayTuple[NamedArgumentNode]; end
-    def location: FS::Location; end
+    pure def method_name: IdentifierNode; end
+    pure def type_arguments: ArrayTuple[TypeNode]; end
+    pure def positional_arguments: ArrayTuple[ExpressionNode]; end
+    pure def named_arguments: ArrayTuple[NamedArgumentNode]; end
+    pure def location: FS::Location; end
   end
 end

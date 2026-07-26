@@ -14,11 +14,11 @@ module Std::Elk::AST
       is_pure: bool = false,
     ); end
 
-    def parameters: ArrayTuple[ParameterNode]; end
-    def return_type: TypeNode?; end
-    def throw_type: TypeNode?; end
-    def is_closure: bool; end
-    def is_pure: bool; end
-    def location: FS::Location; end
+    pure def parameters: ArrayTuple[ParameterNode]; end
+    pure def return_type: TypeNode?; end
+    pure def throw_type: TypeNode?; end
+    pure def is_closure: bool; end
+    pure def is_pure: bool; end
+    pure def location: FS::Location; end
   end
 end

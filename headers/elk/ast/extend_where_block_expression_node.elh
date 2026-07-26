@@ -12,8 +12,8 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(body: ArrayTuple[StatementNode], where_params: ArrayTuple[TypeParameterNode], location: FS::Location = loop; end); end
-    def body: ArrayTuple[StatementNode]; end
-    def where_params: ArrayTuple[TypeParameterNode]; end
-    def location: FS::Location; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def where_params: ArrayTuple[TypeParameterNode]; end
+    pure def location: FS::Location; end
   end
 end

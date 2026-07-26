@@ -173,7 +173,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 	newNode := ast.NewMethodDefinitionNode(
 		initNode.Location(),
 		initNode.DocComment(),
-		0,
+		initNode.Flags.ToBitFlag(),
 		ast.NewPublicIdentifierNode(initNode.Location(), "#init"),
 		nil,
 		initNode.Parameters,

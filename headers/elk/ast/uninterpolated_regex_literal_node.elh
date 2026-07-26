@@ -12,8 +12,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def content: String; end
-    def location: FS::Location; end
+    pure def content: String; end
+    pure def location: FS::Location; end
 
     ##[
       Flags of the regex literal.
@@ -40,36 +40,36 @@ module Std::Elk::AST
       node.flags = UNGREEDY_FLAG | MULTILINE_FLAG
       ```
     ]##
-    def flags: UInt8; end
+    pure def flags: UInt8; end
 
     ##[
       Whether the regex has the `i` flag.
     ]##
-    def is_case_insensitive: bool; end
+    pure def is_case_insensitive: bool; end
 
     ##[
       Whether the regex has the `m` flag.
     ]##
-    def is_multiline: bool; end
+    pure def is_multiline: bool; end
 
     ##[
       Whether the regex has the `s` flag.
     ]##
-    def is_dot_all: bool; end
+    pure def is_dot_all: bool; end
 
     ##[
       Whether the regex has the `U` flag.
     ]##
-    def is_ungreedy: bool; end
+    pure def is_ungreedy: bool; end
 
     ##[
       Whether the regex has the `a` flag.
     ]##
-    def is_ascii: bool; end
+    pure def is_ascii: bool; end
 
     ##[
       Whether the regex has the `x` flag.
     ]##
-    def is_extended: bool; end
+    pure def is_extended: bool; end
   end
 end

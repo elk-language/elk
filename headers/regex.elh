@@ -9,30 +9,29 @@ sealed primitive class ::Std::Regex
 
 		Returns `true` if it matches, otherwise `false`.
 	]##
-	def matches(str: String): Bool; end
+	pure def matches(str: String): Bool; end
 
 	##[
 		Create a new regex that contains
 		the patterns present in both operands.
 	]##
-	sealed def +(other: Regex): Regex; end
+	pure sealed def +(other: Regex): Regex; end
 
 	##[
 		Creates a new `Regex` that contains the
 		pattern of `self` repeated `n` times.
 	]##
-	sealed def *(n: Int): String; end
+	pure sealed def *(n: Int): String; end
 
 	##[
 		Creates a new string with this character.
 	]##
-	def to_string: String; end
-
+	pure def to_string: String; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::UninterpolatedRegexLiteralNode; end
+	pure def to_ast_node: Elk::AST::UninterpolatedRegexLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node

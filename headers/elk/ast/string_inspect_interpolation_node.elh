@@ -7,7 +7,7 @@ module Std::Elk::AST
             StringLiteralContentNode
 
     init(expression: ExpressionNode, location: FS::Location = loop; end); end
-    def expression: ExpressionNode; end
-    def location: FS::Location; end
+    pure def expression: ExpressionNode; end
+    pure def location: FS::Location; end
   end
 end

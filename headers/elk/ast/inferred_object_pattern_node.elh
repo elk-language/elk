@@ -10,7 +10,7 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def attributes: ArrayTuple[PatternNode]; end
-    def location: FS::Location; end
+    pure def attributes: ArrayTuple[PatternNode]; end
+    pure def location: FS::Location; end
   end
 end

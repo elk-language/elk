@@ -5,5 +5,5 @@ sealed noinit primitive class ::Std::Thread
 	##[
 		Returns the current state of the thread.
 	]##
-	def state: Symbol; end
+	pure def state: Symbol; end
 end

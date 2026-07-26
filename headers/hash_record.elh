@@ -10,19 +10,19 @@ sealed primitive class ::Std::HashRecord[Key, Value]
 	##[
 		Returns the number of key-value pairs present in the record.
 	]##
-	def length: Int; end
+	sealed pure def length: Int; end
 
 	##[
 		Get the element under the given key.
 		Returns `nil` when the key is not present.
 	]##
-	def [](key: Key): Value?; end
+	sealed pure def [](key: Key): Value?; end
 
 	##[
 		Create a new `HashRecord` containing the pairs of `self`
 		and another given record.
 	]##
-	sealed def +[K, V](other: Record[K, V]): HashRecord[Key | K, Value | V]; end
+	sealed pure def +[K, V](other: Record[K, V]): HashRecord[Key | K, Value | V]; end
 
 	##[
 		Check whether the given `pair` is present in this record.
@@ -82,7 +82,7 @@ sealed primitive class ::Std::HashRecord[Key, Value]
 		Returns an iterator that iterates
 		over each element of the record.
 	]##
-	def iter: Iterator[Key, Value]; end
+	pure def iter: Iterator[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]

@@ -19,5 +19,5 @@ sealed primitive class ::Std::Sync::ROMutex
 	##[
 		Returns the underlying RWMutex.
 	]##
-	sealed def rwmutex: Sync::RWMutex; end
+	pure sealed def rwmutex: Sync::RWMutex; end
 end

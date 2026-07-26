@@ -219,6 +219,16 @@ func TestAttrDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(68, 6, 6), P(89, 6, 27)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::Int?`\n  should be: `pure def foo(): Std::Int?`\n\n  - has a different modifier, is `default`, should be `pure`"),
 			},
 		},
+		"override an attr using a pure method in a child class": {
+			input: `
+				class Foo
+					attr foo: Int?
+				end
+				class Bar < Foo
+					pure def foo: Int? then nil
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -410,6 +420,29 @@ func TestGetterDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(87, 6, 13), P(95, 6, 21)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `pure def foo(): Std::Int?`\n  should be: `def foo(): Std::String`\n\n  - has a different return type, is `Std::Int?`, should be `Std::String`"),
 			},
 		},
+		"override a getter with an impure method in a child class": {
+			input: `
+				class Foo
+					getter foo: String?
+				end
+				class Bar < Foo
+					def foo: String then "foo"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(73, 6, 6), P(98, 6, 31)), "method `Bar.:foo` is not a valid override of `Foo.:foo`\n  is:        `def foo(): Std::String`\n  should be: `pure def foo(): Std::String?`\n\n  - has a different modifier, is `default`, should be `pure`"),
+			},
+		},
+		"override a getter with a pure method in a child class": {
+			input: `
+				class Foo
+					getter foo: String?
+				end
+				class Bar < Foo
+					pure def foo: String then "foo"
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -591,6 +624,16 @@ func TestSetterDefinition(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(87, 6, 13), P(95, 6, 21)), "method `Bar.:foo=` is not a valid override of `Foo.:foo=`\n  is:        `def foo=(foo: Std::Int?): void`\n  should be: `def foo=(foo: Std::String): void`\n\n  - has an incompatible parameter, is `foo: Std::Int?`, should be `foo: Std::String`"),
 			},
+		},
+		"override a setter with a method in a child class": {
+			input: `
+				class Foo
+					setter foo: Int?
+				end
+				class Bar < Foo
+					def foo=(foo: Int?); end
+				end
+			`,
 		},
 	}
 
@@ -1267,15 +1310,22 @@ func TestSpecialMethodDefinition(t *testing.T) {
 		"declare an equal method with invalid parameter type": {
 			input: `
 				class Foo
-					def ==(a: String): bool then false
+					pure def ==(a: String): bool then false
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `==` must be of type `any`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `def ==(a: Std::String): bool`\n  should be: `native def ==(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
+				diagnostic.NewFailure(L("<main>", P(32, 3, 18), P(40, 3, 26)), "parameter `a` of equality operator `==` must be of type `any`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(58, 3, 44)), "method `Foo.:==` is not a valid override of `Std::Value.:==`\n  is:        `pure def ==(a: Std::String): bool`\n  should be: `native def ==(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
 			},
 		},
 		"declare a valid equal method": {
+			input: `
+				class Foo
+					pure def ==(other: any): bool then false
+				end
+			`,
+		},
+		"declare an impure equal method": {
 			input: `
 				class Foo
 					def ==(other: any): bool then false
@@ -1323,18 +1373,18 @@ func TestSpecialMethodDefinition(t *testing.T) {
 		"declare a lax equal method with invalid parameter type": {
 			input: `
 				class Foo
-					def =~(a: String): bool then false
+					pure def =~(a: String): bool then false
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(27, 3, 13), P(35, 3, 21)), "parameter `a` of equality operator `=~` must be of type `any`"),
-				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(53, 3, 39)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `def =~(a: Std::String): bool`\n  should be: `native def =~(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
+				diagnostic.NewFailure(L("<main>", P(32, 3, 18), P(40, 3, 26)), "parameter `a` of equality operator `=~` must be of type `any`"),
+				diagnostic.NewFailure(L("<main>", P(20, 3, 6), P(58, 3, 44)), "method `Foo.:=~` is not a valid override of `Std::Value.:=~`\n  is:        `pure def =~(a: Std::String): bool`\n  should be: `native def =~(other: any): bool`\n\n  - has an incompatible parameter, is `a: Std::String`, should be `other: any`"),
 			},
 		},
 		"declare a valid lax equal method": {
 			input: `
 				class Foo
-					def =~(other: any): bool then false
+					pure def =~(other: any): bool then false
 				end
 			`,
 		},
@@ -1562,6 +1612,73 @@ func TestMethodDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(29, 3, 17)), "method definitions cannot appear in this context"),
 			},
 		},
+
+		"can set instance variable in pure init": {
+			input: `
+				class Foo
+					var @foo: Int
+
+					init
+						@foo = 5
+					end
+				end
+			`,
+		},
+		"cannot set instance variable in pure method": {
+			input: `
+				class Foo
+					var @foo: Int?
+
+					pure def lol
+						@foo = 5
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(60, 6, 7), P(67, 6, 14)), "cannot perform an impure operation in a pure context"),
+			},
+		},
+		"can use builtin arithmetic in a pure method": {
+			input: `
+				class Foo
+					pure def lol: Int
+						1 + 5 * 10
+					end
+				end
+			`,
+		},
+		"cannot use impure arithmetic in a pure method": {
+			input: `
+				module Bar
+					def +(other: Bar | Int): Int
+						5
+					end
+				end
+
+				class Foo
+					pure def lol: Int
+						Bar + 2
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(119, 10, 7), P(125, 10, 13)), "cannot perform an impure operation in a pure context"),
+			},
+		},
+		"cannot use subscript set in a pure method": {
+			input: `
+				class Foo
+					pure def lol: Float
+						arr := [5.2]
+						arr[0] = 5.2
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(65, 5, 7), P(76, 5, 18)), "cannot perform an impure operation in a pure context"),
+			},
+		},
+
 		"positional rest params have tuple types": {
 			input: `
 				module Foo
@@ -2078,6 +2195,68 @@ func TestMethodCalls(t *testing.T) {
 				var nilableFoo: Foo? = Foo
 				nilableFoo?.baz(5)
 			`,
+		},
+
+		"cannot call an impure method inside a pure method": {
+			input: `
+				pure def foo
+					puts "foo"
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(23, 3, 6), P(26, 3, 9)), "cannot perform an impure operation in a pure context"),
+			},
+		},
+
+		"can call a pure method inside an impure method": {
+			input: `
+				pure def foo: Int
+					3
+				end
+
+				def bar
+					foo()
+				end
+			`,
+		},
+
+		"can call a pure method inside an impure init": {
+			input: `
+				class Bar
+					impure init
+						foo()
+					end
+
+					pure def foo: Int
+						3
+					end
+				end
+			`,
+		},
+		"can call a pure method inside a pure init": {
+			input: `
+				class Bar
+					init
+						foo()
+					end
+
+					pure def foo: Int
+						3
+					end
+				end
+			`,
+		},
+		"cannot call an impure method inside a pure init": {
+			input: `
+				class Foo
+					init
+						puts "foo"
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(31, 4, 7), P(34, 4, 10)), "cannot perform an impure operation in a pure context"),
+			},
 		},
 
 		"cascade call returns the receiver": {

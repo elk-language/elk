@@ -4,8 +4,8 @@ module Std::Elk::AST
   ]##
   sealed primitive class SwitchCaseNode
     init(pattern_node: PatternNode, body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
-    def pattern_node: PatternNode; end
-    def body: ArrayTuple[StatementNode]; end
-    def location: FS::Location; end
+    pure def pattern_node: PatternNode; end
+    pure def body: ArrayTuple[StatementNode]; end
+    pure def location: FS::Location; end
   end
 end

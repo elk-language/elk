@@ -14,11 +14,11 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def name: String; end
-    def lower_bound: TypeNode?; end
-    def upper_bound: TypeNode?; end
-    def default_node: TypeNode?; end
-    def location: FS::Location; end
+    pure def name: String; end
+    pure def lower_bound: TypeNode?; end
+    pure def upper_bound: TypeNode?; end
+    pure def default_node: TypeNode?; end
+    pure def location: FS::Location; end
 
     ##[
       Returns an integer that determines whether
@@ -29,24 +29,24 @@ module Std::Elk::AST
       - `COVARIANT`
       - `CONTRAVARIANT`
     ]##
-    def variance: UInt8; end
+    pure def variance: UInt8; end
 
     ##[
       Whether the type parameter is invariant
       eg. `V` in `class Foo[V]; end`
     ]##
-    def is_invariant: bool; end
+    pure def is_invariant: bool; end
 
     ##[
       Whether the type parameter is covariant
       eg. `+V` in `class Foo[+V]; end`
     ]##
-    def is_covariant: bool; end
+    pure def is_covariant: bool; end
 
     ##[
       Whether the type parameter is contravariant
       eg. `-V` in `class Foo[-V]; end`
     ]##
-    def is_contravariant: bool; end
+    pure def is_contravariant: bool; end
   end
 end

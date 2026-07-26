@@ -7,7 +7,7 @@ sealed primitive class ::Std::Sync::DiagnosticList
 	##[
 		Returns the internal `DiagnosticList`.
 	]##
-	sealed def diagnostic_list: ::Std::DiagnosticList; end
+	pure sealed def diagnostic_list: ::Std::DiagnosticList; end
 
 	##[
 		Removes the element from the list.
@@ -44,12 +44,12 @@ sealed primitive class ::Std::Sync::DiagnosticList
 		This value will change when the list gets resized,
 		and the underlying array gets reallocated
 	]##
-	def capacity: Int; end
+	pure def capacity: Int; end
 
 	##[
 		Returns the number of elements present in the list.
 	]##
-	def length: Int; end
+	pure def length: Int; end
 
 	##[
 		Returns the number of left slots for new elements
@@ -185,7 +185,7 @@ sealed primitive class ::Std::Sync::DiagnosticList
 		Returns an iterator that iterates
 		over each element of the list.
 	]##
-	def iter: Iterator; end
+	pure def iter: Iterator; end
 
 	sealed primitive class Iterator
 		include ::Std::ResettableIterator::Base[Diagnostic]

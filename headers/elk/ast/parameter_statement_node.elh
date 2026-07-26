@@ -6,7 +6,7 @@ module Std::Elk::AST
     include StructBodyStatementNode
 
     init(parameter: ParameterNode, location: FS::Location = loop; end); end
-    def parameter: ParameterNode; end
-    def location: FS::Location; end
+    pure def parameter: ParameterNode; end
+    pure def location: FS::Location; end
   end
 end

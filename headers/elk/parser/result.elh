@@ -5,10 +5,10 @@ sealed primitive noinit class ::Std::Elk::Parser::Result
 	##[
 		Returns the Abstract Syntax Tree produced by the parser.
 	]##
-	def ast: Elk::AST::ProgramNode; end
+	pure def ast: Elk::AST::ProgramNode; end
 
 	##[
 		Returns a list of diagnostics (warnings, errors, info messages)
 	]##
-	def diagnostics: DiagnosticList; end
+	pure def diagnostics: DiagnosticList; end
 end

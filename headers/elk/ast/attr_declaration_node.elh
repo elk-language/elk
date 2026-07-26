@@ -13,11 +13,11 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def doc_comment: String; end
-    def entries: ArrayTuple[ParameterNode]; end
-    def location: FS::Location; end
-    def flags: UInt8; end
+    pure def doc_comment: String; end
+    pure def entries: ArrayTuple[ParameterNode]; end
+    pure def location: FS::Location; end
+    pure def flags: UInt8; end
 
-    def is_pure: bool; end
+    pure def is_pure: bool; end
   end
 end

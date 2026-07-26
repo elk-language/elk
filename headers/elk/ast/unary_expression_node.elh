@@ -6,8 +6,8 @@ module Std::Elk::AST
     include LiteralPatternNode
 
     init(op: Elk::Token, right: ExpressionNode, location: FS::Location = loop; end); end
-    def op: Elk::Token; end
-    def right: ExpressionNode; end
-    def location: FS::Location; end
+    pure def op: Elk::Token; end
+    pure def right: ExpressionNode; end
+    pure def location: FS::Location; end
   end
 end

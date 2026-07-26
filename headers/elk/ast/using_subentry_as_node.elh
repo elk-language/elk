@@ -8,8 +8,8 @@ module Std::Elk::AST
             UsingSubentryNode
 
     init(target: IdentifierNode, as_name: IdentifierNode, location: FS::Location = loop; end); end
-    def target: IdentifierNode; end
-    def as_name: IdentifierNode; end
-    def location: FS::Location; end
+    pure def target: IdentifierNode; end
+    pure def as_name: IdentifierNode; end
+    pure def location: FS::Location; end
   end
 end

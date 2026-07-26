@@ -37,46 +37,46 @@ sealed primitive noinit class ::Std::Result[+Val, +Err = never]
 		##[
 			Create a new Result that represents success with the given value.
 		]##
-		def ok[V](value: V): Result[V, never]; end
+		pure def ok[V](value: V): Result[V, never]; end
 
 		##[
 			Create a new Result that represents failure with the given error value.
 		]##
-		def err[E](err: E): Result[never, E]; end
+		pure def err[E](err: E): Result[never, E]; end
 
 		##[
 			Merges a union of two result types into a single one.
 		]##
-		def merge[V1, E1, V2, E2](result: Result[V1, E1] | Result[V2, E2]): Result[V1 | V2, E1 | E2]; end
+		pure def merge[V1, E1, V2, E2](result: Result[V1, E1] | Result[V2, E2]): Result[V1 | V2, E1 | E2]; end
 	end
 
 	##[
 		Returns the success value if this Result represents success.
 		Returns `nil` if this Result represents failure.
 	]##
-	def value: Val?; end
+	pure def value: Val?; end
 
 	##[
 		Returns the error value if this Result represents failure.
 		Returns `nil` if this Result represents success.
 	]##
-	def err: Err?; end
+	pure def err: Err?; end
 
 	##[
 		Returns `true` if this Result represents success (contains a value).
 		Returns `false` if this Result represents failure (contains an error).
 	]##
-	def ok: bool; end
+	pure def ok: bool; end
 
 	##[
 		Returns the stored success value.
 		If the result stores an error value it gets thrown as an unchecked error.
 	]##
-	def unwrap: Val; end
+	pure def unwrap: Val; end
 
 	##[
 		Returns the stored success value.
 		If the result stores an error value it gets thrown as a checked error.
 	]##
-	def or_throw: Val ! Err; end
+	pure def or_throw: Val ! Err; end
 end

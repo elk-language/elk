@@ -7,17 +7,17 @@ sealed primitive class ::Std::String::Position
 	##[
 		Returns the offset of the first byte of the character in a string.
 	]##
-	def byte_offset: Int; end
+	pure def byte_offset: Int; end
 
 	##[
 		Returns the number of the line
 		where the character is located in a string.
 	]##
-	def line: Int; end
+	pure def line: Int; end
 
 	##[
 		Returns the number of the
 		column where the character is located.
 	]##
-	def column: Int; end
+	pure def column: Int; end
 end

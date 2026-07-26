@@ -12,8 +12,8 @@ module Std::Elk::AST
       location: FS::Location = loop; end,
     ); end
 
-    def namespace: UsingEntryNode; end
-    def subentries: ArrayTuple[UsingSubentryNode]; end
-    def location: FS::Location; end
+    pure def namespace: UsingEntryNode; end
+    pure def subentries: ArrayTuple[UsingSubentryNode]; end
+    pure def location: FS::Location; end
   end
 end

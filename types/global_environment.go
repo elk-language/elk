@@ -177,6 +177,22 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineClass("", false, true, true, true, symbol.Method, objectClass, env)
 	stdModule.DefineClass("", false, true, true, false, symbol.Pair, objectClass, env)
 
+	tupleMixin := stdModule.DefineMixin("", true, symbol.Tuple, env)
+	typeParams = make([]*TypeParameter, 1)
+	typeParam = NewTypeParameter(value.ToSymbol("Val"), tupleMixin, Never{}, Any{}, nil, COVARIANT)
+	typeParams[0] = typeParam
+	tupleMixin.DefineSubtype(value.ToSymbol("Val"), typeParam)
+	tupleMixin.DefineConstant(value.ToSymbol("Val"), NoValue{})
+	tupleMixin.SetTypeParameters(typeParams)
+
+	listMixin := stdModule.DefineMixin("", true, symbol.List, env)
+	typeParams = make([]*TypeParameter, 1)
+	typeParam = NewTypeParameter(value.ToSymbol("Val"), listMixin, Never{}, Any{}, nil, INVARIANT)
+	typeParams[0] = typeParam
+	listMixin.DefineSubtype(value.ToSymbol("Val"), typeParam)
+	listMixin.DefineConstant(value.ToSymbol("Val"), NoValue{})
+	listMixin.SetTypeParameters(typeParams)
+
 	env.Init = false
 	return env
 }

@@ -9,8 +9,8 @@ sealed primitive class ::Std::Diagnostic
 
 	init(message: String, location: FS::Location, severity: UInt8 = FAIL); end
 
-	def message: String; end
-	def location: FS::Location; end
+	pure def message: String; end
+	pure def location: FS::Location; end
 
 		##[
 		Indicates whether this Diagnostic
@@ -21,14 +21,14 @@ sealed primitive class ::Std::Diagnostic
 		- `WARN`
 		- `FAIL`
 	]##
-  def severity: UInt8; end
+  pure def severity: UInt8; end
 
-	def severity_name: String; end
+	pure def severity_name: String; end
 
 	##[
 		Get the string representation of this diagnostic.
 	]##
-	def to_string; end
+	pure def to_string; end
 
 	##[
 		Get the human readable

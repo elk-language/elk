@@ -6,7 +6,7 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(entries: ArrayTuple[AliasDeclarationEntry], location: FS::Location = loop; end); end
-    def entries: ArrayTuple[AliasDeclarationEntry]; end
-    def location: FS::Location; end
+    pure def entries: ArrayTuple[AliasDeclarationEntry]; end
+    pure def location: FS::Location; end
   end
 end

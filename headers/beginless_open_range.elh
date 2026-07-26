@@ -4,8 +4,8 @@
 sealed primitive class ::Std::BeginlessOpenRange[Val < Comparable[Val]]
 	include Range[Val]
 
-	def is_left_closed: false; end
-	def is_right_closed: false; end
+	pure def is_left_closed: false; end
+	pure def is_right_closed: false; end
 
 	##[
 		Check whether the given `value` is present in this range.
@@ -15,5 +15,5 @@ sealed primitive class ::Std::BeginlessOpenRange[Val < Comparable[Val]]
 	##[
 		Returns the upper bound of the range.
 	]##
-	def end: Val; end
+	pure def end: Val; end
 end

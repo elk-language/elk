@@ -1286,7 +1286,7 @@ func TestInstanceVariables(t *testing.T) {
 						@foo = "lol"
 					end
 
-					def bar; end
+					pure def bar; end
 				end
 			`,
 			err: diagnostic.DiagnosticList{

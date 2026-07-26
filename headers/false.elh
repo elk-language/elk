@@ -4,12 +4,12 @@ sealed noinit primitive class ::Std::False < Bool
 	##[
 		Calculates a hash of the value.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::FalseLiteralNode; end
+	pure def to_ast_node: Elk::AST::FalseLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,

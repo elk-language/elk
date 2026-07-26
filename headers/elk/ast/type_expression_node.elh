@@ -6,7 +6,7 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(type_node: TypeNode, location: FS::Location = loop; end); end
-    def type_node: TypeNode; end
-    def location: FS::Location; end
+    pure def type_node: TypeNode; end
+    pure def location: FS::Location; end
   end
 end

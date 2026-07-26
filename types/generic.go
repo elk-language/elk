@@ -192,7 +192,7 @@ func NewGenericWithUpperBoundTypeArgsAndVariance(namespace Namespace, variance V
 
 func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 	if len(namespace.TypeParameters()) != len(args) {
-		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
+		panic(fmt.Sprintf("invalid type argument count in new generic for %s, expected %d, got %d", Inspect(namespace), len(namespace.TypeParameters()), len(args)))
 	}
 
 	typeArgMap := make(TypeArgumentMap, len(args))

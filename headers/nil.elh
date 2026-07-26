@@ -7,102 +7,102 @@ sealed noinit primitive class ::Std::Nil < Value
 	##[
 		Calculates a hash of the value.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Converts `nil` to `Char`.
 		Always returns a null char \x00.
 	]##
-	def to_char: Char; end
+	pure def to_char: Char; end
 
 	##[
 		Converts `nil` to `String`.
 		Always returns an empty string `""`.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Converts `nil` to `Int`.
 		Always returns `0`.
 	]##
-	def to_int: Int; end
+	pure def to_int: Int; end
 
 	##[
 		Converts `nil` to `Int64`.
 		Always returns `0i64`.
 	]##
-	def to_int64: Int64; end
+	pure def to_int64: Int64; end
 
 	##[
 		Converts `nil` to `Int32`.
 		Always returns `0i32`.
 	]##
-	def to_int32: Int32; end
+	pure def to_int32: Int32; end
 
 	##[
 		Converts `nil` to `Int16`.
 		Always returns `0i16`.
 	]##
-	def to_int16: Int16; end
+	pure def to_int16: Int16; end
 
 	##[
 		Converts `nil` to `Int8`.
 		Always returns `0i8`.
 	]##
-	def to_int8: Int8; end
+	pure def to_int8: Int8; end
 
 	##[
 		Converts `nil` to `UInt64`.
 		Always returns `0u64`.
 	]##
-	def to_uint64: UInt64; end
+	pure def to_uint64: UInt64; end
 
 	##[
 		Converts `nil` to `UInt32`.
 		Always returns `0u32`.
 	]##
-	def to_uint32: UInt32; end
+	pure def to_uint32: UInt32; end
 
 	##[
 		Converts `nil` to `UInt16`.
 		Always returns `0u16`.
 	]##
-	def to_uint16: UInt16; end
+	pure def to_uint16: UInt16; end
 
 	##[
 		Converts `nil` to `UInt8`.
 		Always returns `0u8`.
 	]##
-	def to_uint8: UInt8; end
+	pure def to_uint8: UInt8; end
 
 	##[
 		Converts `nil` to `Float`.
 		Always returns `0.0`.
 	]##
-	def to_float: Float; end
+	pure def to_float: Float; end
 
 	##[
 		Converts `nil` to `Float64`.
 		Always returns `0.0f64`.
 	]##
-	def to_float64: Float64; end
+	pure def to_float64: Float64; end
 
 	##[
 		Converts `nil` to `Float32`.
 		Always returns `0.0f32`.
 	]##
-	def to_float32: Float32; end
+	pure def to_float32: Float32; end
 
 	##[
 		Converts `nil` to `BigFloat`.
 		Always returns `0.0bf`.
 	]##
-	def to_big_float: BigFloat; end
+	pure def to_big_float: BigFloat; end
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::NilLiteralNode; end
+	pure def to_ast_node: Elk::AST::NilLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,

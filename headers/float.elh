@@ -19,7 +19,7 @@ sealed noinit primitive class ::Std::Float < Value
 			+a #=> 1.2
 		```
 	]##
-	sealed def +@: Float; end
+	pure sealed def +@: Float; end
 
 	##[
 		Returns the result of negating the number.
@@ -29,47 +29,47 @@ sealed noinit primitive class ::Std::Float < Value
 			-a #=> -1.2
 		```
 	]##
-	sealed def -@: Float; end
+	pure sealed def -@: Float; end
 
 	##[
 		Add `other` to this float.
 	]##
-	sealed overload def +(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def +(other: Float): Float; end
-	sealed overload def +(other: Int): Float; end
-	sealed overload def +(other: BigFloat): BigFloat; end
+	pure sealed overload def +(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def +(other: Float): Float; end
+	pure sealed overload def +(other: Int): Float; end
+	pure sealed overload def +(other: BigFloat): BigFloat; end
 
 	##[
 		Subtract `other` from this float.
 	]##
-	sealed overload def -(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def -(other: Float): Float; end
-	sealed overload def -(other: Int): Float; end
-	sealed overload def -(other: BigFloat): BigFloat; end
+	pure sealed overload def -(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def -(other: Float): Float; end
+	pure sealed overload def -(other: Int): Float; end
+	pure sealed overload def -(other: BigFloat): BigFloat; end
 
 	##[
 		Multiply this float by `other`.
 	]##
-	sealed overload def *(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def *(other: Float): Float; end
-	sealed overload def *(other: Int): Float; end
-	sealed overload def *(other: BigFloat): BigFloat; end
+	pure sealed overload def *(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def *(other: Float): Float; end
+	pure sealed overload def *(other: Int): Float; end
+	pure sealed overload def *(other: BigFloat): BigFloat; end
 
 	##[
 		Divide this float by another float.
 	]##
-	sealed overload def /(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def /(other: Float): Float; end
-	sealed overload def /(other: Int): Float; end
-	sealed overload def /(other: BigFloat): BigFloat; end
+	pure sealed overload def /(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def /(other: Float): Float; end
+	pure sealed overload def /(other: Int): Float; end
+	pure sealed overload def /(other: BigFloat): BigFloat; end
 
 	##[
 		Exponentiate this float, raise it to the power of `other`.
 	]##
-	sealed overload def **(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def **(other: Float): Float; end
-	sealed overload def **(other: Int): Float; end
-	sealed overload def **(other: BigFloat): BigFloat; end
+	pure sealed overload def **(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def **(other: Float): Float; end
+	pure sealed overload def **(other: Int): Float; end
+	pure sealed overload def **(other: BigFloat): BigFloat; end
 
 	##[
 		Returns the remainder of dividing by `other`.
@@ -80,183 +80,183 @@ sealed noinit primitive class ::Std::Float < Value
 			a % b #=> 1
 		```
 	]##
-	sealed overload def %(other: CoercibleNumeric): Float | BigFloat; end
-	sealed overload def %(other: Float): Float; end
-	sealed overload def %(other: Int): Float; end
-	sealed overload def %(other: BigFloat): BigFloat; end
+	pure sealed overload def %(other: CoercibleNumeric): Float | BigFloat; end
+	pure sealed overload def %(other: Float): Float; end
+	pure sealed overload def %(other: Int): Float; end
+	pure sealed overload def %(other: BigFloat): BigFloat; end
 
 	##[
 		Compare this float with another number.
 		Returns `1` if it is greater, `0` if they're equal, `-1` if it's less than the other.
 	]##
-	sealed def <=>(other: CoercibleNumeric): Int; end
+	pure sealed def <=>(other: CoercibleNumeric): Int; end
 
-	sealed def >=(other: CoercibleNumeric): Bool; end
+	pure sealed def >=(other: CoercibleNumeric): Bool; end
 
-	sealed def >(other: CoercibleNumeric): Bool; end
+	pure sealed def >(other: CoercibleNumeric): Bool; end
 
-	sealed def <=(other: CoercibleNumeric): Bool; end
+	pure sealed def <=(other: CoercibleNumeric): Bool; end
 
-	sealed def <(other: CoercibleNumeric): Bool; end
+	pure sealed def <(other: CoercibleNumeric): Bool; end
 
-	sealed def ==(other: any): Bool; end
+	pure sealed def ==(other: any): Bool; end
 
 	##[
 		Converts the Float to a String.
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Returns itself.
 	]##
-	def to_float: Float; end
+	pure def to_float: Float; end
 
 	##[
 		Converts the float to a multi-precision floating point number.
 	]##
-	def to_bigfloat: BigFloat; end
+	pure def to_bigfloat: BigFloat; end
 
 	##[
 		Converts the float to an automatically resized integer.
 	]##
-	def to_int: Int; end
+	pure def to_int: Int; end
 
 	##[
 		Converts the float to a 64-bit floating point number.
 	]##
-	def to_float64: Float64; end
+	pure def to_float64: Float64; end
 
 	##[
 		Converts the float to a 32-bit floating point number.
 	]##
-	def to_float32: Float32; end
+	pure def to_float32: Float32; end
 
 	##[
 		Converts the float to a 64-bit integer.
 	]##
-	def to_int64: Int64; end
+	pure def to_int64: Int64; end
 
 	##[
 		Converts the float to a 32-bit integer.
 	]##
-	def to_int32: Int32; end
+	pure def to_int32: Int32; end
 
 	##[
 		Converts the float to a 16-bit integer.
 	]##
-	def to_int16: Int16; end
+	pure def to_int16: Int16; end
 
 	##[
 		Converts the float to a 8-bit integer.
 	]##
-	def to_int8: Int8; end
+	pure def to_int8: Int8; end
 
 	##[
 		Converts the integer to an unsigned integer.
 	]##
-	def to_uint: UInt; end
+	pure def to_uint: UInt; end
 
 	##[
 		Converts the float to an unsigned 64-bit integer.
 	]##
-	def to_uint64: UInt64; end
+	pure def to_uint64: UInt64; end
 
 	##[
 		Converts the float to an unsigned 32-bit integer.
 	]##
-	def to_uint32: UInt32; end
+	pure def to_uint32: UInt32; end
 
 	##[
 		Converts the float to an unsigned 16-bit integer.
 	]##
-	def to_uint16: UInt16; end
+	pure def to_uint16: UInt16; end
 
 	##[
 		Converts the float to an unsigned 8-bit integer.
 	]##
-	def to_uint8: UInt8; end
+	pure def to_uint8: UInt8; end
 
 	##[
 		Calculates a hash of the float.
 	]##
-	def hash: UInt64; end
+	pure def hash: UInt64; end
 
 	##[
 		Returns the duration equivalent to `self` nanoseconds.
 	]##
-	def nanoseconds: Time::Span; end
+	pure def nanoseconds: Time::Span; end
 	alias nanosecond nanoseconds
 
 	##[
 		Returns the duration equivalent to `self` microseconds.
 	]##
-	def microseconds: Time::Span; end
+	pure def microseconds: Time::Span; end
 	alias microsecond microseconds
 
 	##[
 		Returns the duration equivalent to `self` milliseconds.
 	]##
-	def milliseconds: Time::Span; end
+	pure def milliseconds: Time::Span; end
 	alias millisecond milliseconds
 
 	##[
 		Returns the duration equivalent to `self` seconds.
 	]##
-	def seconds: Time::Span; end
+	pure def seconds: Time::Span; end
 	alias second seconds
 
 	##[
 		Returns the duration equivalent to `self` minutes.
 	]##
-	def minutes: Time::Span; end
+	pure def minutes: Time::Span; end
 	alias minute minutes
 
 	##[
 		Returns the duration equivalent to `self` hours.
 	]##
-	def hours: Time::Span; end
+	pure def hours: Time::Span; end
 	alias hour hours
 
 	##[
 		Returns the duration equivalent to `self` days.
 	]##
-	def days: DateTime::Span; end
+	pure def days: DateTime::Span; end
 	alias day days
 
 	##[
 		Returns the duration equivalent to `self` weeks.
 	]##
-	def weeks: DateTime::Span; end
+	pure def weeks: DateTime::Span; end
 	alias week weeks
 
 	##[
 		Returns the duration equivalent to `self` months.
 	]##
-	def months: DateTime::Span; end
+	pure def months: DateTime::Span; end
 	alias month months
 
 	##[
 		Returns the duration equivalent to `self` years.
 	]##
-	def years: DateTime::Span; end
+	pure def years: DateTime::Span; end
 	alias year years
 
 	##[
 		Returns the duration equivalent to `self` centuries.
 	]##
-	def centuries: DateTime::Span; end
+	pure def centuries: DateTime::Span; end
 	alias century centuries
 
 	##[
 		Returns the duration equivalent to `self` millenia.
 	]##
-	def millenia: DateTime::Span; end
+	pure def millenia: DateTime::Span; end
 	alias millenium millenia
 
 	##[
 		Returns the AST Node that represents the same value.
 	]##
-	def to_ast_node: Elk::AST::FloatLiteralNode; end
+	pure def to_ast_node: Elk::AST::FloatLiteralNode; end
 	alias to_ast_expr_node to_ast_node,
 			  to_ast_pattern_node to_ast_node,
 			  to_ast_pattern_expr_node to_ast_node,

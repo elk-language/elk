@@ -10,13 +10,13 @@ module ::Std::FS
       ##[
         Create a new path from a slash-separated string.
       ]##
-      def from_slash(path: String): Path; end
+      pure def from_slash(path: String): Path; end
 
       ##[
         Create a new path from a list of elements.
         Uses the OS-specific separator.
       ]##
-      def build(*elements: String): Path; end
+      pure def build(*elements: String): Path; end
     end
 
     init(path: String); end
@@ -24,71 +24,71 @@ module ::Std::FS
     ##[
       Reports whether the path is absolute.
     ]##
-    def is_absolute: bool; end
+    pure def is_absolute: bool; end
 
     ##[
       Reports whether the path is local.
       It is a primitive lexical check it does not take into account
       symbolic links etc
     ]##
-    def is_local: bool; end
+    pure def is_local: bool; end
 
     ##[
       Returns the path as a `String`.
     ]##
-    def to_string: String; end
+    pure def to_string: String; end
 
     ##[
       Returns the path as a slash `"/"` separated `String`.
     ]##
-    def to_slash_string: String; end
+    pure def to_slash_string: String; end
 
     ##[
       Returns the path as a backslash `"\\"` separated `String`.
     ]##
-    def to_backslash_string: String; end
+    pure def to_backslash_string: String; end
 
     ##[
       VolumeName returns leading volume name.
       Given "C:\foo\bar" it returns "C:" on Windows.
       Given "\\host\share\foo" it returns "\\host\share". On other platforms it returns "".
     ]##
-    def volume_name: String; end
+    pure def volume_name: String; end
 
     ##[
       Split the path into individual elements
       separated by the OS separator (`/` or `\`)
     ]##
-    def split: ArrayList[String]; end
+    pure def split: ArrayList[String]; end
 
     ##[
       Returns a path based on `self` that is
       the shortest possible version of it based on lexical analysis.
     ]##
-    def normalize: Path; end
+    pure def normalize: Path; end
 
     ##[
       Returns a path based on `self` omitting the last element.
       Typically this would result in the path to the parent directory.
     ]##
-    def dir: Path; end
+    pure def dir: Path; end
 
     ##[
       Returns the absolute version of this path.
       If the path is not absolute it will be joined with the current working directory to turn it into an absolute path.
     ]##
-    def to_absolute: Path; end
+    pure def to_absolute: Path; end
 
     ##[
       Returns a path based on `target` that is relative to `self`.
     ]##
-    def to_relative(target: Path): Path; end
+    pure def to_relative(target: Path): Path; end
 
     ##[
       Returns the last element of the path.
       Typically this is the name of the file.
     ]##
-    def base: String; end
+    pure def base: String; end
 
     ##[
       Returns the extension of the file.
@@ -100,11 +100,11 @@ module ::Std::FS
       FS::Path("index.html.erb").extension #=> ".erb"
       ```
     ]##
-    def extension: String; end
+    pure def extension: String; end
 
     ##[
       Checks whether the path matches the given glob pattern.
     ]##
-    def matches_glob(patten: String): bool; end
+    pure def matches_glob(patten: String): bool; end
   end
 end

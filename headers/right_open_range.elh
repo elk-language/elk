@@ -4,8 +4,8 @@
 sealed primitive class ::Std::RightOpenRange[Val < Comparable[Val]]
 	include Range[Val]
 
-	def is_left_closed: true; end
-	def is_right_closed: false; end
+	pure def is_left_closed: true; end
+	pure def is_right_closed: false; end
 
 	##[
 		Check whether the given `value` is present in this range.
@@ -15,19 +15,19 @@ sealed primitive class ::Std::RightOpenRange[Val < Comparable[Val]]
 	##[
 		Returns the lower bound of the range.
 	]##
-	def start: Val; end
+	pure def start: Val; end
 
 	##[
 		Returns the upper bound of the range.
 	]##
-	def end: Val; end
+	pure def end: Val; end
 
 	extend where Val < Incrementable[Val] & Comparable[Val]
 		##[
 			Returns the iterator for this range.
 			Only ranges of incrementable values can be iterated over.
 		]##
-		def iter: Iterator[Val]; end
+		pure def iter: Iterator[Val]; end
 	end
 
 	sealed primitive class Iterator[Val < Incrementable[Val] & Comparable[Val]]

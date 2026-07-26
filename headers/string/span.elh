@@ -11,11 +11,11 @@ sealed primitive class ::Std::String::Span
 		Returns the position of the first character
 		of a piece of text in a string.
 	]##
-	def start_pos: String::Position; end
+	pure def start_pos: String::Position; end
 
 	##[
 		Returns the position of the last character
 		of a piece of text in a string.
 	]##
-	def end_pos: String::Position; end
+	pure def end_pos: String::Position; end
 end
