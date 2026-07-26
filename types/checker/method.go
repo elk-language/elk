@@ -2762,9 +2762,9 @@ func (c *Checker) setInputPositionTypeMode() {
 	}
 }
 
-func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Location, widenReturnType bool) bool {
+func (c *Checker) checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod *types.Method, errSpan *position.Location, widenReturnType, checkPurity bool) bool {
 	if !overrideMethod.IsGeneric() {
-		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true, widenReturnType)
+		return c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan, true, widenReturnType, checkPurity)
 	}
 
 	prevMode := c.mode
@@ -2786,13 +2786,25 @@ func (c *Checker) checkMethodCompatibilityForInterfaceIntersection(baseMethod, o
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Location, validateParamNames, widenReturnType bool) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Location, validateParamNames, widenReturnType, checkPurity bool) bool {
 	if baseMethod == nil {
 		return true
 	}
 
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
+
+	if checkPurity {
+		if baseMethod.IsPure() && !overrideMethod.IsPure() {
+			fmt.Fprintf(
+				errDetailsBuff,
+				"\n  - method `%s` is impure while `%s` is pure",
+				types.InspectWithColor(overrideMethod),
+				types.InspectWithColor(baseMethod),
+			)
+			areCompatible = false
+		}
+	}
 
 	if !widenReturnType {
 		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
@@ -3509,13 +3521,14 @@ func (c *Checker) getMethodInNilable(typ *types.Nilable, name value.Symbol, errL
 		overrideMethod = nilMethod
 	}
 
-	if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errLoc, true) {
+	if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, overrideMethod, errLoc, true, false) {
 		return nil
 	}
 
 	method := baseMethod.Copy()
 	method.ReturnType = c.NewNormalisedUnion(baseMethod.ReturnType, overrideMethod.ReturnType)
 	method.ThrowType = c.NewNormalisedUnion(baseMethod.ThrowType, overrideMethod.ThrowType)
+	method.SetPure(baseMethod.IsPure() && overrideMethod.IsPure())
 	method.Overloads = nil
 	return method
 }
@@ -3550,14 +3563,18 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name value.Symbol, errLoc *
 
 	returnTypes[0] = baseMethod.ReturnType
 	throwTypes[0] = baseMethod.ThrowType
+	isPure := true
 
 	isCompatible := true
 	for i := range len(methods) {
 		method := methods[i]
 
-		ok := c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, true)
+		ok := c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, true, false)
 		returnTypes[i+1] = method.ReturnType
 		throwTypes[i+1] = method.ThrowType
+		if !method.IsPure() {
+			isPure = false
+		}
 		if !ok {
 			isCompatible = false
 		}
@@ -3570,6 +3587,7 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name value.Symbol, errLoc *
 	method := baseMethod.Copy()
 	method.ReturnType = c.NewNormalisedUnion(returnTypes...)
 	method.ThrowType = c.NewNormalisedUnion(throwTypes...)
+	method.SetPure(isPure)
 	method.Overloads = nil
 	return method
 }
@@ -3619,7 +3637,7 @@ func (c *Checker) getMethodInIntersection(typ *types.Intersection, name value.Sy
 	for i := range len(methods) {
 		method := methods[i]
 
-		if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, false) {
+		if !c.checkMethodCompatibilityForAlgebraicTypes(baseMethod, method, errLoc, false, true) {
 			isCompatible = false
 		}
 	}

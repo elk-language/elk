@@ -5032,7 +5032,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		var incompatibleMethods []methodOverride
 		for name, includedMethod := range c.methodsInNamespace(includedMixin) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
-			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true, false) {
+			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true, false, true) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
 					superMethod: superMethod,
 					override:    includedMethod,
@@ -5533,7 +5533,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			types.METHOD_NATIVE_FLAG,
+			types.METHOD_NATIVE_FLAG|types.METHOD_PURE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -5556,6 +5556,9 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		node.SetType(types.NewInstanceOf(types.Self{}))
 	} else {
 		node.SetType(types.Self{})
+	}
+	if !method.IsPure() {
+		c.addImpureErrorIfInPureContext(node.Location())
 	}
 	return node
 }
@@ -5618,7 +5621,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			types.METHOD_NATIVE_FLAG,
+			types.METHOD_NATIVE_FLAG|types.METHOD_PURE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -5639,6 +5642,9 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 	node.NamedArguments = nil
 	node.SetType(generic)
 	c.checkCalledMethodThrowType(method, node.Location())
+	if !method.IsPure() {
+		c.addImpureErrorIfInPureContext(node.Location())
+	}
 	return node
 }
 
@@ -5697,7 +5703,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		if method == nil {
 			method = types.NewMethod(
 				"",
-				types.METHOD_NATIVE_FLAG,
+				types.METHOD_NATIVE_FLAG|types.METHOD_PURE_FLAG,
 				symbol.S_init,
 				nil,
 				nil,
@@ -5720,6 +5726,9 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.NamedArguments = nil
 		node.SetType(class)
 		c.checkCalledMethodThrowType(method, node.Location())
+		if !method.IsPure() {
+			c.addImpureErrorIfInPureContext(node.Location())
+		}
 		return node
 	}
 
@@ -5729,7 +5738,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	if method == nil {
 		method = types.NewMethod(
 			"",
-			types.METHOD_NATIVE_FLAG,
+			types.METHOD_NATIVE_FLAG|types.METHOD_PURE_FLAG,
 			symbol.S_init,
 			nil,
 			nil,
@@ -5770,6 +5779,9 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	node.NamedArguments = nil
 	node.SetType(generic)
 	c.checkCalledMethodThrowType(method, node.Location())
+	if !method.IsPure() {
+		c.addImpureErrorIfInPureContext(node.Location())
+	}
 	return node
 }
 

@@ -1613,17 +1613,6 @@ func TestMethodDefinition(t *testing.T) {
 			},
 		},
 
-		"can set instance variable in pure init": {
-			input: `
-				class Foo
-					var @foo: Int
-
-					init
-						@foo = 5
-					end
-				end
-			`,
-		},
 		"cannot set instance variable in pure method": {
 			input: `
 				class Foo
@@ -1677,6 +1666,16 @@ func TestMethodDefinition(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(65, 5, 7), P(76, 5, 18)), "cannot perform an impure operation in a pure context"),
 			},
+		},
+		"can use pure subscript in a pure method": {
+			input: `
+				class Foo
+					pure def lol: Float
+						arr := [5.2]
+						arr[0]
+					end
+				end
+			`,
 		},
 
 		"positional rest params have tuple types": {
@@ -2091,6 +2090,39 @@ func TestMethodCalls(t *testing.T) {
 				a := Foo
 				a(1)
 			`,
+		},
+		"call to pure methods on union is pure": {
+			input: `
+				module Foo
+					pure def foo: Int then 3
+				end
+				module Bar
+					pure def foo: Float then 3.5
+				end
+
+				pure def bar
+					var a: Foo | Bar = Foo
+					a.foo
+				end
+			`,
+		},
+		"call to pure and impure methods on union is impure": {
+			input: `
+				module Foo
+					def foo: Int then 3
+				end
+				module Bar
+					pure def foo: Float then 3.5
+				end
+
+				pure def bar
+					var a: Foo | Bar = Foo
+					a.foo
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(159, 11, 8), P(161, 11, 10)), "cannot perform an impure operation in a pure context"),
+			},
 		},
 		"call a variable instead of a method": {
 			input: `
@@ -3535,6 +3567,17 @@ func TestInitDefinition(t *testing.T) {
 				end
 			`,
 		},
+		"set instance variables in a pure constructor": {
+			input: `
+				class Foo
+					var @foo: Int
+
+					init(a: Int)
+						@foo = a
+					end
+				end
+			`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -3550,6 +3593,39 @@ func TestConstructorCall(t *testing.T) {
 			input: `
 				class Foo; end
 				Foo()
+			`,
+		},
+		"cannot use an impure constructor in a pure method": {
+			input: `
+				class Foo
+					var @foo: Int
+
+					impure init
+						@foo = 4
+					end
+				end
+
+				pure def bar
+					Foo()
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(107, 11, 6), P(111, 11, 10)), "cannot perform an impure operation in a pure context"),
+			},
+		},
+		"can use a pure constructor in a pure method": {
+			input: `
+				class Foo
+					var @foo: Int
+
+					init
+						@foo = 4
+					end
+				end
+
+				pure def bar
+					Foo()
+				end
 			`,
 		},
 		"instantiate an abstract class": {
