@@ -746,6 +746,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.abstractModifier(allowed)
 	case token.PRIMITIVE:
 		return p.primitiveModifier(allowed)
+	case token.IMMUTABLE:
+		return p.immutableModifier(allowed)
 	case token.SEALED:
 		return p.sealedModifier(allowed)
 	case token.ASYNC:
@@ -2554,6 +2556,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.impureExpressionModifier(true)
 	case token.PRIMITIVE:
 		return p.primitiveModifier(false)
+	case token.IMMUTABLE:
+		return p.immutableModifier(false)
 	case token.SEALED:
 		return p.sealedModifier(false)
 	case token.ASYNC:
@@ -4331,6 +4335,7 @@ func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 		false,
 		false,
 		false,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -4647,6 +4652,7 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	return ast.NewStructDeclarationNode(
 		location,
 		"",
+		false,
 		constant,
 		typeVars,
 		thenBody,
@@ -6025,6 +6031,32 @@ func (p *Parser) primitiveModifier(allowed bool) ast.ExpressionNode {
 		n.SetLocation(primitiveTok.Location().Join(n.Location()))
 	default:
 		p.errorMessageLocation("the primitive modifier can only be attached to classes", node.Location())
+	}
+
+	return node
+}
+
+// immutableModifier = "immutable" declarationExpression
+func (p *Parser) immutableModifier(allowed bool) ast.ExpressionNode {
+	immutableTok := p.advance()
+
+	p.swallowNewlines()
+	node := p.declarationExpression(allowed)
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Immutable {
+			p.errorMessageLocation("the immutable modifier can only be attached once", immutableTok.Location())
+		}
+		n.Immutable = true
+		n.SetLocation(immutableTok.Location().Join(n.Location()))
+	case *ast.StructDeclarationNode:
+		if n.Immutable {
+			p.errorMessageLocation("the immutable modifier can only be attached once", immutableTok.Location())
+		}
+		n.Immutable = true
+		n.SetLocation(immutableTok.Location().Join(n.Location()))
+	default:
+		p.errorMessageLocation("the immutable modifier can only be attached to classes or structs", node.Location())
 	}
 
 	return node

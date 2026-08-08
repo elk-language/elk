@@ -549,6 +549,8 @@ const (
 	PURE              // Keyword `pure`
 	IMPURE            // Keyword `impure`
 	PATTERN           // Keyword `pattern`
+	EXACT             // Keyword `exact`
+	IMMUTABLE         // Keyword `immutable`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -660,6 +662,8 @@ var Keywords = map[string]Type{
 	"pure":            PURE,
 	"impure":          IMPURE,
 	"pattern":         PATTERN,
+	"exact":           EXACT,
+	"immutable":       IMMUTABLE,
 }
 
 var tokenNames = [...]string{
@@ -941,4 +945,6 @@ var tokenNames = [...]string{
 	PURE:            "pure",
 	IMPURE:          "impure",
 	PATTERN:         "pattern",
+	EXACT:           "exact",
+	IMMUTABLE:       "immutable",
 }

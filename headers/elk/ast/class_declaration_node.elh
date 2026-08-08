@@ -13,16 +13,18 @@ module Std::Elk::AST
       is_sealed: bool = false,
       is_primitive: bool = false,
       is_no_init: bool = false,
+      is_immutable: bool = false,
       superclass: ExpressionNode? = nil,
       doc_comment: String = "",
       location: FS::Location = loop; end
     ); end
 
-    pure def doc_comment: Bool; end
-    pure def is_abstract: Bool; end
-    pure def is_sealed: Bool; end
-    pure def is_primitive: Bool; end
-    pure def is_no_init: Bool; end
+    pure def doc_comment: bool; end
+    pure def is_abstract: bool; end
+    pure def is_sealed: bool; end
+    pure def is_primitive: bool; end
+    pure def is_no_init: bool; end
+    pure def is_immutable: bool; end
     pure def constant: ExpressionNode?; end
     pure def type_parameters: ArrayTuple[TypeParameterNode]; end
     pure def superclass: ExpressionNode; end

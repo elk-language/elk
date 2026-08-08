@@ -31,20 +31,26 @@ func initStructDeclarationNode() {
 				}).ToSlice()
 			}
 
-			var argDocComment string
+			var immutable bool
 			if !args[4].IsUndefined() {
-				argDocComment = string(args[4].MustReference().(value.String))
+				immutable = value.Truthy(args[4])
+			}
+
+			var argDocComment string
+			if !args[5].IsUndefined() {
+				argDocComment = string(args[5].MustReference().(value.String))
 			}
 
 			var argLoc *position.Location
-			if args[5].IsUndefined() {
+			if args[6].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[5].Pointer())
+				argLoc = (*position.Location)(args[6].Pointer())
 			}
 			self := ast.NewStructDeclarationNode(
 				argLoc,
 				argDocComment,
+				immutable,
 				argConstant,
 				argTypeParameters,
 				argBody,
@@ -52,7 +58,7 @@ func initStructDeclarationNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(5),
+		vm.DefWithParameters(6),
 	)
 
 	vm.Def(
@@ -86,6 +92,16 @@ func initStructDeclarationNode() {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			entries := value.CastNativeArrayTuplePtr(&self.TypeParameters)
 			return entries.ToValue(), value.Undefined
+		},
+	)
+
+	vm.Def(
+		c,
+		"is_immutable",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.StructDeclarationNode)
+			result := value.BoolVal(self.Immutable)
+			return result, value.Undefined
 		},
 	)
 

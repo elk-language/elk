@@ -9,12 +9,14 @@ module Std::Elk::AST
       constant: ExpressionNode,
       type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
       body: ArrayTuple[StructBodyStatementNode] = loop; end,
+      is_immutable: bool = false,
       doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
 
     pure def doc_comment: String; end
     pure def constant: ExpressionNode?; end
+    pure def is_immutable: bool; end
     pure def type_parameters: ArrayTuple[TypeParameterNode]; end
     pure def body: ArrayTuple[StructBodyStatementNode]; end
     pure def location: FS::Location; end

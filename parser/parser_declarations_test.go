@@ -4656,6 +4656,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							nil,
 							nil,
 							nil,
@@ -4682,6 +4683,7 @@ func TestClassDeclaration(t *testing.T) {
 							ast.NewClassDeclarationNode(
 								L(S(P(6, 1, 7), P(15, 1, 16))),
 								"",
+								false,
 								false,
 								false,
 								false,
@@ -4714,6 +4716,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							nil,
 							nil,
 							ast.NewPublicConstantNode(L(S(P(8, 1, 9), P(10, 1, 11))), "Foo"),
@@ -4736,6 +4739,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(24, 1, 25))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -4784,6 +4788,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(51, 1, 52))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -4840,6 +4845,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(8, 1, 9))), "Foo"),
 							nil,
 							nil,
@@ -4863,6 +4869,7 @@ func TestClassDeclaration(t *testing.T) {
 							L(S(P(0, 1, 1), P(22, 1, 23))),
 							"",
 							true,
+							false,
 							false,
 							false,
 							false,
@@ -4891,6 +4898,7 @@ func TestClassDeclaration(t *testing.T) {
 								L(S(P(10, 1, 11), P(32, 1, 33))),
 								"",
 								true,
+								false,
 								false,
 								false,
 								false,
@@ -4926,6 +4934,7 @@ func TestClassDeclaration(t *testing.T) {
 								false,
 								false,
 								false,
+								false,
 								ast.NewPublicConstantNode(L(S(P(25, 1, 26), P(27, 1, 28))), "Foo"),
 								nil,
 								nil,
@@ -4950,6 +4959,7 @@ func TestClassDeclaration(t *testing.T) {
 							L(S(P(0, 1, 1), P(31, 1, 32))),
 							"",
 							true,
+							false,
 							false,
 							false,
 							false,
@@ -4979,6 +4989,7 @@ func TestClassDeclaration(t *testing.T) {
 							true,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(22, 1, 23), P(24, 1, 25))), "Foo"),
 							nil,
 							nil,
@@ -5005,6 +5016,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							true,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(16, 1, 17), P(18, 1, 19))), "Foo"),
 							nil,
 							nil,
@@ -5028,7 +5040,32 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							true,
+							false,
 							ast.NewPublicConstantNode(L(S(P(13, 1, 14), P(15, 1, 16))), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be immutable": {
+			input: `immutable class Foo; end`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(23, 1, 24))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(23, 1, 24))),
+						ast.NewClassDeclarationNode(
+							L(S(P(0, 1, 1), P(23, 1, 24))),
+							"",
+							false,
+							false,
+							false,
+							false,
+							true,
+							ast.NewPublicConstantNode(L(S(P(16, 1, 17), P(18, 1, 19))), "Foo"),
 							nil,
 							nil,
 							nil,
@@ -5049,6 +5086,7 @@ func TestClassDeclaration(t *testing.T) {
 							"",
 							false,
 							true,
+							false,
 							false,
 							false,
 							ast.NewPublicConstantNode(L(S(P(13, 1, 14), P(15, 1, 16))), "Foo"),
@@ -5072,6 +5110,7 @@ func TestClassDeclaration(t *testing.T) {
 							"",
 							true,
 							true,
+							false,
 							false,
 							false,
 							ast.NewPublicConstantNode(L(S(P(22, 1, 23), P(24, 1, 25))), "Foo"),
@@ -5100,6 +5139,7 @@ func TestClassDeclaration(t *testing.T) {
 							true,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(20, 1, 21), P(22, 1, 23))), "Foo"),
 							nil,
 							nil,
@@ -5122,6 +5162,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(13, 1, 14))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5149,6 +5190,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPrivateConstantNode(L(S(P(6, 1, 7), P(9, 1, 10))), "_Foo"),
 							nil,
 							nil,
@@ -5168,6 +5210,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(18, 1, 19))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5199,6 +5242,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPublicIdentifierNode(L(S(P(6, 1, 7), P(8, 1, 9))), "foo"),
 							nil,
 							nil,
@@ -5221,6 +5265,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5248,6 +5293,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(8, 1, 9))), "Foo"),
 							nil,
 							ast.NewNilLiteralNode(L(S(P(12, 1, 13), P(14, 1, 15)))),
@@ -5267,6 +5313,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(20, 1, 21))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5294,6 +5341,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(8, 1, 9))), "Foo"),
 							nil,
 							ast.NewConstantLookupNode(
@@ -5317,6 +5365,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(40, 1, 41))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5355,6 +5404,7 @@ func TestClassDeclaration(t *testing.T) {
 							false,
 							false,
 							false,
+							false,
 							ast.NewPublicConstantNode(L(S(P(6, 1, 7), P(8, 1, 9))), "Foo"),
 							nil,
 							ast.NewInvalidNode(L(S(P(12, 1, 13), P(14, 1, 15))), V(L(S(P(12, 1, 13), P(14, 1, 15))), token.PUBLIC_IDENTIFIER, "bar")),
@@ -5380,6 +5430,7 @@ end`,
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(26, 4, 3))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -5417,6 +5468,7 @@ end`,
 						ast.NewClassDeclarationNode(
 							L(S(P(0, 1, 1), P(21, 1, 22))),
 							"",
+							false,
 							false,
 							false,
 							false,
@@ -6350,6 +6402,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(10, 1, 11))),
 							"",
+							false,
 							nil,
 							nil,
 							nil,
@@ -6375,6 +6428,7 @@ func TestStructDeclaration(t *testing.T) {
 							ast.NewStructDeclarationNode(
 								L(S(P(6, 1, 7), P(16, 1, 17))),
 								"",
+								false,
 								nil,
 								nil,
 								nil,
@@ -6398,6 +6452,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(25, 1, 26))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -6441,6 +6496,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(52, 1, 53))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -6488,6 +6544,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(48, 1, 49))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -6527,6 +6584,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(49, 1, 50))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -6574,6 +6632,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(48, 1, 49))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							[]ast.TypeParameterNode{
 								ast.NewVariantTypeParameterNode(
@@ -6613,6 +6672,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(16, 1, 17))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							nil,
 							nil,
@@ -6634,7 +6694,27 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be immutable": {
+			input: `immutable struct Foo; end`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(24, 1, 25))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(24, 1, 25))),
+						ast.NewStructDeclarationNode(
+							L(S(P(0, 1, 1), P(24, 1, 25))),
+							"",
+							true,
+							ast.NewPublicConstantNode(L(S(P(17, 1, 18), P(19, 1, 20))), "Foo"),
 							nil,
 							nil,
 						),
@@ -6652,6 +6732,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(15, 1, 16))),
 							"",
+							false,
 							ast.NewPrivateConstantNode(L(S(P(7, 1, 8), P(10, 1, 11))), "_Foo"),
 							nil,
 							nil,
@@ -6670,6 +6751,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(19, 1, 20))),
 							"",
+							false,
 							ast.NewConstantLookupNode(
 								L(S(P(7, 1, 8), P(14, 1, 15))),
 								ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
@@ -6692,6 +6774,7 @@ func TestStructDeclaration(t *testing.T) {
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(14, 1, 15))),
 							"",
+							false,
 							ast.NewPublicIdentifierNode(L(S(P(7, 1, 8), P(9, 1, 10))), "foo"),
 							nil,
 							nil,
@@ -6718,6 +6801,7 @@ end`,
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(64, 6, 3))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							nil,
 							[]ast.StructBodyStatementNode{
@@ -6776,6 +6860,7 @@ end`,
 						ast.NewStructDeclarationNode(
 							L(S(P(0, 1, 1), P(23, 1, 24))),
 							"",
+							false,
 							ast.NewPublicConstantNode(L(S(P(7, 1, 8), P(9, 1, 10))), "Foo"),
 							nil,
 							[]ast.StructBodyStatementNode{

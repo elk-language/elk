@@ -8838,6 +8838,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		false,
 		false,
 		false,
+		false,
 		structNode.Constant,
 		nil,
 		nil,

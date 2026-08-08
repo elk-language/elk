@@ -25,6 +25,7 @@ func (*ParameterStatementNode) structBodyStatementNode() {}
 type StructDeclarationNode struct {
 	TypedNodeBase
 	DocCommentableNodeBase
+	Immutable      bool
 	Constant       ExpressionNode            // The constant that will hold the struct value
 	TypeParameters []TypeParameterNode       // Generic type variable definitions
 	Body           []StructBodyStatementNode // body of the struct
@@ -42,6 +43,7 @@ func (n *StructDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 	return &StructDeclarationNode{
 		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Immutable:              n.Immutable,
 		Constant:               constant,
 		TypeParameters:         typeParams,
 		Body:                   body,
@@ -90,6 +92,7 @@ func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	if !n.Constant.Equal(value.Ref(o.Constant)) ||
 		!n.loc.Equal(o.loc) ||
 		n.comment != o.comment ||
+		n.Immutable != o.Immutable ||
 		len(n.TypeParameters) != len(o.TypeParameters) ||
 		len(n.Body) != len(o.Body) {
 		return false
@@ -118,6 +121,10 @@ func (n *StructDeclarationNode) String() string {
 		buff.WriteString("##[\n")
 		indent.IndentString(&buff, doc, 1)
 		buff.WriteString("\n]##\n")
+	}
+
+	if n.Immutable {
+		buff.WriteString("immutable ")
 	}
 
 	buff.WriteString("struct")
@@ -159,6 +166,7 @@ func (*StructDeclarationNode) IsStatic() bool {
 func NewStructDeclarationNode(
 	loc *position.Location,
 	docComment string,
+	immutable bool,
 	constant ExpressionNode,
 	typeParams []TypeParameterNode,
 	body []StructBodyStatementNode,
@@ -169,6 +177,7 @@ func NewStructDeclarationNode(
 		DocCommentableNodeBase: DocCommentableNodeBase{
 			comment: docComment,
 		},
+		Immutable:      immutable,
 		Constant:       constant,
 		TypeParameters: typeParams,
 		Body:           body,
@@ -187,6 +196,8 @@ func (n *StructDeclarationNode) Inspect() string {
 	var buff strings.Builder
 
 	fmt.Fprintf(&buff, "Std::Elk::AST::StructDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	fmt.Fprintf(&buff, ",\n  immutable: %t", n.Immutable)
 
 	buff.WriteString(",\n  doc_comment: ")
 	indent.IndentStringFromSecondLine(&buff, value.String(n.DocComment()).Inspect(), 1)

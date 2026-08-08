@@ -17,6 +17,7 @@ type ClassDeclarationNode struct {
 	Abstract       bool
 	Sealed         bool
 	Primitive      bool
+	Immutable      bool
 	NoInit         bool
 	HasDefer       bool
 	Constant       ExpressionNode      // The constant that will hold the class value
@@ -46,6 +47,7 @@ func (n *ClassDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 		Abstract:       n.Abstract,
 		Sealed:         n.Sealed,
 		Primitive:      n.Primitive,
+		Immutable:      n.Immutable,
 		NoInit:         n.NoInit,
 		HasDefer:       n.HasDefer,
 		Constant:       constant,
@@ -104,6 +106,7 @@ func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	if n.Abstract != o.Abstract ||
 		n.Sealed != o.Sealed ||
 		n.Primitive != o.Primitive ||
+		n.Immutable != o.Immutable ||
 		n.NoInit != o.NoInit {
 		return false
 	}
@@ -154,6 +157,10 @@ func (n *ClassDeclarationNode) String() string {
 
 	if n.Abstract {
 		buff.WriteString("abstract ")
+	}
+
+	if n.Immutable {
+		buff.WriteString("immutable ")
 	}
 
 	if n.Sealed {
@@ -222,6 +229,7 @@ func NewClassDeclarationNode(
 	sealed bool,
 	primitive bool,
 	noinit bool,
+	immutable bool,
 	constant ExpressionNode,
 	typeParams []TypeParameterNode,
 	superclass ExpressionNode,
@@ -237,6 +245,7 @@ func NewClassDeclarationNode(
 		Sealed:         sealed,
 		Primitive:      primitive,
 		NoInit:         noinit,
+		Immutable:      immutable,
 		Constant:       constant,
 		TypeParameters: typeParams,
 		Superclass:     superclass,
@@ -258,6 +267,7 @@ func (n *ClassDeclarationNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ClassDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	fmt.Fprintf(&buff, ",\n  abstract: %t", n.Abstract)
+	fmt.Fprintf(&buff, ",\n  immutable: %t", n.Immutable)
 	fmt.Fprintf(&buff, ",\n  sealed: %t", n.Sealed)
 	fmt.Fprintf(&buff, ",\n  primitive: %t", n.Primitive)
 	fmt.Fprintf(&buff, ",\n  noinit: %t", n.NoInit)

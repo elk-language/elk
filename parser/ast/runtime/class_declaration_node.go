@@ -33,36 +33,40 @@ func initClassDeclarationNode() {
 
 			var abstract bool
 			if !args[4].IsUndefined() {
-				abstract = value.Truthy(args[3])
+				abstract = value.Truthy(args[4])
 			}
 			var sealed bool
 			if !args[5].IsUndefined() {
-				sealed = value.Truthy(args[4])
+				sealed = value.Truthy(args[5])
 			}
 			var primitive bool
 			if !args[6].IsUndefined() {
-				primitive = value.Truthy(args[5])
+				primitive = value.Truthy(args[6])
 			}
 			var noInit bool
 			if !args[7].IsUndefined() {
-				noInit = value.Truthy(args[6])
+				noInit = value.Truthy(args[7])
+			}
+			var immutable bool
+			if !args[8].IsUndefined() {
+				immutable = value.Truthy(args[8])
 			}
 
 			var superclass ast.ExpressionNode
-			if !args[8].IsUndefined() {
-				superclass = args[8].MustReference().(ast.ExpressionNode)
+			if !args[9].IsUndefined() {
+				superclass = args[9].MustReference().(ast.ExpressionNode)
 			}
 			var docComment string
-			if !args[9].IsUndefined() {
-				docComment = (string)(args[9].MustReference().(value.String))
+			if !args[10].IsUndefined() {
+				docComment = (string)(args[10].MustReference().(value.String))
 			}
-
 			var argLoc *position.Location
-			if args[10].IsUndefined() {
+			if args[11].IsUndefined() {
 				argLoc = position.ZeroLocation
 			} else {
-				argLoc = (*position.Location)(args[10].Pointer())
+				argLoc = (*position.Location)(args[11].Pointer())
 			}
+
 			self := ast.NewClassDeclarationNode(
 				argLoc,
 				docComment,
@@ -70,6 +74,7 @@ func initClassDeclarationNode() {
 				sealed,
 				primitive,
 				noInit,
+				immutable,
 				constant,
 				typeParams,
 				superclass,
@@ -78,7 +83,7 @@ func initClassDeclarationNode() {
 			return value.Ref(self), value.Undefined
 
 		},
-		vm.DefWithParameters(10),
+		vm.DefWithParameters(11),
 	)
 
 	vm.Def(
@@ -124,6 +129,17 @@ func initClassDeclarationNode() {
 
 		},
 	)
+
+	vm.Def(
+		c,
+		"is_immutable",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ClassDeclarationNode)
+			result := value.BoolVal(self.Immutable)
+			return result, value.Undefined
+		},
+	)
+
 	vm.Def(
 		c,
 		"constant",
