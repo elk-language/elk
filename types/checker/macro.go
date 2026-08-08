@@ -1058,6 +1058,23 @@ func (c *Checker) addMacroInMacroError(loc *position.Location) {
 	)
 }
 
+func (c *Checker) getMacroScope(typ types.Type, loc *position.Location) types.Namespace {
+	switch typ := typ.(type) {
+	case *types.Exact:
+		return c.getMacroScope(typ.Type, loc)
+	case types.Namespace:
+		return typ
+	case types.Untyped:
+		return nil
+	default:
+		c.addFailure(
+			fmt.Sprintf("invalid macro scope %T", typ),
+			loc,
+		)
+		return nil
+	}
+}
+
 func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.Node {
 	node.SetType(types.Untyped{})
 
@@ -1069,17 +1086,8 @@ func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.No
 	node.Receiver = c.checkExpression(node.Receiver)
 	receiverType := c.TypeOf(node.Receiver)
 
-	var receiverNamespace types.Namespace
-	switch r := receiverType.(type) {
-	case types.Namespace:
-		receiverNamespace = r
-	case types.Untyped:
-		return nil
-	default:
-		c.addFailure(
-			fmt.Sprintf("invalid macro scope %T", receiverType),
-			node.Receiver.Location(),
-		)
+	receiverNamespace := c.getMacroScope(receiverType, node.Receiver.Location())
+	if receiverNamespace == nil {
 		return nil
 	}
 

@@ -2216,7 +2216,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo?.baz(5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(66, 5, 10), P(68, 5, 12)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				diagnostic.NewFailure(L("<main>", P(66, 5, 10), P(68, 5, 12)), "cannot make a nil-safe call on type `exact Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe call on a nilable receiver": {
@@ -2307,7 +2307,7 @@ func TestMethodCalls(t *testing.T) {
 				Foo?..baz(5)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(67, 5, 11), P(69, 5, 13)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				diagnostic.NewFailure(L("<main>", P(67, 5, 11), P(69, 5, 13)), "cannot make a nil-safe call on type `exact Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe cascade call on a nilable receiver": {
@@ -4789,7 +4789,7 @@ func TestClosureLiteral(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(112, 9, 9), P(114, 9, 11)), "type `Foo` is not closure `%|a: Std::Int|: Std::String`"),
-				diagnostic.NewFailure(L("<main>", P(112, 9, 9), P(114, 9, 11)), "type `Foo` cannot be assigned to type `%|a: Std::Int|: Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(112, 9, 9), P(114, 9, 11)), "type `exact Foo` cannot be assigned to type `%|a: Std::Int|: Std::String`"),
 			},
 		},
 		"infer types from local assignment": {
