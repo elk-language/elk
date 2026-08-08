@@ -18,7 +18,7 @@ func TestSingletonType(t *testing.T) {
 				var a: Mixin = String
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(20, 2, 20), P(25, 2, 25)), "type `&Std::String` cannot be assigned to type `Std::Mixin`"),
+				diagnostic.NewFailure(L("<main>", P(20, 2, 20), P(25, 2, 25)), "type `exact &Std::String` cannot be assigned to type `Std::Mixin`"),
 			},
 		},
 		"assign a singleton type of a mixin to Mixin": {

@@ -4274,7 +4274,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(String)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `Foo.:#init`, got type `&Std::String`"),
+				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `Foo.:#init`, got type `exact &Std::String`"),
 				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `exact Foo[Std::Class]` cannot be assigned to type `9`"),
 			},
 		},

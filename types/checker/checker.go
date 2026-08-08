@@ -4609,7 +4609,9 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 	}
 	leftType := c.typeOfGuardVoid(left)
 	rightType := c.TypeOf(right)
-
+	if r, ok := rightType.(*types.Exact); ok {
+		rightType = r.Type
+	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		c.addFailure(
@@ -4667,7 +4669,9 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	}
 	leftType := c.typeOfGuardVoid(left)
 	rightType := c.TypeOf(right)
-
+	if r, ok := rightType.(*types.Exact); ok {
+		rightType = r.Type
+	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		c.addFailure(

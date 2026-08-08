@@ -206,6 +206,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		return nil
 	case *types.SingletonOf:
 		switch g := givenType.(type) {
+		case *types.Exact:
+			return c.inferTypeArgumentsWithFlags(g.Type, p, typeArgMap, errLocation, flags)
 		case *types.SingletonClass:
 			result := c.inferTypeArgumentsWithFlags(g.AttachedObject, p.Type, typeArgMap, errLocation, flags)
 			if result == nil {
@@ -231,6 +233,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		}
 	case *types.SingletonClass:
 		switch g := givenType.(type) {
+		case *types.Exact:
+			return c.inferTypeArgumentsWithFlags(g.Type, p, typeArgMap, errLocation, flags)
 		case *types.SingletonClass:
 			result := c.inferTypeArgumentsWithFlags(g.AttachedObject, p.AttachedObject, typeArgMap, errLocation, flags)
 			if result == nil {
@@ -339,6 +343,21 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		}
 
 		return types.NewNot(result)
+	case *types.Exact:
+		g, ok := givenType.(*types.Exact)
+		if !ok {
+			return p
+		}
+
+		result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+		if result == nil {
+			return nil
+		}
+		if p.Type == result {
+			return p
+		}
+
+		return types.NewExact(result.(types.Namespace))
 	case *types.Intersection:
 		switch g := givenType.(type) {
 		case *types.Intersection:

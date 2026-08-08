@@ -276,7 +276,11 @@ func (c *Checker) addInvalidValueInExpressionError(constantName string, location
 
 func (c *Checker) normaliseConstantType(typ types.Type, name string) (types.Type, string) {
 	switch typ := typ.(type) {
-	case types.Namespace:
+	case *types.SingletonClass:
+		if typ.AttachedObjectName() == name {
+			return types.NewExact(typ), name
+		}
+	case *types.Module:
 		if typ.Name() == name {
 			return types.NewExact(typ), name
 		}

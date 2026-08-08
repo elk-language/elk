@@ -392,7 +392,11 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 		return
 	}
 
-	rightSingleton, ok := c.TypeOf(right).(*types.SingletonClass)
+	rightType := c.TypeOf(right)
+	if r, ok := rightType.(*types.Exact); ok {
+		rightType = r.Type
+	}
+	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		return
 	}
@@ -433,7 +437,11 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 		return
 	}
 
-	rightSingleton, ok := c.TypeOf(right).(*types.SingletonClass)
+	rightType := c.TypeOf(right)
+	if r, ok := rightType.(*types.Exact); ok {
+		rightType = r.Type
+	}
+	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		return
 	}
@@ -453,7 +461,7 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = class
+		local.typ = types.NewExact(class)
 	case assumptionFalsy:
 		local.typ = c.differenceType(local.typ, class)
 	case assumptionNotNil:
