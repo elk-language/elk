@@ -13,7 +13,7 @@ func initExactTypeNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argTypeNode := args[1].MustReference().(ast.ComplexConstantNode)
+			argTypeNode := args[1].MustReference().(ast.TypeNode)
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {

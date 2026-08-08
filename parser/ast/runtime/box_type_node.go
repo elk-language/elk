@@ -49,7 +49,7 @@ func initBoxTypeNode() {
 
 	vm.Def(
 		c,
-		"immutable",
+		"is_immutable",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*ast.BoxTypeNode)(args[0].Pointer())
 			result := value.BoolVal(self.Immutable)

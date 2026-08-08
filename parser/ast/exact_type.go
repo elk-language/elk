@@ -13,13 +13,13 @@ import (
 // Exact type of a class instance eg. `exact Foo`, `exact Bar[String]`
 type ExactTypeNode struct {
 	TypedNodeBase
-	TypeNode ComplexConstantNode // right hand side
+	TypeNode TypeNode // right hand side
 }
 
 func (n *ExactTypeNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ExactTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
-		TypeNode:      n.TypeNode.splice(loc, args, unquote).(ComplexConstantNode),
+		TypeNode:      n.TypeNode.splice(loc, args, unquote).(TypeNode),
 	}
 }
 
@@ -74,7 +74,7 @@ func (u *ExactTypeNode) IsStatic() bool {
 }
 
 // Create a new exact type node.
-func NewExactTypeNode(loc *position.Location, typeNode ComplexConstantNode) *ExactTypeNode {
+func NewExactTypeNode(loc *position.Location, typeNode TypeNode) *ExactTypeNode {
 	return &ExactTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},
 		TypeNode:      typeNode,

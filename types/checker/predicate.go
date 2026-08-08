@@ -504,6 +504,11 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	switch a := a.(type) {
 	case *types.NamedType:
 		return c.isSubtype(a.Type, b, errLoc)
+	case *types.Exact:
+		if bExact, ok := b.(*types.Exact); ok {
+			return c.IsTheSameNamespace(a.Type, bExact.Type)
+		}
+		return c.isSubtype(a.Type, b, errLoc)
 	case *types.Union:
 		for _, aElement := range a.Elements {
 			if !c.isSubtype(aElement, b, errLoc) {
@@ -538,6 +543,11 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	}
 
 	switch b := b.(type) {
+	case *types.Exact:
+		if a, ok := a.(*types.Exact); ok {
+			return c.IsTheSameNamespace(a.Type, b.Type)
+		}
+		return false
 	case *types.Union:
 		for _, bElement := range b.Elements {
 			if c.isSubtype(a, bElement, nil) {
@@ -862,7 +872,7 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 	case *types.SingletonOf:
 		return c.isSubtype(a.AttachedObject, b.Type, errLoc)
 	case *types.Class:
-		return c.isSubtypeOfClass(a, b)
+		return c.namespaceIsSubtypeOfClass(a, b)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.Generic:
@@ -879,7 +889,7 @@ func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type,
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		return c.isSubtypeOfClass(a, b)
+		return c.namespaceIsSubtypeOfClass(a, b)
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Mixin:
@@ -900,7 +910,7 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errLoc *position.
 func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		return c.isSubtypeOfClass(a, b)
+		return c.namespaceIsSubtypeOfClass(a, b)
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Mixin:
@@ -923,7 +933,7 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *positio
 func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		return c.isSubtypeOfClass(a, b)
+		return c.namespaceIsSubtypeOfClass(a, b)
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
@@ -987,7 +997,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 	return false, true
 }
 
-func (c *Checker) isSubtypeOfClass(a types.Namespace, b *types.Class) bool {
+func (c *Checker) namespaceIsSubtypeOfClass(a types.Namespace, b *types.Class) bool {
 	var currentParent types.Namespace = a
 	for {
 		if currentParent == nil {

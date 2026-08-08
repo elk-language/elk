@@ -209,7 +209,7 @@ func TestEqual(t *testing.T) {
 				Foo() == "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `exact Foo` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"no method negated": {
@@ -218,7 +218,7 @@ func TestEqual(t *testing.T) {
 				Foo() != "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `\"foo\"`"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `exact Foo` cannot ever be equal to `\"foo\"`"),
 			},
 		},
 		"valid check": {

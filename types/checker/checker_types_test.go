@@ -742,7 +742,7 @@ func TestIntersectionTypeSubtype(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `FooConvertible`:\n\n  - missing method `FooConvertible.:to_foo` with signature: `def to_foo(): Std::Int`"),
 				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `BarConvertible`:\n\n  - missing method `BarConvertible.:to_bar` with signature: `def to_bar(): Std::String`"),
 				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` does not implement interface `SigmaConvertible`:\n\n  - missing method `SigmaConvertible.:to_sigma` with signature: `def to_sigma(): Std::Float`"),
-				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `Std::Object` cannot be assigned to type `FooConvertible & BarConvertible & SigmaConvertible`"),
+				diagnostic.NewFailure(L("<main>", P(248, 11, 65), P(255, 11, 72)), "type `exact Std::Object` cannot be assigned to type `FooConvertible & BarConvertible & SigmaConvertible`"),
 			},
 		},
 		"normalise intersection type with multiple classes": {
@@ -917,7 +917,7 @@ func TestNotType(t *testing.T) {
 				var b: ~Bar = a
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(63, 4, 19), P(70, 4, 26)), "type `Std::Object` cannot be assigned to type `~Foo`"),
+				diagnostic.NewFailure(L("<main>", P(63, 4, 19), P(70, 4, 26)), "type `exact Std::Object` cannot be assigned to type `~Foo`"),
 			},
 		},
 		"assign ~String to ~Object": {

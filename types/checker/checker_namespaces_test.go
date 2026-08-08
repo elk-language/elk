@@ -297,7 +297,7 @@ func TestClass(t *testing.T) {
 				Foo() == 2
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `Foo` cannot ever be equal to `2`"),
+				diagnostic.NewWarning(L("<main>", P(30, 3, 5), P(34, 3, 9)), "this equality check is impossible, `exact Foo` cannot ever be equal to `2`"),
 			},
 		},
 		"class with nonexistent superclass": {
@@ -2366,7 +2366,7 @@ func TestMixinType(t *testing.T) {
 				var a: Bar[Int] = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(93, 7, 23), P(97, 7, 27)), "type `Foo` cannot be assigned to type `Bar[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(93, 7, 23), P(97, 7, 27)), "type `exact Foo` cannot be assigned to type `Bar[Std::Int]`"),
 			},
 		},
 		"assign instance of related class to mixin": {
@@ -2387,7 +2387,7 @@ func TestMixinType(t *testing.T) {
 				var a: Bar = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `exact Foo` cannot be assigned to type `Bar`"),
 			},
 		},
 		"assign mixin type to the same mixin type": {
@@ -3091,7 +3091,7 @@ func TestInterfaceType(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(166, 10, 18), P(170, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo@1(a: Std::Int): void`\n      should be: `def foo(a: Std::Int): void`"),
-				diagnostic.NewFailure(L("<main>", P(166, 10, 18), P(170, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(166, 10, 18), P(170, 10, 22)), "type `exact Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign instance of class that implements the interface implicitly with main overload": {
@@ -3121,7 +3121,7 @@ func TestInterfaceType(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - incorrect implementation of `Foo.:foo`\n      is:        `def foo(a: Std::String): void`\n                 `def foo@1(a: Std::Float): void`\n      should be: `def foo(a: Std::Int): void`"),
-				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(168, 10, 18), P(172, 10, 22)), "type `exact Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign instance of class that does not implement the interface": {
@@ -3135,7 +3135,7 @@ func TestInterfaceType(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: `def foo(): void`"),
-				diagnostic.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `exact Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 		"assign interface type to the same interface type": {

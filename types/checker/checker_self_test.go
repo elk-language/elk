@@ -117,7 +117,7 @@ func TestSelfType(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(46, 4, 21), P(48, 4, 23)), "type `A` cannot be assigned to type `self`"),
+				diagnostic.NewFailure(L("<main>", P(46, 4, 21), P(48, 4, 23)), "type `exact A` cannot be assigned to type `self`"),
 			},
 		},
 		"do not replace self in method calls on self": {

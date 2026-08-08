@@ -315,7 +315,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(74, 6, 18), P(78, 6, 22)), "type `Foo` cannot be assigned to type `V`"),
+				diagnostic.NewFailure(L("<main>", P(74, 6, 18), P(78, 6, 22)), "type `exact Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign parent of upper bound to type variable": {
@@ -330,7 +330,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `exact Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign child of upper bound to type variable": {
@@ -345,7 +345,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Bar` cannot be assigned to type `V`"),
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `exact Bar` cannot be assigned to type `V`"),
 			},
 		},
 
@@ -417,7 +417,7 @@ func TestTypeParameters(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `Foo` cannot be assigned to type `V`"),
+				diagnostic.NewFailure(L("<main>", P(99, 7, 18), P(103, 7, 22)), "type `exact Foo` cannot be assigned to type `V`"),
 			},
 		},
 		"assign child of lower bound to type variable": {

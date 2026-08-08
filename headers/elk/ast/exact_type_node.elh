@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class ExactTypeNode
     include TypeNode
 
-    init(type_node: ComplexConstantNode, location: FS::Location = loop; end); end
-    pure def type_node: ComplexConstantNode; end
+    init(type_node: TypeNode, location: FS::Location = loop; end); end
+    pure def type_node: TypeNode; end
     pure def location: FS::Location; end
   end
 end

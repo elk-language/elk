@@ -2812,7 +2812,7 @@ func TestMethodCalls(t *testing.T) {
 				var f: String = Foo()?["foo"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(85, 5, 21), P(97, 5, 33)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+				diagnostic.NewFailure(L("<main>", P(85, 5, 21), P(97, 5, 33)), "cannot make a nil-safe call on type `exact Foo` which is not nilable"),
 			},
 		},
 		"call nil-safe subscript with matching argument": {
@@ -3226,7 +3226,9 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: 9 = HashMap::[String, Int]().map_pairs() |pair| -> Pair(1u8, 1.2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(pair: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
+				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type parameter from closure's return type with different param names": {
@@ -3234,7 +3236,9 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: 9 = HashMap::[String, Int]().map_pairs() |p| -> Pair(1u8, 1.2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(73, 2, 73)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(p: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
+				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(73, 2, 73)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
 			},
 		},
 		"call a generic method with explicit type arguments": {
@@ -3595,6 +3599,28 @@ func TestConstructorCall(t *testing.T) {
 				Foo()
 			`,
 		},
+		"a constructor returns an exact type": {
+			input: `
+				class Foo; end
+				var a: exact Foo = Foo()
+			`,
+		},
+		"an exact type can be assigned to a non-exact type": {
+			input: `
+				class Foo; end
+				var a: Foo = Foo()
+			`,
+		},
+		"a non-exact type cannot be assigned to an exact type": {
+			input: `
+				class Foo; end
+				var a: Foo = Foo()
+				var b: exact Foo = a
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(66, 4, 24), P(66, 4, 24)), "type `Foo` cannot be assigned to type `exact Foo`"),
+			},
+		},
 		"cannot use an impure constructor in a pure method": {
 			input: `
 				class Foo
@@ -3931,7 +3957,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(38, 3, 16), P(42, 3, 20)), "type `Foo[any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(38, 3, 16), P(42, 3, 20)), "type `exact Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on upper bound": {
@@ -3940,7 +3966,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on upper bound with type parameters": {
@@ -3950,7 +3976,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "cannot infer type argument for `V` in call to `Foo.:#init`"),
-				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `Foo[untyped]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `exact Foo[untyped]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on lower bound": {
@@ -3959,7 +3985,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(47, 3, 16), P(51, 3, 20)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on lower bound with type parameters": {
@@ -3968,7 +3994,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `Foo[any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(54, 3, 16), P(58, 3, 20)), "type `exact Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument based on lower bound and upper bound": {
@@ -3978,7 +4004,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo()
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(72, 4, 16), P(76, 4, 20)), "type `Foo[Bar]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(72, 4, 16), P(76, 4, 20)), "type `exact Foo[Bar]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument incompatible with upper bound": {
@@ -3990,7 +4016,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(75, 5, 20)), "type `9` does not satisfy the upper bound `Std::String`"),
-				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type argument incompatible with lower bound": {
@@ -4002,7 +4028,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(75, 5, 20)), "type `9` does not satisfy the lower bound `Std::String`"),
-				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(76, 5, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer simple type argument": {
@@ -4013,7 +4039,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var a: 9 = Foo("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(62, 5, 16), P(71, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(62, 5, 16), P(71, 5, 25)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer based on first argument": {
@@ -4025,7 +4051,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(79, 5, 27), P(79, 5, 27)), "expected type `Std::String` for parameter `b` in call to `Foo.:#init`, got type `2`"),
-				diagnostic.NewFailure(L("<main>", P(68, 5, 16), P(80, 5, 28)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(68, 5, 16), P(80, 5, 28)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer two type arguments": {
@@ -4037,7 +4063,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `Foo[Std::Int | Std::Float, Std::Int | Std::Float]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `exact Foo[Std::Int | Std::Float, Std::Int | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4050,7 +4076,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(100, 6, 16), P(105, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(100, 6, 16), P(105, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a union, argument is a union with additional types": {
@@ -4062,7 +4088,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(108, 6, 16), P(113, 6, 21)), "type `Foo[Std::String | Std::Float]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(108, 6, 16), P(113, 6, 21)), "type `exact Foo[Std::String | Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a union, argument is not": {
@@ -4073,7 +4099,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(68, 5, 16), P(77, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(68, 5, 16), P(77, 5, 25)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4085,7 +4111,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("foo")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(63, 5, 16), P(72, 5, 25)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(63, 5, 16), P(72, 5, 25)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param and argument are nilable": {
@@ -4097,7 +4123,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(90, 6, 16), P(95, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(90, 6, 16), P(95, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is nilable, argument is a union with nil": {
@@ -4109,7 +4135,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is nilable, argument is a union with Nil": {
@@ -4121,7 +4147,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(95, 6, 16), P(100, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is nilable, argument is a broad union with Nil": {
@@ -4133,7 +4159,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(101, 6, 16), P(106, 6, 21)), "type `Foo[Std::String | Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(101, 6, 16), P(106, 6, 21)), "type `exact Foo[Std::String | Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4150,7 +4176,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(144, 10, 16), P(149, 10, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(144, 10, 16), P(149, 10, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a generic, argument is a subtype": {
@@ -4167,7 +4193,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(175, 11, 16), P(180, 11, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(175, 11, 16), P(180, 11, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a generic, argument is a subtype with more type parameters": {
@@ -4184,7 +4210,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(178, 11, 16), P(183, 11, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(178, 11, 16), P(183, 11, 21)), "type `exact Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a generic, argument is not": {
@@ -4200,7 +4226,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(118, 9, 20), P(118, 9, 20)), "expected type `Bar[V]` for parameter `a` in call to `Foo.:#init`, got type `1`"),
-				diagnostic.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "type `Foo[any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(114, 9, 16), P(119, 9, 21)), "type `exact Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4212,7 +4238,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(String)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a singleton, argument is not": {
@@ -4225,7 +4251,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(94, 6, 20), P(95, 6, 21)), "expected type `&V` for parameter `a` in call to `Foo.:#init`, got type `\"\"`"),
-				diagnostic.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "type `Foo[Std::Value]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(90, 6, 16), P(96, 6, 22)), "type `exact Foo[Std::Value]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4237,7 +4263,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo("")
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(77, 5, 22)), "type `Foo[&Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(77, 5, 22)), "type `exact Foo[&Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is an instance, argument is not": {
@@ -4249,7 +4275,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(75, 5, 20), P(80, 5, 25)), "expected type `%V` for parameter `a` in call to `Foo.:#init`, got type `&Std::String`"),
-				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `Foo[Std::Class]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(71, 5, 16), P(81, 5, 26)), "type `exact Foo[Std::Class]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4262,7 +4288,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(85, 6, 16), P(90, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(85, 6, 16), P(90, 6, 21)), "type `exact Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a not type, argument is not": {
@@ -4274,7 +4300,7 @@ func TestConstructorCallInference(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(67, 5, 20), P(69, 5, 22)), "expected type `~V` for parameter `a` in call to `Foo.:#init`, got type `2.9`"),
-				diagnostic.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "type `Foo[any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(63, 5, 16), P(70, 5, 23)), "type `exact Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4287,7 +4313,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(125, 6, 16), P(130, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(125, 6, 16), P(130, 6, 21)), "type `exact Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 
@@ -4300,7 +4326,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `Foo[Std::Int]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(96, 6, 16), P(101, 6, 21)), "type `exact Foo[Std::Int]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a closure with a type param in the return type, argument is also": {
@@ -4312,7 +4338,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(113, 6, 16), P(118, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(113, 6, 16), P(118, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a closure with a type param in the throw type, argument is also": {
@@ -4324,7 +4350,7 @@ func TestConstructorCallInference(t *testing.T) {
 				var b: 9 = Foo(a)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(115, 6, 16), P(120, 6, 21)), "type `Foo[Std::String]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(115, 6, 16), P(120, 6, 21)), "type `exact Foo[Std::String]` cannot be assigned to type `9`"),
 			},
 		},
 		"param is a closure with a type param in one param, argument is not": {
@@ -4337,7 +4363,7 @@ func TestConstructorCallInference(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "type `Std::String` does not implement callable `|a: V|: void`:\n\n  - missing method `call` with signature: `def call(a: V): void`\n"),
 				diagnostic.NewFailure(L("<main>", P(77, 5, 20), P(81, 5, 24)), "expected type `|a: V|: void` for parameter `a` in call to `Foo.:#init`, got type `\"foo\"`"),
-				diagnostic.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "type `Foo[any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(73, 5, 16), P(82, 5, 25)), "type `exact Foo[any]` cannot be assigned to type `9`"),
 			},
 		},
 	}

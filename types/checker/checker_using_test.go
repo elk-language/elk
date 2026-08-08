@@ -74,8 +74,8 @@ func TestUsing(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(145, 12, 17), P(149, 12, 21)), "type `Foo::Bar` cannot be assigned to type `9`"),
-				diagnostic.NewFailure(L("<main>", P(168, 13, 18), P(173, 13, 23)), "type `Lol::Grub` cannot be assigned to type `12`"),
+				diagnostic.NewFailure(L("<main>", P(145, 12, 17), P(149, 12, 21)), "type `exact Foo::Bar` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(168, 13, 18), P(173, 13, 23)), "type `exact Lol::Grub` cannot be assigned to type `12`"),
 			},
 		},
 		"using goes out of scope": {

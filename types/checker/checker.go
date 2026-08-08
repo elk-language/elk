@@ -5724,7 +5724,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 
 		node.PositionalArguments = typedPositionalArguments
 		node.NamedArguments = nil
-		node.SetType(class)
+		node.SetType(types.NewExact(class))
 		c.checkCalledMethodThrowType(method, node.Location())
 		if !method.IsPure() {
 			c.addImpureErrorIfInPureContext(node.Location())
@@ -5777,7 +5777,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	)
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
-	node.SetType(generic)
+	node.SetType(types.NewExact(generic))
 	c.checkCalledMethodThrowType(method, node.Location())
 	if !method.IsPure() {
 		c.addImpureErrorIfInPureContext(node.Location())
@@ -7356,6 +7356,8 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		return n
 	case *ast.UnaryTypeNode:
 		return c.checkUnaryTypeNode(n)
+	case *ast.ExactTypeNode:
+		return c.checkExactTypeNode(n)
 	case *ast.GenericConstantNode:
 		typeNode, _ := c.checkGenericConstantType(n)
 		return typeNode
@@ -7518,6 +7520,31 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		node.SetType(types.Untyped{})
 	}
 
+	return node
+}
+
+func (c *Checker) checkExactTypeNode(node *ast.ExactTypeNode) ast.TypeNode {
+	node.TypeNode = c.checkTypeNode(node.TypeNode)
+	argType := c.TypeOf(node.TypeNode)
+
+	var argNamespace types.Namespace
+	switch argType := argType.(type) {
+	case types.Namespace:
+		argNamespace = argType
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"exact types are only supported on namespaces, got: `%s`",
+				types.InspectWithColor(argType),
+			),
+			node.Location(),
+		)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	typ := types.NewExact(argNamespace)
+	node.SetType(typ)
 	return node
 }
 

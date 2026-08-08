@@ -5,8 +5,8 @@ module Std::Elk::AST
   sealed primitive class BoxTypeNode
     include TypeNode
 
-    init(type_node: TypeNode, immutable: bool = false, location: FS::Location = loop; end); end
-    pure def immutable: bool; end
+    init(type_node: TypeNode, is_immutable: bool = false, location: FS::Location = loop; end); end
+    pure def is_immutable: bool; end
     pure def type_node: TypeNode; end
     pure def location: FS::Location; end
   end
