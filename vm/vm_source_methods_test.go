@@ -168,7 +168,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 		"instantiate a class with an initialiser with arguments": {
 			source: `
 				class Foo
-					init(a: String)
+					impure init(a: String)
 						println("a: " + a)
 					end
 				end
@@ -182,7 +182,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 		"instantiate a class with an initialiser with ivar parameters": {
 			source: `
 				class Foo
-					init(@a: String)
+					impure init(@a: String)
 						println("a: " + a)
 					end
 
