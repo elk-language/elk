@@ -240,6 +240,7 @@ var SingletonTypeNodeClass *Class                 // Std::Elk::AST::SingletonTyp
 var NotTypeNodeClass *Class                       // Std::Elk::AST::NotTypeNode
 var CallableTypeNodeClass *Class                  // Std::Elk::AST::CallableTypeNode
 var UnaryTypeNodeClass *Class                     // Std::Elk::AST::UnaryTypeNode
+var ExactTypeNodeClass *Class                     // Std::Elk::AST::ExactTypeNode
 var AsPatternNodeClass *Class                     // Std::Elk::AST::AsPatternNode
 var NilablePatternNodeClass *Class                // Std::Elk::AST::NilablePatternNode
 var SymbolKeyValuePatternNodeClass *Class         // Std::Elk::AST::SymbolKeyValuePatternNode
@@ -1319,6 +1320,10 @@ func initElkAST() {
 	UnaryTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	UnaryTypeNodeClass.IncludeMixin(TypeNodeMixin)
 	ElkASTModule.AddConstantString("UnaryTypeNode", Ref(UnaryTypeNodeClass))
+
+	ExactTypeNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	ExactTypeNodeClass.IncludeMixin(TypeNodeMixin)
+	ElkASTModule.AddConstantString("ExactTypeNode", Ref(ExactTypeNodeClass))
 
 	AsPatternNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	AsPatternNodeClass.IncludeMixin(PatternNodeMixin)

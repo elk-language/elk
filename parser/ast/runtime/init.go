@@ -192,6 +192,7 @@ func InitGlobalEnvironment() {
 	initUIntLiteralNode()
 	initUnaryExpressionNode()
 	initUnaryTypeNode()
+	initExactTypeNode()
 	initUndefinedLiteralNode()
 	initUninterpolatedRegexLiteralNode()
 	initUnionTypeNode()

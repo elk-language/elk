@@ -77,7 +77,7 @@ func (u *UnaryTypeNode) IsStatic() bool {
 	return false
 }
 
-// Create a new unary expression node.
+// Create a new unary type node.
 func NewUnaryTypeNode(loc *position.Location, op *token.Token, typeNode TypeNode) *UnaryTypeNode {
 	return &UnaryTypeNode{
 		TypedNodeBase: TypedNodeBase{loc: loc},

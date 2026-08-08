@@ -21,6 +21,7 @@ func (*InstanceOfTypeNode) typeNode()            {}
 func (*SingletonTypeNode) typeNode()             {}
 func (*CallableTypeNode) typeNode()              {}
 func (*NotTypeNode) typeNode()                   {}
+func (*ExactTypeNode) typeNode()                 {}
 func (*UnaryTypeNode) typeNode()                 {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}

@@ -1,0 +1,12 @@
+module Std::Elk::AST
+  ##[
+    Exact type of a class instance eg. `exact Foo`, `exact Bar[String]`
+  ]##
+  sealed primitive class ExactTypeNode
+    include TypeNode
+
+    init(type_node: ComplexConstantNode, location: FS::Location = loop; end); end
+    pure def type_node: ComplexConstantNode; end
+    pure def location: FS::Location; end
+  end
+end

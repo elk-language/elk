@@ -265,7 +265,7 @@ func TestConstantType(t *testing.T) {
 				},
 			),
 		},
-		"type can be a private": {
+		"type can be a private constant": {
 			input: "type _FooBa",
 			want: ast.NewProgramNode(
 				L(S(P(0, 1, 1), P(10, 1, 11))),
@@ -348,6 +348,166 @@ func TestConstantType(t *testing.T) {
 										"String",
 									),
 								},
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestExactType(t *testing.T) {
+	tests := testTable{
+		"can have a public constant": {
+			input: "type exact String",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(16, 1, 17))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(16, 1, 17))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(16, 1, 17))),
+							ast.NewExactTypeNode(
+								L(S(P(5, 1, 6), P(16, 1, 17))),
+								ast.NewPublicConstantNode(
+									L(S(P(11, 1, 12), P(16, 1, 17))),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic public constant": {
+			input: "type exact List[Int]",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(19, 1, 20))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(19, 1, 20))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(19, 1, 20))),
+							ast.NewExactTypeNode(
+								L(S(P(5, 1, 6), P(19, 1, 20))),
+								ast.NewGenericConstantNode(
+									L(S(P(11, 1, 12), P(19, 1, 20))),
+									ast.NewPublicConstantNode(
+										L(S(P(11, 1, 12), P(14, 1, 15))),
+										"List",
+									),
+									[]ast.TypeNode{
+										ast.NewPublicConstantNode(
+											L(S(P(16, 1, 17), P(18, 1, 19))),
+											"Int",
+										),
+									},
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant": {
+			input: "type exact _FooBa",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(16, 1, 17))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(16, 1, 17))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(16, 1, 17))),
+							ast.NewExactTypeNode(
+								L(S(P(5, 1, 6), P(16, 1, 17))),
+								ast.NewPrivateConstantNode(
+									L(S(P(11, 1, 12), P(16, 1, 17))),
+									"_FooBa",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup": {
+			input: "type exact ::Foo::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(20, 1, 21))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(20, 1, 21))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(20, 1, 21))),
+							ast.NewExactTypeNode(
+								L(S(P(5, 1, 6), P(20, 1, 21))),
+								ast.NewConstantLookupNode(
+									L(S(P(11, 1, 12), P(20, 1, 21))),
+									ast.NewConstantLookupNode(
+										L(S(P(11, 1, 12), P(15, 1, 16))),
+										nil,
+										ast.NewPublicConstantNode(
+											L(S(P(13, 1, 14), P(15, 1, 16))),
+											"Foo",
+										),
+									),
+									ast.NewPublicConstantNode(
+										L(S(P(18, 1, 19), P(20, 1, 21))),
+										"Bar",
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant lookup": {
+			input: "type exact ::Foo::Bar[Int, String]",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(33, 1, 34))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(33, 1, 34))),
+						ast.NewTypeExpressionNode(
+							L(S(P(0, 1, 1), P(33, 1, 34))),
+							ast.NewExactTypeNode(
+								L(S(P(5, 1, 6), P(33, 1, 34))),
+								ast.NewGenericConstantNode(
+									L(S(P(11, 1, 12), P(33, 1, 34))),
+									ast.NewConstantLookupNode(
+										L(S(P(11, 1, 12), P(20, 1, 21))),
+										ast.NewConstantLookupNode(
+											L(S(P(11, 1, 12), P(15, 1, 16))),
+											nil,
+											ast.NewPublicConstantNode(
+												L(S(P(13, 1, 14), P(15, 1, 16))),
+												"Foo",
+											),
+										),
+										ast.NewPublicConstantNode(
+											L(S(P(18, 1, 19), P(20, 1, 21))),
+											"Bar",
+										),
+									),
+									[]ast.TypeNode{
+										ast.NewPublicConstantNode(
+											L(S(P(22, 1, 23), P(24, 1, 25))),
+											"Int",
+										),
+										ast.NewPublicConstantNode(
+											L(S(P(27, 1, 28), P(32, 1, 33))),
+											"String",
+										),
+									},
+								),
 							),
 						),
 					),

@@ -5067,6 +5067,8 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return p.float64()
 	case token.FLOAT32:
 		return p.float32()
+	case token.EXACT:
+		return p.exactType()
 	case token.PURE:
 		return p.pureTypeModifier()
 	case token.IMPURE:
@@ -5960,6 +5962,17 @@ func (p *Parser) impureExpressionModifier(allowed bool) ast.ExpressionNode {
 	}
 
 	return node
+}
+
+// exactType = "exact" typeAnnotation
+func (p *Parser) exactType() ast.TypeNode {
+	exactTok := p.advance()
+	typeNode := p.genericConstantType()
+
+	return ast.NewExactTypeNode(
+		exactTok.Location().Join(typeNode.Location()),
+		typeNode,
+	)
 }
 
 // pureTypeModifier = "pure" typeAnnotation
