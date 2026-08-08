@@ -5491,19 +5491,33 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 			valueIsIgnored,
 		)
 	case *types.SingletonClass:
-		if receiverType.Children.Len() != 0 {
+		switch o := receiverType.AttachedObject.(type) {
+		case *types.Class:
+			if o.Children.Len() == 0 {
+				// singleton class has no children so method lookup can be static
+				return c.compileOptimizedNativeMethodCallFromNamespace(
+					receiverType,
+					returnType,
+					args,
+					name,
+					loc,
+					valueIsIgnored,
+				)
+			}
 			return nil
+		default:
+			// singleton classes of namespaces other that classes
+			// cannot have children, therefore it is safe
+			// to optimise method calls on them
+			return c.compileOptimizedNativeMethodCallFromNamespace(
+				receiverType,
+				returnType,
+				args,
+				name,
+				loc,
+				valueIsIgnored,
+			)
 		}
-
-		// class has no children so method lookup can be static
-		return c.compileOptimizedNativeMethodCallFromNamespace(
-			receiverType,
-			returnType,
-			args,
-			name,
-			loc,
-			valueIsIgnored,
-		)
 	case *types.Class:
 		if receiverType.Children.Len() != 0 {
 			return nil
