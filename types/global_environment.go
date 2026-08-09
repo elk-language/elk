@@ -97,6 +97,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	valueClass := &Class{
 		NamespaceBase: MakeNamespaceBase("", "Std::Value"),
 		native:        true,
+		immutable:     true,
 	}
 	valueClass.primitive = true
 	stdModule.DefineSubtype(symbol.Value, valueClass)

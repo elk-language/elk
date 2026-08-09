@@ -239,7 +239,7 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				class ::Std::Object < Value
+				immutable class ::Std::Object < Value
 					include ::Foo
 				end
 
@@ -261,7 +261,7 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				class ::Std::Object < Value
+				immutable class ::Std::Object < Value
 					include ::Foo, ::Bar
 				end
 

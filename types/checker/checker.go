@@ -4849,9 +4849,6 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 
 	self := c.selfType.(types.Namespace)
 	for ivar := range types.SortedInstanceVariables(self) {
-		if ivar == nil {
-			continue
-		}
 		if initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
@@ -4927,9 +4924,6 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			}
 
 			for ivar := range types.SortedOwnInstanceVariables(parent) {
-				if ivar == nil {
-					continue
-				}
 				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
 			}
 
@@ -4941,9 +4935,6 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			currentIvarIndices = maps.Clone(currentIvarIndices)
 		case *types.MixinProxy:
 			for ivar := range types.SortedOwnInstanceVariables(parent) {
-				if ivar == nil {
-					continue
-				}
 				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
 			}
 		}
@@ -4955,9 +4946,6 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 
 	if init == nil {
 		for ivar := range types.SortedInstanceVariables(class) {
-			if ivar == nil {
-				continue
-			}
 			if !c.IsNilable(ivar.Type) {
 				for _, loc := range locations {
 					c.addFailure(
@@ -4992,9 +4980,6 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 	}
 
 	for ivar := range types.SortedInstanceVariables(class) {
-		if ivar == nil {
-			continue
-		}
 		if initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
@@ -9409,10 +9394,16 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				c.registerImplementExpressionCheck(expr)
 			case *ast.IncludeExpressionNode:
 				c.registerIncludeExpressionCheck(expr)
-			case *ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.GetterDeclarationNode,
+			case *ast.InstanceVariableDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
-				namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", false)) // placeholder
+			case *ast.InstanceValueDeclarationNode:
+				namespace := c.currentMethodScope().container
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", true)) // placeholder
+			case *ast.GetterDeclarationNode:
+				namespace := c.currentMethodScope().container
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", namespace.IsImmutable())) // placeholder
 			}
 		}
 	}

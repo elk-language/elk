@@ -340,10 +340,6 @@ func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define instance variables\n")
 	for ivar := range types.SortedOwnInstanceVariables(namespace) {
-		if ivar == nil {
-			continue
-		}
-
 		fmt.Fprintf(
 			buffer,
 			"namespace.DefineInstanceVariable(value.ToSymbol(%q), NewInstanceVariable(value.ToSymbol(%q), %s, %q, %t))\n",

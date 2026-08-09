@@ -779,7 +779,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint8.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, false, value.ToSymbol("Value"), nil, env)
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, true, value.ToSymbol("Value"), nil, env)
 		{
 			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, false, value.ToSymbol("Weak"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error

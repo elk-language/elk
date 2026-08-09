@@ -444,6 +444,33 @@ func TestClass(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(124, 9, 24), P(127, 9, 27)), "cannot use instance variables in this context"),
 			},
 		},
+		"include mixin with immutable instance variables in immutable class": {
+			input: `
+				mixin Foo
+					val @foo: String?
+				end
+				immutable class Bar
+					include Foo
+
+					init
+						@foo = "foo"
+					end
+				end
+			`,
+		},
+		"include mixin with mutable instance variables in immutable class": {
+			input: `
+				mixin Foo
+					var @foo: String?
+				end
+				immutable class Bar
+					include Foo
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(83, 6, 14), P(85, 6, 16)), "cannot include mixin with mutable instance variables `Foo` in immutable `Bar`"),
+			},
+		},
 		"report errors for missing abstract methods from parent": {
 			input: `
 				abstract class Foo

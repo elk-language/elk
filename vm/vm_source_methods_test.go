@@ -1288,7 +1288,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call an instance method without arguments": {
 			source: `
-				class ::Std::Object < Value
+				immutable class ::Std::Object < Value
 					def bar: Symbol
 						:baz
 					end
@@ -1300,7 +1300,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call an instance method with positional arguments": {
 			source: `
-				class Std::Object < Std::Value
+				immutable class Std::Object < Std::Value
 					def add(a: Int, b: Int): Int
 						a + b
 					end

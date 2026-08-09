@@ -492,6 +492,17 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode, isNative bool) {
 		)
 	}
 
+	if target.IsImmutable() && types.NamespaceDeclaresMutableInstanceVariables(constantNamespace) {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot include mixin with mutable instance variables `%s` in immutable `%s`",
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(target),
+			),
+			node.Location(),
+		)
+	}
+
 	switch t := target.(type) {
 	case *types.Class, *types.SingletonClass, *types.Mixin:
 		types.IncludeMixin(t, constantNamespace)

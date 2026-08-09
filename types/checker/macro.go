@@ -176,10 +176,16 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 			return expr
 		}
 		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
-	case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+	case *ast.InstanceVariableDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 		namespace := c.currentMethodScope().container
-		namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
+		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", false)) // placeholder
+	case *ast.InstanceValueDeclarationNode:
+		namespace := c.currentMethodScope().container
+		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", true)) // placeholder
+	case *ast.GetterDeclarationNode:
+		namespace := c.currentMethodScope().container
+		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", namespace.IsImmutable())) // placeholder
 	}
 
 	return expr

@@ -276,6 +276,21 @@ func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
 	return false
 }
 
+func NamespaceDeclaresMutableInstanceVariables(namespace Namespace) bool {
+	for parent := range Parents(namespace) {
+		for _, ivar := range parent.InstanceVariables() {
+			if ivar == nil {
+				continue
+			}
+			if !ivar.SingleAssignment {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (*InstanceVariable, Namespace) {
 	for parent := range Parents(namespace) {
 		ivar := parent.InstanceVariable(name)
@@ -906,7 +921,7 @@ func AllInstanceVariables(namespace Namespace) iter.Seq2[*InstanceVariable, Name
 
 		for parent := range Parents(namespace) {
 			for name, ivar := range parent.InstanceVariables() {
-				if seenIvars.Contains(name) {
+				if name == symbol.S_empty || seenIvars.Contains(name) {
 					continue
 				}
 
@@ -929,7 +944,7 @@ func SortedInstanceVariables(namespace Namespace) iter.Seq2[*InstanceVariable, N
 			names := symbol.SortKeys(ivars)
 			for _, name := range names {
 				ivar := ivars[name]
-				if seenIvars.Contains(name) {
+				if name == symbol.S_empty || seenIvars.Contains(name) {
 					continue
 				}
 
@@ -945,7 +960,10 @@ func SortedInstanceVariables(namespace Namespace) iter.Seq2[*InstanceVariable, N
 // Iterate over every instance variable defined directly under the given namespace
 func OwnInstanceVariables(namespace Namespace) iter.Seq[*InstanceVariable] {
 	return func(yield func(ivar *InstanceVariable) bool) {
-		for _, ivar := range namespace.InstanceVariables() {
+		for name, ivar := range namespace.InstanceVariables() {
+			if name == symbol.S_empty {
+				continue
+			}
 			if !yield(ivar) {
 				break
 			}
@@ -960,6 +978,9 @@ func SortedOwnInstanceVariables(namespace Namespace) iter.Seq[*InstanceVariable]
 		names := symbol.SortKeys(ivars)
 
 		for _, name := range names {
+			if name == symbol.S_empty {
+				continue
+			}
 			ivar := ivars[name]
 			if !yield(ivar) {
 				break
