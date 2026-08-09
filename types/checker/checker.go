@@ -6084,6 +6084,8 @@ func (c *Checker) checkAssignmentExpressionNode(node *ast.AssignmentExpressionNo
 		return c.checkBinaryOperatorAssignmentExpression(node, token.RTRIPLE_BITSHIFT)
 	case token.COLON_EQUAL:
 		return c.checkShortVariableDeclaration(node)
+	case token.COLON_COLON_EQUAL:
+		return c.checkShortValueDeclaration(node)
 	default:
 		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", node.Op.Type.Name()),
@@ -6107,6 +6109,21 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 	}
 
 	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
+	node.Right = init
+	node.SetType(typ)
+	return node
+}
+
+func (c *Checker) checkShortValueDeclaration(node *ast.AssignmentExpressionNode) ast.ExpressionNode {
+	var name string
+	switch left := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		name = left.Value
+	case *ast.PrivateIdentifierNode:
+		name = left.Value
+	}
+
+	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), true)
 	node.Right = init
 	node.SetType(typ)
 	return node

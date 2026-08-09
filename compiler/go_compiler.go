@@ -6082,6 +6082,10 @@ func (c *GoCompiler) compileLocalVariableAssignment(name string, operator *token
 		goType := c.elkTypeToGoType(assignmentType, false)
 		c.defineLocal(name, assignmentType, goType, nil)
 		return c.setLocal(name, right)
+	case token.COLON_COLON_EQUAL:
+		goType := c.elkTypeToGoType(assignmentType, false)
+		c.defineLocal(name, assignmentType, goType, loc)
+		return c.setLocal(name, right)
 	default:
 		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),

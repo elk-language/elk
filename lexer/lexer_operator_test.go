@@ -9,7 +9,7 @@ import (
 func TestOperator(t *testing.T) {
 	tests := testTable{
 		"should be recognised": {
-			input: ".    ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ !~ => : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=> &! |! <<< <<<= >>> >>>= ?. ++ -- &~ +@ -@ ..< <.. <.<",
+			input: ".    ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ !~ => : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=> &! |! <<< <<<= >>> >>>= ?. ++ -- &~ +@ -@ ..< <.. <.< ::=",
 			want: []*token.Token{
 				T(L(S(P(0, 1, 1), P(0, 1, 1))), token.DOT),
 				T(L(S(P(5, 1, 6), P(7, 1, 8))), token.CLOSED_RANGE_OP),
@@ -83,6 +83,7 @@ func TestOperator(t *testing.T) {
 				T(L(S(P(212, 1, 213), P(214, 1, 215))), token.RIGHT_OPEN_RANGE_OP),
 				T(L(S(P(216, 1, 217), P(218, 1, 219))), token.LEFT_OPEN_RANGE_OP),
 				T(L(S(P(220, 1, 221), P(222, 1, 223))), token.OPEN_RANGE_OP),
+				T(L(S(P(224, 1, 225), P(226, 1, 227))), token.COLON_COLON_EQUAL),
 			},
 		},
 	}

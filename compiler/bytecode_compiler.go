@@ -3104,6 +3104,13 @@ func (c *BytecodeCompiler) localVariableAssignment(name string, operator *token.
 			return valueIgnoredToResult(valueIsIgnored)
 		}
 		return c.emitSetLocal(location.StartPos.Line, local.index, valueIsIgnored)
+	case token.COLON_COLON_EQUAL:
+		local := c.defineLocal(name, location)
+		c.compileNodeWithResult(right)
+		if local == nil {
+			return valueIgnoredToResult(valueIsIgnored)
+		}
+		return c.emitSetLocal(location.StartPos.Line, local.index, valueIsIgnored)
 	default:
 		c.addFailure(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.Name()),
@@ -4508,7 +4515,7 @@ func (c *BytecodeCompiler) compileSelectChannel(node ast.ExpressionNode, vmCase 
 		c.compileNodeWithResult(node.Right)
 	case *ast.AssignmentExpressionNode:
 		switch node.Op.Type {
-		case token.EQUAL_OP, token.COLON_EQUAL:
+		case token.EQUAL_OP, token.COLON_EQUAL, token.COLON_COLON_EQUAL:
 		default:
 			panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))
 		}
@@ -4560,6 +4567,9 @@ func (c *BytecodeCompiler) compileSelectCaseExpression(node ast.ExpressionNode) 
 			)
 		case token.COLON_EQUAL:
 			local := c.defineLocal(name, nil)
+			c.emitSetLocal(node.Location().StartPos.Line, local.index, true)
+		case token.COLON_COLON_EQUAL:
+			local := c.defineLocal(name, node.Location())
 			c.emitSetLocal(node.Location().StartPos.Line, local.index, true)
 		default:
 			panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))

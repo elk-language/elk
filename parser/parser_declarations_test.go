@@ -1712,6 +1712,23 @@ func TestImplementExpression(t *testing.T) {
 
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
+		"can be a double colon equal assignment": {
+			input: "a ::= 5",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(6, 1, 7))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(6, 1, 7))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(0, 1, 1), P(6, 1, 7))),
+							T(L(S(P(2, 1, 3), P(4, 1, 5))), token.COLON_COLON_EQUAL),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
+							ast.NewIntLiteralNode(L(S(P(6, 1, 7), P(6, 1, 7))), "5"),
+						),
+					),
+				},
+			),
+		},
 		"can have short unquote as the type": {
 			input: "val a: !{foo + 2}",
 			want: ast.NewProgramNode(
@@ -2350,6 +2367,23 @@ func TestValueDeclaration(t *testing.T) {
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
+		"can be a colon equal assignment": {
+			input: "a := 5",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(5, 1, 6))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(5, 1, 6))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(0, 1, 1), P(5, 1, 6))),
+							T(L(S(P(2, 1, 3), P(3, 1, 4))), token.COLON_EQUAL),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
+							ast.NewIntLiteralNode(L(S(P(5, 1, 6), P(5, 1, 6))), "5"),
+						),
+					),
+				},
+			),
+		},
 		"can have short unquote as the type": {
 			input: "var a: !{foo + 2}",
 			want: ast.NewProgramNode(

@@ -583,6 +583,51 @@ func TestShortVariableDeclaration(t *testing.T) {
 	}
 }
 
+func TestShortValueDeclaration(t *testing.T) {
+	tests := testTable{
+		"accept value declaration with inference": {
+			input: "foo ::= 5",
+		},
+		"cannot declare value with type void": {
+			input: `
+				def bar; end
+				foo ::= bar()
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 13), P(34, 3, 17)), "cannot use type `void` as a value in this context"),
+			},
+		},
+		"reject redeclared short declaration": {
+			input: `var foo: String?; foo ::= "foo"`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(18, 1, 19), P(30, 1, 31)), "cannot redeclare local `foo`"),
+			},
+		},
+		"reject assignment of short value": {
+			input: `foo ::= "foo"; foo = "bar"`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(15, 1, 16), P(17, 1, 18)), "local value `foo` cannot be reassigned"),
+				diagnostic.NewFailure(L("<main>", P(21, 1, 22), P(25, 1, 26)), "type `\"bar\"` cannot be assigned to type `\"foo\"`"),
+			},
+		},
+		"declare a recursive closure": {
+			input: `
+				calc_fib ::= |n: Int|: Int ->
+					return 1 if n < 3
+
+					calc_fib(n - 2) + calc_fib(n - 1)
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestValueDeclaration(t *testing.T) {
 	tests := testTable{
 		"declare a recursive closure": {

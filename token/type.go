@@ -270,6 +270,7 @@ const (
 	RTRIPLE_BITSHIFT_EQUAL  // Triple right bitwise shift equal `>>>=`
 	PERCENT_EQUAL           // Percent equal `%=`
 	COLON_EQUAL             // Colon equal `:=`
+	COLON_COLON_EQUAL       // Colon, colon equal `::=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
 	SHORT_UNQUOTE_BEG      // Short unquote beginning `!{`
@@ -709,6 +710,7 @@ var tokenNames = [...]string{
 	SLASH_EQUAL:             "/=",
 	STAR_STAR_EQUAL:         "**=",
 	COLON_EQUAL:             ":=",
+	COLON_COLON_EQUAL:       "::=",
 	TILDE_EQUAL:             "~=",
 	AND_AND:                 "&&",
 	AND_BANG:                "&!",

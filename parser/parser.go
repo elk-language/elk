@@ -857,7 +857,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		return left
 	}
 
-	if p.lookahead.Type == token.COLON_EQUAL {
+	if p.accept(token.COLON_EQUAL, token.COLON_COLON_EQUAL) {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessageLocation(
 				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.Name()),
