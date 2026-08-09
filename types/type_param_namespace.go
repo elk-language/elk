@@ -104,6 +104,10 @@ func (t *TypeParamNamespace) IsPrimitive() bool {
 	return true
 }
 
+func (t *TypeParamNamespace) IsImmutable() bool {
+	return true
+}
+
 func (t *TypeParamNamespace) IsNative() bool {
 	return false
 }

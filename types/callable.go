@@ -128,6 +128,10 @@ func (c *Callable) IsPrimitive() bool {
 	return true
 }
 
+func (c *Callable) IsImmutable() bool {
+	return true
+}
+
 func (c *Callable) Constants() ConstantMap {
 	return nil
 }

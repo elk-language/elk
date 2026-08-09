@@ -84,6 +84,10 @@ func (m *Mixin) IsPrimitive() bool {
 	return false
 }
 
+func (m *Mixin) IsImmutable() bool {
+	return false
+}
+
 func (m *Mixin) Parent() Namespace {
 	return m.parent
 }

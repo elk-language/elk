@@ -162,9 +162,22 @@ func TestStruct(t *testing.T) {
 		"struct with public constant": {
 			input: `struct Foo; end`,
 		},
+		"immutable struct": {
+			input: `immutable struct Foo; end`,
+		},
 		"instantiate a struct with all attributes": {
 			input: `
 				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a", 2)
+			`,
+		},
+		"instantiate an immutable struct with all attributes": {
+			input: `
+				immutable struct Foo
 					a: String
 					b: Int = 5
 				end
@@ -207,6 +220,42 @@ func TestStruct(t *testing.T) {
 				var f = Foo("a")
 				var a: String = f.a
 			`,
+		},
+		"call a getter on an immutable struct": {
+			input: `
+				immutable struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+				var a: String = f.a
+			`,
+		},
+		"call a setter on a struct": {
+			input: `
+				struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+				f.a = "boop"
+			`,
+		},
+		"call a setter on an immutable struct": {
+			input: `
+				immutable struct Foo
+					a: String
+					b: Int = 5
+				end
+
+				var f = Foo("a")
+				f.a = "boop"
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(91, 8, 5), P(102, 8, 16)), "method `a=` is not defined on type `Foo`"),
+			},
 		},
 		"call a getter on a struct and assign to a wrong type": {
 			input: `
@@ -319,6 +368,27 @@ func TestClass(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
+			},
+		},
+		"immutable class with immutable superclass": {
+			input: `
+				immutable class Bar; end
+				immutable class Foo < Bar; end
+			`,
+		},
+		"class with immutable superclass": {
+			input: `
+				immutable class Bar; end
+				class Foo < Bar; end
+			`,
+		},
+		"immutable class with mutable superclass": {
+			input: `
+				class Bar; end
+				immutable class Foo < Bar; end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(46, 3, 27), P(48, 3, 29)), "class `Foo` must be mutable to inherit from mutable class `Bar`"),
 			},
 		},
 		"primitive class with primitive superclass": {
@@ -1327,6 +1397,17 @@ func TestInstanceVariables(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(56, 6, 9)), "instance value `val @foo: Std::String` must be initialised before `self` can be used"),
 			},
 		},
+		"declare an instance value in an immutable class": {
+			input: `
+				immutable class Foo
+					val @foo: String
+
+					init
+						@foo = "bar"
+					end
+				end
+			`,
+		},
 		"reassign an instance value in init": {
 			input: `
 				class Foo
@@ -1358,6 +1439,16 @@ func TestInstanceVariables(t *testing.T) {
 			},
 		},
 
+		"declare an instance variable in an immutable class": {
+			input: `
+				immutable class Foo
+					var @foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(30, 3, 6), P(46, 3, 22)), "cannot declare instance variable `foo` in an immutable class `Foo`"),
+			},
+		},
 		"declare a non-nilable instance variable in a class and assign it in init": {
 			input: `
 				class Foo
@@ -1477,6 +1568,29 @@ func TestInstanceVariables(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(58, 4, 21)), "cannot redeclare instance variable `@foo` with a different type, is `Std::String`, should be `Std::String?`, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance variable as an instance value": {
+			input: `
+				class Foo
+					var @foo: String?
+					val @foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(59, 4, 22)), "cannot redeclare instance variable `@foo` as an instance value, previous definition found in `Foo`"),
+			},
+		},
+		"redeclare an instance value as an instance variable": {
+			input: `
+				class Foo
+					val @foo: String?
+					var @foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(43, 4, 6), P(59, 4, 22)), "cannot redeclare instance value `@foo` as an instance variable, previous definition found in `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(67, 5, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
 			},
 		},
 		"redeclare an instance variable in a class with the same type": {
@@ -1823,6 +1937,20 @@ func TestClassOverride(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `primitive`, should be `default`"),
 			},
 		},
+		"modifier was default, is immutable": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				immutable class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(51, 6, 5), P(101, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `immutable`, should be `default`"),
+			},
+		},
 		"modifier was default, is sealed": {
 			input: `
 				class Foo; end
@@ -1877,6 +2005,20 @@ func TestClassOverride(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(71, 6, 5), P(111, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `primitive`"),
+			},
+		},
+		"modifier was immutable, is default": {
+			input: `
+				immutable class Foo; end
+
+				immutable class Bar < Foo; end
+
+				class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(71, 6, 5), P(111, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `immutable`"),
 			},
 		},
 		"superclass does not match": {

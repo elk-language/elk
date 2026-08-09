@@ -2383,9 +2383,11 @@ func (c *Checker) declareMethodWithBase(
 		}
 	}
 
+	var isImmutable bool
 	switch namespace := methodNamespace.(type) {
 	case *types.Interface:
 	case *types.Class:
+		isImmutable = namespace.IsImmutable()
 		if abstract && !namespace.IsAbstract() {
 			c.addFailure(
 				fmt.Sprintf(
@@ -2512,7 +2514,7 @@ func (c *Checker) declareMethodWithBase(
 					if currentIvar != nil {
 						c.checkCanAssignInstanceVariable(pName, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, "", false, p.Location())
+						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, "", isImmutable, p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {

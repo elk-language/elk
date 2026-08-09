@@ -33,6 +33,7 @@ type Namespace interface {
 	IsAbstract() bool
 	IsSealed() bool
 	IsPrimitive() bool
+	IsImmutable() bool
 	IsGeneric() bool
 	IsDefined() bool
 	SetDefined(bool)

@@ -814,6 +814,12 @@ superclassSwitch:
 				node.Superclass.Location(),
 			)
 		}
+		if class.IsImmutable() && !superclass.IsImmutable() {
+			c.addFailure(
+				fmt.Sprintf("class `%s` must be mutable to inherit from mutable class `%s`", types.InspectWithColor(class), types.InspectWithColor(superclassType)),
+				node.Superclass.Location(),
+			)
+		}
 
 	}
 

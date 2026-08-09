@@ -73,6 +73,10 @@ func (*Interface) IsPrimitive() bool {
 	return false
 }
 
+func (*Interface) IsImmutable() bool {
+	return false
+}
+
 func (i *Interface) Parent() Namespace {
 	return i.parent
 }

@@ -89,6 +89,10 @@ func (m *Module) IsPrimitive() bool {
 	return false
 }
 
+func (m *Module) IsImmutable() bool {
+	return false
+}
+
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
 		native:        env.Init,

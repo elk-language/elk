@@ -7853,7 +7853,7 @@ func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode
 	}
 }
 
-func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, singleAssignment bool, location *position.Location) {
+func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, onlyGetter bool, location *position.Location) {
 	methodNamespace := c.currentMethodScope().container
 	currentIvar, ivarNamespace := c.getInstanceVariableIn(name, methodNamespace)
 
@@ -7870,6 +7870,15 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 		return
 	}
 
+	var isImmutable bool
+	if class, ok := methodNamespace.(*types.Class); ok && class.IsImmutable() {
+		isImmutable = true
+	}
+
+	if isImmutable && !onlyGetter {
+		c.addInstanceVariableInImmutableClassError(name.String(), ivarNamespace, location)
+	}
+
 	if currentIvar != nil {
 		if !c.isTheSameType(typ, currentIvar.Type, location) {
 			c.addFailure(
@@ -7884,7 +7893,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 			)
 		}
 	} else {
-		c.declareInstanceVariable(name, typ, "", singleAssignment, location)
+		c.declareInstanceVariable(name, typ, "", isImmutable, location)
 	}
 }
 
@@ -7901,7 +7910,7 @@ func (c *Checker) checkSignatureOfGetterDeclaration(node *ast.GetterDeclarationN
 		}
 
 		c.declareMethodForGetter(attribute, node.DocComment(), node.IsPure())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), false, attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), true, attribute.Location())
 	}
 }
 
@@ -7948,6 +7957,28 @@ func (c *Checker) hoistInstanceValueDeclaration(node *ast.InstanceValueDeclarati
 	c.registerSignatureCheck(node)
 }
 
+func (c *Checker) addRedeclareInstanceVariableAsValueError(name string, namespace types.Namespace, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"cannot redeclare instance variable `%s` as an instance value, previous definition found in `%s`",
+			types.InspectInstanceVariableWithColor(name),
+			types.InspectWithColor(namespace),
+		),
+		loc,
+	)
+}
+
+func (c *Checker) addRedeclareInstanceValueAsVariableError(name string, namespace types.Namespace, loc *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"cannot redeclare instance value `%s` as an instance variable, previous definition found in `%s`",
+			types.InspectInstanceVariableWithColor(name),
+			types.InspectWithColor(namespace),
+		),
+		loc,
+	)
+}
+
 func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
 	methodNamespace := c.currentMethodScope().container
 	name := c.instanceVariableToName(node.Name)
@@ -7976,14 +8007,7 @@ func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.Instance
 		node.TypeNode = declaredTypeNode
 		if ivar != nil {
 			if ivar.SingleAssignment != false {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot redeclare instance value `%s` as an instance variable, previous definition found in `%s`",
-						types.InspectInstanceVariableWithColor(name),
-						types.InspectWithColor(ivarNamespace),
-					),
-					node.Location(),
-				)
+				c.addRedeclareInstanceValueAsVariableError(name, ivarNamespace, node.Location())
 				node.SetType(types.Untyped{})
 				return
 			}
@@ -8061,14 +8085,7 @@ func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceVal
 		node.TypeNode = declaredTypeNode
 		if ivar != nil {
 			if ivar.SingleAssignment != true {
-				c.addFailure(
-					fmt.Sprintf(
-						"cannot redeclare instance variable `%s` as an instance value, previous definition found in `%s`",
-						types.InspectInstanceVariableWithColor(name),
-						types.InspectWithColor(ivarNamespace),
-					),
-					node.Location(),
-				)
+				c.addRedeclareInstanceVariableAsValueError(name, ivarNamespace, node.Location())
 				node.SetType(types.Untyped{})
 				return
 			}
@@ -8791,8 +8808,14 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 }
 
 func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
-	// TODO: Add immutable class checks
 	container := c.currentConstScope().container
+
+	if !singleAssignment {
+		if class, ok := container.(*types.Class); ok && class.IsImmutable() {
+			c.addInstanceVariableInImmutableClassError(name.String(), container, errSpan)
+		}
+	}
+
 	if container.IsPrimitive() {
 		c.addFailure(
 			fmt.Sprintf(
@@ -8804,6 +8827,17 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, doc
 		)
 	}
 	container.DefineInstanceVariable(name, types.NewInstanceVariable(name, typ, docComment, singleAssignment))
+}
+
+func (c *Checker) addInstanceVariableInImmutableClassError(ivarName string, container types.Namespace, errSpan *position.Location) {
+	c.addFailure(
+		fmt.Sprintf(
+			"cannot declare instance variable `%s` in an immutable class `%s`",
+			ivarName,
+			types.InspectWithColor(container),
+		),
+		errSpan,
+	)
 }
 
 func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Class {
@@ -9007,16 +9041,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		nil,
 		nil,
 	)
-	attrDeclaration := ast.NewAttrDeclarationNode(
-		structNode.Location(),
-		"",
-		ast.METHOD_PURE_FLAG,
-		nil,
-	)
-	newStatements := []ast.StatementNode{
-		ast.ExpressionToStatement(init),
-		ast.ExpressionToStatement(attrDeclaration),
-	}
+	attrEntries := make([]ast.ParameterNode, 0, len(structNode.Body))
 
 	var optionalParamSeen bool
 
@@ -9047,8 +9072,8 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 					ast.NormalParameterKind,
 				),
 			)
-			attrDeclaration.Entries = append(
-				attrDeclaration.Entries,
+			attrEntries = append(
+				attrEntries,
 				ast.NewAttributeParameterNode(
 					param.Location(),
 					param.Name,
@@ -9059,6 +9084,26 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		}
 	}
 
+	var attrDeclaration ast.ExpressionNode
+	if structNode.Immutable {
+		attrDeclaration = ast.NewGetterDeclarationNode(
+			structNode.Location(),
+			"",
+			ast.METHOD_PURE_FLAG,
+			attrEntries,
+		)
+	} else {
+		attrDeclaration = ast.NewAttrDeclarationNode(
+			structNode.Location(),
+			"",
+			ast.METHOD_PURE_FLAG,
+			attrEntries,
+		)
+	}
+	newStatements := []ast.StatementNode{
+		ast.ExpressionToStatement(init),
+		ast.ExpressionToStatement(attrDeclaration),
+	}
 	classNode := ast.NewClassDeclarationNode(
 		structNode.Location(),
 		structNode.DocComment(),
@@ -9066,7 +9111,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		false,
 		false,
 		false,
-		false,
+		structNode.Immutable,
 		structNode.Constant,
 		nil,
 		nil,

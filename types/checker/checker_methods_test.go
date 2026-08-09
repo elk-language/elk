@@ -30,6 +30,17 @@ func TestAttrDefinition(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(18, 3, 6), P(34, 3, 22)), "method definitions cannot appear in this context"),
 			},
 		},
+		"declare an attr within an immutable class": {
+			input: `
+				immutable class Foo
+					attr foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(35, 3, 11), P(46, 3, 22)), "cannot declare instance variable `foo` in an immutable class `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(54, 4, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
+			},
+		},
 		"declare an attr and call a getter": {
 			input: `
 				class Foo
@@ -271,6 +282,18 @@ func TestGetterDefinition(t *testing.T) {
 				Foo().foo
 			`,
 		},
+		"declare a getter within an immutable class and call it": {
+			input: `
+				immutable class Foo
+					getter foo: String?
+
+					init
+					  @foo = "bar"
+					end
+				end
+				Foo().foo
+			`,
+		},
 		"assign the return value of a getter to an incompatible type": {
 			input: `
 				class Foo
@@ -485,6 +508,17 @@ func TestSetterDefinition(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L("<main>", P(58, 5, 11), P(60, 5, 13)), "method `foo` is not defined on type `Foo`"),
+			},
+		},
+		"declare a setter within an immutable class": {
+			input: `
+				immutable class Foo
+					setter foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(37, 3, 13), P(48, 3, 24)), "cannot declare instance variable `foo` in an immutable class `Foo`"),
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(56, 4, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
 			},
 		},
 		"use an instance variable declared by a setter": {

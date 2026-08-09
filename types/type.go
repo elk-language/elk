@@ -175,6 +175,9 @@ func InspectModifier(modifiers ModifierSet) string {
 	if modifiers.NoInit {
 		str += " noinit"
 	}
+	if modifiers.Immutable {
+		str += " immutable"
+	}
 	str = strings.TrimSpace(str)
 	if len(str) == 0 {
 		return "default"
