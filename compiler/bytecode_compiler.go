@@ -1112,7 +1112,7 @@ func (c *BytecodeCompiler) nodeIsCompilable(node ast.Node) bool {
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
 		*ast.ImportStatementNode:
 		return false
@@ -1171,7 +1171,7 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode,
 		*ast.ImportStatementNode:
 		return expressionIgnored

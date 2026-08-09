@@ -1246,7 +1246,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 		},
-		"declare a non-nilable instance variable in a class": {
+		"declare a non-nilable instance variable in a class without an init": {
 			input: `
 				class Foo
 					var @foo: String
@@ -1256,6 +1256,108 @@ func TestInstanceVariables(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(43, 4, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is not nilable"),
 			},
 		},
+		"declare a non-nilable instance variable in a class with an init": {
+			input: `
+				class Foo
+					var @foo: String
+
+					init; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(59, 6, 7)), "instance variable `var @foo: Std::String` must be initialised in the constructor, since it is non-nilable"),
+			},
+		},
+		"declare an instance value in a class without an init": {
+			input: `
+				class Foo
+					val @foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(44, 4, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
+			},
+		},
+		"declare an instance value in a class with an init": {
+			input: `
+				class Foo
+					val @foo: String?
+
+					init; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(60, 6, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
+			},
+		},
+		"declare an instance value in a class and assign it in init": {
+			input: `
+				class Foo
+					val @foo: String
+
+					init
+						@foo = "lol"
+					end
+				end
+			`,
+		},
+		"declare an instance value in a class and assign it in init param": {
+			input: `
+				class Foo
+					val @foo: String
+
+					init(@foo); end
+				end
+			`,
+		},
+		"declare an instance value in a class and assign it in init after method calls": {
+			input: `
+				class Foo
+					val @foo: String
+
+					init
+						bar()
+						@foo = "lol"
+					end
+
+					pure def bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(54, 6, 7), P(56, 6, 9)), "instance value `val @foo: Std::String` must be initialised before `self` can be used"),
+			},
+		},
+		"reassign an instance value in init": {
+			input: `
+				class Foo
+					val @foo: String
+
+					init
+						@foo = "lol"
+						@foo = "bar"
+					end
+				end
+			`,
+		},
+		"reassign an instance value in a method": {
+			input: `
+				class Foo
+					val @foo: String
+
+					init
+						@foo = "lol"
+					end
+
+					def pupa
+						@foo = "pupa"
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(104, 10, 14), P(109, 10, 19)), "instance value `@foo` cannot be reassigned outside `init`"),
+			},
+		},
+
 		"declare a non-nilable instance variable in a class and assign it in init": {
 			input: `
 				class Foo
@@ -1333,6 +1435,16 @@ func TestInstanceVariables(t *testing.T) {
 					var @foo: String?
 				end
 			`,
+		},
+		"declare an uninitialised instance value in a class": {
+			input: `
+				class Foo
+					val @foo: String?
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(5, 2, 5), P(44, 4, 7)), "instance value `val @foo: Std::String?` must be initialised in the constructor"),
+			},
 		},
 		"redeclare an instance variable in a class": {
 			input: `
@@ -1556,7 +1668,7 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(51, 4, 13), P(51, 4, 13)), "type `2` cannot be assigned to type `Std::String?`"),
+				diagnostic.NewFailure(L("<main>", P(51, 4, 13), P(51, 4, 13)), "type `2` cannot be assigned to instance variable `@foo` of type `Std::String?`"),
 			},
 		},
 		"assign an inexistent instance variable": {

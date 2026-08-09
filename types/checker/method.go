@@ -139,6 +139,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			stmt.Expression = c.hoistInitDefinition(expr)
 		case *ast.InstanceVariableDeclarationNode:
 			c.hoistInstanceVariableDeclaration(expr)
+		case *ast.InstanceValueDeclarationNode:
+			c.hoistInstanceValueDeclaration(expr)
 		case *ast.GetterDeclarationNode:
 			c.hoistGetterDeclaration(expr)
 		case *ast.SetterDeclarationNode:

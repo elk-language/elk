@@ -1882,7 +1882,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		*ast.StructDeclarationNode, *ast.GenericReceiverlessMethodCallNode,
 		*ast.ReceiverlessMethodCallNode, *ast.AttrDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.GetterDeclarationNode, *ast.InitDefinitionNode,
-		*ast.InstanceVariableDeclarationNode, *ast.MacroDefinitionNode,
+		*ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return nilGoValue
 	case *ast.TypeofExpressionNode:

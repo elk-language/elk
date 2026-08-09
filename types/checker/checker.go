@@ -1353,6 +1353,15 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 			n.SetType(types.Untyped{})
 		}
 		return n
+	case *ast.InstanceValueDeclarationNode:
+		if c.TypeOf(node) == nil {
+			c.addFailure(
+				"instance value definitions cannot appear in this context",
+				n.Location(),
+			)
+			n.SetType(types.Untyped{})
+		}
+		return n
 	case *ast.UsingExpressionNode:
 		if c.TypeOf(node) == nil {
 			c.addFailure(
@@ -2076,12 +2085,12 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 		return c.checkBoxOfLocal(node, expr.Value)
 	case *ast.PublicInstanceVariableNode:
 		c.checkNonNilableInstanceVariablesForSelf(expr.Location())
-		typ := c.checkInstanceVariable(expr.Value, expr.Location())
-		if types.IsUntyped(typ) {
+		ivar := c.checkInstanceVariable(expr.Value, expr.Location())
+		if ivar == nil {
 			node.SetType(types.Untyped{})
 			return node
 		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), typ)
+		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), ivar.Type)
 		node.SetType(box)
 		return node
 	default:
@@ -4843,18 +4852,31 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 		if ivar == nil {
 			continue
 		}
-		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(ivar.Name) {
+		if initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
+		if ivar.SingleAssignment {
+			c.addFailure(
+				fmt.Sprintf(
+					"instance value `%s` must be initialised before `%s` can be used",
+					types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					lexer.Colorize("self"),
+				),
+				location,
+			)
+			continue
+		}
+		if c.IsNotNilable(ivar.Type) {
+			c.addFailure(
+				fmt.Sprintf(
+					"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
+					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					lexer.Colorize("self"),
+				),
+				location,
+			)
+		}
 
-		c.addFailure(
-			fmt.Sprintf(
-				"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
-				types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
-				lexer.Colorize("self"),
-			),
-			location,
-		)
 	}
 
 	c.method.SetInstanceVariablesChecked(true)
@@ -4936,19 +4958,29 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			if ivar == nil {
 				continue
 			}
-			if c.IsNilable(ivar.Type) {
-				continue
+			if !c.IsNilable(ivar.Type) {
+				for _, loc := range locations {
+					c.addFailure(
+						fmt.Sprintf(
+							"instance variable `%s` must be initialised in the constructor, since it is not nilable",
+							types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						),
+						loc,
+					)
+				}
+			}
+			if ivar.SingleAssignment {
+				for _, loc := range locations {
+					c.addFailure(
+						fmt.Sprintf(
+							"instance value `%s` must be initialised in the constructor",
+							types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						),
+						loc,
+					)
+				}
 			}
 
-			for _, loc := range locations {
-				c.addFailure(
-					fmt.Sprintf(
-						"instance variable `%s` must be initialised in the constructor, since it is not nilable",
-						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
-					),
-					loc,
-				)
-			}
 		}
 		return
 	}
@@ -4963,19 +4995,35 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 		if ivar == nil {
 			continue
 		}
-		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(ivar.Name) {
+		if initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
 
-		for _, loc := range locations {
-			c.addFailure(
-				fmt.Sprintf(
-					"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
-					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
-				),
-				loc,
-			)
+		if ivar.SingleAssignment {
+			for _, loc := range locations {
+				c.addFailure(
+					fmt.Sprintf(
+						"instance value `%s` must be initialised in the constructor",
+						types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					),
+					loc,
+				)
+			}
+			continue
 		}
+
+		if !c.IsNilable(ivar.Type) {
+			for _, loc := range locations {
+				c.addFailure(
+					fmt.Sprintf(
+						"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
+						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					),
+					loc,
+				)
+			}
+		}
+
 	}
 }
 
@@ -6212,15 +6260,20 @@ func (c *Checker) checkAttributeAssignment(attributeNode *ast.AttributeAccessNod
 }
 
 func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.AssignmentExpressionNode) ast.ExpressionNode {
-	ivarType := c.checkInstanceVariable(name, node.Left.Location())
-
+	ivar := c.checkInstanceVariable(name, node.Left.Location())
 	if c.mode != initMode {
 		c.addImpureErrorIfInPureContext(node.Location())
 	}
 
-	node.Right = c.checkExpressionWithType(node.Right, ivarType)
+	if ivar == nil {
+		node.Right = c.checkExpression(node.Right)
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	node.Right = c.checkExpressionWithType(node.Right, ivar.Type)
 	assignedType := c.typeOfGuardVoid(node.Right)
-	c.checkCanAssign(assignedType, ivarType, node.Right.Location())
+	c.checkCanAssignInstanceVariable(name, assignedType, ivar, node.Right.Location())
 	c.registerInitialisedInstanceVariable(value.ToSymbol(name))
 	node.SetType(assignedType)
 	return node
@@ -7765,7 +7818,7 @@ func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *a
 	return node
 }
 
-func (c *Checker) checkInstanceVariable(name string, location *position.Location) types.Type {
+func (c *Checker) checkInstanceVariable(name string, location *position.Location) *types.InstanceVariable {
 	ivar, container := c.getInstanceVariable(value.ToSymbol(name))
 	self, ok := c.selfType.(types.Namespace)
 	if !ok || self.IsPrimitive() {
@@ -7784,16 +7837,20 @@ func (c *Checker) checkInstanceVariable(name string, location *position.Location
 			),
 			location,
 		)
-		return types.Untyped{}
+		return nil
 	}
 
-	return ivar.Type
+	return ivar
 }
 
 func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode) {
 	c.checkNonNilableInstanceVariablesForSelf(node.Location())
-	typ := c.checkInstanceVariable(node.Value, node.Location())
-	node.SetType(typ)
+	ivar := c.checkInstanceVariable(node.Value, node.Location())
+	if ivar == nil {
+		node.SetType(types.Untyped{})
+	} else {
+		node.SetType(ivar.Type)
+	}
 }
 
 func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, singleAssignment bool, location *position.Location) {
@@ -7884,6 +7941,10 @@ func (c *Checker) checkSignatureOfAttrDeclaration(node *ast.AttrDeclarationNode)
 }
 
 func (c *Checker) hoistInstanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+	c.registerSignatureCheck(node)
+}
+
+func (c *Checker) hoistInstanceValueDeclaration(node *ast.InstanceValueDeclarationNode) {
 	c.registerSignatureCheck(node)
 }
 
@@ -9296,7 +9357,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				c.registerImplementExpressionCheck(expr)
 			case *ast.IncludeExpressionNode:
 				c.registerIncludeExpressionCheck(expr)
-			case *ast.InstanceVariableDeclarationNode, *ast.GetterDeclarationNode,
+			case *ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.GetterDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
 				namespace.DefineInstanceVariable(symbol.S_empty, nil) // placeholder
