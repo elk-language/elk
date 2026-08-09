@@ -214,7 +214,7 @@ func (t *TypeParamNamespace) DefineInstanceVariable(name value.Symbol, ivar *Ins
 	panic("cannot define instance variables on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	panic("cannot define classes on type param namespaces")
 }
 

@@ -182,10 +182,10 @@ func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
 }
 
 // Define a new class if it does not exist
-func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	subtype, ok := c.Subtype(name)
 	if !ok {
-		return c.DefineClass(docComment, abstract, sealed, primitive, noinit, name, parent, env)
+		return c.DefineClass(docComment, abstract, sealed, primitive, noinit, immutable, name, parent, env)
 	}
 
 	class := subtype.Type.(*Class)
@@ -196,8 +196,8 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 			fmt.Sprintf(
 				"%s modifier mismatch, previous: %s, now: %s",
 				InspectWithColor(class),
-				InspectModifier(class.IsAbstract(), class.IsSealed(), class.IsPrimitive(), class.IsNoInit(), false),
-				InspectModifier(abstract, sealed, primitive, noinit, false),
+				InspectModifier(ModifierSet{Abstract: class.IsAbstract(), Sealed: class.IsSealed(), Primitive: class.IsPrimitive(), NoInit: class.IsNoInit(), Immutable: class.IsImmutable()}),
+				InspectModifier(ModifierSet{Abstract: abstract, Sealed: sealed, Primitive: primitive, NoInit: noinit, Immutable: immutable}),
 			),
 		)
 	}
@@ -205,9 +205,9 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	fullName := MakeFullConstantName(c.Name(), name.String())
-	class := NewClass(docComment, abstract, sealed, primitive, noinit, fullName, parent, env)
+	class := NewClass(docComment, abstract, sealed, primitive, noinit, immutable, fullName, parent, env)
 	c.DefineSubtypeWithFullName(name, fullName, class)
 	c.DefineConstantWithFullName(name, fullName, class.singleton)
 	return class
@@ -248,8 +248,8 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name va
 			fmt.Sprintf(
 				"%s modifier mismatch, previous: %s, now: %s",
 				InspectWithColor(mixin),
-				InspectModifier(mixin.IsAbstract(), false, false, false, false),
-				InspectModifier(abstract, false, false, false, false),
+				InspectModifier(ModifierSet{Abstract: mixin.IsAbstract()}),
+				InspectModifier(ModifierSet{Abstract: abstract}),
 			),
 		)
 	}

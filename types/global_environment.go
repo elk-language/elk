@@ -105,6 +105,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		parent:        valueClass,
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
 		native:        true,
+		immutable:     true,
 	}
 	stdModule.DefineSubtype(symbol.Object, objectClass)
 
@@ -127,16 +128,16 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 
 	// -- End of Bootstrapping --
 
-	moduleClass := stdModule.DefineClass("", false, false, false, true, symbol.Module, objectClass, env)
+	moduleClass := stdModule.DefineClass("", false, false, false, true, false, symbol.Module, objectClass, env)
 	rootModule.parent = moduleClass
 	stdModule.parent = moduleClass
 
-	stdModule.DefineClass("", false, false, false, true, symbol.Mixin, objectClass, env)
-	stdModule.DefineClass("", false, false, false, true, symbol.Interface, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.Mixin, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.Interface, objectClass, env)
 
 	stdModule.DefineModule("", symbol.Kernel, env)
 
-	boxClass := stdModule.DefineClass("", false, true, true, false, symbol.Box, objectClass, env)
+	boxClass := stdModule.DefineClass("", false, true, true, false, false, symbol.Box, objectClass, env)
 	// Set up type parameters
 	var typeParam *TypeParameter
 	typeParams := make([]*TypeParameter, 1)
@@ -146,36 +147,36 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	boxClass.DefineConstant(value.ToSymbol("Val"), NoValue{})
 	boxClass.SetTypeParameters(typeParams)
 
-	boolClass := stdModule.DefineClass("", false, true, true, true, symbol.Bool, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.True, boolClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.False, boolClass, env)
+	boolClass := stdModule.DefineClass("", false, true, true, true, false, symbol.Bool, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.True, boolClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.False, boolClass, env)
 
-	stdModule.DefineClass("", false, true, true, true, symbol.Nil, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.String, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Symbol, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Char, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Float, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.BigFloat, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Float64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Float32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Int, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Int64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Int32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Int16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Int8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.UInt64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.UInt32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.UInt16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.UInt8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.UInt, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.ArrayList, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.ArrayTuple, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashMap, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashRecord, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.HashSet, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.Regex, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, symbol.Method, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, symbol.Pair, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Nil, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.String, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Symbol, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Char, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Float, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.BigFloat, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Float64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Float32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Int, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Int64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Int32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Int16, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Int8, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.UInt64, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.UInt32, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.UInt16, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.UInt8, valueClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.UInt, valueClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.ArrayList, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.ArrayTuple, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.HashMap, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.HashRecord, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.HashSet, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.Regex, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.Method, objectClass, env)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.Pair, objectClass, env)
 
 	tupleMixin := stdModule.DefineMixin("", true, symbol.Tuple, env)
 	typeParams = make([]*TypeParameter, 1)

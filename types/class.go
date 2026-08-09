@@ -11,6 +11,7 @@ import (
 
 type Class struct {
 	parent         Namespace
+	immutable      bool
 	noinit         bool
 	abstract       bool
 	sealed         bool
@@ -73,6 +74,15 @@ func (c *Class) SetNoInit(noinit bool) *Class {
 
 func (c *Class) IsNoInit() bool {
 	return c.noinit
+}
+
+func (c *Class) SetImmutable(immutable bool) *Class {
+	c.immutable = immutable
+	return c
+}
+
+func (c *Class) IsImmutable() bool {
+	return c.immutable
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {
@@ -205,7 +215,8 @@ func NewClass(
 	abstract,
 	sealed,
 	primitive,
-	noinit bool,
+	noinit,
+	immutable bool,
 	name string,
 	parent Namespace,
 	env *GlobalEnvironment,
@@ -215,6 +226,7 @@ func NewClass(
 		sealed:        sealed,
 		abstract:      abstract,
 		noinit:        noinit,
+		immutable:     immutable,
 		native:        env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}

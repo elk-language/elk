@@ -66,7 +66,7 @@ type Namespace interface {
 	InstanceVariableString(name string) *InstanceVariable
 	DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable)
 
-	DefineClass(docComment string, primitive, abstract, sealed, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
+	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
 	DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin
 	DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface

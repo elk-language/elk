@@ -1007,8 +1007,8 @@ func (c *Checker) _checkMethodOverride(
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has a different modifier, is `%s`, should be `%s`",
-			types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed(), false, false, overrideMethod.IsPure()),
-			types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed(), false, false, baseMethod.IsPure()),
+			types.InspectModifier(types.ModifierSet{Abstract: overrideMethod.IsAbstract(), Sealed: overrideMethod.IsSealed(), Pure: overrideMethod.IsPure()}),
+			types.InspectModifier(types.ModifierSet{Abstract: baseMethod.IsAbstract(), Sealed: baseMethod.IsSealed(), Pure: baseMethod.IsPure()}),
 		)
 		areIncompatible = true
 	}
@@ -2375,8 +2375,8 @@ func (c *Checker) declareMethodWithBase(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name.String(),
-					types.InspectModifier(abstract, sealed, false, false, pure),
-					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed(), false, false, oldMethod.IsPure()),
+					types.InspectModifier(types.ModifierSet{Abstract: abstract, Sealed: sealed, Pure: pure}),
+					types.InspectModifier(types.ModifierSet{Abstract: oldMethod.IsAbstract(), Sealed: oldMethod.IsSealed(), Pure: oldMethod.IsPure()}),
 				),
 				location,
 			)

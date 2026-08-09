@@ -149,21 +149,30 @@ func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
 	}
 }
 
-func InspectModifier(abstract, sealed, primitive, noinit, pure bool) string {
+type ModifierSet struct {
+	Abstract  bool
+	Sealed    bool
+	Primitive bool
+	NoInit    bool
+	Pure      bool
+	Immutable bool
+}
+
+func InspectModifier(modifiers ModifierSet) string {
 	str := ""
-	if pure {
+	if modifiers.Pure {
 		str += " pure"
 	}
-	if abstract {
+	if modifiers.Abstract {
 		str += " abstract"
 	}
-	if sealed {
+	if modifiers.Sealed {
 		str += " sealed"
 	}
-	if primitive {
+	if modifiers.Primitive {
 		str += " primitive"
 	}
-	if noinit {
+	if modifiers.NoInit {
 		str += " noinit"
 	}
 	str = strings.TrimSpace(str)

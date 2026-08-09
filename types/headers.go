@@ -18,65 +18,65 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 	{
 		namespace := namespace.TryDefineModule("", value.ToSymbol("Std"), env)
 		{
-			namespace := namespace.TryDefineClass("An `Aborter` is an object that can be used to send signal that execution should be terminated.\nIts useful in multithreading and timeouts.\n\n## Instantiation\n\nYou can create a default aborter that can be closed on demand using the constructor.\n\n```\n# closable aborter\naborter := Aborter()\n```\n\nThere are timeout aborters.\nYou can specify the amount of time after which the aborter will get automatically closed.\n\n```\n# aborter will be automatically closed after 2 minutes\naborter := Aborter.timeout(2.minutes)\n```\n\nAnother type of aborter is the deadline aborter.\nYou can specify the datetime at which the aborter will get automatically closed.\n\n```\ndeadline := DateTime.new(2026, 2, 16, 15, 30)\n\n# aborter will be automatically closed at the given datetime\naborter := Aborter.deadline(deadline)\n```\n\n## Closing\n\nYou can send a signal that execution should be terminated using the `close` method.\n\n```\naborter := Aborter()\naborter.close\n```\n\nNot every aborter can be closed.\nEvery aborter you create using the constructor methods\nwill be closable.\nIf you try to close an unclosable aborter an error will be thrown.\nYou can check if an aborter is closable by calling the `is_closable` method.\n\n```\naborter := Aborter()\naborter.is_closable #=> true\n```\n\n## Checking for closure\n\nYou can listen for a close event of an aborter by using the readonly channel\nreturned by the `closed` method.\n\n```\naborter := Aborter()\n<<aborter.closed # blocks until the aborter is closed\n```", false, true, true, false, value.ToSymbol("Aborter"), objectClass, env)
-			namespace.TryDefineClass("Thrown when trying to close an unclosable aborter.", false, false, false, false, value.ToSymbol("CannotBeClosedError"), objectClass, env)
+			namespace := namespace.TryDefineClass("An `Aborter` is an object that can be used to send signal that execution should be terminated.\nIts useful in multithreading and timeouts.\n\n## Instantiation\n\nYou can create a default aborter that can be closed on demand using the constructor.\n\n```\n# closable aborter\naborter := Aborter()\n```\n\nThere are timeout aborters.\nYou can specify the amount of time after which the aborter will get automatically closed.\n\n```\n# aborter will be automatically closed after 2 minutes\naborter := Aborter.timeout(2.minutes)\n```\n\nAnother type of aborter is the deadline aborter.\nYou can specify the datetime at which the aborter will get automatically closed.\n\n```\ndeadline := DateTime.new(2026, 2, 16, 15, 30)\n\n# aborter will be automatically closed at the given datetime\naborter := Aborter.deadline(deadline)\n```\n\n## Closing\n\nYou can send a signal that execution should be terminated using the `close` method.\n\n```\naborter := Aborter()\naborter.close\n```\n\nNot every aborter can be closed.\nEvery aborter you create using the constructor methods\nwill be closable.\nIf you try to close an unclosable aborter an error will be thrown.\nYou can check if an aborter is closable by calling the `is_closable` method.\n\n```\naborter := Aborter()\naborter.is_closable #=> true\n```\n\n## Checking for closure\n\nYou can listen for a close event of an aborter by using the readonly channel\nreturned by the `closed` method.\n\n```\naborter := Aborter()\n<<aborter.closed # blocks until the aborter is closed\n```", false, true, true, false, false, value.ToSymbol("Aborter"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to close an unclosable aborter.", false, false, false, false, false, value.ToSymbol("CannotBeClosedError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env), NameToType("Std::UInt", env))))
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, value.ToSymbol("ArrayList"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, false, value.ToSymbol("ArrayList"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, value.ToSymbol("ArrayTuple"), objectClass, env)
+			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, false, value.ToSymbol("ArrayTuple"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, false, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, false, false, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, false, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, value.ToSymbol("BigFloat"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, false, value.ToSymbol("BigFloat"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a big float.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, value.ToSymbol("Bool"), objectClass, env)
+		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, false, value.ToSymbol("Bool"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, value.ToSymbol("Box"), objectClass, env)
+			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, false, value.ToSymbol("Box"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.DefineSubtype(value.ToSymbol("Byte"), NewNamedType("Std::Byte", NameToType("Std::UInt8", env)))
-		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, value.ToSymbol("CallFrame"), objectClass, env)
+		namespace.TryDefineClass("Represents a single function call in a stack trace.", false, true, true, true, false, value.ToSymbol("CallFrame"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A `Channel` is an object that can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `<<ch` and `ch.pop` methods.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\nThe pop operator `<<ch` returns a `Std::Result`.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nresult := <<ch # pop from the channel using the pop unary operator\nresult.unwrap #=> 5\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, value.ToSymbol("Channel"), objectClass, env)
-			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, true, false, false, value.ToSymbol("ClosedError"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `Channel` is an object that can be used to send and receive values.\nIts useful for communicating between multiple threads of execution.\n\n## Instantiation\n\nYou can specify the capacity of the channel.\nA channel with `0` capacity is called an unbuffered channel.\nChannels with positive capacity are called buffered channel.\n\n```\n# instantiate an unbuffered channel of `String` values\nunbuffered_channel := Channel::[String]()\n\n# instantiate a buffered channel of `Int` values, that can hold up to 5 integers\nbuffered_channel := Channel::[Int](5)\n```\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Popping values\n\nYou can receive values from the channel using the `<<ch` and `ch.pop` methods.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\nThe pop operator `<<ch` returns a `Std::Result`.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\n\nch << 5 # send `5` to the channel\nresult := <<ch # pop from the channel using the pop unary operator\nresult.unwrap #=> 5\n\nch << 3 # send `3` to the channel\nv := try ch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nChannels should only be closed by the producer (the thread that pushes values to the channel).\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, false, false, value.ToSymbol("Channel"), objectClass, env)
+			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, true, false, false, false, value.ToSymbol("ClosedError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, value.ToSymbol("Char"), objectClass, env)
-		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, value.ToSymbol("Class"), objectClass, env)
+		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, false, value.ToSymbol("Char"), objectClass, env)
+		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, false, value.ToSymbol("Class"), objectClass, env)
 		namespace.TryDefineInterface("Represents a resource that can be closed.", value.ToSymbol("Closable"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, false, value.ToSymbol("ClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, false, false, value.ToSymbol("ClosedRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents an anonymous function.", false, true, true, true, value.ToSymbol("Closure"), objectClass, env)
+		namespace.TryDefineClass("Represents an anonymous function.", false, true, true, true, false, value.ToSymbol("Closure"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("CoercibleNumeric"), NewNamedType("Std::CoercibleNumeric", NewUnion(NameToType("Std::Int", env), NameToType("Std::Float", env), NameToType("Std::BigFloat", env))))
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents a finite, mutable collection\nof elements.", value.ToSymbol("Collection"), env)
@@ -96,13 +96,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, value.ToSymbol("Date"), objectClass, env)
-			namespace.TryDefineClass("Represents an accurate difference between two calendar dates (year, month, day).\nIt is represented bt Int32 for months and Int32 for days.\n\nMonths/years are split from days because it is impossible to\naccurately convert months into days without knowing the starting\ndate it is meant to be applied to.\n\nAs such the conversion is done only when subtracted/added to a\ndate/datetime.\n\nThe max amount of years is `178_956_970`,\nand max amount of days is `2_147_483_647`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a calendar date (year, month, day).\n It is an inline value on both 32bit and 64bit systems.\n The year range is from `-4_194_304` to `4_194_303`.", false, true, true, false, false, value.ToSymbol("Date"), objectClass, env)
+			namespace.TryDefineClass("Represents an accurate difference between two calendar dates (year, month, day).\nIt is represented bt Int32 for months and Int32 for days.\n\nMonths/years are split from days because it is impossible to\naccurately convert months into days without knowing the starting\ndate it is meant to be applied to.\n\nAs such the conversion is done only when subtracted/added to a\ndate/datetime.\n\nThe max amount of years is `178_956_970`,\nand max amount of days is `2_147_483_647`.", false, true, true, false, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a moment in datetime with nanosecond precision.", false, true, true, false, value.ToSymbol("DateTime"), objectClass, env)
-			namespace.TryDefineClass("Represents an accurate difference between two DateTime's.\n\nIt is made up of a `Date::Span` and a `Time::Span`.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a moment in datetime with nanosecond precision.", false, true, true, false, false, value.ToSymbol("DateTime"), objectClass, env)
+			namespace.TryDefineClass("Represents an accurate difference between two DateTime's.\n\nIt is made up of a `Date::Span` and a `Time::Span`.", false, true, true, false, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineModule("Contains various debugging utilities.", value.ToSymbol("Debug"), env)
@@ -110,10 +110,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a value that can be decremented using\nthe `--` operator like `a--`", value.ToSymbol("Decrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents an info message, a warning or a failure\nat a particular `Location`", false, true, true, false, value.ToSymbol("Diagnostic"), objectClass, env)
+		namespace.TryDefineClass("Represents an info message, a warning or a failure\nat a particular `Location`", false, true, true, false, false, value.ToSymbol("Diagnostic"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A builtin list of diagnostics.", false, true, true, false, value.ToSymbol("DiagnosticList"), objectClass, env)
-			namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+			namespace := namespace.TryDefineClass("A builtin list of diagnostics.", false, true, true, false, false, value.ToSymbol("DiagnosticList"), objectClass, env)
+			namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineMixin("Represents a difference between two points in time.", true, value.ToSymbol("Duration"), env)
@@ -121,349 +121,349 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineModule("Contains utilities for dealing with Elk\nsource code.", value.ToSymbol("Elk"), env)
 			{
 				namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", value.ToSymbol("AST"), env)
-				namespace.TryDefineClass("A single alias entry eg. `new_name old_name`", false, true, true, false, value.ToSymbol("AliasDeclarationEntry"), objectClass, env)
-				namespace.TryDefineClass("Represents a new alias declaration eg. `alias push append, add plus`", false, true, true, false, value.ToSymbol("AliasDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("`any` type.", false, true, true, false, value.ToSymbol("AnyTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a ArrayList literal eg. `[1, 5, -6]`", false, true, true, false, value.ToSymbol("ArrayListLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a ArrayTuple literal eg. `%[1, 5, -6]`", false, true, true, false, value.ToSymbol("ArrayTupleLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an as type downcast eg. `foo as String`", false, true, true, false, value.ToSymbol("AsExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an as pattern eg. `> 5 && < 20 as foo`", false, true, true, false, value.ToSymbol("AsPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Assignment with the specified operator.", false, true, true, false, value.ToSymbol("AssignmentExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new setter declaration eg. `attr foo: String`", false, true, true, false, value.ToSymbol("AttrDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents attribute access eg. `foo.bar`", false, true, true, false, value.ToSymbol("AttributeAccessNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an attribute declaration in getters, setters and accessors eg. `foo: String`", false, true, true, false, value.ToSymbol("AttributeParameterNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `await` expression eg. `await foo()`", false, true, true, false, value.ToSymbol("AwaitExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("A single alias entry eg. `new_name old_name`", false, true, true, false, false, value.ToSymbol("AliasDeclarationEntry"), objectClass, env)
+				namespace.TryDefineClass("Represents a new alias declaration eg. `alias push append, add plus`", false, true, true, false, false, value.ToSymbol("AliasDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("`any` type.", false, true, true, false, false, value.ToSymbol("AnyTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a ArrayList literal eg. `[1, 5, -6]`", false, true, true, false, false, value.ToSymbol("ArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a ArrayTuple literal eg. `%[1, 5, -6]`", false, true, true, false, false, value.ToSymbol("ArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an as type downcast eg. `foo as String`", false, true, true, false, false, value.ToSymbol("AsExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an as pattern eg. `> 5 && < 20 as foo`", false, true, true, false, false, value.ToSymbol("AsPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Assignment with the specified operator.", false, true, true, false, false, value.ToSymbol("AssignmentExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new setter declaration eg. `attr foo: String`", false, true, true, false, false, value.ToSymbol("AttrDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents attribute access eg. `foo.bar`", false, true, true, false, false, value.ToSymbol("AttributeAccessNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an attribute declaration in getters, setters and accessors eg. `foo: String`", false, true, true, false, false, value.ToSymbol("AttributeParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `await` expression eg. `await foo()`", false, true, true, false, false, value.ToSymbol("AwaitExpressionNode"), objectClass, env)
 				{
-					namespace := namespace.TryDefineClass("BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`", false, true, true, false, value.ToSymbol("BigFloatLiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nbig float node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`", false, true, true, false, false, value.ToSymbol("BigFloatLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nbig float node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a bin ArrayList literal eg. `\\b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayListLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a bin ArrayTuple literal eg. `%b[11 10]`", false, true, true, false, value.ToSymbol("BinArrayTupleLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a bin HashSet literal eg. `^b[11 10]`", false, true, true, false, value.ToSymbol("BinHashSetLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Expression of an operator with two operands eg. `2 + 5`, `foo > bar`", false, true, true, false, value.ToSymbol("BinaryExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Pattern with two operands eg. `> 10 && < 50`", false, true, true, false, value.ToSymbol("BinaryPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Type expression of an operator with two operands eg. `String | Int`", false, true, true, false, value.ToSymbol("BinaryTypeNode"), objectClass, env)
-				namespace.TryDefineClass("`bool` literal.", false, true, true, false, value.ToSymbol("BoolLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a box of expression eg. `&a`", false, true, true, false, value.ToSymbol("BoxOfExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a box type eg. `^String`, `*String`", false, true, true, false, value.ToSymbol("BoxTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("`breakpoint` entry", false, true, true, false, value.ToSymbol("BreakpointNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, value.ToSymbol("CallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a callable type eg. `|i: Int|: String`", false, true, true, false, value.ToSymbol("CallableTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `catch` eg.\n\n```\ncatch SomeError(message)\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("CatchNode"), objectClass, env)
-				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`", false, true, true, false, value.ToSymbol("ClosureLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin ArrayList literal eg. `\\b[11 10]`", false, true, true, false, false, value.ToSymbol("BinArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin ArrayTuple literal eg. `%b[11 10]`", false, true, true, false, false, value.ToSymbol("BinArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a bin HashSet literal eg. `^b[11 10]`", false, true, true, false, false, value.ToSymbol("BinHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of an operator with two operands eg. `2 + 5`, `foo > bar`", false, true, true, false, false, value.ToSymbol("BinaryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Pattern with two operands eg. `> 10 && < 50`", false, true, true, false, false, value.ToSymbol("BinaryPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Type expression of an operator with two operands eg. `String | Int`", false, true, true, false, false, value.ToSymbol("BinaryTypeNode"), objectClass, env)
+				namespace.TryDefineClass("`bool` literal.", false, true, true, false, false, value.ToSymbol("BoolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a box of expression eg. `&a`", false, true, true, false, false, value.ToSymbol("BoxOfExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a box type eg. `^String`, `*String`", false, true, true, false, false, value.ToSymbol("BoxTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `break` expression eg. `break`, `break false`", false, true, true, false, false, value.ToSymbol("BreakExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`breakpoint` entry", false, true, true, false, false, value.ToSymbol("BreakpointNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `'123'.()`", false, true, true, false, false, value.ToSymbol("CallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a callable type eg. `|i: Int|: String`", false, true, true, false, false, value.ToSymbol("CallableTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `catch` eg.\n\n```\ncatch SomeError(message)\n  print(\"awesome!\")\nend\n```", false, true, true, false, false, value.ToSymbol("CatchNode"), objectClass, env)
+				namespace.TryDefineClass("Char literal eg. `c\"a\"`", false, true, true, false, false, value.ToSymbol("CharLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a class declaration eg. `class Foo; end`", false, true, true, false, false, value.ToSymbol("ClassDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a closure eg. `|i| -> println(i)`, `|i| ~> println(i)`", false, true, true, false, false, value.ToSymbol("ClosureLiteralNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid in constant lookups\nshould implement this interface.", false, value.ToSymbol("ComplexConstantNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo::Bar as Bar`.", false, true, true, false, value.ToSymbol("ConstantAsNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a constant declaration eg. `const Foo: ArrayList[String] = [\"foo\", \"bar\"]`", false, true, true, false, value.ToSymbol("ConstantDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a constant lookup expressions eg. `Foo::Bar`", false, true, true, false, value.ToSymbol("ConstantLookupNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo::Bar as Bar`.", false, true, true, false, false, value.ToSymbol("ConstantAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant declaration eg. `const Foo: ArrayList[String] = [\"foo\", \"bar\"]`", false, true, true, false, false, value.ToSymbol("ConstantDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant lookup expressions eg. `Foo::Bar`", false, true, true, false, false, value.ToSymbol("ConstantLookupNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid constants\nshould implement this interface.", false, value.ToSymbol("ConstantNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
-					namespace.TryDefineClass("Indicates that the format of a\nconstant node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nconstant node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a constructor call eg. `String(123)`", false, true, true, false, value.ToSymbol("ConstructorCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `continue` expression eg. `continue`, `continue \"foo\"`", false, true, true, false, value.ToSymbol("ContinueExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `defer` expression eg. `defer foo()`", false, true, true, false, value.ToSymbol("DeferExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `do` expression eg.\n\n```\ndo\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("DoExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a simple double quoted string literal eg. `\"foo baz\"`", false, true, true, false, value.ToSymbol("DoubleQuotedStringLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a double splat expression eg. `**foo`", false, true, true, false, value.ToSymbol("DoubleSplatExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an empty statement eg. a statement with only a semicolon or a newline.", false, true, true, false, value.ToSymbol("EmptyStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Exact type of a class instance eg. `exact Foo`, `exact Bar[String]`", false, true, true, false, value.ToSymbol("ExactTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constructor call eg. `String(123)`", false, true, true, false, false, value.ToSymbol("ConstructorCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `continue` expression eg. `continue`, `continue \"foo\"`", false, true, true, false, false, value.ToSymbol("ContinueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `defer` expression eg. `defer foo()`", false, true, true, false, false, value.ToSymbol("DeferExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `do` expression eg.\n\n```\ndo\n  print(\"awesome!\")\nend\n```", false, true, true, false, false, value.ToSymbol("DoExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a simple double quoted string literal eg. `\"foo baz\"`", false, true, true, false, false, value.ToSymbol("DoubleQuotedStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a double splat expression eg. `**foo`", false, true, true, false, false, value.ToSymbol("DoubleSplatExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an empty statement eg. a statement with only a semicolon or a newline.", false, true, true, false, false, value.ToSymbol("EmptyStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Exact type of a class instance eg. `exact Foo`, `exact Bar[String]`", false, true, true, false, false, value.ToSymbol("ExactTypeNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as expressions.", false, value.ToSymbol("ExpressionNode"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Expression Node.", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Expression optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ExpressionStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `extend where` block expression eg.\n\n```\nextend where T < Foo\n  def hello then println(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("ExtendWhereBlockExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("`false` literal.", false, true, true, false, value.ToSymbol("FalseLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Expression optionally terminated with a newline or a semicolon.", false, true, true, false, false, value.ToSymbol("ExpressionStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `extend where` block expression eg.\n\n```\nextend where T < Foo\n  def hello then println(\"awesome!\")\nend\n```", false, true, true, false, false, value.ToSymbol("ExtendWhereBlockExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`false` literal.", false, true, true, false, false, value.ToSymbol("FalseLiteralNode"), objectClass, env)
 				{
-					namespace := namespace.TryDefineClass("Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`", false, true, true, false, value.ToSymbol("Float32LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nfloat32 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`", false, true, true, false, false, value.ToSymbol("Float32LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat32 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`", false, true, true, false, value.ToSymbol("Float64LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nfloat64 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`", false, true, true, false, false, value.ToSymbol("Float64LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat64 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Float literal eg. `5.2`, `.5`, `45e20`", false, true, true, false, value.ToSymbol("FloatLiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nfloat node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Float literal eg. `5.2`, `.5`, `45e20`", false, true, true, false, false, value.ToSymbol("FloatLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nfloat node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a `for in` expression eg. `for i in 5..15 then println(i)`", false, true, true, false, value.ToSymbol("ForInExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`", false, true, true, false, value.ToSymbol("FormalParameterNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a generic constant in type annotations eg. `ArrayList[String]`", false, true, true, false, value.ToSymbol("GenericConstantNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`", false, true, true, false, value.ToSymbol("GenericConstructorCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method call eg. `foo.bar::[String](a)`", false, true, true, false, value.ToSymbol("GenericMethodCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a generic function-like call eg. `foo::[Int](123)`", false, true, true, false, value.ToSymbol("GenericReceiverlessMethodCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`", false, true, true, false, value.ToSymbol("GenericTypeDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new getter declaration eg. `getter foo: String`", false, true, true, false, value.ToSymbol("GetterDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `go` expression eg. `go foo()`, `go; foo(); end`", false, true, true, false, value.ToSymbol("GoExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, value.ToSymbol("HashMapLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, value.ToSymbol("HashRecordLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a HashSet literal eg. `^[1, 5, -6]`", false, true, true, false, value.ToSymbol("HashSetLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a hex ArrayList literal eg. `\\x[ff ee]`", false, true, true, false, value.ToSymbol("HexArrayListLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a hex ArrayTuple literal eg. `%x[ff ee]`", false, true, true, false, value.ToSymbol("HexArrayTupleLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a hex HashSet literal eg. `^x[ff ee]`", false, true, true, false, value.ToSymbol("HexHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `for in` expression eg. `for i in 5..15 then println(i)`", false, true, true, false, false, value.ToSymbol("ForInExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`", false, true, true, false, false, value.ToSymbol("FormalParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a generic constant in type annotations eg. `ArrayList[String]`", false, true, true, false, false, value.ToSymbol("GenericConstantNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constructor call eg. `ArrayList::[Int](1, 2, 3)`", false, true, true, false, false, value.ToSymbol("GenericConstructorCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `foo.bar::[String](a)`", false, true, true, false, false, value.ToSymbol("GenericMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a generic function-like call eg. `foo::[Int](123)`", false, true, true, false, false, value.ToSymbol("GenericReceiverlessMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new generic type definition eg. `typedef Nilable[T] = T | nil`", false, true, true, false, false, value.ToSymbol("GenericTypeDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new getter declaration eg. `getter foo: String`", false, true, true, false, false, value.ToSymbol("GetterDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `go` expression eg. `go foo()`, `go; foo(); end`", false, true, true, false, false, value.ToSymbol("GoExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, false, value.ToSymbol("HashMapLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`", false, true, true, false, false, value.ToSymbol("HashRecordLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a HashSet literal eg. `^[1, 5, -6]`", false, true, true, false, false, value.ToSymbol("HashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex ArrayList literal eg. `\\x[ff ee]`", false, true, true, false, false, value.ToSymbol("HexArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex ArrayTuple literal eg. `%x[ff ee]`", false, true, true, false, false, value.ToSymbol("HexArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a hex HashSet literal eg. `^x[ff ee]`", false, true, true, false, false, value.ToSymbol("HexHashSetLiteralNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid identifiers\nshould implement this interface.", true, value.ToSymbol("IdentifierNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
-					namespace.TryDefineClass("Indicates that the format of an\nidentifier node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nidentifier node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents an `if` expression eg. `if foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("IfExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an enhance expression eg. `implement Enumerable[V]`", false, true, true, false, value.ToSymbol("ImplementExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an import statement eg. `import \"./foo/bar.elk\"`", false, true, true, false, value.ToSymbol("ImportStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an include expression eg. `include Enumerable[V]`", false, true, true, false, value.ToSymbol("IncludeExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an inferred object pattern eg. `@{foo: 5, bar: a, c}`", false, true, true, false, value.ToSymbol("InferredObjectPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, value.ToSymbol("InitDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an instance method lookup expression eg. `Foo.:bar`", false, true, true, false, value.ToSymbol("InstanceMethodLookupNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an instance type eg. `%self`", false, true, true, false, value.ToSymbol("InstanceOfTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an instance value declaration eg. `val @foo: String`", false, true, true, false, value.ToSymbol("InstanceValueDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an instance variable declaration eg. `var @foo: String`", false, true, true, false, value.ToSymbol("InstanceVariableDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `if` expression eg. `if foo then println(\"bar\")`", false, true, true, false, false, value.ToSymbol("IfExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an enhance expression eg. `implement Enumerable[V]`", false, true, true, false, false, value.ToSymbol("ImplementExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an import statement eg. `import \"./foo/bar.elk\"`", false, true, true, false, false, value.ToSymbol("ImportStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an include expression eg. `include Enumerable[V]`", false, true, true, false, false, value.ToSymbol("IncludeExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an inferred object pattern eg. `@{foo: 5, bar: a, c}`", false, true, true, false, false, value.ToSymbol("InferredObjectPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, false, value.ToSymbol("InitDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance method lookup expression eg. `Foo.:bar`", false, true, true, false, false, value.ToSymbol("InstanceMethodLookupNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance type eg. `%self`", false, true, true, false, false, value.ToSymbol("InstanceOfTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance value declaration eg. `val @foo: String`", false, true, true, false, false, value.ToSymbol("InstanceValueDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance variable declaration eg. `var @foo: String`", false, true, true, false, false, value.ToSymbol("InstanceVariableDeclarationNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as instance variables.", false, value.ToSymbol("InstanceVariableNode"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Instance Variable Node.", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Int16 literal eg. `5i16`, `1_20i16`, `0xffi16`", false, true, true, false, value.ToSymbol("Int16LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nint16 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Int16 literal eg. `5i16`, `1_20i16`, `0xffi16`", false, true, true, false, false, value.ToSymbol("Int16LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nint16 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Int32 literal eg. `5i32`, `1_20i32`, `0xffi32`", false, true, true, false, value.ToSymbol("Int32LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nint32 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Int32 literal eg. `5i32`, `1_20i32`, `0xffi32`", false, true, true, false, false, value.ToSymbol("Int32LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nint32 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`", false, true, true, false, value.ToSymbol("Int64LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nint64 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`", false, true, true, false, false, value.ToSymbol("Int64LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nint64 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`", false, true, true, false, value.ToSymbol("Int8LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nint8 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`", false, true, true, false, false, value.ToSymbol("Int8LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nint8 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of Int collection literals should\nimplement this interface.", false, value.ToSymbol("IntCollectionContentNode"), env)
 				{
-					namespace := namespace.TryDefineClass("Int literal eg. `5`, `125_355`, `0xff`", false, true, true, false, value.ToSymbol("IntLiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nint node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Int literal eg. `5`, `125_355`, `0xff`", false, true, true, false, false, value.ToSymbol("IntLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nint node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents an interface declaration eg. `interface Foo; end`", false, true, true, false, value.ToSymbol("InterfaceDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an Interpolated regex literal eg. `%/foo${1 + 2}bar/`", false, true, true, false, value.ToSymbol("InterpolatedRegexLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an interpolated string literal eg. `\"foo ${bar} baz\"`", false, true, true, false, value.ToSymbol("InterpolatedStringLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an interpolated symbol eg. `:\"foo ${bar + 2}\"`", false, true, true, false, value.ToSymbol("InterpolatedSymbolLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Union type eg. `String & Int & Float`", false, true, true, false, value.ToSymbol("IntersectionTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a syntax error.", false, true, true, false, value.ToSymbol("InvalidNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a key value expression eg. `foo => bar`", false, true, true, false, value.ToSymbol("KeyValueExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a key value pattern eg. `foo => bar`", false, true, true, false, value.ToSymbol("KeyValuePatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a labeled expression eg. `$foo: 1 + 2`", false, true, true, false, value.ToSymbol("LabeledExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a List pattern eg. `[1, a, >= 10]`", false, true, true, false, value.ToSymbol("ListPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interface declaration eg. `interface Foo; end`", false, true, true, false, false, value.ToSymbol("InterfaceDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an Interpolated regex literal eg. `%/foo${1 + 2}bar/`", false, true, true, false, false, value.ToSymbol("InterpolatedRegexLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interpolated string literal eg. `\"foo ${bar} baz\"`", false, true, true, false, false, value.ToSymbol("InterpolatedStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an interpolated symbol eg. `:\"foo ${bar + 2}\"`", false, true, true, false, false, value.ToSymbol("InterpolatedSymbolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Union type eg. `String & Int & Float`", false, true, true, false, false, value.ToSymbol("IntersectionTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a syntax error.", false, true, true, false, false, value.ToSymbol("InvalidNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a key value expression eg. `foo => bar`", false, true, true, false, false, value.ToSymbol("KeyValueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a key value pattern eg. `foo => bar`", false, true, true, false, false, value.ToSymbol("KeyValuePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a labeled expression eg. `$foo: 1 + 2`", false, true, true, false, false, value.ToSymbol("LabeledExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a List pattern eg. `[1, a, >= 10]`", false, true, true, false, false, value.ToSymbol("ListPatternNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("Represents AST nodes that are valid expressions and patterns.", false, value.ToSymbol("LiteralPatternNode"), env)
 					namespace.TryDefineInterface("", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Expression of a logical operator with two operands eg. `foo && bar`", false, true, true, false, value.ToSymbol("LogicalExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `loop` expression.", false, true, true, false, value.ToSymbol("LoopExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Create a new macro boundary node.\nIt's a block of code with an isolated scope\neg.\n\n```\ndo macro 'Dupa'\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("MacroBoundaryNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a macro call eg. `'123'.foo!()`", false, true, true, false, value.ToSymbol("MacroCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`", false, true, true, false, value.ToSymbol("MacroDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a macro name eg. `foo!`.", false, true, true, false, value.ToSymbol("MacroNameNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("MapPatternNode"), objectClass, env)
-				namespace.TryDefineClass("An expression that matches a value against a pattern eg. `a match Foo(a: \"lol\", b: > 2)`", false, true, true, false, value.ToSymbol("MatchExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, value.ToSymbol("MethodCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method lookup with as in using declarations\neg. `Foo::bar as Bar`.", false, true, true, false, value.ToSymbol("MethodLookupAsNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method lookup expression eg. `Foo::bar`, `a::c`", false, true, true, false, value.ToSymbol("MethodLookupNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a formal parameter in method declarations eg. `foo: String = 'bar'`", false, true, true, false, value.ToSymbol("MethodParameterNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a method signature definition eg. `sig to_string(val: Int): String`", false, true, true, false, value.ToSymbol("MethodSignatureDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a mixin declaration eg. `mixin Foo; end`", false, true, true, false, value.ToSymbol("MixinDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`", false, true, true, false, value.ToSymbol("ModifierForInNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`", false, true, true, false, value.ToSymbol("ModifierIfElseNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.", false, true, true, false, value.ToSymbol("ModifierNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a module declaration eg. `module Foo; end`", false, true, true, false, value.ToSymbol("ModuleDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `must` expression eg. `must foo()`", false, true, true, false, value.ToSymbol("MustExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `must` pattern eg. `must`", false, true, true, false, value.ToSymbol("MustPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of a logical operator with two operands eg. `foo && bar`", false, true, true, false, false, value.ToSymbol("LogicalExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `loop` expression.", false, true, true, false, false, value.ToSymbol("LoopExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Create a new macro boundary node.\nIt's a block of code with an isolated scope\neg.\n\n```\ndo macro 'Dupa'\n  print(\"awesome!\")\nend\n```", false, true, true, false, false, value.ToSymbol("MacroBoundaryNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a macro call eg. `'123'.foo!()`", false, true, true, false, false, value.ToSymbol("MacroCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a macro definition eg. `macro foo(a: Elk::AST::StringLiteralNode); a; end`", false, true, true, false, false, value.ToSymbol("MacroDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a macro name eg. `foo!`.", false, true, true, false, false, value.ToSymbol("MacroNameNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, false, value.ToSymbol("MapPatternNode"), objectClass, env)
+				namespace.TryDefineClass("An expression that matches a value against a pattern eg. `a match Foo(a: \"lol\", b: > 2)`", false, true, true, false, false, value.ToSymbol("MatchExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method call eg. `'123'.to_int()`", false, true, true, false, false, value.ToSymbol("MethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method definition eg. `def foo: String then 'hello world'`", false, true, true, false, false, value.ToSymbol("MethodDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method lookup with as in using declarations\neg. `Foo::bar as Bar`.", false, true, true, false, false, value.ToSymbol("MethodLookupAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method lookup expression eg. `Foo::bar`, `a::c`", false, true, true, false, false, value.ToSymbol("MethodLookupNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a formal parameter in method declarations eg. `foo: String = 'bar'`", false, true, true, false, false, value.ToSymbol("MethodParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a method signature definition eg. `sig to_string(val: Int): String`", false, true, true, false, false, value.ToSymbol("MethodSignatureDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a mixin declaration eg. `mixin Foo; end`", false, true, true, false, false, value.ToSymbol("MixinDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`", false, true, true, false, false, value.ToSymbol("ModifierForInNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`", false, true, true, false, false, value.ToSymbol("ModifierIfElseNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.", false, true, true, false, false, value.ToSymbol("ModifierNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a module declaration eg. `module Foo; end`", false, true, true, false, false, value.ToSymbol("ModuleDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `must` expression eg. `must foo()`", false, true, true, false, false, value.ToSymbol("MustExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `must` pattern eg. `must`", false, true, true, false, false, value.ToSymbol("MustPatternNode"), objectClass, env)
 				namespace.TryDefineMixin("Nodes that implement this interface represent\nnamed arguments in method calls.", false, value.ToSymbol("NamedArgumentNode"), env)
-				namespace.TryDefineClass("Represents a named argument in a function call eg. `foo: 123`", false, true, true, false, value.ToSymbol("NamedCallArgumentNode"), objectClass, env)
-				namespace.TryDefineClass("`never` type.", false, true, true, false, value.ToSymbol("NeverTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new expression eg. `new(123)`", false, true, true, false, value.ToSymbol("NewExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("`nil` literal.", false, true, true, false, value.ToSymbol("NilLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents nil-safe subscript access eg. `arr?[5]`", false, true, true, false, value.ToSymbol("NilSafeSubscriptExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a nilable pattern eg. `5?`", false, true, true, false, value.ToSymbol("NilablePatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an optional or nilable type eg. `String?`", false, true, true, false, value.ToSymbol("NilableTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a named argument in a function call eg. `foo: 123`", false, true, true, false, false, value.ToSymbol("NamedCallArgumentNode"), objectClass, env)
+				namespace.TryDefineClass("`never` type.", false, true, true, false, false, value.ToSymbol("NeverTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new expression eg. `new(123)`", false, true, true, false, false, value.ToSymbol("NewExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`nil` literal.", false, true, true, false, false, value.ToSymbol("NilLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents nil-safe subscript access eg. `arr?[5]`", false, true, true, false, false, value.ToSymbol("NilSafeSubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a nilable pattern eg. `5?`", false, true, true, false, false, value.ToSymbol("NilablePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an optional or nilable type eg. `String?`", false, true, true, false, false, value.ToSymbol("NilableTypeNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("A base for all Elk AST (Abstract Syntax Tree) nodes.", false, value.ToSymbol("Node"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Node.", value.ToSymbol("Convertible"), env)
-					namespace.TryDefineClass("Indicates that the format of some AST node is\ninvalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of some AST node is\ninvalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a not type eg. `~String`", false, true, true, false, value.ToSymbol("NotTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`", false, true, true, false, value.ToSymbol("NumericForExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`", false, true, true, false, value.ToSymbol("ObjectPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a not type eg. `~String`", false, true, true, false, false, value.ToSymbol("NotTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`", false, true, true, false, false, value.ToSymbol("NumericForExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`", false, true, true, false, false, value.ToSymbol("ObjectPatternNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that should be valid in parameter declaration lists\nof methods or functions should implement this interface.", true, value.ToSymbol("ParameterNode"), env)
-				namespace.TryDefineClass("Formal parameter optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("ParameterStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a pattern expression `type Foo(a: String, b: > 5)`", false, true, true, false, value.ToSymbol("PatternExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Formal parameter optionally terminated with a newline or a semicolon.", false, true, true, false, false, value.ToSymbol("ParameterStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a pattern expression `type Foo(a: String, b: > 5)`", false, true, true, false, false, value.ToSymbol("PatternExpressionNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid in pattern matching should\nimplement this interface", false, value.ToSymbol("PatternNode"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Pattern Node.", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Pattern optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("PatternStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Postfix expression eg. `foo++`, `bar--`", false, true, true, false, value.ToSymbol("PostfixExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Pattern optionally terminated with a newline or a semicolon.", false, true, true, false, false, value.ToSymbol("PatternStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Postfix expression eg. `foo++`, `bar--`", false, true, true, false, false, value.ToSymbol("PostfixExpressionNode"), objectClass, env)
 				{
-					namespace := namespace.TryDefineClass("Represents a private constant eg. `_Foo`", false, true, true, false, value.ToSymbol("PrivateConstantNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nprivate constant node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Represents a private constant eg. `_Foo`", false, true, true, false, false, value.ToSymbol("PrivateConstantNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nprivate constant node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("Represents a private identifier eg. `_foo`", false, true, true, false, value.ToSymbol("PrivateIdentifierNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of a\nprivate identifier node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("Represents a private identifier eg. `_foo`", false, true, true, false, false, value.ToSymbol("PrivateIdentifierNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of a\nprivate identifier node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Represents a single Elk program (usually a single file).", false, true, true, false, value.ToSymbol("ProgramNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo as Bar`.", false, true, true, false, value.ToSymbol("PublicConstantAsNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a public constant eg. `Foo`.", false, true, true, false, value.ToSymbol("PublicConstantNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a public identifier eg. `foo`.", false, true, true, false, value.ToSymbol("PublicIdentifierNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an instance variable eg. `@foo`", false, true, true, false, value.ToSymbol("PublicInstanceVariableNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a quoted block of AST eg.\n\n```\nquote\n  print(\"awesome!\")\nend\n```", false, true, true, false, value.ToSymbol("QuoteExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Range literal eg. `1...5`", false, true, true, false, value.ToSymbol("RangeLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Raw Char literal eg. `a`", false, true, true, false, value.ToSymbol("RawCharLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Raw string literal enclosed with single quotes eg. `'foo'`.", false, true, true, false, value.ToSymbol("RawStringLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a function-like macro call eg. `foo!(123)`", false, true, true, false, value.ToSymbol("ReceiverlessMacroCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a function-like call eg. `to_string(123)`", false, true, true, false, value.ToSymbol("ReceiverlessMethodCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Record pattern eg. `%{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, value.ToSymbol("RecordPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a single interpolated section of a regex literal eg. `bar + 2` in `%/foo${bar + 2}/`", false, true, true, false, value.ToSymbol("RegexInterpolationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single Elk program (usually a single file).", false, true, true, false, false, value.ToSymbol("ProgramNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a constant with as in using declarations\neg. `Foo as Bar`.", false, true, true, false, false, value.ToSymbol("PublicConstantAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a public constant eg. `Foo`.", false, true, true, false, false, value.ToSymbol("PublicConstantNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a public identifier eg. `foo`.", false, true, true, false, false, value.ToSymbol("PublicIdentifierNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance variable eg. `@foo`", false, true, true, false, false, value.ToSymbol("PublicInstanceVariableNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a quoted block of AST eg.\n\n```\nquote\n  print(\"awesome!\")\nend\n```", false, true, true, false, false, value.ToSymbol("QuoteExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Range literal eg. `1...5`", false, true, true, false, false, value.ToSymbol("RangeLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Raw Char literal eg. `a`", false, true, true, false, false, value.ToSymbol("RawCharLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Raw string literal enclosed with single quotes eg. `'foo'`.", false, true, true, false, false, value.ToSymbol("RawStringLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a function-like macro call eg. `foo!(123)`", false, true, true, false, false, value.ToSymbol("ReceiverlessMacroCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a function-like call eg. `to_string(123)`", false, true, true, false, false, value.ToSymbol("ReceiverlessMethodCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Record pattern eg. `%{ foo: 5, bar: a, 5 => >= 10 }`", false, true, true, false, false, value.ToSymbol("RecordPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single interpolated section of a regex literal eg. `bar + 2` in `%/foo${bar + 2}/`", false, true, true, false, false, value.ToSymbol("RegexInterpolationNode"), objectClass, env)
 				namespace.TryDefineMixin("Nodes that implement this interface can appear\ninside of a Regex literal.", false, value.ToSymbol("RegexLiteralContentNode"), env)
-				namespace.TryDefineClass("Represents a single section of characters of a regex literal eg. `foo` in `%/foo${bar}/`.", false, true, true, false, value.ToSymbol("RegexLiteralContentSectionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single section of characters of a regex literal eg. `foo` in `%/foo${bar}/`.", false, true, true, false, false, value.ToSymbol("RegexLiteralContentSectionNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that represent regexes should\nimplement this interface.", false, value.ToSymbol("RegexLiteralNode"), env)
-				namespace.TryDefineClass("Represents a rest element in a list pattern eg. `*a`", false, true, true, false, value.ToSymbol("RestPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `return` expression eg. `return`, `return true`", false, true, true, false, value.ToSymbol("ReturnExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a scoped macro call eg. `Foo::bar!(5)`", false, true, true, false, value.ToSymbol("ScopedMacroCallNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a select `case` node eg. `case v := <<ch then println(v)`", false, true, true, false, value.ToSymbol("SelectCaseNode"), objectClass, env)
-				namespace.TryDefineClass("`self` literal.", false, true, true, false, value.ToSymbol("SelfLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Set pattern eg. `^[1, \"foo\"]`", false, true, true, false, value.ToSymbol("SetPatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new setter declaration eg. `setter foo: String`", false, true, true, false, value.ToSymbol("SetterDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a signature parameter in method and function signatures eg. `foo?: String`", false, true, true, false, value.ToSymbol("SignatureParameterNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a rest element in a list pattern eg. `*a`", false, true, true, false, false, value.ToSymbol("RestPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `return` expression eg. `return`, `return true`", false, true, true, false, false, value.ToSymbol("ReturnExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a scoped macro call eg. `Foo::bar!(5)`", false, true, true, false, false, value.ToSymbol("ScopedMacroCallNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a select `case` node eg. `case v := <<ch then println(v)`", false, true, true, false, false, value.ToSymbol("SelectCaseNode"), objectClass, env)
+				namespace.TryDefineClass("`self` literal.", false, true, true, false, false, value.ToSymbol("SelfLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Set pattern eg. `^[1, \"foo\"]`", false, true, true, false, false, value.ToSymbol("SetPatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new setter declaration eg. `setter foo: String`", false, true, true, false, false, value.ToSymbol("SetterDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a signature parameter in method and function signatures eg. `foo?: String`", false, true, true, false, false, value.ToSymbol("SignatureParameterNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that represent simple strings (without interpolation)\nshould implement this interface.", false, value.ToSymbol("SimpleStringLiteralNode"), env)
-				namespace.TryDefineClass("Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:\"lol\"`", false, true, true, false, value.ToSymbol("SimpleSymbolLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `singleton` block expression eg.\n\nsingleton\n  def hello then println(\"awesome!\")\nend", false, true, true, false, value.ToSymbol("SingletonBlockExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a singleton type eg. `&String`", false, true, true, false, value.ToSymbol("SingletonTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a splat expression eg. `*foo`", false, true, true, false, value.ToSymbol("SplatExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:\"lol\"`", false, true, true, false, false, value.ToSymbol("SimpleSymbolLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `singleton` block expression eg.\n\nsingleton\n  def hello then println(\"awesome!\")\nend", false, true, true, false, false, value.ToSymbol("SingletonBlockExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a singleton type eg. `&String`", false, true, true, false, false, value.ToSymbol("SingletonTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a splat expression eg. `*foo`", false, true, true, false, false, value.ToSymbol("SplatExpressionNode"), objectClass, env)
 				namespace.TryDefineMixin("Represents a single statement, so for example\na single valid \"line\" of Elk code.\nUsually its an expression optionally terminated with a newline or a semicolon.", false, value.ToSymbol("StatementNode"), env)
-				namespace.TryDefineClass("Represents a single inspect interpolated section of a string literal eg. `bar + 2` in `\"foo#{bar + 2}\"`", false, true, true, false, value.ToSymbol("StringInspectInterpolationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a single interpolated section of a string literal eg. `bar + 2` in `\"foo${bar + 2}\"`", false, true, true, false, value.ToSymbol("StringInterpolationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single inspect interpolated section of a string literal eg. `bar + 2` in `\"foo#{bar + 2}\"`", false, true, true, false, false, value.ToSymbol("StringInspectInterpolationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single interpolated section of a string literal eg. `bar + 2` in `\"foo${bar + 2}\"`", false, true, true, false, false, value.ToSymbol("StringInterpolationNode"), objectClass, env)
 				namespace.TryDefineMixin("Nodes that implement this interface can appear\ninside of a String literal.", false, value.ToSymbol("StringLiteralContentNode"), env)
-				namespace.TryDefineClass("Represents a single section of characters of a string literal eg. `foo` in `\"foo${bar}\"`.", false, true, true, false, value.ToSymbol("StringLiteralContentSectionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a single section of characters of a string literal eg. `foo` in `\"foo${bar}\"`.", false, true, true, false, false, value.ToSymbol("StringLiteralContentSectionNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that represent strings should\nimplement this interface.", false, value.ToSymbol("StringLiteralNode"), env)
 				namespace.TryDefineMixin("Represents a single statement of a struct body\noptionally terminated with a newline or semicolon.", false, value.ToSymbol("StructBodyStatementNode"), env)
-				namespace.TryDefineClass("Represents a struct declaration eg. `struct Foo; end`", false, true, true, false, value.ToSymbol("StructDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents subscript access eg. `arr[5]`", false, true, true, false, value.ToSymbol("SubscriptExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a switch `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, value.ToSymbol("SwitchCaseNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `switch` expression eg.\n\nswitch a\ncase 3\n  println(\"eureka!\")\ncase nil\n  println(\"boo\")\nelse\n  println(\"nothing\")\nend", false, true, true, false, value.ToSymbol("SwitchExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a symbol ArrayList literal eg. `\\s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayListLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a symbol ArrayTuple literal eg. `%s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a struct declaration eg. `struct Foo; end`", false, true, true, false, false, value.ToSymbol("StructDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents subscript access eg. `arr[5]`", false, true, true, false, false, value.ToSymbol("SubscriptExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a switch `case` node eg. `case 3 then println(\"eureka!\")`", false, true, true, false, false, value.ToSymbol("SwitchCaseNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `switch` expression eg.\n\nswitch a\ncase 3\n  println(\"eureka!\")\ncase nil\n  println(\"boo\")\nelse\n  println(\"nothing\")\nend", false, true, true, false, false, value.ToSymbol("SwitchExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol ArrayList literal eg. `\\s[foo bar]`", false, true, true, false, false, value.ToSymbol("SymbolArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol ArrayTuple literal eg. `%s[foo bar]`", false, true, true, false, false, value.ToSymbol("SymbolArrayTupleLiteralNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of symbol collection literals should\nimplement this interface.", false, value.ToSymbol("SymbolCollectionContentNode"), env)
-				namespace.TryDefineClass("Represents a symbol HashSet literal eg. `^s[foo bar]`", false, true, true, false, value.ToSymbol("SymbolHashSetLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a symbol value expression eg. `foo: bar`", false, true, true, false, value.ToSymbol("SymbolKeyValueExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a symbol value pattern eg. `foo: bar`", false, true, true, false, value.ToSymbol("SymbolKeyValuePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol HashSet literal eg. `^s[foo bar]`", false, true, true, false, false, value.ToSymbol("SymbolHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol value expression eg. `foo: bar`", false, true, true, false, false, value.ToSymbol("SymbolKeyValueExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a symbol value pattern eg. `foo: bar`", false, true, true, false, false, value.ToSymbol("SymbolKeyValuePatternNode"), objectClass, env)
 				namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as symbol literals.", false, value.ToSymbol("SymbolLiteralNode"), env)
-				namespace.TryDefineClass("Represents a `throw` expression eg. `throw ArgumentError(\"foo\")`", false, true, true, false, value.ToSymbol("ThrowExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("`true` literal.", false, true, true, false, value.ToSymbol("TrueLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `try` expression eg. `try foo()`", false, true, true, false, value.ToSymbol("TryExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a Tuple pattern eg. `%[1, a, >= 10]`", false, true, true, false, value.ToSymbol("TuplePatternNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a new type definition eg. `typedef StringList = ArrayList[String]`", false, true, true, false, value.ToSymbol("TypeDefinitionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a type expression `type String?`", false, true, true, false, value.ToSymbol("TypeExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `throw` expression eg. `throw ArgumentError(\"foo\")`", false, true, true, false, false, value.ToSymbol("ThrowExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("`true` literal.", false, true, true, false, false, value.ToSymbol("TrueLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `try` expression eg. `try foo()`", false, true, true, false, false, value.ToSymbol("TryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a Tuple pattern eg. `%[1, a, >= 10]`", false, true, true, false, false, value.ToSymbol("TuplePatternNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a new type definition eg. `typedef StringList = ArrayList[String]`", false, true, true, false, false, value.ToSymbol("TypeDefinitionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a type expression `type String?`", false, true, true, false, false, value.ToSymbol("TypeExpressionNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("All nodes that should be valid in type annotations should\nimplement this interface", false, value.ToSymbol("TypeNode"), env)
 					namespace.TryDefineInterface("Represents a value that can be converted to an Elk AST Type Node.", value.ToSymbol("Convertible"), env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.TryDefineMixin("Represents a type variable in generics like `class Foo[+V]; end`", false, value.ToSymbol("TypeParameterNode"), env)
-				namespace.TryDefineClass("Type optionally terminated with a newline or a semicolon.", false, true, true, false, value.ToSymbol("TypeStatementNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `typeof` expression eg. `typeof foo()`", false, true, true, false, value.ToSymbol("TypeofExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Type optionally terminated with a newline or a semicolon.", false, true, true, false, false, value.ToSymbol("TypeStatementNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `typeof` expression eg. `typeof foo()`", false, true, true, false, false, value.ToSymbol("TypeofExpressionNode"), objectClass, env)
 				{
-					namespace := namespace.TryDefineClass("UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`", false, true, true, false, value.ToSymbol("UInt16LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nuint16 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`", false, true, true, false, false, value.ToSymbol("UInt16LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint16 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("UInt32 literal eg. `5u32`, `1_20u32`, `0xffu32`", false, true, true, false, value.ToSymbol("UInt32LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nuint32 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("UInt32 literal eg. `5u32`, `1_20u32`, `0xffu32`", false, true, true, false, false, value.ToSymbol("UInt32LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint32 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`", false, true, true, false, value.ToSymbol("UInt64LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nuint64 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`", false, true, true, false, false, value.ToSymbol("UInt64LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint64 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("UInt8 literal eg. `5u8`, `1_20u8`, `0xffu8`", false, true, true, false, value.ToSymbol("UInt8LiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nuint8 node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("UInt8 literal eg. `5u8`, `1_20u8`, `0xffu8`", false, true, true, false, false, value.ToSymbol("UInt8LiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint8 node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				{
-					namespace := namespace.TryDefineClass("UInt literal eg. `5u`, `125_355u`, `0xffu`", false, true, true, false, value.ToSymbol("UIntLiteralNode"), objectClass, env)
-					namespace.TryDefineClass("Indicates that the format of an\nuint node is invalid.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+					namespace := namespace.TryDefineClass("UInt literal eg. `5u`, `125_355u`, `0xffu`", false, true, true, false, false, value.ToSymbol("UIntLiteralNode"), objectClass, env)
+					namespace.TryDefineClass("Indicates that the format of an\nuint node is invalid.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
-				namespace.TryDefineClass("Expression of an operator with one operand eg. `!foo`, `-bar`", false, true, true, false, value.ToSymbol("UnaryExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Type of an operator with one operand eg. `-2`, `+3`", false, true, true, false, value.ToSymbol("UnaryTypeNode"), objectClass, env)
-				namespace.TryDefineClass("`undefined` literal.", false, true, true, false, value.ToSymbol("UndefinedLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Create a new unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", false, true, true, false, value.ToSymbol("UnhygienicNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an uninterpolated regex literal eg. `%/foo/`", false, true, true, false, value.ToSymbol("UninterpolatedRegexLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Union type eg. `String | Int | Float`", false, true, true, false, value.ToSymbol("UnionTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an `unless` expression eg. `unless foo then println(\"bar\")`", false, true, true, false, value.ToSymbol("UnlessExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.\nIt's a for loop expression used in AST templates (quote blocks) to build ASTs.", false, true, true, false, value.ToSymbol("UnquoteForInExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `%if` expression eg. `%if foo then println(\"bar\")`.\nIt's an if expression used in AST templates (`quote` blocks) used for\nconditionally building ASTs.", false, true, true, false, value.ToSymbol("UnquoteIfExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an unquoted block of AST in a quote eg.\n\n```\nunquote(x)\n```", false, true, true, false, value.ToSymbol("UnquoteNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `until` expression eg. `until i >= 5 then i += 5`", false, true, true, false, value.ToSymbol("UntilExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a using all entry node eg. `Foo::*`, `A::B::C::*`", false, true, true, false, value.ToSymbol("UsingAllEntryNode"), objectClass, env)
+				namespace.TryDefineClass("Expression of an operator with one operand eg. `!foo`, `-bar`", false, true, true, false, false, value.ToSymbol("UnaryExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Type of an operator with one operand eg. `-2`, `+3`", false, true, true, false, false, value.ToSymbol("UnaryTypeNode"), objectClass, env)
+				namespace.TryDefineClass("`undefined` literal.", false, true, true, false, false, value.ToSymbol("UndefinedLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Create a new unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", false, true, true, false, false, value.ToSymbol("UnhygienicNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an uninterpolated regex literal eg. `%/foo/`", false, true, true, false, false, value.ToSymbol("UninterpolatedRegexLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Union type eg. `String | Int | Float`", false, true, true, false, false, value.ToSymbol("UnionTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an `unless` expression eg. `unless foo then println(\"bar\")`", false, true, true, false, false, value.ToSymbol("UnlessExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%for in` expression eg. `%for i in 5..15 then println(i)`.\nIt's a for loop expression used in AST templates (quote blocks) to build ASTs.", false, true, true, false, false, value.ToSymbol("UnquoteForInExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `%if` expression eg. `%if foo then println(\"bar\")`.\nIt's an if expression used in AST templates (`quote` blocks) used for\nconditionally building ASTs.", false, true, true, false, false, value.ToSymbol("UnquoteIfExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an unquoted block of AST in a quote eg.\n\n```\nunquote(x)\n```", false, true, true, false, false, value.ToSymbol("UnquoteNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `until` expression eg. `until i >= 5 then i += 5`", false, true, true, false, false, value.ToSymbol("UntilExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a using all entry node eg. `Foo::*`, `A::B::C::*`", false, true, true, false, false, value.ToSymbol("UsingAllEntryNode"), objectClass, env)
 				namespace.TryDefineMixin("Represents all nodes that are valid in using declarations", false, value.ToSymbol("UsingEntryNode"), env)
-				namespace.TryDefineClass("Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`", false, true, true, false, value.ToSymbol("UsingEntryWithSubentriesNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a using expression eg. `using Foo`", false, true, true, false, value.ToSymbol("UsingExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents an identifier with as in using declarations\neg. `foo as bar`.", false, true, true, false, value.ToSymbol("UsingSubentryAsNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`", false, true, true, false, false, value.ToSymbol("UsingEntryWithSubentriesNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a using expression eg. `using Foo`", false, true, true, false, false, value.ToSymbol("UsingExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an identifier with as in using declarations\neg. `foo as bar`.", false, true, true, false, false, value.ToSymbol("UsingSubentryAsNode"), objectClass, env)
 				namespace.TryDefineMixin("Represents all nodes that are valid in using subentries\nin `UsingEntryWithSubentriesNode`", false, value.ToSymbol("UsingSubentryNode"), env)
-				namespace.TryDefineClass("Represents a value declaration eg. `val foo: String`", false, true, true, false, value.ToSymbol("ValueDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a value pattern declaration eg. `val [foo, { bar }] = baz()`", false, true, true, false, value.ToSymbol("ValuePatternDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a variable declaration eg. `var foo: String`", false, true, true, false, value.ToSymbol("VariableDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`", false, true, true, false, value.ToSymbol("VariablePatternDeclarationNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a type parameter eg. `+V`", false, true, true, false, value.ToSymbol("VariantTypeParameterNode"), objectClass, env)
-				namespace.TryDefineClass("`void` type.", false, true, true, false, value.ToSymbol("VoidTypeNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `while` expression eg. `while i < 5 then i += 5`", false, true, true, false, value.ToSymbol("WhileExpressionNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a word ArrayList literal eg. `\\w[foo bar]`", false, true, true, false, value.ToSymbol("WordArrayListLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a word ArrayTuple literal eg. `%w[foo bar]`", false, true, true, false, value.ToSymbol("WordArrayTupleLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a value declaration eg. `val foo: String`", false, true, true, false, false, value.ToSymbol("ValueDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a value pattern declaration eg. `val [foo, { bar }] = baz()`", false, true, true, false, false, value.ToSymbol("ValuePatternDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a variable declaration eg. `var foo: String`", false, true, true, false, false, value.ToSymbol("VariableDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`", false, true, true, false, false, value.ToSymbol("VariablePatternDeclarationNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a type parameter eg. `+V`", false, true, true, false, false, value.ToSymbol("VariantTypeParameterNode"), objectClass, env)
+				namespace.TryDefineClass("`void` type.", false, true, true, false, false, value.ToSymbol("VoidTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `while` expression eg. `while i < 5 then i += 5`", false, true, true, false, false, value.ToSymbol("WhileExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a word ArrayList literal eg. `\\w[foo bar]`", false, true, true, false, false, value.ToSymbol("WordArrayListLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a word ArrayTuple literal eg. `%w[foo bar]`", false, true, true, false, false, value.ToSymbol("WordArrayTupleLiteralNode"), objectClass, env)
 				namespace.TryDefineMixin("All nodes that should be able to appear as\nelements of word collection literals should\nimplement this interface.", false, value.ToSymbol("WordCollectionContentNode"), env)
-				namespace.TryDefineClass("Represents a word HashSet literal eg. `^w[foo bar]`", false, true, true, false, value.ToSymbol("WordHashSetLiteralNode"), objectClass, env)
-				namespace.TryDefineClass("Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`", false, true, true, false, value.ToSymbol("YieldExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a word HashSet literal eg. `^w[foo bar]`", false, true, true, false, false, value.ToSymbol("WordHashSetLiteralNode"), objectClass, env)
+				namespace.TryDefineClass("Represents a `yield` expression eg. `yield`, `yield true`, `yield* foo()`", false, true, true, false, false, value.ToSymbol("YieldExpressionNode"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
-			namespace.TryDefineClass("Implements a lexer/tokenizer of the Elk programming language.", false, true, true, false, value.ToSymbol("Lexer"), objectClass, env)
+			namespace.TryDefineClass("Implements a lexer/tokenizer of the Elk programming language.", false, true, true, false, false, value.ToSymbol("Lexer"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("Implements a parser of the Elk programming language.", false, true, true, true, value.ToSymbol("Parser"), objectClass, env)
-				namespace.TryDefineClass("Represents the result of parsing Elk source code.", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
+				namespace := namespace.TryDefineClass("Implements a parser of the Elk programming language.", false, true, true, true, false, value.ToSymbol("Parser"), objectClass, env)
+				namespace.TryDefineClass("Represents the result of parsing Elk source code.", false, true, true, true, false, value.ToSymbol("Result"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
-			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, value.ToSymbol("Token"), objectClass, env)
+			namespace.TryDefineClass("Represents a token produced by the Elk lexer.\n\nA token is a single lexical unit of text\nwith a particular meaning.", false, true, true, false, false, value.ToSymbol("Token"), objectClass, env)
 			{
 				namespace := namespace.TryDefineMixin("Represents an Elk type.", true, value.ToSymbol("Type"), env)
 				{
-					namespace := namespace.TryDefineClass("Typechecker for Elk source code.", false, true, true, true, value.ToSymbol("Checker"), objectClass, env)
-					namespace.TryDefineClass("Represents a type checking error for Elk source code.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+					namespace := namespace.TryDefineClass("Typechecker for Elk source code.", false, true, true, true, false, value.ToSymbol("Checker"), objectClass, env)
+					namespace.TryDefineClass("Represents a type checking error for Elk source code.", false, false, false, false, false, value.ToSymbol("Error"), objectClass, env)
 					namespace.Name() // noop - avoid unused variable error
 				}
 				namespace.Name() // noop - avoid unused variable error
@@ -471,83 +471,83 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, false, value.ToSymbol("EndlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from a given value to +∞ *[start, +∞)*", false, true, true, false, false, value.ToSymbol("EndlessClosedRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, false, value.ToSymbol("EndlessOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from a given value to +∞ *(start, +∞)*", false, true, true, false, false, value.ToSymbol("EndlessOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, false, false, value.ToSymbol("Error"), objectClass, env)
 		{
 			namespace := namespace.TryDefineModule("Contains types used for interacting\n with the file system.", value.ToSymbol("FS"), env)
-			namespace.TryDefineClass("Represents the position of a piece of text in a file.\n\nIt is made up of a path and a span.", false, true, true, false, value.ToSymbol("Location"), objectClass, env)
+			namespace.TryDefineClass("Represents the position of a piece of text in a file.\n\nIt is made up of a path and a span.", false, true, true, false, false, value.ToSymbol("Location"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("Represents a file system path.\nPaths are immutable and safe to use by multiple threads.", false, true, true, false, value.ToSymbol("Path"), objectClass, env)
-				namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Error"), objectClass, env)
+				namespace := namespace.TryDefineClass("Represents a file system path.\nPaths are immutable and safe to use by multiple threads.", false, true, true, false, false, value.ToSymbol("Path"), objectClass, env)
+				namespace.TryDefineClass("", false, false, false, false, false, value.ToSymbol("Error"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("False"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, false, value.ToSymbol("False"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Falsy"), NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))
-		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, false, false, value.ToSymbol("FileSystemError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, true, value.ToSymbol("Float"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, true, false, value.ToSymbol("Float"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, value.ToSymbol("Float32"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, value.ToSymbol("Float32"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float32.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, value.ToSymbol("Float64"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, value.ToSymbol("Float64"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float64.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a literal or interpreted string has an incorrect format.", false, false, false, false, false, value.ToSymbol("FormatError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Implements a generator object that is iterable.", false, true, true, true, value.ToSymbol("Generator"), objectClass, env)
+			namespace := namespace.TryDefineClass("Implements a generator object that is iterable.", false, true, true, true, false, value.ToSymbol("Generator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when an invalid glob pattern has been encountered.", false, false, false, false, value.ToSymbol("GlobError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when an invalid glob pattern has been encountered.", false, false, false, false, false, value.ToSymbol("GlobError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, value.ToSymbol("HashMap"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, false, value.ToSymbol("HashMap"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, value.ToSymbol("HashRecord"), objectClass, env)
+			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, false, value.ToSymbol("HashRecord"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, value.ToSymbol("HashSet"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, false, value.ToSymbol("HashSet"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
 		namespace.TryDefineInterface("Represents a value that can compute its own hash for use in\ndata structures like hashmaps, hashrecords, hashsets.", value.ToSymbol("Hashable"), env)
 		{
-			namespace := namespace.TryDefineClass("ImmutableBox wraps another value, it's a read only pointer to another `Value`.", false, true, true, false, value.ToSymbol("ImmutableBox"), objectClass, env)
+			namespace := namespace.TryDefineClass("ImmutableBox wraps another value, it's a read only pointer to another `Value`.", false, true, true, false, false, value.ToSymbol("ImmutableBox"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -566,36 +566,36 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineInterface("Represents a value that can be incremented using\nthe `++` operator like `a++`", value.ToSymbol("Incrementable"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when an index in array/string access is out of range.", false, false, false, false, value.ToSymbol("IndexError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when an index in array/string access is out of range.", false, false, false, false, false, value.ToSymbol("IndexError"), objectClass, env)
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", value.ToSymbol("Inspectable"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, value.ToSymbol("Int"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, false, value.ToSymbol("Int"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to an integer.", value.ToSymbol("Convertible"), env)
-			namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Iterator"), objectClass, env)
+			namespace.TryDefineClass("", false, false, false, false, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, value.ToSymbol("Int16"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, false, value.ToSymbol("Int16"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int16.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, value.ToSymbol("Int32"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, false, value.ToSymbol("Int32"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int32.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, value.ToSymbol("Int64"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, false, value.ToSymbol("Int64"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int64.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, true, value.ToSymbol("Int8"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, true, false, value.ToSymbol("Int8"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, value.ToSymbol("Interface"), objectClass, env)
-		namespace.TryDefineClass("Thrown when encountering a nonexistent timezone.", false, false, false, false, value.ToSymbol("InvalidTimezoneError"), objectClass, env)
+		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, false, value.ToSymbol("Interface"), objectClass, env)
+		namespace.TryDefineClass("Thrown when encountering a nonexistent timezone.", false, false, false, false, false, value.ToSymbol("InvalidTimezoneError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop and implement\nmany useful methods.", value.ToSymbol("Iterable"), env)
 			{
@@ -606,7 +606,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace := namespace.TryDefineMixin("Provides default implementations of most iterable methods\nfor finite iterables.", true, value.ToSymbol("FiniteBase"), env)
 				namespace.Name() // noop - avoid unused variable error
 			}
-			namespace.TryDefineClass("Thrown when no element could be found during iteration.", false, false, false, false, value.ToSymbol("NotFoundError"), objectClass, env)
+			namespace.TryDefineClass("Thrown when no element could be found during iteration.", false, false, false, false, false, value.ToSymbol("NotFoundError"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -623,9 +623,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", value.ToSymbol("Kernel"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, false, value.ToSymbol("LeftOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, false, false, value.ToSymbol("LeftOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -640,25 +640,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered mutable collection of key-value pairs.", true, value.ToSymbol("Map"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Method"), objectClass, env)
-		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, true, value.ToSymbol("Mixin"), objectClass, env)
-		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, value.ToSymbol("Module"), objectClass, env)
-		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, value.ToSymbol("Nil"), objectClass, env)
-		namespace.TryDefineClass("", false, false, false, false, value.ToSymbol("Object"), objectClass, env)
-		namespace.TryDefineClass("Thrown when another thread tried to execute\nan open closure.\n\nAn open closure captures variables that still live\non the stack of the thread that created it.", false, false, false, false, value.ToSymbol("OpenClosureError"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, false, value.ToSymbol("Method"), objectClass, env)
+		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, true, false, value.ToSymbol("Mixin"), objectClass, env)
+		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, false, value.ToSymbol("Module"), objectClass, env)
+		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, false, value.ToSymbol("Nil"), objectClass, env)
+		namespace.TryDefineClass("", false, false, false, false, true, value.ToSymbol("Object"), objectClass, env)
+		namespace.TryDefineClass("Thrown when another thread tried to execute\nan open closure.\n\nAn open closure captures variables that still live\non the stack of the thread that created it.", false, false, false, false, false, value.ToSymbol("OpenClosureError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, false, value.ToSymbol("OpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, false, false, value.ToSymbol("OpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, false, false, value.ToSymbol("OutOfRangeError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, false, value.ToSymbol("Pair"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, false, false, value.ToSymbol("Pair"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -668,7 +668,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A promise is the return type of a asynchronous function.\nIt is a placeholder for a value that will be available at some point\nin the future.", false, true, true, true, value.ToSymbol("Promise"), objectClass, env)
+			namespace := namespace.TryDefineClass("A promise is the return type of a asynchronous function.\nIt is a placeholder for a value that will be available at some point\nin the future.", false, true, true, true, false, value.ToSymbol("Promise"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -676,14 +676,14 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A `ReadChannel` is a view of `Channel` that can only receive values.\nIts useful for constraining a piece of code to make sure it only reads from a channel.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nch << 3 # send `5` to the channel\n\nrch := ch.readonly # get a ReadChannel\nv := try <<rch # pop `5` from the channel using the pop unary operator\nv := try rch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nA `ReadChannel` cannot be closed.", false, true, true, true, value.ToSymbol("ReadChannel"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `ReadChannel` is a view of `Channel` that can only receive values.\nIts useful for constraining a piece of code to make sure it only reads from a channel.\n\n## Popping values\n\nYou can receive values from the channel using the `pop` method.\nUnbuffered channels will block the current thread until a value is available.\nBuffered channels will not block the current thread if there is a value in the channel's buffer.\n\n```\nch := Channel::[Int](3) # instantiate a buffered channel of `Int` values\nch << 5 # send `5` to the channel\nch << 3 # send `5` to the channel\n\nrch := ch.readonly # get a ReadChannel\nv := try <<rch # pop `5` from the channel using the pop unary operator\nv := try rch.pop # pop `3` from the channel using the pop method\n```\n\nif the channel is closed `pop` will throw `:channel_closed`\n\n## Closing channels\n\nA `ReadChannel` cannot be closed.", false, true, true, true, false, value.ToSymbol("ReadChannel"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
 			namespace := namespace.TryDefineMixin("Represents an unordered immutable collection of key-value pairs.\nA record is an immutable map.", true, value.ToSymbol("Record"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, value.ToSymbol("Regex"), objectClass, env)
+		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, false, value.ToSymbol("Regex"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents iterators that can be reset.", value.ToSymbol("ResettableIterator"), env)
 			{
@@ -693,13 +693,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end\n\n# Use pattern matching to handle success and failure\nresult := divide(10, 2)\nswitch result\ncase Result::ok!\n\tputs \"ok: #value\"\ncase Result::err!\n\tputs \"err: #err\"\nend\n\nresult.value # read the success value\nresult.err # read the error value\nresult.ok # check if the result contains a value or an error\nresult.unwrap # return the success value or throw an unchecked error\nresult.or_throw # return the success value or throw a checked error", false, true, true, true, value.ToSymbol("Result"), objectClass, env)
+			namespace := namespace.TryDefineClass("Result is a type used for value-based error handling.\nIt represents either a successful computation containing a value,\nor a failed computation containing an error.\n\nThe type parameters are:\n- Val: The type of the success value\n- Err: The type of the error value (defaults to never)\n\nExample:\n\n  def divide(x: Int, y: Int): Result[Int, String]\n    if y == 0\n      Result.err(\"division by zero\")\n    else\n      Result.ok(x / y)\n    end\n  end\n\n# Use pattern matching to handle success and failure\nresult := divide(10, 2)\nswitch result\ncase Result::ok!\n\tputs \"ok: #value\"\ncase Result::err!\n\tputs \"err: #err\"\nend\n\nresult.value # read the success value\nresult.err # read the error value\nresult.ok # check if the result contains a value or an error\nresult.unwrap # return the success value or throw an unchecked error\nresult.or_throw # return the success value or throw a checked error", false, true, true, true, false, value.ToSymbol("Result"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, value.ToSymbol("RightOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, false, value.ToSymbol("RightOpenRange"), objectClass, env)
 			{
-				namespace := namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
 			namespace.Name() // noop - avoid unused variable error
@@ -710,85 +710,85 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, value.ToSymbol("StackTrace"), objectClass, env)
-			namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("Iterator"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, false, value.ToSymbol("StackTrace"), objectClass, env)
+			namespace.TryDefineClass("", false, true, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("String"), objectClass, env)
-			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, false, value.ToSymbol("ByteIterator"), objectClass, env)
-			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, false, value.ToSymbol("CharIterator"), objectClass, env)
+			namespace := namespace.TryDefineClass("", false, true, true, true, false, value.ToSymbol("String"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, false, false, value.ToSymbol("ByteIterator"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, false, false, value.ToSymbol("CharIterator"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", value.ToSymbol("Convertible"), env)
-			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, false, value.ToSymbol("GraphemeIterator"), objectClass, env)
-			namespace.TryDefineClass("Represents a position of a character in a string.", false, true, true, false, value.ToSymbol("Position"), objectClass, env)
-			namespace.TryDefineClass("Represents the position of a piece of text in a string.\n\nIt is made up of two positions, start position\n(position of the first character) and end position (position of the last character).", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace.TryDefineClass("Iterates over all grapheme clusters of a `String`.", false, true, true, false, false, value.ToSymbol("GraphemeIterator"), objectClass, env)
+			namespace.TryDefineClass("Represents a position of a character in a string.", false, true, true, false, false, value.ToSymbol("Position"), objectClass, env)
+			namespace.TryDefineClass("Represents the position of a piece of text in a string.\n\nIt is made up of two positions, start position\n(position of the first character) and end position (position of the last character).", false, true, true, false, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, value.ToSymbol("Symbol"), objectClass, env)
+		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, false, value.ToSymbol("Symbol"), objectClass, env)
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", value.ToSymbol("Sync"), env)
 			{
-				namespace := namespace.TryDefineClass("A thread safe `DiagnosticList`, synchronized with a Mutex.", false, true, true, false, value.ToSymbol("DiagnosticList"), objectClass, env)
-				namespace.TryDefineClass("", false, true, true, false, value.ToSymbol("Iterator"), objectClass, env)
+				namespace := namespace.TryDefineClass("A thread safe `DiagnosticList`, synchronized with a Mutex.", false, true, true, false, false, value.ToSymbol("DiagnosticList"), objectClass, env)
+				namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
 			}
-			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, value.ToSymbol("Mutex"), objectClass, env)
-			namespace.TryDefineClass("`Once` is a kind of concurrent lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, value.ToSymbol("Once"), objectClass, env)
-			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, value.ToSymbol("ROMutex"), objectClass, env)
-			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock that allows many readers or a single writer\nto hold the lock.", false, true, true, false, value.ToSymbol("RWMutex"), objectClass, env)
-			namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, value.ToSymbol("WaitGroup"), objectClass, env)
+			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock.\nIt can be used to synchronise operations in multiple threads.", false, true, true, false, false, value.ToSymbol("Mutex"), objectClass, env)
+			namespace.TryDefineClass("`Once` is a kind of concurrent lock ensuring that a piece of\ncode will be executed exactly one time.", false, true, true, false, false, value.ToSymbol("Once"), objectClass, env)
+			namespace.TryDefineClass("Wraps a `RWMutex` and exposes its `read_lock` and `read_unlock`\nmethods as `lock` and `unlock` respectively.", false, true, true, false, false, value.ToSymbol("ROMutex"), objectClass, env)
+			namespace.TryDefineClass("A `Mutex` is a mutual exclusion lock that allows many readers or a single writer\nto hold the lock.", false, true, true, false, false, value.ToSymbol("RWMutex"), objectClass, env)
+			namespace.TryDefineClass("A `WaitGroup` waits for threads to finish.\n\nYou can use the `add` method to specify the amount of threads to wait for.\nAfterwards each thread should call `end` when finished\nThe `wait` method can be used to block until all threads have finished.", false, true, true, false, false, value.ToSymbol("WaitGroup"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, value.ToSymbol("Thread"), objectClass, env)
-		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, value.ToSymbol("ThreadPool"), objectClass, env)
+		namespace.TryDefineClass("Represents a single Elk thread of execution.", false, true, true, true, false, value.ToSymbol("Thread"), objectClass, env)
+		namespace.TryDefineClass("A pool of thread workers with a task queue.", false, true, true, true, false, value.ToSymbol("ThreadPool"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents a time of day with nanosecond precision.", false, true, true, false, value.ToSymbol("Time"), objectClass, env)
-			namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\nThe representation limits the largest representable span to approximately 290 years.", false, true, true, false, value.ToSymbol("Span"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a time of day with nanosecond precision.", false, true, true, false, false, value.ToSymbol("Time"), objectClass, env)
+			namespace.TryDefineClass("Represents the elapsed time between two Times as an int64 nanosecond count.\nThe representation limits the largest representable span to approximately 290 years.", false, true, true, false, false, value.ToSymbol("Span"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, value.ToSymbol("Timezone"), objectClass, env)
-		namespace.TryDefineClass("", false, true, true, true, value.ToSymbol("True"), objectClass, env)
+		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, false, value.ToSymbol("Timezone"), objectClass, env)
+		namespace.TryDefineClass("", false, true, true, true, false, value.ToSymbol("True"), objectClass, env)
 		namespace.DefineSubtype(value.ToSymbol("Truthy"), NewNamedType("Std::Truthy", NewNot(NewNamedType("Std::Falsy", NewUnion(Nil{}, False{})))))
 		{
 			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, value.ToSymbol("Tuple"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown when there is a type mismatch.", false, false, false, false, value.ToSymbol("TypeError"), objectClass, env)
+		namespace.TryDefineClass("Thrown when there is a type mismatch.", false, false, false, false, false, value.ToSymbol("TypeError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, value.ToSymbol("UInt"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, false, value.ToSymbol("UInt"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, value.ToSymbol("UInt16"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, false, value.ToSymbol("UInt16"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint16.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, true, value.ToSymbol("UInt32"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, true, false, value.ToSymbol("UInt32"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint32.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, value.ToSymbol("UInt64"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, false, value.ToSymbol("UInt64"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, value.ToSymbol("UInt8"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, false, value.ToSymbol("UInt8"), objectClass, env)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint8.", value.ToSymbol("Convertible"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, value.ToSymbol("Value"), nil, env)
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, false, value.ToSymbol("Value"), nil, env)
 		{
-			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, value.ToSymbol("Weak"), objectClass, env)
+			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, false, value.ToSymbol("Weak"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A `WriteChannel` is a view of `Channel` that can only send values.\nIts useful for constraining a piece of code to make sure it only sends to a channel.\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nrch := ch.writeonly # get a WriteChannel\nrch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, true, value.ToSymbol("WriteChannel"), objectClass, env)
+			namespace := namespace.TryDefineClass("A `WriteChannel` is a view of `Channel` that can only send values.\nIts useful for constraining a piece of code to make sure it only sends to a channel.\n\n## Pushing values\n\nYou can send values to the channel using the `<<` operator.\nUnbuffered channels will block the current thread until the pushed value\nis popped by another thread.\nBuffered channels will not block the current thread if there is enough capacity for another value.\n\n```\nch := Channel::[Int]() # instantiate a channel of `Int` values\nrch := ch.writeonly # get a WriteChannel\nrch << 5 # send `5` to the channel\n```\n\nPushing values to a closed channel will result in an unchecked error being thrown.\n\n## Closing channels\n\nYou can close a channel using the `close` method when you no longer wish to send values to it.\nClosing a closed channel will result in an unchecked error being thrown.", false, true, true, true, false, value.ToSymbol("WriteChannel"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
-		namespace.TryDefineClass("Thrown after an attempt od dividing an integer by zero.", false, false, false, false, value.ToSymbol("ZeroDivisionError"), objectClass, env)
+		namespace.TryDefineClass("Thrown after an attempt od dividing an integer by zero.", false, false, false, false, false, value.ToSymbol("ZeroDivisionError"), objectClass, env)
 		namespace.Name() // noop - avoid unused variable error
 	}
 

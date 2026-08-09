@@ -8806,7 +8806,7 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, doc
 	container.DefineInstanceVariable(name, types.NewInstanceVariable(name, typ, docComment, singleAssignment))
 }
 
-func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, noinit bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Class {
+func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Class {
 	if constantType != nil {
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
@@ -8818,6 +8818,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				sealed,
 				primitive,
 				noinit,
+				immutable,
 				fullConstantName,
 				nil,
 				c.runtimeEnv,
@@ -8835,6 +8836,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				sealed,
 				primitive,
 				noinit,
+				immutable,
 				fullConstantName,
 				nil,
 				c.runtimeEnv,
@@ -8843,13 +8845,13 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 
 		switch t := constantType.(type) {
 		case *types.Class:
-			if abstract != t.IsAbstract() || sealed != t.IsSealed() || primitive != t.IsPrimitive() || noinit != t.IsNoInit() {
+			if abstract != t.IsAbstract() || sealed != t.IsSealed() || primitive != t.IsPrimitive() || noinit != t.IsNoInit() || immutable != t.IsImmutable() {
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						lexer.Colorize(fullConstantName),
-						lexer.Colorize(types.InspectModifier(abstract, sealed, primitive, noinit, false)),
-						lexer.Colorize(types.InspectModifier(t.IsAbstract(), t.IsSealed(), t.IsPrimitive(), t.IsNoInit(), false)),
+						lexer.Colorize(types.InspectModifier(types.ModifierSet{Abstract: abstract, Sealed: sealed, Primitive: primitive, NoInit: noinit, Immutable: immutable})),
+						lexer.Colorize(types.InspectModifier(types.ModifierSet{Abstract: t.IsAbstract(), Sealed: t.IsSealed(), Primitive: t.IsPrimitive(), NoInit: t.IsNoInit(), Immutable: t.IsImmutable()})),
 					),
 					location,
 				)
@@ -8881,6 +8883,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				sealed,
 				primitive,
 				noinit,
+				immutable,
 				fullConstantName,
 				nil,
 				c.runtimeEnv,
@@ -8895,6 +8898,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 			sealed,
 			primitive,
 			noinit,
+			immutable,
 			fullConstantName,
 			nil,
 			c.runtimeEnv,
@@ -8907,6 +8911,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 		sealed,
 		primitive,
 		noinit,
+		immutable,
 		constantName,
 		nil,
 		c.runtimeEnv,
@@ -8981,6 +8986,7 @@ func (c *Checker) hoistStructDeclaration(structNode *ast.StructDeclarationNode) 
 		false,
 		false,
 		false,
+		structNode.Immutable,
 		container,
 		constant,
 		fullConstantName,
@@ -9140,6 +9146,7 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 			node.Sealed,
 			node.Primitive,
 			node.NoInit,
+			node.Immutable,
 			container,
 			constant,
 			fullConstantName,
@@ -9614,8 +9621,8 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
-						types.InspectModifier(abstract, false, false, false, false),
-						types.InspectModifier(t.IsAbstract(), false, false, false, false),
+						types.InspectModifier(types.ModifierSet{Abstract: abstract}),
+						types.InspectModifier(types.ModifierSet{Abstract: t.IsAbstract()}),
 					),
 					location,
 				)
