@@ -4839,18 +4839,18 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 	}
 
 	self := c.selfType.(types.Namespace)
-	for name, ivar := range types.SortedInstanceVariables(self) {
-		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(name) {
+	for ivar := range types.SortedInstanceVariables(self) {
+		if ivar == nil {
 			continue
 		}
-		if name == symbol.S_empty {
+		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
 
 		c.addFailure(
 			fmt.Sprintf(
 				"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
-				types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+				types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
 				lexer.Colorize("self"),
 			),
 			location,
@@ -4904,11 +4904,11 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 				continue
 			}
 
-			for ivarName := range types.SortedOwnInstanceVariables(parent) {
-				if ivarName == symbol.S_empty {
+			for ivar := range types.SortedOwnInstanceVariables(parent) {
+				if ivar == nil {
 					continue
 				}
-				currentIvarIndices[ivarName] = len(currentIvarIndices)
+				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
 			}
 
 			parent.SetIvarIndices(&currentIvarIndices)
@@ -4918,11 +4918,11 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 
 			currentIvarIndices = maps.Clone(currentIvarIndices)
 		case *types.MixinProxy:
-			for ivarName := range types.SortedOwnInstanceVariables(parent) {
-				if ivarName == symbol.S_empty {
+			for ivar := range types.SortedOwnInstanceVariables(parent) {
+				if ivar == nil {
 					continue
 				}
-				currentIvarIndices[ivarName] = len(currentIvarIndices)
+				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
 			}
 		}
 	}
@@ -4932,11 +4932,11 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 	init := c.GetMethod(class, symbol.S_init, nil)
 
 	if init == nil {
-		for name, ivar := range types.SortedInstanceVariables(class) {
-			if c.IsNilable(ivar.Type) {
+		for ivar := range types.SortedInstanceVariables(class) {
+			if ivar == nil {
 				continue
 			}
-			if name == symbol.S_empty {
+			if c.IsNilable(ivar.Type) {
 				continue
 			}
 
@@ -4944,7 +4944,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 				c.addFailure(
 					fmt.Sprintf(
 						"instance variable `%s` must be initialised in the constructor, since it is not nilable",
-						types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
 					),
 					loc,
 				)
@@ -4959,11 +4959,11 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 		return
 	}
 
-	for name, ivar := range types.SortedInstanceVariables(class) {
-		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(name) {
+	for ivar := range types.SortedInstanceVariables(class) {
+		if ivar == nil {
 			continue
 		}
-		if name == symbol.S_empty {
+		if c.IsNilable(ivar.Type) || initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
 
@@ -4971,7 +4971,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			c.addFailure(
 				fmt.Sprintf(
 					"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
-					types.InspectInstanceVariableDeclarationWithColor(name.String(), ivar.Type),
+					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
 				),
 				loc,
 			)
@@ -5045,19 +5045,20 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		}
 
 		var incompatibleIvars []instanceVariableOverride
-		for name, ivar := range c.instanceVariablesInNamespace(includedMixin) {
-			includedIvar := ivar.Type
-			includedNamespace := ivar.Namespace
-			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, name)
+		for includedIvar, includedNamespace := range c.instanceVariablesInNamespace(includedMixin) {
+			if includedIvar == nil {
+				continue
+			}
+			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, includedIvar.Name)
 			if superIvar == nil {
 				continue
 			}
-			if !c.isTheSameType(superIvar, includedIvar, nil) {
+			if !c.isTheSameType(superIvar.Type, includedIvar.Type, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
-					name:              name,
-					super:             superIvar,
+					name:              includedIvar.Name,
+					super:             superIvar.Type,
 					superNamespace:    superNamespace,
-					override:          includedIvar,
+					override:          includedIvar.Type,
 					overrideNamespace: includedNamespace,
 				})
 			}
@@ -6933,7 +6934,7 @@ func (c *Checker) resolveType(name string, location *position.Location) (types.T
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) (types.Type, types.Namespace) {
+func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) (*types.InstanceVariable, types.Namespace) {
 	if typ == nil {
 		return nil, typ
 	}
@@ -6955,7 +6956,7 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 
 		for i := len(generics) - 1; i >= 0; i-- {
 			generic := generics[i]
-			ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap, false)
+			ivar = c.replaceTypeParametersInInstanceVariable(ivar, generic.ArgumentMap, false)
 		}
 		return ivar, parent
 	}
@@ -6963,8 +6964,8 @@ func (c *Checker) getInstanceVariableIn(name value.Symbol, typ types.Namespace) 
 	return nil, typ
 }
 
-func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.Seq2[value.Symbol, types.InstanceVariable] {
-	return func(yield func(name value.Symbol, ivar types.InstanceVariable) bool) {
+func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.Seq2[*types.InstanceVariable, types.Namespace] {
+	return func(yield func(ivar *types.InstanceVariable, namespace types.Namespace) bool) {
 		var generics []*types.Generic
 		seenIvars := make(ds.Set[value.Symbol])
 
@@ -6977,8 +6978,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 					continue
 				}
 				if len(generics) < 1 {
-					ivarStruct := types.InstanceVariable{Type: ivar, Namespace: parent}
-					if !yield(name, ivarStruct) {
+					if !yield(ivar, parent) {
 						return
 					}
 					seenIvars.Add(name)
@@ -6987,10 +6987,9 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 
 				for i := len(generics) - 1; i >= 0; i-- {
 					generic := generics[i]
-					ivar = c.replaceTypeParameters(ivar, generic.ArgumentMap, false)
+					ivar = c.replaceTypeParametersInInstanceVariable(ivar, generic.ArgumentMap, false)
 				}
-				ivarStruct := types.InstanceVariable{Type: ivar, Namespace: parent}
-				if !yield(name, ivarStruct) {
+				if !yield(ivar, parent) {
 					return
 				}
 				seenIvars.Add(name)
@@ -7000,7 +6999,7 @@ func (c *Checker) instanceVariablesInNamespace(namespace types.Namespace) iter.S
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariable(name value.Symbol) (types.Type, types.Namespace) {
+func (c *Checker) getInstanceVariable(name value.Symbol) (*types.InstanceVariable, types.Namespace) {
 	container, ok := c.selfType.(types.Namespace)
 	if !ok {
 		return nil, nil
@@ -7767,7 +7766,7 @@ func (c *Checker) checkPrivateIdentifierNode(node *ast.PrivateIdentifierNode) *a
 }
 
 func (c *Checker) checkInstanceVariable(name string, location *position.Location) types.Type {
-	typ, container := c.getInstanceVariable(value.ToSymbol(name))
+	ivar, container := c.getInstanceVariable(value.ToSymbol(name))
 	self, ok := c.selfType.(types.Namespace)
 	if !ok || self.IsPrimitive() {
 		c.addFailure(
@@ -7776,7 +7775,7 @@ func (c *Checker) checkInstanceVariable(name string, location *position.Location
 		)
 	}
 
-	if typ == nil {
+	if ivar == nil {
 		c.addFailure(
 			fmt.Sprintf(
 				"undefined instance variable `%s` in type `%s`",
@@ -7788,7 +7787,7 @@ func (c *Checker) checkInstanceVariable(name string, location *position.Location
 		return types.Untyped{}
 	}
 
-	return typ
+	return ivar.Type
 }
 
 func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode) {
@@ -7797,7 +7796,7 @@ func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode
 	node.SetType(typ)
 }
 
-func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, location *position.Location) {
+func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ types.Type, singleAssignment bool, location *position.Location) {
 	methodNamespace := c.currentMethodScope().container
 	currentIvar, ivarNamespace := c.getInstanceVariableIn(name, methodNamespace)
 
@@ -7815,20 +7814,20 @@ func (c *Checker) declareInstanceVariableForAttribute(name value.Symbol, typ typ
 	}
 
 	if currentIvar != nil {
-		if !c.isTheSameType(typ, currentIvar, location) {
+		if !c.isTheSameType(typ, currentIvar.Type, location) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 					types.InspectInstanceVariableWithColor(name.String()),
 					types.InspectWithColor(typ),
-					types.InspectWithColor(currentIvar),
+					types.InspectWithColor(currentIvar.Type),
 					types.InspectWithColor(ivarNamespace),
 				),
 				location,
 			)
 		}
 	} else {
-		c.declareInstanceVariable(name, typ, location)
+		c.declareInstanceVariable(name, typ, "", singleAssignment, location)
 	}
 }
 
@@ -7845,7 +7844,7 @@ func (c *Checker) checkSignatureOfGetterDeclaration(node *ast.GetterDeclarationN
 		}
 
 		c.declareMethodForGetter(attribute, node.DocComment(), node.IsPure())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), false, attribute.Location())
 	}
 }
 
@@ -7862,7 +7861,7 @@ func (c *Checker) checkSignatureOfSetterDeclaration(node *ast.SetterDeclarationN
 		}
 
 		c.declareMethodForSetter(attribute, node.DocComment())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), false, attribute.Location())
 	}
 }
 
@@ -7880,7 +7879,7 @@ func (c *Checker) checkSignatureOfAttrDeclaration(node *ast.AttrDeclarationNode)
 
 		c.declareMethodForSetter(attribute, node.DocComment())
 		c.declareMethodForGetter(attribute, node.DocComment(), node.IsPure())
-		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), attribute.Location())
+		c.declareInstanceVariableForAttribute(value.ToSymbol(c.identifierToName(attribute.Name)), c.TypeOf(attribute.TypeNode), false, attribute.Location())
 	}
 }
 
@@ -7914,19 +7913,34 @@ func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.Instance
 
 		declaredType = c.TypeOf(declaredTypeNode)
 		node.TypeNode = declaredTypeNode
-		if ivar != nil && !c.isTheSameType(ivar, declaredType, nil) {
-			c.addFailure(
-				fmt.Sprintf(
-					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
-					types.InspectInstanceVariableWithColor(name),
-					types.InspectWithColor(declaredType),
-					types.InspectWithColor(ivar),
-					types.InspectWithColor(ivarNamespace),
-				),
-				node.Location(),
-			)
-			node.SetType(types.Untyped{})
-			return
+		if ivar != nil {
+			if ivar.SingleAssignment != false {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot redeclare instance value `%s` as an instance variable, previous definition found in `%s`",
+						types.InspectInstanceVariableWithColor(name),
+						types.InspectWithColor(ivarNamespace),
+					),
+					node.Location(),
+				)
+				node.SetType(types.Untyped{})
+				return
+			}
+
+			if !c.isTheSameType(ivar.Type, declaredType, nil) {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+						types.InspectInstanceVariableWithColor(name),
+						types.InspectWithColor(declaredType),
+						types.InspectWithColor(ivar.Type),
+						types.InspectWithColor(ivarNamespace),
+					),
+					node.Location(),
+				)
+				node.SetType(types.Untyped{})
+				return
+			}
 		}
 	}
 
@@ -7955,7 +7969,92 @@ func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.Instance
 	}
 
 	node.SetType(declaredType)
-	c.declareInstanceVariable(value.ToSymbol(name), declaredType, node.Location())
+	c.declareInstanceVariable(value.ToSymbol(name), declaredType, node.DocComment(), false, node.Location())
+}
+
+func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceValueDeclarationNode) {
+	methodNamespace := c.currentMethodScope().container
+	name := c.instanceVariableToName(node.Name)
+	ivar, ivarNamespace := c.getInstanceVariableIn(value.ToSymbol(name), methodNamespace)
+	var declaredType types.Type
+
+	if node.TypeNode == nil {
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot declare instance value `%s` without a type",
+				types.InspectInstanceVariableWithColor(name),
+			),
+			node.Location(),
+		)
+
+		declaredType = types.Untyped{}
+	} else {
+		prevMode := c.mode
+		c.mode = instanceVariableMode
+
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+
+		c.mode = prevMode
+
+		declaredType = c.TypeOf(declaredTypeNode)
+		node.TypeNode = declaredTypeNode
+		if ivar != nil {
+			if ivar.SingleAssignment != true {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot redeclare instance variable `%s` as an instance value, previous definition found in `%s`",
+						types.InspectInstanceVariableWithColor(name),
+						types.InspectWithColor(ivarNamespace),
+					),
+					node.Location(),
+				)
+				node.SetType(types.Untyped{})
+				return
+			}
+
+			if !c.isTheSameType(ivar.Type, declaredType, nil) {
+				c.addFailure(
+					fmt.Sprintf(
+						"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
+						types.InspectInstanceVariableWithColor(name),
+						types.InspectWithColor(declaredType),
+						types.InspectWithColor(ivar.Type),
+						types.InspectWithColor(ivarNamespace),
+					),
+					node.Location(),
+				)
+				node.SetType(types.Untyped{})
+				return
+			}
+		}
+	}
+
+	switch c.mode {
+	case mixinMode, classMode:
+	case moduleMode, singletonMode:
+		if !c.IsNilable(declaredType) {
+			c.addFailure(
+				fmt.Sprintf(
+					"instance value `%s` must be declared as nilable",
+					types.InspectInstanceVariableWithColor(name),
+				),
+				node.Location(),
+			)
+		}
+	default:
+		c.addFailure(
+			fmt.Sprintf(
+				"cannot declare instance value `%s` in this context",
+				types.InspectInstanceVariableWithColor(name),
+			),
+			node.Location(),
+		)
+		node.SetType(types.Untyped{})
+		return
+	}
+
+	node.SetType(declaredType)
+	c.declareInstanceVariable(value.ToSymbol(name), declaredType, node.DocComment(), true, node.Location())
 }
 
 func (c *Checker) checkLocalDeclaration(
@@ -8630,7 +8729,8 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 	return namespace.DefineModule(docComment, constantName, c.runtimeEnv)
 }
 
-func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, errSpan *position.Location) {
+func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
+	// TODO: Add immutable class checks
 	container := c.currentConstScope().container
 	if container.IsPrimitive() {
 		c.addFailure(
@@ -8642,7 +8742,7 @@ func (c *Checker) declareInstanceVariable(name value.Symbol, typ types.Type, err
 			errSpan,
 		)
 	}
-	container.DefineInstanceVariable(name, typ)
+	container.DefineInstanceVariable(name, types.NewInstanceVariable(name, typ, docComment, singleAssignment))
 }
 
 func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, noinit bool, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName value.Symbol, location *position.Location) *types.Class {
@@ -8772,14 +8872,27 @@ func (c *Checker) addCannotBeAssignedError(assignedType, targetType types.Type, 
 	)
 }
 
-func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, targetType types.Type, location *position.Location) {
-	if !c.isSubtype(assignedType, targetType, location) {
+func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types.Type, ivar *types.InstanceVariable, location *position.Location) {
+	if ivar.SingleAssignment && c.mode != initMode {
 		c.addFailure(
 			fmt.Sprintf(
-				"type `%s` cannot be assigned to instance variable `%s` of type `%s`",
-				types.InspectWithColor(assignedType),
+				"instance value `%s` cannot be reassigned outside `%s`",
 				types.InspectInstanceVariableWithColor(name),
-				types.InspectWithColor(targetType),
+				lexer.Colorize("init"),
+			),
+			location,
+		)
+		return
+	}
+
+	if !c.isSubtype(assignedType, ivar.Type, location) {
+		c.addFailure(
+			fmt.Sprintf(
+				"type `%s` cannot be assigned to instance %s `%s` of type `%s`",
+				types.InspectWithColor(assignedType),
+				ivar.Kind(),
+				types.InspectInstanceVariableWithColor(name),
+				types.InspectWithColor(ivar.Type),
 			),
 			location,
 		)

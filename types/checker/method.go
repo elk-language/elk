@@ -92,6 +92,8 @@ func (c *Checker) checkSignatures(methodSignatures *[]signatureCheckEntry) {
 			c.checkSignatureOfMethodSignatureDefinition(node)
 		case *ast.InstanceVariableDeclarationNode:
 			c.checkSignatureOfInstanceVariableDeclaration(node)
+		case *ast.InstanceValueDeclarationNode:
+			c.checkSignatureOfInstanceValueDeclaration(node)
 		case *ast.GetterDeclarationNode:
 			c.checkSignatureOfGetterDeclaration(node)
 		case *ast.SetterDeclarationNode:
@@ -2499,16 +2501,16 @@ func (c *Checker) declareMethodWithBase(
 							),
 							p.Location(),
 						)
+					} else {
+						declaredType = currentIvar.Type
 					}
-
-					declaredType = currentIvar
 				} else {
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
 						c.checkCanAssignInstanceVariable(pName, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, p.Location())
+						c.declareInstanceVariable(value.ToSymbol(pName), declaredType, "", false, p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {

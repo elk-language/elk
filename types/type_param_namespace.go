@@ -198,19 +198,19 @@ func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitF
 func (t *TypeParamNamespace) SetMethod(name value.Symbol, method *Method) {
 }
 
-func (t *TypeParamNamespace) InstanceVariables() TypeMap {
+func (t *TypeParamNamespace) InstanceVariables() InstanceVariableMap {
 	return nil
 }
 
-func (t *TypeParamNamespace) InstanceVariable(name value.Symbol) Type {
+func (t *TypeParamNamespace) InstanceVariable(name value.Symbol) *InstanceVariable {
 	return nil
 }
 
-func (t *TypeParamNamespace) InstanceVariableString(name string) Type {
+func (t *TypeParamNamespace) InstanceVariableString(name string) *InstanceVariable {
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineInstanceVariable(name value.Symbol, val Type) {
+func (t *TypeParamNamespace) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
 	panic("cannot define instance variables on type param namespaces")
 }
 

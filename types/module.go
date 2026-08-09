@@ -176,7 +176,7 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 	}
 
 	newModule.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
-	newModule.instanceVariables = TypesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
+	newModule.instanceVariables = InstanceVariablesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
 	newModule.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 	newModule.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
 

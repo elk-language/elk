@@ -883,6 +883,20 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 	)
 }
 
+func (c *Checker) replaceTypeParametersInInstanceVariable(ivar *types.InstanceVariable, typeArgMap types.TypeArgumentMap, replaceMethodTypeParams bool) *types.InstanceVariable {
+	result := c._replaceTypeParameters(ivar.Type, typeArgMap, replaceMethodTypeParams)
+	if result == ivar.Type {
+		return ivar
+	}
+
+	return types.NewInstanceVariable(
+		ivar.Name,
+		result,
+		ivar.DocComment,
+		ivar.SingleAssignment,
+	)
+}
+
 func (c *Checker) normaliseSingletonOf(typ *types.SingletonOf) types.Type {
 	switch nestedType := typ.Type.(type) {
 	case *types.InstanceOf:

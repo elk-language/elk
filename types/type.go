@@ -197,6 +197,14 @@ func InspectInstanceVariableDeclarationWithColor(name string, typ Type) string {
 	return lexer.Colorize(InspectInstanceVariableDeclaration(name, typ))
 }
 
+func InspectInstanceValueDeclaration(name string, typ Type) string {
+	return fmt.Sprintf("val @%s: %s", name, Inspect(typ))
+}
+
+func InspectInstanceValueDeclarationWithColor(name string, typ Type) string {
+	return lexer.Colorize(InspectInstanceValueDeclaration(name, typ))
+}
+
 func InspectWithColor(typ Type) string {
 	return lexer.Colorize(Inspect(typ))
 }

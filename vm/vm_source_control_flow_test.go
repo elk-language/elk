@@ -230,7 +230,7 @@ func TestVMSource_ForIn(t *testing.T) {
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(14, 2, 14), P(28, 2, 28)), "type `Std::Object` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - missing method `Std::PrimitiveIterable.:iter` with signature: `def iter(): Std::Iterator[any, any]`"),
-				diagnostic.NewFailure(L(P(14, 2, 14), P(28, 2, 28)), "type `Std::Object` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				diagnostic.NewFailure(L(P(14, 2, 14), P(28, 2, 28)), "type `exact Std::Object` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
 			},
 		},
 		"loop over an invalid iterable": {
@@ -245,7 +245,7 @@ func TestVMSource_ForIn(t *testing.T) {
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(73, 6, 14), P(91, 6, 32)), "type `InvalidIterator` does not implement interface `Std::PrimitiveIterable[any, any]`:\n\n  - incorrect implementation of `Std::PrimitiveIterable.:iter`\n      is:        `def iter(): void`\n      should be: `def iter(): Std::Iterator[any, any]`"),
-				diagnostic.NewFailure(L(P(73, 6, 14), P(91, 6, 32)), "type `InvalidIterator` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
+				diagnostic.NewFailure(L(P(73, 6, 14), P(91, 6, 32)), "type `exact InvalidIterator` cannot be iterated over, it does not implement `Std::PrimitiveIterable[any, any]`"),
 			},
 		},
 	}

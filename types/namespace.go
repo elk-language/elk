@@ -61,10 +61,10 @@ type Namespace interface {
 	DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name value.Symbol, method *Method)
 
-	InstanceVariables() TypeMap
-	InstanceVariable(name value.Symbol) Type
-	InstanceVariableString(name string) Type
-	DefineInstanceVariable(name value.Symbol, val Type)
+	InstanceVariables() InstanceVariableMap
+	InstanceVariable(name value.Symbol) *InstanceVariable
+	InstanceVariableString(name string) *InstanceVariable
+	DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable)
 
 	DefineClass(docComment string, primitive, abstract, sealed, noinit bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module
@@ -119,6 +119,19 @@ func TypesDeepCopyEnv(types TypeMap, oldEnv, newEnv *GlobalEnvironment) TypeMap 
 		newTypes[typeName] = DeepCopyEnv(typ, oldEnv, newEnv)
 	}
 	return newTypes
+}
+
+func InstanceVariablesDeepCopyEnv(ivars InstanceVariableMap, oldEnv, newEnv *GlobalEnvironment) InstanceVariableMap {
+	newIvars := make(InstanceVariableMap, len(ivars))
+	for name, ivar := range ivars {
+		newIvars[name] = NewInstanceVariable(
+			name,
+			DeepCopyEnv(ivar.Type, oldEnv, newEnv),
+			ivar.DocComment,
+			ivar.SingleAssignment,
+		)
+	}
+	return newIvars
 }
 
 func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) MethodMap {
@@ -262,7 +275,7 @@ func NamespaceDeclaresInstanceVariables(namespace Namespace) bool {
 	return false
 }
 
-func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (Type, Namespace) {
+func GetInstanceVariableInNamespace(namespace Namespace, name value.Symbol) (*InstanceVariable, Namespace) {
 	for parent := range Parents(namespace) {
 		ivar := parent.InstanceVariable(name)
 		if ivar != nil {
@@ -863,22 +876,40 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[value.Symbol, *Method] {
 }
 
 type InstanceVariable struct {
-	Type      Type
-	Namespace Namespace
+	Name             value.Symbol
+	Type             Type
+	DocComment       string
+	SingleAssignment bool
+}
+
+func (i *InstanceVariable) Kind() string {
+	if i.SingleAssignment {
+		return "value"
+	}
+	return "variable"
+}
+
+func NewInstanceVariable(name value.Symbol, typ Type, docComment string, singleAssignment bool) *InstanceVariable {
+	return &InstanceVariable{
+		Name:             name,
+		Type:             typ,
+		DocComment:       docComment,
+		SingleAssignment: singleAssignment,
+	}
 }
 
 // Iterate over every instance variable defined in the given namespace including the inherited ones
-func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
-	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
+func AllInstanceVariables(namespace Namespace) iter.Seq2[*InstanceVariable, Namespace] {
+	return func(yield func(ivar *InstanceVariable, namespace Namespace) bool) {
 		seenIvars := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
-			for name, typ := range parent.InstanceVariables() {
+			for name, ivar := range parent.InstanceVariables() {
 				if seenIvars.Contains(name) {
 					continue
 				}
 
-				if !yield(name, InstanceVariable{typ, parent}) {
+				if !yield(ivar, parent) {
 					return
 				}
 				seenIvars.Add(name)
@@ -888,20 +919,20 @@ func AllInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceV
 }
 
 // Iterate over every instance variable defined in the given namespace including the inherited ones
-func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, InstanceVariable] {
-	return func(yield func(name value.Symbol, ivar InstanceVariable) bool) {
+func SortedInstanceVariables(namespace Namespace) iter.Seq2[*InstanceVariable, Namespace] {
+	return func(yield func(ivar *InstanceVariable, namespace Namespace) bool) {
 		seenIvars := make(ds.Set[value.Symbol])
 
 		for parent := range Parents(namespace) {
 			ivars := parent.InstanceVariables()
 			names := symbol.SortKeys(ivars)
 			for _, name := range names {
-				typ := ivars[name]
+				ivar := ivars[name]
 				if seenIvars.Contains(name) {
 					continue
 				}
 
-				if !yield(name, InstanceVariable{typ, parent}) {
+				if !yield(ivar, parent) {
 					return
 				}
 				seenIvars.Add(name)
@@ -911,10 +942,10 @@ func SortedInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Instan
 }
 
 // Iterate over every instance variable defined directly under the given namespace
-func OwnInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Type] {
-	return func(yield func(name value.Symbol, typ Type) bool) {
-		for name, typ := range namespace.InstanceVariables() {
-			if !yield(name, typ) {
+func OwnInstanceVariables(namespace Namespace) iter.Seq[*InstanceVariable] {
+	return func(yield func(ivar *InstanceVariable) bool) {
+		for _, ivar := range namespace.InstanceVariables() {
+			if !yield(ivar) {
 				break
 			}
 		}
@@ -922,14 +953,14 @@ func OwnInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Type] {
 }
 
 // Iterate over every instance variable defined directly under the given namespace, sorted by name
-func SortedOwnInstanceVariables(namespace Namespace) iter.Seq2[value.Symbol, Type] {
-	return func(yield func(name value.Symbol, typ Type) bool) {
+func SortedOwnInstanceVariables(namespace Namespace) iter.Seq[*InstanceVariable] {
+	return func(yield func(ivar *InstanceVariable) bool) {
 		ivars := namespace.InstanceVariables()
 		names := symbol.SortKeys(ivars)
 
 		for _, name := range names {
-			typ := ivars[name]
-			if !yield(name, typ) {
+			ivar := ivars[name]
+			if !yield(ivar) {
 				break
 			}
 		}

@@ -206,19 +206,19 @@ func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, nam
 func (c *Callable) SetMethod(name value.Symbol, method *Method) {
 }
 
-func (c *Callable) InstanceVariables() TypeMap {
+func (c *Callable) InstanceVariables() InstanceVariableMap {
 	return nil
 }
 
-func (c *Callable) InstanceVariable(name value.Symbol) Type {
+func (c *Callable) InstanceVariable(name value.Symbol) *InstanceVariable {
 	return nil
 }
 
-func (c *Callable) InstanceVariableString(name string) Type {
+func (c *Callable) InstanceVariableString(name string) *InstanceVariable {
 	return nil
 }
 
-func (c *Callable) DefineInstanceVariable(name value.Symbol, val Type) {
+func (c *Callable) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
 	panic("cannot define instance variables on callables")
 }
 

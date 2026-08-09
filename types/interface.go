@@ -166,7 +166,7 @@ func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
 
 	newIface.typeParameters = TypeParametersDeepCopyEnv(i.typeParameters, oldEnv, newEnv)
 	newIface.methods = MethodsDeepCopyEnv(i.methods, oldEnv, newEnv)
-	newIface.instanceVariables = TypesDeepCopyEnv(i.instanceVariables, oldEnv, newEnv)
+	newIface.instanceVariables = InstanceVariablesDeepCopyEnv(i.instanceVariables, oldEnv, newEnv)
 	newIface.subtypes = ConstantsDeepCopyEnv(i.subtypes, oldEnv, newEnv)
 	newIface.constants = ConstantsDeepCopyEnv(i.constants, oldEnv, newEnv)
 

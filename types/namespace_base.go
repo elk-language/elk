@@ -20,6 +20,8 @@ type MethodMap = map[value.Symbol]*Method
 
 type TypeMap = map[value.Symbol]Type
 
+type InstanceVariableMap = map[value.Symbol]*InstanceVariable
+
 type ConstantMap = map[value.Symbol]Constant
 
 type Constant struct {
@@ -32,7 +34,7 @@ type NamespaceBase struct {
 	name              string
 	constants         ConstantMap
 	subtypes          ConstantMap
-	instanceVariables TypeMap
+	instanceVariables InstanceVariableMap
 	methods           MethodMap
 }
 
@@ -42,7 +44,7 @@ func MakeNamespaceBase(docComment, name string) NamespaceBase {
 		name:              name,
 		constants:         make(ConstantMap),
 		subtypes:          make(ConstantMap),
-		instanceVariables: make(TypeMap),
+		instanceVariables: make(InstanceVariableMap),
 		methods:           make(MethodMap),
 	}
 }
@@ -83,7 +85,7 @@ func (c *NamespaceBase) Constants() ConstantMap {
 	return c.constants
 }
 
-func (c *NamespaceBase) InstanceVariables() TypeMap {
+func (c *NamespaceBase) InstanceVariables() InstanceVariableMap {
 	return c.instanceVariables
 }
 
@@ -91,7 +93,7 @@ func (c *NamespaceBase) HasInstanceVariables() bool {
 	return len(c.instanceVariables) > 0
 }
 
-func (c *NamespaceBase) SetInstanceVariables(iv TypeMap) {
+func (c *NamespaceBase) SetInstanceVariables(iv InstanceVariableMap) {
 	c.instanceVariables = iv
 }
 
@@ -139,17 +141,17 @@ func (c *NamespaceBase) MethodString(name string) *Method {
 	return c.methods[value.ToSymbol(name)]
 }
 
-func (c *NamespaceBase) DefineInstanceVariable(name value.Symbol, val Type) {
-	c.instanceVariables[name] = val
+func (c *NamespaceBase) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
+	c.instanceVariables[name] = ivar
 }
 
 // Get the instance variable with the given name.
-func (c *NamespaceBase) InstanceVariable(name value.Symbol) Type {
+func (c *NamespaceBase) InstanceVariable(name value.Symbol) *InstanceVariable {
 	return c.instanceVariables[name]
 }
 
 // Get the instance variable with the given name.
-func (c *NamespaceBase) InstanceVariableString(name string) Type {
+func (c *NamespaceBase) InstanceVariableString(name string) *InstanceVariable {
 	return c.instanceVariables[value.ToSymbol(name)]
 }
 

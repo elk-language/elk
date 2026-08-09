@@ -196,7 +196,7 @@ func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 
 	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
 	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
-	newMixin.instanceVariables = TypesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
+	newMixin.instanceVariables = InstanceVariablesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
 	newMixin.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
 	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
 

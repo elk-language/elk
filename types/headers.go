@@ -229,6 +229,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, value.ToSymbol("InitDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance method lookup expression eg. `Foo.:bar`", false, true, true, false, value.ToSymbol("InstanceMethodLookupNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance type eg. `%self`", false, true, true, false, value.ToSymbol("InstanceOfTypeNode"), objectClass, env)
+				namespace.TryDefineClass("Represents an instance value declaration eg. `val @foo: String`", false, true, true, false, value.ToSymbol("InstanceValueDeclarationNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance variable declaration eg. `var @foo: String`", false, true, true, false, value.ToSymbol("InstanceVariableDeclarationNode"), objectClass, env)
 				{
 					namespace := namespace.TryDefineMixin("A mixin included in all Elk AST nodes\nthat can be treated as instance variables.", false, value.ToSymbol("InstanceVariableNode"), env)
@@ -3758,6 +3759,25 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						// Define instance variables
 					}
 					{
+						namespace := namespace.MustSubtypeString("InstanceValueDeclarationNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
+						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, value.ToSymbol("#init"), nil, []*Parameter{NewParameter(value.ToSymbol("name"), NameToType("Std::Elk::AST::InstanceVariableNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(value.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(value.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, value.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, value.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, value.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::InstanceVariableNode", env), Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, value.ToSymbol("type_node"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
 						namespace := namespace.MustSubtypeString("InstanceVariableDeclarationNode").(*Class)
 
 						namespace.Name() // noop - avoid unused variable error
@@ -6982,8 +7002,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							// Define constants
 
 							// Define instance variables
-							namespace.DefineInstanceVariable(value.ToSymbol(""), nil)
-							namespace.DefineInstanceVariable(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env))
+							namespace.DefineInstanceVariable(value.ToSymbol("diagnostics"), NewInstanceVariable(value.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env), "", false))
 						}
 					}
 				}
@@ -7148,8 +7167,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
-				namespace.DefineInstanceVariable(value.ToSymbol(""), nil)
-				namespace.DefineInstanceVariable(value.ToSymbol("message"), NameToType("Std::String", env))
+				namespace.DefineInstanceVariable(value.ToSymbol("message"), NewInstanceVariable(value.ToSymbol("message"), NameToType("Std::String", env), "", false))
 			}
 			{
 				namespace := namespace.MustSubtypeString("FS").(*Module)

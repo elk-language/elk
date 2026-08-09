@@ -322,7 +322,7 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 
 	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
 	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
-	newClass.instanceVariables = TypesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
+	newClass.instanceVariables = InstanceVariablesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
 	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
 	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
 
