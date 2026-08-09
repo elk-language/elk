@@ -2109,6 +2109,212 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 	}
 }
 
+func (c *GoCompiler) compileLiteralPatternNode(pattern ast.PatternNode, val *goValue, op token.Type) *goValue {
+	return c.compileLiteralPattern(
+		func() *goValue {
+			return c.compileExpression(pattern.(ast.ExpressionNode), false)
+		},
+		val,
+		op,
+		pattern.Location(),
+	)
+}
+
+func (c *GoCompiler) compileLiteralPattern(pattern func() *goValue, val *goValue, op token.Type, loc *position.Location) *goValue {
+	switch op {
+	case token.EQUAL_EQUAL:
+		return c.compileEqual(
+			val,
+			pattern(),
+			types.Bool{},
+			loc,
+			false,
+		)
+	case token.NOT_EQUAL:
+		return c.compileNegate(
+			c.compileEqual(
+				val,
+				pattern(),
+				types.Bool{},
+				loc,
+				false,
+			),
+		)
+	default:
+		c.addFailure(
+			fmt.Sprintf("compilation of this literal pattern operator has not been implemented: %s", op.String()),
+			loc,
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compileBinaryPattern(op token.Type, val *goValue, left func() *goValue, right func() *goValue, loc *position.Location) *goValue {
+	switch op {
+	case token.OR_OR:
+		tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		leftVal := left()
+		c.emitAssignGoLocal(tmp, leftVal)
+
+		result := newGoValueWithLocal(tmp, types.Bool{})
+		switch result.goType.Name {
+		case "value.Bool", "bool":
+			c.emit("if !(%s) {\n", result.value)
+		default:
+			c.emit("if value.Falsy(%s) {\n", c.convertValueToWiderType(result).value)
+		}
+		rightVal := right()
+		c.emitAssignGoLocal(tmp, rightVal)
+		c.emit("}\n")
+
+		return result
+	case token.AND_AND:
+		tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		leftVal := left()
+		c.emitAssignGoLocal(tmp, leftVal)
+
+		result := newGoValueWithLocal(tmp, types.Bool{})
+		switch result.goType.Name {
+		case "value.Bool", "bool":
+			c.emit("if %s {\n", result.value)
+		default:
+			c.emit("if value.Truthy(%s) {\n", c.convertValueToWiderType(result).value)
+		}
+		rightVal := right()
+		c.emitAssignGoLocal(tmp, rightVal)
+		c.emit("}\n")
+
+		return result
+	default:
+		c.addFailure(
+			fmt.Sprintf("compilation of this binary pattern operator has not been implemented: %s", op.String()),
+			loc,
+		)
+		return errGoValue
+	}
+}
+
+func (c *GoCompiler) compileNilablePatternNode(node *ast.NilablePatternNode, val *goValue) *goValue {
+	location := node.Location()
+	return c.compileBinaryPattern(
+		token.OR_OR,
+		val,
+		func() *goValue {
+			return c.compilePattern(node.Pattern, val)
+		},
+		func() *goValue {
+			return c.compileLiteralPattern(
+				func() *goValue { return nilGoValue },
+				val,
+				token.EQUAL_EQUAL,
+				location,
+			)
+		},
+		location,
+	)
+}
+
+func (c *GoCompiler) compileMustPatternNode(node *ast.MustPatternNode, val *goValue) *goValue {
+	location := node.Location()
+	return c.compileLiteralPattern(
+		func() *goValue {
+			return nilGoValue
+		},
+		val,
+		token.NOT_EQUAL,
+		location,
+	)
+}
+
+func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goValue {
+	location := pattern.Location()
+	switch pat := pattern.(type) {
+	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
+		*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
+		*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
+		*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
+		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UIntLiteralNode, *ast.UInt64LiteralNode,
+		*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
+		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
+		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
+		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
+		return c.compileLiteralPatternNode(
+			pat,
+			val,
+			token.EQUAL_EQUAL,
+		)
+	case *ast.NilablePatternNode:
+		return c.compileNilablePatternNode(pat, val)
+	case *ast.MustPatternNode:
+		return c.compileMustPatternNode(pat, val)
+	// case *ast.RangeLiteralNode:
+	// 	c.emit(location.StartPos.Line, bytecode.DUP)
+	// 	c.compileRangeLiteralNode(pat)
+	// 	c.emit(location.StartPos.Line, bytecode.SWAP)
+	// 	callInfo := value.NewCallSiteInfo(symbol.S_contains, 1)
+	// 	c.emitCallMethod(callInfo, location, false)
+	// case *ast.PublicIdentifierNode:
+	// 	switch c.mode {
+	// 	case valuePatternDeclarationBytecodeCompilerMode:
+	// 		c.defineLocal(pat.Value, location)
+	// 	default:
+	// 		c.defineLocalOverrideCurrentScope(pat.Value, location)
+	// 	}
+	// 	c.setLocalWithoutValue(pat.Value, location, false)
+	// 	c.emit(location.StartPos.Line, bytecode.TRUE)
+	// case *ast.PrivateIdentifierNode:
+	// 	switch c.mode {
+	// 	case valuePatternDeclarationBytecodeCompilerMode:
+	// 		c.defineLocal(pat.Value, location)
+	// 	default:
+	// 		c.defineLocalOverrideCurrentScope(pat.Value, location)
+	// 	}
+	// 	c.setLocalWithoutValue(pat.Value, location, false)
+	// 	c.emit(location.StartPos.Line, bytecode.TRUE)
+	// case *ast.ObjectPatternNode:
+	// 	c.objectPatternNode(pat)
+	// case *ast.InferredObjectPatternNode:
+	// 	c.inferredObjectPattern(pat)
+	// case *ast.AsPatternNode:
+	// 	c.asPattern(pat)
+	// case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
+	// 	c.emit(location.StartPos.Line, bytecode.DUP)
+	// 	c.compileNode(pat, false)
+	// 	c.emit(location.StartPos.Line, bytecode.SWAP)
+	// 	callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
+	// 	c.emitCallMethod(callInfo, location, false)
+	// case *ast.UnaryExpressionNode:
+	// 	c.unaryPattern(pat)
+	// case *ast.BinaryPatternNode:
+	// 	c.binaryPatternNode(pat)
+	// case *ast.MapPatternNode:
+	// 	c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
+	// case *ast.RecordPatternNode:
+	// 	c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
+	// case *ast.SetPatternNode:
+	// 	c.setPattern(pat.Location(), pat.Elements)
+	// case *ast.ListPatternNode:
+	// 	c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
+	// case *ast.TuplePatternNode:
+	// 	c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
+	// case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
+	// 	*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
+	// 	*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
+	// 	c.specialCollectionPattern(pat)
+	// case *ast.MacroBoundaryNode:
+	// 	stmt := pat.Body[0].(*ast.PatternStatementNode)
+	// 	c.pattern(stmt.Pattern)
+	// case *ast.UnhygienicNode:
+	// 	c.compileUnhygienicPatternNode(pat)
+	default:
+		c.addFailure(
+			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
+			location,
+		)
+		return errGoValue
+	}
+}
+
 // func (c *GoCompiler) compileForInExpressionNode(label string, node *ast.ForInExpressionNode) {
 // 	return c.compileForIn()
 // }
