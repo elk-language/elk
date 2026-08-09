@@ -1710,6 +1710,23 @@ func TestInstanceVariables(t *testing.T) {
 				diagnostic.NewFailure(L("<main>", P(70, 5, 20), P(74, 5, 24)), "type `Std::Box[Std::String?]` cannot be assigned to type `nil`"),
 			},
 		},
+		"get box of an instance value in an instance method of a class": {
+			input: `
+				class Foo
+					val @foo: String?
+					init
+						@foo = "foo"
+					end
+
+					def bar
+						var a: nil = &@foo
+					end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(109, 9, 20), P(113, 9, 24)), "type `Std::ImmutableBox[Std::String?]` cannot be assigned to type `nil`"),
+			},
+		},
 		"get box of a nonexistent instance variable in an instance method of a class": {
 			input: `
 				class Foo

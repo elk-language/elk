@@ -2090,7 +2090,12 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 			node.SetType(types.Untyped{})
 			return node
 		}
-		box := types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), ivar.Type)
+		var box types.Type
+		if ivar.SingleAssignment {
+			box = types.NewGenericWithTypeArgs(c.Std(symbol.ImmutableBox).(*types.Class), ivar.Type)
+		} else {
+			box = types.NewGenericWithTypeArgs(c.Std(symbol.Box).(*types.Class), ivar.Type)
+		}
 		node.SetType(box)
 		return node
 	default:
