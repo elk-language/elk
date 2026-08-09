@@ -1729,6 +1729,105 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have an instance variable as the value name": {
+			input: "val @foo: Float",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(14, 1, 15))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(14, 1, 15))),
+						ast.NewInstanceValueDeclarationNode(
+							L(S(P(0, 1, 1), P(14, 1, 15))),
+							"",
+							ast.NewPublicInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
+							ast.NewPublicConstantNode(
+								L(S(P(10, 1, 11), P(14, 1, 15))),
+								"Float",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have unquote_ivar as the name": {
+			input: "val unquote_ivar(bar * foo): Float",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(33, 1, 34))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(33, 1, 34))),
+						ast.NewInstanceValueDeclarationNode(
+							L(S(P(0, 1, 1), P(33, 1, 34))),
+							"",
+							ast.NewUnquoteNode(
+								L(S(P(4, 1, 5), P(26, 1, 27))),
+								ast.UNQUOTE_INSTANCE_VARIABLE_KIND,
+								ast.NewBinaryExpressionNode(
+									L(S(P(17, 1, 18), P(25, 1, 26))),
+									T(L(S(P(21, 1, 22), P(21, 1, 22))), token.STAR),
+									ast.NewPublicIdentifierNode(L(S(P(17, 1, 18), P(19, 1, 20))), "bar"),
+									ast.NewPublicIdentifierNode(L(S(P(23, 1, 24), P(25, 1, 26))), "foo"),
+								),
+							),
+							ast.NewPublicConstantNode(
+								L(S(P(29, 1, 30), P(33, 1, 34))),
+								"Float",
+							),
+						),
+					),
+				},
+			),
+		},
+		"instance value declarations cannot appear in expressions": {
+			input: "f = val @foo",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							T(L(S(P(2, 1, 3), P(2, 1, 3))), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(
+								L(S(P(0, 1, 1), P(0, 1, 1))),
+								"f",
+							),
+							ast.NewInstanceValueDeclarationNode(
+								L(S(P(4, 1, 5), P(11, 1, 12))),
+								"",
+								ast.NewPublicInstanceVariableNode(L(S(P(8, 1, 9), P(11, 1, 12))), "foo"),
+								nil,
+							),
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(4, 1, 5), P(11, 1, 12))), "instance value declarations cannot appear in expressions"),
+				diagnostic.NewFailure(L(S(P(4, 1, 5), P(11, 1, 12))), "instance value declarations must have an explicit type"),
+			},
+		},
+		"instance values cannot be initialised": {
+			input: "val @foo = 2",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(11, 1, 12))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewInstanceValueDeclarationNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							"",
+							ast.NewPublicInstanceVariableNode(L(S(P(4, 1, 5), P(7, 1, 8))), "foo"),
+							nil,
+						),
+					),
+				},
+			),
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(S(P(11, 1, 12), P(11, 1, 12))), "instance values cannot be initialised when declared"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(11, 1, 12))), "instance value declarations must have an explicit type"),
+			},
+		},
 		"can have short unquote as the type": {
 			input: "val a: !{foo + 2}",
 			want: ast.NewProgramNode(
@@ -1940,29 +2039,6 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-		},
-		"cannot have an instance variable as the value name": {
-			input: "val @foo",
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(7, 1, 8))),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						L(S(P(0, 1, 1), P(7, 1, 8))),
-						ast.NewValueDeclarationNode(
-							L(S(P(0, 1, 1), P(7, 1, 8))),
-							ast.NewInvalidNode(
-								L(S(P(4, 1, 5), P(7, 1, 8))),
-								V(L(S(P(4, 1, 5), P(7, 1, 8))), token.INSTANCE_VARIABLE, "foo"),
-							),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(4, 1, 5), P(7, 1, 8))), "instance variables cannot be declared using `val`"),
-			},
 		},
 		"cannot have a constant as the value name": {
 			input: "val Foo",

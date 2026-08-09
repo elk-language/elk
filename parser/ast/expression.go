@@ -14,6 +14,7 @@ func (*MatchExpressionNode) expressionNode()               {}
 func (*BreakpointNode) expressionNode()                    {}
 func (*MacroNameNode) expressionNode()                     {}
 func (*InstanceVariableDeclarationNode) expressionNode()   {}
+func (*InstanceValueDeclarationNode) expressionNode()      {}
 func (*VariablePatternDeclarationNode) expressionNode()    {}
 func (*ValuePatternDeclarationNode) expressionNode()       {}
 func (*PostfixExpressionNode) expressionNode()             {}

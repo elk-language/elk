@@ -64,6 +64,7 @@ var InvalidNodeClass *Class                       // Std::Elk::AST::InvalidNode
 var TypeExpressionNodeClass *Class                // Std::Elk::AST::TypeExpressionNode
 var PatternExpressionNodeClass *Class             // Std::Elk::AST::PatternExpressionNode
 var InstanceVariableDeclarationNodeClass *Class   // Std::Elk::AST::InstanceVariableDeclarationNode
+var InstanceValueDeclarationNodeClass *Class      // Std::Elk::AST::InstanceValueDeclarationNode
 var VariablePatternDeclarationNodeClass *Class    // Std::Elk::AST::VariablePatternDeclarationNode
 var VariableDeclarationNodeClass *Class           // Std::Elk::AST::VariableDeclarationNode
 var ValuePatternDeclarationNodeClass *Class       // Std::Elk::AST::ValuePatternDeclarationNode
@@ -455,6 +456,10 @@ func initElkAST() {
 	InstanceVariableDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	InstanceVariableDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
 	ElkASTModule.AddConstantString("InstanceVariableDeclarationNode", Ref(InstanceVariableDeclarationNodeClass))
+
+	InstanceValueDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
+	InstanceValueDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)
+	ElkASTModule.AddConstantString("InstanceValueDeclarationNode", Ref(InstanceValueDeclarationNodeClass))
 
 	VariablePatternDeclarationNodeClass = NewClassWithOptions(ClassWithConstructor(UndefinedConstructor))
 	VariablePatternDeclarationNodeClass.IncludeMixin(ExpressionNodeMixin)

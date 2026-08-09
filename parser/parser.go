@@ -734,6 +734,8 @@ func (p *Parser) declarationExpression(allowed bool) ast.ExpressionNode {
 		return p.constantDeclaration(allowed)
 	case token.VAR:
 		return p.variableDeclaration(allowed)
+	case token.VAL:
+		return p.valueDeclaration(allowed)
 	case token.TYPEDEF:
 		return p.typeDefinition(allowed)
 	case token.INCLUDE:
@@ -2497,7 +2499,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.VAR:
 		return p.variableDeclaration(false)
 	case token.VAL:
-		return p.valueDeclaration()
+		return p.valueDeclaration(false)
 	case token.CONST:
 		return p.constantDeclaration(false)
 	case token.DEF:
@@ -4753,7 +4755,7 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 
 // valueDeclaration = "val" identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier] |
 // "val" pattern "=" expressionWithoutModifier
-func (p *Parser) valueDeclaration() ast.ExpressionNode {
+func (p *Parser) valueDeclaration(instanceValueAllowed bool) ast.ExpressionNode {
 	valTok := p.advance()
 	var init ast.ExpressionNode
 
@@ -4781,12 +4783,10 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 			typ,
 			init,
 		)
-	case token.INSTANCE_VARIABLE:
-		nameTok := p.advance()
-		valName := ast.NewInvalidNode(nameTok.Location(), nameTok)
+	case token.INSTANCE_VARIABLE, token.UNQUOTE_IVAR:
+		valName := p.instanceVariable()
 		var typ ast.TypeNode
 		lastLocation := valName.Location()
-		p.errorMessageLocation("instance variables cannot be declared using `val`", valName.Location())
 
 		if p.match(token.COLON) {
 			typ = p.typeAnnotationWithoutVoid()
@@ -4797,13 +4797,27 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 			p.swallowNewlines()
 			init = p.expressionWithoutModifier()
 			lastLocation = init.Location()
+			p.errorMessageLocation("instance values cannot be initialised when declared", lastLocation)
 		}
 
-		return ast.NewValueDeclarationNode(
-			valTok.Location().Join(lastLocation),
+		location := valTok.Location().Join(lastLocation)
+		if !instanceValueAllowed {
+			p.errorMessageLocation(
+				"instance value declarations cannot appear in expressions",
+				location,
+			)
+		}
+		if typ == nil {
+			p.errorMessageLocation(
+				"instance value declarations must have an explicit type",
+				location,
+			)
+		}
+		return ast.NewInstanceValueDeclarationNode(
+			location,
+			"",
 			valName,
 			typ,
-			init,
 		)
 	}
 

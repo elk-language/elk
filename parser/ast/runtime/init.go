@@ -92,6 +92,7 @@ func InitGlobalEnvironment() {
 	initIncludeExpressionNode()
 	initInitDefinitionNode()
 	initInstanceOfTypeNode()
+	initInstanceValueDeclarationNode()
 	initInstanceVariableDeclarationNode()
 	initPublicInstanceVariableNode()
 	initInt8LiteralNode()

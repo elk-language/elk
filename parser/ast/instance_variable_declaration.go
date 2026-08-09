@@ -153,3 +153,147 @@ func NewInstanceVariableDeclarationNode(loc *position.Location, docComment strin
 		TypeNode: typ,
 	}
 }
+
+// Represents an instance variable declaration eg. `val @foo: String`
+type InstanceValueDeclarationNode struct {
+	TypedNodeBase
+	DocCommentableNodeBase
+	Name     InstanceVariableNode // name of the variable
+	TypeNode TypeNode             // type of the variable
+}
+
+func (n *InstanceValueDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
+	switch enter(n, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	case TraverseSkip:
+		return leave(n, parent)
+	}
+
+	if n.Name.traverse(n, enter, leave) == TraverseBreak {
+		return TraverseBreak
+	}
+
+	if n.TypeNode != nil {
+		if n.TypeNode.traverse(n, enter, leave) == TraverseBreak {
+			return TraverseBreak
+		}
+	}
+
+	return leave(n, parent)
+}
+
+func (n *InstanceValueDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
+	name := n.Name.splice(loc, args, unquote).(InstanceVariableNode)
+
+	var typeNode TypeNode
+	if n.TypeNode != nil {
+		typeNode = n.TypeNode.splice(loc, args, unquote).(TypeNode)
+	}
+
+	return &InstanceValueDeclarationNode{
+		TypedNodeBase:          TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
+		DocCommentableNodeBase: n.DocCommentableNodeBase,
+		Name:                   name,
+		TypeNode:               typeNode,
+	}
+}
+
+func (n *InstanceValueDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceValueDeclarationNode", env)
+}
+
+func (n *InstanceValueDeclarationNode) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceValueDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		!n.Name.Equal(value.Ref(o.Name)) ||
+		!n.loc.Equal(o.loc) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *InstanceValueDeclarationNode) String() string {
+	var buff strings.Builder
+
+	doc := n.DocComment()
+	if len(doc) > 0 {
+		buff.WriteString("##[\n")
+		indent.IndentString(&buff, doc, 1)
+		buff.WriteString("\n]##\n")
+	}
+
+	buff.WriteString("val ")
+	buff.WriteString(n.Name.String())
+
+	if n.TypeNode != nil {
+		buff.WriteString(": ")
+		buff.WriteString(n.TypeNode.String())
+	}
+
+	return buff.String()
+}
+
+func (*InstanceValueDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (*InstanceValueDeclarationNode) Class() *value.Class {
+	return value.InstanceValueDeclarationNodeClass
+}
+
+func (*InstanceValueDeclarationNode) DirectClass() *value.Class {
+	return value.InstanceValueDeclarationNodeClass
+}
+
+func (n *InstanceValueDeclarationNode) Inspect() string {
+	var buff strings.Builder
+
+	fmt.Fprintf(&buff, "Std::Elk::AST::InstanceValueDeclarationNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
+
+	buff.WriteString(",\n  name: ")
+	indent.IndentStringFromSecondLine(&buff, n.Name.Inspect(), 1)
+
+	buff.WriteString(",\n  type_node: ")
+	if n.TypeNode == nil {
+		buff.WriteString("nil")
+	} else {
+		indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)
+	}
+
+	buff.WriteString("\n}")
+
+	return buff.String()
+}
+
+func (n *InstanceValueDeclarationNode) ToValue() value.Value {
+	return value.Ref(n)
+}
+
+func (p *InstanceValueDeclarationNode) Error() string {
+	return p.Inspect()
+}
+
+// Create a new instance value declaration node eg. `val @foo: String`
+func NewInstanceValueDeclarationNode(loc *position.Location, docComment string, name InstanceVariableNode, typ TypeNode) *InstanceValueDeclarationNode {
+	return &InstanceValueDeclarationNode{
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		DocCommentableNodeBase: DocCommentableNodeBase{
+			comment: docComment,
+		},
+		Name:     name,
+		TypeNode: typ,
+	}
+}
