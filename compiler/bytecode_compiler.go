@@ -3766,7 +3766,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		c.emit(location.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat, false)
 		c.emit(location.StartPos.Line, bytecode.SWAP)
-		callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
+		callInfo := value.NewCallSiteInfo(symbol.L_matches, 1)
 		c.emitCallMethod(callInfo, location, false)
 	case *ast.UnaryExpressionNode:
 		c.unaryPattern(pat)
@@ -4372,8 +4372,6 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 	}
 	c.leavePattern()
 }
-
-var matchesSymbol = value.ToSymbol("matches")
 
 func (c *BytecodeCompiler) enterPattern() {
 	c.patternNesting++

@@ -112,6 +112,7 @@ const (
 	initMethodGoCompilerMode
 	setterMethodGoCompilerMode
 	closureGoCompilerMode
+	valuePatternDeclarationGoCompilerMode
 )
 
 // represents a nativeElkLocal variable or value
@@ -356,6 +357,8 @@ func newGoValueWithLocal(local *goLocal, typ types.Type) *goValue {
 
 var errGoValue = newGoValue("ERR", types.Untyped{}, goValueType)
 var nilGoValue = newGoValue("value.Nil", types.Nil{}, goValueType)
+var falseGoValue = newGoValue("value.False", types.Bool{}, value.FetchGoType("value.Bool"))
+var trueGoValue = newGoValue("value.True", types.Bool{}, value.FetchGoType("value.Bool"))
 var neverGoValue = newGoValue("value.Nil", types.Never{}, goValueType)
 
 type goImportEntry struct {
@@ -591,6 +594,7 @@ type GoCompiler struct {
 	children          concurrent.Slice[*GoCompiler]
 	goLocals          ds.OrderedMap[string, *goLocal]
 	loopInfo          []*goLoopInfo
+	goLabelCounter    int
 	loopCounter       int // increments when a loop is entered, does not decrement ever
 	tmpLocalCounter   int
 	lastElkLocalIndex int
@@ -2157,12 +2161,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, val *goValue, left func
 		c.emitAssignGoLocal(tmp, leftVal)
 
 		result := newGoValueWithLocal(tmp, types.Bool{})
-		switch result.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if !(%s) {\n", result.value)
-		default:
-			c.emit("if value.Falsy(%s) {\n", c.convertValueToWiderType(result).value)
-		}
+		c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
 		c.emit("}\n")
@@ -2174,12 +2173,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, val *goValue, left func
 		c.emitAssignGoLocal(tmp, leftVal)
 
 		result := newGoValueWithLocal(tmp, types.Bool{})
-		switch result.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if %s {\n", result.value)
-		default:
-			c.emit("if value.Truthy(%s) {\n", c.convertValueToWiderType(result).value)
-		}
+		c.emit("if %s {\n", c.convertValueToBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
 		c.emit("}\n")
@@ -2226,6 +2220,23 @@ func (c *GoCompiler) compileMustPatternNode(node *ast.MustPatternNode, val *goVa
 	)
 }
 
+func (c *GoCompiler) compileIdentifierPattern(name string, val *goValue, loc *position.Location) *goValue {
+	var local *nativeElkLocal
+	switch c.mode {
+	case valuePatternDeclarationGoCompilerMode:
+		local = c.defineLocal(name, val.elkType, val.goType, loc)
+	default:
+		local = c.defineLocalOverrideCurrentScope(name, val.elkType, val.goType, loc)
+	}
+
+	c.emitAssignGoLocal(local.goLocal, val)
+	return newGoValue(
+		"value.True",
+		types.True{},
+		value.FetchGoType("value.Bool"),
+	)
+}
+
 func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goValue {
 	location := pattern.Location()
 	switch pat := pattern.(type) {
@@ -2247,36 +2258,18 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 		return c.compileNilablePatternNode(pat, val)
 	case *ast.MustPatternNode:
 		return c.compileMustPatternNode(pat, val)
-	// case *ast.RangeLiteralNode:
-	// 	c.emit(location.StartPos.Line, bytecode.DUP)
-	// 	c.compileRangeLiteralNode(pat)
-	// 	c.emit(location.StartPos.Line, bytecode.SWAP)
-	// 	callInfo := value.NewCallSiteInfo(symbol.S_contains, 1)
-	// 	c.emitCallMethod(callInfo, location, false)
-	// case *ast.PublicIdentifierNode:
-	// 	switch c.mode {
-	// 	case valuePatternDeclarationBytecodeCompilerMode:
-	// 		c.defineLocal(pat.Value, location)
-	// 	default:
-	// 		c.defineLocalOverrideCurrentScope(pat.Value, location)
-	// 	}
-	// 	c.setLocalWithoutValue(pat.Value, location, false)
-	// 	c.emit(location.StartPos.Line, bytecode.TRUE)
-	// case *ast.PrivateIdentifierNode:
-	// 	switch c.mode {
-	// 	case valuePatternDeclarationBytecodeCompilerMode:
-	// 		c.defineLocal(pat.Value, location)
-	// 	default:
-	// 		c.defineLocalOverrideCurrentScope(pat.Value, location)
-	// 	}
-	// 	c.setLocalWithoutValue(pat.Value, location, false)
-	// 	c.emit(location.StartPos.Line, bytecode.TRUE)
-	// case *ast.ObjectPatternNode:
-	// 	c.objectPatternNode(pat)
-	// case *ast.InferredObjectPatternNode:
-	// 	c.inferredObjectPattern(pat)
-	// case *ast.AsPatternNode:
-	// 	c.asPattern(pat)
+	case *ast.RangeLiteralNode:
+		return c.compileRangePattern(pat, val)
+	case *ast.PublicIdentifierNode:
+		return c.compileIdentifierPattern(pat.Value, val, location)
+	case *ast.PrivateIdentifierNode:
+		return c.compileIdentifierPattern(pat.Value, val, location)
+	case *ast.ObjectPatternNode:
+		return c.compileObjectPatternNode(pat, val)
+	case *ast.InferredObjectPatternNode:
+		return c.compileInferredObjectPatternNode(pat, val)
+	case *ast.AsPatternNode:
+		return c.compileAsPatternNode(pat, val)
 	// case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 	// 	c.emit(location.StartPos.Line, bytecode.DUP)
 	// 	c.compileNode(pat, false)
@@ -2313,6 +2306,143 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 		)
 		return errGoValue
 	}
+}
+
+func (c *GoCompiler) compileRangePattern(node *ast.RangeLiteralNode, val *goValue) *goValue {
+	rangeVal := c.compileRangeLiteralNode(node)
+	rangeType := rangeVal.elkType
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		rangeType,
+		types.Bool{},
+		"symbol.S_contains",
+		"#contains",
+		[]*goValue{
+			rangeVal,
+			val,
+		},
+		node.Location(),
+		false,
+	)
+}
+
+func (c *GoCompiler) compileObjectPatternNode(node *ast.ObjectPatternNode, val *goValue) *goValue {
+	return c.compileObjectPattern(val, node.ObjectType, node.Attributes, node.Location())
+}
+
+func (c *GoCompiler) compileInferredObjectPatternNode(node *ast.InferredObjectPatternNode, val *goValue) *goValue {
+	return c.compileObjectPattern(val, nil, node.Attributes, node.Location())
+}
+
+func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.ComplexConstantNode, attributes []ast.PatternNode, loc *position.Location) *goValue {
+	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.emitAssignGoLocal(resultVar, trueGoValue)
+
+	endLabel := c.registerLabel()
+	if objectTypeNode != nil {
+		classVal := c.compileExpression(objectTypeNode, false)
+		isAResult := c.compileIsA(val, classVal, types.Bool{}, loc, false)
+		c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
+
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+
+		c.emit("}\n")
+	}
+
+	for _, attr := range attributes {
+		loc := attr.Location()
+		switch e := attr.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+			methodName := identifierToName(e.Key)
+			methodNameSym := c.emitSymbol(methodName)
+
+			attrVal := c.compileMethodCallWithLiteralArgValuesAndName(
+				val.elkType,
+				c.typeOf(e),
+				methodNameSym,
+				methodName,
+				[]*goValue{
+					val,
+				},
+				loc,
+				false,
+			)
+			patternResult := c.compilePattern(e.Value, attrVal)
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+			c.emitAssignGoLocal(resultVar, falseGoValue)
+			c.emitGoto(endLabel)
+			c.emit("}\n")
+		case *ast.PublicIdentifierNode:
+			c.compileIdentifierObjectPatternAttribute(e.Value, c.typeOf(e), val, loc)
+		case *ast.PrivateIdentifierNode:
+			c.compileIdentifierObjectPatternAttribute(e.Value, c.typeOf(e), val, loc)
+		default:
+			c.addFailure(
+				fmt.Sprintf("invalid object pattern attribute: %T", attr),
+				loc,
+			)
+		}
+	}
+
+	c.emitLabelWithComment(endLabel, fmt.Sprintf("end of object pattern %s", loc.String()))
+
+	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
+func (c *GoCompiler) compileIdentifierObjectPatternAttribute(name string, returnType types.Type, val *goValue, loc *position.Location) {
+	attrSymbol := c.emitSymbol(name)
+	attrVal := c.compileMethodCallWithLiteralArgValuesAndName(
+		val.elkType,
+		returnType,
+		attrSymbol,
+		name,
+		[]*goValue{
+			val,
+		},
+		loc,
+		false,
+	)
+
+	var identVar *nativeElkLocal
+	switch c.mode {
+	case valuePatternDeclarationGoCompilerMode:
+		identVar = c.defineLocal(name, attrVal.elkType, attrVal.goType, loc)
+	default:
+		identVar = c.defineLocalOverrideCurrentScope(name, attrVal.elkType, attrVal.goType, loc)
+	}
+	c.emitAssignGoLocal(identVar.goLocal, attrVal)
+}
+
+func (c *GoCompiler) compileAsPatternNode(node *ast.AsPatternNode, val *goValue) *goValue {
+	loc := node.Location()
+	varName := identifierToName(node.Name)
+
+	var local *nativeElkLocal
+	switch c.mode {
+	case valuePatternDeclarationGoCompilerMode:
+		local = c.defineLocal(varName, val.elkType, val.goType, loc)
+	default:
+		local = c.defineLocalOverrideCurrentScope(varName, val.elkType, val.goType, loc)
+	}
+	c.emitAssignGoLocal(local.goLocal, val)
+	return c.compilePattern(node.Pattern, val)
+}
+
+func (c *GoCompiler) registerLabel() string {
+	c.goLabelCounter++
+	return fmt.Sprintf("lbl%d", c.goLabelCounter)
+}
+
+func (c *GoCompiler) emitLabel(label string) {
+	c.emit("%s:\n", label)
+}
+
+func (c *GoCompiler) emitLabelWithComment(label string, comment string) {
+	c.emit("%s: // %s \n", label)
+}
+
+func (c *GoCompiler) emitGoto(label string) {
+	c.emit("goto %s\n", label)
 }
 
 // func (c *GoCompiler) compileForInExpressionNode(label string, node *ast.ForInExpressionNode) {
@@ -2646,12 +2776,7 @@ func (c *GoCompiler) compileNumericFor(label string, init, cond, increment ast.E
 	// loop condition eg. `i < 5`
 	if cond != nil {
 		condVal := c.convertValueToNarrowerType(c.compileExpression(cond, false))
-		switch condVal.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if !(%s) { break }\n", condVal.fetchValue())
-		default:
-			c.emit("if value.Falsy(%s) { break }\n", condVal.fetchValue())
-		}
+		c.emit("if %s { break }\n", c.convertValueToNotBool(condVal).fetchValue())
 	}
 
 	// loop body
@@ -2958,13 +3083,7 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 	} else {
 		// loop condition eg. `i < 5`
 		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-
-		switch cond.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if !(%s) { break }\n", cond.fetchValue())
-		default:
-			c.emit("if value.Falsy(%s) { break }\n", cond.fetchValue())
-		}
+		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
 	}
 
 	// after loop
@@ -3034,13 +3153,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	} else {
 		// loop condition eg. `i < 5`
 		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-
-		switch cond.goType.Name {
-		case "value.Bool", "bool":
-			c.emit("if %s { break }\n", cond.fetchValue())
-		default:
-			c.emit("if value.Truthy(%s) { break }\n", cond.fetchValue())
-		}
+		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
 	}
 
 	// after loop
@@ -3096,13 +3209,7 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 
 	// loop condition eg. `i < 5`
 	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-
-	switch cond.goType.Name {
-	case "value.Bool", "bool":
-		c.emit("if !(%s) { break }\n", cond.fetchValue())
-	default:
-		c.emit("if value.Falsy(%s) { break }\n", cond.fetchValue())
-	}
+	c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
 
 	// loop body
 	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
@@ -3163,13 +3270,7 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 
 	// loop condition eg. `i < 5`
 	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-
-	switch cond.goType.Name {
-	case "value.Bool", "bool":
-		c.emit("if %s { break }\n", cond.fetchValue())
-	default:
-		c.emit("if value.Truthy(%s) { break }\n", cond.fetchValue())
-	}
+	c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
 
 	// loop body
 	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
@@ -5804,7 +5905,7 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
 	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
 	if method == nil {
-		panic(fmt.Sprintf("method `%s` does not exist on receiver `%s`", name, types.Inspect(receiverType)))
+		return nil
 	}
 	c.globalData.methodCache.Lock()
 
@@ -6827,12 +6928,7 @@ func (c *GoCompiler) compileLogicalAnd(node *ast.LogicalExpressionNode, valueIsI
 	c.emitAssignGoLocal(tmp, left)
 
 	result := newGoValueWithLocal(tmp, typ)
-	switch result.goType.Name {
-	case "value.Bool", "bool":
-		c.emit("if %s {\n", result.value)
-	default:
-		c.emit("if value.Truthy(%s) {\n", c.convertValueToWiderType(result).value)
-	}
+	c.emit("if %s {\n", c.convertValueToBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
 
@@ -6856,12 +6952,7 @@ func (c *GoCompiler) compileLogicalOr(node *ast.LogicalExpressionNode, valueIsIg
 	c.emitAssignGoLocal(tmp, left)
 
 	result := newGoValueWithLocal(tmp, typ)
-	switch result.goType.Name {
-	case "value.Bool", "bool":
-		c.emit("if !(%s) {\n", result.value)
-	default:
-		c.emit("if value.Falsy(%s) {\n", c.convertValueToWiderType(result).value)
-	}
+	c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
 
@@ -14462,6 +14553,46 @@ func (c *GoCompiler) convertValueToNativeInt(v *goValue) *goValue {
 	}
 }
 
+func (c *GoCompiler) convertValueToBool(v *goValue) *goValue {
+	if v == nil || types.IsNever(v.elkType) {
+		return nil
+	}
+	narrowV := c.convertValueToNarrowerType(v)
+
+	switch narrowV.goType.Name {
+	case "value.Bool", "bool":
+		return narrowV
+	default:
+		return narrowV.newGoValue(
+			fmt.Sprintf("value.Truthy(%s)", narrowV.value),
+			types.Bool{},
+			value.FetchGoType("bool"),
+		)
+	}
+}
+
+func (c *GoCompiler) convertValueToNotBool(v *goValue) *goValue {
+	if v == nil || types.IsNever(v.elkType) {
+		return nil
+	}
+	narrowV := c.convertValueToNarrowerType(v)
+
+	switch narrowV.goType.Name {
+	case "value.Bool", "bool":
+		return narrowV.newGoValue(
+			fmt.Sprintf("!(%s)", narrowV.value),
+			types.Bool{},
+			value.FetchGoType("bool"),
+		)
+	default:
+		return narrowV.newGoValue(
+			fmt.Sprintf("value.Falsy(%s)", narrowV.value),
+			types.Bool{},
+			value.FetchGoType("bool"),
+		)
+	}
+}
+
 func (c *GoCompiler) mustConvertValueToNativeInt(v *goValue) *goValue {
 	if v == nil || types.IsNever(v.elkType) {
 		return newGoValue(
@@ -15683,6 +15814,15 @@ func (c *GoCompiler) defineLocal(name string, elkType types.Type, goType *value.
 			location,
 		)
 		return nil
+	}
+	return c.defineVariableInScope(varScope, name, elkType, goType, location)
+}
+
+// Register a local variable, reusing the variable with the same name that has already been defined in this scope.
+func (c *GoCompiler) defineLocalOverrideCurrentScope(name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
+	varScope := c.scopes.last()
+	if currentVar, ok := varScope.localTable[name]; ok {
+		return currentVar
 	}
 	return c.defineVariableInScope(varScope, name, elkType, goType, location)
 }
