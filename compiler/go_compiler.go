@@ -2113,10 +2113,33 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 	}
 }
 
+func (c *GoCompiler) compileRelationalPatternNode(pattern ast.Node, val *goValue, op token.Type) *goValue {
+	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+
+	endLabel := c.registerLabel()
+	valClass := c.compileGetClass(val)
+	patternVal := c.compileExpression(pattern.(ast.ExpressionNode), false)
+	isAResult := c.compileIsA(patternVal, valClass, types.Bool{}, pattern.Location(), false)
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emitAssignGoLocal(resultVar, falseGoValue)
+	c.emitGoto(endLabel)
+	c.emit("}\n")
+
+	relationResult := c.compileBinaryExpression(val, patternVal, types.Bool{}, op, pattern.Location(), false)
+	c.emitAssignGoLocal(resultVar, relationResult)
+
+	c.emitLabel(endLabel)
+	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
 func (c *GoCompiler) compileLiteralPatternNode(pattern ast.PatternNode, val *goValue, op token.Type) *goValue {
+	return c.compileLiteralPatternExpressionNode(pattern.(ast.ExpressionNode), val, op)
+}
+
+func (c *GoCompiler) compileLiteralPatternExpressionNode(pattern ast.ExpressionNode, val *goValue, op token.Type) *goValue {
 	return c.compileLiteralPattern(
 		func() *goValue {
-			return c.compileExpression(pattern.(ast.ExpressionNode), false)
+			return c.compileExpression(pattern, false)
 		},
 		val,
 		op,
@@ -2125,32 +2148,7 @@ func (c *GoCompiler) compileLiteralPatternNode(pattern ast.PatternNode, val *goV
 }
 
 func (c *GoCompiler) compileLiteralPattern(pattern func() *goValue, val *goValue, op token.Type, loc *position.Location) *goValue {
-	switch op {
-	case token.EQUAL_EQUAL:
-		return c.compileEqual(
-			val,
-			pattern(),
-			types.Bool{},
-			loc,
-			false,
-		)
-	case token.NOT_EQUAL:
-		return c.compileNegate(
-			c.compileEqual(
-				val,
-				pattern(),
-				types.Bool{},
-				loc,
-				false,
-			),
-		)
-	default:
-		c.addFailure(
-			fmt.Sprintf("compilation of this literal pattern operator has not been implemented: %s", op.String()),
-			loc,
-		)
-		return errGoValue
-	}
+	return c.compileBinaryExpression(val, pattern(), types.Bool{}, op, loc, false)
 }
 
 func (c *GoCompiler) compileBinaryPattern(op token.Type, val *goValue, left func() *goValue, right func() *goValue, loc *position.Location) *goValue {
@@ -2259,7 +2257,7 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 	case *ast.MustPatternNode:
 		return c.compileMustPatternNode(pat, val)
 	case *ast.RangeLiteralNode:
-		return c.compileRangePattern(pat, val)
+		return c.compileRangePatternNode(pat, val)
 	case *ast.PublicIdentifierNode:
 		return c.compileIdentifierPattern(pat.Value, val, location)
 	case *ast.PrivateIdentifierNode:
@@ -2270,14 +2268,12 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 		return c.compileInferredObjectPatternNode(pat, val)
 	case *ast.AsPatternNode:
 		return c.compileAsPatternNode(pat, val)
-	// case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
-	// 	c.emit(location.StartPos.Line, bytecode.DUP)
-	// 	c.compileNode(pat, false)
-	// 	c.emit(location.StartPos.Line, bytecode.SWAP)
-	// 	callInfo := value.NewCallSiteInfo(matchesSymbol, 1)
-	// 	c.emitCallMethod(callInfo, location, false)
-	// case *ast.UnaryExpressionNode:
-	// 	c.unaryPattern(pat)
+	case *ast.UninterpolatedRegexLiteralNode:
+		return c.compileRegexPatternNode(pat, val)
+	case *ast.InterpolatedRegexLiteralNode:
+		return c.compileRegexPatternNode(pat, val)
+	case *ast.UnaryExpressionNode:
+		return c.compileUnaryPatternNode(pat, val)
 	// case *ast.BinaryPatternNode:
 	// 	c.binaryPatternNode(pat)
 	// case *ast.MapPatternNode:
@@ -2308,7 +2304,48 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 	}
 }
 
-func (c *GoCompiler) compileRangePattern(node *ast.RangeLiteralNode, val *goValue) *goValue {
+func (c *GoCompiler) compileUnaryPatternNode(pat *ast.UnaryExpressionNode, val *goValue) *goValue {
+	switch pat.Op.Type {
+	case token.EQUAL_EQUAL, token.NOT_EQUAL, token.LAX_EQUAL, token.LAX_NOT_EQUAL,
+		token.STRICT_EQUAL, token.STRICT_NOT_EQUAL:
+		return c.compileLiteralPatternExpressionNode(
+			pat.Right,
+			val,
+			pat.Op.Type,
+		)
+	case token.LESS, token.LESS_EQUAL, token.GREATER, token.GREATER_EQUAL:
+		return c.compileRelationalPatternNode(
+			pat.Right,
+			val,
+			pat.Op.Type,
+		)
+	default:
+		return c.compileLiteralPatternExpressionNode(
+			pat.Right,
+			val,
+			token.EQUAL_EQUAL,
+		)
+	}
+}
+
+func (c *GoCompiler) compileRegexPatternNode(node ast.ExpressionNode, val *goValue) *goValue {
+	regexVal := c.compileExpression(node, false)
+	regexType := regexVal.elkType
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		regexType,
+		types.Bool{},
+		"symbol.L_matches",
+		"matches",
+		[]*goValue{
+			regexVal,
+			val,
+		},
+		node.Location(),
+		false,
+	)
+}
+
+func (c *GoCompiler) compileRangePatternNode(node *ast.RangeLiteralNode, val *goValue) *goValue {
 	rangeVal := c.compileRangeLiteralNode(node)
 	rangeType := rangeVal.elkType
 	return c.compileMethodCallWithLiteralArgValuesAndName(
@@ -7258,67 +7295,71 @@ func (c *GoCompiler) compileBinaryExpressionNode(node *ast.BinaryExpressionNode,
 
 	leftVal := c.compileExpression(node.Left, false)
 	rightVal := c.compileExpression(node.Right, false)
-	switch node.Op.Type {
+	return c.compileBinaryExpression(leftVal, rightVal, c.typeOf(node), node.Op.Type, node.Location(), valueIsIgnored)
+}
+
+func (c *GoCompiler) compileBinaryExpression(leftVal *goValue, rightVal *goValue, typ types.Type, op token.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	switch op {
 	case token.PLUS:
-		return c.compileAdd(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileAdd(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.MINUS:
-		return c.compileSubtract(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileSubtract(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.STAR:
-		return c.compileMultiply(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileMultiply(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.SLASH:
-		return c.compileDivide(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileDivide(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.STAR_STAR:
-		return c.compileExponentiate(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileExponentiate(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LBITSHIFT:
-		return c.compileLeftBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLeftBitshift(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LTRIPLE_BITSHIFT:
-		return c.compileLogicalLeftBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLogicalLeftBitshift(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.RBITSHIFT:
-		return c.compileRightBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileRightBitshift(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.RTRIPLE_BITSHIFT:
-		return c.compileLogicalRightBitshift(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLogicalRightBitshift(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.AND:
-		return c.compileBitwiseAnd(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileBitwiseAnd(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.OR:
-		return c.compileBitwiseOr(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileBitwiseOr(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.AND_TILDE:
-		return c.compileBitwiseAndNot(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileBitwiseAndNot(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.XOR:
-		return c.compileBitwiseXor(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileBitwiseXor(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.PERCENT:
-		return c.compileModulo(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileModulo(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LAX_EQUAL:
-		return c.compileLaxEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLaxEqual(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LAX_NOT_EQUAL:
-		return c.compileNegate(c.compileLaxEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
+		return c.compileNegate(c.compileLaxEqual(leftVal, rightVal, typ, loc, valueIsIgnored))
 	case token.EQUAL_EQUAL:
-		return c.compileEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileEqual(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.NOT_EQUAL:
-		return c.compileNegate(c.compileEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
+		return c.compileNegate(c.compileEqual(leftVal, rightVal, typ, loc, valueIsIgnored))
 	case token.STRICT_EQUAL:
-		return c.compileStrictEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileStrictEqual(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.STRICT_NOT_EQUAL:
-		return c.compileNegate(c.compileStrictEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored))
+		return c.compileNegate(c.compileStrictEqual(leftVal, rightVal, typ, loc, valueIsIgnored))
 	case token.GREATER:
-		return c.compileGreater(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileGreater(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.GREATER_EQUAL:
-		return c.compileGreaterEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileGreaterEqual(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LESS:
-		return c.compileLess(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLess(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.LESS_EQUAL:
-		return c.compileLessEqual(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileLessEqual(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.SPACESHIP_OP:
-		return c.compileCompare(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileCompare(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.INSTANCE_OF_OP:
-		return c.compileInstanceOf(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileInstanceOf(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.REVERSE_INSTANCE_OF_OP:
-		return c.compileReverseInstanceOf(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileReverseInstanceOf(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.ISA_OP:
-		return c.compileIsA(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileIsA(leftVal, rightVal, typ, loc, valueIsIgnored)
 	case token.REVERSE_ISA_OP:
-		return c.compileReverseIsA(leftVal, rightVal, c.typeOf(node), node.Location(), valueIsIgnored)
+		return c.compileReverseIsA(leftVal, rightVal, typ, loc, valueIsIgnored)
 	default:
-		c.addFailure(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), node.Location())
+		c.addFailure(fmt.Sprintf("unknown binary operator: %s", op.String()), loc)
 		return errGoValue
 	}
 }
@@ -12715,6 +12756,14 @@ func (c *GoCompiler) compileNegate(val *goValue) *goValue {
 			value.FetchGoType("value.Bool"),
 		)
 	}
+}
+
+func (c *GoCompiler) compileGetClass(val *goValue) *goValue {
+	return val.newGoValue(
+		fmt.Sprintf("(%s).Class()", val.value),
+		c.checker.Std(symbol.Class),
+		value.FetchGoType("*value.Class"),
+	)
 }
 
 func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
