@@ -2151,7 +2151,7 @@ func (c *GoCompiler) compileLiteralPattern(pattern func() *goValue, val *goValue
 	return c.compileBinaryExpression(val, pattern(), types.Bool{}, op, loc, false)
 }
 
-func (c *GoCompiler) compileBinaryPattern(op token.Type, val *goValue, left func() *goValue, right func() *goValue, loc *position.Location) *goValue {
+func (c *GoCompiler) compileBinaryPattern(op token.Type, left func() *goValue, right func() *goValue, loc *position.Location) *goValue {
 	switch op {
 	case token.OR_OR:
 		tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
@@ -2190,7 +2190,6 @@ func (c *GoCompiler) compileNilablePatternNode(node *ast.NilablePatternNode, val
 	location := node.Location()
 	return c.compileBinaryPattern(
 		token.OR_OR,
-		val,
 		func() *goValue {
 			return c.compilePattern(node.Pattern, val)
 		},
@@ -2274,27 +2273,27 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 		return c.compileRegexPatternNode(pat, val)
 	case *ast.UnaryExpressionNode:
 		return c.compileUnaryPatternNode(pat, val)
-	// case *ast.BinaryPatternNode:
-	// 	c.binaryPatternNode(pat)
-	// case *ast.MapPatternNode:
-	// 	c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
-	// case *ast.RecordPatternNode:
-	// 	c.mapOrRecordPattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
-	// case *ast.SetPatternNode:
-	// 	c.setPattern(pat.Location(), pat.Elements)
-	// case *ast.ListPatternNode:
-	// 	c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
-	// case *ast.TuplePatternNode:
-	// 	c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
+	case *ast.BinaryPatternNode:
+		return c.compileBinaryPatternNode(pat, val)
+	case *ast.MapPatternNode:
+		return c.compileMapOrRecordPattern(val, c.typeOf(pat), pat.Elements, pat.Location(), true)
+	case *ast.RecordPatternNode:
+		return c.compileMapOrRecordPattern(val, c.typeOf(pat), pat.Elements, pat.Location(), false)
+	case *ast.SetPatternNode:
+		return c.compileSetPattern(val, pat.Elements, pat.Location())
+	case *ast.ListPatternNode:
+		return c.compileListOrTuplePattern(val, pat.ElementType, pat.Elements, pat.Location(), true)
+	case *ast.TuplePatternNode:
+		return c.compileListOrTuplePattern(val, pat.ElementType, pat.Elements, pat.Location(), false)
 	// case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
 	// 	*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
 	// 	*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
 	// 	c.specialCollectionPattern(pat)
-	// case *ast.MacroBoundaryNode:
-	// 	stmt := pat.Body[0].(*ast.PatternStatementNode)
-	// 	c.pattern(stmt.Pattern)
-	// case *ast.UnhygienicNode:
-	// 	c.compileUnhygienicPatternNode(pat)
+	case *ast.MacroBoundaryNode:
+		stmt := pat.Body[0].(*ast.PatternStatementNode)
+		return c.compilePattern(stmt.Pattern, val)
+	case *ast.UnhygienicNode:
+		return c.compileUnhygienicPatternNode(pat, val)
 	default:
 		c.addFailure(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
@@ -2326,6 +2325,29 @@ func (c *GoCompiler) compileUnaryPatternNode(pat *ast.UnaryExpressionNode, val *
 			token.EQUAL_EQUAL,
 		)
 	}
+}
+
+func (c *GoCompiler) compileBinaryPatternNode(pat *ast.BinaryPatternNode, val *goValue) *goValue {
+	return c.compileBinaryPattern(
+		pat.Op.Type,
+		func() *goValue {
+			return c.compilePattern(pat.Left, val)
+		},
+		func() *goValue {
+			return c.compilePattern(pat.Right, val)
+		},
+		pat.Location(),
+	)
+}
+
+func (c *GoCompiler) compileUnhygienicPatternNode(pat *ast.UnhygienicNode, val *goValue) *goValue {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	result := c.compilePattern(pat.Node.(ast.PatternNode), val)
+
+	c.unhygienic = prevUnhygienic
+	return result
 }
 
 func (c *GoCompiler) compileRegexPatternNode(node ast.ExpressionNode, val *goValue) *goValue {
@@ -2360,6 +2382,402 @@ func (c *GoCompiler) compileRangePatternNode(node *ast.RangeLiteralNode, val *go
 		node.Location(),
 		false,
 	)
+}
+
+func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, elementNodes []ast.PatternNode, loc *position.Location, isMap bool) *goValue {
+	endLabel := c.registerLabel()
+	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.emitAssignGoLocal(resultVar, trueGoValue)
+
+	var mixin string
+	if isMap {
+		mixin = "value.MapMixin"
+	} else {
+		mixin = "value.RecordMixin"
+	}
+	isAResult := c.compileIsA(
+		val,
+		newGoValue(mixin, c.checker.Std(symbol.Mixin),
+			value.FetchGoType("*value.Mixin")),
+		types.Bool{},
+		loc,
+		false,
+	)
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emitAssignGoLocal(resultVar, falseGoValue)
+	c.emitGoto(endLabel)
+	c.emit("}\n")
+
+	for _, elementNode := range elementNodes {
+		loc := elementNode.Location()
+		switch e := elementNode.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+			keyName := identifierToName(e.Key)
+			keyNameSymbol := c.emitSymbolValue(keyName)
+			elementValue := c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false)
+
+			patternResult := c.compilePattern(e.Value, elementValue)
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+			c.emitAssignGoLocal(resultVar, falseGoValue)
+			c.emitGoto(endLabel)
+			c.emit("}\n")
+		case *ast.KeyValuePatternNode:
+			keyVal := c.compileExpression(e.Key, false)
+			elementValue := c.compileSubscript(val, keyVal, c.typeOf(e), loc, false)
+
+			patternResult := c.compilePattern(e.Value, elementValue)
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+			c.emitAssignGoLocal(resultVar, falseGoValue)
+			c.emitGoto(endLabel)
+			c.emit("}\n")
+		case *ast.PublicIdentifierNode:
+			c.compileIdentifierMapPatternElement(val, e.Value, typ, loc)
+		case *ast.PrivateIdentifierNode:
+			c.compileIdentifierMapPatternElement(val, e.Value, typ, loc)
+		default:
+			c.addFailure(
+				fmt.Sprintf("invalid map pattern element: %T", elementNode),
+				loc,
+			)
+		}
+	}
+
+	c.emitLabel(endLabel)
+	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
+func (c *GoCompiler) newSmallIntValue(number int) *goValue {
+	return newGoValue(
+		fmt.Sprintf("value.SmallInt(%d)", number),
+		c.checker.Std(symbol.Int),
+		value.FetchGoType("value.SmallInt"),
+	)
+}
+
+func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.Type, elementNodes []ast.PatternNode, loc *position.Location, isList bool) *goValue {
+	endLabel := c.registerLabel()
+	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.emitAssignGoLocal(resultVar, trueGoValue)
+
+	var restVariableName string
+	elementBeforeRestCount := -1
+	for i, element := range elementNodes {
+		switch e := element.(type) {
+		case *ast.RestPatternNode:
+			if elementBeforeRestCount != -1 {
+				c.addFailure(
+					"there should be only a single rest element",
+					element.Location(),
+				)
+			}
+			elementBeforeRestCount = i
+			switch ident := e.Identifier.(type) {
+			case *ast.PrivateIdentifierNode:
+				restVariableName = ident.Value
+			case *ast.PublicIdentifierNode:
+				restVariableName = ident.Value
+			case nil:
+			default:
+				return errGoValue
+			}
+		}
+	}
+
+	elementAfterRestCount := len(elementNodes) - 1 - elementBeforeRestCount
+
+	var restListVar *nativeElkLocal
+	if restVariableName != "" {
+		restVarType := types.NewGenericWithTypeArgs(
+			c.checker.Std(symbol.ArrayList).(types.Namespace),
+			elementType,
+		)
+		restArrayListVar := c.arrayListToGoSource(
+			value.NewArrayListOfValue(0),
+			restVarType,
+		)
+
+		restListVar = c.defineLocal(restVariableName, restVarType, restListVar.goLocal.goType, loc)
+		c.emitAssignGoLocal(restListVar.goLocal, restArrayListVar)
+	}
+
+	var mixin string
+	if isList {
+		mixin = "value.ListMixin"
+	} else {
+		mixin = "value.TupleMixin"
+	}
+	isAResult := c.compileIsA(
+		val,
+		newGoValue(
+			mixin,
+			c.checker.Std(symbol.Mixin),
+			value.FetchGoType("*value.Mixin"),
+		),
+		types.Bool{},
+		loc,
+		false,
+	)
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emitAssignGoLocal(resultVar, falseGoValue)
+	c.emitGoto(endLabel)
+	c.emit("}\n")
+
+	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
+		val.elkType,
+		types.Bool{},
+		"symbol.L_length",
+		"length",
+		[]*goValue{
+			val,
+		},
+		loc,
+		false,
+	)
+	lengthVar, lengthVal := c.wrapValueInTmpGoLocal(lengthVal)
+
+	if elementBeforeRestCount == -1 {
+		elementsLenVal := c.newSmallIntValue(len(elementNodes))
+		equalVal := c.compileEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
+		c.emit("if %s {\n", c.convertValueToNotBool(equalVal))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	} else {
+		staticElementCount := c.newSmallIntValue(elementBeforeRestCount + elementAfterRestCount)
+		greaterEqualVal := c.compileGreaterEqual(lengthVal, staticElementCount, types.Bool{}, loc, false)
+		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	}
+
+	elementsBeforeRest := elementNodes
+	if elementBeforeRestCount != -1 {
+		elementsBeforeRest = elementNodes[:elementBeforeRestCount]
+	}
+	for i, elementNode := range elementsBeforeRest {
+		loc := elementNode.Location()
+		elementVal := c.compileSubscript(
+			val,
+			c.newSmallIntValue(i),
+			elementType,
+			loc,
+			false,
+		)
+
+		patternResult := c.compilePattern(elementNode, elementVal)
+		c.emit("if %s {\n", c.convertValueToNotBool(patternResult))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	}
+
+	if elementBeforeRestCount != -1 {
+		iteratorVar := c.defineTmpGoLocal(value.FetchGoType("value.SmallInt"))
+		iteratorVal := newGoValueWithLocal(iteratorVar, c.checker.StdInt())
+
+		if restVariableName != "" {
+			// adjust the length variable
+			// length -= element_after_rest_count
+			if elementAfterRestCount != 0 {
+				c.emitAssignGoLocal(
+					lengthVar,
+					c.compileSubtract(
+						lengthVal,
+						c.newSmallIntValue(elementAfterRestCount),
+						c.checker.StdInt(),
+						loc,
+						false,
+					),
+				)
+			}
+
+			// create the iterator variable
+			// i := element_before_rest_count
+			c.emitAssignGoLocal(iteratorVar, c.newSmallIntValue(elementBeforeRestCount))
+
+			// loop header
+			// i < length
+			c.emit("for %s < %s {\n", iteratorVar.name, lengthVar.name)
+
+			// loop body
+			elementVal := c.compileSubscript(val, iteratorVal, elementType, loc, false)
+			c.compileCollectionAppend(restListVar.goLocal, elementVal)
+
+			// i++
+			c.emitAssignGoLocal(
+				iteratorVar,
+				c.compileIncrement(iteratorVal, c.checker.StdInt(), loc, false),
+			)
+
+			// loop end
+			c.emit("}\n")
+		} else {
+			// create the iterator variable
+			if elementAfterRestCount == 0 {
+				// i := length
+				c.emitAssignGoLocal(iteratorVar, lengthVal)
+			} else {
+				// i := length - element_after_rest_count
+				c.emitAssignGoLocal(
+					iteratorVar,
+					c.compileSubtract(
+						lengthVal,
+						c.newSmallIntValue(elementAfterRestCount),
+						c.checker.StdInt(),
+						loc,
+						false,
+					),
+				)
+			}
+		}
+
+		elementsAfterRest := elementNodes[elementBeforeRestCount+1:]
+		for _, elementNode := range elementsAfterRest {
+			loc := elementNode.Location()
+			elementVal := c.compileSubscript(
+				val,
+				iteratorVal,
+				elementType,
+				loc,
+				false,
+			)
+
+			patternResult := c.compilePattern(elementNode, elementVal)
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult))
+			c.emitAssignGoLocal(resultVar, falseGoValue)
+			c.emitGoto(endLabel)
+			c.emit("}\n")
+
+			// i++
+			c.emitAssignGoLocal(
+				iteratorVar,
+				c.compileIncrement(
+					iteratorVal,
+					c.checker.StdInt(),
+					loc,
+					false,
+				),
+			)
+		}
+	}
+
+	c.emitLabel(endLabel)
+	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
+func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternNode, loc *position.Location) *goValue {
+	endLabel := c.registerLabel()
+	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+	c.emitAssignGoLocal(resultVar, trueGoValue)
+
+	var subPatternElements []ast.PatternNode
+
+	var restElementIsPresent bool
+	for _, elementNode := range elementNodes {
+		switch e := elementNode.(type) {
+		case *ast.RestPatternNode:
+			if restElementIsPresent {
+				c.addFailure(
+					"there should be only a single rest element",
+					elementNode.Location(),
+				)
+			}
+			restElementIsPresent = true
+		default:
+			subPatternElements = append(subPatternElements, e)
+		}
+	}
+
+	isAResult := c.compileIsA(
+		val,
+		newGoValue(
+			"value.SetMixin",
+			c.checker.Std(symbol.Set),
+			value.FetchGoType("*value.Mixin"),
+		),
+		types.Bool{},
+		loc,
+		false,
+	)
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emitAssignGoLocal(resultVar, falseGoValue)
+	c.emitGoto(endLabel)
+	c.emit("}\n")
+
+	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
+		val.elkType,
+		c.checker.Std(symbol.Int),
+		"symbol.L_length",
+		"length",
+		[]*goValue{
+			val,
+		},
+		loc,
+		false,
+	)
+
+	if !restElementIsPresent {
+		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
+		equalVal := c.compileEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
+		c.emit("if %s {\n", c.convertValueToNotBool(equalVal))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	} else {
+		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
+		greaterEqualVal := c.compileGreaterEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
+		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	}
+
+subPatternLoop:
+	for _, elementNode := range subPatternElements {
+		switch elementNode.(type) {
+		case *ast.PrivateIdentifierNode:
+			continue subPatternLoop
+		}
+
+		loc := elementNode.Location()
+
+		elementVal := c.compileExpression(elementNode.(ast.ExpressionNode), false)
+		containsVal := c.compileMethodCallWithLiteralArgValuesAndName(
+			val.elkType,
+			types.Bool{},
+			"symbol.L_contains",
+			"contains",
+			[]*goValue{
+				val,
+				elementVal,
+			},
+			loc,
+			false,
+		)
+
+		c.emit("if %s {\n", c.convertValueToNotBool(containsVal))
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	}
+
+	c.emitLabel(endLabel)
+	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
+func (c *GoCompiler) compileIdentifierMapPatternElement(val *goValue, name string, typ types.Type, loc *position.Location) {
+	keyNameSymbol := c.emitSymbolValue(name)
+	elementValue := c.compileSubscript(val, keyNameSymbol, typ, loc, false)
+
+	var identVar *nativeElkLocal
+	switch c.mode {
+	case valuePatternDeclarationGoCompilerMode:
+		identVar = c.defineLocal(name, elementValue.elkType, elementValue.goType, loc)
+	default:
+		identVar = c.defineLocalOverrideCurrentScope(name, elementValue.elkType, elementValue.goType, loc)
+	}
+	c.emitAssignGoLocal(identVar.goLocal, elementValue)
 }
 
 func (c *GoCompiler) compileObjectPatternNode(node *ast.ObjectPatternNode, val *goValue) *goValue {
@@ -6749,6 +7167,15 @@ func (c *GoCompiler) emitBigInt(val string) string {
 	ident := bigInt.goIdent()
 	c.emitPackage("var %s = value.ParseBigIntPanic(%q, 0)\n", ident, val)
 	return ident
+}
+
+func (c *GoCompiler) emitSymbolValue(val string) *goValue {
+	symbolName := c.emitSymbol(val)
+	return newGoValue(
+		symbolName,
+		c.checker.Std(symbol.Symbol),
+		value.FetchGoType("value.Symbol"),
+	)
 }
 
 func (c *GoCompiler) emitSymbol(val string) string {

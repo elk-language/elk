@@ -978,13 +978,15 @@ func (n *BinArrayListLiteralNode) Error() string {
 // Represents a List pattern eg. `[1, a, >= 10]`
 type ListPatternNode struct {
 	TypedNodeBase
-	Elements []PatternNode
+	Elements    []PatternNode
+	ElementType types.Type
 }
 
 func (n *ListPatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ListPatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
+		ElementType:   n.ElementType,
 	}
 }
 

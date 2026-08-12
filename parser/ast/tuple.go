@@ -734,13 +734,15 @@ func (n *BinArrayTupleLiteralNode) Error() string {
 // Represents a Tuple pattern eg. `%[1, a, >= 10]`
 type TuplePatternNode struct {
 	TypedNodeBase
-	Elements []PatternNode
+	Elements    []PatternNode
+	ElementType types.Type
 }
 
 func (n *TuplePatternNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TuplePatternNode{
 		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote), typ: n.typ},
 		Elements:      SpliceSlice(n.Elements, loc, args, unquote),
+		ElementType:   n.ElementType,
 	}
 }
 

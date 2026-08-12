@@ -615,9 +615,11 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
+			e.SetType(valueType)
 		case *ast.SymbolKeyValuePatternNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
+			e.SetType(valueType)
 		default:
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
 		}
@@ -657,9 +659,11 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			patternKeyType := c.TypeOf(e.Key)
 			c.checkCanMatch(keyType, patternKeyType, e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
+			e.SetType(valueType)
 		case *ast.SymbolKeyValuePatternNode:
 			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
+			e.SetType(valueType)
 		default:
 			panic(fmt.Sprintf("invalid record pattern element: %T", element))
 		}
@@ -781,6 +785,8 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 	for i, element := range node.Elements {
 		node.Elements[i], _ = c.checkPattern(element, elementType)
 	}
+
+	node.ElementType = elementType
 	return node, types.Never{}
 }
 
@@ -825,6 +831,7 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*
 	for i, element := range node.Elements {
 		node.Elements[i], _ = c.checkPattern(element, elementType)
 	}
+	node.ElementType = elementType
 	return node, types.Never{}
 }
 
