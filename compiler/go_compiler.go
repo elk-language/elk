@@ -2120,7 +2120,7 @@ func (c *GoCompiler) compileRelationalPatternNode(pattern ast.Node, val *goValue
 	valClass := c.compileGetClass(val)
 	patternVal := c.compileExpression(pattern.(ast.ExpressionNode), false)
 	isAResult := c.compileIsA(patternVal, valClass, types.Bool{}, pattern.Location(), false)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emitGoto(endLabel)
 	c.emit("}\n")
@@ -2399,7 +2399,7 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emitGoto(endLabel)
 	c.emit("}\n")
@@ -2513,7 +2513,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emitGoto(endLabel)
 	c.emit("}\n")
@@ -2534,14 +2534,14 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	if elementBeforeRestCount == -1 {
 		elementsLenVal := c.newSmallIntValue(len(elementNodes))
 		equalVal := c.compileEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(equalVal))
+		c.emit("if %s {\n", c.convertValueToNotBool(equalVal).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
 	} else {
 		staticElementCount := c.newSmallIntValue(elementBeforeRestCount + elementAfterRestCount)
 		greaterEqualVal := c.compileGreaterEqual(lengthVal, staticElementCount, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal))
+		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
@@ -2562,7 +2562,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		)
 
 		patternResult := c.compilePattern(elementNode, elementVal)
-		c.emit("if %s {\n", c.convertValueToNotBool(patternResult))
+		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
@@ -2640,7 +2640,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			)
 
 			patternResult := c.compilePattern(elementNode, elementVal)
-			c.emit("if %s {\n", c.convertValueToNotBool(patternResult))
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 			c.emitAssignGoLocal(resultVar, falseGoValue)
 			c.emitGoto(endLabel)
 			c.emit("}\n")
@@ -2696,7 +2696,7 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult))
+	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emitGoto(endLabel)
 	c.emit("}\n")
@@ -2716,14 +2716,14 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 	if !restElementIsPresent {
 		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
 		equalVal := c.compileEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(equalVal))
+		c.emit("if %s {\n", c.convertValueToNotBool(equalVal).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
 	} else {
 		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
 		greaterEqualVal := c.compileGreaterEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal))
+		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
@@ -2752,7 +2752,7 @@ subPatternLoop:
 			false,
 		)
 
-		c.emit("if %s {\n", c.convertValueToNotBool(containsVal))
+		c.emit("if %s {\n", c.convertValueToNotBool(containsVal).fetchValue())
 		c.emitAssignGoLocal(resultVar, falseGoValue)
 		c.emitGoto(endLabel)
 		c.emit("}\n")
@@ -2889,7 +2889,7 @@ func (c *GoCompiler) emitLabel(label string) {
 }
 
 func (c *GoCompiler) emitLabelWithComment(label string, comment string) {
-	c.emit("%s: // %s \n", label)
+	c.emit("%s: // %s \n", label, comment)
 }
 
 func (c *GoCompiler) emitGoto(label string) {
