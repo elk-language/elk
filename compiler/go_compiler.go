@@ -2285,10 +2285,6 @@ func (c *GoCompiler) compilePattern(pattern ast.PatternNode, val *goValue) *goVa
 		return c.compileListOrTuplePattern(val, pat.ElementType, pat.Elements, pat.Location(), true)
 	case *ast.TuplePatternNode:
 		return c.compileListOrTuplePattern(val, pat.ElementType, pat.Elements, pat.Location(), false)
-	// case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
-	// 	*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
-	// 	*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
-	// 	c.specialCollectionPattern(pat)
 	case *ast.MacroBoundaryNode:
 		stmt := pat.Body[0].(*ast.PatternStatementNode)
 		return c.compilePattern(stmt.Pattern, val)

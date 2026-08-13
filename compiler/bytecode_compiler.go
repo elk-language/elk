@@ -3782,10 +3782,6 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode) {
 		c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, true)
 	case *ast.TuplePatternNode:
 		c.listOrTuplePattern(c.typeOf(pat), pat.Location(), pat.Elements, false)
-	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
-		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
-		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
-		c.specialCollectionPattern(pat)
 	case *ast.MacroBoundaryNode:
 		stmt := pat.Body[0].(*ast.PatternStatementNode)
 		c.pattern(stmt.Pattern)
@@ -4013,32 +4009,6 @@ func (c *BytecodeCompiler) objectPattern(objectTypeNode ast.ComplexConstantNode,
 		c.patchJump(jmp, loc)
 	}
 	c.leavePattern()
-}
-
-func (c *BytecodeCompiler) specialCollectionPattern(node ast.PatternNode) {
-	location := node.Location()
-	c.emit(location.StartPos.Line, bytecode.DUP)
-	switch node.(type) {
-	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode:
-		c.emitValue(value.Ref(value.ListMixin), location)
-	case *ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
-		c.emitValue(value.Ref(value.TupleMixin), location)
-	case *ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
-		c.emitValue(value.Ref(value.SetMixin), location)
-	default:
-		panic(fmt.Sprintf("invalid special collection pattern node: %#v", node))
-	}
-	c.emit(location.StartPos.Line, bytecode.IS_A)
-
-	jmp := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS_NP)
-	c.emit(location.StartPos.Line, bytecode.POP)
-
-	c.emit(location.StartPos.Line, bytecode.DUP)
-	c.compileNodeWithResult(node)
-	c.emit(location.StartPos.Line, bytecode.LAX_EQUAL)
-
-	// leave false on the stack from the falsy if that jumped here
-	c.patchJump(jmp, location)
 }
 
 func (c *BytecodeCompiler) identifierMapPatternElement(name string, collectionType types.Type, location *position.Location) {

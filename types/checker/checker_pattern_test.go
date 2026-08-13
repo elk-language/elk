@@ -1101,7 +1101,8 @@ func TestSpecialListPattern(t *testing.T) {
 				var \w[foo bar] as a = [1]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::Int]` cannot ever match type `Std::List[Std::String]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::Int` cannot ever match type `\"bar\"`"),
 			},
 		},
 		"pattern with word list literal and wider type": {
@@ -1115,7 +1116,7 @@ func TestSpecialListPattern(t *testing.T) {
 				var \w[foo bar] as a = 1
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `1` cannot ever match type `Std::List[Std::String]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `1` cannot ever match type `Std::List[any]`"),
 			},
 		},
 		"pattern with symbol list literal and array list type": {
@@ -1129,7 +1130,8 @@ func TestSpecialListPattern(t *testing.T) {
 				var \s[foo bar] as a = ["foo"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Symbol]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::String` cannot ever match type `:foo`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::String` cannot ever match type `:bar`"),
 			},
 		},
 		"pattern with symbol list literal and wider type": {
@@ -1143,7 +1145,7 @@ func TestSpecialListPattern(t *testing.T) {
 				var \s[foo bar] as a = "foo"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `\"foo\"` cannot ever match type `Std::List[Std::Symbol]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `\"foo\"` cannot ever match type `Std::List[any]`"),
 			},
 		},
 		"pattern with binary list literal and array list type": {
@@ -1157,7 +1159,8 @@ func TestSpecialListPattern(t *testing.T) {
 				var \b[1010 1100] as a = ["foo"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "type `Std::String` cannot ever match type `0b1010`"),
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(20, 2, 20)), "type `Std::String` cannot ever match type `0b1100`"),
 			},
 		},
 		"pattern with binary list literal and wider type": {
@@ -1171,7 +1174,7 @@ func TestSpecialListPattern(t *testing.T) {
 				var \b[1010 1100] as a = "1010"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `\"1010\"` cannot ever match type `Std::List[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `\"1010\"` cannot ever match type `Std::List[any]`"),
 			},
 		},
 		"pattern with hex list literal and array list type": {
@@ -1185,7 +1188,8 @@ func TestSpecialListPattern(t *testing.T) {
 				var \x[A B] as a = ["foo"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayList[Std::String]` cannot ever match type `Std::List[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "type `Std::String` cannot ever match type `0xA`"),
+				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "type `Std::String` cannot ever match type `0xB`"),
 			},
 		},
 		"pattern with hex list literal and wider type": {
@@ -1199,7 +1203,7 @@ func TestSpecialListPattern(t *testing.T) {
 				var \x[A B] as a = "A"
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `\"A\"` cannot ever match type `Std::List[any]`"),
 			},
 		},
 	}
@@ -1224,7 +1228,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %w[foo bar] as a = %[1, 2]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::Int]` cannot ever match type `Std::Tuple[Std::String]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::Int` cannot ever match type `\"bar\"`"),
 			},
 		},
 		"pattern with binary tuple literal and tuple type": {
@@ -1238,7 +1243,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %b[1010 1100] as a = %["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "type `Std::String` cannot ever match type `0b1010`"),
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(20, 2, 20)), "type `Std::String` cannot ever match type `0b1100`"),
 			},
 		},
 		"pattern with hex tuple literal and tuple type": {
@@ -1252,7 +1258,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %x[A B] as a = %["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "type `Std::String` cannot ever match type `0xA`"),
+				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "type `Std::String` cannot ever match type `0xB`"),
 			},
 		},
 		"pattern with symbol tuple literal and tuple type": {
@@ -1266,7 +1273,8 @@ func TestSpecialTuplePattern(t *testing.T) {
 				var %s[foo bar] as a = %["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::ArrayTuple[Std::String]` cannot ever match type `Std::Tuple[Std::Symbol]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::String` cannot ever match type `:foo`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::String` cannot ever match type `:bar`"),
 			},
 		},
 	}
@@ -1291,7 +1299,8 @@ func TestSpecialSetPattern(t *testing.T) {
 				var ^w[foo bar] as a = ^[1, 2]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::Int]` cannot ever match type `Std::Set[Std::String]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::Int` cannot ever match type `\"foo\"`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::Int` cannot ever match type `\"bar\"`"),
 			},
 		},
 		"pattern with binary set literal and set type": {
@@ -1305,7 +1314,8 @@ func TestSpecialSetPattern(t *testing.T) {
 				var ^b[1010 1100] as a = ^["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(21, 2, 21)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(15, 2, 15)), "type `Std::String` cannot ever match type `0b1010`"),
+				diagnostic.NewFailure(L("<main>", P(17, 2, 17), P(20, 2, 20)), "type `Std::String` cannot ever match type `0b1100`"),
 			},
 		},
 		"pattern with hex set literal and set type": {
@@ -1319,7 +1329,8 @@ func TestSpecialSetPattern(t *testing.T) {
 				var ^x[A B] as a = ^["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(15, 2, 15)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Int]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(12, 2, 12)), "type `Std::String` cannot ever match type `0xA`"),
+				diagnostic.NewFailure(L("<main>", P(14, 2, 14), P(14, 2, 14)), "type `Std::String` cannot ever match type `0xB`"),
 			},
 		},
 		"pattern with symbol set literal and set type": {
@@ -1333,7 +1344,8 @@ func TestSpecialSetPattern(t *testing.T) {
 				var ^s[foo bar] as a = ^["foo", "bar"]
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(9, 2, 9), P(19, 2, 19)), "type `Std::HashSet[Std::String]` cannot ever match type `Std::Set[Std::Symbol]`"),
+				diagnostic.NewFailure(L("<main>", P(12, 2, 12), P(14, 2, 14)), "type `Std::String` cannot ever match type `:foo`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(18, 2, 18)), "type `Std::String` cannot ever match type `:bar`"),
 			},
 		},
 	}

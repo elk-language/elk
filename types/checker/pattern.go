@@ -3,6 +3,7 @@ package checker
 import (
 	"fmt"
 
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -81,88 +82,160 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 	case *ast.FalseLiteralNode:
 		return c.checkSimpleLiteralPattern(n, matchedType)
 	case *ast.BinArrayListLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
+		return c.checkListPattern(
+			ast.NewListPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.HexArrayListLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Int)),
+		return c.checkListPattern(
+			ast.NewListPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.SymbolArrayListLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.Symbol)),
+		return c.checkListPattern(
+			ast.NewListPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.SymbolCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.WordArrayListLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdList(), c.Std(symbol.String)),
+		return c.checkListPattern(
+			ast.NewListPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.WordCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.BinArrayTupleLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
+		return c.checkTuplePattern(
+			ast.NewTuplePatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.HexArrayTupleLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Int)),
+		return c.checkTuplePattern(
+			ast.NewTuplePatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.SymbolArrayTupleLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.Symbol)),
+		return c.checkTuplePattern(
+			ast.NewTuplePatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.SymbolCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.WordArrayTupleLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdTuple(), c.Std(symbol.String)),
+		return c.checkTuplePattern(
+			ast.NewTuplePatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.WordCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.BinHashSetLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
+		return c.checkSetPattern(
+			ast.NewSetPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.HexHashSetLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Int)),
+		return c.checkSetPattern(
+			ast.NewSetPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.IntCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.SymbolHashSetLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.Symbol)),
+		return c.checkSetPattern(
+			ast.NewSetPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.SymbolCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.WordHashSetLiteralNode:
-		return c.checkSpecialCollectionLiteralPattern(
-			n,
-			types.NewGenericWithTypeArgs(c.StdSet(), c.Std(symbol.String)),
+		return c.checkSetPattern(
+			ast.NewSetPatternNode(
+				n.Location(),
+				ds.MapSlice(
+					n.Elements,
+					func(element ast.WordCollectionContentNode) ast.PatternNode {
+						return element.(ast.PatternNode)
+					},
+				),
+			),
 			matchedType,
-			n.Location(),
 		)
 	case *ast.RangeLiteralNode:
 		return c.checkRangePattern(n, matchedType)
@@ -714,12 +787,6 @@ func (c *Checker) checkRangePattern(node *ast.RangeLiteralNode, typ types.Type) 
 
 	c.checkCanMatch(typ, startType, node.Location())
 	node.SetType(startType)
-	return node, types.Never{}
-}
-
-func (c *Checker) checkSpecialCollectionLiteralPattern(node ast.LiteralPatternNode, patternType, typ types.Type, location *position.Location) (ast.PatternNode, types.Type) {
-	c.checkCanMatch(typ, patternType, location)
-	node.SetType(patternType)
 	return node, types.Never{}
 }
 
