@@ -929,6 +929,39 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	)
 }
 
+func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) *goValue {
+	endLabel := c.registerLabel()
+	c.enterScope("", defaultNativeElkScopeType)
+	typ := c.typeOf(node)
+	_, resultVar := c.defineTmpGoLocalIfNotIgnored(c.elkTypeToGoType(typ, false), valueIsIgnored)
+	_, val := c.wrapValueInTmpGoLocal(c.compileExpression(node.Value, false))
+
+	for _, caseNode := range node.Cases {
+		c.enterScope("", defaultNativeElkScopeType)
+
+		patternResult := c.compilePattern(caseNode.Pattern, val)
+
+		c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
+		caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(resultVar, caseResult)
+		}
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+
+		c.leaveScope()
+	}
+
+	elseResult := c.compileStatements(node.ElseBody, valueIsIgnored)
+	if !valueIsIgnored {
+		c.emitAssignGoLocal(resultVar, elseResult)
+	}
+
+	c.leaveScope()
+	c.emitLabel(endLabel)
+	return newGoValueWithLocal(resultVar, typ)
+}
+
 func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIsIgnored bool) *goValue {
 	typ := c.typeOf(node)
 	closureId := c.globalData.closureCounter.Add(1) - 1
@@ -2104,6 +2137,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		)
 	case *ast.ClosureLiteralNode:
 		return c.compileClosureLiteralNode(node, valueIsIgnored)
+	case *ast.SwitchExpressionNode:
+		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.GoExpressionNode:
 		return c.compileGoExpressionNode(node, valueIsIgnored)
 	// case *ast.ForInExpressionNode:

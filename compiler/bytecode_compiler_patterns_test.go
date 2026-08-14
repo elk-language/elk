@@ -4337,3 +4337,101 @@ func TestBytecodeSwitch(t *testing.T) {
 		})
 	}
 }
+
+func TestBytecodeMatch(t *testing.T) {
+	tests := bytecodeTestTable{
+		"contains a pattern": {
+			input: `
+			a := [0b11, 0b10]
+			if a match ::Std::ArrayList(length: > 1 && < 5 as l, first)
+				puts "hooray"
+			end
+		`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.LOAD_VALUE_0),
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.DUP),
+					byte(bytecode.GET_CONST8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 50,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.DUP),
+					byte(bytecode.SET_LOCAL_2),
+					byte(bytecode.DUP),
+					byte(bytecode.INT_1),
+					byte(bytecode.DUP_2),
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 4,
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP_2),
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 16,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.INT_5),
+					byte(bytecode.DUP_2),
+					byte(bytecode.SWAP),
+					byte(bytecode.GET_CLASS),
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 4,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP_2),
+					byte(bytecode.FALSE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS_NP), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.SET_LOCAL_3),
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 9,
+					byte(bytecode.GET_CONST8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(109, 5, 7)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 62),
+					bytecode.NewLineInfo(4, 6),
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.Ref(&value.ArrayListOfValue{
+						value.SmallInt(3).ToValue(),
+						value.SmallInt(2).ToValue(),
+					}),
+					value.ToSymbol("Std::ArrayList").ToValue(),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("first"), 0)),
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("hooray")),
+					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			bytecodeCompilerTest(tc, t)
+		})
+	}
+}
