@@ -8277,6 +8277,8 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
 		c.popLocalEnv()
+	} else {
+		returnTypes = append(returnTypes, types.Nil{})
 	}
 
 	c.initialiseConditionalLocals()

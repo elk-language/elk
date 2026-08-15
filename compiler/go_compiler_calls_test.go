@@ -89,22 +89,21 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()
-	t1 = l0
-	if value.IsNil(t1) {
+	if value.IsNil(l0) {
 		t3 = value.ResizeNativeArgs(t3, 3)
-		t3[0] = t1
+		t3[0] = l0
 		t3[1] = (value.SmallInt(1)).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		t1, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_1, t3...) // receiver: Std::List[Std::Int]?, name: []
+		t2, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_1, t3...) // receiver: Std::List[Std::Int]?, name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		t2 = t1
+		t1 = t2
 	} else {
-		t2 = value.Nil
+		t1 = value.Nil
 	}
-	l1 = t2
+	l1 = t1
 }
 `,
 		},
@@ -1639,16 +1638,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
 	_ = l0
-	var t1 *value.ArrayListOfValue
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Value
 	_ = t2
-	var t3 value.Value
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Value
-	_ = t4
+	var t3 value.Value
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1656,16 +1653,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = value.IncrementInt(t3)
-	err = (t1).Set(int(t2), t4)
+	t3 = value.IncrementInt(t2)
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1702,16 +1698,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int64] // var a: Std::ArrayList[Std::Int64]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int64]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int64
 	_ = t2
-	var t3 value.Int64
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int64
-	_ = t4
+	var t3 value.Int64
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1719,16 +1713,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int64](0, value.Int64(5), value.Int64(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1765,16 +1758,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int32] // var a: Std::ArrayList[Std::Int32]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int32]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int32
 	_ = t2
-	var t3 value.Int32
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int32
-	_ = t4
+	var t3 value.Int32
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1782,16 +1773,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int32](0, value.Int32(5), value.Int32(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1828,16 +1818,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int16] // var a: Std::ArrayList[Std::Int16]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int16]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int16
 	_ = t2
-	var t3 value.Int16
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int16
-	_ = t4
+	var t3 value.Int16
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1845,16 +1833,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int16](0, value.Int16(5), value.Int16(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1891,16 +1878,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int8] // var a: Std::ArrayList[Std::Int8]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int8]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int8
 	_ = t2
-	var t3 value.Int8
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int8
-	_ = t4
+	var t3 value.Int8
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1908,16 +1893,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int8](0, value.Int8(5), value.Int8(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1954,16 +1938,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt64] // var a: Std::ArrayList[Std::UInt64]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt64]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt64
 	_ = t2
-	var t3 value.UInt64
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt64
-	_ = t4
+	var t3 value.UInt64
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -1971,16 +1953,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt64](0, value.UInt64(5), value.UInt64(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2017,16 +1998,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt32] // var a: Std::ArrayList[Std::UInt32]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt32]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt32
 	_ = t2
-	var t3 value.UInt32
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt32
-	_ = t4
+	var t3 value.UInt32
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2034,16 +2013,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt32](0, value.UInt32(5), value.UInt32(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2080,16 +2058,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt16] // var a: Std::ArrayList[Std::UInt16]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt16]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt16
 	_ = t2
-	var t3 value.UInt16
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt16
-	_ = t4
+	var t3 value.UInt16
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2097,16 +2073,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt16](0, value.UInt16(5), value.UInt16(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2143,16 +2118,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt8]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt8
 	_ = t2
-	var t3 value.UInt8
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt8
-	_ = t4
+	var t3 value.UInt8
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2160,16 +2133,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2206,16 +2178,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt] // var a: Std::ArrayList[Std::UInt]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt
 	_ = t2
-	var t3 value.UInt
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt
-	_ = t4
+	var t3 value.UInt
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2223,16 +2193,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElementsAndTotalCapacity[value.UInt](2+0, value.UInt(5), value.UInt(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2266,16 +2235,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Char] // var a: Std::ArrayList[Std::Char]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Char]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Char
 	_ = t2
-	var t3 value.Char
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Char
-	_ = t4
+	var t3 value.Char
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2283,15 +2250,14 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Char](0, value.Char('a'), value.Char('b'))
-	t1 = l0
-	t2 = value.SmallInt(1)
-	t3, err = (t1).Get(int(t2))
+	t1 = value.SmallInt(1)
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) + 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) + 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2328,16 +2294,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::Int64]
 	_ = l0
-	var t1 *value.ArrayListOfValue
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Value
 	_ = t2
-	var t3 value.Value
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Value
-	_ = t4
+	var t3 value.Value
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2345,16 +2309,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = value.IncrementVal(t3)
-	err = (t1).Set(int(t2), t4)
+	t3 = value.IncrementVal(t2)
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2391,16 +2354,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int]
 	_ = l0
-	var t1 *value.ArrayListOfValue
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Value
 	_ = t2
-	var t3 value.Value
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Value
-	_ = t4
+	var t3 value.Value
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2408,16 +2369,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = value.DecrementInt(t3)
-	err = (t1).Set(int(t2), t4)
+	t3 = value.DecrementInt(t2)
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2454,16 +2414,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int64] // var a: Std::ArrayList[Std::Int64]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int64]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int64
 	_ = t2
-	var t3 value.Int64
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int64
-	_ = t4
+	var t3 value.Int64
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2471,16 +2429,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int64](0, value.Int64(5), value.Int64(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2517,16 +2474,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int32] // var a: Std::ArrayList[Std::Int32]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int32]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int32
 	_ = t2
-	var t3 value.Int32
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int32
-	_ = t4
+	var t3 value.Int32
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2534,16 +2489,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int32](0, value.Int32(5), value.Int32(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2580,16 +2534,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int16] // var a: Std::ArrayList[Std::Int16]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int16]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int16
 	_ = t2
-	var t3 value.Int16
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int16
-	_ = t4
+	var t3 value.Int16
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2597,16 +2549,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int16](0, value.Int16(5), value.Int16(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2643,16 +2594,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Int8] // var a: Std::ArrayList[Std::Int8]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Int8]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Int8
 	_ = t2
-	var t3 value.Int8
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Int8
-	_ = t4
+	var t3 value.Int8
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2660,16 +2609,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Int8](0, value.Int8(5), value.Int8(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2706,16 +2654,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt64] // var a: Std::ArrayList[Std::UInt64]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt64]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt64
 	_ = t2
-	var t3 value.UInt64
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt64
-	_ = t4
+	var t3 value.UInt64
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2723,16 +2669,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt64](0, value.UInt64(5), value.UInt64(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2769,16 +2714,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt32] // var a: Std::ArrayList[Std::UInt32]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt32]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt32
 	_ = t2
-	var t3 value.UInt32
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt32
-	_ = t4
+	var t3 value.UInt32
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2786,16 +2729,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt32](0, value.UInt32(5), value.UInt32(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2832,16 +2774,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt16] // var a: Std::ArrayList[Std::UInt16]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt16]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt16
 	_ = t2
-	var t3 value.UInt16
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt16
-	_ = t4
+	var t3 value.UInt16
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2849,16 +2789,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt16](0, value.UInt16(5), value.UInt16(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2895,16 +2834,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt8] // var a: Std::ArrayList[Std::UInt8]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt8]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt8
 	_ = t2
-	var t3 value.UInt8
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt8
-	_ = t4
+	var t3 value.UInt8
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2912,16 +2849,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.UInt8](0, value.UInt8(5), value.UInt8(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2958,16 +2894,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.UInt] // var a: Std::ArrayList[Std::UInt]
 	_ = l0
-	var t1 *value.NativeArrayList[value.UInt]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.UInt
 	_ = t2
-	var t3 value.UInt
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.UInt
-	_ = t4
+	var t3 value.UInt
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -2975,16 +2909,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElementsAndTotalCapacity[value.UInt](2+0, value.UInt(5), value.UInt(3))
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3018,16 +2951,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.NativeArrayList[value.Char] // var a: Std::ArrayList[Std::Char]
 	_ = l0
-	var t1 *value.NativeArrayList[value.Char]
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Char
 	_ = t2
-	var t3 value.Char
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Char
-	_ = t4
+	var t3 value.Char
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -3035,15 +2966,14 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewNativeArrayListWithElements[value.Char](0, value.Char('a'), value.Char('b'))
-	t1 = l0
-	t2 = value.SmallInt(1)
-	t3, err = (t1).Get(int(t2))
+	t1 = value.SmallInt(1)
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = (t3) - 1
-	err = (t1).Set(int(t2), t4)
+	t3 = (t2) - 1
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3080,16 +3010,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ArrayListOfValue // var a: Std::ArrayList[Std::Int | Std::Int64]
 	_ = l0
-	var t1 *value.ArrayListOfValue
+	var t1 value.SmallInt
 	_ = t1
-	var t2 value.SmallInt
+	var t2 value.Value
 	_ = t2
-	var t3 value.Value
-	_ = t3
 	var err value.Value
 	_ = err
-	var t4 value.Value
-	_ = t4
+	var t3 value.Value
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -3097,16 +3025,15 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(3)).ToValue())
-	t1 = l0
-	t2 = value.SmallInt(1)
+	t1 = value.SmallInt(1)
 	callFrame.SetNativeLineNumber(3)
-	t3, err = (t1).Get(int(t2))
+	t2, err = (l0).Get(int(t1))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t4 = value.DecrementVal(t3)
-	err = (t1).Set(int(t2), t4)
+	t3 = value.DecrementVal(t2)
+	err = (l0).Set(int(t1), t3)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4326,8 +4253,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4341,14 +4266,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, value.IncrementInt(t2)) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, value.IncrementInt(t1)) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4454,8 +4378,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4469,14 +4391,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, value.IncrementVal(t2)) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, value.IncrementVal(t1)) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4580,10 +4501,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int64
 	_ = t1
-	var t2 value.Int64
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4597,14 +4516,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4708,10 +4626,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int32
 	_ = t1
-	var t2 value.Int32
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4725,14 +4641,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4836,10 +4751,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int16
 	_ = t1
-	var t2 value.Int16
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4853,14 +4766,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4964,10 +4876,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int8
 	_ = t1
-	var t2 value.Int8
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -4981,14 +4891,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5092,10 +5001,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt64
 	_ = t1
-	var t2 value.UInt64
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5109,14 +5016,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5220,10 +5126,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt32
 	_ = t1
-	var t2 value.UInt32
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5237,14 +5141,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5348,10 +5251,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt16
 	_ = t1
-	var t2 value.UInt16
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5365,14 +5266,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5476,10 +5376,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt8
 	_ = t1
-	var t2 value.UInt8
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5493,14 +5391,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5604,10 +5501,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt
 	_ = t1
-	var t2 value.UInt
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5621,14 +5516,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5725,10 +5619,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Char
 	_ = t1
-	var t2 value.Char
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5742,13 +5634,12 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)+1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)+1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5854,8 +5745,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5869,14 +5758,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, value.DecrementInt(t2)) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, value.DecrementInt(t1)) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5982,8 +5870,6 @@ func main() { // loc: <main>
 	_ = l0
 	var t1 value.Value
 	_ = t1
-	var t2 value.Value
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -5997,14 +5883,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, value.DecrementVal(t2)) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, value.DecrementVal(t1)) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6108,10 +5993,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int64
 	_ = t1
-	var t2 value.Int64
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6125,14 +6008,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6236,10 +6118,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int32
 	_ = t1
-	var t2 value.Int32
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6253,14 +6133,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6364,10 +6243,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int16
 	_ = t1
-	var t2 value.Int16
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6381,14 +6258,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6492,10 +6368,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Int8
 	_ = t1
-	var t2 value.Int8
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6509,14 +6383,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6620,10 +6493,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt64
 	_ = t1
-	var t2 value.UInt64
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6637,14 +6508,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6748,10 +6618,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt32
 	_ = t1
-	var t2 value.UInt32
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6765,14 +6633,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6876,10 +6743,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt16
 	_ = t1
-	var t2 value.UInt16
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -6893,14 +6758,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7004,10 +6868,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt8
 	_ = t1
-	var t2 value.UInt8
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -7021,14 +6883,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7132,10 +6993,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.UInt
 	_ = t1
-	var t2 value.UInt
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -7149,14 +7008,13 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
 	callFrame.SetNativeLineNumber(7)
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7253,10 +7111,8 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var a: Bar
 	_ = l0
-	var t1 value.Value
+	var t1 value.Char
 	_ = t1
-	var t2 value.Char
-	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -7270,13 +7126,12 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	t1 = l0
-	t2, err = fn_method0(thread, t1) // receiver: Bar, name: foo
+	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method1(thread, t1, (t2)-1) // receiver: Bar, name: foo=
+	_, err = fn_method1(thread, l0, (t1)-1) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
