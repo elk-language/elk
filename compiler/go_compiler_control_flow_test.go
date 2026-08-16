@@ -245,965 +245,928 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeForInExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"int literal": {
-// 			input: `
-// 				for i in 20
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 20,
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INCREMENT_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOOP), 0, 18,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(40, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(4, 1),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(4, 6),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"int value": {
-// 			input: `
-// 				j := 20
-// 				for i in j
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 3,
-// 					byte(bytecode.LOAD_INT_8), 20,
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.INCREMENT_INT),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.LOOP), 0, 17,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(51, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(3, 10),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(3, 1),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(3, 1),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"range literal": {
-// 			input: `
-// 				for i in 5...20
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.INT_5),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.LOAD_INT_8), 20,
-// 					byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.INCREMENT_INT),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.LOOP), 0, 18,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(44, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(4, 1),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(4, 6),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"range value": {
-// 			input: `
-// 				r := 5...20
-// 				for i in r
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 3,
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.CALL_METHOD8), 4,
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.INCREMENT_INT),
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.LOOP), 0, 17,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(55, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 2),
-// 					bytecode.NewLineInfo(3, 16),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(3, 1),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(3, 1),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"iterate": {
-// 			input: `
-// 				for i in [1, 2, 3]
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 10,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(47, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(4, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with a pattern": {
-// 			input: `
-// 				for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]
-// 					println(a + b)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 3,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 56,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.IS_A),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.EQUAL_INT),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SUBSCRIPT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.POP_SKIP_ONE),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SUBSCRIPT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.POP_SKIP_ONE),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP_IF), 0, 2,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.THROW),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 4,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.CALL_METHOD8), 5,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 60,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(76, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 50),
-// 					bytecode.NewLineInfo(4, 1),
-// 					bytecode.NewLineInfo(2, 1),
-// 					bytecode.NewLineInfo(3, 7),
-// 					bytecode.NewLineInfo(4, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayTuple{
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(1).ToValue(),
-// 							value.SmallInt(2).ToValue(),
-// 						}),
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(3).ToValue(),
-// 							value.SmallInt(4).ToValue(),
-// 						}),
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(5).ToValue(),
-// 							value.SmallInt(6).ToValue(),
-// 						}),
-// 					}),
-// 					value.Ref(value.TupleMixin),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-// 					value.Ref(value.NewError(
-// 						value.PatternNotMatchedErrorClass,
-// 						"assigned value does not match the pattern defined in for in loop",
-// 					)),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with break": {
-// 			input: `
-// 				for i in [1, 2, 3, 4, 5]
-// 					println(i)
-// 					break if i > 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 9,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 28,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(73, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 6),
-// 					bytecode.NewLineInfo(4, 13),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with break with value": {
-// 			input: `
-// 				for i in [1, 2, 3, 4, 5]
-// 					println(i)
-// 					break :foo if i > 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.JUMP), 0, 9,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 28,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(78, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 6),
-// 					bytecode.NewLineInfo(4, 13),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 					value.ToSymbol("foo").ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"with labeled break": {
-// 			input: `
-// 				$foo: for i in [1, 2, 3, 4, 5]
-// 					println(i)
-// 					break[foo] if i > 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 9,
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 28,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(84, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 6),
-// 					bytecode.NewLineInfo(4, 13),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with continue": {
-// 			input: `
-// 				for i in [1, 2, 3, 4, 5]
-// 					continue if i > 2
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 19,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-// 					byte(bytecode.LOOP), 0, 13,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 23,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(76, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with labeled continue": {
-// 			input: `
-// 				$foo: for i in [1, 2, 3, 4, 5]
-// 					continue[foo] if i > 2
-// 					println(i)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 19,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-// 					byte(bytecode.LOOP), 0, 13,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 23,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(87, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 5),
-// 					bytecode.NewLineInfo(5, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested with break": {
-// 			input: `
-// 				for c in ['a', 'b', 'c', 'd']
-// 					for i in [1, 2, 3, 4, 5]
-// 						break if i > 2
-// 						println(c, i)
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 38,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 15,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 28,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(122, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 10),
-// 					bytecode.NewLineInfo(5, 9),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("a")),
-// 						value.Ref(value.String("b")),
-// 						value.Ref(value.String("c")),
-// 						value.Ref(value.String("d")),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested with labeled break": {
-// 			input: `
-// 				$foo: for c in ['a', 'b', 'c', 'd']
-// 					for i in [1, 2, 3, 4, 5]
-// 						break[foo] if i > 2
-// 						println(c, i)
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 38,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 20,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 28,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 42,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(133, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 10),
-// 					bytecode.NewLineInfo(5, 9),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("a")),
-// 						value.Ref(value.String("b")),
-// 						value.Ref(value.String("c")),
-// 						value.Ref(value.String("d")),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested with continue": {
-// 			input: `
-// 				for c in ['a', 'b', 'c', 'd']
-// 					for i in [1, 2, 3, 4, 5]
-// 						continue if i > 2
-// 						println(c, i)
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 37,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 23,
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-// 					byte(bytecode.LOOP), 0, 13,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 41,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(125, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 9),
-// 					bytecode.NewLineInfo(5, 9),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("a")),
-// 						value.Ref(value.String("b")),
-// 						value.Ref(value.String("c")),
-// 						value.Ref(value.String("d")),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested with labeled continue": {
-// 			input: `
-// 				$foo: for c in ['a', 'b', 'c', 'd']
-// 					for i in [1, 2, 3, 4, 5]
-// 						continue[foo] if i > 2
-// 						println(c, i)
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 4,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 37,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 23,
-// 					byte(bytecode.SET_LOCAL_4),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-// 					byte(bytecode.LOOP), 0, 22,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 2,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_4),
-// 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-// 					byte(bytecode.CALL_METHOD8), 3,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 27,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 41,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(136, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(2, 9),
-// 					bytecode.NewLineInfo(3, 9),
-// 					bytecode.NewLineInfo(4, 9),
-// 					bytecode.NewLineInfo(5, 9),
-// 					bytecode.NewLineInfo(6, 5),
-// 					bytecode.NewLineInfo(7, 6),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.Ref(value.String("a")),
-// 						value.Ref(value.String("b")),
-// 						value.Ref(value.String("c")),
-// 						value.Ref(value.String("d")),
-// 					}),
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 						value.SmallInt(4).ToValue(),
-// 						value.SmallInt(5).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
-// 						value.ToSymbol("println"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoForInExpression(t *testing.T) {
+	tests := goTestTable{
+		// 		"int literal": {
+		// 			input: `
+		// 				for i in 20
+		// 					println(i)
+		// 				end
+		// 			`,
+		// 			want: `
+		// `,
+		// 		},
+		// "int value": {
+		// 	input: `
+		// 		j := 20
+		// 		for i in j
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 3,
+		// 			byte(bytecode.LOAD_INT_8), 20,
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.CALL_METHOD8), 1,
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.INCREMENT_INT),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.LOOP), 0, 17,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(51, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 3),
+		// 			bytecode.NewLineInfo(3, 10),
+		// 			bytecode.NewLineInfo(5, 1),
+		// 			bytecode.NewLineInfo(4, 5),
+		// 			bytecode.NewLineInfo(3, 1),
+		// 			bytecode.NewLineInfo(5, 1),
+		// 			bytecode.NewLineInfo(3, 1),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "range literal": {
+		// 	input: `
+		// 		for i in 5...20
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.INT_5),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.LOAD_INT_8), 20,
+		// 			byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.CALL_METHOD8), 1,
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.INCREMENT_INT),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.LOOP), 0, 18,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(44, 4, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(4, 1),
+		// 			bytecode.NewLineInfo(3, 5),
+		// 			bytecode.NewLineInfo(2, 3),
+		// 			bytecode.NewLineInfo(4, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "range value": {
+		// 	input: `
+		// 		r := 5...20
+		// 		for i in r
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 4,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 1,
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 3,
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.CALL_METHOD8), 4,
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.INCREMENT_INT),
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.LOOP), 0, 17,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(55, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 16),
+		// 			bytecode.NewLineInfo(5, 1),
+		// 			bytecode.NewLineInfo(4, 5),
+		// 			bytecode.NewLineInfo(3, 1),
+		// 			bytecode.NewLineInfo(5, 1),
+		// 			bytecode.NewLineInfo(3, 1),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
+		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
+		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "iterate": {
+		// 	input: `
+		// 		for i in [1, 2, 3]
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 10,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 14,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(47, 4, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 5),
+		// 			bytecode.NewLineInfo(4, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "with a pattern": {
+		// 	input: `
+		// 		for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]
+		// 			println(a + b)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 3,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 56,
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.IS_A),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 33,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.EQUAL_INT),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 24,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.INT_0),
+		// 			byte(bytecode.SUBSCRIPT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.POP_SKIP_ONE),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 13,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.INT_1),
+		// 			byte(bytecode.SUBSCRIPT),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.POP_SKIP_ONE),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP_IF), 0, 2,
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.THROW),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 4,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.ADD_INT),
+		// 			byte(bytecode.CALL_METHOD8), 5,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 60,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(76, 4, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 50),
+		// 			bytecode.NewLineInfo(4, 1),
+		// 			bytecode.NewLineInfo(2, 1),
+		// 			bytecode.NewLineInfo(3, 7),
+		// 			bytecode.NewLineInfo(4, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayTuple{
+		// 				value.Ref(&value.ArrayTuple{
+		// 					value.SmallInt(1).ToValue(),
+		// 					value.SmallInt(2).ToValue(),
+		// 				}),
+		// 				value.Ref(&value.ArrayTuple{
+		// 					value.SmallInt(3).ToValue(),
+		// 					value.SmallInt(4).ToValue(),
+		// 				}),
+		// 				value.Ref(&value.ArrayTuple{
+		// 					value.SmallInt(5).ToValue(),
+		// 					value.SmallInt(6).ToValue(),
+		// 				}),
+		// 			}),
+		// 			value.Ref(value.TupleMixin),
+		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+		// 			value.Ref(value.NewError(
+		// 				value.PatternNotMatchedErrorClass,
+		// 				"assigned value does not match the pattern defined in for in loop",
+		// 			)),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "with break": {
+		// 	input: `
+		// 		for i in [1, 2, 3, 4, 5]
+		// 			println(i)
+		// 			break if i > 2
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 9,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 28,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(73, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 6),
+		// 			bytecode.NewLineInfo(4, 13),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "with break with value": {
+		// 	input: `
+		// 		for i in [1, 2, 3, 4, 5]
+		// 			println(i)
+		// 			break :foo if i > 2
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.JUMP), 0, 9,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 28,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(78, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 6),
+		// 			bytecode.NewLineInfo(4, 13),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 			value.ToSymbol("foo").ToValue(),
+		// 		},
+		// 	),
+		// },
+		// "with labeled break": {
+		// 	input: `
+		// 		$foo: for i in [1, 2, 3, 4, 5]
+		// 			println(i)
+		// 			break[foo] if i > 2
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 9,
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 28,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(84, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 6),
+		// 			bytecode.NewLineInfo(4, 13),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "with continue": {
+		// 	input: `
+		// 		for i in [1, 2, 3, 4, 5]
+		// 			continue if i > 2
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 19,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
+		// 			byte(bytecode.LOOP), 0, 13,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 23,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(76, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 5),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "with labeled continue": {
+		// 	input: `
+		// 		$foo: for i in [1, 2, 3, 4, 5]
+		// 			continue[foo] if i > 2
+		// 			println(i)
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 19,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
+		// 			byte(bytecode.LOOP), 0, 13,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.CALL_METHOD8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 23,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(87, 5, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 5),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println@1"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "nested with break": {
+		// 	input: `
+		// 		for c in ['a', 'b', 'c', 'd']
+		// 			for i in [1, 2, 3, 4, 5]
+		// 				break if i > 2
+		// 				println(c, i)
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 4,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 38,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 15,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 2,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
+		// 			byte(bytecode.CALL_METHOD8), 3,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 28,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 42,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(122, 7, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 10),
+		// 			bytecode.NewLineInfo(5, 9),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 			bytecode.NewLineInfo(7, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.Ref(value.String("a")),
+		// 				value.Ref(value.String("b")),
+		// 				value.Ref(value.String("c")),
+		// 				value.Ref(value.String("d")),
+		// 			}),
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "nested with labeled break": {
+		// 	input: `
+		// 		$foo: for c in ['a', 'b', 'c', 'd']
+		// 			for i in [1, 2, 3, 4, 5]
+		// 				break[foo] if i > 2
+		// 				println(c, i)
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 4,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 38,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 20,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 2,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
+		// 			byte(bytecode.CALL_METHOD8), 3,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 28,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 42,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(133, 7, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 10),
+		// 			bytecode.NewLineInfo(5, 9),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 			bytecode.NewLineInfo(7, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.Ref(value.String("a")),
+		// 				value.Ref(value.String("b")),
+		// 				value.Ref(value.String("c")),
+		// 				value.Ref(value.String("d")),
+		// 			}),
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "nested with continue": {
+		// 	input: `
+		// 		for c in ['a', 'b', 'c', 'd']
+		// 			for i in [1, 2, 3, 4, 5]
+		// 				continue if i > 2
+		// 				println(c, i)
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 4,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 37,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 23,
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
+		// 			byte(bytecode.LOOP), 0, 13,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 2,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
+		// 			byte(bytecode.CALL_METHOD8), 3,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 41,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(125, 7, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 9),
+		// 			bytecode.NewLineInfo(5, 9),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 			bytecode.NewLineInfo(7, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.Ref(value.String("a")),
+		// 				value.Ref(value.String("b")),
+		// 				value.Ref(value.String("c")),
+		// 				value.Ref(value.String("d")),
+		// 			}),
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+		// "nested with labeled continue": {
+		// 	input: `
+		// 		$foo: for c in ['a', 'b', 'c', 'd']
+		// 			for i in [1, 2, 3, 4, 5]
+		// 				continue[foo] if i > 2
+		// 				println(c, i)
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 4,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 37,
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.COPY),
+		// 			byte(bytecode.GET_ITERATOR),
+		// 			byte(bytecode.SET_LOCAL_3),
+		// 			byte(bytecode.GET_LOCAL_3),
+		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 23,
+		// 			byte(bytecode.SET_LOCAL_4),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
+		// 			byte(bytecode.LOOP), 0, 22,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 2,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.GET_LOCAL_4),
+		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
+		// 			byte(bytecode.CALL_METHOD8), 3,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 27,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.LOOP), 0, 41,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(136, 7, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 9),
+		// 			bytecode.NewLineInfo(3, 9),
+		// 			bytecode.NewLineInfo(4, 9),
+		// 			bytecode.NewLineInfo(5, 9),
+		// 			bytecode.NewLineInfo(6, 5),
+		// 			bytecode.NewLineInfo(7, 6),
+		// 		},
+		// 		[]value.Value{
+		// 			value.Ref(&value.ArrayList{
+		// 				value.Ref(value.String("a")),
+		// 				value.Ref(value.String("b")),
+		// 				value.Ref(value.String("c")),
+		// 				value.Ref(value.String("d")),
+		// 			}),
+		// 			value.Ref(&value.ArrayList{
+		// 				value.SmallInt(1).ToValue(),
+		// 				value.SmallInt(2).ToValue(),
+		// 				value.SmallInt(3).ToValue(),
+		// 				value.SmallInt(4).ToValue(),
+		// 				value.SmallInt(5).ToValue(),
+		// 			}),
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.NewCallSiteInfo(
+		// 				value.ToSymbol("println"),
+		// 				1,
+		// 			)),
+		// 		},
+		// 	),
+		// },
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 func TestGoReturnExpression(t *testing.T) {
 	tests := goTestTable{

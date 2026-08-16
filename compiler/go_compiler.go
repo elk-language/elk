@@ -2579,7 +2579,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		loc,
 		false,
 	)
-	lengthVar, lengthVal := c.wrapValueInTmpGoLocal(c.convertValueToNativeInt(lengthVal))
+	lengthVar, lengthVal := c.wrapValueInTmpGoLocal(c.convertValueToSmallInt(lengthVal))
 
 	if elementBeforeRestCount == -1 {
 		c.emit("if %s != %d {\n", lengthVar.name, len(elementNodes))
@@ -2674,15 +2674,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			c.emit("}\n")
 
 			// i++
-			c.emitAssignGoLocal(
-				iteratorVar,
-				c.compileIncrement(
-					iteratorVal,
-					c.checker.StdInt(),
-					loc,
-					false,
-				),
-			)
+			c.emit("%s++\n", iteratorVar.name)
 		}
 
 		iteratorVar.markFree()
@@ -3000,7 +2992,7 @@ func (c *GoCompiler) compileForIn(
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
 
 	patternResult := c.compilePattern(param, loopTmpVal)
-	c.emit("if %s {\n", c.convertValueToNotBool(patternResult))
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 	errVal := newGoValue(
 		"value.NewPatternNotMatchedInForInLoopError()",
 		c.checker.Std(symbol.Error),
@@ -3052,6 +3044,14 @@ func (c *GoCompiler) compileForInAsNumericFor(
 		return c.compileForInRangeLiteralAsNumericFor(label, in, then, paramExpr, paramName, typ, loc, valueIsIgnored)
 	case *ast.IntLiteralNode:
 		return c.compileForInIntLiteralAsNumericFor(label, in, then, paramExpr, paramName, typ, loc, valueIsIgnored)
+	}
+
+	inExpressionType := c.typeOf(inExpression)
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
+		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, typ, loc, valueIsIgnored)
+	}
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Int)) {
+		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, typ, loc, valueIsIgnored)
 	}
 
 	return nil
@@ -3149,6 +3149,114 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 	)
 }
 
+func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	inExpressionType := c.typeOf(inRange).(*types.Generic)
+
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessClosedRange)) ||
+		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessOpenRange)) {
+		return nil
+	}
+
+	var cmpOp token.Type
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.ClosedRange)) {
+		cmpOp = token.LESS_EQUAL
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.RightOpenRange)) {
+		cmpOp = token.LESS
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) {
+		cmpOp = token.LESS
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) {
+		cmpOp = token.LESS_EQUAL
+	}
+
+	rangeType, rangeIsGeneric := c.typeOf(inRange).(*types.Generic)
+	if !rangeIsGeneric {
+		return nil
+	}
+
+	elementType := rangeType.TypeArguments.Get(0).Type
+	paramLocal := c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	_, rangeVal := c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
+
+	init := func() {
+		var initVal *goValue
+
+		startSymbol := c.emitSymbol("start")
+		initVal = c.compileMethodCallWithLiteralArgValuesAndName(
+			rangeType,
+			elementType,
+			startSymbol,
+			"start",
+			[]*goValue{
+				rangeVal,
+			},
+			loc,
+			false,
+		)
+
+		if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) ||
+			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) ||
+			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessOpenRange)) {
+			initVal = c.compileIncrement(
+				initVal,
+				elementType,
+				loc,
+				false,
+			)
+		}
+
+		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
+	}
+
+	increment := func() {
+		c.emitAssignGoLocal(
+			paramLocal.goLocal,
+			c.compileIncrement(
+				paramVal,
+				paramVal.elkType,
+				loc,
+				false,
+			),
+		)
+	}
+
+	var cond func() *goValue
+	if cmpOp != token.ZERO_VALUE {
+		cond = func() *goValue {
+			endSymbol := c.emitSymbol("end")
+			return c.compileBinaryExpression(
+				paramVal,
+				c.compileMethodCallWithLiteralArgValuesAndName(
+					rangeType,
+					elementType,
+					endSymbol,
+					"end",
+					[]*goValue{
+						rangeVal,
+					},
+					loc,
+					false,
+				),
+				types.Bool{},
+				cmpOp,
+				loc,
+				false,
+			)
+		}
+	}
+
+	return c.compileNumericForVal(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		typ,
+		loc,
+		valueIsIgnored,
+	)
+}
+
 func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast.IntLiteralNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	i, err := value.ParseBigInt(inInt.Value, 0)
 	if !err.IsUndefined() {
@@ -3175,6 +3283,49 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 		} else {
 			initVal = newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.Int), paramType)
 		}
+		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
+	}
+	increment := func() {
+		c.emitAssignGoLocal(
+			paramLocal.goLocal,
+			c.compileIncrement(
+				paramVal,
+				paramVal.elkType,
+				loc,
+				false,
+			),
+		)
+	}
+
+	cond := func() *goValue {
+		return c.compileBinaryExpression(
+			paramVal,
+			c.compileExpression(inInt, false),
+			types.Bool{},
+			token.LESS,
+			loc,
+			false,
+		)
+	}
+	return c.compileNumericForVal(
+		label,
+		init,
+		cond,
+		increment,
+		then,
+		typ,
+		loc,
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileForInIntAsNumericFor(label string, inInt ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
+	paramType := goValueType
+	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.Int), paramType, paramExpr.Location())
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+
+	init := func() {
+		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.Int), paramType)
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
 	increment := func() {
@@ -3468,6 +3619,9 @@ func (c *GoCompiler) compileNumericFor(label string, init, cond, increment ast.E
 			c.compileExpression(init, true)
 		},
 		func() *goValue {
+			if cond == nil {
+				return nil
+			}
 			return c.compileExpression(cond, false)
 		},
 		func() {
@@ -15462,6 +15616,42 @@ func (c *GoCompiler) convertValueToNativeInt(v *goValue) *goValue {
 				fmt.Sprintf("(%s).AsInt()", c.convertValueToWiderType(v).value),
 				v.elkType,
 				value.FetchGoType("int"),
+			)
+		}
+
+		return nil
+	}
+}
+
+func (c *GoCompiler) convertValueToSmallInt(v *goValue) *goValue {
+	if v == nil || types.IsNever(v.elkType) {
+		return nil
+	}
+	narrowV := c.convertValueToNarrowerType(v)
+
+	switch narrowV.goType.Name {
+	case "value.SmallInt":
+		return narrowV
+	case "int", "value.Float",
+		"value.Int64", "value.Int32", "value.Int16", "value.Int8",
+		"value.UInt", "value.UInt64", "value.UInt32", "value.UInt16", "value.UInt8":
+		return narrowV.newGoValue(
+			fmt.Sprintf("value.SmallInt(%s)", narrowV.value),
+			narrowV.elkType,
+			value.FetchGoType("value.SmallInt"),
+		)
+	case "*value.BigInt":
+		return narrowV.newGoValue(
+			fmt.Sprintf("(%s).ToSmallInt()", narrowV.value),
+			narrowV.elkType,
+			value.FetchGoType("value.SmallInt"),
+		)
+	default:
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+			return v.newGoValue(
+				fmt.Sprintf("value.SmallInt((%s).AsInt())", c.convertValueToWiderType(v).value),
+				v.elkType,
+				value.FetchGoType("value.SmallInt"),
 			)
 		}
 

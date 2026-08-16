@@ -4083,18 +4083,20 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var t6 value.Value
 	_ = t6
 	var t7 value.Bool
 	_ = t7
+	var t8 value.SmallInt
+	_ = t8
 	var l2 value.Value // var a: Std::Int
 	_ = l2
-	var t8 value.Bool
-	_ = t8
 	var t9 value.Bool
 	_ = t9
+	var t10 value.Bool
+	_ = t10
 	var self value.Value
 	_ = self
 
@@ -4117,17 +4119,18 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(3)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 3 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
 	t6, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: ==
 	if err.IsNotUndefined() {
@@ -4138,21 +4141,21 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(8)).ToValue(), (t5).Class())) {
+	if value.Bool(value.IsA((value.SmallInt(8)).ToValue(), (t3).Class())) {
 		t4 = value.ResizeNativeArgs(t4, 3)
-		t4[0] = t5
+		t4[0] = t3
 		t4[1] = (value.SmallInt(8)).ToValue()
-		t5, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: <
+		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		t7 = value.ToBool(t5)
+		t7 = value.ToBool(t3)
 	} else {
 		t7 = value.False
 	}
@@ -4160,63 +4163,64 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(2)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(2)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
-	if !(value.Bool(value.IsA(t5, value.ListMixin))) {
+	if !(value.Bool(value.IsA(t3, value.ListMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t5
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(2)).ToValue()))) {
+	t8 = value.SmallInt((t3).AsInt())
+	if t8 != 2 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l2 = t6
+	l2 = t3
 	if !(value.True) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t5, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(1)).ToValue(), (t5).Class())) {
-		t9 = value.Bool(value.GreaterThanInts(t5, (value.SmallInt(1)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(1)).ToValue(), (t3).Class())) {
+		t10 = value.Bool(value.GreaterThanInts(t3, (value.SmallInt(1)).ToValue()))
 	} else {
-		t9 = value.False
+		t10 = value.False
 	}
-	t8 = t9
-	if t8 {
-		if value.Bool(value.IsA((value.SmallInt(5)).ToValue(), (t5).Class())) {
-			t9 = value.Bool(value.LessThanInts(t5, (value.SmallInt(5)).ToValue()))
+	t9 = t10
+	if t9 {
+		if value.Bool(value.IsA((value.SmallInt(5)).ToValue(), (t3).Class())) {
+			t10 = value.Bool(value.LessThanInts(t3, (value.SmallInt(5)).ToValue()))
 		} else {
-			t9 = value.False
+			t10 = value.False
 		}
-		t8 = t9
+		t9 = t10
 	}
-	if !(t8) {
+	if !(t9) {
 		t7 = value.False
 		goto lbl3
 	}
@@ -4280,7 +4284,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -4304,25 +4308,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(((t5).AsString()) == (value.String("foo")))) {
+	if !(value.Bool(((t3).AsString()) == (value.String("foo")))) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(((t5).AsString()) == (value.String("bar")))) {
+	if !(value.Bool(((t3).AsString()) == (value.String("bar")))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -4385,7 +4390,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var t6 value.Value
 	_ = t6
@@ -4412,17 +4417,18 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (sym2).ToValue()
 	t6, err = fn_method1(thread, t4) // receiver: Std::Symbol, name: ==
 	if err.IsNotUndefined() {
@@ -4433,13 +4439,13 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (sym3).ToValue()
 	t6, err = fn_method1(thread, t4) // receiver: Std::Symbol, name: ==
 	if err.IsNotUndefined() {
@@ -4505,7 +4511,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -4529,25 +4535,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(255)).ToValue()))) {
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(255)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(38)).ToValue()))) {
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(38)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -4606,7 +4613,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -4630,25 +4637,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
+		t2 = value.False
+		goto lbl2
+	}
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(3)).ToValue()))) {
+		t2 = value.False
+		goto lbl2
+	}
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
-		t2 = value.False
-		goto lbl2
-	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(3)).ToValue()))) {
-		t2 = value.False
-		goto lbl2
-	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(2)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -4712,9 +4720,9 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
-	var t6 value.Value
+	var t6 value.SmallInt
 	_ = t6
 	var t7 value.Bool
 	_ = t7
@@ -4722,8 +4730,6 @@ func main() { // loc: <main>
 	_ = l3
 	var t8 value.Bool
 	_ = t8
-	var t9 value.Value
-	_ = t9
 	var self value.Value
 	_ = self
 
@@ -4747,53 +4753,55 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t2 = value.False
 		goto lbl2
 	}
-	t3 = value.SubtractInts(t3, (value.SmallInt(1)).ToValue())
-	t5 = (value.SmallInt(0)).ToValue()
-	for value.Bool(value.LessThanInts(t5, t3)) {
-		t6, err = (l0).SubscriptInt((t5).AsInt())
+	t5 -= 1
+	t6 = 0
+	for t6 < t5 {
+		t3, err = (l0).SubscriptInt(int(t6))
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		l2.Append(t6)
-		t5 = value.IncrementInt(t5)
+		l2.Append(t3)
+		t6++
 	}
-	t6, err = (l0).SubscriptInt((t5).AsInt())
+	t3, err = (l0).SubscriptInt(int(t6))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
 	l3 = value.NewArrayListOfValueWithElements(0)
-	if !(value.Bool(value.IsA(t6, value.ListMixin))) {
+	if !(value.Bool(value.IsA(t3, value.ListMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t6
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t5, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t6
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t6).Class())) {
-		t8 = value.Bool(value.LessThanInts(t6, (value.SmallInt(0)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t3).Class())) {
+		t8 = value.Bool(value.LessThanInts(t3, (value.SmallInt(0)).ToValue()))
 	} else {
 		t8 = value.False
 	}
@@ -4801,25 +4809,25 @@ func main() { // loc: <main>
 		t7 = value.False
 		goto lbl3
 	}
-	t6 = (value.SmallInt(1)).ToValue()
-	for value.Bool(value.LessThanInts(t6, t5)) {
+	t6 = 1
+	for t6 < t5 {
 		t4 = value.ResizeNativeArgs(t4, 3)
-		t4[0] = t6
-		t4[1] = t6
-		t9, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+		t4[0] = t3
+		t4[1] = (t6).ToValue()
+		t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		l3.Append(t9)
-		t6 = value.IncrementInt(t6)
+		l3.Append(t3)
+		t6++
 	}
 lbl3:
 	if !(t7) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.IncrementInt(t5)
+	t6++
 lbl2:
 	if t2 {
 		t1 = (value.String("a")).ToValue()
@@ -4877,9 +4885,9 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
-	var t6 value.Value
+	var t6 value.SmallInt
 	_ = t6
 	var t7 value.Bool
 	_ = t7
@@ -4907,42 +4915,44 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.SubtractInts(t3, (value.SmallInt(1)).ToValue())
-	t6, err = (l0).SubscriptInt((t5).AsInt())
+	t6 = t5 - 1
+	t3, err = (l0).SubscriptInt(int(t6))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
-	if !(value.Bool(value.IsA(t6, value.ListMixin))) {
+	if !(value.Bool(value.IsA(t3, value.ListMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t6
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t5, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t6
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t6).Class())) {
-		t8 = value.Bool(value.LessThanInts(t6, (value.SmallInt(0)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t3).Class())) {
+		t8 = value.Bool(value.LessThanInts(t3, (value.SmallInt(0)).ToValue()))
 	} else {
 		t8 = value.False
 	}
@@ -4956,7 +4966,7 @@ lbl3:
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.IncrementInt(t5)
+	t6++
 lbl2:
 	if t2 {
 		t1 = (value.String("a")).ToValue()
@@ -5019,18 +5029,20 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var t6 value.Value
 	_ = t6
 	var t7 value.Bool
 	_ = t7
+	var t8 value.SmallInt
+	_ = t8
 	var l2 value.Value // var a: Std::Int
 	_ = l2
-	var t8 value.Bool
-	_ = t8
 	var t9 value.Bool
 	_ = t9
+	var t10 value.Bool
+	_ = t10
 	var self value.Value
 	_ = self
 
@@ -5053,17 +5065,18 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(3)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 3 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
 	t6, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: ==
 	if err.IsNotUndefined() {
@@ -5074,21 +5087,21 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(8)).ToValue(), (t5).Class())) {
+	if value.Bool(value.IsA((value.SmallInt(8)).ToValue(), (t3).Class())) {
 		t4 = value.ResizeNativeArgs(t4, 3)
-		t4[0] = t5
+		t4[0] = t3
 		t4[1] = (value.SmallInt(8)).ToValue()
-		t5, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: <
+		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		t7 = value.ToBool(t5)
+		t7 = value.ToBool(t3)
 	} else {
 		t7 = value.False
 	}
@@ -5096,63 +5109,64 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(2)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(2)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
-	if !(value.Bool(value.IsA(t5, value.TupleMixin))) {
+	if !(value.Bool(value.IsA(t3, value.TupleMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t5
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(2)).ToValue()))) {
+	t8 = value.SmallInt((t3).AsInt())
+	if t8 != 2 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l2 = t6
+	l2 = t3
 	if !(value.True) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t5, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(1)).ToValue(), (t5).Class())) {
-		t9 = value.Bool(value.GreaterThanInts(t5, (value.SmallInt(1)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(1)).ToValue(), (t3).Class())) {
+		t10 = value.Bool(value.GreaterThanInts(t3, (value.SmallInt(1)).ToValue()))
 	} else {
-		t9 = value.False
+		t10 = value.False
 	}
-	t8 = t9
-	if t8 {
-		if value.Bool(value.IsA((value.SmallInt(5)).ToValue(), (t5).Class())) {
-			t9 = value.Bool(value.LessThanInts(t5, (value.SmallInt(5)).ToValue()))
+	t9 = t10
+	if t9 {
+		if value.Bool(value.IsA((value.SmallInt(5)).ToValue(), (t3).Class())) {
+			t10 = value.Bool(value.LessThanInts(t3, (value.SmallInt(5)).ToValue()))
 		} else {
-			t9 = value.False
+			t10 = value.False
 		}
-		t8 = t9
+		t9 = t10
 	}
-	if !(t8) {
+	if !(t9) {
 		t7 = value.False
 		goto lbl3
 	}
@@ -5217,7 +5231,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -5241,25 +5255,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(((t5).AsString()) == (value.String("foo")))) {
+	if !(value.Bool(((t3).AsString()) == (value.String("foo")))) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(((t5).AsString()) == (value.String("bar")))) {
+	if !(value.Bool(((t3).AsString()) == (value.String("bar")))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -5323,7 +5338,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var t6 value.Value
 	_ = t6
@@ -5350,17 +5365,18 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (sym2).ToValue()
 	t6, err = fn_method1(thread, t4) // receiver: Std::Symbol, name: ==
 	if err.IsNotUndefined() {
@@ -5371,13 +5387,13 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t5
+	t4[0] = t3
 	t4[1] = (sym3).ToValue()
 	t6, err = fn_method1(thread, t4) // receiver: Std::Symbol, name: ==
 	if err.IsNotUndefined() {
@@ -5444,7 +5460,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -5468,25 +5484,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(255)).ToValue()))) {
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(255)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(38)).ToValue()))) {
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(38)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -5546,7 +5563,7 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
 	var self value.Value
 	_ = self
@@ -5570,25 +5587,26 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
+		t2 = value.False
+		goto lbl2
+	}
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(0)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(3)).ToValue()))) {
+		t2 = value.False
+		goto lbl2
+	}
+	t3, err = (l0).SubscriptInt(int(value.SmallInt(1)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
 	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
-		t2 = value.False
-		goto lbl2
-	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(0)))
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(3)).ToValue()))) {
-		t2 = value.False
-		goto lbl2
-	}
-	t5, err = (l0).SubscriptInt(int(value.SmallInt(1)))
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	if !(value.Bool(value.EqualInts(t5, (value.SmallInt(2)).ToValue()))) {
 		t2 = value.False
 		goto lbl2
 	}
@@ -5654,9 +5672,9 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
-	var t6 value.Value
+	var t6 value.SmallInt
 	_ = t6
 	var t7 value.Bool
 	_ = t7
@@ -5664,8 +5682,6 @@ func main() { // loc: <main>
 	_ = l3
 	var t8 value.Bool
 	_ = t8
-	var t9 value.Value
-	_ = t9
 	var self value.Value
 	_ = self
 
@@ -5689,53 +5705,55 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t2 = value.False
 		goto lbl2
 	}
-	t3 = value.SubtractInts(t3, (value.SmallInt(1)).ToValue())
-	t5 = (value.SmallInt(0)).ToValue()
-	for value.Bool(value.LessThanInts(t5, t3)) {
-		t6, err = (l0).SubscriptInt((t5).AsInt())
+	t5 -= 1
+	t6 = 0
+	for t6 < t5 {
+		t3, err = (l0).SubscriptInt(int(t6))
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		l2.Append(t6)
-		t5 = value.IncrementInt(t5)
+		l2.Append(t3)
+		t6++
 	}
-	t6, err = (l0).SubscriptInt((t5).AsInt())
+	t3, err = (l0).SubscriptInt(int(t6))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
 	l3 = value.NewArrayListOfValueWithElements(0)
-	if !(value.Bool(value.IsA(t6, value.TupleMixin))) {
+	if !(value.Bool(value.IsA(t3, value.TupleMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t6
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t5, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t6
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t6).Class())) {
-		t8 = value.Bool(value.LessThanInts(t6, (value.SmallInt(0)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t3).Class())) {
+		t8 = value.Bool(value.LessThanInts(t3, (value.SmallInt(0)).ToValue()))
 	} else {
 		t8 = value.False
 	}
@@ -5743,25 +5761,25 @@ func main() { // loc: <main>
 		t7 = value.False
 		goto lbl3
 	}
-	t6 = (value.SmallInt(1)).ToValue()
-	for value.Bool(value.LessThanInts(t6, t5)) {
+	t6 = 1
+	for t6 < t5 {
 		t4 = value.ResizeNativeArgs(t4, 3)
-		t4[0] = t6
-		t4[1] = t6
-		t9, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+		t4[0] = t3
+		t4[1] = (t6).ToValue()
+		t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		l3.Append(t9)
-		t6 = value.IncrementInt(t6)
+		l3.Append(t3)
+		t6++
 	}
 lbl3:
 	if !(t7) {
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.IncrementInt(t5)
+	t6++
 lbl2:
 	if t2 {
 		t1 = (value.String("a")).ToValue()
@@ -5821,9 +5839,9 @@ func main() { // loc: <main>
 	_ = t4
 	var err value.Value
 	_ = err
-	var t5 value.Value
+	var t5 value.SmallInt
 	_ = t5
-	var t6 value.Value
+	var t6 value.SmallInt
 	_ = t6
 	var t7 value.Bool
 	_ = t7
@@ -5851,42 +5869,44 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.SubtractInts(t3, (value.SmallInt(1)).ToValue())
-	t6, err = (l0).SubscriptInt((t5).AsInt())
+	t6 = t5 - 1
+	t3, err = (l0).SubscriptInt(int(t6))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	t7 = value.True
-	if !(value.Bool(value.IsA(t6, value.TupleMixin))) {
+	if !(value.Bool(value.IsA(t3, value.TupleMixin))) {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
-	t4[0] = t6
-	t5, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t4[0] = t3
+	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.GreaterThanEqualInts(t5, (value.SmallInt(1)).ToValue()))) {
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 < 1 {
 		t7 = value.False
 		goto lbl3
 	}
 	t4 = value.ResizeNativeArgs(t4, 3)
-	t4[0] = t6
+	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t6).Class())) {
-		t8 = value.Bool(value.LessThanInts(t6, (value.SmallInt(0)).ToValue()))
+	if value.Bool(value.IsA((value.SmallInt(0)).ToValue(), (t3).Class())) {
+		t8 = value.Bool(value.LessThanInts(t3, (value.SmallInt(0)).ToValue()))
 	} else {
 		t8 = value.False
 	}
@@ -5900,7 +5920,7 @@ lbl3:
 		t2 = value.False
 		goto lbl2
 	}
-	t5 = value.IncrementInt(t5)
+	t6++
 lbl2:
 	if t2 {
 		t1 = (value.String("a")).ToValue()
@@ -5968,7 +5988,7 @@ func main() { // loc: <main>
 	_ = l2
 	var t6 value.Bool
 	_ = t6
-	var t7 value.Value
+	var t7 value.SmallInt
 	_ = t7
 	var l3 value.Value // var a: Std::Int
 	_ = l3
@@ -6047,19 +6067,20 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t7 = value.SmallInt((t3).AsInt())
+	if t7 != 2 {
 		t6 = value.False
 		goto lbl4
 	}
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(0)).ToValue()
-	t7, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l3 = t7
+	l3 = t3
 	if !(value.True) {
 		t6 = value.False
 		goto lbl4
@@ -6167,7 +6188,7 @@ func main() { // loc: <main>
 	_ = l2
 	var t6 value.Bool
 	_ = t6
-	var t7 value.Value
+	var t7 value.SmallInt
 	_ = t7
 	var l3 value.Value // var a: Std::Int
 	_ = l3
@@ -6246,19 +6267,20 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(2)).ToValue()))) {
+	t7 = value.SmallInt((t3).AsInt())
+	if t7 != 2 {
 		t6 = value.False
 		goto lbl4
 	}
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(0)).ToValue()
-	t7, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l3 = t7
+	l3 = t3
 	if !(value.True) {
 		t6 = value.False
 		goto lbl4
