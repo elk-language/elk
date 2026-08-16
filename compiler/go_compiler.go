@@ -377,6 +377,18 @@ func newGoImportEntry(path, name string) *goImportEntry {
 	}
 }
 
+type goCatchScope struct {
+	label     *goLabel
+	isFinally bool
+}
+
+func newGoCatchScope(label *goLabel, isFinally bool) *goCatchScope {
+	return &goCatchScope{
+		label:     label,
+		isFinally: isFinally,
+	}
+}
+
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
@@ -597,6 +609,7 @@ type GoCompiler struct {
 	mode              goMode
 	children          concurrent.Slice[*GoCompiler]
 	goLocals          ds.OrderedMap[string, *goLocal]
+	goCatchScopes     []*goCatchScope
 	loopInfo          []*goLoopInfo
 	goLabelCounter    int
 	loopCounter       int // increments when a loop is entered, does not decrement ever
@@ -2887,6 +2900,12 @@ func (c *GoCompiler) registerGoLabel() *goLabel {
 	}
 }
 
+func (c *GoCompiler) registerUsedGoLabel() *goLabel {
+	label := c.registerGoLabel()
+	label.used = true
+	return label
+}
+
 func (c *GoCompiler) emitGoLabel(label *goLabel) {
 	if label.used {
 		c.emit("%s:\n", label.name)
@@ -3740,7 +3759,26 @@ func (c *GoCompiler) switchBuffer(buff bytes.Buffer) bytes.Buffer {
 	return prevBuff
 }
 
+func (c *GoCompiler) registerCatchScope(label *goLabel, isFinally bool) *goCatchScope {
+	catchScope := newGoCatchScope(label, isFinally)
+	c.goCatchScopes = append(c.goCatchScopes, catchScope)
+	return catchScope
+}
+
+func (c *GoCompiler) popCatchScope() {
+	c.goCatchScopes = c.goCatchScopes[:len(c.goCatchScopes)-1]
+}
+
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
+	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
+		// simple block without catch and finally
+		c.enterScope("", defaultNativeElkScopeType)
+		then := c.compileStatements(node.Body, valueIsIgnored)
+		c.leaveScope()
+
+		return then
+	}
+
 	var scopeType nativeElkScopeType
 	if len(node.Finally) > 0 {
 		scopeType = doFinallyNativeElkScopeType
@@ -3748,133 +3786,121 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 		scopeType = defaultNativeElkScopeType
 	}
 
+	typ := c.typeOf(node)
+	resultVar := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
+	resultVal := newGoValueWithLocal(resultVar, typ)
+
 	c.enterScope("", scopeType)
-	then := c.compileStatements(node.Body, valueIsIgnored)
+	thenVal := c.compileStatements(node.Body, false)
+	c.emitAssignGoLocal(resultVar, thenVal)
 	c.leaveScope()
 
-	return then
-	// TODO: implement catch and finally
-	// doEndOffset := c.nextInstructionOffset()
+	if len(node.Finally) > 0 {
+		c.enterScope("", defaultNativeElkScopeType)
+		c.compileStatements(node.Finally, true)
+		c.leaveScope()
+	}
 
-	// if len(node.Finally) > 0 {
-	// 	c.enterScope("", defaultBytecodeScopeType)
-	// 	// pop the return value of finally leaving the return value of do
-	// 	c.compileStatementsWithoutResult(node.Finally)
-	// 	c.leaveScope(location.EndPos.Line)
-	// }
+	postCatchLabel := c.registerUsedGoLabel()
+	endLabel := c.registerUsedGoLabel()
+	c.emitGoto(endLabel)
 
-	// if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
-	// 	return
-	// }
+	catchLabel := c.registerGoLabel()
+	c.registerCatchScope(catchLabel, false)
+	c.emitGoLabel(catchLabel)
 
-	// jumpOverCatchOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
+	c.enterScope("", defaultNativeElkScopeType)
 
-	// var jumpsToEndOfCatch []int
-	// catchStartOffset := c.nextInstructionOffset()
+	errVar := c.defineTmpGoLocal(goValueType)
+	errVal := newGoValueWithLocal(errVar, types.Any{})
+	c.emit("%s = err\n", errVar.name)
 
-	// c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
+	for _, catchNode := range node.Catches {
+		location := catchNode.Location()
 
-	// c.enterScope("", defaultBytecodeScopeType)
+		if catchNode.StackTraceVar != nil {
+			var stackTraceVarName string
+			switch s := catchNode.StackTraceVar.(type) {
+			case *ast.PublicIdentifierNode:
+				stackTraceVarName = s.Value
+			case *ast.PrivateIdentifierNode:
+				stackTraceVarName = s.Value
+			default:
+				panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+			}
 
-	// for _, catchNode := range node.Catches {
-	// 	location := catchNode.Location()
+			stackTraceType := c.typeOf(catchNode.StackTraceVar)
+			stackTraceVar := c.defineLocal(stackTraceVarName, stackTraceType, c.elkTypeToGoType(stackTraceType, false), location)
+			if stackTraceVar != nil {
+				c.emit("%s = thread.ErrStackTrace()\n", stackTraceVar.name)
+			}
+		}
 
-	// 	if catchNode.StackTraceVar != nil {
-	// 		c.emit(location.EndPos.Line, bytecode.DUP_SECOND)
+		patternResult := c.compilePattern(catchNode.Pattern, errVal)
+		c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
+		catchResult := c.compileStatements(catchNode.Body, false)
+		c.emitAssignGoLocal(resultVar, catchResult)
+		c.emitGoto(postCatchLabel)
+		c.emit("}\n")
+	}
 
-	// 		var stackTraceVarName string
-	// 		switch s := catchNode.StackTraceVar.(type) {
-	// 		case *ast.PublicIdentifierNode:
-	// 			stackTraceVarName = s.Value
-	// 		case *ast.PrivateIdentifierNode:
-	// 			stackTraceVarName = s.Value
-	// 		default:
-	// 			panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
-	// 		}
+	c.popCatchScope()
+	c.emitRethrow(errVal)
+	c.emitGoLabel(postCatchLabel)
 
-	// 		stackTraceVar := c.defineLocal(stackTraceVarName, location)
-	// 		if stackTraceVar != nil {
-	// 			c.emitSetLocalPop(location.StartPos.Line, stackTraceVar.index)
-	// 		}
-	// 	}
+	finallyLabel := c.registerGoLabel()
+	c.registerCatchScope(finallyLabel, true)
+	c.emitGoLabel(finallyLabel)
 
-	// 	c.pattern(catchNode.Pattern)
-	// 	jumpOverCatchBody := c.emitJump(location.StartPos.Line, bytecode.JUMP_UNLESS)
+	if len(node.Finally) > 0 {
+		// c.emit(location.EndPos.Line, bytecode.FALSE)
+		// c.patchJump(jumpOverFalseOffset, location)
 
-	// 	c.compileStatementsWithResult(catchNode.Body, catchNode.Location())
+		// jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+		// finallyEntryOffset := c.nextInstructionOffset()
+		// c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
+		// // entry point for return when executing finally
+		// c.emit(location.EndPos.Line, bytecode.NIL)
 
-	// 	if len(node.Finally) < 1 {
-	// 		// pop the thrown value and the stack trace, leaving the return value of the catch
-	// 		c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE)
-	// 	}
-	// 	jump := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-	// 	jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
+		// jumpOverBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
+		// // entry point for break or continue when executing finally
+		// c.emit(location.EndPos.Line, bytecode.UNDEFINED)
 
-	// 	c.patchJump(jumpOverCatchBody, location)
-	// }
+		// c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
+		// c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
 
-	// if len(node.Finally) > 0 {
-	// 	c.emit(location.EndPos.Line, bytecode.TRUE)
-	// } else {
-	// 	c.emit(location.EndPos.Line, bytecode.RETHROW)
-	// }
+		// c.compileStatementsWithResult(node.Finally, location)
 
-	// var jumpOverFalseOffset int
-	// if len(node.Finally) > 0 {
+		// c.emit(location.EndPos.Line, bytecode.SWAP)
+		// jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
+		// c.emit(location.EndPos.Line, bytecode.POP_2)
+		// c.emit(location.EndPos.Line, bytecode.JUMP_TO_FINALLY)
+		// c.patchJump(jumpOverFinallyBreakOrContinueOffset, location)
 
-	// 	jumpOverFalseOffset = c.emitJump(location.EndPos.Line, bytecode.JUMP)
-	// }
-	// for _, jump := range jumpsToEndOfCatch {
-	// 	c.patchJump(jump, location)
-	// }
-	// if len(node.Finally) > 0 {
-	// 	c.emit(location.EndPos.Line, bytecode.FALSE)
-	// 	c.patchJump(jumpOverFalseOffset, location)
+		// jumpToRethrowOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NP)
+		// jumpToFinallyReturnOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
+		// // FALSE
+		// c.emit(location.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
+		// c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
+		// jumpToEndOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 
-	// 	jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-	// 	finallyEntryOffset := c.nextInstructionOffset()
-	// 	c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
-	// 	// entry point for return when executing finally
-	// 	c.emit(location.EndPos.Line, bytecode.NIL)
+		// c.patchJump(jumpToFinallyReturnOffset, location)
+		// // return with finally
+		// c.emit(location.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
+		// c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
 
-	// 	jumpOverBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-	// 	// entry point for break or continue when executing finally
-	// 	c.emit(location.EndPos.Line, bytecode.UNDEFINED)
+		// c.patchJump(jumpToRethrowOffset, location)
+		// // pop the flag and the return value of finally
+		// c.emit(location.EndPos.Line, bytecode.POP_2)
+		// c.emit(location.EndPos.Line, bytecode.RETHROW)
 
-	// 	c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
-	// 	c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
+		// c.patchJump(jumpToEndOffset, location)
+	}
+	c.popCatchScope()
+	c.leaveScope()
 
-	// 	c.compileStatementsWithResult(node.Finally, location)
-
-	// 	c.emit(location.EndPos.Line, bytecode.SWAP)
-	// 	jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
-	// 	c.emit(location.EndPos.Line, bytecode.POP_2)
-	// 	c.emit(location.EndPos.Line, bytecode.JUMP_TO_FINALLY)
-	// 	c.patchJump(jumpOverFinallyBreakOrContinueOffset, location)
-
-	// 	jumpToRethrowOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NP)
-	// 	jumpToFinallyReturnOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
-	// 	// FALSE
-	// 	c.emit(location.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
-	// 	c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
-	// 	jumpToEndOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-
-	// 	c.patchJump(jumpToFinallyReturnOffset, location)
-	// 	// return with finally
-	// 	c.emit(location.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
-	// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-
-	// 	c.patchJump(jumpToRethrowOffset, location)
-	// 	// pop the flag and the return value of finally
-	// 	c.emit(location.EndPos.Line, bytecode.POP_2)
-	// 	c.emit(location.EndPos.Line, bytecode.RETHROW)
-
-	// 	c.patchJump(jumpToEndOffset, location)
-	// }
-
-	// c.leaveScope(location.EndPos.Line)
-
-	// c.patchJump(jumpOverCatchOffset, location)
+	c.emitGoLabel(endLabel)
+	return resultVal
 }
 
 // Compile a labeled expression eg. `$foo: println("bar")`
@@ -7737,15 +7763,17 @@ func (c *GoCompiler) emitErrorPropagation() {
 }
 
 func (c *GoCompiler) emitThrow(val *goValue) {
+	c.emitCaptureStackTrace()
+	c.emitRethrow(val)
+}
+
+func (c *GoCompiler) emitRethrow(val *goValue) {
 	switch c.mode {
 	case topLevelGoCompilerMode:
-		c.emitCaptureStackTrace()
 		c.emit("thread.Panic(%s)\n", c.convertValueToWiderType(val).fetchValue())
 	case methodGoCompilerMode, setterMethodGoCompilerMode, initMethodGoCompilerMode:
-		c.emitCaptureStackTrace()
 		c.emit("return result, %s\n", c.convertValueToWiderType(val).fetchValue())
 	default:
-		c.emitCaptureStackTrace()
 		c.emit("return value.Undefined, %s\n", c.convertValueToWiderType(val).fetchValue())
 	}
 }

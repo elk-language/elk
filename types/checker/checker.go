@@ -4142,8 +4142,9 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				default:
 					panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
 				}
-
-				c.addLocal(stackTraceVarName, newLocal(c.Std(symbol.StackTrace), true, true))
+				stackTraceType := c.Std(symbol.StackTrace)
+				catchNode.StackTraceVar.SetType(stackTraceType)
+				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true))
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
