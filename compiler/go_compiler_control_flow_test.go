@@ -247,918 +247,1167 @@ func main() { // loc: <main>
 
 func TestGoForInExpression(t *testing.T) {
 	tests := goTestTable{
-		// 		"int literal": {
-		// 			input: `
-		// 				for i in 20
-		// 					println(i)
-		// 				end
-		// 			`,
-		// 			want: `
-		// `,
-		// 		},
-		// "int value": {
-		// 	input: `
-		// 		j := 20
-		// 		for i in j
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 3,
-		// 			byte(bytecode.LOAD_INT_8), 20,
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.INT_0),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.JUMP_UNLESS_ILT), 0, 12,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.CALL_METHOD8), 1,
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.INCREMENT_INT),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.LOOP), 0, 17,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(51, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 3),
-		// 			bytecode.NewLineInfo(3, 10),
-		// 			bytecode.NewLineInfo(5, 1),
-		// 			bytecode.NewLineInfo(4, 5),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 1),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "range literal": {
-		// 	input: `
-		// 		for i in 5...20
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.LOAD_INT_8), 20,
-		// 			byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.CALL_METHOD8), 1,
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.INCREMENT_INT),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.LOOP), 0, 18,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(44, 4, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(4, 1),
-		// 			bytecode.NewLineInfo(3, 5),
-		// 			bytecode.NewLineInfo(2, 3),
-		// 			bytecode.NewLineInfo(4, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "range value": {
-		// 	input: `
-		// 		r := 5...20
-		// 		for i in r
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 1,
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.JUMP_UNLESS_ILE), 0, 12,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 3,
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.CALL_METHOD8), 4,
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.INCREMENT_INT),
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.LOOP), 0, 17,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(55, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 16),
-		// 			bytecode.NewLineInfo(5, 1),
-		// 			bytecode.NewLineInfo(4, 5),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 1),
-		// 			bytecode.NewLineInfo(3, 1),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
-		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
-		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "iterate": {
-		// 	input: `
-		// 		for i in [1, 2, 3]
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 10,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 14,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(47, 4, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 5),
-		// 			bytecode.NewLineInfo(4, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "with a pattern": {
-		// 	input: `
-		// 		for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]
-		// 			println(a + b)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 3,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 56,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 33,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.EQUAL_INT),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_0),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_1),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_IF), 0, 2,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.THROW),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 4,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.ADD_INT),
-		// 			byte(bytecode.CALL_METHOD8), 5,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 60,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(76, 4, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 50),
-		// 			bytecode.NewLineInfo(4, 1),
-		// 			bytecode.NewLineInfo(2, 1),
-		// 			bytecode.NewLineInfo(3, 7),
-		// 			bytecode.NewLineInfo(4, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayTuple{
-		// 				value.Ref(&value.ArrayTuple{
-		// 					value.SmallInt(1).ToValue(),
-		// 					value.SmallInt(2).ToValue(),
-		// 				}),
-		// 				value.Ref(&value.ArrayTuple{
-		// 					value.SmallInt(3).ToValue(),
-		// 					value.SmallInt(4).ToValue(),
-		// 				}),
-		// 				value.Ref(&value.ArrayTuple{
-		// 					value.SmallInt(5).ToValue(),
-		// 					value.SmallInt(6).ToValue(),
-		// 				}),
-		// 			}),
-		// 			value.Ref(value.TupleMixin),
-		// 			value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-		// 			value.Ref(value.NewError(
-		// 				value.PatternNotMatchedErrorClass,
-		// 				"assigned value does not match the pattern defined in for in loop",
-		// 			)),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "with break": {
-		// 	input: `
-		// 		for i in [1, 2, 3, 4, 5]
-		// 			println(i)
-		// 			break if i > 2
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 9,
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 28,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(73, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 6),
-		// 			bytecode.NewLineInfo(4, 13),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "with break with value": {
-		// 	input: `
-		// 		for i in [1, 2, 3, 4, 5]
-		// 			println(i)
-		// 			break :foo if i > 2
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.JUMP), 0, 9,
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 28,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(78, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 6),
-		// 			bytecode.NewLineInfo(4, 13),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 			value.ToSymbol("foo").ToValue(),
-		// 		},
-		// 	),
-		// },
-		// "with labeled break": {
-		// 	input: `
-		// 		$foo: for i in [1, 2, 3, 4, 5]
-		// 			println(i)
-		// 			break[foo] if i > 2
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 7,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 9,
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 28,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(84, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 6),
-		// 			bytecode.NewLineInfo(4, 13),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "with continue": {
-		// 	input: `
-		// 		for i in [1, 2, 3, 4, 5]
-		// 			continue if i > 2
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 19,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-		// 			byte(bytecode.LOOP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 23,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(76, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 5),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "with labeled continue": {
-		// 	input: `
-		// 		$foo: for i in [1, 2, 3, 4, 5]
-		// 			continue[foo] if i > 2
-		// 			println(i)
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 19,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-		// 			byte(bytecode.LOOP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 23,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(87, 5, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 5),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println@1"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "nested with break": {
-		// 	input: `
-		// 		for c in ['a', 'b', 'c', 'd']
-		// 			for i in [1, 2, 3, 4, 5]
-		// 				break if i > 2
-		// 				println(c, i)
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 38,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 15,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 2,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 28,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 42,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(122, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 10),
-		// 			bytecode.NewLineInfo(5, 9),
-		// 			bytecode.NewLineInfo(6, 5),
-		// 			bytecode.NewLineInfo(7, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.Ref(value.String("a")),
-		// 				value.Ref(value.String("b")),
-		// 				value.Ref(value.String("c")),
-		// 				value.Ref(value.String("d")),
-		// 			}),
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "nested with labeled break": {
-		// 	input: `
-		// 		$foo: for c in ['a', 'b', 'c', 'd']
-		// 			for i in [1, 2, 3, 4, 5]
-		// 				break[foo] if i > 2
-		// 				println(c, i)
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 38,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 24,
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 20,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 2,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 28,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 42,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(133, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 10),
-		// 			bytecode.NewLineInfo(5, 9),
-		// 			bytecode.NewLineInfo(6, 5),
-		// 			bytecode.NewLineInfo(7, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.Ref(value.String("a")),
-		// 				value.Ref(value.String("b")),
-		// 				value.Ref(value.String("c")),
-		// 				value.Ref(value.String("d")),
-		// 			}),
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "nested with continue": {
-		// 	input: `
-		// 		for c in ['a', 'b', 'c', 'd']
-		// 			for i in [1, 2, 3, 4, 5]
-		// 				continue if i > 2
-		// 				println(c, i)
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 37,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 23,
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-		// 			byte(bytecode.LOOP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 2,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 27,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 41,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(125, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 9),
-		// 			bytecode.NewLineInfo(5, 9),
-		// 			bytecode.NewLineInfo(6, 5),
-		// 			bytecode.NewLineInfo(7, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.Ref(value.String("a")),
-		// 				value.Ref(value.String("b")),
-		// 				value.Ref(value.String("c")),
-		// 				value.Ref(value.String("d")),
-		// 			}),
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
-		// "nested with labeled continue": {
-		// 	input: `
-		// 		$foo: for c in ['a', 'b', 'c', 'd']
-		// 			for i in [1, 2, 3, 4, 5]
-		// 				continue[foo] if i > 2
-		// 				println(c, i)
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 4,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 37,
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.GET_ITERATOR),
-		// 			byte(bytecode.SET_LOCAL_3),
-		// 			byte(bytecode.GET_LOCAL_3),
-		// 			byte(bytecode.FOR_IN_BUILTIN), 0, 23,
-		// 			byte(bytecode.SET_LOCAL_4),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_UNLESS_IGT), 0, 4,
-		// 			byte(bytecode.LOOP), 0, 22,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 2,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.GET_LOCAL_4),
-		// 			byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-		// 			byte(bytecode.CALL_METHOD8), 3,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 27,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOOP), 0, 41,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(136, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 9),
-		// 			bytecode.NewLineInfo(3, 9),
-		// 			bytecode.NewLineInfo(4, 9),
-		// 			bytecode.NewLineInfo(5, 9),
-		// 			bytecode.NewLineInfo(6, 5),
-		// 			bytecode.NewLineInfo(7, 6),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayList{
-		// 				value.Ref(value.String("a")),
-		// 				value.Ref(value.String("b")),
-		// 				value.Ref(value.String("c")),
-		// 				value.Ref(value.String("d")),
-		// 			}),
-		// 			value.Ref(&value.ArrayList{
-		// 				value.SmallInt(1).ToValue(),
-		// 				value.SmallInt(2).ToValue(),
-		// 				value.SmallInt(3).ToValue(),
-		// 				value.SmallInt(4).ToValue(),
-		// 				value.SmallInt(5).ToValue(),
-		// 			}),
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.NewCallSiteInfo(
-		// 				value.ToSymbol("println"),
-		// 				1,
-		// 			)),
-		// 		},
-		// 	),
-		// },
+		"int literal": {
+			input: `
+				for i in 20
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.SmallInt // var i: Std::Int
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.SmallInt(0)
+	for {
+		if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(20)))) {
+			break
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (l0).ToValue()
+		callFrame.SetNativeLineNumber(3)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l0++
+	}
+}
+`,
+		},
+		"int value": {
+			input: `
+				j := 20
+				for i in j
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var j: Std::Int
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(20)).ToValue()
+	l1 = value.SmallInt(0).ToValue()
+	for {
+		if !(value.Bool(value.LessThanInts(l1, l0))) {
+			break
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l1
+		callFrame.SetNativeLineNumber(4)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = value.IncrementInt(l1)
+	}
+}
+`,
+		},
+		"range literal": {
+			input: `
+				for i in 5...20
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var i: 5
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	for {
+		if !(value.Bool(value.LessThanEqualInts(l0, (value.SmallInt(20)).ToValue()))) {
+			break
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(3)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l0 = value.IncrementInt(l0)
+	}
+}
+`,
+		},
+		"range value": {
+			input: `
+				r := 5...20
+				for i in r
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var range0 = value.NewClosedRange((value.SmallInt(5)).ToValue(), (value.SmallInt(20)).ToValue())
+var sym2 = value.ToSymbol("end")
+var fn_method0 vm.NativeFunction // Std::ClosedRange.:end
+var sym3 = value.ToSymbol("start")
+var fn_method1 vm.NativeFunction // Std::ClosedRange.:start
+var sym4 = value.ToSymbol("println@1")
+var fn_method2 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 *value.ClosedRange // var r: Std::ClosedRange[Std::Int]
+	_ = l0
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ClosedRangeClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ClosedRangeClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = range0
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (l0).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method0(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: end
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (l0).ToValue()
+	t3, err = fn_method1(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: start
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t3
+	for {
+		if !(value.Bool(value.LessThanEqualInts(l1, t1))) {
+			break
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l1
+		callFrame.SetNativeLineNumber(4)
+		t1, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = value.IncrementInt(l1)
+	}
+}
+`,
+		},
+		"iterate": {
+			input: `
+				for i in [1, 2, 3]
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		l0 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(3)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"with a pattern": {
+			input: `
+				for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]
+					println(a + b)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
+var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue())
+var arrtuple2 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue())
+var arrtuple3 = value.NewNativeArrayTupleWithElements[*value.ArrayTupleOfValue](0, arrtuple0, arrtuple1, arrtuple2)
+var sym2 = value.ToSymbol("length")
+var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
+var sym3 = value.ToSymbol("println@1")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Bool
+	_ = t2
+	var t3 []value.Value
+	_ = t3
+	var t4 value.SmallInt
+	_ = t4
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ArrayTupleClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (arrtuple3).ToValue()) {
+		t2 = value.True
+		if !(value.Bool(value.IsA(t1, value.TupleMixin))) {
+			t2 = value.False
+			goto lbl1
+		}
+		t3 = value.ResizeNativeArgs(t3, 2)
+		t3[0] = t1
+		callFrame.SetNativeLineNumber(2)
+		t1, err = fn_method0(thread, t3) // receiver: Std::ArrayTuple[Std::Int], name: length
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t4 = value.SmallInt((t1).AsInt())
+		if t4 != 2 {
+			t2 = value.False
+			goto lbl1
+		}
+		t1, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(0)))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l0 = t1
+		t1, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(1)))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = t1
+	lbl1:
+		if !(t2) {
+			thread.CaptureStackTrace()
+			thread.Panic((value.NewPatternNotMatchedInForInLoopError()).ToValue())
+		}
+		t3 = value.ResizeNativeArgs(t3, 3)
+		t3[0] = (value.KernelModule).ToValue()
+		t3[1] = value.AddInts(l0, l1)
+		callFrame.SetNativeLineNumber(3)
+		t1, err = fn_method1(thread, t3) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"with break": {
+			input: `
+				for i in [1, 2, 3, 4, 5]
+					println(i)
+					break if i > 2
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l0 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(3)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
+			break loop0
+		} else {
+			t1 = value.Nil
+		}
+	}
+}
+`,
+		},
+		"with break with value": {
+			input: `
+				for i in [1, 2, 3, 4, 5]
+					println(i)
+					break :foo if i > 2
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym3 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l0 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(3)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
+			break loop0
+		} else {
+			t1 = value.Nil
+		}
+	}
+}
+`,
+		},
+		"with break with action": {
+			input: `
+				a := 5
+				for i in [1, 2, 3, 4, 5]
+					println(i)
+					break a = 20 if i > 2
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l1 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l1
+		callFrame.SetNativeLineNumber(4)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
+			l0 = (value.SmallInt(20)).ToValue()
+			break loop0
+		} else {
+			t1 = value.Nil
+		}
+	}
+}
+`,
+		},
+		"with labeled break": {
+			input: `
+				$foo: for i in [1, 2, 3, 4, 5]
+					println(i)
+					break[foo] if i > 2
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l0 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(3)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
+			break loop0
+		} else {
+			t1 = value.Nil
+		}
+	}
+}
+`,
+		},
+		"with continue": {
+			input: `
+				for i in [1, 2, 3, 4, 5]
+					continue if i > 2
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l0 = t1
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
+			continue loop0
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(4)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"with labeled continue": {
+			input: `
+				$foo: for i in [1, 2, 3, 4, 5]
+					continue[foo] if i > 2
+					println(i)
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		l0 = t1
+		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
+			continue loop0
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		callFrame.SetNativeLineNumber(4)
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"nested with break": {
+			input: `
+				for c in ['a', 'b', 'c', 'd']
+					for i in [1, 2, 3, 4, 5]
+						break if i > 2
+						println(c, i)
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println")
+var fn_method0 vm.NativeFunction // Std::Kernel::println
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var c: Std::String
+	_ = l0
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t3 []value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		l0 = t1
+		t1 = value.Nil
+	loop1:
+		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			l1 = t2
+			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
+				t1 = value.Nil
+				break loop1
+			}
+			t3 = value.ResizeNativeArgs(t3, 3)
+			t3[0] = (value.KernelModule).ToValue()
+			t3[1] = (value.NewArrayTupleOfValueWithElementsAndTotalCapacity(2, l0, l1)).ToValue()
+			callFrame.SetNativeLineNumber(5)
+			t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+		}
+	}
+}
+`,
+		},
+		"nested with labeled break": {
+			input: `
+				$foo: for c in ['a', 'b', 'c', 'd']
+					for i in [1, 2, 3, 4, 5]
+						break[foo] if i > 2
+						println(c, i)
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println")
+var fn_method0 vm.NativeFunction // Std::Kernel::println
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var c: Std::String
+	_ = l0
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t3 []value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		l0 = t1
+		t1 = value.Nil
+		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			l1 = t2
+			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
+				break loop0
+			}
+			t3 = value.ResizeNativeArgs(t3, 3)
+			t3[0] = (value.KernelModule).ToValue()
+			t3[1] = (value.NewArrayTupleOfValueWithElementsAndTotalCapacity(2, l0, l1)).ToValue()
+			callFrame.SetNativeLineNumber(5)
+			t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+		}
+	}
+}
+`,
+		},
+		"nested with continue": {
+			input: `
+				for c in ['a', 'b', 'c', 'd']
+					for i in [1, 2, 3, 4, 5]
+						continue if i > 2
+						println(c, i)
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println")
+var fn_method0 vm.NativeFunction // Std::Kernel::println
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var c: Std::String
+	_ = l0
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t3 []value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		l0 = t1
+		t1 = value.Nil
+	loop1:
+		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			l1 = t2
+			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
+				t1 = value.Nil
+				continue loop1
+			}
+			t3 = value.ResizeNativeArgs(t3, 3)
+			t3[0] = (value.KernelModule).ToValue()
+			t3[1] = (value.NewArrayTupleOfValueWithElementsAndTotalCapacity(2, l0, l1)).ToValue()
+			callFrame.SetNativeLineNumber(5)
+			t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+		}
+	}
+}
+`,
+		},
+		"nested with labeled continue": {
+			input: `
+				$foo: for c in ['a', 'b', 'c', 'd']
+					for i in [1, 2, 3, 4, 5]
+						continue[foo] if i > 2
+						println(c, i)
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println")
+var fn_method0 vm.NativeFunction // Std::Kernel::println
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var l0 value.Value // var c: Std::String
+	_ = l0
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var t3 []value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+loop0:
+	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		l0 = t1
+		t1 = value.Nil
+		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			l1 = t2
+			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
+				continue loop0
+			}
+			t3 = value.ResizeNativeArgs(t3, 3)
+			t3[0] = (value.KernelModule).ToValue()
+			t3[1] = (value.NewArrayTupleOfValueWithElementsAndTotalCapacity(2, l0, l1)).ToValue()
+			callFrame.SetNativeLineNumber(5)
+			t2, err = fn_method0(thread, t3) // receiver: Std::Kernel, name: println
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+		}
+	}
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {

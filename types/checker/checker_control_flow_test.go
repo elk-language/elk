@@ -1603,6 +1603,17 @@ func TestForInExpression(t *testing.T) {
 				end
 			`,
 		},
+		"cannot set loop locals": {
+			input: `
+				var a: Int? = 5
+				for i in [1, 2, 3]
+					i = 25
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(49, 4, 6), P(49, 4, 6)), "local value `i` cannot be reassigned"),
+			},
+		},
 		"use variables defined in the header": {
 			input: `
 				for i in [1, 2, 3]

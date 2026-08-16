@@ -3371,7 +3371,12 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Location())
 	c.checkThrowType(throwType, node.Location())
 
+	prevMode := c.mode
+	c.mode = valuePatternMode
+
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
+
+	c.mode = prevMode
 
 	c.pushConditionalLocalEnv(false)
 	c.checkStatements(node.ThenBody, false)

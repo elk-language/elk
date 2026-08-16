@@ -2699,8 +2699,8 @@ func (c *BytecodeCompiler) compileForIn(
 
 	var loopBodyOffset int
 
-	nextType := types.Normalise(c.checker.GetIteratorType(inExpressionType))
-	if c.checker.IsSubtype(nextType, c.checker.Std(symbol.S_BuiltinIterator)) {
+	iteratorType := types.Normalise(c.checker.GetIteratorType(inExpressionType))
+	if c.checker.IsSubtype(iteratorType, c.checker.Std(symbol.S_BuiltinIterator)) {
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {
 		c.emitCallNext(value.NewCallSiteInfo(symbol.L_next, 0), inExpression.Location())

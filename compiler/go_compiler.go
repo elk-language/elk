@@ -945,13 +945,15 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 
 		patternResult := c.compilePattern(caseNode.Pattern, val)
 
-		c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
-		caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
-		if !valueIsIgnored {
-			c.emitAssignGoLocal(resultVar, caseResult)
+		if patternResult.value != "value.True" {
+			c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
+			caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
+			if !valueIsIgnored {
+				c.emitAssignGoLocal(resultVar, caseResult)
+			}
+			c.emitGoto(endLabel)
+			c.emit("}\n")
 		}
-		c.emitGoto(endLabel)
-		c.emit("}\n")
 
 		c.leaveScope()
 	}
@@ -2449,10 +2451,8 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
-	c.emitAssignGoLocal(resultVar, falseGoValue)
-	c.emitGoto(endLabel)
-	c.emit("}\n")
+
+	c.emitPatternUnmatchedJump(endLabel, resultVar, isAResult)
 
 	for _, elementNode := range elementNodes {
 		loc := elementNode.Location()
@@ -2463,19 +2463,13 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 			elementValue := c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false)
 
 			patternResult := c.compilePattern(e.Value, elementValue)
-			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-			c.emitAssignGoLocal(resultVar, falseGoValue)
-			c.emitGoto(endLabel)
-			c.emit("}\n")
+			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.KeyValuePatternNode:
 			keyVal := c.compileExpression(e.Key, false)
 			elementValue := c.compileSubscript(val, keyVal, c.typeOf(e), loc, false)
 
 			patternResult := c.compilePattern(e.Value, elementValue)
-			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-			c.emitAssignGoLocal(resultVar, falseGoValue)
-			c.emitGoto(endLabel)
-			c.emit("}\n")
+			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.PublicIdentifierNode:
 			c.compileIdentifierMapPatternElement(val, e.Value, typ, loc)
 		case *ast.PrivateIdentifierNode:
@@ -2563,10 +2557,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
-	c.emitAssignGoLocal(resultVar, falseGoValue)
-	c.emitGoto(endLabel)
-	c.emit("}\n")
+	c.emitPatternUnmatchedJump(endLabel, resultVar, isAResult)
 
 	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
@@ -2609,10 +2600,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		)
 
 		patternResult := c.compilePattern(elementNode, elementVal)
-		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-		c.emitAssignGoLocal(resultVar, falseGoValue)
-		c.emitGoto(endLabel)
-		c.emit("}\n")
+		c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 	}
 
 	if elementBeforeRestCount != -1 {
@@ -2668,10 +2656,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			)
 
 			patternResult := c.compilePattern(elementNode, elementVal)
-			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-			c.emitAssignGoLocal(resultVar, falseGoValue)
-			c.emitGoto(endLabel)
-			c.emit("}\n")
+			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 
 			// i++
 			c.emit("%s++\n", iteratorVar.name)
@@ -2682,6 +2667,15 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 
 	c.emitGoLabel(endLabel)
 	return newGoValueWithLocal(resultVar, types.Bool{})
+}
+
+func (c *GoCompiler) emitPatternUnmatchedJump(endLabel *goLabel, resultVar *goLocal, patternResult *goValue) {
+	if patternResult.value != "value.True" {
+		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+		c.emitAssignGoLocal(resultVar, falseGoValue)
+		c.emitGoto(endLabel)
+		c.emit("}\n")
+	}
 }
 
 func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternNode, loc *position.Location) *goValue {
@@ -2718,10 +2712,7 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 		loc,
 		false,
 	)
-	c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
-	c.emitAssignGoLocal(resultVar, falseGoValue)
-	c.emitGoto(endLabel)
-	c.emit("}\n")
+	c.emitPatternUnmatchedJump(endLabel, resultVar, isAResult)
 
 	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
@@ -2738,17 +2729,11 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 	if !restElementIsPresent {
 		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
 		equalVal := c.compileEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(equalVal).fetchValue())
-		c.emitAssignGoLocal(resultVar, falseGoValue)
-		c.emitGoto(endLabel)
-		c.emit("}\n")
+		c.emitPatternUnmatchedJump(endLabel, resultVar, equalVal)
 	} else {
 		elementsLenVal := c.newSmallIntValue(len(subPatternElements))
 		greaterEqualVal := c.compileGreaterEqual(lengthVal, elementsLenVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(greaterEqualVal).fetchValue())
-		c.emitAssignGoLocal(resultVar, falseGoValue)
-		c.emitGoto(endLabel)
-		c.emit("}\n")
+		c.emitPatternUnmatchedJump(endLabel, resultVar, greaterEqualVal)
 	}
 
 subPatternLoop:
@@ -2774,10 +2759,7 @@ subPatternLoop:
 			false,
 		)
 
-		c.emit("if %s {\n", c.convertValueToNotBool(containsVal).fetchValue())
-		c.emitAssignGoLocal(resultVar, falseGoValue)
-		c.emitGoto(endLabel)
-		c.emit("}\n")
+		c.emitPatternUnmatchedJump(endLabel, resultVar, containsVal)
 	}
 
 	c.emitGoLabel(endLabel)
@@ -2814,12 +2796,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 	if objectTypeNode != nil {
 		classVal := c.compileExpression(objectTypeNode, false)
 		isAResult := c.compileIsA(val, classVal, types.Bool{}, loc, false)
-		c.emit("if %s {\n", c.convertValueToNotBool(isAResult).fetchValue())
-
-		c.emitAssignGoLocal(resultVar, falseGoValue)
-		c.emitGoto(endLabel)
-
-		c.emit("}\n")
+		c.emitPatternUnmatchedJump(endLabel, resultVar, isAResult)
 	}
 
 	for _, attr := range attributes {
@@ -2841,10 +2818,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 				false,
 			)
 			patternResult := c.compilePattern(e.Value, attrVal)
-			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-			c.emitAssignGoLocal(resultVar, falseGoValue)
-			c.emitGoto(endLabel)
-			c.emit("}\n")
+			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.PublicIdentifierNode:
 			c.compileIdentifierObjectPatternAttribute(e.Value, c.typeOf(e), val, loc)
 		case *ast.PrivateIdentifierNode:
@@ -2901,21 +2875,33 @@ func (c *GoCompiler) compileAsPatternNode(node *ast.AsPatternNode, val *goValue)
 	return c.compilePattern(node.Pattern, val)
 }
 
-func (c *GoCompiler) registerGoLabel() string {
+type goLabel struct {
+	name string
+	used bool
+}
+
+func (c *GoCompiler) registerGoLabel() *goLabel {
 	c.goLabelCounter++
-	return fmt.Sprintf("lbl%d", c.goLabelCounter)
+	return &goLabel{
+		name: fmt.Sprintf("lbl%d", c.goLabelCounter),
+	}
 }
 
-func (c *GoCompiler) emitGoLabel(label string) {
-	c.emit("%s:\n", label)
+func (c *GoCompiler) emitGoLabel(label *goLabel) {
+	if label.used {
+		c.emit("%s:\n", label.name)
+	}
 }
 
-func (c *GoCompiler) emitGoLabelWithComment(label string, comment string) {
-	c.emit("%s: // %s \n", label, comment)
+func (c *GoCompiler) emitGoLabelWithComment(label *goLabel, comment string) {
+	if label.used {
+		c.emit("%s: // %s \n", label.name, comment)
+	}
 }
 
-func (c *GoCompiler) emitGoto(label string) {
-	c.emit("goto %s\n", label)
+func (c *GoCompiler) emitGoto(label *goLabel) {
+	label.used = true
+	c.emit("goto %s\n", label.name)
 }
 
 // Compile a for in loop eg. `println(i) for i in [1, 2]`
@@ -2982,8 +2968,7 @@ func (c *GoCompiler) compileForIn(
 
 	inVal := c.compileExpression(inExpression, false)
 	inExpressionType := c.typeOf(inExpression)
-
-	nextType := types.Normalise(c.checker.GetIteratorType(inExpressionType))
+	nextType, _ := c.checker.GetIteratorElementType(inExpressionType)
 	loopTmpVar := c.defineTmpGoLocal(goValueType)
 	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType)
 	c.registerErr()
@@ -2992,14 +2977,16 @@ func (c *GoCompiler) compileForIn(
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
 
 	patternResult := c.compilePattern(param, loopTmpVal)
-	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-	errVal := newGoValue(
-		"value.NewPatternNotMatchedInForInLoopError()",
-		c.checker.Std(symbol.Error),
-		value.FetchGoType("*value.Object"),
-	)
-	c.emitThrow(errVal)
-	c.emit("}\n")
+	if patternResult.value != "value.True" {
+		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+		errVal := newGoValue(
+			"value.NewPatternNotMatchedInForInLoopError()",
+			c.checker.Std(symbol.Error),
+			value.FetchGoType("*value.Object"),
+		)
+		c.emitThrow(errVal)
+		c.emit("}\n")
+	}
 
 	// loop body
 	then()
@@ -3220,23 +3207,27 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 		)
 	}
 
+	endSymbol := c.emitSymbol("end")
+	_, endVal := c.wrapValueInTmpGoLocal(
+		c.compileMethodCallWithLiteralArgValuesAndName(
+			rangeType,
+			elementType,
+			endSymbol,
+			"end",
+			[]*goValue{
+				rangeVal,
+			},
+			loc,
+			false,
+		),
+	)
+
 	var cond func() *goValue
 	if cmpOp != token.ZERO_VALUE {
 		cond = func() *goValue {
-			endSymbol := c.emitSymbol("end")
 			return c.compileBinaryExpression(
 				paramVal,
-				c.compileMethodCallWithLiteralArgValuesAndName(
-					rangeType,
-					elementType,
-					endSymbol,
-					"end",
-					[]*goValue{
-						rangeVal,
-					},
-					loc,
-					false,
-				),
+				endVal,
 				types.Bool{},
 				cmpOp,
 				loc,
@@ -3286,15 +3277,19 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
 	increment := func() {
-		c.emitAssignGoLocal(
-			paramLocal.goLocal,
-			c.compileIncrement(
-				paramVal,
-				paramVal.elkType,
-				loc,
-				false,
-			),
-		)
+		if isSmallInt {
+			c.emit("%s++\n", paramLocal.goLocal.name)
+		} else {
+			c.emitAssignGoLocal(
+				paramLocal.goLocal,
+				c.compileIncrement(
+					paramVal,
+					paramVal.elkType,
+					loc,
+					false,
+				),
+			)
+		}
 	}
 
 	cond := func() *goValue {
@@ -7745,13 +7740,13 @@ func (c *GoCompiler) emitThrow(val *goValue) {
 	switch c.mode {
 	case topLevelGoCompilerMode:
 		c.emitCaptureStackTrace()
-		c.emit("thread.Panic(%s)\n", val.fetchValue())
+		c.emit("thread.Panic(%s)\n", c.convertValueToWiderType(val).fetchValue())
 	case methodGoCompilerMode, setterMethodGoCompilerMode, initMethodGoCompilerMode:
 		c.emitCaptureStackTrace()
-		c.emit("return result, %s\n", val.fetchValue())
+		c.emit("return result, %s\n", c.convertValueToWiderType(val).fetchValue())
 	default:
 		c.emitCaptureStackTrace()
-		c.emit("return value.Undefined, %s\n", val.fetchValue())
+		c.emit("return value.Undefined, %s\n", c.convertValueToWiderType(val).fetchValue())
 	}
 }
 

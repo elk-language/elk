@@ -3223,12 +3223,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	l2 = l0
-	if value.True {
-		t1 = value.AddInts(l2, (value.SmallInt(2)).ToValue())
-		goto lbl1
-	}
 	t1 = value.Nil
-lbl1:
 	l1 = t1
 }
 `,
@@ -4194,10 +4189,6 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	l2 = t3
-	if !(value.True) {
-		t7 = value.False
-		goto lbl3
-	}
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
@@ -5140,10 +5131,6 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	l2 = t3
-	if !(value.True) {
-		t7 = value.False
-		goto lbl3
-	}
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
@@ -6081,10 +6068,6 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	l3 = t3
-	if !(value.True) {
-		t6 = value.False
-		goto lbl4
-	}
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(1)).ToValue()
@@ -6281,10 +6264,6 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	l3 = t3
-	if !(value.True) {
-		t6 = value.False
-		goto lbl4
-	}
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(1)).ToValue()
