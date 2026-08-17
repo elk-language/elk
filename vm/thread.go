@@ -755,6 +755,22 @@ func (vm *Thread) run() {
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readUint16())),
 			)
+		case bytecode.CALL_METHOD_PTR_TCO8:
+			vm.throwIfErr(
+				vm.opCallMethodPtrTCO(int(vm.readByte())),
+			)
+		case bytecode.CALL_METHOD_PTR_TCO16:
+			vm.throwIfErr(
+				vm.opCallMethodPtrTCO(int(vm.readUint16())),
+			)
+		case bytecode.CALL_METHOD_PTR8:
+			vm.throwIfErr(
+				vm.opCallMethodPtr(int(vm.readByte())),
+			)
+		case bytecode.CALL_METHOD_PTR16:
+			vm.throwIfErr(
+				vm.opCallMethodPtr(int(vm.readUint16())),
+			)
 		case bytecode.CALL8:
 			vm.throwIfErr(
 				vm.opCall(int(vm.readByte())),
@@ -2066,10 +2082,10 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo)
+		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
 		return value.Undefined
 	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo)
+		return vm.callNativeMethod(m, callInfo.ArgumentCount)
 	case nil:
 		// no initialiser defined
 		// no arguments given
@@ -2134,9 +2150,9 @@ func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *value.
 	return value.Undefined
 }
 
-// Call a method with an explicit receiver with tail call optimisation
+// Call a method with tail call optimisation
 func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2145,10 +2161,10 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		vm.callBytecodeFunctionTCO(m, callInfo)
+		vm.callBytecodeFunctionTCO(m, callInfo.ArgumentCount)
 		return value.Undefined
 	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo)
+		return vm.callNativeMethod(m, callInfo.ArgumentCount)
 	case *GetterMethod:
 		return vm.callGetterMethod(m)
 	case *SetterMethod:
@@ -2158,9 +2174,9 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	}
 }
 
-// Call a method with an explicit receiver
+// Call a method
 func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2169,22 +2185,66 @@ func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 	method := vm.lookupMethod(class, callInfo, callInfoIndex)
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo)
+		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
 		return value.Undefined
 	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo)
+		return vm.callNativeMethod(m, callInfo.ArgumentCount)
 	case *GetterMethod:
 		return vm.callGetterMethod(m)
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
+	}
+}
+
+// Call a method pointer
+func (vm *Thread) opCallMethodPtr(callInfoIndex int) (err value.Value) {
+	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	method := callInfo.Method
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo.ArgumentCount)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	default:
+		selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+		self := *selfPtr
+		class := self.DirectClass()
+		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s (%s)", method, class.Name, self.Inspect()))
+	}
+}
+
+// Call a method pointer with tail call optimisation
+func (vm *Thread) opCallMethodPtrTCO(callInfoIndex int) (err value.Value) {
+	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	method := callInfo.Method
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		vm.callBytecodeFunctionTCO(m, callInfo.ArgumentCount)
+		return value.Undefined
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo.ArgumentCount)
+	case *GetterMethod:
+		return vm.callGetterMethod(m)
+	case *SetterMethod:
+		return vm.callSetterMethod(m)
+	default:
+		selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+		self := *selfPtr
+		class := self.DirectClass()
+		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s (%s)", method, class.Name, self.Inspect()))
 	}
 }
 
 // set up the vm to execute a native method
-func (vm *Thread) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
+func (vm *Thread) callNativeMethod(method *NativeMethod, argCount int) (err value.Value) {
+	vm.populateMissingParametersOnStack(method.parameterCount, argCount)
 
 	paramCount := method.ParameterCount()
 	args := unsafe.Slice(vm.spAdd(-paramCount-1), paramCount+1)
@@ -2198,8 +2258,8 @@ func (vm *Thread) callNativeMethod(method *NativeMethod, callInfo *value.CallSit
 }
 
 // set up the vm to execute a bytecode method with tail call optimisation
-func (vm *Thread) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
-	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
+func (vm *Thread) callBytecodeFunctionTCO(method *BytecodeFunction, argCount int) {
+	vm.populateMissingParametersOnStack(method.parameterCount, argCount)
 
 	localCount := method.parameterCount + 1
 	for i := range localCount {
@@ -2214,8 +2274,8 @@ func (vm *Thread) callBytecodeFunctionTCO(method *BytecodeFunction, callInfo *va
 }
 
 // set up the vm to execute a bytecode method
-func (vm *Thread) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) {
-	vm.populateMissingParametersOnStack(method.parameterCount, callInfo.ArgumentCount)
+func (vm *Thread) callBytecodeFunction(method *BytecodeFunction, argCount int) {
+	vm.populateMissingParametersOnStack(method.parameterCount, argCount)
 	vm.createCurrentCallFrame(false)
 	vm.localCount = method.parameterCount + 1
 	vm.bytecode = method
