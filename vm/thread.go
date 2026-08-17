@@ -2201,7 +2201,7 @@ func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 // Call a method pointer
 func (vm *Thread) opCallMethodPtr(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-	method := callInfo.Method
+	method := *callInfo.Method
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
@@ -2223,7 +2223,7 @@ func (vm *Thread) opCallMethodPtr(callInfoIndex int) (err value.Value) {
 // Call a method pointer with tail call optimisation
 func (vm *Thread) opCallMethodPtrTCO(callInfoIndex int) (err value.Value) {
 	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-	method := callInfo.Method
+	method := *callInfo.Method
 	switch m := method.(type) {
 	case *BytecodeFunction:
 		vm.callBytecodeFunctionTCO(m, callInfo.ArgumentCount)

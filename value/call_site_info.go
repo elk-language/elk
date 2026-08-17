@@ -7,12 +7,12 @@ import (
 // Contains details like the number of arguments
 // or the pointer to a method of a particular call site.
 type OptimisedCallSiteInfo struct {
-	Method        Method
+	Method        *Method
 	ArgumentCount int
 }
 
 // Create a new OptimisedCallSiteInfo.
-func NewOptimisedCallSiteInfo(method Method, argCount int) *OptimisedCallSiteInfo {
+func NewOptimisedCallSiteInfo(method *Method, argCount int) *OptimisedCallSiteInfo {
 	return &OptimisedCallSiteInfo{
 		Method:        method,
 		ArgumentCount: argCount,
@@ -50,7 +50,7 @@ func (c *OptimisedCallSiteInfo) Inspect() string {
 	return fmt.Sprintf(
 		"OptimisedCallSiteInfo{&: %p, method: %s, argument_count: %d}",
 		c,
-		c.Method.Inspect(),
+		(*c.Method).Inspect(),
 		c.ArgumentCount,
 	)
 }
