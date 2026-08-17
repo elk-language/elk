@@ -269,9 +269,9 @@ func (i SmallInt) SubtractFloat(other Float) Float {
 
 func (i SmallInt) SubtractInt(other Value) Value {
 	if other.IsSmallInt() {
-		return i.AddSmallInt(other.AsSmallInt())
+		return i.SubtractSmallInt(other.AsSmallInt())
 	}
-	return i.AddBigInt((*BigInt)(other.Pointer()))
+	return i.SubtractBigInt((*BigInt)(other.Pointer()))
 }
 
 func (i SmallInt) SubtractSmallInt(other SmallInt) Value {
