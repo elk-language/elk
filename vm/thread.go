@@ -763,22 +763,6 @@ func (vm *Thread) run() {
 			vm.throwIfErr(
 				vm.opCall(int(vm.readUint16())),
 			)
-		case bytecode.CALL_SELF_TCO8:
-			vm.throwIfErr(
-				vm.opCallSelfTCO(int(vm.readByte())),
-			)
-		case bytecode.CALL_SELF_TCO16:
-			vm.throwIfErr(
-				vm.opCallSelfTCO(int(vm.readUint16())),
-			)
-		case bytecode.CALL_SELF8:
-			vm.throwIfErr(
-				vm.opCallSelf(int(vm.readByte())),
-			)
-		case bytecode.CALL_SELF16:
-			vm.throwIfErr(
-				vm.opCallSelf(int(vm.readUint16())),
-			)
 		case bytecode.BREAKPOINT:
 			vm.opBreakpoint()
 		case bytecode.INSTANCE_OF:
@@ -1876,80 +1860,6 @@ func (vm *Thread) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo,
 	}
 
 	return class.LookupMethod(callInfo.Name)
-}
-
-// Call a method with an implicit receiver
-func (vm *Thread) opCallSelfTCO(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-
-	self := vm.selfValue()
-	class := self.DirectClass()
-
-	// shift all arguments one slot forward to make room for self
-	for i := range callInfo.ArgumentCount {
-		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
-	}
-	*vm.spAdd(-callInfo.ArgumentCount) = self
-	vm.spIncrement()
-
-	method := vm.lookupMethod(class, callInfo, callInfoIndex)
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		vm.callBytecodeFunctionTCO(m, callInfo)
-		return value.Undefined
-	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo)
-	case *GetterMethod:
-		return vm.callGetterMethod(m)
-	case *SetterMethod:
-		return vm.callSetterMethod(m)
-	}
-
-	panic(
-		fmt.Sprintf(
-			"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
-			method,
-			callInfo.Name,
-			class.Name,
-		),
-	)
-}
-
-// Call a method with an implicit receiver
-func (vm *Thread) opCallSelf(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-
-	self := vm.selfValue()
-	class := self.DirectClass()
-	// shift all arguments one slot forward to make room for self
-	for i := range callInfo.ArgumentCount {
-		*vm.spAdd(-i) = *vm.spAdd(-i - 1)
-	}
-	*vm.spAdd(-callInfo.ArgumentCount) = self
-	vm.spIncrement()
-
-	method := vm.lookupMethod(class, callInfo, callInfoIndex)
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo)
-		return value.Undefined
-	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo)
-	case *GetterMethod:
-		return vm.callGetterMethod(m)
-	case *SetterMethod:
-		return vm.callSetterMethod(m)
-	}
-
-	panic(
-		fmt.Sprintf(
-			"tried to call a method that is neither bytecode nor native: %#v, %s in %s (%s)",
-			method,
-			callInfo.Name,
-			class.Name,
-			self.Inspect(),
-		),
-	)
 }
 
 func (vm *Thread) callGetterMethod(method *GetterMethod) value.Value {
@@ -4083,6 +3993,10 @@ func (vm *Thread) ErrStackTrace() *value.StackTrace {
 
 // Create a new stack trace and save it in the VM
 func (vm *Thread) CaptureStackTrace() *value.StackTrace {
+	if vm.state == errorState {
+		return vm.errStackTrace
+	}
+
 	vm.state = errorState
 	vm.errStackTrace = vm.BuildStackTrace()
 	return vm.errStackTrace

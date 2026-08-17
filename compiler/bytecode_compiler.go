@@ -4648,7 +4648,6 @@ func (c *BytecodeCompiler) compileGenericMethodCallNode(node *ast.GenericMethodC
 }
 
 func (c *BytecodeCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
-	_, onSelf := receiver.(*ast.SelfLiteralNode)
 	name := identifierToName(nameNode)
 
 	switch op.Type {
@@ -4658,7 +4657,7 @@ func (c *BytecodeCompiler) compileMethodCall(receiver ast.ExpressionNode, op *to
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, location)
+		c.compileInnerMethodCall(receiver, name, op, args, tailCall, location)
 
 		// if nil
 		// leave nil on the stack
@@ -4670,28 +4669,24 @@ func (c *BytecodeCompiler) compileMethodCall(receiver ast.ExpressionNode, op *to
 
 		// if not nil
 		// call the method
-		c.compileInnerMethodCall(receiver, name, op, args, false, tailCall, location)
+		c.compileInnerMethodCall(receiver, name, op, args, tailCall, location)
 
 		// if nil
 		// leave nil on the stack
 		c.patchJump(nilJump, location)
 	case token.DOT_DOT:
-		if !onSelf {
-			c.compileNodeWithResult(receiver)
-		}
+		c.compileNodeWithResult(receiver)
 		c.emit(location.EndPos.Line, bytecode.DUP)
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, location)
+		c.compileInnerMethodCall(receiver, name, op, args, tailCall, location)
 	case token.DOT:
-		if !onSelf {
-			c.compileNodeWithResult(receiver)
-		}
-		c.compileInnerMethodCall(receiver, name, op, args, onSelf, tailCall, location)
+		c.compileNodeWithResult(receiver)
+		c.compileInnerMethodCall(receiver, name, op, args, tailCall, location)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *BytecodeCompiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, onSelf bool, tailCall bool, location *position.Location) {
+func (c *BytecodeCompiler) compileInnerMethodCall(receiver ast.ExpressionNode, name string, op *token.Token, args []ast.ExpressionNode, tailCall bool, location *position.Location) {
 	for _, posArg := range args {
 		c.compileNodeWithResult(posArg)
 	}
@@ -4699,19 +4694,15 @@ func (c *BytecodeCompiler) compileInnerMethodCall(receiver ast.ExpressionNode, n
 	receiverType := c.typeOf(receiver)
 	nameSym := value.ToSymbol(name)
 	callInfo := value.NewCallSiteInfo(nameSym, len(args))
-	if onSelf {
-		c.emitCallSelf(callInfo, location, tailCall)
-	} else {
-		switch name {
-		case "call":
-			c.emitCall(callInfo, location)
-		case "++":
-			c.compileIncrement(receiverType, location)
-		case "--":
-			c.compileDecrement(receiverType, location)
-		default:
-			c.emitCallMethod(callInfo, location, tailCall)
-		}
+	switch name {
+	case "call":
+		c.emitCall(callInfo, location)
+	case "++":
+		c.compileIncrement(receiverType, location)
+	case "--":
+		c.compileDecrement(receiverType, location)
+	default:
+		c.emitCallMethod(callInfo, location, tailCall)
 	}
 
 	switch op.Type {
@@ -8663,25 +8654,6 @@ func (c *BytecodeCompiler) emitGetInstanceVariableByName(name value.Symbol, loca
 	}
 
 	return id
-}
-
-// Emit an instruction that calls a method on self
-func (c *BytecodeCompiler) emitCallSelf(callInfo *value.CallSiteInfo, location *position.Location, tailCall bool) int {
-	if tailCall {
-		return c.emitAddValue(
-			value.Ref(callInfo),
-			location,
-			bytecode.CALL_SELF_TCO8,
-			bytecode.CALL_SELF_TCO16,
-		)
-	}
-
-	return c.emitAddValue(
-		value.Ref(callInfo),
-		location,
-		bytecode.CALL_SELF8,
-		bytecode.CALL_SELF16,
-	)
 }
 
 // Emit an instruction that calls the `call` method

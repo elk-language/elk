@@ -158,10 +158,6 @@ const (
 	CALL_METHOD_TCO16                 // Call a method with an explicit receiver with tail call optimisation eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD8                      // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD16                     // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
-	CALL_SELF_TCO8                    // Call a method with an implicit receiver with tail call optimisation eg. `bar(2)` (8 bit operand)
-	CALL_SELF_TCO16                   // Call a method with an implicit receiver with tail call optimisation eg. `bar(2)` (16 bit operand)
-	CALL_SELF8                        // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
-	CALL_SELF16                       // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
 	CALL8                             // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
 	CALL16                            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
 	INCLUDE                           // Include a mixin in a class/mixin
@@ -411,10 +407,6 @@ var opCodeNames = [...]string{
 	CALL_METHOD_TCO16:   "CALL_METHOD_TCO16",
 	CALL_METHOD8:        "CALL_METHOD8",
 	CALL_METHOD16:       "CALL_METHOD16",
-	CALL_SELF_TCO8:      "CALL_SELF_TCO8",
-	CALL_SELF_TCO16:     "CALL_SELF_TCO16",
-	CALL_SELF8:          "CALL_SELF8",
-	CALL_SELF16:         "CALL_SELF16",
 	CALL8:               "CALL8",
 	CALL16:              "CALL16",
 	INCLUDE:             "INCLUDE",

@@ -2015,16 +2015,17 @@ func TestBytecodeDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("Std::Kernel::foo="),
 								[]byte{
+									byte(bytecode.SELF),
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.CALL_SELF_TCO8), 0,
+									byte(bytecode.CALL_METHOD_TCO8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_FIRST_ARG),
 								},
 								L(P(5, 2, 5), P(48, 4, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 5),
+									bytecode.NewLineInfo(3, 6),
 									bytecode.NewLineInfo(4, 2),
 								},
 								1,
@@ -2086,10 +2087,11 @@ func TestBytecodeDefMethod(t *testing.T) {
 							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("Std::Kernel::foo="),
 								[]byte{
+									byte(bytecode.SELF),
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.CALL_SELF8), 0,
+									byte(bytecode.CALL_METHOD8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.LOAD_VALUE_1),
 									byte(bytecode.POP),
@@ -2097,7 +2099,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								},
 								L(P(5, 2, 5), P(68, 5, 7)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 6),
+									bytecode.NewLineInfo(3, 7),
 									bytecode.NewLineInfo(4, 3),
 								},
 								1,
@@ -2263,10 +2265,11 @@ func TestBytecodeDefMethod(t *testing.T) {
 									byte(bytecode.GET_LOCAL_3),
 									byte(bytecode.PROMISE),
 									byte(bytecode.RETURN),
+									byte(bytecode.SELF),
 									byte(bytecode.INT_5),
 									byte(bytecode.CALL_METHOD8), 0,
 									byte(bytecode.UNDEFINED),
-									byte(bytecode.CALL_SELF8), 1,
+									byte(bytecode.CALL_METHOD8), 1,
 									byte(bytecode.AWAIT),
 									byte(bytecode.AWAIT_RESULT),
 									byte(bytecode.POP),
@@ -2279,7 +2282,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								bytecode.LineInfoList{
 									bytecode.NewLineInfo(2, 8),
 									bytecode.NewLineInfo(5, 1),
-									bytecode.NewLineInfo(3, 9),
+									bytecode.NewLineInfo(3, 10),
 									bytecode.NewLineInfo(4, 4),
 								},
 								3,
