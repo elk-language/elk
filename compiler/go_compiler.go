@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"unicode"
 
@@ -66,15 +67,53 @@ func (s *nativeSymbol) goIdent() string {
 	return fmt.Sprintf("sym%d", s.id)
 }
 
+type nativeMethodState uint8
+
+const (
+	nativeMethodNew nativeMethodState = iota
+	nativeMethodChecking
+	nativeMethodChecked
+)
+
 type nativeMethod struct {
-	ident string
-	init  string
+	ident      string
+	init       string
+	mu         sync.Mutex
+	compiler   *GoCompiler
+	state      nativeMethodState
+	withoutErr bool
+}
+
+func (n *nativeMethod) optimiseNativeCalls() bool {
+	if n.state == nativeMethodChecking {
+		return false
+	}
+
+	n.state = nativeMethodChecking
+
+	optimised := n.compiler.optimiseNativeCalls()
+	n.withoutErr = optimised
+
+	n.state = nativeMethodChecked
+	return optimised
 }
 
 // Returns true if the method takes a slice of args,
 // false if it takes individual arguments with narrower types
 func (n *nativeMethod) hasArgsSlice() bool {
 	return n.init != ""
+}
+
+func (m *nativeMethod) checked() bool {
+	return m.state == nativeMethodChecked
+}
+
+func (m *nativeMethod) lock() {
+	m.mu.Lock()
+}
+
+func (m *nativeMethod) unlock() {
+	m.mu.Unlock()
 }
 
 func (m *nativeMethod) goIdent() string {
@@ -554,13 +593,15 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	method := c.typeOf(node).(*types.Method)
 
 	elkName := method.NamespacedName()
-	goName := c.registerElkMethodName(elkName)
+	goMethod := c.registerElkMethodName(elkName)
 
-	methodCompiler := NewGoCompiler(elkName, goName, mode, node.Location(), c.checker, c.globalData, c.output)
+	methodCompiler := NewGoCompiler(elkName, goMethod.ident, mode, node.Location(), c.checker, c.globalData, c.output)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
 	methodCompiler.method = method
+	methodCompiler.goMethod = goMethod
+	goMethod.compiler = methodCompiler
 	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType, node.Location())
 
 	return methodCompiler
@@ -575,7 +616,6 @@ type globalData struct {
 	constantCache        *concurrent.OrderedMap[string, *nativeConstant]
 	goImports            *concurrent.OrderedMap[string, *goImportEntry]
 	fileNames            *concurrent.Map[string, string]
-	constNames           *concurrent.Map[string, string]
 	namespaceBodyCounter atomic.Int64 // Number of namespace bodies already compiled
 	closureCounter       atomic.Int64 // Number of closures already compiled
 }
@@ -593,35 +633,49 @@ func newGlobalData() *globalData {
 	}
 }
 
+type nativeCall struct {
+	method *nativeMethod
+}
+
+func newNativeCall(method *nativeMethod) *nativeCall {
+	return &nativeCall{
+		method: method,
+	}
+}
+
 // Compiles Elk source code to Go source code.
 type GoCompiler struct {
-	Errors            *diagnostic.SyncDiagnosticList
-	elkName           string
-	goName            string
-	method            *types.Method
-	scopes            nativeElkScopes
-	output            io.Writer
-	parent            *GoCompiler
-	buff              bytes.Buffer // inner function code
-	packageBuff       bytes.Buffer // package level code
-	checker           types.Checker
-	loc               *position.Location
-	mode              goMode
-	children          concurrent.Slice[*GoCompiler]
-	goLocals          ds.OrderedMap[string, *goLocal]
-	goCatchScopes     []*goCatchScope
-	loopInfo          []*goLoopInfo
-	goLabelCounter    int
-	loopCounter       int // increments when a loop is entered, does not decrement ever
-	tmpLocalCounter   int
-	lastElkLocalIndex int
-	callCacheCounter  int
-	currentLineNumber int
-	closureLevel      int // nesting level of the closure
-	globalData        *globalData
-	isGenerator       bool
-	isAsync           bool
-	unhygienic        bool
+	Errors                *diagnostic.SyncDiagnosticList
+	elkName               string
+	goName                string
+	method                *types.Method
+	goMethod              *nativeMethod
+	scopes                nativeElkScopes
+	output                io.Writer
+	parent                *GoCompiler
+	buff                  bytes.Buffer // inner function code
+	packageBuff           bytes.Buffer // package level code
+	checker               types.Checker
+	loc                   *position.Location
+	mode                  goMode
+	children              concurrent.Slice[*GoCompiler]
+	goLocals              ds.OrderedMap[string, *goLocal]
+	goCatchScopes         []*goCatchScope
+	loopInfo              []*goLoopInfo
+	nativeCallsToOptimise []*nativeCall
+	globalData            *globalData
+	callFrameStartOffset  int // call frame definition start offset
+	callFrameEndOffset    int // call frame definition end offset
+	goLabelCounter        int
+	loopCounter           int // increments when a loop is entered, does not decrement ever
+	tmpLocalCounter       int
+	lastElkLocalIndex     int
+	callCacheCounter      int
+	currentLineNumber     int
+	closureLevel          int // nesting level of the closure
+	isGenerator           bool
+	isAsync               bool
+	unhygienic            bool
 }
 
 func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *globalData, output io.Writer) *GoCompiler {
@@ -795,11 +849,12 @@ func (c *GoCompiler) compileGlobalEnv() {
 // Entry point for compiling the body of a method.
 func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []ast.StatementNode, returnType types.Type, loc *position.Location) {
 	c.compileMethodFuncLiteralWithNativeArgsBody(parameters, body, returnType, loc)
+	c.callFrameStartOffset += c.packageBuff.Len()
+	c.callFrameEndOffset += c.packageBuff.Len()
 	c.emitPackageBytes(c.buff.Bytes())
 	c.buff.Reset()
 
 	c.emit("func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {\n")
-
 	c.emit("result, err := %s(thread, args[0]", c.goName)
 
 	for i, param := range parameters {
@@ -915,11 +970,28 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 
 	fmt.Fprintf(&funcBuffer, ") (result %s, err value.Value) { // method: %s, loc: %s\n", goReturnType, types.Inspect(c.method), loc.String())
 	c.compileLocalsTo(&funcBuffer)
+	c.callFrameStartOffset += funcBuffer.Len()
+	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("\n}\n")
 
 	// TODO: implement generators
 	// c.emitFinalReturn(location, nil)
+}
+
+func (c *GoCompiler) optimiseNativeCalls() bool {
+	for _, nativeCall := range c.nativeCallsToOptimise {
+		if !nativeCall.method.optimiseNativeCalls() {
+			return false
+		}
+	}
+
+	originalBytes := c.packageBuff.Bytes()
+	var newBuff bytes.Buffer
+	newBuff.Write(originalBytes[:c.callFrameStartOffset])
+	newBuff.Write(originalBytes[c.callFrameEndOffset:])
+	c.packageBuff = newBuff
+	return true
 }
 
 func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, valueIsIgnored bool) *goValue {
@@ -1198,7 +1270,7 @@ func (c *GoCompiler) emitGetBoxOfInstanceVariableByIndex(index int, typ types.Ty
 
 // Emit an instruction that gets the box of (pointer to) an instance variable by name
 func (c *GoCompiler) emitGetBoxOfInstanceVariableByName(name value.Symbol, typ types.Type, immutable, valueIsIgnored bool) *goValue {
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	symbol := c.emitSymbol(name.String())
 	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(value.FetchGoType("*value.BoxOfValue"), valueIsIgnored)
 	if immutable {
@@ -1241,7 +1313,7 @@ func (c *GoCompiler) emitGetInstanceVariableByIndex(index int, typ types.Type) *
 
 // Emit an instruction that gets the value of an instance variable by name
 func (c *GoCompiler) emitGetInstanceVariableByName(name value.Symbol, typ types.Type, valueIsIgnored bool) *goValue {
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	symbol := c.emitSymbol(name.String())
 	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
 	c.emit("%s, err = value.GetInstanceVariableByName(self, %s)\n", tmpName, symbol)
@@ -1449,6 +1521,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	}
 
 	methodCompiler := (*GoCompiler)(method.Body.(*GoSourceMethod))
+	methodCompiler.goMethod.optimiseNativeCalls()
 
 	c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
 	c.emitBytes(methodCompiler.buff.Bytes())
@@ -2990,7 +3063,7 @@ func (c *GoCompiler) compileForIn(
 	nextType, _ := c.checker.GetIteratorElementType(inExpressionType)
 	loopTmpVar := c.defineTmpGoLocal(goValueType)
 	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 
 	prevBuff := c.switchBuffer(bytes.Buffer{})
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
@@ -4220,7 +4293,7 @@ func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, val
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(node.Location())
 	c.emit("err = value.Must(%s)\n", c.convertValueToWiderType(result).fetchValue())
 	c.emitErrorPropagation()
@@ -4246,7 +4319,7 @@ func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIs
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(node.Location())
 	switch narrowClass.goType.Name {
 	case "*value.Class", "*value.Mixin":
@@ -4497,7 +4570,7 @@ func (c *GoCompiler) compileArrayAppend(tmp *goLocal, expr ast.ExpressionNode) {
 		key := c.compileExpression(expr.Key, false)
 		value := c.compileExpression(expr.Value, false)
 
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(expr.Location())
 
 		switch key.goType.Name {
@@ -4538,7 +4611,7 @@ func (c *GoCompiler) compileHashSetAppendExpr(tmp *goLocal, expr ast.ExpressionN
 func (c *GoCompiler) compileHashSetAppend(tmp *goLocal, val *goValue, loc *position.Location) {
 	switch tmp.goType.Name {
 	case "*vm.HashSetOfValue", "vm.HashSet":
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("_, err = %s.AppendVal(thread, %s)\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
 		c.emitErrorPropagation()
@@ -4550,7 +4623,7 @@ func (c *GoCompiler) compileHashSetAppend(tmp *goLocal, val *goValue, loc *posit
 func (c *GoCompiler) compileMapSet(tmp *goLocal, key, val *goValue, loc *position.Location) {
 	switch tmp.goType.Name {
 	case "*vm.HashMapOfValue", "vm.HashMap", "*vm.HashRecordOfValue", "vm.HashRecord":
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("err = %s.SetVal(thread, %s, %s)\n", tmp.name, c.convertValueToWiderType(key).fetchValue(), c.convertValueToWiderType(val).fetchValue())
 		c.emitErrorPropagation()
@@ -4956,7 +5029,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 			dependency.markFree()
 		}
 		if goType.Name == "*vm.HashSetOfValue" {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(node.Location())
 			c.emit("%s, err = %s\n", tmp.name, buff.String())
 			c.emitErrorPropagation()
@@ -5189,7 +5262,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 		}
 		buff.WriteString(")")
 		if goType.Name == "*vm.HashMapOfValue" {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(node.Location())
 			c.emit("%s, err = %s\n", tmp.name, buff.String())
 			c.emitErrorPropagation()
@@ -5519,7 +5592,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 			dependency.markFree()
 		}
 		if goType.Name == "*vm.HashRecordOfValue" {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(node.Location())
 			c.emit("%s, err = %s\n", tmp.name, buff.String())
 			c.emitErrorPropagation()
@@ -5840,7 +5913,7 @@ func (c *GoCompiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedR
 	elkType := c.typeOf(node)
 	goType := c.elkTypeToGoType(elkType, false)
 	resultVar := c.defineTmpGoLocal(goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 
 	var buff bytes.Buffer
 	fmt.Fprintf(&buff, "%s, err = value.CompileRegexVal(", resultVar.name)
@@ -6476,25 +6549,26 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValues(receiverType, returnT
 	)
 }
 
-func (c *GoCompiler) registerElkMethodName(methodName string) string {
+func (c *GoCompiler) registerElkMethodName(methodName string) *nativeMethod {
 	c.globalData.methodCache.Lock()
 
-	var goName string
+	var method *nativeMethod
 	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
-		goName = entry.ident
+		method = entry
 	} else {
-		goName = fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
+		goName := fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
+		method = &nativeMethod{
+			ident: goName,
+		}
 		c.globalData.methodCache.SetUnsafe(
 			methodName,
-			&nativeMethod{
-				ident: goName,
-			},
+			method,
 		)
 	}
 
 	c.globalData.methodCache.Unlock()
 
-	return goName
+	return method
 }
 
 func (c *GoCompiler) getGoIdentForNamespaceBody() string {
@@ -6583,7 +6657,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 			}
 
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
@@ -6612,7 +6686,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 			}
 
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
@@ -6641,7 +6715,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 			}
 
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
@@ -6671,7 +6745,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 			}
 
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"%s, err = thread.CallCallableWithCache(&%s, %s...) // receiver: %s, name: %s\n",
@@ -6823,11 +6897,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	c.globalData.methodCache.Lock()
 
 	namespacedMethodName := method.NamespacedName()
-	goMethodName, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
+	goMethod, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
 		goIdent := fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
 		nameSym := c.emitSymbol(name)
-		goMethodName = &nativeMethod{
+		goMethod = &nativeMethod{
 			ident: goIdent,
 			init: fmt.Sprintf(
 				"vm.MethodToFunc((%s).LookupMethod(%s))",
@@ -6837,7 +6911,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		}
 		c.globalData.methodCache.SetUnsafe(
 			namespacedMethodName,
-			goMethodName,
+			goMethod,
 		)
 
 		c.emitPackage(
@@ -6854,7 +6928,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	if valueIsIgnored {
 		tmpName = "_"
 	} else {
-		if goMethodName.hasArgsSlice() {
+		if goMethod.hasArgsSlice() {
 			tmp = c.defineTmpGoLocal(goValueType)
 		} else {
 			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType, false))
@@ -6862,18 +6936,23 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		tmpName = tmp.name
 	}
 
-	if goMethodName.hasArgsSlice() {
+	goMethod.lock()
+	goMethodChecked := goMethod.checked()
+	goMethodWithoutErr := goMethod.withoutErr
+	goMethod.unlock()
+
+	if goMethod.hasArgsSlice() {
 		callArgsVar := c.defineCallArgs(len(args))
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 		}
 
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = %s(thread, %s) // receiver: %s, name: %s\n",
 			tmpName,
-			goMethodName.goIdent(),
+			goMethod.goIdent(),
 			callArgsVar.name,
 			types.Inspect(receiverType),
 			name,
@@ -6881,20 +6960,19 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		callArgsVar.markFree()
 
 		c.emitErrorPropagation()
-	} else {
+	} else if goMethodChecked && goMethodWithoutErr {
 		c.registerErr()
-		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = %s(thread, %s",
 			tmpName,
-			goMethodName.goIdent(),
+			goMethod.goIdent(),
 			c.convertValueToWiderType(args[0]).fetchValue(),
 		)
 
 		for i, arg := range args[1:] {
 			param := method.Params[i]
 			goParamType := c.elkTypeToGoType(param.Type, false)
-			if goMethodName.hasArgsSlice() || param.IsOptional() || goParamType.Name == "value.Value" {
+			if param.IsOptional() || goParamType.Name == "value.Value" {
 				c.emit(", %s", c.convertValueToWiderType(arg).fetchValue())
 				continue
 			}
@@ -6908,6 +6986,37 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 			name,
 		)
 		c.emitErrorPropagation()
+	} else {
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit(
+			"%s, err = %s(thread, %s",
+			tmpName,
+			goMethod.goIdent(),
+			c.convertValueToWiderType(args[0]).fetchValue(),
+		)
+
+		for i, arg := range args[1:] {
+			param := method.Params[i]
+			goParamType := c.elkTypeToGoType(param.Type, false)
+			if param.IsOptional() || goParamType.Name == "value.Value" {
+				c.emit(", %s", c.convertValueToWiderType(arg).fetchValue())
+				continue
+			}
+
+			c.emit(", %s", c.convertValueToNarrowerType(arg).fetchValue())
+		}
+
+		c.emit(
+			") // receiver: %s, name: %s\n",
+			types.Inspect(receiverType),
+			name,
+		)
+		c.emitErrorPropagation()
+
+		if !goMethodChecked && goMethod != c.goMethod {
+			nativeCall := newNativeCall(goMethod)
+			c.nativeCallsToOptimise = append(c.nativeCallsToOptimise, nativeCall)
+		}
 	}
 
 	if valueIsIgnored {
@@ -6957,7 +7066,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 		c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 	}
 
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit(
 		"%s, err = thread.CallMethodByNameWithCache(%s, &%s, %s...) // receiver: %s, name: %s\n",
@@ -7198,7 +7307,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("err = (%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
@@ -7213,7 +7322,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		expectedElementGoType := narrowReceiver.goType.TypeArgs[0]
 		if intKey != nil && narrowVal.goType.Name == expectedElementGoType.Name {
 			tmp := c.defineTmpGoLocal(expectedElementGoType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emit("%s = %s\n", tmp.name, narrowVal.fetchValue())
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("err = (%s).Set(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
@@ -7254,7 +7363,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("err = (%s).SubscriptSetInt(%s, %s)\n", narrowReceiver.fetchValue(), intKey.fetchValue(), tmp.name)
 			c.emitErrorPropagation()
@@ -7266,7 +7375,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("err = (%s).SubscriptSet(%s, %s)\n", narrowReceiver.fetchValue(), c.convertValueToWiderType(key).fetchValue(), tmp.name)
 		c.emitErrorPropagation()
@@ -7280,7 +7389,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) {
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("err = (%s).SetVal(thread, %s, %s)\n", narrowReceiver.fetchValue(), c.convertValueToWiderType(key).fetchValue(), tmp.name)
 		c.emitErrorPropagation()
@@ -7797,6 +7906,8 @@ func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
 
 	c.currentLineNumber = lineNumber
 	c.registerGoLocal("callFrame", value.FetchGoType("*vm.CallFrame"))
+
+	c.callFrameStartOffset = c.buff.Len()
 	c.emit(
 		"callFrame = thread.AddNativeCallFrame(%s, %s, %d)\n",
 		funcNameSym,
@@ -7804,6 +7915,7 @@ func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
 		lineNumber,
 	)
 	c.emit("defer thread.PopNativeCallFrame()\n")
+	c.callFrameEndOffset = c.buff.Len()
 }
 
 func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
@@ -7817,6 +7929,24 @@ func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
 		"callFrame.SetNativeLineNumber(%d)\n",
 		newLineNumber,
 	)
+}
+
+func (c *GoCompiler) markUnoptimisableError() {
+	if c.goMethod == nil {
+		return
+	}
+
+	c.goMethod.lock()
+
+	c.goMethod.withoutErr = false
+	c.goMethod.state = nativeMethodChecked
+
+	c.goMethod.unlock()
+}
+
+func (c *GoCompiler) registerUnoptimisableErr() {
+	c.registerErr()
+	c.markUnoptimisableError()
 }
 
 func (c *GoCompiler) registerErr() {
@@ -8080,7 +8210,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
@@ -8093,7 +8223,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(narrowReceiver.goType.TypeArgs[0])
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).Get(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
@@ -8132,7 +8262,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = (%s).SubscriptInt(%s)\n", tmp.name, narrowReceiver.fetchValue(), intKey.fetchValue())
 			c.emitErrorPropagation()
@@ -8143,7 +8273,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).Subscript(%s)\n", tmp.name, narrowReceiver.fetchValue(), key.fetchValue())
 		c.emitErrorPropagation()
@@ -8156,7 +8286,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 
 	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashRecord)) {
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).GetValNil(thread, %s)\n", tmp.name, narrowReceiver.fetchValue(), c.convertValueToWiderType(key).fetchValue())
 		c.emitErrorPropagation()
@@ -8429,7 +8559,7 @@ func (c *GoCompiler) compileIsA(left *goValue, right *goValue, typ types.Type, l
 		)
 	default:
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.IsAVal(%s, %s)\n",
@@ -8469,7 +8599,7 @@ func (c *GoCompiler) compileInstanceOf(left *goValue, right *goValue, typ types.
 		)
 	default:
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.InstanceOfVal(%s, %s)\n",
@@ -8517,7 +8647,7 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.GreaterThanEqualInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -8532,7 +8662,7 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.GreaterThanEqual(%s, %s)\n",
@@ -8545,7 +8675,7 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.GreaterThanEqual(%s, %s)\n",
@@ -8599,7 +8729,7 @@ func (c *GoCompiler) compileGreaterEqualStringlike(left, right *goValue, loc *po
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).GreaterThanEqual(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -8660,7 +8790,7 @@ func (c *GoCompiler) compileGreaterEqualCoercibleNumeric(left, right *goValue, l
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).GreaterThanEqual(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -8712,7 +8842,7 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.GreaterThanInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -8727,7 +8857,7 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.GreaterThan(%s, %s)\n",
@@ -8740,7 +8870,7 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 		}
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.GreaterThan(%s, %s)\n",
@@ -8794,7 +8924,7 @@ func (c *GoCompiler) compileGreaterStringlike(left, right *goValue, loc *positio
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).GreaterThan(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -8855,7 +8985,7 @@ func (c *GoCompiler) compileGreaterCoercibleNumeric(left, right *goValue, loc *p
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).GreaterThan(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -8907,7 +9037,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LessThanInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -8922,7 +9052,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.LessThan(%s, %s)\n",
@@ -8935,7 +9065,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 		}
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.LessThan(%s, %s)\n",
@@ -8989,7 +9119,7 @@ func (c *GoCompiler) compileLessStringlike(left, right *goValue, loc *position.L
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LessThan(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9050,7 +9180,7 @@ func (c *GoCompiler) compileLessCoercibleNumeric(left, right *goValue, loc *posi
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LessThan(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9102,7 +9232,7 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LessThanEqualInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9117,7 +9247,7 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinNumeric)) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit(
 				"_, err = value.LessThanEqual(%s, %s)\n",
@@ -9130,7 +9260,7 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 		}
 
 		tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.LessThanEqual(%s, %s)\n",
@@ -9184,7 +9314,7 @@ func (c *GoCompiler) compileLessEqualStringlike(left, right *goValue, loc *posit
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LessThanEqual(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9245,7 +9375,7 @@ func (c *GoCompiler) compileLessEqualCoercibleNumeric(left, right *goValue, loc 
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LessThanEqual(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9315,7 +9445,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.CompareInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9332,7 +9462,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.CompareVal(%s, %s)\n",
@@ -9384,7 +9514,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit(
 		"%s, err = value.CompareVal(%s, %s)\n",
@@ -9438,7 +9568,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit(
 		"%s, err = (%s).CompareVal(%s)\n",
@@ -9607,7 +9737,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 
 		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = value.DivideInts(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 			c.emitErrorPropagation()
@@ -9619,7 +9749,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.DivideInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9632,7 +9762,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 
 	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.S_BuiltinDividable)) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("_, err = value.DivideVal(%s, %s)\n", c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 			c.emitErrorPropagation()
@@ -9640,7 +9770,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.DivideVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9670,7 +9800,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -9681,7 +9811,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -9710,7 +9840,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 
 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("_, err = (%s).DivideInt(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 			c.emitErrorPropagation()
@@ -9718,7 +9848,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideInt(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9730,7 +9860,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 	}
 
 	if valueIsIgnored {
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("_, err = (%s).DivideVal(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9738,7 +9868,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9754,7 +9884,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -9765,7 +9895,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -9794,7 +9924,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 
 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
 		if valueIsIgnored {
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("_, err = (%s).DivideInt(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 			c.emitErrorPropagation()
@@ -9802,7 +9932,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).DivideInt(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9814,7 +9944,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 	}
 
 	if valueIsIgnored {
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("_, err = (%s).DivideVal(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9822,7 +9952,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9881,7 +10011,7 @@ func (c *GoCompiler) compileDivideFloat(left, right *goValue, typ types.Type, lo
 	}
 
 	if valueIsIgnored {
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("_, err = (%s).DivideVal(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9889,7 +10019,7 @@ func (c *GoCompiler) compileDivideFloat(left, right *goValue, typ types.Type, lo
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9948,7 +10078,7 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 	}
 
 	if valueIsIgnored {
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("_, err = (%s).DivideVal(%s)\n", left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -9956,7 +10086,7 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -9989,7 +10119,7 @@ func (c *GoCompiler) compileDivideFloat32(left, right *goValue) *goValue {
 
 func (c *GoCompiler) compileDivideInt64(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideInt64(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10002,7 +10132,7 @@ func (c *GoCompiler) compileDivideInt64(left, right *goValue, loc *position.Loca
 
 func (c *GoCompiler) compileDivideInt32(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideInt32(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10015,7 +10145,7 @@ func (c *GoCompiler) compileDivideInt32(left, right *goValue, loc *position.Loca
 
 func (c *GoCompiler) compileDivideInt16(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideInt16(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10028,7 +10158,7 @@ func (c *GoCompiler) compileDivideInt16(left, right *goValue, loc *position.Loca
 
 func (c *GoCompiler) compileDivideInt8(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideInt8(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10041,7 +10171,7 @@ func (c *GoCompiler) compileDivideInt8(left, right *goValue, loc *position.Locat
 
 func (c *GoCompiler) compileDivideUInt64(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt64(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10054,7 +10184,7 @@ func (c *GoCompiler) compileDivideUInt64(left, right *goValue, loc *position.Loc
 
 func (c *GoCompiler) compileDivideUInt32(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt32(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10067,7 +10197,7 @@ func (c *GoCompiler) compileDivideUInt32(left, right *goValue, loc *position.Loc
 
 func (c *GoCompiler) compileDivideUInt16(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt16(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10080,7 +10210,7 @@ func (c *GoCompiler) compileDivideUInt16(left, right *goValue, loc *position.Loc
 
 func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt8(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10093,7 +10223,7 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Loca
 
 func (c *GoCompiler) compileDivideUInt(left, right *goValue, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).DivideUInt(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10155,7 +10285,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ExponentiateInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10172,7 +10302,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
 			"%s, err = value.ExponentiateVal(%s, %s)\n",
@@ -10254,7 +10384,7 @@ func (c *GoCompiler) compileExponentiateBigInt(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ExponentiateVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10312,7 +10442,7 @@ func (c *GoCompiler) compileExponentiateSmallInt(left, right *goValue, typ types
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ExponentiateVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10370,7 +10500,7 @@ func (c *GoCompiler) compileExponentiateFloat(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ExponentiateVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10428,7 +10558,7 @@ func (c *GoCompiler) compileExponentiateBigFloat(left, right *goValue, typ types
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ExponentiateVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10594,7 +10724,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10611,7 +10741,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10670,7 +10800,7 @@ func (c *GoCompiler) compileBitwiseAndSmallInt(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseAndVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10715,7 +10845,7 @@ func (c *GoCompiler) compileBitwiseAndBigInt(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseAndVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10760,7 +10890,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndNotInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10777,7 +10907,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseAndNotVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10836,7 +10966,7 @@ func (c *GoCompiler) compileBitwiseAndNotSmallInt(left, right *goValue, typ type
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseAndNotVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10881,7 +11011,7 @@ func (c *GoCompiler) compileBitwiseAndNotBigInt(left, right *goValue, typ types.
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseAndNotVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -10926,7 +11056,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseOrInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -10943,7 +11073,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseOrVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11002,7 +11132,7 @@ func (c *GoCompiler) compileBitwiseOrSmallInt(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseOrVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11047,7 +11177,7 @@ func (c *GoCompiler) compileBitwiseOrBigInt(left, right *goValue, typ types.Type
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseOrVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11092,7 +11222,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseXorInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11109,7 +11239,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.BitwiseXorVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11168,7 +11298,7 @@ func (c *GoCompiler) compileBitwiseXorSmallInt(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseXorVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11213,7 +11343,7 @@ func (c *GoCompiler) compileBitwiseXorBigInt(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).BitwiseXorVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11267,7 +11397,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LeftBitshiftInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11284,7 +11414,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LeftBitshiftVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11339,7 +11469,7 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LogicalLeftBitshiftVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11407,7 +11537,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.RightBitshiftInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11424,7 +11554,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.RightBitshiftVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11479,7 +11609,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, 
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.LogicalRightBitshiftVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -11602,7 +11732,7 @@ func (c *GoCompiler) compileLeftBitshiftSmallInt(left, right *goValue, typ types
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LeftBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11711,7 +11841,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).RightBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11820,7 +11950,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).LeftBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11849,7 +11979,7 @@ func (c *GoCompiler) compileLeftBitshiftInt64(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11878,7 +12008,7 @@ func (c *GoCompiler) compileLeftBitshiftInt32(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11907,7 +12037,7 @@ func (c *GoCompiler) compileLeftBitshiftInt16(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11936,7 +12066,7 @@ func (c *GoCompiler) compileLeftBitshiftInt8(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11965,7 +12095,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt64(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -11994,7 +12124,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt32(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12023,7 +12153,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt16(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12052,7 +12182,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt8(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12081,7 +12211,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLeftBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12190,7 +12320,7 @@ func (c *GoCompiler) compileRightBitshiftBigInt(left, right *goValue, typ types.
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).RightBitshiftVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12203,7 +12333,7 @@ func (c *GoCompiler) compileRightBitshiftBigInt(left, right *goValue, typ types.
 
 func (c *GoCompiler) compileLogicalRightBitshiftInt64(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLogicalRightBitshift(%s, %s, value.LogicalRightShift64)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12216,7 +12346,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt64(left, right *goValue, typ 
 
 func (c *GoCompiler) compileLogicalRightBitshiftInt32(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLogicalRightBitshift(%s, %s, value.LogicalRightShift32)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12229,7 +12359,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt32(left, right *goValue, typ 
 
 func (c *GoCompiler) compileLogicalRightBitshiftInt16(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLogicalRightBitshift(%s, %s, value.LogicalRightShift16)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12242,7 +12372,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt16(left, right *goValue, typ 
 
 func (c *GoCompiler) compileLogicalRightBitshiftInt8(left, right *goValue, typ types.Type, loc *position.Location) *goValue {
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntLogicalRightBitshift(%s, %s, value.LogicalRightShift8)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12267,7 +12397,7 @@ func (c *GoCompiler) compileRightBitshiftInt64(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12292,7 +12422,7 @@ func (c *GoCompiler) compileRightBitshiftInt32(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12317,7 +12447,7 @@ func (c *GoCompiler) compileRightBitshiftInt16(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12342,7 +12472,7 @@ func (c *GoCompiler) compileRightBitshiftInt8(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.Int8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12367,7 +12497,7 @@ func (c *GoCompiler) compileRightBitshiftUInt64(left, right *goValue, typ types.
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt64"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12392,7 +12522,7 @@ func (c *GoCompiler) compileRightBitshiftUInt32(left, right *goValue, typ types.
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt32"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12417,7 +12547,7 @@ func (c *GoCompiler) compileRightBitshiftUInt16(left, right *goValue, typ types.
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt16"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12442,7 +12572,7 @@ func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.T
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt8"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12467,7 +12597,7 @@ func (c *GoCompiler) compileRightBitshiftUInt(left, right *goValue, typ types.Ty
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.UInt"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = value.StrictIntRightBitshift(%s, %s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12533,7 +12663,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.MultiplyInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -12550,7 +12680,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.MultiplyVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -12627,7 +12757,7 @@ func (c *GoCompiler) compileMultiplyBigInt(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).MultiplyVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12690,7 +12820,7 @@ func (c *GoCompiler) compileMultiplySmallInt(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).MultiplyVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12753,7 +12883,7 @@ func (c *GoCompiler) compileMultiplyFloat(left, right *goValue, typ types.Type, 
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).MultiplyVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12816,7 +12946,7 @@ func (c *GoCompiler) compileMultiplyBigFloat(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).MultiplyVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12836,7 +12966,7 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).RepeatSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -12848,7 +12978,7 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).Repeat(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -12868,7 +12998,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).RepeatSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -12880,7 +13010,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).Repeat(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -13085,7 +13215,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.SubtractInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -13102,7 +13232,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.SubtractVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -13175,7 +13305,7 @@ func (c *GoCompiler) compileSubtractBigInt(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).SubtractVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -13234,7 +13364,7 @@ func (c *GoCompiler) compileSubtractSmallInt(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).SubtractVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -13293,7 +13423,7 @@ func (c *GoCompiler) compileSubtractFloat(left, right *goValue, typ types.Type, 
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).SubtractVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -13352,7 +13482,7 @@ func (c *GoCompiler) compileSubtractBigFloat(left, right *goValue, typ types.Typ
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).SubtractVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14274,7 +14404,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 
 		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
-			c.registerErr()
+			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
 			c.emit("%s, err = value.ModuloInts(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 			c.emitErrorPropagation()
@@ -14286,7 +14416,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ModuloInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -14303,7 +14433,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.ModuloVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -14376,7 +14506,7 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14435,7 +14565,7 @@ func (c *GoCompiler) compileModuloBigFloat(left, right *goValue, typ types.Type,
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14455,7 +14585,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14466,7 +14596,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14494,7 +14624,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
 		valRight := c.convertValueToWiderType(right)
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloInt(%s)\n", tmp.name, left.fetchValue(), valRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14507,7 +14637,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 
 	valRight := c.convertValueToWiderType(right)
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.fetchValue(), valRight.fetchValue())
 	c.emitErrorPropagation()
@@ -14527,7 +14657,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloSmallInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14552,7 +14682,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloBigInt(%s)\n", tmp.name, left.fetchValue(), narrowRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14566,7 +14696,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 	if c.checker.IsSubtype(right.elkType, c.checker.StdInt()) {
 		valRight := c.convertValueToWiderType(right)
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = (%s).ModuloInt(%s)\n", tmp.name, left.fetchValue(), valRight.fetchValue())
 		c.emitErrorPropagation()
@@ -14579,7 +14709,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 
 	valRight := c.convertValueToWiderType(right)
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloVal(%s)\n", tmp.name, left.fetchValue(), valRight.fetchValue())
 	c.emitErrorPropagation()
@@ -14596,7 +14726,7 @@ func (c *GoCompiler) compileModuloInt64(left, right *goValue, loc *position.Loca
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloInt64(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14613,7 +14743,7 @@ func (c *GoCompiler) compileModuloInt32(left, right *goValue, loc *position.Loca
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloInt32(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14630,7 +14760,7 @@ func (c *GoCompiler) compileModuloInt16(left, right *goValue, loc *position.Loca
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloInt16(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14647,7 +14777,7 @@ func (c *GoCompiler) compileModuloInt8(left, right *goValue, loc *position.Locat
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloInt8(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14664,7 +14794,7 @@ func (c *GoCompiler) compileModuloUInt64(left, right *goValue, loc *position.Loc
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloUInt64(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14681,7 +14811,7 @@ func (c *GoCompiler) compileModuloUInt(left, right *goValue, loc *position.Locat
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloUInt(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14698,7 +14828,7 @@ func (c *GoCompiler) compileModuloUInt32(left, right *goValue, loc *position.Loc
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloUInt32(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14715,7 +14845,7 @@ func (c *GoCompiler) compileModuloUInt16(left, right *goValue, loc *position.Loc
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloUInt16(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14732,7 +14862,7 @@ func (c *GoCompiler) compileModuloUInt8(left, right *goValue, loc *position.Loca
 	}
 
 	tmp := c.defineTmpGoLocal(left.goType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).ModuloUInt8(%s)\n", tmp.name, left.fetchValue(), c.convertValueToNarrowerType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14826,7 +14956,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.AddInt(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -14843,7 +14973,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.registerErr()
+		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit("%s, err = value.AddVal(%s, %s)\n", tmp.name, c.convertValueToWiderType(left).fetchValue(), c.convertValueToWiderType(right).fetchValue())
 		c.emitErrorPropagation()
@@ -14916,7 +15046,7 @@ func (c *GoCompiler) compileAddBigInt(left, right *goValue, typ types.Type, loc 
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -14975,7 +15105,7 @@ func (c *GoCompiler) compileAddSmallInt(left, right *goValue, typ types.Type, lo
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -15034,7 +15164,7 @@ func (c *GoCompiler) compileAddFloat(left, right *goValue, typ types.Type, loc *
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -15093,7 +15223,7 @@ func (c *GoCompiler) compileAddBigFloat(left, right *goValue, typ types.Type, lo
 	}
 
 	tmp := c.defineTmpGoLocal(goValueType)
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = (%s).AddVal(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -15128,7 +15258,7 @@ func (c *GoCompiler) compileAddString(left, right *goValue, loc *position.Locati
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = %s.Concat(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()
@@ -15163,7 +15293,7 @@ func (c *GoCompiler) compileAddChar(left, right *goValue, loc *position.Location
 	}
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("value.String"))
-	c.registerErr()
+	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(loc)
 	c.emit("%s, err = %s.Concat(%s)\n", tmp.name, left.fetchValue(), c.convertValueToWiderType(right).fetchValue())
 	c.emitErrorPropagation()

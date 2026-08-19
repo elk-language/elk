@@ -51,7 +51,9 @@ func makeNativeCallFrame(fileName, funcName value.Symbol, lineNumber, tailCallCo
 }
 
 func (c *CallFrame) SetNativeLineNumber(lineNumber int) {
-	c.localCount = lineNumber
+	if c != nil {
+		c.localCount = lineNumber
+	}
 }
 
 func (c *CallFrame) IsNative() bool {

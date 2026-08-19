@@ -2442,6 +2442,14 @@ func (vm *Thread) AddNativeCallFrame(fileName, funcName value.Symbol, lineNumber
 	return ptr
 }
 
+func (vm *Thread) AddTailCall() {
+	vm.tailCallCounter++
+}
+
+func (vm *Thread) PopTailCall() {
+	vm.tailCallCounter--
+}
+
 func (vm *Thread) addCallFrame(cf CallFrame) {
 	*vm.cfpGet() = cf
 	vm.cfpIncrement()
