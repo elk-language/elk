@@ -11,6 +11,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
@@ -26,7 +27,7 @@ import (
 const MainName = "<main>"
 
 func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) *BytecodeCompiler {
-	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
 	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.Errors = errors
 	compiler.parent = parent
@@ -34,7 +35,7 @@ func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc
 }
 
 func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpointContext, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
-	compiler := NewBytecodeCompiler(context.Location.FilePath, breakpointBytecodeCompilerMode, context.Location, checker)
+	compiler := NewBytecodeCompiler(context.Location.FilePath, breakpointBytecodeCompilerMode, context.Location, checker, newBytecodeGlobalData())
 	compiler.Errors = errors
 	compiler.lastLocalIndex = context.lastLocalIndex
 	compiler.maxLocalIndex = context.maxLocalIndex
@@ -46,7 +47,7 @@ func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpoint
 }
 
 func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
-	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker)
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
 	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
@@ -57,7 +58,7 @@ func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *positi
 }
 
 func (c *BytecodeCompiler) InitGlobalEnv() Compiler {
-	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
+	envCompiler := NewBytecodeCompiler("<namespaceDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker, c.globalData)
 	envCompiler.additionalAbortChecks = c.additionalAbortChecks
 	envCompiler.parent = c
 	envCompiler.Errors = c.Errors
@@ -223,6 +224,38 @@ func (u bytecodeUpvalues) deepClone() bytecodeUpvalues {
 	return result
 }
 
+type bytecodeCall struct {
+	methodName        value.Symbol
+	bytecode          *vm.BytecodeFunction
+	bytecodeOffset    int
+	receiverType      types.Namespace
+	argCount          int
+	callSiteInfoIndex int
+	tailCall          bool
+}
+
+func newBytecodeCall(methodName value.Symbol, bytecode *vm.BytecodeFunction, offset int, typ types.Namespace, argCount int, callSiteIndex int, tailCall bool) *bytecodeCall {
+	return &bytecodeCall{
+		methodName:        methodName,
+		bytecode:          bytecode,
+		bytecodeOffset:    offset,
+		receiverType:      typ,
+		argCount:          argCount,
+		callSiteInfoIndex: callSiteIndex,
+		tailCall:          tailCall,
+	}
+}
+
+type bytecodeGlobalData struct {
+	callsToOptimise *concurrent.Slice[*bytecodeCall]
+}
+
+func newBytecodeGlobalData() *bytecodeGlobalData {
+	return &bytecodeGlobalData{
+		callsToOptimise: concurrent.NewSlice[*bytecodeCall](),
+	}
+}
+
 // Holds the state of the BytecodeCompiler.
 type BytecodeCompiler struct {
 	Name                  string
@@ -231,25 +264,26 @@ type BytecodeCompiler struct {
 	scopes                bytecodeScopes
 	loopJumpSets          []*bytecodeLoopJumpSet
 	offsetValueIds        []int // ids of integers in the value pool that represent bytecode offsets
-	lastLocalIndex        int   // index of the last local variable
-	maxLocalIndex         int   // max index of a local variable
-	predefinedLocals      int
 	secondToLastOpCode    bytecode.OpCode
 	lastOpCode            bytecode.OpCode
-	patternNesting        int
 	parent                *BytecodeCompiler
 	upvalues              bytecodeUpvalues
 	checker               types.Checker
-	mode                  bytecodeCompilerMode
+	globalData            *bytecodeGlobalData
+	lastLocalIndex        int // index of the last local variable
+	maxLocalIndex         int // max index of a local variable
+	predefinedLocals      int
+	patternNesting        int
 	isGenerator           bool
 	isAsync               bool
 	unhygienic            bool
 	additionalAbortChecks bool
 	hasDefer              bool
+	mode                  bytecodeCompilerMode
 }
 
 // Instantiate a NewBytecodeCompiler Compiler instance.
-func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker) *BytecodeCompiler {
+func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker, globalData *bytecodeGlobalData) *BytecodeCompiler {
 	c := &BytecodeCompiler{
 		bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
@@ -262,6 +296,7 @@ func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.L
 		Name:           name,
 		mode:           mode,
 		checker:        checker,
+		globalData:     globalData,
 		Errors:         diagnostic.NewSyncDiagnosticList(),
 	}
 	// reserve the first slot on the stack for `self`
@@ -448,7 +483,7 @@ func (c *BytecodeCompiler) CompileInclude(target types.Namespace, mixin *types.M
 }
 
 func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) Compiler {
-	exprCompiler := NewBytecodeCompiler("<file>", topLevelBytecodeCompilerMode, location, c.checker)
+	exprCompiler := NewBytecodeCompiler("<file>", topLevelBytecodeCompilerMode, location, c.checker, c.globalData)
 	exprCompiler.Errors = c.Errors
 
 	c.emitValue(value.Ref(exprCompiler.bytecode), location)
@@ -567,7 +602,7 @@ func (c *BytecodeCompiler) compileFunction(location *position.Location, paramete
 }
 
 func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (Compiler, int) {
-	methodCompiler := NewBytecodeCompiler("<methodDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
+	methodCompiler := NewBytecodeCompiler("<methodDefinitions>", topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker, c.globalData)
 	methodCompiler.Errors = c.Errors
 	methodCompiler.parent = c
 
@@ -582,7 +617,7 @@ func (c *BytecodeCompiler) InitMethodCompiler(location *position.Location) (Comp
 var ivarIndicesSymbol = value.ToSymbol("<ivarIndices>")
 
 func (c *BytecodeCompiler) InitIvarIndicesCompiler(location *position.Location) (Compiler, int) {
-	ivarCompiler := NewBytecodeCompiler(ivarIndicesSymbol.String(), topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker)
+	ivarCompiler := NewBytecodeCompiler(ivarIndicesSymbol.String(), topLevelBytecodeCompilerMode, c.bytecode.Location, c.checker, c.globalData)
 	ivarCompiler.Errors = c.Errors
 	ivarCompiler.parent = c
 
@@ -608,6 +643,7 @@ func (c *BytecodeCompiler) FinishIvarIndicesCompiler(location *position.Location
 }
 
 func (c *BytecodeCompiler) CompileMethods(location *position.Location, execOffset int) {
+	c.optimiseCalls()
 	c.compileMethodsWithinModule(c.checker.Env().Root, location)
 	if len(c.bytecode.Instructions) > 0 {
 		c.emit(location.EndPos.Line, bytecode.NIL)
@@ -618,6 +654,71 @@ func (c *BytecodeCompiler) CompileMethods(location *position.Location, execOffse
 	// If no instructions were emitted, remove the EXEC instruction block
 	c.parent.removeLastBytes(execOffset)
 	c.parent.removeBytecodeFunction(methodDefinitionsSymbol)
+}
+
+func (c *BytecodeCompiler) optimiseCalls() {
+	for _, call := range c.globalData.callsToOptimise.Slice {
+		name := call.methodName
+		namespaceName := call.receiverType.Name()
+		namespaceName, isSingleton := c.singletonName(namespaceName)
+
+		if namespace := value.GetConstant(value.ToSymbol(namespaceName)); namespace.IsNotUndefined() {
+			var method value.Method
+			switch n := namespace.AsReference().(type) {
+			case *value.Class:
+				if isSingleton {
+					method = n.SingletonClass().LookupMethod(name)
+				} else {
+					method = n.LookupMethod(name)
+				}
+			case *value.Module:
+				method = n.SingletonClass().LookupMethod(name)
+			default:
+				panic(fmt.Sprintf("invalid namespace for method lookup %T", n))
+			}
+
+			if method != nil {
+				c.patchOptimisedCall(call, method)
+				return
+			}
+		}
+
+		method := c.checker.GetMethod(call.receiverType, name, nil)
+		if method == nil {
+			return
+		}
+
+		c.patchOptimisedCall(call, method.Body)
+	}
+}
+
+func (c *BytecodeCompiler) patchOptimisedCall(call *bytecodeCall, method value.Method) {
+	opcode := bytecode.OpCode(call.bytecode.Instructions[call.bytecodeOffset])
+	switch body := method.(type) {
+	case *vm.BytecodeFunction:
+		switch opcode {
+		case bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8:
+			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_BCR8)
+		case bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16:
+			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_BC16)
+		}
+		call.bytecode.Values[call.callSiteInfoIndex] = vm.NewBytecodeCallSiteInfo(
+			body,
+			call.argCount,
+			call.tailCall,
+		).ToValue()
+	case *vm.NativeMethod:
+		switch opcode {
+		case bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8:
+			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_NT8)
+		case bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16:
+			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_NT16)
+		}
+		call.bytecode.Values[call.callSiteInfoIndex] = vm.NewNativeCallSiteInfo(
+			body,
+			call.argCount,
+		).ToValue()
+	}
 }
 
 func (c *BytecodeCompiler) removeLastBytes(offset int) {
@@ -828,7 +929,7 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 		mode = methodBytecodeCompilerMode
 	}
 
-	methodCompiler := NewBytecodeCompiler(name.String(), mode, node.Location(), c.checker)
+	methodCompiler := NewBytecodeCompiler(name.String(), mode, node.Location(), c.checker, c.globalData)
 	methodCompiler.isGenerator = node.IsGenerator()
 	methodCompiler.isAsync = node.IsAsync()
 	methodCompiler.Errors = c.Errors
@@ -840,7 +941,7 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 }
 
 func (c *BytecodeCompiler) CompileMacroBody(node *ast.MacroDefinitionNode, name value.Symbol) *vm.BytecodeFunction {
-	methodCompiler := NewBytecodeCompiler(name.String(), macroBytecodeCompilerMode, node.Location(), c.checker)
+	methodCompiler := NewBytecodeCompiler(name.String(), macroBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	methodCompiler.Errors = c.Errors
 	methodType := c.typeOf(node).(*types.Method)
 	methodCompiler.hasDefer = methodType.HasDefer()
@@ -1605,7 +1706,7 @@ func (c *BytecodeCompiler) compileDeferExpressionNode(node *ast.DeferExpressionN
 	loc := node.Location()
 	c.compileLocalVariableAccess(deferStackVarName, loc)
 
-	closureCompiler := NewBytecodeCompiler("<defer>", methodBytecodeCompilerMode, loc, c.checker)
+	closureCompiler := NewBytecodeCompiler("<defer>", methodBytecodeCompilerMode, loc, c.checker, c.globalData)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.hasDefer = node.HasDefer
@@ -2714,7 +2815,7 @@ func (c *BytecodeCompiler) compileForIn(
 	if c.checker.IsSubtype(iteratorType, c.checker.Std(symbol.S_BuiltinIterator)) {
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {
-		c.emitCallNext(value.NewCallSiteInfo(symbol.L_next, 0), inExpression.Location())
+		c.emitCallNext(vm.NewCallSiteInfo(symbol.L_next, 0), inExpression.Location())
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN)
 	}
 
@@ -4669,7 +4770,7 @@ func (c *BytecodeCompiler) compileAttributeAccessNode(node *ast.AttributeAccessN
 	name := identifierToName(node.AttributeName)
 	nameSymbol := value.ToSymbol(name)
 	if name == "call" {
-		callInfo := value.NewCallSiteInfo(nameSymbol, 0)
+		callInfo := vm.NewCallSiteInfo(nameSymbol, 0)
 		c.emitCall(callInfo, node.Location())
 	} else {
 		c.compileCallMethod(
@@ -4791,7 +4892,7 @@ func (c *BytecodeCompiler) compileInnerMethodCall(receiver ast.ExpressionNode, n
 	nameSym := value.ToSymbol(name)
 	switch name {
 	case "call":
-		callInfo := value.NewCallSiteInfo(nameSym, len(args))
+		callInfo := vm.NewCallSiteInfo(nameSym, len(args))
 		c.emitCall(callInfo, location)
 	case "++":
 		c.compileIncrement(receiverType, location)
@@ -4841,7 +4942,7 @@ func (c *BytecodeCompiler) compileInnerCall(node *ast.CallNode) {
 	}
 
 	name := value.ToSymbol("call")
-	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
+	callInfo := vm.NewCallSiteInfo(name, len(node.PositionalArguments))
 	c.emitCall(callInfo, node.Location())
 }
 
@@ -4854,7 +4955,7 @@ func (c *BytecodeCompiler) singletonBlockIsCompilable(node *ast.SingletonBlockEx
 	singletonType := c.typeOf(node).(*types.SingletonClass)
 	singletonName := singletonType.Name()
 
-	singletonCompiler := NewBytecodeCompiler(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceBytecodeCompilerMode, location, c.checker)
+	singletonCompiler := NewBytecodeCompiler(fmt.Sprintf("<singleton_class: %s>", singletonName), namespaceBytecodeCompilerMode, location, c.checker, c.globalData)
 	singletonCompiler.Errors = c.Errors
 	singletonCompiler.hasDefer = node.HasDefer
 	if !singletonCompiler.compileNamespace(node) {
@@ -4880,7 +4981,7 @@ func (c *BytecodeCompiler) compileSingletonBlockExpressionNode(node *ast.Singlet
 }
 
 func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
-	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
+	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureCompiler.hasDefer = node.HasDefer
@@ -4919,7 +5020,7 @@ func (c *BytecodeCompiler) compileGoExpressionNode(node *ast.GoExpressionNode) {
 }
 
 func (c *BytecodeCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode) {
-	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker)
+	closureCompiler := NewBytecodeCompiler("<closure>", methodBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureType := c.typeOf(node).(*types.Callable)
@@ -4969,7 +5070,7 @@ func (c *BytecodeCompiler) mixinIsCompilable(node *ast.MixinDeclarationNode) boo
 
 	mixinType := c.typeOf(node).(*types.Mixin)
 
-	mixinCompiler := NewBytecodeCompiler(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
+	mixinCompiler := NewBytecodeCompiler(fmt.Sprintf("<mixin: %s>", mixinType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	mixinCompiler.Errors = c.Errors
 	mixinCompiler.hasDefer = node.HasDefer
 	if !mixinCompiler.compileNamespace(node) {
@@ -5001,7 +5102,7 @@ func (c *BytecodeCompiler) moduleIsCompilable(node *ast.ModuleDeclarationNode) b
 	}
 
 	modType := c.typeOf(node).(*types.Module)
-	modCompiler := NewBytecodeCompiler(fmt.Sprintf("<module: %s>", modType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
+	modCompiler := NewBytecodeCompiler(fmt.Sprintf("<module: %s>", modType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	modCompiler.Errors = c.Errors
 	modCompiler.hasDefer = node.HasDefer
 	if !modCompiler.compileNamespace(node) {
@@ -5033,7 +5134,7 @@ func (c *BytecodeCompiler) interfaceIsCompilable(node *ast.InterfaceDeclarationN
 
 	ifaceType := c.typeOf(node).(*types.Interface)
 
-	ifaceCompiler := NewBytecodeCompiler(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
+	ifaceCompiler := NewBytecodeCompiler(fmt.Sprintf("<interface: %s>", ifaceType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	ifaceCompiler.Errors = c.Errors
 	ifaceCompiler.hasDefer = node.HasDefer
 	if !ifaceCompiler.compileNamespace(node) {
@@ -5065,7 +5166,7 @@ func (c *BytecodeCompiler) classIsCompilable(node *ast.ClassDeclarationNode) boo
 
 	classType := c.typeOf(node).(*types.Class)
 
-	classCompiler := NewBytecodeCompiler(fmt.Sprintf("<class: %s>", classType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker)
+	classCompiler := NewBytecodeCompiler(fmt.Sprintf("<class: %s>", classType.Name()), namespaceBytecodeCompilerMode, node.Location(), c.checker, c.globalData)
 	classCompiler.Errors = c.Errors
 	classCompiler.hasDefer = node.HasDefer
 	if !classCompiler.compileNamespace(node) {
@@ -8256,14 +8357,14 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 		index := ivarIndices.GetIndex(ivarName)
 		c.emitSmallInt(value.SmallInt(index), location)
 
-		var callInfo *value.CallSiteInfo
+		var callInfo *vm.CallSiteInfo
 		if immutable {
-			callInfo = value.NewCallSiteInfo(
+			callInfo = vm.NewCallSiteInfo(
 				value.ToSymbol("#immutable_box_of_ivar_index"),
 				1,
 			)
 		} else {
-			callInfo = value.NewCallSiteInfo(
+			callInfo = vm.NewCallSiteInfo(
 				value.ToSymbol("#box_of_ivar_index"),
 				1,
 			)
@@ -8272,14 +8373,14 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 	default:
 		c.emitValue(ivarName.ToValue(), location)
 
-		var callInfo *value.CallSiteInfo
+		var callInfo *vm.CallSiteInfo
 		if immutable {
-			callInfo = value.NewCallSiteInfo(
+			callInfo = vm.NewCallSiteInfo(
 				value.ToSymbol("#immutable_box_of_ivar_name"),
 				1,
 			)
 		} else {
-			callInfo = value.NewCallSiteInfo(
+			callInfo = vm.NewCallSiteInfo(
 				value.ToSymbol("#box_of_ivar_name"),
 				1,
 			)
@@ -8920,7 +9021,7 @@ func (c *BytecodeCompiler) emitGetInstanceVariableByName(name value.Symbol, loca
 }
 
 // Emit an instruction that calls the `call` method
-func (c *BytecodeCompiler) emitCall(callInfo *value.CallSiteInfo, location *position.Location) int {
+func (c *BytecodeCompiler) emitCall(callInfo *vm.CallSiteInfo, location *position.Location) int {
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		location,
@@ -8977,7 +9078,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			}
 
 			c.emitCallMethod(
-				value.NewCallSiteInfo(name, argCount),
+				vm.NewCallSiteInfo(name, argCount),
 				loc,
 				tailCall,
 			)
@@ -8996,7 +9097,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			}
 
 			c.emitCallMethod(
-				value.NewCallSiteInfo(name, argCount),
+				vm.NewCallSiteInfo(name, argCount),
 				loc,
 				tailCall,
 			)
@@ -9027,7 +9128,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			}
 
 			c.emitCallMethod(
-				value.NewCallSiteInfo(name, argCount),
+				vm.NewCallSiteInfo(name, argCount),
 				loc,
 				tailCall,
 			)
@@ -9035,7 +9136,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 		default:
 			if fallback {
 				c.emitCallMethod(
-					value.NewCallSiteInfo(name, argCount),
+					vm.NewCallSiteInfo(name, argCount),
 					loc,
 					tailCall,
 				)
@@ -9064,7 +9165,7 @@ func (c *BytecodeCompiler) compileOptimisedCallMethod(receiverType types.Type, n
 	receiverNamespace, receiverIsNamespace := receiverType.(types.Namespace)
 	if !receiverIsNamespace {
 		c.emitCallMethod(
-			value.NewCallSiteInfo(name, argCount),
+			vm.NewCallSiteInfo(name, argCount),
 			loc,
 			tailCall,
 		)
@@ -9090,27 +9191,93 @@ func (c *BytecodeCompiler) compileOptimisedCallMethod(receiverType types.Type, n
 		}
 
 		if method != nil {
-			c.emitCallMethodPtr(value.NewOptimisedCallSiteInfo(&method, argCount), loc, tailCall)
+			switch body := method.(type) {
+			case *vm.BytecodeFunction:
+				c.emitCallMethodBytecodePtr(
+					vm.NewBytecodeCallSiteInfo(body, argCount, tailCall),
+					loc,
+				)
+			case *vm.NativeMethod:
+				c.emitCallMethodNativePtr(
+					vm.NewNativeCallSiteInfo(body, argCount),
+					loc,
+				)
+			default:
+				c.emitCallMethod(
+					vm.NewCallSiteInfo(name, argCount),
+					loc,
+					tailCall,
+				)
+			}
 			return
 		}
 	}
 
 	method := c.checker.GetMethod(receiverType, name, nil)
-	if method == nil || method.IsNative() {
-		c.emitCallMethod(
-			value.NewCallSiteInfo(name, argCount),
+	if method == nil {
+		offset := c.nextInstructionOffset()
+		callSiteIndex := c.emitCallMethod(
+			vm.NewCallSiteInfo(name, argCount),
 			loc,
 			tailCall,
+		)
+
+		c.globalData.callsToOptimise.Push(
+			newBytecodeCall(
+				name,
+				c.bytecode,
+				offset,
+				receiverNamespace,
+				argCount,
+				callSiteIndex,
+				tailCall,
+			),
 		)
 		return
 	}
 
-	body := &method.Body
-	c.emitCallMethodPtr(value.NewOptimisedCallSiteInfo(body, argCount), loc, tailCall)
+	body := method.Body
+	switch body := body.(type) {
+	case *vm.BytecodeFunction:
+		c.emitCallMethodBytecodePtr(
+			vm.NewBytecodeCallSiteInfo(body, argCount, tailCall),
+			loc,
+		)
+	case *vm.NativeMethod:
+		c.emitCallMethodNativePtr(
+			vm.NewNativeCallSiteInfo(body, argCount),
+			loc,
+		)
+	case nil:
+		offset := c.nextInstructionOffset()
+		callSiteIndex := c.emitCallMethod(
+			vm.NewCallSiteInfo(name, argCount),
+			loc,
+			tailCall,
+		)
+
+		c.globalData.callsToOptimise.Push(
+			newBytecodeCall(
+				name,
+				c.bytecode,
+				offset,
+				receiverNamespace,
+				argCount,
+				callSiteIndex,
+				tailCall,
+			),
+		)
+	default:
+		c.emitCallMethod(
+			vm.NewCallSiteInfo(name, argCount),
+			loc,
+			tailCall,
+		)
+	}
 }
 
 // Emit an instruction that calls a method
-func (c *BytecodeCompiler) emitCallMethod(callInfo *value.CallSiteInfo, location *position.Location, tailCall bool) int {
+func (c *BytecodeCompiler) emitCallMethod(callInfo *vm.CallSiteInfo, location *position.Location, tailCall bool) int {
 	if tailCall {
 		return c.emitAddValue(
 			value.Ref(callInfo),
@@ -9128,27 +9295,28 @@ func (c *BytecodeCompiler) emitCallMethod(callInfo *value.CallSiteInfo, location
 	)
 }
 
-// Emit an instruction that calls a method
-func (c *BytecodeCompiler) emitCallMethodPtr(callInfo *value.OptimisedCallSiteInfo, location *position.Location, tailCall bool) int {
-	if tailCall {
-		return c.emitAddValue(
-			value.Ref(callInfo),
-			location,
-			bytecode.CALL_METHOD_PTR_TCO8,
-			bytecode.CALL_METHOD_PTR_TCO16,
-		)
-	}
-
+// Emit an instruction that calls a native method
+func (c *BytecodeCompiler) emitCallMethodNativePtr(callInfo *vm.NativeCallSiteInfo, location *position.Location) int {
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		location,
-		bytecode.CALL_METHOD_PTR8,
-		bytecode.CALL_METHOD_PTR16,
+		bytecode.CALL_METHOD_NT8,
+		bytecode.CALL_METHOD_NT16,
+	)
+}
+
+// Emit an instruction that calls a bytecode method
+func (c *BytecodeCompiler) emitCallMethodBytecodePtr(callInfo *vm.BytecodeCallSiteInfo, location *position.Location) int {
+	return c.emitAddValue(
+		value.Ref(callInfo),
+		location,
+		bytecode.CALL_METHOD_BCR8,
+		bytecode.CALL_METHOD_BC16,
 	)
 }
 
 // Emit an instruction that calls the `next` method
-func (c *BytecodeCompiler) emitCallNext(callInfo *value.CallSiteInfo, location *position.Location) int {
+func (c *BytecodeCompiler) emitCallNext(callInfo *vm.CallSiteInfo, location *position.Location) int {
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		location,

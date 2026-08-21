@@ -430,7 +430,7 @@ func newGoCatchScope(label *goLabel, isFinally bool) *goCatchScope {
 
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
 	name := "main"
-	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -440,7 +440,7 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 
 func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
 	name := "main"
-	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newGlobalData(), output)
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
 	compiler.Errors = errors
 	return compiler
 }
@@ -607,7 +607,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	return methodCompiler
 }
 
-type globalData struct {
+type nativeGlobalData struct {
 	bigFloatCache        *concurrent.Map[string, *nativeBigFloat]
 	bigIntCache          *concurrent.Map[string, *nativeBigInt]
 	symbolCache          *concurrent.Map[string, *nativeSymbol]
@@ -620,8 +620,8 @@ type globalData struct {
 	closureCounter       atomic.Int64 // Number of closures already compiled
 }
 
-func newGlobalData() *globalData {
-	return &globalData{
+func newNativeGlobalData() *nativeGlobalData {
+	return &nativeGlobalData{
 		bigFloatCache: concurrent.NewMap[string, *nativeBigFloat](),
 		bigIntCache:   concurrent.NewMap[string, *nativeBigInt](),
 		symbolCache:   concurrent.NewMap[string, *nativeSymbol](),
@@ -663,7 +663,7 @@ type GoCompiler struct {
 	goCatchScopes         []*goCatchScope
 	loopInfo              []*goLoopInfo
 	nativeCallsToOptimise []*nativeCall
-	globalData            *globalData
+	globalData            *nativeGlobalData
 	callFrameStartOffset  int // call frame definition start offset
 	callFrameEndOffset    int // call frame definition end offset
 	goLabelCounter        int
@@ -678,7 +678,7 @@ type GoCompiler struct {
 	unhygienic            bool
 }
 
-func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *globalData, output io.Writer) *GoCompiler {
+func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *nativeGlobalData, output io.Writer) *GoCompiler {
 	return &GoCompiler{
 		elkName:           elkName,
 		goName:            goName,

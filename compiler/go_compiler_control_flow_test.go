@@ -1503,8 +1503,8 @@ func main() { // loc: <main>
 // 				},
 // 				[]value.Value{
 // 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 // 				},
 // 			),
 // 		},
@@ -1572,8 +1572,8 @@ func main() { // loc: <main>
 // 								1,
 // 								1,
 // 								[]value.Value{
-// 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 // 								},
 // 							)),
 // 							value.ToSymbol("foo").ToValue(),
@@ -1645,8 +1645,8 @@ func main() { // loc: <main>
 // 								1,
 // 								1,
 // 								[]value.Value{
-// 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 // 								},
 // 							)),
 // 							value.ToSymbol("foo").ToValue(),
@@ -1698,7 +1698,7 @@ func main() { // loc: <main>
 // 						value.SmallInt(3).ToValue(),
 // 					}),
 // 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
+// 					value.Ref(vm.NewCallSiteInfo(
 // 						value.ToSymbol("println@1"),
 // 						1,
 // 					)),
@@ -1780,13 +1780,13 @@ func main() { // loc: <main>
 // 						}),
 // 					}),
 // 					value.Ref(value.TupleMixin),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 // 					value.Ref(value.NewError(
 // 						value.PatternNotMatchedErrorClass,
 // 						"assigned value does not match the pattern defined in for in loop",
 // 					)),
 // 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(
+// 					value.Ref(vm.NewCallSiteInfo(
 // 						value.ToSymbol("println@1"),
 // 						1,
 // 					)),
@@ -8979,10 +8979,10 @@ func main() { // loc: <main>
 // 				[]value.Value{
 // 					value.ToSymbol("Std::Kernel").ToValue(),
 // 					value.Ref(value.String("foo")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 // 					value.Ref(value.String("bar")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 // 				},
 // 				[]*vm.CatchEntry{
 // 					vm.NewCatchEntry(0, 5, 14, false),
@@ -9103,7 +9103,7 @@ func main() { // loc: <main>
 // 								},
 // 								[]value.Value{
 // 									value.Ref(value.String("foo")),
-// 									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 // 									value.ToSymbol("foo").ToValue(),
 // 								},
 // 							)),
@@ -9111,13 +9111,13 @@ func main() { // loc: <main>
 // 						},
 // 					)),
 // 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
 // 					value.Ref(value.String("baz")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 // 					value.ToSymbol("foo").ToValue(),
 // 					value.Ref(value.String("bar")),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 // 				},
 // 				[]*vm.CatchEntry{
 // 					vm.NewCatchEntry(3, 7, 16, false),

@@ -158,7 +158,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								[]value.Value{
 									value.ToSymbol("Std::Kernel").ToValue(),
 									value.ToSymbol("Foo::BAR").ToValue(),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 								},
 							)),
 						},

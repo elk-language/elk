@@ -70,8 +70,8 @@ func TestBytecodeClosureLiteral(t *testing.T) {
 						1,
 						0,
 						[]value.Value{
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("call"), 1)),
+							value.Ref(vm.NewCallSiteInfo(value.ToSymbol("call"), 1)),
+							value.Ref(vm.NewCallSiteInfo(value.ToSymbol("call"), 1)),
 						},
 						1,
 					)),
@@ -236,9 +236,9 @@ func TestBytecodeStringLiteral(t *testing.T) {
 				[]value.Value{
 					value.Float(15.2).ToValue(),
 					value.Ref(value.String("foo: ")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
 					value.Ref(value.String(", bar: ")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("inspect"), 0)),
 				},
 			),
 		},
@@ -1125,7 +1125,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::String").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("name"),
 						0,
 					)),
@@ -1344,7 +1344,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::String").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("name"),
 						0,
 					)),

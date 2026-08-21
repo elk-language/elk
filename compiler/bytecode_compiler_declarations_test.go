@@ -2031,7 +2031,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(
+									value.Ref(vm.NewCallSiteInfo(
 										value.ToSymbol("println@1"),
 										1,
 									)),
@@ -2105,7 +2105,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(
+									value.Ref(vm.NewCallSiteInfo(
 										value.ToSymbol("println@1"),
 										1,
 									)),
@@ -2288,8 +2288,8 @@ func TestBytecodeDefMethod(t *testing.T) {
 								3,
 								2,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 								},
 								nil,
 							)),

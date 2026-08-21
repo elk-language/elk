@@ -95,20 +95,20 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("inspect"),
 						0,
 					)),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("inspect"),
 						0,
 					)),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -168,7 +168,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("sent")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -271,25 +271,25 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("inspect"),
 						0,
 					)),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("inspect"),
 						0,
 					)),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
 					value.Ref(value.String("no match")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -337,7 +337,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(value.NewCallSiteInfo(
+							value.Ref(vm.NewCallSiteInfo(
 								value.ToSymbol("println@1"),
 								1,
 							)),
@@ -395,11 +395,11 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(value.NewCallSiteInfo(
+							value.Ref(vm.NewCallSiteInfo(
 								value.ToSymbol("println@1"),
 								1,
 							)),
-							value.Ref(value.NewCallSiteInfo(
+							value.Ref(vm.NewCallSiteInfo(
 								value.ToSymbol("println@1"),
 								1,
 							)),
@@ -459,7 +459,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -513,7 +513,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -559,7 +559,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -617,10 +617,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("end"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("start"), 0)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -666,7 +666,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(3).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -757,13 +757,13 @@ func TestBytecodeForInExpression(t *testing.T) {
 						}),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(
 						value.PatternNotMatchedErrorClass,
 						"assigned value does not match the pattern defined in for in loop",
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -821,7 +821,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -879,7 +879,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -938,7 +938,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -993,7 +993,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -1048,7 +1048,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -1127,7 +1127,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println"),
 						1,
 					)),
@@ -1206,7 +1206,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println"),
 						1,
 					)),
@@ -1284,7 +1284,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println"),
 						1,
 					)),
@@ -1362,7 +1362,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 						value.SmallInt(5).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println"),
 						1,
 					)),
@@ -1428,8 +1428,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 				},
 			),
 		},
@@ -1498,8 +1498,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1572,8 +1572,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1625,7 +1625,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 						value.SmallInt(3).ToValue(),
 					}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -1707,13 +1707,13 @@ func TestBytecodeModifierForIn(t *testing.T) {
 						}),
 					}),
 					value.Ref(value.TupleMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(
 						value.PatternNotMatchedErrorClass,
 						"assigned value does not match the pattern defined in for in loop",
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -2428,7 +2428,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -2475,7 +2475,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4110,7 +4110,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -4143,7 +4143,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -4654,7 +4654,7 @@ func TestBytecodeWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -5191,7 +5191,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -5224,7 +5224,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -5733,7 +5733,7 @@ func TestBytecodeUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
+					value.Ref(vm.NewCallSiteInfo(
 						value.ToSymbol("println@1"),
 						1,
 					)),
@@ -6073,10 +6073,10 @@ func TestBytecodeCatch(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 					value.Ref(value.String("bar")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(0, 5, 14, false),
@@ -6198,7 +6198,7 @@ func TestBytecodeCatch(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(value.String("foo")),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -6206,13 +6206,13 @@ func TestBytecodeCatch(t *testing.T) {
 						},
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
 					value.Ref(value.String("baz")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
 					value.Ref(value.String("bar")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(3, 7, 16, false),
@@ -6315,7 +6315,7 @@ func TestBytecodeDefer(t *testing.T) {
 					value.Ref(&value.NativeArrayList[*vm.BytecodeClosure]{}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("1. open file")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
 					value.Ref(
 						vm.NewBytecodeFunctionNoParams(
 							value.ToSymbol("<defer>"),
@@ -6332,12 +6332,12 @@ func TestBytecodeDefer(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Std::Kernel").ToValue(),
 								value.Ref(value.String("2. close file")),
-								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+								value.Ref(vm.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
 							},
 						),
 					),
 					value.Ref(value.String("3. open TCP socket")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
 					value.Ref(
 						vm.NewBytecodeFunctionNoParams(
 							value.ToSymbol("<defer>"),
@@ -6354,7 +6354,7 @@ func TestBytecodeDefer(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Std::Kernel").ToValue(),
 								value.Ref(value.String("4. close TCP socket")),
-								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
+								value.Ref(vm.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
 							},
 						),
 					),

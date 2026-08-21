@@ -1729,7 +1729,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(7, 1),
 								},
 								[]value.Value{
-									value.Ref(&value.CallSiteInfo{
+									value.Ref(&vm.CallSiteInfo{
 										Name:          value.ToSymbol("#box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
@@ -1863,7 +1863,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(9, 1),
 								},
 								[]value.Value{
-									value.Ref(&value.CallSiteInfo{
+									value.Ref(&vm.CallSiteInfo{
 										Name:          value.ToSymbol("#box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
@@ -1992,7 +1992,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 									bytecode.NewLineInfo(11, 1),
 								},
 								[]value.Value{
-									value.Ref(&value.CallSiteInfo{
+									value.Ref(&vm.CallSiteInfo{
 										Name:          value.ToSymbol("#box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
@@ -2083,7 +2083,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.ToSymbol("foo").ToValue(),
-									value.Ref(&value.CallSiteInfo{
+									value.Ref(&vm.CallSiteInfo{
 										Name:          value.ToSymbol("#box_of_ivar_name"),
 										ArgumentCount: 1,
 									}),
@@ -3587,7 +3587,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
 				},
 			),
@@ -3892,7 +3892,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(7, 4),
 				},
 				[]value.Value{
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("get"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("get"), 0)),
 				},
 			),
 		},
@@ -3998,7 +3998,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+							value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4043,7 +4043,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+							value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4092,7 +4092,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+							value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
 						},
 						1,
 					)),
@@ -4309,7 +4309,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
 					value.Ref(value.ListMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in value declaration")),
 				},
 			),

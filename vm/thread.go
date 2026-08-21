@@ -283,7 +283,7 @@ func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 }
 
 // Call a callable value from Go code, preserving the state of the VM with call cache
-func (vm *Thread) CallCallableWithCache(cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallCallableWithCache(cc **CallCache, args ...value.Value) (value.Value, value.Value) {
 	function := args[0]
 	switch f := function.SafeAsReference().(type) {
 	case *BytecodeClosure:
@@ -396,10 +396,10 @@ func (vm *Thread) CallMethodByName(name value.Symbol, args ...value.Value) (valu
 }
 
 // Call an Elk method from Go code, preserving the state of the VM with call cache
-func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **value.CallCache, args ...value.Value) (value.Value, value.Value) {
+func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **CallCache, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()
-	method := value.LookupMethodInCache(class, name, cc)
+	method := LookupMethodInCache(class, name, cc)
 	return vm.CallMethod(method, args...)
 }
 
@@ -755,21 +755,17 @@ func (vm *Thread) run() {
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readUint16())),
 			)
-		case bytecode.CALL_METHOD_PTR_TCO8:
+		case bytecode.CALL_METHOD_BCR8:
+			vm.opCallMethodBytecodePtr(int(vm.readByte()))
+		case bytecode.CALL_METHOD_BC16:
+			vm.opCallMethodBytecodePtr(int(vm.readUint16()))
+		case bytecode.CALL_METHOD_NT8:
 			vm.throwIfErr(
-				vm.opCallMethodPtrTCO(int(vm.readByte())),
+				vm.opCallMethodNativePtr(int(vm.readByte())),
 			)
-		case bytecode.CALL_METHOD_PTR_TCO16:
+		case bytecode.CALL_METHOD_NT16:
 			vm.throwIfErr(
-				vm.opCallMethodPtrTCO(int(vm.readUint16())),
-			)
-		case bytecode.CALL_METHOD_PTR8:
-			vm.throwIfErr(
-				vm.opCallMethodPtr(int(vm.readByte())),
-			)
-		case bytecode.CALL_METHOD_PTR16:
-			vm.throwIfErr(
-				vm.opCallMethodPtr(int(vm.readUint16())),
+				vm.opCallMethodNativePtr(int(vm.readUint16())),
 			)
 		case bytecode.CALL8:
 			vm.throwIfErr(
@@ -1853,7 +1849,7 @@ func (vm *Thread) selfValue() value.Value {
 	return vm.getLocalValue(0)
 }
 
-func (vm *Thread) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo, index int) value.Method {
+func (vm *Thread) lookupMethod(class *value.Class, callInfo *CallSiteInfo, index int) value.Method {
 	for i := range len(callInfo.Cache) {
 		cacheEntry := callInfo.Cache[i]
 		if cacheEntry.Class == class {
@@ -1862,11 +1858,11 @@ func (vm *Thread) lookupMethod(class *value.Class, callInfo *value.CallSiteInfo,
 		if cacheEntry.Class == nil {
 			method := class.LookupMethod(callInfo.Name)
 			newCache := callInfo.Cache
-			newCache[i] = value.CallCacheEntry{
+			newCache[i] = CallCacheEntry{
 				Class:  class,
 				Method: method,
 			}
-			vm.bytecode.Values[index] = value.Ref(&value.CallSiteInfo{
+			vm.bytecode.Values[index] = value.Ref(&CallSiteInfo{
 				Name:          callInfo.Name,
 				ArgumentCount: callInfo.ArgumentCount,
 				Cache:         newCache,
@@ -2064,7 +2060,7 @@ func (vm *Thread) opBreakpoint() {
 
 // Create a new instance of a class
 func (vm *Thread) opInstantiate(args int) (err value.Value) {
-	callInfo := value.NewCallSiteInfo(symbol.S_init, args)
+	callInfo := NewCallSiteInfo(symbol.S_init, args)
 	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	classVal := *classPtr
 	var class *value.Class
@@ -2098,7 +2094,7 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 
 // Call the `opCall` method with an explicit receiver
 func (vm *Thread) opCall(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*CallSiteInfo)
 
 	self := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference()
 	switch self := self.(type) {
@@ -2112,7 +2108,7 @@ func (vm *Thread) opCall(callInfoIndex int) (err value.Value) {
 }
 
 // set up the vm to execute a native closure
-func (vm *Thread) callNativeClosure(closure *NativeClosure, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *Thread) callNativeClosure(closure *NativeClosure, callInfo *CallSiteInfo) (err value.Value) {
 	paramCount := closure.ParameterCount()
 	vm.populateMissingParametersOnStack(paramCount, callInfo.ArgumentCount)
 
@@ -2128,7 +2124,7 @@ func (vm *Thread) callNativeClosure(closure *NativeClosure, callInfo *value.Call
 }
 
 // set up the vm to execute a bytecode closure
-func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *CallSiteInfo) (err value.Value) {
 	if closure.VMID != vm.ID && closure.HasOpenUpvalues() {
 		return value.Ref(value.NewOpenClosureError(
 			closure.VMID,
@@ -2152,7 +2148,7 @@ func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *value.
 
 // Call a method with tail call optimisation
 func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2176,7 +2172,7 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 
 // Call a method
 func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2198,48 +2194,20 @@ func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 	}
 }
 
-// Call a method pointer
-func (vm *Thread) opCallMethodPtr(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-	method := *callInfo.Method
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
-		return value.Undefined
-	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo.ArgumentCount)
-	case *GetterMethod:
-		return vm.callGetterMethod(m)
-	case *SetterMethod:
-		return vm.callSetterMethod(m)
-	default:
-		selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
-		self := *selfPtr
-		class := self.DirectClass()
-		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s (%s)", method, class.Name, self.Inspect()))
+// Call a bytecode method pointer
+func (vm *Thread) opCallMethodBytecodePtr(callInfoIndex int) {
+	callInfo := (*BytecodeCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	if callInfo.TailCall {
+		vm.callBytecodeFunctionTCO(callInfo.Method, callInfo.ArgumentCount)
+	} else {
+		vm.callBytecodeFunction(callInfo.Method, callInfo.ArgumentCount)
 	}
 }
 
-// Call a method pointer with tail call optimisation
-func (vm *Thread) opCallMethodPtrTCO(callInfoIndex int) (err value.Value) {
-	callInfo := (*value.OptimisedCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
-	method := *callInfo.Method
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		vm.callBytecodeFunctionTCO(m, callInfo.ArgumentCount)
-		return value.Undefined
-	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo.ArgumentCount)
-	case *GetterMethod:
-		return vm.callGetterMethod(m)
-	case *SetterMethod:
-		return vm.callSetterMethod(m)
-	default:
-		selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
-		self := *selfPtr
-		class := self.DirectClass()
-		panic(fmt.Sprintf("tried to call an invalid method: %T of class: %s (%s)", method, class.Name, self.Inspect()))
-	}
+// Call a native method pointer
+func (vm *Thread) opCallMethodNativePtr(callInfoIndex int) (err value.Value) {
+	callInfo := (*NativeCallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	return vm.callNativeMethod(callInfo.Method, callInfo.ArgumentCount)
 }
 
 // set up the vm to execute a native method
@@ -2600,7 +2568,7 @@ func (vm *Thread) opGetIterator() {
 
 // Get the next element of an iterator
 func (vm *Thread) opNext(callInfoIndex int) value.Value {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*value.CallSiteInfo)
+	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*CallSiteInfo)
 	iterator := vm.peek()
 
 	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
