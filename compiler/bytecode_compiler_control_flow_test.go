@@ -27,50 +27,42 @@ func TestBytecodeSelectExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x03,
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_1),
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_2),
-
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_1), // Select{receive, receive}
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SELECT),
-
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 15,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE_3), // "ch1: "
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 0x04, // inspect
-					byte(bytecode.NEW_STRING8), 0x02,
-					byte(bytecode.CALL_METHOD8), 0x05, // println@1
-					byte(bytecode.JUMP), 0x00, 0x12,
-
+					byte(bytecode.CALL_METHOD_NT8), 4,
+					byte(bytecode.NEW_STRING8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 5,
+					byte(bytecode.JUMP), 0, 18,
 					byte(bytecode.DUP),
 					byte(bytecode.INT_1),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0d,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 13,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 0x07, // inspect
-					byte(bytecode.NEW_STRING8), 0x02,
-					byte(bytecode.CALL_METHOD8), 0x08, // println@1
-
+					byte(bytecode.CALL_METHOD_NT8), 7,
+					byte(bytecode.NEW_STRING8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 8,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(170, 10, 8)),
@@ -81,37 +73,22 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 					bytecode.NewLineInfo(8, 1),
 					bytecode.NewLineInfo(5, 2),
-					&bytecode.LineInfo{LineNumber: 6, InstructionCount: 7},
+					bytecode.NewLineInfo(6, 7),
 					bytecode.NewLineInfo(7, 13),
-					&bytecode.LineInfo{LineNumber: 8, InstructionCount: 7},
+					bytecode.NewLineInfo(8, 7),
 					bytecode.NewLineInfo(9, 11),
 					bytecode.NewLineInfo(10, 1),
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Channel").ToValue(),
-					value.Ref(vm.NewSelect([]vm.SelectCase{
-						{Direction: reflect.SelectRecv},
-						{Direction: reflect.SelectRecv},
-					})),
+					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectRecv}, {Direction: reflect.SelectRecv}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -127,28 +104,23 @@ func TestBytecodeSelectExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x01,
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_1),
-
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INT_5),
-					byte(bytecode.LOAD_VALUE_1), // Select{send}
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SELECT),
-
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x07,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 7,
 					byte(bytecode.POP),
 					byte(bytecode.POP),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE_3),       // "sent"
-					byte(bytecode.CALL_METHOD8), 0x04, // println@1
-
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD_NT8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(86, 7, 8)),
@@ -163,15 +135,10 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Channel").ToValue(),
-					value.Ref(vm.NewSelect([]vm.SelectCase{
-						{Direction: reflect.SelectSend},
-					})),
+					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectSend}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("sent")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -192,58 +159,48 @@ func TestBytecodeSelectExpression(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.PREP_LOCALS8), 0x03,
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_1),
-
-					byte(bytecode.GET_CONST8), 0x00, // Std::Channel
+					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_5),
-					byte(bytecode.INSTANTIATE8), 0x01,
+					byte(bytecode.INSTANTIATE8), 1,
 					byte(bytecode.SET_LOCAL_2),
-
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.LOAD_VALUE_1), // Select{receive, receive, else}
+					byte(bytecode.LOAD_VALUE_1),
 					byte(bytecode.SELECT),
-
 					byte(bytecode.DUP),
 					byte(bytecode.INT_0),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x0f,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 15,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE_3), // "ch1: "
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE_3),
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 0x04, // inspect
-					byte(bytecode.NEW_STRING8), 0x02,
-					byte(bytecode.CALL_METHOD8), 0x05, // println@1
-					byte(bytecode.JUMP), 0x00, 0x1d,
-
+					byte(bytecode.CALL_METHOD_NT8), 4,
+					byte(bytecode.NEW_STRING8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 5,
+					byte(bytecode.JUMP), 0, 29,
 					byte(bytecode.DUP),
 					byte(bytecode.INT_1),
-					byte(bytecode.JUMP_UNLESS_IEQ), 0x00, 0x12,
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 18,
 					byte(bytecode.POP),
 					byte(bytecode.SET_LOCAL_3),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE8), 0x06, // "ch2: "
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 0x07, // inspect
-					byte(bytecode.NEW_STRING8), 0x02,
-					byte(bytecode.CALL_METHOD8), 0x08, // println@1
-					byte(bytecode.JUMP), 0x00, 0x08,
-
+					byte(bytecode.CALL_METHOD_NT8), 7,
+					byte(bytecode.NEW_STRING8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 8,
+					byte(bytecode.JUMP), 0, 8,
 					byte(bytecode.POP),
 					byte(bytecode.POP),
-
-					byte(bytecode.GET_CONST8), 0x02, // Std::Kernel
-					byte(bytecode.LOAD_VALUE8), 0x09, // "no match"
-					byte(bytecode.CALL_METHOD8), 0x0a, // println@1
-
+					byte(bytecode.GET_CONST8), 2,
+					byte(bytecode.LOAD_VALUE8), 9,
+					byte(bytecode.CALL_METHOD_NT8), 10,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(204, 12, 8)),
@@ -264,35 +221,16 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Channel").ToValue(),
-					value.Ref(vm.NewSelect([]vm.SelectCase{
-						{Direction: reflect.SelectRecv},
-						{Direction: reflect.SelectRecv},
-						{Direction: reflect.SelectDefault},
-					})),
+					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectRecv}, {Direction: reflect.SelectRecv}, {Direction: reflect.SelectDefault}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("inspect"),
-						0,
-					)),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("no match")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -313,7 +251,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSED_CLOSURE), 0xff,
+					byte(bytecode.CLOSED_CLOSURE), 255,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -323,11 +261,11 @@ func TestBytecodeGoExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<closure>"),
+						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.CALL_METHOD8), 2,
+							byte(bytecode.CALL_METHOD_NT8), 2,
 							byte(bytecode.RETURN),
 						},
 						L(P(0, 1, 1), P(16, 1, 17)),
@@ -337,10 +275,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println@1"),
-								1,
-							)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 					)),
 				},
@@ -361,7 +296,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 					byte(bytecode.INT_5),
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.CLOSED_CLOSURE), 0x02, 0x01, 0xff,
+					byte(bytecode.CLOSED_CLOSURE), 2, 1, 255,
 					byte(bytecode.GO),
 					byte(bytecode.RETURN),
 				},
@@ -374,15 +309,15 @@ func TestBytecodeGoExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
-						value.ToSymbol("<closure>"),
+						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.CALL_METHOD8), 2,
+							byte(bytecode.CALL_METHOD_NT8), 2,
 							byte(bytecode.POP),
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_UPVALUE_0),
-							byte(bytecode.CALL_METHOD8), 3,
+							byte(bytecode.CALL_METHOD_NT8), 3,
 							byte(bytecode.RETURN),
 						},
 						L(P(16, 3, 5), P(54, 5, 16)),
@@ -395,14 +330,8 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println@1"),
-								1,
-							)),
-							value.Ref(value.NewCallSiteInfo(
-								value.ToSymbol("println@1"),
-								1,
-							)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 						1,
 					)),
@@ -439,7 +368,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD_NT8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
@@ -459,10 +388,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -490,7 +416,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD_NT8), 1,
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_3),
@@ -513,10 +439,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -539,7 +462,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD_NT8), 1,
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_1),
@@ -559,10 +482,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -582,7 +502,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.DUP),
 					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD_NT8), 1,
 					byte(bytecode.SET_LOCAL_3),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.CALL_METHOD8), 2,
@@ -594,7 +514,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 3,
 					byte(bytecode.GET_LOCAL_4),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD_NT8), 4,
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.INCREMENT_INT),
 					byte(bytecode.SET_LOCAL_4),
@@ -616,14 +536,11 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(value.NewClosedRange(value.SmallInt(5).ToValue(), value.SmallInt(20).ToValue())),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("end"), 0)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("start"), 0)),
+					value.Ref(value.NewClosedRange((value.SmallInt(5)).ToValue(), (value.SmallInt(20)).ToValue())),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ClosedRangeClass, "end"), 0)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("start"), 0)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -646,7 +563,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 14,
 					byte(bytecode.NIL),
@@ -660,16 +577,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -694,7 +604,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
 					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.EQUAL_INT),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
@@ -726,7 +636,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD_NT8), 5,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 60,
 					byte(bytecode.NIL),
@@ -742,31 +652,12 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTupleOfValue{
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(1).ToValue(),
-							value.SmallInt(2).ToValue(),
-						}),
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(3).ToValue(),
-							value.SmallInt(4).ToValue(),
-						}),
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(5).ToValue(),
-							value.SmallInt(6).ToValue(),
-						}),
-					}),
+					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-					value.Ref(value.NewError(
-						value.PatternNotMatchedErrorClass,
-						"assigned value does not match the pattern defined in for in loop",
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -790,7 +681,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -813,18 +704,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -848,7 +730,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -871,18 +753,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -907,7 +780,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.INT_2),
@@ -930,18 +803,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -970,7 +834,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 23,
 					byte(bytecode.NIL),
@@ -985,18 +849,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -1025,7 +880,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 23,
 					byte(bytecode.NIL),
@@ -1040,18 +895,9 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -1093,7 +939,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD_NT8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 28,
 					byte(bytecode.NIL),
@@ -1113,24 +959,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.NativeArrayList[value.String]{
-						"a",
-						"b",
-						"c",
-						"d",
-					}),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1172,7 +1004,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD_NT8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 28,
 					byte(bytecode.NIL),
@@ -1192,24 +1024,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.NativeArrayList[value.String]{
-						"a",
-						"b",
-						"c",
-						"d",
-					}),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1250,7 +1068,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD_NT8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 27,
 					byte(bytecode.NIL),
@@ -1270,24 +1088,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.NativeArrayList[value.String]{
-						"a",
-						"b",
-						"c",
-						"d",
-					}),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1328,7 +1132,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_4),
 					byte(bytecode.NEW_ARRAY_TUPLE8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD_NT8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 27,
 					byte(bytecode.NIL),
@@ -1348,24 +1152,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 6),
 				},
 				[]value.Value{
-					value.Ref(&value.NativeArrayList[value.String]{
-						"a",
-						"b",
-						"c",
-						"d",
-					}),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-						value.SmallInt(4).ToValue(),
-						value.SmallInt(5).ToValue(),
-					}),
+					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1416,9 +1206,9 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.INT_2),
-					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.CALL_METHOD_NT8), 1,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.AWAIT_SYNC),
 					byte(bytecode.RETURN),
 				},
@@ -1428,8 +1218,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 				},
 			),
 		},
@@ -1481,9 +1271,9 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 									byte(bytecode.RETURN),
 									byte(bytecode.SELF),
 									byte(bytecode.INT_2),
-									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.CALL_METHOD_NT8), 0,
 									byte(bytecode.UNDEFINED),
-									byte(bytecode.CALL_METHOD8), 1,
+									byte(bytecode.CALL_METHOD_NT8), 1,
 									byte(bytecode.AWAIT),
 									byte(bytecode.AWAIT_RESULT),
 									byte(bytecode.RETURN),
@@ -1498,8 +1288,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1556,9 +1346,9 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 									byte(bytecode.RETURN),
 									byte(bytecode.SELF),
 									byte(bytecode.INT_2),
-									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.CALL_METHOD_NT8), 0,
 									byte(bytecode.UNDEFINED),
-									byte(bytecode.CALL_METHOD8), 1,
+									byte(bytecode.CALL_METHOD_NT8), 1,
 									byte(bytecode.AWAIT_SYNC),
 									byte(bytecode.RETURN),
 								},
@@ -1572,8 +1362,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1608,7 +1398,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					byte(bytecode.SET_LOCAL_2),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 14,
 					byte(bytecode.NIL),
@@ -1619,16 +1409,9 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 22),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-					}),
+					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -1649,7 +1432,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
 					byte(bytecode.POP),
 					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.INT_2),
 					byte(bytecode.EQUAL_INT),
 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
@@ -1681,7 +1464,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					byte(bytecode.GET_LOCAL_2),
 					byte(bytecode.GET_LOCAL_3),
 					byte(bytecode.ADD_INT),
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD_NT8), 5,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 60,
 					byte(bytecode.NIL),
@@ -1692,31 +1475,12 @@ func TestBytecodeModifierForIn(t *testing.T) {
 					bytecode.NewLineInfo(1, 67),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayTupleOfValue{
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(1).ToValue(),
-							value.SmallInt(2).ToValue(),
-						}),
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(3).ToValue(),
-							value.SmallInt(4).ToValue(),
-						}),
-						value.Ref(&value.ArrayTupleOfValue{
-							value.SmallInt(5).ToValue(),
-							value.SmallInt(6).ToValue(),
-						}),
-					}),
+					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-					value.Ref(value.NewError(
-						value.PatternNotMatchedErrorClass,
-						"assigned value does not match the pattern defined in for in loop",
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -2411,7 +2175,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.RETURN),
@@ -2428,7 +2192,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -2458,7 +2222,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 17,
 					byte(bytecode.RETURN),
@@ -2475,7 +2239,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4096,7 +3860,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -4110,10 +3874,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4131,7 +3892,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(47, 4, 20)),
@@ -4143,10 +3904,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4640,7 +4398,7 @@ func TestBytecodeWhile(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -4654,10 +4412,7 @@ func TestBytecodeWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -5177,7 +4932,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -5191,10 +4946,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -5212,7 +4964,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(46, 4, 19)),
@@ -5224,10 +4976,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -5719,7 +5468,7 @@ func TestBytecodeUntil(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 9,
 					byte(bytecode.RETURN),
@@ -5733,10 +5482,7 @@ func TestBytecodeUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(
-						value.ToSymbol("println@1"),
-						1,
-					)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -6025,12 +5771,11 @@ func TestBytecodeCatch(t *testing.T) {
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_NT8), 2,
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD_NT8), 4,
 					byte(bytecode.POP),
-
 					byte(bytecode.JUMP), 0, 39,
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP), 0, 1,
@@ -6041,7 +5786,7 @@ func TestBytecodeCatch(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 0,
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.CALL_METHOD_NT8), 5,
 					byte(bytecode.SWAP),
 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
 					byte(bytecode.POP_2),
@@ -6055,7 +5800,6 @@ func TestBytecodeCatch(t *testing.T) {
 					byte(bytecode.RETURN_FINALLY),
 					byte(bytecode.POP_2),
 					byte(bytecode.RETHROW),
-
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(67, 6, 8)),
@@ -6073,10 +5817,10 @@ func TestBytecodeCatch(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("bar")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(0, 5, 14, false),
@@ -6106,10 +5850,10 @@ func TestBytecodeCatch(t *testing.T) {
 					byte(bytecode.EXEC),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.CALL_METHOD_BC8), 2,
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD_NT8), 4,
 					byte(bytecode.POP),
 					byte(bytecode.JUMP), 0, 55,
 					byte(bytecode.DUP),
@@ -6118,7 +5862,7 @@ func TestBytecodeCatch(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 6,
-					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.CALL_METHOD_NT8), 7,
 					byte(bytecode.JUMP), 0, 4,
 					byte(bytecode.TRUE),
 					byte(bytecode.JUMP), 0, 1,
@@ -6129,7 +5873,7 @@ func TestBytecodeCatch(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 8,
+					byte(bytecode.CALL_METHOD_NT8), 8,
 					byte(bytecode.SWAP),
 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
 					byte(bytecode.POP_2),
@@ -6184,7 +5928,7 @@ func TestBytecodeCatch(t *testing.T) {
 								[]byte{
 									byte(bytecode.SELF),
 									byte(bytecode.LOAD_VALUE_0),
-									byte(bytecode.CALL_METHOD8), 1,
+									byte(bytecode.CALL_METHOD_NT8), 1,
 									byte(bytecode.POP),
 									byte(bytecode.LOAD_VALUE_2),
 									byte(bytecode.THROW),
@@ -6198,7 +5942,7 @@ func TestBytecodeCatch(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(value.String("foo")),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -6206,13 +5950,35 @@ func TestBytecodeCatch(t *testing.T) {
 						},
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
+					value.Ref(vm.NewBytecodeCallSiteInfo(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("Std::Kernel::foo"),
+						[]byte{
+							byte(bytecode.SELF),
+							byte(bytecode.LOAD_VALUE_0),
+							byte(bytecode.CALL_METHOD_NT8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE_2),
+							byte(bytecode.THROW),
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(60, 5, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 5),
+							bytecode.NewLineInfo(4, 2),
+							bytecode.NewLineInfo(5, 1),
+						},
+						[]value.Value{
+							value.Ref(value.String("foo")),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+							value.ToSymbol("foo").ToValue(),
+						},
+					), 0, false)),
 					value.Ref(value.String("baz")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
 					value.Ref(value.String("bar")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(3, 7, 16, false),
@@ -6248,22 +6014,20 @@ func TestBytecodeDefer(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.CALL_METHOD_NT8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.CLOSURE),
-					0xff,
+					byte(bytecode.CLOSURE), 255,
 					byte(bytecode.APPEND),
 					byte(bytecode.POP),
 					byte(bytecode.GET_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.CALL_METHOD_NT8), 6,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL_1),
 					byte(bytecode.LOAD_VALUE8), 7,
-					byte(bytecode.CLOSURE),
-					0xff,
+					byte(bytecode.CLOSURE), 255,
 					byte(bytecode.APPEND),
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -6315,49 +6079,45 @@ func TestBytecodeDefer(t *testing.T) {
 					value.Ref(&value.NativeArrayList[*vm.BytecodeClosure]{}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("1. open file")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
-							value.ToSymbol("<defer>"),
-							[]byte{
-								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE_1),
-								byte(bytecode.CALL_METHOD8), 2,
-								byte(bytecode.RETURN),
-							},
-							L(P(29, 3, 5), P(54, 3, 30)),
-							bytecode.LineInfoList{
-								bytecode.NewLineInfo(3, 6),
-							},
-							[]value.Value{
-								value.ToSymbol("Std::Kernel").ToValue(),
-								value.Ref(value.String("2. close file")),
-								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
-							},
-						),
-					),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<defer>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.CALL_METHOD_NT8), 2,
+							byte(bytecode.RETURN),
+						},
+						L(P(29, 3, 5), P(54, 3, 30)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 6),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(value.String("2. close file")),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+						},
+					)),
 					value.Ref(value.String("3. open TCP socket")),
-					value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
-							value.ToSymbol("<defer>"),
-							[]byte{
-								byte(bytecode.GET_CONST8), 0,
-								byte(bytecode.LOAD_VALUE_1),
-								byte(bytecode.CALL_METHOD8), 2,
-								byte(bytecode.RETURN),
-							},
-							L(P(91, 6, 5), P(122, 6, 36)),
-							bytecode.LineInfoList{
-								bytecode.NewLineInfo(6, 6),
-							},
-							[]value.Value{
-								value.ToSymbol("Std::Kernel").ToValue(),
-								value.Ref(value.String("4. close TCP socket")),
-								value.Ref(value.NewCallSiteInfo(value.ToSymbol("puts@1"), 1)),
-							},
-						),
-					),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewBytecodeFunctionNoParams(
+						value.ToSymbol("<defer>"),
+						[]byte{
+							byte(bytecode.GET_CONST8), 0,
+							byte(bytecode.LOAD_VALUE_1),
+							byte(bytecode.CALL_METHOD_NT8), 2,
+							byte(bytecode.RETURN),
+						},
+						L(P(91, 6, 5), P(122, 6, 36)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(6, 6),
+						},
+						[]value.Value{
+							value.ToSymbol("Std::Kernel").ToValue(),
+							value.Ref(value.String("4. close TCP socket")),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+						},
+					)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(5, 33, 38, false),

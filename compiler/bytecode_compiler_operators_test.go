@@ -6,7 +6,6 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -143,28 +142,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 				end
 				Foo + 5
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(85, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 6),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var add *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_5),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(85, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -182,10 +182,8 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -204,31 +202,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::+"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&add, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::+"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("+").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpAdd, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(add, 1, false)),
+					},
+				)
+			},
 		},
 
 		"resolve static subtract": {
@@ -322,28 +318,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 				end
 				Foo - 5
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(85, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 6),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var sub *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_5),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(85, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -361,10 +358,8 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -383,31 +378,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::-"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&sub, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::-"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("-").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpSubtract, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub, 1, false)),
+					},
+				)
+			},
 		},
 
 		"resolve static multiply": {
@@ -499,28 +492,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 				end
 				Foo * 5
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(85, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 6),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var mul *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_5),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(85, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -538,10 +532,8 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -560,31 +552,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::*"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&mul, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::*"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("*").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpMultiply, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(mul, 1, false)),
+					},
+				)
+			},
 		},
 
 		"resolve static divide": {
@@ -676,28 +666,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 				end
 				Foo / 5
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(85, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 6),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var div *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_5),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(85, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -715,10 +706,8 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -737,31 +726,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::/"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&div, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::/"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("/").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpDivide, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(div, 1, false)),
+					},
+				)
+			},
 		},
 
 		"resolve static exponentiate": {
@@ -851,28 +838,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 				end
 				Foo ** 5
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_5),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(87, 7, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 6),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var pow *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_5),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(87, 7, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -890,10 +878,8 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -912,31 +898,29 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::**"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(65, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&pow, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::**"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(65, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("**").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpExponentiate, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(pow, 1, false)),
+					},
+				)
+			},
 		},
 	}
 
@@ -1032,27 +1016,28 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 				end
 				-Foo
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(70, 7, 9)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(7, 5),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var neg *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(70, 7, 9)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(7, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1070,10 +1055,8 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1092,31 +1075,27 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::-@"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(52, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										0,
-										0,
-										nil,
-									),
-								),
-								symbol.OpNegate.ToValue(),
+								value.Ref(set(&neg, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Foo::-@"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(52, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									nil,
+								))),
+								value.ToSymbol("-@").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpNegate, 0)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(neg, 0, false)),
+					},
+				)
+			},
 		},
 
 		"resolve static bitwise not": {

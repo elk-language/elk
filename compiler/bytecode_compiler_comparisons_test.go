@@ -296,7 +296,7 @@ func TestBytecodeEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Ref(value.NewCallSiteInfo(symbol.OpEqual, 1)),
+					value.Ref(vm.NewCallSiteInfo(symbol.OpEqual, 1)),
 				},
 			),
 		},
@@ -444,7 +444,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					value.Ref(value.NewCallSiteInfo(symbol.OpEqual, 1)),
+					value.Ref(vm.NewCallSiteInfo(symbol.OpEqual, 1)),
 				},
 			),
 		},
@@ -756,28 +756,29 @@ func TestBytecodeGreaterThan(t *testing.T) {
 
 				Foo > 98
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_INT_8), 98,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(92, 8, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(8, 7),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var gt *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_INT_8), 98,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(92, 8, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(8, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -795,10 +796,8 @@ func TestBytecodeGreaterThan(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -817,31 +816,29 @@ func TestBytecodeGreaterThan(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::>"),
-										[]byte{
-											byte(bytecode.TRUE),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(69, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&gt, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::>"),
+									[]byte{
+										byte(bytecode.TRUE),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(69, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol(">").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpGreaterThan, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(gt, 1, false)),
+					},
+				)
+			},
 		},
 	}
 
@@ -987,28 +984,29 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 
 				Foo >= 98
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_INT_8), 98,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(94, 8, 14)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(8, 7),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var ge *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_INT_8), 98,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(94, 8, 14)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(8, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1026,10 +1024,8 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1048,31 +1044,29 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::>="),
-										[]byte{
-											byte(bytecode.TRUE),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(70, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&ge, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::>="),
+									[]byte{
+										byte(bytecode.TRUE),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(70, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol(">=").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpGreaterThanEqual, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(ge, 1, false)),
+					},
+				)
+			},
 		},
 	}
 
@@ -1218,28 +1212,29 @@ func TestBytecodeLessThan(t *testing.T) {
 
 				Foo < 98
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_INT_8), 98,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(92, 8, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(8, 7),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var lt *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_INT_8), 98,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(92, 8, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(8, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1257,10 +1252,8 @@ func TestBytecodeLessThan(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1279,31 +1272,29 @@ func TestBytecodeLessThan(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::<"),
-										[]byte{
-											byte(bytecode.TRUE),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(69, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&lt, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::<"),
+									[]byte{
+										byte(bytecode.TRUE),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(69, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("<").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpLessThan, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(lt, 1, false)),
+					},
+				)
+			},
 		},
 	}
 
@@ -1449,28 +1440,29 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 
 				Foo <= 98
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_INT_8), 98,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(94, 8, 14)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(8, 7),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var le *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_INT_8), 98,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(94, 8, 14)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(8, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1488,10 +1480,8 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1510,31 +1500,29 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::<="),
-										[]byte{
-											byte(bytecode.TRUE),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(70, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&le, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::<="),
+									[]byte{
+										byte(bytecode.TRUE),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(70, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("<=").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.NewCallSiteInfo(symbol.OpLessThanEqual, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(le, 1, false)),
+					},
+				)
+			},
 		},
 	}
 

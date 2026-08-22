@@ -1585,8 +1585,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -1599,8 +1597,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.IncrementInt(value.GetInstanceVariable(self, 0))
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -1707,8 +1703,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int64) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -1721,8 +1715,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int64
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt64()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -1829,8 +1821,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int32) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -1843,8 +1833,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int32
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt32()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -1951,8 +1939,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int16) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -1965,8 +1951,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int16
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt16()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2073,8 +2057,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int8) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2087,8 +2069,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int8
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt8()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2195,8 +2175,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt64) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2209,8 +2187,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt64
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt64()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2317,8 +2293,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt32) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2331,8 +2305,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt32
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt32()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2439,8 +2411,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt16) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2453,8 +2423,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt16
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt16()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2561,8 +2529,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2575,8 +2541,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt8
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt8()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2683,8 +2647,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2697,8 +2659,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2805,8 +2765,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Char) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2819,8 +2777,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Char
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsChar()) + 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -2927,8 +2883,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -2941,8 +2895,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.IncrementVal(value.GetInstanceVariable(self, 0))
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -3049,8 +3001,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3063,8 +3013,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.DecrementInt(value.GetInstanceVariable(self, 0))
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -3171,8 +3119,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int64) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3185,8 +3131,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int64
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt64()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3293,8 +3237,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int32) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3307,8 +3249,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int32
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt32()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3415,8 +3355,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int16) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3429,8 +3367,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int16
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt16()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3537,8 +3473,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int8) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3551,8 +3485,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Int8
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsInt8()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3659,8 +3591,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt64) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3673,8 +3603,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt64
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt64()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3781,8 +3709,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt32) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3795,8 +3721,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt32
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt32()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -3903,8 +3827,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt16) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -3917,8 +3839,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt16
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt16()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -4025,8 +3945,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4039,8 +3957,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt8
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt8()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -4147,8 +4063,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4161,8 +4075,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.UInt
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsUInt()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -4269,8 +4181,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Char) (result valu
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4283,8 +4193,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Char
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = ((value.GetInstanceVariable(self, 0)).AsChar()) - 1
 	value.SetInstanceVariable(self, 0, (t1).ToValue())
 	return (t1).ToValue(), value.Undefined
@@ -4391,8 +4299,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4405,8 +4311,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.DecrementVal(value.GetInstanceVariable(self, 0))
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -4513,8 +4417,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4527,8 +4429,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.AddInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -4635,8 +4535,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4649,8 +4547,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.SubtractInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -4757,8 +4653,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4771,8 +4665,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.MultiplyInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -4879,8 +4771,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -4895,8 +4785,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1, err = value.DivideInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5008,8 +4896,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5022,8 +4908,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.ExponentiateInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5130,8 +5014,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5146,8 +5028,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1, err = value.ModuloInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5259,8 +5139,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5273,8 +5151,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.BitwiseAndInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5381,8 +5257,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5395,8 +5269,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.BitwiseOrInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5503,8 +5375,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5517,8 +5387,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.BitwiseXorInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5625,8 +5493,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5639,8 +5505,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.LeftBitshiftInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5747,8 +5611,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt64) (result va
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5763,8 +5625,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1, err = value.StrictIntLeftBitshift((value.GetInstanceVariable(self, 0)).AsUInt64(), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5876,8 +5736,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, l0)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -5890,8 +5748,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1 = value.RightBitshiftInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	value.SetInstanceVariable(self, 0, t1)
 	return t1, value.Undefined
@@ -5998,8 +5854,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Int64) (result val
 	_ = callFrame
 
 	value.SetInstanceVariable(self, 0, (l0).ToValue())
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -6014,8 +5868,6 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
-	defer thread.PopNativeCallFrame()
 	t1, err = value.StrictIntLogicalRightBitshift((value.GetInstanceVariable(self, 0)).AsInt64(), (value.SmallInt(3)).ToValue(), value.LogicalRightShift64)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6129,8 +5981,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
-	defer thread.PopNativeCallFrame()
 	t1 = value.GetInstanceVariable(self, 0)
 	if value.Falsy(t1) {
 		t1 = (value.SmallInt(3)).ToValue()
@@ -6239,8 +6089,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
-	defer thread.PopNativeCallFrame()
 	t1 = value.GetInstanceVariable(self, 0)
 	if value.IsNil(t1) {
 		t1 = (value.SmallInt(3)).ToValue()
@@ -6349,8 +6197,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
-	defer thread.PopNativeCallFrame()
 	t1 = value.GetInstanceVariable(self, 0)
 	if value.Truthy(t1) {
 		t1 = (value.SmallInt(3)).ToValue()

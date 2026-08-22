@@ -63,7 +63,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1434,8 +1434,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.String) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -1451,8 +1449,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t2 []value.Value
 	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = l0
 	t1, err = fn_method2(thread, t2) // receiver: Std::Int, name: to_float
@@ -1491,14 +1487,12 @@ func main() { // loc: <main>
 
 	callFrame = thread.AddNativeCallFrame(sym5, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, (const0).ToValue(), value.String("lol")) // receiver: Foo, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
 	l0 = t1
-	callFrame.SetNativeLineNumber(8)
 	t2, err = fn_method1(thread, (const0).ToValue(), (value.SmallInt(1)).ToValue()) // receiver: Foo, name: []@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -3590,7 +3584,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3855,8 +3849,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.String, l1 value.S
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Nil, value.Undefined
 
 }
@@ -3867,8 +3859,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return value.Nil, value.Undefined
 
 }
@@ -3890,13 +3880,11 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	callFrame.SetNativeLineNumber(6)
 	_, err = fn_method1(thread, (const0).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(15)).ToValue()) // receiver: Foo, name: []=@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	callFrame.SetNativeLineNumber(7)
 	_, err = fn_method0(thread, (const0).ToValue(), value.String("lol"), value.String("foo")) // receiver: Foo, name: []=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -3985,8 +3973,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -3997,8 +3983,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -4023,7 +4007,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	_, err = fn_method1(thread, l0, (value.SmallInt(3)).ToValue()) // receiver: Bar, name: foo=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4102,8 +4085,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -4114,8 +4095,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -4142,7 +4121,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4226,8 +4204,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -4238,8 +4214,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -4266,7 +4240,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4351,8 +4324,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -4363,8 +4334,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -4391,7 +4360,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4476,8 +4444,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int64, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int64(3), value.Undefined
 
 }
@@ -4488,8 +4454,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int64) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -4516,7 +4480,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4601,8 +4564,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int32, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int32(3), value.Undefined
 
 }
@@ -4613,8 +4574,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int32) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -4641,7 +4600,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4726,8 +4684,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int16, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int16(3), value.Undefined
 
 }
@@ -4738,8 +4694,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int16) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -4766,7 +4720,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4851,8 +4804,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int8, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int8(3), value.Undefined
 
 }
@@ -4863,8 +4814,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int8) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -4891,7 +4840,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -4976,8 +4924,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt64, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt64(3), value.Undefined
 
 }
@@ -4988,8 +4934,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt64) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5016,7 +4960,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5101,8 +5044,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt32, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt32(3), value.Undefined
 
 }
@@ -5113,8 +5054,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt32) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5141,7 +5080,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5226,8 +5164,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt16, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt16(3), value.Undefined
 
 }
@@ -5238,8 +5174,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt16) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5266,7 +5200,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5351,8 +5284,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt8, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt8(3), value.Undefined
 
 }
@@ -5363,8 +5294,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt8) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5391,7 +5320,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5476,8 +5404,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt(3), value.Undefined
 
 }
@@ -5488,8 +5414,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5516,7 +5440,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5594,8 +5517,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Char, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
-	defer thread.PopNativeCallFrame()
 	return value.Char('a'), value.Undefined
 
 }
@@ -5606,8 +5527,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Char) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -5718,8 +5637,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -5730,8 +5647,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -5758,7 +5673,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5843,8 +5757,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -5855,8 +5767,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return l0, value.Undefined
 
 }
@@ -5883,7 +5793,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5968,8 +5877,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int64, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int64(3), value.Undefined
 
 }
@@ -5980,8 +5887,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int64) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6008,7 +5913,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6093,8 +5997,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int32, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int32(3), value.Undefined
 
 }
@@ -6105,8 +6007,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int32) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6133,7 +6033,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6218,8 +6117,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int16, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int16(3), value.Undefined
 
 }
@@ -6230,8 +6127,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int16) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6258,7 +6153,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6343,8 +6237,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Int8, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.Int8(3), value.Undefined
 
 }
@@ -6355,8 +6247,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Int8) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6383,7 +6273,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6468,8 +6357,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt64, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt64(3), value.Undefined
 
 }
@@ -6480,8 +6367,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt64) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6508,7 +6393,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6593,8 +6477,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt32, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt32(3), value.Undefined
 
 }
@@ -6605,8 +6487,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt32) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6633,7 +6513,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6718,8 +6597,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt16, err v
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt16(3), value.Undefined
 
 }
@@ -6730,8 +6607,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt16) (result va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6758,7 +6633,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6843,8 +6717,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt8, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt8(3), value.Undefined
 
 }
@@ -6855,8 +6727,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt8) (result val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -6883,7 +6753,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6968,8 +6837,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.UInt, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return value.UInt(3), value.Undefined
 
 }
@@ -6980,8 +6847,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.UInt) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 4)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -7008,7 +6873,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(7)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -7086,8 +6950,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Char, err val
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
-	defer thread.PopNativeCallFrame()
 	return value.Char('a'), value.Undefined
 
 }
@@ -7098,8 +6960,6 @@ func fn_method1(thread *vm.Thread, self value.Value, l0 value.Char) (result valu
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
-	defer thread.PopNativeCallFrame()
 	return (l0).ToValue(), value.Undefined
 
 }
@@ -7218,8 +7078,6 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return (value.SmallInt(3)).ToValue(), value.Undefined
 
 }
@@ -7248,7 +7106,6 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (const0).ToValue()
-	callFrame.SetNativeLineNumber(6)
 	t1, err = fn_method0(thread, l0) // receiver: Bar, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -7609,8 +7466,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.St
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -7632,7 +7487,6 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	callFrame.SetNativeLineNumber(5)
 	_, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -7707,8 +7561,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.St
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -7734,7 +7586,6 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	callFrame.SetNativeLineNumber(5)
 	t1, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -7810,8 +7661,6 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.St
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
-	defer thread.PopNativeCallFrame()
 	return self, value.Undefined
 
 }
@@ -7837,7 +7686,6 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
 	defer thread.PopNativeCallFrame()
-	callFrame.SetNativeLineNumber(5)
 	t1, err = fn_method0(thread, const0.CreateInstance(), (value.SmallInt(1)).ToValue(), value.String("lol")) // receiver: Foo, name: #init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()

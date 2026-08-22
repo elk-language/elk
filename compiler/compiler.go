@@ -43,8 +43,14 @@ type Compiler interface {
 
 func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) Compiler {
 	switch parent := parent.(type) {
-	case *BytecodeCompiler, nil:
-		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker)
+	case nil:
+		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
+		cmp.additionalAbortChecks = additionalAbortChecks
+		cmp.Errors = errors
+		cmp.SetParent(parent)
+		return cmp
+	case *BytecodeCompiler:
+		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, parent.globalData)
 		cmp.additionalAbortChecks = additionalAbortChecks
 		cmp.Errors = errors
 		cmp.SetParent(parent)

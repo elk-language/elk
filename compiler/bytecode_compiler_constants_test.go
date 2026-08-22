@@ -99,7 +99,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
+						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE_1),
@@ -145,7 +145,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								[]byte{
 									byte(bytecode.GET_CONST8), 0,
 									byte(bytecode.GET_CONST8), 1,
-									byte(bytecode.CALL_METHOD8), 2,
+									byte(bytecode.CALL_METHOD_NT8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.NIL),
 									byte(bytecode.RETURN),
@@ -158,7 +158,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								[]value.Value{
 									value.ToSymbol("Std::Kernel").ToValue(),
 									value.ToSymbol("Foo::BAR").ToValue(),
-									value.Ref(value.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 								},
 							)),
 						},

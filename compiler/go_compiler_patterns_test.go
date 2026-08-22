@@ -31,10 +31,10 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -143,10 +143,10 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -244,8 +244,8 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -325,7 +325,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -392,7 +392,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -460,7 +460,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -527,7 +527,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -594,7 +594,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -661,8 +661,8 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -739,7 +739,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("foo")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -806,8 +806,8 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -883,7 +883,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -950,7 +950,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1017,7 +1017,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1084,7 +1084,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1151,7 +1151,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1218,7 +1218,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1285,7 +1285,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1352,7 +1352,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1419,7 +1419,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1486,7 +1486,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1553,7 +1553,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1620,7 +1620,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1687,7 +1687,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1755,7 +1755,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var bf0 = value.ParseBigFloatPanic("5.8")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1825,7 +1825,7 @@ var sym0 = value.ToSymbol("Foo")
 var const0 value.SmallInt // constant: Foo, loc: <main>:2:3
 var sym1 = value.ToSymbol("main")
 var sym2 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1903,7 +1903,7 @@ var sym1 = value.ToSymbol("Bar")
 var const1 value.SmallInt // constant: Foo::Bar, loc: <main>:3:4
 var sym2 = value.ToSymbol("main")
 var sym3 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
@@ -2005,7 +2005,7 @@ var sym1 = value.ToSymbol("Bar")
 var const1 value.SmallInt // constant: Foo::Bar, loc: <main>:3:4
 var sym2 = value.ToSymbol("main")
 var sym3 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
@@ -2102,7 +2102,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2179,7 +2179,7 @@ var sym0 = value.ToSymbol("Foo")
 var const0 value.SmallInt // constant: Foo, loc: <main>:2:3
 var sym1 = value.ToSymbol("main")
 var sym2 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2262,7 +2262,7 @@ var sym0 = value.ToSymbol("Foo")
 var const0 value.SmallInt // constant: Foo, loc: <main>:2:3
 var sym1 = value.ToSymbol("main")
 var sym2 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2342,7 +2342,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2416,7 +2416,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2490,7 +2490,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2564,7 +2564,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2633,7 +2633,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var regex0 = value.MustCompileRegex("fo+", bitfield.BitField8FromBitFlag(0))
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2701,7 +2701,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2771,7 +2771,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2839,7 +2839,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2909,7 +2909,7 @@ var _ = value.Truthy
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3251,7 +3251,7 @@ var _ = value.Truthy
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var range0 = value.NewClosedRange((value.SmallInt(-2)).ToValue(), (value.SmallInt(9)).ToValue())
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3324,7 +3324,7 @@ var sym1 = value.ToSymbol("Bar")
 var const1 value.SmallInt // constant: Bar, loc: <main>:3:3
 var sym2 = value.ToSymbol("main")
 var sym3 = value.ToSymbol("<main>")
-var cc_main_1 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4053,11 +4053,11 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayList.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
-var cc_main_5 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
+var cc_main_5 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4686,9 +4686,9 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayList.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4854,8 +4854,8 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayList.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4995,11 +4995,11 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(8)).To
 var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
-var cc_main_5 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
+var cc_main_5 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5634,9 +5634,9 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(-2)).T
 var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5804,8 +5804,8 @@ var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(-2)).T
 var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(5)).ToValue(), (arrtuple0).ToValue())
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5944,11 +5944,11 @@ var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("dupa")
 var sym3 = value.ToSymbol("foo")
 var sym4 = value.ToSymbol("bar")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
-var cc_main_5 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
+var cc_main_5 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6140,11 +6140,11 @@ var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("dupa")
 var sym3 = value.ToSymbol("foo")
 var sym4 = value.ToSymbol("bar")
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
-var cc_main_3 = &value.CallCache{}
-var cc_main_4 = &value.CallCache{}
-var cc_main_5 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
+var cc_main_3 = &vm.CallCache{}
+var cc_main_4 = &vm.CallCache{}
+var cc_main_5 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6335,8 +6335,8 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayList.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 var sym3 = value.ToSymbol("first")
 var fn_method1 vm.NativeFunction // Std::Iterable::FiniteBase.:first
 
@@ -6479,8 +6479,8 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("length")
 var fn_method0 vm.NativeFunction // Std::ArrayList.:length
-var cc_main_1 = &value.CallCache{}
-var cc_main_2 = &value.CallCache{}
+var cc_main_1 = &vm.CallCache{}
+var cc_main_2 = &vm.CallCache{}
 var sym3 = value.ToSymbol("first")
 var fn_method1 vm.NativeFunction // Std::Iterable::FiniteBase.:first
 var sym4 = value.ToSymbol("puts@1")

@@ -500,7 +500,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.NEW_RANGE:
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8,
-		bytecode.CALL_METHOD_PTR8, bytecode.CALL_METHOD_PTR_TCO8,
+		bytecode.CALL_METHOD_BC8, bytecode.CALL_METHOD_NT8,
 		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8:
 		return f.disassembleValue(output, 2, offset)
 	case bytecode.LOAD_VALUE_0:
@@ -512,7 +512,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.LOAD_VALUE_3:
 		return f._disassembleValue(output, 1, 3, offset)
 	case bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16,
-		bytecode.CALL_METHOD_PTR16, bytecode.CALL_METHOD_PTR_TCO16,
+		bytecode.CALL_METHOD_BC16, bytecode.CALL_METHOD_NT16,
 		bytecode.GET_IVAR_NAME16, bytecode.SET_IVAR_NAME16,
 		bytecode.CALL16, bytecode.GET_CONST16, bytecode.NEXT16:
 		return f.disassembleValue(output, 3, offset)
