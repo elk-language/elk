@@ -7894,7 +7894,7 @@ func (c *GoCompiler) emitCaptureStackTrace() {
 func (c *GoCompiler) emitCallCache() string {
 	c.callCacheCounter++
 	callCacheName := fmt.Sprintf("cc_%s_%d", c.goName, c.callCacheCounter)
-	c.emitPackage("var %s = &value.CallCache{}\n", callCacheName)
+	c.emitPackage("var %s = &vm.CallCache{}\n", callCacheName)
 
 	return callCacheName
 }

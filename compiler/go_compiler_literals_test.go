@@ -39,9 +39,9 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("<closure>")
 var sym3 = value.ToSymbol("call")
-var cc_fn_cl0_1 = &value.CallCache{}
-var cc_fn_cl0_2 = &value.CallCache{}
-var cc_main_1 = &value.CallCache{}
+var cc_fn_cl0_1 = &vm.CallCache{}
+var cc_fn_cl0_2 = &vm.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -146,9 +146,9 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("<closure>")
 var sym3 = value.ToSymbol("call")
-var cc_fn_cl0_1 = &value.CallCache{}
-var cc_fn_cl0_2 = &value.CallCache{}
-var cc_main_1 = &value.CallCache{}
+var cc_fn_cl0_1 = &vm.CallCache{}
+var cc_fn_cl0_2 = &vm.CallCache{}
+var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
 	thread := vm.New()

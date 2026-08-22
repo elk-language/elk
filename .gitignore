@@ -3,3 +3,4 @@ ignore.*
 docs/**/*
 tmp
 out
+.claude
