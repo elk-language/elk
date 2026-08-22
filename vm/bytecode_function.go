@@ -500,7 +500,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.NEW_RANGE:
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8,
-		bytecode.CALL_METHOD_BCR8, bytecode.CALL_METHOD_NT8,
+		bytecode.CALL_METHOD_BC8, bytecode.CALL_METHOD_NT8,
 		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8:
 		return f.disassembleValue(output, 2, offset)
 	case bytecode.LOAD_VALUE_0:

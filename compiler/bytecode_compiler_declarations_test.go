@@ -2019,7 +2019,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.CALL_METHOD_TCO8), 0,
+									byte(bytecode.CALL_METHOD_NT8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.RETURN_FIRST_ARG),
 								},
@@ -2031,10 +2031,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(vm.NewCallSiteInfo(
-										value.ToSymbol("println@1"),
-										1,
-									)),
+									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
 								},
 							)),
 							value.ToSymbol("foo=").ToValue(),
@@ -2091,7 +2088,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.INT_2),
 									byte(bytecode.ADD_INT),
-									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.CALL_METHOD_NT8), 0,
 									byte(bytecode.POP),
 									byte(bytecode.LOAD_VALUE_1),
 									byte(bytecode.POP),
@@ -2105,10 +2102,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(vm.NewCallSiteInfo(
-										value.ToSymbol("println@1"),
-										1,
-									)),
+									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
 									value.Ref(value.String("siema")),
 								},
 							)),
@@ -2255,7 +2249,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 						},
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionWithCatchEntries(
+							value.Ref(vm.NewBytecodeFunction(
 								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_2),
@@ -2267,9 +2261,9 @@ func TestBytecodeDefMethod(t *testing.T) {
 									byte(bytecode.RETURN),
 									byte(bytecode.SELF),
 									byte(bytecode.INT_5),
-									byte(bytecode.CALL_METHOD8), 0,
+									byte(bytecode.CALL_METHOD_NT8), 0,
 									byte(bytecode.UNDEFINED),
-									byte(bytecode.CALL_METHOD8), 1,
+									byte(bytecode.CALL_METHOD_NT8), 1,
 									byte(bytecode.AWAIT),
 									byte(bytecode.AWAIT_RESULT),
 									byte(bytecode.POP),
@@ -2288,10 +2282,9 @@ func TestBytecodeDefMethod(t *testing.T) {
 								3,
 								2,
 								[]value.Value{
-									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("seconds")).(*vm.NativeMethod), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("timeout")).(*vm.NativeMethod), 2)),
 								},
-								nil,
 							)),
 							value.ToSymbol("foo").ToValue(),
 						},

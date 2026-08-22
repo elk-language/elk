@@ -5,9 +5,7 @@ import (
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/comparer"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
-	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -27,9 +25,10 @@ var functionSymbol value.Symbol = value.ToSymbol("<closure>")
 
 // Represents a single compiler test case.
 type bytecodeTestCase struct {
-	input string
-	want  *vm.BytecodeFunction
-	err   diagnostic.DiagnosticList
+	input  string
+	want   *vm.BytecodeFunction
+	wantFn func(bytecodeTestCase) *vm.BytecodeFunction
+	err    diagnostic.DiagnosticList
 }
 
 // Type of the compiler test table.
@@ -52,25 +51,19 @@ func bytecodeCompilerTest(tc bytecodeTestCase, t *testing.T) {
 	if err.IsFailure() {
 		return
 	}
-	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+
+	var want *vm.BytecodeFunction
+	if tc.wantFn != nil {
+		want = tc.wantFn(tc)
+	} else {
+		want = tc.want
+	}
+
+	if diff := cmp.Diff(want, got, opts...); diff != "" {
 		t.Log(got.DisassembleString())
 		t.Log(diff)
 		t.Fail()
 	}
 }
 
-// Create a new position in tests
-var P = position.New
-
-// Create a new span in tests
-var S = position.NewSpan
-var T = token.New
-var V = token.NewWithValue
-
 const testFileName = "<main>"
-
-// Create a new source location in tests.
-// Create a new location in tests
-func L(startPos, endPos *position.Position) *position.Location {
-	return position.NewLocation(testFileName, position.NewSpan(startPos, endPos))
-}

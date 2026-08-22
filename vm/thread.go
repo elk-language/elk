@@ -755,7 +755,7 @@ func (vm *Thread) run() {
 			vm.throwIfErr(
 				vm.opCallMethod(int(vm.readUint16())),
 			)
-		case bytecode.CALL_METHOD_BCR8:
+		case bytecode.CALL_METHOD_BC8:
 			vm.opCallMethodBytecodePtr(int(vm.readByte()))
 		case bytecode.CALL_METHOD_BC16:
 			vm.opCallMethodBytecodePtr(int(vm.readUint16()))

@@ -698,7 +698,7 @@ func (c *BytecodeCompiler) patchOptimisedCall(call *bytecodeCall, method value.M
 	case *vm.BytecodeFunction:
 		switch opcode {
 		case bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8:
-			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_BCR8)
+			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_BC8)
 		case bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16:
 			call.bytecode.Instructions[call.bytecodeOffset] = byte(bytecode.CALL_METHOD_BC16)
 		}
@@ -9310,7 +9310,7 @@ func (c *BytecodeCompiler) emitCallMethodBytecodePtr(callInfo *vm.BytecodeCallSi
 	return c.emitAddValue(
 		value.Ref(callInfo),
 		location,
-		bytecode.CALL_METHOD_BCR8,
+		bytecode.CALL_METHOD_BC8,
 		bytecode.CALL_METHOD_BC16,
 	)
 }

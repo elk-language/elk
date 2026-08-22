@@ -158,7 +158,7 @@ const (
 	CALL_METHOD_TCO16                 // Call a method with tail call optimisation eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD8                      // Call a method eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD16                     // Call a method eg. `foo.bar(2)` (16 bit operand)
-	CALL_METHOD_BCR8                  // Call a bytecode method pointer eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD_BC8                   // Call a bytecode method pointer eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD_BC16                  // Call a bytecode method pointer eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD_NT8                   // Call a native method pointer eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD_NT16                  // Call a native method pointer eg. `foo.bar(2)` (16 bit operand)
@@ -411,7 +411,7 @@ var opCodeNames = [...]string{
 	CALL_METHOD_TCO16:   "CALL_METHOD_TCO16",
 	CALL_METHOD8:        "CALL_METHOD8",
 	CALL_METHOD16:       "CALL_METHOD16",
-	CALL_METHOD_BCR8:    "CALL_METHOD_BC8",
+	CALL_METHOD_BC8:     "CALL_METHOD_BC8",
 	CALL_METHOD_BC16:    "CALL_METHOD_BC16",
 	CALL_METHOD_NT8:     "CALL_METHOD_NT8",
 	CALL_METHOD_NT16:    "CALL_METHOD_NT16",

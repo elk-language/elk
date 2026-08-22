@@ -106,36 +106,38 @@ func TestBytecodeSubscript(t *testing.T) {
 				a := Foo["lol"]
 				b := Foo[1]
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 5,
-					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(159, 8, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(7, 6),
-					bytecode.NewLineInfo(8, 8),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var sub *vm.BytecodeFunction
+				var sub1 *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 2,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_1),
+						byte(bytecode.CALL_METHOD_BC8), 5,
+						byte(bytecode.DUP),
+						byte(bytecode.SET_LOCAL_2),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(159, 8, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(7, 6),
+						bytecode.NewLineInfo(8, 8),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -153,10 +155,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -178,61 +178,48 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::[]"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(61, 3, 46)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(3, 2),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&sub, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(61, 3, 46)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("[]").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::[]@1"),
-										[]byte{
-											byte(bytecode.GET_LOCAL_1),
-											byte(bytecode.CALL_METHOD8), 0,
-											byte(bytecode.RETURN),
-										},
-										L(P(68, 4, 6), P(113, 4, 51)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 4),
-										},
-										1,
-										0,
-										[]value.Value{
-											value.Ref(&vm.CallSiteInfo{
-												Name:          value.ToSymbol("to_float"),
-												ArgumentCount: 0,
-											}),
-										},
-									),
-								),
+								value.Ref(set(&sub1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]@1"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.CALL_METHOD_NT8), 0,
+										byte(bytecode.RETURN),
+									},
+									L(P(68, 4, 6), P(113, 4, 51)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 4),
+									},
+									1,
+									0,
+									[]value.Value{
+										value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("to_float")).(*vm.NativeMethod), 0)),
+									},
+								))),
 								value.ToSymbol("[]@1").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(&vm.CallSiteInfo{
-						Name:          value.ToSymbol("[]"),
-						ArgumentCount: 1,
-					}),
-					value.Ref(&vm.CallSiteInfo{
-						Name:          value.ToSymbol("[]@1"),
-						ArgumentCount: 1,
-					}),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub, 1, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub1, 1, false)),
+					},
+				)
+			},
 		},
 
 		"setter builtin": {
@@ -309,113 +296,117 @@ func TestBytecodeSubscript(t *testing.T) {
 				Foo[1] = 15
 				Foo["lol"] = "foo"
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_INT_8), 15,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.CALL_METHOD8), 6,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(154, 7, 23)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(6, 8),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(154, 7, 23)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(154, 7, 23)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(63, 3, 48)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]=").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]=@1"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(70, 4, 6), P(106, 4, 42)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]=@1").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("[]=@1"), 2)),
-					value.Ref(value.String("lol")),
-					value.Ref(value.String("foo")),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpSubscriptSet, 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var subSet *vm.BytecodeFunction
+				var subSet1 *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_INT_8), 15,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE8), 4,
+						byte(bytecode.LOAD_VALUE8), 5,
+						byte(bytecode.CALL_METHOD_BC8), 6,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(154, 7, 23)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(6, 8),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(154, 7, 23)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(154, 7, 23)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&subSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(63, 3, 48)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]=").ToValue(),
+								value.Ref(set(&subSet1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]=@1"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(70, 4, 6), P(106, 4, 42)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]=@1").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(subSet1, 2, false)),
+						value.Ref(value.String("lol")),
+						value.Ref(value.String("foo")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(subSet, 2, false)),
+					},
+				)
+			},
 		},
 
 		"increment Int": {
@@ -497,38 +488,39 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1]++
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.DUP_2),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(91, 9, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 8),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var inc *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.DUP_2),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(91, 9, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 8),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -546,10 +538,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -568,31 +558,27 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::++"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(51, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										0,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&inc, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Foo::++"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(51, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									nil,
+								))),
 								value.ToSymbol("++").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpIncrement, 0)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(inc, 0, false)),
+					},
+				)
+			},
 		},
 
 		"decrement Int": {
@@ -674,38 +660,39 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1]--
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.DUP_2),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(91, 9, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 8),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var dec *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.DUP_2),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(91, 9, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 8),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -723,10 +710,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -745,31 +730,27 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::--"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(51, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										0,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&dec, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Foo::--"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(51, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									nil,
+								))),
 								value.ToSymbol("--").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpDecrement, 0)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(dec, 0, false)),
+					},
+				)
+			},
 		},
 
 		"add Int": {
@@ -892,40 +873,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] += 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var add *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -943,10 +925,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -965,31 +945,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::+"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&add, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::+"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("+").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpAdd, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(add, 1, false)),
+					},
+				)
+			},
 		},
 		"add overload": {
 			input: `
@@ -1008,161 +986,167 @@ func TestBytecodeSubscript(t *testing.T) {
 				Foo[1] += 8
 				Foo["foo"] += "bar"
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.ADD_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.CALL_METHOD8), 6,
-					byte(bytecode.LOAD_VALUE8), 7,
-					byte(bytecode.ADD),
-					byte(bytecode.CALL_METHOD8), 8,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(293, 15, 24)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(14, 14),
-					bytecode.NewLineInfo(15, 16),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(293, 15, 24)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(15, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 5,
-							byte(bytecode.LOAD_VALUE8), 6,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE8), 7,
-							byte(bytecode.LOAD_VALUE8), 8,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(293, 15, 24)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 21),
-							bytecode.NewLineInfo(15, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]"),
-								[]byte{
-									byte(bytecode.GET_LOCAL_1),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(73, 5, 8)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 1),
-									bytecode.NewLineInfo(5, 1),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]@1"),
-								[]byte{
-									byte(bytecode.GET_LOCAL_1),
-									byte(bytecode.RETURN),
-								},
-								L(P(130, 8, 6), P(188, 10, 8)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(9, 1),
-									bytecode.NewLineInfo(10, 1),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]@1").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(80, 6, 6), P(122, 6, 48)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(6, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]=").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::[]=@1"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(195, 11, 6), P(243, 11, 54)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(11, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("[]=@1").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("[]"), 1)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("[]="), 2)),
-					value.Ref(value.String("foo")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("[]@1"), 1)),
-					value.Ref(value.String("bar")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("[]=@1"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var sub *vm.BytecodeFunction
+				var sub1 *vm.BytecodeFunction
+				var subSet *vm.BytecodeFunction
+				var subSet1 *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.ADD_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE8), 5,
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE8), 5,
+						byte(bytecode.CALL_METHOD_BC8), 6,
+						byte(bytecode.LOAD_VALUE8), 7,
+						byte(bytecode.ADD),
+						byte(bytecode.CALL_METHOD_BC8), 8,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(293, 15, 24)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(14, 14),
+						bytecode.NewLineInfo(15, 16),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(293, 15, 24)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(15, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE8), 5,
+								byte(bytecode.LOAD_VALUE8), 6,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE8), 7,
+								byte(bytecode.LOAD_VALUE8), 8,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(293, 15, 24)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 21),
+								bytecode.NewLineInfo(15, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&sub, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(73, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]").ToValue(),
+								value.Ref(set(&sub1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]@1"),
+									[]byte{
+										byte(bytecode.GET_LOCAL_1),
+										byte(bytecode.RETURN),
+									},
+									L(P(130, 8, 6), P(188, 10, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(9, 1),
+										bytecode.NewLineInfo(10, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]@1").ToValue(),
+								value.Ref(set(&subSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(80, 6, 6), P(122, 6, 48)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(6, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]=").ToValue(),
+								value.Ref(set(&subSet1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::[]=@1"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(195, 11, 6), P(243, 11, 54)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(11, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("[]=@1").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub, 1, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(subSet, 2, false)),
+						value.Ref(value.String("foo")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub1, 1, false)),
+						value.Ref(value.String("bar")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(subSet1, 2, false)),
+					},
+				)
+			},
 		},
 
 		"subtract Int": {
@@ -1285,40 +1269,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] -= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var sub *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1336,10 +1321,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1358,31 +1341,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::-"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&sub, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::-"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("-").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpSubtract, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(sub, 1, false)),
+					},
+				)
+			},
 		},
 
 		"multiply Int": {
@@ -1505,40 +1486,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] *= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var mul *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1556,10 +1538,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1578,31 +1558,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::*"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&mul, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::*"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("*").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpMultiply, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(mul, 1, false)),
+					},
+				)
+			},
 		},
 
 		"divide Int": {
@@ -1725,40 +1703,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] /= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var div *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1776,10 +1755,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1798,31 +1775,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::/"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&div, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::/"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("/").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpDivide, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(div, 1, false)),
+					},
+				)
+			},
 		},
 
 		"exponentiate Int": {
@@ -1908,40 +1883,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] **= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 9, 17)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var pow *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 9, 17)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1959,10 +1935,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1981,31 +1955,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::**"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(63, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&pow, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::**"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(63, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("**").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpExponentiate, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(pow, 1, false)),
+					},
+				)
+			},
 		},
 
 		"modulo Int": {
@@ -2128,40 +2100,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] %= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var mod *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2179,10 +2152,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2201,31 +2172,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::%"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&mod, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::%"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("%").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpModulo, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(mod, 1, false)),
+					},
+				)
+			},
 		},
 
 		"bitwise AND Int": {
@@ -2311,40 +2280,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] &= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var band *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2362,10 +2332,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2384,31 +2352,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::&"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&band, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::&"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("&").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpAnd, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(band, 1, false)),
+					},
+				)
+			},
 		},
 		"bitwise OR Int": {
 			input: `
@@ -2493,40 +2459,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] |= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var bor *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2544,10 +2511,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2566,31 +2531,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::|"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&bor, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::|"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("|").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpOr, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(bor, 1, false)),
+					},
+				)
+			},
 		},
 		"bitwise XOR Int": {
 			input: `
@@ -2675,40 +2638,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] ^= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(105, 9, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var bxor *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(105, 9, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2726,10 +2690,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2748,31 +2710,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::^"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(62, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&bxor, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::^"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(62, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("^").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpXor, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(bxor, 1, false)),
+					},
+				)
+			},
 		},
 		"left bitshift Int": {
 			input: `
@@ -2857,40 +2817,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] <<= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 9, 17)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var shl *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 9, 17)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2908,10 +2869,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -2930,31 +2889,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::<<"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(63, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&shl, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::<<"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(63, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("<<").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpLeftBitshift, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(shl, 1, false)),
+					},
+				)
+			},
 		},
 		"right bitshift Int": {
 			input: `
@@ -3039,40 +2996,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] >>= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 9, 17)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var shr *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 9, 17)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3090,10 +3048,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3112,31 +3068,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::>>"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(63, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&shr, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::>>"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(63, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol(">>").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpRightBitshift, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(shr, 1, false)),
+					},
+				)
+			},
 		},
 
 		"left logical bitshift Int": {
@@ -3222,40 +3176,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] <<<= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(109, 9, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var rol *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(109, 9, 18)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3273,10 +3228,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3295,31 +3248,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::<<<"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&rol, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::<<<"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol("<<<").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpLogicalLeftBitshift, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(rol, 1, false)),
+					},
+				)
+			},
 		},
 		"right logical bitshift Int": {
 			input: `
@@ -3404,40 +3355,41 @@ func TestBytecodeSubscript(t *testing.T) {
 				arr := [Foo]
 				arr[1] >>>= 8
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 1,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.SUBSCRIPT),
-					byte(bytecode.LOAD_INT_8), 8,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.SUBSCRIPT_SET),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(109, 9, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(8, 7),
-					bytecode.NewLineInfo(9, 11),
-				},
-				[]value.Value{
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var ror *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 1,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.SUBSCRIPT),
+						byte(bytecode.LOAD_INT_8), 8,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.SUBSCRIPT_SET),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(109, 9, 18)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(8, 7),
+						bytecode.NewLineInfo(9, 11),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3455,10 +3407,8 @@ func TestBytecodeSubscript(t *testing.T) {
 								value.ToSymbol("Root").ToValue(),
 								value.ToSymbol("Foo").ToValue(),
 							},
-						),
-					),
-					value.Ref(
-						vm.NewBytecodeFunctionNoParams(
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -3477,31 +3427,29 @@ func TestBytecodeSubscript(t *testing.T) {
 							},
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
-								value.Ref(
-									vm.NewBytecodeFunction(
-										value.ToSymbol("Foo::>>>"),
-										[]byte{
-											byte(bytecode.SELF),
-											byte(bytecode.RETURN),
-										},
-										L(P(21, 3, 6), P(64, 5, 8)),
-										bytecode.LineInfoList{
-											bytecode.NewLineInfo(4, 1),
-											bytecode.NewLineInfo(5, 1),
-										},
-										1,
-										0,
-										nil,
-									),
-								),
+								value.Ref(set(&ror, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::>>>"),
+									[]byte{
+										byte(bytecode.SELF),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(64, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 1),
+										bytecode.NewLineInfo(5, 1),
+									},
+									1,
+									0,
+									nil,
+								))),
 								value.ToSymbol(">>>").ToValue(),
 							},
-						),
-					),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(symbol.OpLogicalRightBitshift, 1)),
-				},
-			),
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(ror, 1, false)),
+					},
+				)
+			},
 		},
 
 		"logic OR": {
@@ -3961,114 +3909,118 @@ func TestBytecodeCallMethod(t *testing.T) {
 				a.foo(1)
 				a.foo("lol")
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.CALL_METHOD8), 5,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(139, 8, 17)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 5),
-					bytecode.NewLineInfo(8, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(139, 8, 17)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(139, 8, 17)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(52, 3, 37)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo@1"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(59, 4, 6), P(87, 4, 34)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo@1").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo@1"), 1)),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var foo1 *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.POP),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.LOAD_VALUE8), 4,
+						byte(bytecode.CALL_METHOD_BC8), 5,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(139, 8, 17)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 5),
+						bytecode.NewLineInfo(8, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(139, 8, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(139, 8, 17)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(52, 3, 37)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&foo1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo@1"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(59, 4, 6), P(87, 4, 34)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo@1").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo1, 1, false)),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call variable overloads": {
 			input: `
@@ -4080,114 +4032,117 @@ func TestBytecodeCallMethod(t *testing.T) {
 				a(1)
 				a("lol")
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.CALL8), 5,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(133, 8, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 5),
-					bytecode.NewLineInfo(8, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(133, 8, 13)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(133, 8, 13)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::call"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(53, 3, 38)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("call").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::call@1"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(60, 4, 6), P(89, 4, 35)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("call@1").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("call@1"), 1)),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("call"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var call1 *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.POP),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.LOAD_VALUE8), 4,
+						byte(bytecode.CALL8), 5,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(133, 8, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 5),
+						bytecode.NewLineInfo(8, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(133, 8, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(133, 8, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::call"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(53, 3, 38)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								)),
+								value.ToSymbol("call").ToValue(),
+								value.Ref(set(&call1, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::call@1"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(60, 4, 6), P(89, 4, 35)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("call@1").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(call1, 1, false)),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewCallSiteInfo(value.ToSymbol("call"), 1)),
+					},
+				)
+			},
 		},
 		"call a method without arguments": {
 			input: `
@@ -4196,82 +4151,85 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(53, 5, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 5),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(53, 5, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(53, 5, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(32, 3, 17)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(53, 5, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(53, 5, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(53, 5, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(32, 3, 17)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+					},
+				)
+			},
 		},
 		"call": {
 			input: `
@@ -4532,84 +4490,87 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo..foo
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(54, 5, 13)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 7),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(54, 5, 13)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(54, 5, 13)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(32, 3, 17)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.DUP),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.POP),
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(54, 5, 13)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(54, 5, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(54, 5, 13)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(32, 3, 17)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+					},
+				)
+			},
 		},
 		"make a cascade call without arguments nil safe": {
 			input: `
@@ -4798,86 +4759,89 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo = 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_3),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(70, 5, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(70, 5, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(70, 5, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(21, 3, 6), P(45, 3, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_3),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(70, 5, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 5, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 5, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(21, 3, 6), P(45, 3, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with positional arguments": {
 			input: `
@@ -4886,87 +4850,90 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo(1, 'lol')
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(82, 5, 22)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 7),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(82, 5, 22)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(82, 5, 22)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(51, 3, 36)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(82, 5, 22)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(82, 5, 22)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(82, 5, 22)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(51, 3, 36)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 2, false)),
+					},
+				)
+			},
 		},
 		"call a method with rest arguments": {
 			input: `
@@ -4975,90 +4942,89 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo(1, 2, 3)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(71, 5, 21)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(71, 5, 21)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(71, 5, 21)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(41, 3, 26)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(&value.ArrayTupleOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-					}),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(71, 5, 21)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(71, 5, 21)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(71, 5, 21)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(41, 3, 26)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with a splat argument": {
 			input: `
@@ -5068,95 +5034,94 @@ func TestBytecodeCallMethod(t *testing.T) {
 				arr := [1, 2, 3]
 				Foo.foo(*arr)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_CONST8), 3,
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(89, 6, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(89, 6, 18)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(89, 6, 18)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(41, 3, 26)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-					}),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_2),
+						byte(bytecode.COPY),
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_CONST8), 3,
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(89, 6, 18)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 3),
+						bytecode.NewLineInfo(6, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(89, 6, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(89, 6, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(41, 3, 26)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with a non-tuple splat argument": {
 			input: `
@@ -5165,98 +5130,101 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo(*3)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.NEW_ARRAY_TUPLE8), 0,
-					byte(bytecode.INT_0),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_3),
-					byte(bytecode.JUMP_UNLESS_ILT), 0, 8,
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.APPEND),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INCREMENT_INT),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.LOOP), 0, 13,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(66, 5, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 23),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(66, 5, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(66, 5, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(41, 3, 26)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.NEW_ARRAY_TUPLE8), 0,
+						byte(bytecode.INT_0),
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_3),
+						byte(bytecode.JUMP_UNLESS_ILT), 0, 8,
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.APPEND),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INCREMENT_INT),
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.LOOP), 0, 13,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(66, 5, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 23),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(66, 5, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(66, 5, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(41, 3, 26)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with rest and splat arguments": {
 			input: `
@@ -5266,110 +5234,107 @@ func TestBytecodeCallMethod(t *testing.T) {
 				arr := [1, 2, 3]
 				Foo.foo(5, *arr, 10)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 3,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.COPY),
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_CONST8), 3,
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.COPY),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_ITERATOR),
-					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 6,
-					byte(bytecode.SET_LOCAL_3),
-					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.APPEND),
-					byte(bytecode.LOOP), 0, 10,
-					byte(bytecode.LOAD_INT_8), 10,
-					byte(bytecode.APPEND),
-					byte(bytecode.CALL_METHOD8), 5,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(96, 6, 25)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 24),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(96, 6, 25)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(96, 6, 25)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(41, 3, 26)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.Ref(&value.ArrayListOfValue{
-						value.SmallInt(1).ToValue(),
-						value.SmallInt(2).ToValue(),
-						value.SmallInt(3).ToValue(),
-					}),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(&value.ArrayTupleOfValue{
-						value.SmallInt(5).ToValue(),
-					}),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 3,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_2),
+						byte(bytecode.COPY),
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_CONST8), 3,
+						byte(bytecode.LOAD_VALUE8), 4,
+						byte(bytecode.COPY),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_ITERATOR),
+						byte(bytecode.SET_LOCAL_2),
+						byte(bytecode.GET_LOCAL_2),
+						byte(bytecode.FOR_IN_BUILTIN), 0, 6,
+						byte(bytecode.SET_LOCAL_3),
+						byte(bytecode.GET_LOCAL_3),
+						byte(bytecode.APPEND),
+						byte(bytecode.LOOP), 0, 10,
+						byte(bytecode.LOAD_INT_8), 10,
+						byte(bytecode.APPEND),
+						byte(bytecode.CALL_METHOD_BC8), 5,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(96, 6, 25)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 3),
+						bytecode.NewLineInfo(6, 24),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(96, 6, 25)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(96, 6, 25)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(41, 3, 26)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue()}),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 
 		"call a method with named rest arguments": {
@@ -5379,91 +5344,89 @@ func TestBytecodeCallMethod(t *testing.T) {
 				end
 				Foo.foo(foo: 1, bar: 2, baz: 3)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(87, 5, 36)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(5, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(87, 5, 36)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(87, 5, 36)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(42, 3, 27)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.MustNewHashRecordOfValueWithElements(
-						nil,
-						value.MakePairOfValue(value.ToSymbol("foo").ToValue(), value.SmallInt(1).ToValue()),
-						value.MakePairOfValue(value.ToSymbol("bar").ToValue(), value.SmallInt(2).ToValue()),
-						value.MakePairOfValue(value.ToSymbol("baz").ToValue(), value.SmallInt(3).ToValue()),
-					)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(87, 5, 36)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(5, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(87, 5, 36)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(87, 5, 36)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(5, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(42, 3, 27)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.MustNewHashRecordWithCapacityAndElements(nil, 3, value.MakePairOfValue(value.ToSymbol("baz").ToValue(), (value.SmallInt(3)).ToValue()), value.MakePairOfValue(value.ToSymbol("foo").ToValue(), (value.SmallInt(1)).ToValue()), value.MakePairOfValue(value.ToSymbol("bar").ToValue(), (value.SmallInt(2)).ToValue()))),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with a double splat argument": {
 			input: `
@@ -5488,7 +5451,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					byte(bytecode.SET_LOCAL_1),
 					byte(bytecode.GET_CONST8), 3,
 					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.CALL_METHOD_BC8), 4,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(108, 6, 19)),
@@ -5499,7 +5462,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
+						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE_1),
@@ -5518,7 +5481,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
+						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
@@ -5553,15 +5516,22 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					vm.NewNativeKeyHashMapFromMap[value.Symbol](
-						map[value.Symbol]value.Value{
-							value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
-							value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
-							value.ToSymbol("baz"): value.SmallInt(3).ToValue(),
-						},
-					).ToValue(),
+					value.Ref(vm.NewNativeKeyHashMapWithElements[value.Symbol](value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("bar"), (value.SmallInt(2)).ToValue()), value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("baz"), (value.SmallInt(3)).ToValue()), value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("foo"), (value.SmallInt(1)).ToValue()))),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+					value.Ref(vm.NewBytecodeCallSiteInfo(vm.NewBytecodeFunction(
+						value.ToSymbol("Foo::foo"),
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(21, 3, 6), P(42, 3, 27)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 2),
+						},
+						1,
+						0,
+						nil,
+					), 1, false)),
 				},
 			),
 		},
@@ -5573,146 +5543,149 @@ func TestBytecodeCallMethod(t *testing.T) {
 				arr := [Pair(:foo, 1), Pair(:bar, 2), Pair(:baz, 3)]
 				Foo.foo(**arr)
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 4,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.INT_1),
-					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.INT_2),
-					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.LOAD_VALUE8), 5,
-					byte(bytecode.INT_3),
-					byte(bytecode.INSTANTIATE8), 2,
-					byte(bytecode.NEW_ARRAY_LIST8), 3,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_CONST8), 6,
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.NEW_HASH_RECORD8), 0,
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_ITERATOR),
-					byte(bytecode.SET_LOCAL_2),
-					byte(bytecode.GET_LOCAL_2),
-					byte(bytecode.FOR_IN_BUILTIN), 0, 44,
-					byte(bytecode.DUP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.IS_A),
-					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-					byte(bytecode.POP),
-					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 7,
-					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL_3),
-					byte(bytecode.TRUE),
-					byte(bytecode.POP_SKIP_ONE),
-					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-					byte(bytecode.POP),
-					byte(bytecode.DUP),
-					byte(bytecode.CALL_METHOD8), 8,
-					byte(bytecode.DUP),
-					byte(bytecode.SET_LOCAL_4),
-					byte(bytecode.TRUE),
-					byte(bytecode.POP_SKIP_ONE),
-					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-					byte(bytecode.POP),
-					byte(bytecode.TRUE),
-					byte(bytecode.JUMP_IF), 0, 3,
-					byte(bytecode.LOAD_VALUE8), 9,
-					byte(bytecode.THROW),
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL_3),
-					byte(bytecode.GET_LOCAL_4),
-					byte(bytecode.MAP_SET),
-					byte(bytecode.LOOP), 0, 48,
-					byte(bytecode.CALL_METHOD8), 10,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(127, 6, 19)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 25),
-					bytecode.NewLineInfo(6, 59),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(127, 6, 19)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(127, 6, 19)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(42, 3, 27)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Std::Pair").ToValue(),
-					value.ToSymbol("foo").ToValue(),
-					value.ToSymbol("bar").ToValue(),
-					value.ToSymbol("baz").ToValue(),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("key"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("value"), 0)),
-					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 4,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.INT_1),
+						byte(bytecode.INSTANTIATE8), 2,
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE8), 4,
+						byte(bytecode.INT_2),
+						byte(bytecode.INSTANTIATE8), 2,
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.LOAD_VALUE8), 5,
+						byte(bytecode.INT_3),
+						byte(bytecode.INSTANTIATE8), 2,
+						byte(bytecode.NEW_ARRAY_LIST8), 3,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_CONST8), 6,
+						byte(bytecode.UNDEFINED),
+						byte(bytecode.NEW_HASH_RECORD8), 0,
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_ITERATOR),
+						byte(bytecode.SET_LOCAL_2),
+						byte(bytecode.GET_LOCAL_2),
+						byte(bytecode.FOR_IN_BUILTIN), 0, 44,
+						byte(bytecode.DUP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.IS_A),
+						byte(bytecode.JUMP_UNLESS_NP), 0, 24,
+						byte(bytecode.POP),
+						byte(bytecode.DUP),
+						byte(bytecode.CALL_METHOD8), 7,
+						byte(bytecode.DUP),
+						byte(bytecode.SET_LOCAL_3),
+						byte(bytecode.TRUE),
+						byte(bytecode.POP_SKIP_ONE),
+						byte(bytecode.JUMP_UNLESS_NP), 0, 13,
+						byte(bytecode.POP),
+						byte(bytecode.DUP),
+						byte(bytecode.CALL_METHOD8), 8,
+						byte(bytecode.DUP),
+						byte(bytecode.SET_LOCAL_4),
+						byte(bytecode.TRUE),
+						byte(bytecode.POP_SKIP_ONE),
+						byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+						byte(bytecode.POP),
+						byte(bytecode.TRUE),
+						byte(bytecode.JUMP_IF), 0, 3,
+						byte(bytecode.LOAD_VALUE8), 9,
+						byte(bytecode.THROW),
+						byte(bytecode.POP),
+						byte(bytecode.GET_LOCAL_3),
+						byte(bytecode.GET_LOCAL_4),
+						byte(bytecode.MAP_SET),
+						byte(bytecode.LOOP), 0, 48,
+						byte(bytecode.CALL_METHOD_BC8), 10,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(127, 6, 19)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 25),
+						bytecode.NewLineInfo(6, 59),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(127, 6, 19)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(127, 6, 19)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(42, 3, 27)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Std::Pair").ToValue(),
+						value.ToSymbol("foo").ToValue(),
+						value.ToSymbol("bar").ToValue(),
+						value.ToSymbol("baz").ToValue(),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(vm.NewCallSiteInfo(value.ToSymbol("key"), 0)),
+						value.Ref(vm.NewCallSiteInfo(value.ToSymbol("value"), 0)),
+						value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 1, false)),
+					},
+				)
+			},
 		},
 		"call a method with rest and double splat arguments": {
 			input: `
@@ -5776,7 +5749,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 9,
 					byte(bytecode.LOAD_INT_8), 10,
 					byte(bytecode.MAP_SET),
-					byte(bytecode.CALL_METHOD8), 10,
+					byte(bytecode.CALL_METHOD_BC8), 10,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(126, 6, 37)),
@@ -5787,7 +5760,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
+						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.LOAD_VALUE_1),
@@ -5806,7 +5779,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
+						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
 							byte(bytecode.GET_SINGLETON),
@@ -5841,24 +5814,28 @@ func TestBytecodeCallMethod(t *testing.T) {
 							value.ToSymbol("foo").ToValue(),
 						},
 					)),
-					vm.NewNativeKeyHashMapFromMap(
-						map[value.Symbol]value.Value{
-							value.ToSymbol("foo"): value.SmallInt(1).ToValue(),
-							value.ToSymbol("bar"): value.SmallInt(2).ToValue(),
-							value.ToSymbol("baz"): value.SmallInt(3).ToValue(),
-						},
-					).ToValue(),
+					value.Ref(vm.NewNativeKeyHashMapWithElements[value.Symbol](value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("bar"), (value.SmallInt(2)).ToValue()), value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("baz"), (value.SmallInt(3)).ToValue()), value.MakeNativePair[value.Symbol, value.Value](value.ToSymbol("foo"), (value.SmallInt(1)).ToValue()))),
 					value.ToSymbol("Foo").ToValue(),
-					value.Ref(vm.MustNewHashRecordOfValueWithElements(
-						nil,
-						value.MakePairOfValue(value.ToSymbol("elo").ToValue(), value.SmallInt(5).ToValue()),
-					)),
+					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(nil, 3, value.MakePairOfValue(value.ToSymbol("elo").ToValue(), (value.SmallInt(5)).ToValue()))),
 					value.ToSymbol("Std::Pair").ToValue(),
 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("key"), 0)),
 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("value"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("pipa").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 1)),
+					value.Ref(vm.NewBytecodeCallSiteInfo(vm.NewBytecodeFunction(
+						value.ToSymbol("Foo::foo"),
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.RETURN),
+						},
+						L(P(21, 3, 6), P(42, 3, 27)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 2),
+						},
+						1,
+						0,
+						nil,
+					), 1, false)),
 				},
 			),
 		},
@@ -5965,91 +5942,94 @@ func TestBytecodeCallMethod(t *testing.T) {
 				a := Foo
 				a.foo(1, 'lol')
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(93, 6, 20)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(93, 6, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(93, 6, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(51, 3, 36)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(93, 6, 20)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 3),
+						bytecode.NewLineInfo(6, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(93, 6, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(93, 6, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(51, 3, 36)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 2, false)),
+					},
+				)
+			},
 		},
 		"call a method on a local variable with named args": {
 			input: `
@@ -6059,91 +6039,94 @@ func TestBytecodeCallMethod(t *testing.T) {
 				a := Foo
 				a.foo(1, b: 'lol')
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(96, 6, 23)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 6),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(96, 6, 23)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Foo").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(96, 6, 23)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Foo::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(51, 3, 36)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Foo").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_VALUE_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(96, 6, 23)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 3),
+						bytecode.NewLineInfo(6, 6),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(96, 6, 23)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Foo").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(96, 6, 23)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Foo").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Foo::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(51, 3, 36)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Foo").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 2, false)),
+					},
+				)
+			},
 		},
 		"call a method with duplicated named args": {
 			input: `
@@ -6553,82 +6536,85 @@ func TestBytecodeCallFunction(t *testing.T) {
 				end
 				foo()
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(70, 6, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(6, 5),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(70, 6, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(70, 6, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(40, 4, 6), P(51, 4, 17)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 2),
-								},
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(70, 6, 10)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(6, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 6, 10)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(70, 6, 10)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(40, 4, 6), P(51, 4, 17)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+					},
+				)
+			},
 		},
 		"call a function from using with a class": {
 			input: `
@@ -6640,276 +6626,288 @@ func TestBytecodeCallFunction(t *testing.T) {
 				end
 				foo()
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(94, 8, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-					bytecode.NewLineInfo(8, 5),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 1,
-							byte(bytecode.GET_CONST8), 1,
-							byte(bytecode.GET_CONST8), 2,
-							byte(bytecode.SET_SUPERCLASS),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(94, 8, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 10),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-							value.ToSymbol("Std::Object").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(94, 8, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(8, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(55, 5, 7), P(66, 5, 18)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(5, 2),
-								},
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(94, 8, 10)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 6),
+						bytecode.NewLineInfo(8, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 1,
+								byte(bytecode.GET_CONST8), 1,
+								byte(bytecode.GET_CONST8), 2,
+								byte(bytecode.SET_SUPERCLASS),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 10)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 10),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+								value.ToSymbol("Std::Object").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(94, 8, 10)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(8, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(55, 5, 7), P(66, 5, 18)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(5, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+					},
+				)
+			},
 		},
 		"call a function without arguments": {
 			input: `
 				def foo; end
 				foo()
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.CALL_METHOD8), 2,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(27, 3, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-					bytecode.NewLineInfo(3, 5),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(27, 3, 10)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(3, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewBytecodeFunctionNoParams(
-								value.ToSymbol("Std::Kernel::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(5, 2, 5), P(16, 2, 16)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(2, 2),
-								},
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 1,
+						byte(bytecode.CALL_METHOD_BC8), 2,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(27, 3, 10)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 3),
+						bytecode.NewLineInfo(3, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(27, 3, 10)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(3, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Std::Kernel::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(5, 2, 5), P(16, 2, 16)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(2, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Std::Kernel").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+					},
+				)
+			},
 		},
 		"call a function with positional arguments": {
 			input: `
 				def foo(a: Int, b: String); end
 				foo(1, 'lol')
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(54, 3, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-					bytecode.NewLineInfo(3, 7),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(54, 3, 18)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(3, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Std::Kernel::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(5, 2, 5), P(35, 2, 35)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(2, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 1,
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_VALUE_2),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(54, 3, 18)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 3),
+						bytecode.NewLineInfo(3, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(54, 3, 18)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(3, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Std::Kernel::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(5, 2, 5), P(35, 2, 35)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(2, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Std::Kernel").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 2, false)),
+					},
+				)
+			},
 		},
 		"call a function with named args": {
 			input: `
 				def foo(a: Int, b: String); end
 				foo(1, b: 'lol')
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 1,
-					byte(bytecode.INT_1),
-					byte(bytecode.LOAD_VALUE_2),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(57, 3, 21)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-					bytecode.NewLineInfo(3, 7),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(57, 3, 21)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(3, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Std::Kernel::foo"),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.RETURN),
-								},
-								L(P(5, 2, 5), P(35, 2, 35)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(2, 2),
-								},
-								2,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-						},
-					)),
-					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(value.String("lol")),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 2)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 1,
+						byte(bytecode.INT_1),
+						byte(bytecode.LOAD_VALUE_2),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(57, 3, 21)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 3),
+						bytecode.NewLineInfo(3, 7),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(57, 3, 21)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(3, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Std::Kernel").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunction(
+									value.ToSymbol("Std::Kernel::foo"),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.RETURN),
+									},
+									L(P(5, 2, 5), P(35, 2, 35)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(2, 2),
+									},
+									2,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+							},
+						)),
+						value.ToSymbol("Std::Kernel").ToValue(),
+						value.Ref(value.String("lol")),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 2, false)),
+					},
+				)
+			},
 		},
 		"call a function with duplicated named args": {
 			input: `
@@ -6942,90 +6940,93 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo = 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.INT_3),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(81, 6, 14)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 5),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(81, 6, 14)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(81, 6, 14)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 7),
-							bytecode.NewLineInfo(6, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(21, 3, 6), P(45, 3, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.INT_3),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(81, 6, 14)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(5, 3),
+						bytecode.NewLineInfo(6, 5),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(81, 6, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(81, 6, 14)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 7),
+								bytecode.NewLineInfo(6, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(21, 3, 6), P(45, 3, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"increment": {
 			input: `
@@ -7036,111 +7037,113 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo++
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.CALL_METHOD8), 5,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(104, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 8),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(104, 7, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(104, 7, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("++"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.CALL_METHOD8), 4,
+						byte(bytecode.CALL_METHOD_BC8), 5,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(104, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 8),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(104, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(104, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewCallSiteInfo(value.ToSymbol("++"), 0)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"decrement": {
 			input: `
@@ -7151,111 +7154,113 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo--
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.CALL_METHOD8), 5,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(104, 7, 12)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 8),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<namespaceDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(104, 7, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						value.ToSymbol("<methodDefinitions>"),
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(104, 7, 12)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("--"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.CALL_METHOD8), 4,
+						byte(bytecode.CALL_METHOD_BC8), 5,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(104, 7, 12)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 8),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(104, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(104, 7, 12)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewCallSiteInfo(value.ToSymbol("--"), 0)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with add": {
 			input: `
@@ -7266,112 +7271,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo += 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.ADD_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.ADD_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with subtract": {
 			input: `
@@ -7382,112 +7389,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo -= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.SUBTRACT_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.SUBTRACT_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with multiply": {
 			input: `
@@ -7498,112 +7507,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo *= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.MULTIPLY_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.MULTIPLY_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with divide": {
 			input: `
@@ -7614,112 +7625,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo /= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.DIVIDE_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.DIVIDE_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with exponentiate": {
 			input: `
@@ -7730,112 +7743,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo **= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.EXPONENTIATE_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(108, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.EXPONENTIATE_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(108, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with modulo": {
 			input: `
@@ -7846,112 +7861,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo %= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.MODULO_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.MODULO_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with left bitshift": {
 			input: `
@@ -7962,112 +7979,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo <<= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.LBITSHIFT_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(108, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.LBITSHIFT_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(108, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with logic left bitshift": {
 			input: `
@@ -8078,112 +8097,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo <<<= 3i64
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.LOAD_INT64_8), 3,
-					byte(bytecode.LOGIC_LBITSHIFT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(119, 7, 20)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 10),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(119, 7, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(119, 7, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.LOAD_INT64_8), 3,
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(44, 3, 29)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 3),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(51, 4, 6), P(77, 4, 32)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.LOAD_INT64_8), 3,
+						byte(bytecode.LOGIC_LBITSHIFT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(119, 7, 20)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 10),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(119, 7, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(119, 7, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.LOAD_INT64_8), 3,
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(44, 3, 29)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(51, 4, 6), P(77, 4, 32)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with right bitshift": {
 			input: `
@@ -8194,112 +8215,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo >>= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.RBITSHIFT_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(108, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(108, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.RBITSHIFT_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(108, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(108, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with logic right bitshift": {
 			input: `
@@ -8310,112 +8333,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo >>>= 3i64
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.LOAD_INT64_8), 3,
-					byte(bytecode.LOGIC_RBITSHIFT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(119, 7, 20)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 10),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(119, 7, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(119, 7, 20)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.LOAD_INT64_8), 3,
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(44, 3, 29)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 3),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(51, 4, 6), P(77, 4, 32)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.LOAD_INT64_8), 3,
+						byte(bytecode.LOGIC_RBITSHIFT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(119, 7, 20)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 10),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(119, 7, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(119, 7, 20)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.LOAD_INT64_8), 3,
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(44, 3, 29)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(51, 4, 6), P(77, 4, 32)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with bitwise and": {
 			input: `
@@ -8426,112 +8451,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo &= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.BITWISE_AND_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.BITWISE_AND_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with bitwise or": {
 			input: `
@@ -8542,112 +8569,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo |= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.BITWISE_OR_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.BITWISE_OR_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with bitwise xor": {
 			input: `
@@ -8658,112 +8687,114 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo ^= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.INT_3),
-					byte(bytecode.BITWISE_XOR_INT),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(107, 7, 15)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 9),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(107, 7, 15)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(39, 3, 24)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(46, 4, 6), P(70, 4, 30)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.INT_3),
+						byte(bytecode.BITWISE_XOR_INT),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(107, 7, 15)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 9),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(107, 7, 15)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(39, 3, 24)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(46, 4, 6), P(70, 4, 30)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with logic or": {
 			input: `
@@ -8774,113 +8805,115 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo ||= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.JUMP_IF_NP), 0, 2,
-					byte(bytecode.POP),
-					byte(bytecode.INT_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(110, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 12),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(40, 3, 25)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(47, 4, 6), P(72, 4, 31)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.JUMP_IF_NP), 0, 2,
+						byte(bytecode.POP),
+						byte(bytecode.INT_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(110, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 12),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(40, 3, 25)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(47, 4, 6), P(72, 4, 31)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with logic and": {
 			input: `
@@ -8891,113 +8924,115 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo &&= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-					byte(bytecode.POP),
-					byte(bytecode.INT_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(110, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 12),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(40, 3, 25)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(47, 4, 6), P(72, 4, 31)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+						byte(bytecode.POP),
+						byte(bytecode.INT_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(110, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 12),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(40, 3, 25)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(47, 4, 6), P(72, 4, 31)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 		"call a setter with nil coalesce": {
 			input: `
@@ -9008,113 +9043,115 @@ func TestBytecodeCallSetter(t *testing.T) {
 				a := Bar
 				a.foo ??= 3
 			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE_1),
-					byte(bytecode.EXEC),
-					byte(bytecode.POP),
-					byte(bytecode.GET_CONST8), 2,
-					byte(bytecode.SET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.GET_LOCAL_1),
-					byte(bytecode.CALL_METHOD8), 3,
-					byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
-					byte(bytecode.POP),
-					byte(bytecode.INT_3),
-					byte(bytecode.CALL_METHOD8), 4,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(110, 7, 16)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-					bytecode.NewLineInfo(6, 3),
-					bytecode.NewLineInfo(7, 12),
-				},
-				[]value.Value{
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						namespaceDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.DEF_NAMESPACE), 0,
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 5),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Root").ToValue(),
-							value.ToSymbol("Bar").ToValue(),
-						},
-					)),
-					value.Ref(vm.NewBytecodeFunctionNoParams(
-						methodDefinitionsSymbol,
-						[]byte{
-							byte(bytecode.GET_CONST8), 0,
-							byte(bytecode.GET_SINGLETON),
-							byte(bytecode.LOAD_VALUE_1),
-							byte(bytecode.LOAD_VALUE_2),
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.LOAD_VALUE_3),
-							byte(bytecode.LOAD_VALUE8), 4,
-							byte(bytecode.DEF_METHOD),
-							byte(bytecode.POP),
-							byte(bytecode.NIL),
-							byte(bytecode.RETURN),
-						},
-						L(P(0, 1, 1), P(110, 7, 16)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 11),
-							bytecode.NewLineInfo(7, 2),
-						},
-						[]value.Value{
-							value.ToSymbol("Bar").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo"),
-								[]byte{
-									byte(bytecode.INT_3),
-									byte(bytecode.RETURN),
-								},
-								L(P(21, 3, 6), P(40, 3, 25)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 2),
-								},
-								0,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo").ToValue(),
-							value.Ref(vm.NewBytecodeFunction(
-								value.ToSymbol("Bar::foo="),
-								[]byte{
-									byte(bytecode.NIL),
-									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
-								},
-								L(P(47, 4, 6), P(72, 4, 31)),
-								bytecode.LineInfoList{
-									bytecode.NewLineInfo(4, 3),
-								},
-								1,
-								0,
-								nil,
-							)),
-							value.ToSymbol("foo=").ToValue(),
-						},
-					)),
-					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo="), 1)),
-				},
-			),
+			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
+				var foo *vm.BytecodeFunction
+				var fooSet *vm.BytecodeFunction
+				return vm.NewBytecodeFunctionNoParams(
+					mainSymbol,
+					[]byte{
+						byte(bytecode.PREP_LOCALS8), 1,
+						byte(bytecode.LOAD_VALUE_0),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.LOAD_VALUE_1),
+						byte(bytecode.EXEC),
+						byte(bytecode.POP),
+						byte(bytecode.GET_CONST8), 2,
+						byte(bytecode.SET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.GET_LOCAL_1),
+						byte(bytecode.CALL_METHOD_BC8), 3,
+						byte(bytecode.JUMP_UNLESS_NNP), 0, 2,
+						byte(bytecode.POP),
+						byte(bytecode.INT_3),
+						byte(bytecode.CALL_METHOD_BC8), 4,
+						byte(bytecode.RETURN),
+					},
+					L(P(0, 1, 1), P(110, 7, 16)),
+					bytecode.LineInfoList{
+						bytecode.NewLineInfo(1, 8),
+						bytecode.NewLineInfo(6, 3),
+						bytecode.NewLineInfo(7, 12),
+					},
+					[]value.Value{
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							namespaceDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.DEF_NAMESPACE), 0,
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 5),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Root").ToValue(),
+								value.ToSymbol("Bar").ToValue(),
+							},
+						)),
+						value.Ref(vm.NewBytecodeFunctionNoParams(
+							methodDefinitionsSymbol,
+							[]byte{
+								byte(bytecode.GET_CONST8), 0,
+								byte(bytecode.GET_SINGLETON),
+								byte(bytecode.LOAD_VALUE_1),
+								byte(bytecode.LOAD_VALUE_2),
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.LOAD_VALUE_3),
+								byte(bytecode.LOAD_VALUE8), 4,
+								byte(bytecode.DEF_METHOD),
+								byte(bytecode.POP),
+								byte(bytecode.NIL),
+								byte(bytecode.RETURN),
+							},
+							L(P(0, 1, 1), P(110, 7, 16)),
+							bytecode.LineInfoList{
+								bytecode.NewLineInfo(1, 11),
+								bytecode.NewLineInfo(7, 2),
+							},
+							[]value.Value{
+								value.ToSymbol("Bar").ToValue(),
+								value.Ref(set(&foo, vm.NewBytecodeFunctionNoParams(
+									value.ToSymbol("Bar::foo"),
+									[]byte{
+										byte(bytecode.INT_3),
+										byte(bytecode.RETURN),
+									},
+									L(P(21, 3, 6), P(40, 3, 25)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 2),
+									},
+									nil,
+								))),
+								value.ToSymbol("foo").ToValue(),
+								value.Ref(set(&fooSet, vm.NewBytecodeFunction(
+									value.ToSymbol("Bar::foo="),
+									[]byte{
+										byte(bytecode.NIL),
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_FIRST_ARG),
+									},
+									L(P(47, 4, 6), P(72, 4, 31)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 3),
+									},
+									1,
+									0,
+									nil,
+								))),
+								value.ToSymbol("foo=").ToValue(),
+							},
+						)),
+						value.ToSymbol("Bar").ToValue(),
+						value.Ref(vm.NewBytecodeCallSiteInfo(foo, 0, false)),
+						value.Ref(vm.NewBytecodeCallSiteInfo(fooSet, 1, false)),
+					},
+				)
+			},
 		},
 	}
 
