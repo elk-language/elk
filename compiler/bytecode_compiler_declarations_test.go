@@ -2031,7 +2031,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 								},
 							)),
 							value.ToSymbol("foo=").ToValue(),
@@ -2102,7 +2102,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								1,
 								0,
 								[]value.Value{
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 									value.Ref(value.String("siema")),
 								},
 							)),
@@ -2282,8 +2282,8 @@ func TestBytecodeDefMethod(t *testing.T) {
 								3,
 								2,
 								[]value.Value{
-									value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("seconds")).(*vm.NativeMethod), 0)),
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("timeout")).(*vm.NativeMethod), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),

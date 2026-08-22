@@ -207,7 +207,7 @@ func TestBytecodeSubscript(t *testing.T) {
 									1,
 									0,
 									[]value.Value{
-										value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("to_float")).(*vm.NativeMethod), 0)),
+										value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "to_float"), 0)),
 									},
 								))),
 								value.ToSymbol("[]@1").ToValue(),

@@ -84,11 +84,11 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectRecv}, {Direction: reflect.SelectRecv}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("inspect")).(*vm.NativeMethod), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("inspect")).(*vm.NativeMethod), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -138,7 +138,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectSend}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("sent")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -224,13 +224,13 @@ func TestBytecodeSelectExpression(t *testing.T) {
 					value.Ref(vm.NewSelect([]vm.SelectCase{{Direction: reflect.SelectRecv}, {Direction: reflect.SelectRecv}, {Direction: reflect.SelectDefault}})),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("ch1: ")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("inspect")).(*vm.NativeMethod), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("ch2: ")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("inspect")).(*vm.NativeMethod), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("no match")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -275,7 +275,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 					)),
 				},
@@ -330,8 +330,8 @@ func TestBytecodeGoExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("foo")),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 						1,
 					)),
@@ -388,7 +388,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -439,7 +439,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -482,7 +482,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -537,10 +537,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(value.NewClosedRange((value.SmallInt(5)).ToValue(), (value.SmallInt(20)).ToValue())),
-					value.Ref(vm.NewNativeCallSiteInfo((value.ClosedRangeClass).LookupMethod(value.ToSymbol("end")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ClosedRangeClass, "end"), 0)),
 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("start"), 0)),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -579,7 +579,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -654,10 +654,10 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo((value.ArrayListClass).LookupMethod(value.ToSymbol("length")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -706,7 +706,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -755,7 +755,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
 				},
 			),
@@ -805,7 +805,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -851,7 +851,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -897,7 +897,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -962,7 +962,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1027,7 +1027,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1091,7 +1091,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1155,7 +1155,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 					value.Ref(&value.NativeArrayList[value.String]{value.String("a"), value.String("b"), value.String("c"), value.String("d")}),
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println"), 1)),
 				},
 			),
 		},
@@ -1218,8 +1218,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("seconds")).(*vm.NativeMethod), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("timeout")).(*vm.NativeMethod), 2)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 				},
 			),
 		},
@@ -1288,8 +1288,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("seconds")).(*vm.NativeMethod), 0)),
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("timeout")).(*vm.NativeMethod), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1362,8 +1362,8 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 								1,
 								1,
 								[]value.Value{
-									value.Ref(vm.NewNativeCallSiteInfo((value.IntClass).LookupMethod(value.ToSymbol("seconds")).(*vm.NativeMethod), 0)),
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("timeout")).(*vm.NativeMethod), 2)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
 								},
 							)),
 							value.ToSymbol("foo").ToValue(),
@@ -1411,7 +1411,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue()}),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -1477,10 +1477,10 @@ func TestBytecodeModifierForIn(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo((value.ArrayListClass).LookupMethod(value.ToSymbol("length")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 		},
@@ -2192,7 +2192,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -2239,7 +2239,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -3874,7 +3874,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -3904,7 +3904,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4412,7 +4412,7 @@ func TestBytecodeWhile(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4946,7 +4946,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -4976,7 +4976,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -5482,7 +5482,7 @@ func TestBytecodeUntil(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 			),
 			err: diagnostic.DiagnosticList{
@@ -5817,10 +5817,10 @@ func TestBytecodeCatch(t *testing.T) {
 				[]value.Value{
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("foo")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(value.String("bar")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(0, 5, 14, false),
@@ -5942,7 +5942,7 @@ func TestBytecodeCatch(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(value.String("foo")),
-									value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 									value.ToSymbol("foo").ToValue(),
 								},
 							)),
@@ -5969,16 +5969,16 @@ func TestBytecodeCatch(t *testing.T) {
 						},
 						[]value.Value{
 							value.Ref(value.String("foo")),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 							value.ToSymbol("foo").ToValue(),
 						},
 					), 0, false)),
 					value.Ref(value.String("baz")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.ToSymbol("foo").ToValue(),
 					value.Ref(value.String("bar")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 				},
 				[]*vm.CatchEntry{
 					vm.NewCatchEntry(3, 7, 16, false),
@@ -6079,7 +6079,7 @@ func TestBytecodeDefer(t *testing.T) {
 					value.Ref(&value.NativeArrayList[*vm.BytecodeClosure]{}),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(value.String("1. open file")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<defer>"),
 						[]byte{
@@ -6095,11 +6095,11 @@ func TestBytecodeDefer(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("2. close file")),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 					)),
 					value.Ref(value.String("3. open TCP socket")),
-					value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("<defer>"),
 						[]byte{
@@ -6115,7 +6115,7 @@ func TestBytecodeDefer(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(value.String("4. close TCP socket")),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule.SingletonClass()).LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 					)),
 				},

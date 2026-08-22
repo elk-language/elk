@@ -3587,7 +3587,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}),
 					value.Ref(value.ListMixin),
-					value.Ref(vm.NewNativeCallSiteInfo((value.ArrayListClass).LookupMethod(value.ToSymbol("length")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
 				},
 			),
@@ -3892,7 +3892,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 					bytecode.NewLineInfo(7, 4),
 				},
 				[]value.Value{
-					value.Ref(vm.NewNativeCallSiteInfo((value.BoxClass).LookupMethod(value.ToSymbol("get")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.BoxClass, "get"), 0)),
 				},
 			),
 		},
@@ -3998,7 +3998,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 						1,
 					)),
@@ -4043,7 +4043,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 						1,
 					)),
@@ -4092,7 +4092,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						0,
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
-							value.Ref(vm.NewNativeCallSiteInfo((value.KernelModule).SingletonClass().LookupMethod(value.ToSymbol("println@1")).(*vm.NativeMethod), 1)),
+							value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 						},
 						1,
 					)),
@@ -4309,7 +4309,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayListOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}),
 					value.Ref(value.ListMixin),
-					value.Ref(vm.NewNativeCallSiteInfo((value.ArrayListClass).LookupMethod(value.ToSymbol("length")).(*vm.NativeMethod), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in value declaration")),
 				},
 			),
