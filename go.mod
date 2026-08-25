@@ -14,8 +14,10 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/k0kubun/pp/v3 v3.3.0
+	github.com/mattn/go-isatty v0.0.20
 	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/pflag v1.0.7
+	golang.org/x/tools v0.43.0
 )
 
 require (
@@ -28,7 +30,6 @@ require (
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mattn/go-tty v0.0.7 // indirect
@@ -42,5 +43,4 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
 )

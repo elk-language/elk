@@ -64,69 +64,87 @@ func (e *evaluator) evaluate(input string) {
 		e.vm = vm.New()
 	}
 
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
+	spinner := NewSpinner(os.Stdout, "compiling")
+	spinner.RunWithRestore(
+		func(cd SpinnerCaptureData) error {
+			fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
 
-	if dl != nil {
-		fmt.Println()
+			if dl != nil {
+				fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(str)
-		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
-		if isFailure {
-			return
-		}
-	}
+				str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(str)
+				isFailure := dl.IsFailure()
+				e.elkTypechecker.ClearErrors()
+				if isFailure {
+					return nil
+				}
+			}
 
-	executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
-	defer markExecutionFinished()
+			executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
+			defer markExecutionFinished()
 
-	vmCtx, abortExecution := context.WithCancel(e.ctx)
-	defer abortExecution()
+			vmCtx, abortExecution := context.WithCancel(e.ctx)
+			defer abortExecution()
 
-	cancelSignalCtx, cancelSignal := context.WithCancel(e.ctx)
-	defer cancelSignal()
+			cancelSignalCtx, cancelSignal := context.WithCancel(e.ctx)
+			defer cancelSignal()
 
-	go func() {
-		signalCtx, stop := signal.NotifyContext(
-			cancelSignalCtx,
-			syscall.SIGINT,
-			syscall.SIGTERM,
-		)
-		defer stop()
+			go func() {
+				signalCtx, stop := signal.NotifyContext(
+					cancelSignalCtx,
+					syscall.SIGINT,
+					syscall.SIGTERM,
+				)
+				defer stop()
 
-		<-signalCtx.Done()
+				<-signalCtx.Done()
 
-		abortExecution()
+				abortExecution()
 
-		select {
-		case <-executionFinishedCtx.Done():
-		case <-time.After(5 * time.Second):
-			fmt.Fprintf(e.vm.Stderr, "\ntimed out waiting for execution to finish\n")
-			os.Exit(1)
-		}
-	}()
+				select {
+				case <-executionFinishedCtx.Done():
+				case <-time.After(5 * time.Second):
+					fmt.Fprintf(e.vm.Stderr, "\ntimed out waiting for execution to finish\n")
+					os.Exit(1)
+				}
+			}()
 
-	startTime := time.Now()
-	e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
-	value, runtimeErr := e.vm.InterpretREPL(fn)
-	duration := time.Since(startTime)
-	cancelSignal()
-	markExecutionFinished()
-	if !runtimeErr.IsUndefined() {
-		e.vm.PrintError()
-		e.vm.ResetError()
-		return
-	}
-	fmt.Printf("=> %s\n", lexer.Colorize(value.Inspect()))
-	fmt.Printf("?: %s\n\n", duration.String())
+			startTime := value.TimeNow()
+			e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
 
-	if e.inspectStack {
-		e.vm.InspectValueStack()
-	}
+			spinner.SetMessage("running")
+
+			e.vm.Stdout = cd.NewStdout
+			e.vm.Stderr = cd.NewStderr
+
+			returnVal, runtimeErr := e.vm.InterpretREPL(fn)
+			duration := value.TimeSince(startTime)
+			cancelSignal()
+			markExecutionFinished()
+			if !runtimeErr.IsUndefined() {
+				e.vm.PrintError()
+				e.vm.ResetError()
+				return nil
+			}
+			fmt.Printf("=> %s\n", lexer.Colorize(returnVal.Inspect()))
+			fmt.Printf("?: %s\n\n", duration.String())
+
+			if e.inspectStack {
+				e.vm.InspectValueStack()
+			}
+			return nil
+		},
+		func(cd SpinnerCaptureData) {
+			e.vm.Stdout = cd.OriginalStdout
+			e.vm.Stderr = cd.OriginalStderr
+			cd.Restore()
+		},
+	)
+
 }
 
 // parses the input and prints it to the output
@@ -230,7 +248,7 @@ func (e *evaluator) native(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	err := elk.CompileRunSource(sourceName, input)
+	err := compileRunNative(sourceName, input)
 	if err != nil {
 		var dl diagnostic.DiagnosticList
 		if errors.As(err, &dl) {
@@ -247,6 +265,21 @@ func (e *evaluator) native(input string) {
 		}
 		return
 	}
+}
+
+// Compile the input to a native binary and execute it.
+// A spinner stays on the last line until both phases finish.
+func compileRunNative(sourceName, input string) error {
+	spinner := NewSpinner(os.Stdout, "compiling")
+	return spinner.Run(func(SpinnerCaptureData) error {
+		binPath, err := elk.CompileSource(sourceName, input)
+		if err != nil {
+			return err
+		}
+
+		spinner.SetMessage("running")
+		return elk.RunBinary(binPath)
+	})
 }
 
 // parses, typechecks the input and prints it to the output

@@ -128,7 +128,12 @@ func CompileRunSource(sourceName, source string) (err error) {
 		return err
 	}
 
-	return sh(path)
+	return RunBinary(path)
+}
+
+// Run the given executable, connecting it to the standard streams.
+func RunBinary(binPath string) error {
+	return sh(binPath)
 }
 
 func CompileSource(sourceName, source string) (binPath string, err error) {
