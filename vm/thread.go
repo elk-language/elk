@@ -4040,9 +4040,9 @@ func (vm *Thread) CaptureStackTrace() *value.StackTrace {
 
 func (vm *Thread) populateMissingParametersInSlice(args []value.Value, paramCount, argumentCount int) []value.Value {
 	// populate missing optional arguments with undefined
-	missingParams := uintptr(paramCount - argumentCount)
+	missingParams := paramCount - argumentCount
 	if missingParams > 0 {
-		newArgs := make([]value.Value, paramCount)
+		newArgs := make([]value.Value, paramCount+1)
 		copy(newArgs, args)
 		return newArgs
 	}

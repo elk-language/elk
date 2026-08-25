@@ -2194,6 +2194,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileMustExpressionNode(node, valueIsIgnored)
 	case *ast.DoExpressionNode:
 		return c.compileDoExpressionNode(node, valueIsIgnored)
+	case *ast.ThrowExpressionNode:
+		return c.compileThrowExpressionNode(node)
 	case *ast.LabeledExpressionNode:
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.ModifierNode:
@@ -2875,6 +2877,16 @@ func (c *GoCompiler) compileInferredObjectPatternNode(node *ast.InferredObjectPa
 }
 
 func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.ComplexConstantNode, attributes []ast.PatternNode, loc *position.Location) *goValue {
+	if len(attributes) == 0 && objectTypeNode == nil {
+		return trueGoValue
+	}
+
+	if len(attributes) == 0 {
+		classVal := c.compileExpression(objectTypeNode, false)
+		isAResult := c.compileIsA(val, classVal, types.Bool{}, loc, false)
+		return isAResult
+	}
+
 	resultVar := c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
 	c.emitAssignGoLocal(resultVar, trueGoValue)
 
@@ -2918,7 +2930,6 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 	}
 
 	c.emitGoLabel(endLabel)
-
 	return newGoValueWithLocal(resultVar, types.Bool{})
 }
 
@@ -3842,6 +3853,21 @@ func (c *GoCompiler) popCatchScope() {
 	c.goCatchScopes = c.goCatchScopes[:len(c.goCatchScopes)-1]
 }
 
+func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *goValue {
+	var val *goValue
+	if node.Value != nil {
+		val = c.compileExpression(node.Value, false)
+	} else {
+		val = newGoValue(
+			"value.NewError(value.ErrorClass, \"error\")",
+			c.checker.Std(symbol.Error),
+			value.FetchGoType("*value.Object"),
+		)
+	}
+	c.emitThrow(val)
+	return nilGoValue
+}
+
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
 	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
 		// simple block without catch and finally
@@ -3863,10 +3889,14 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 	resultVar := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	resultVal := newGoValueWithLocal(resultVar, typ)
 
+	catchLabel := c.registerGoLabel()
+
+	c.registerCatchScope(catchLabel, false)
 	c.enterScope("", scopeType)
 	thenVal := c.compileStatements(node.Body, false)
 	c.emitAssignGoLocal(resultVar, thenVal)
 	c.leaveScope()
+	c.popCatchScope()
 
 	if len(node.Finally) > 0 {
 		c.enterScope("", defaultNativeElkScopeType)
@@ -3878,8 +3908,6 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 	endLabel := c.registerUsedGoLabel()
 	c.emitGoto(endLabel)
 
-	catchLabel := c.registerGoLabel()
-	c.registerCatchScope(catchLabel, false)
 	c.emitGoLabel(catchLabel)
 
 	c.enterScope("", defaultNativeElkScopeType)
@@ -3917,7 +3945,6 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 		c.emit("}\n")
 	}
 
-	c.popCatchScope()
 	c.emitRethrow(errVal)
 	c.emitGoLabel(postCatchLabel)
 
@@ -7866,7 +7893,7 @@ func (c *GoCompiler) wrapValueInTmpGoLocalIfNotIgnored(val *goValue, valueIsIgno
 
 func (c *GoCompiler) emitErrorPropagation() {
 	c.emit("if err.IsNotUndefined() {\n")
-	errVal := newGoValue("err", c.checker.Std(symbol.Error), goValueType)
+	errVal := newGoValue("err", types.Any{}, goValueType)
 	c.emitThrow(errVal)
 	c.emit("}\n")
 }
@@ -7876,7 +7903,26 @@ func (c *GoCompiler) emitThrow(val *goValue) {
 	c.emitRethrow(val)
 }
 
+func (c *GoCompiler) currentCatchScope() *goCatchScope {
+	if len(c.goCatchScopes) < 1 {
+		return nil
+	}
+
+	return c.goCatchScopes[len(c.goCatchScopes)-1]
+}
+
 func (c *GoCompiler) emitRethrow(val *goValue) {
+	catchScope := c.currentCatchScope()
+	if catchScope != nil {
+		if !val.isLocal() || val.locals[0].name != "err" {
+			c.emitAssignGoLocalByName("err", goValueType, val)
+			val = newGoValue("err", types.Any{}, goValueType)
+		}
+
+		c.emitGoto(catchScope.label)
+		return
+	}
+
 	switch c.mode {
 	case topLevelGoCompilerMode:
 		c.emit("thread.Panic(%s)\n", c.convertValueToWiderType(val).fetchValue())

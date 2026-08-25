@@ -103,18 +103,18 @@ func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagno
 		}
 		goWorkFile.Write(goWorkBuff.Bytes())
 	} else {
-		err = sh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
+		err = silentSh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
 		if err != nil {
 			return "", err
 		}
 	}
 
-	err = sh("go", "-C", outPath, "mod", "tidy")
+	err = silentSh("go", "-C", outPath, "mod", "tidy")
 	if err != nil {
 		return "", err
 	}
 
-	err = sh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
+	err = silentSh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
 	if err != nil {
 		return "", err
 	}
@@ -169,13 +169,35 @@ func sh(name string, args ...string) error {
 		return nil
 	}
 
-	var buff strings.Builder
-	buff.WriteString(name)
+	var cmdBuff strings.Builder
+	cmdBuff.WriteString(name)
 	for _, arg := range args {
-		buff.WriteByte(' ')
-		buff.WriteString(arg)
+		cmdBuff.WriteByte(' ')
+		cmdBuff.WriteString(arg)
 	}
-	return fmt.Errorf("error executing command: `%s`, %w", buff.String(), err)
+	return fmt.Errorf("error executing command: `%s`, %w", cmdBuff.String(), err)
+}
+
+func silentSh(name string, args ...string) error {
+	var cmdStdout strings.Builder
+	var cmdStderr strings.Builder
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = &cmdStdout
+	cmd.Stderr = &cmdStderr
+	err := cmd.Run()
+	if err == nil {
+		return nil
+	}
+
+	fmt.Println(cmdStdout)
+	fmt.Println(cmdStderr)
+	var cmdBuff strings.Builder
+	cmdBuff.WriteString(name)
+	for _, arg := range args {
+		cmdBuff.WriteByte(' ')
+		cmdBuff.WriteString(arg)
+	}
+	return fmt.Errorf("error executing command: `%s`, %w", cmdBuff.String(), err)
 }
 
 // Interpret the given file.
