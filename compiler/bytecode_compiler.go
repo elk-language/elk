@@ -46,7 +46,7 @@ func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpoint
 	return compiler
 }
 
-func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
+func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler {
 	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
 	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.predefinedLocals = c.maxLocalIndex + 1

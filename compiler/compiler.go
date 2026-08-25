@@ -25,7 +25,7 @@ type Compiler interface {
 	InitMainCompiler()
 	InitGlobalEnv() Compiler
 	FinishGlobalEnvCompiler()
-	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler
+	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler
 	CompileClassInheritance(*types.Class, *position.Location)
 	CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location)
 	CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location)

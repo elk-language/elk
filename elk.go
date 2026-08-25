@@ -133,7 +133,14 @@ func CompileRunSource(sourceName, source string) (err error) {
 
 func CompileSource(sourceName, source string) (binPath string, err error) {
 	var buffer bytes.Buffer
-	goCompiler, diagnostics := checker.CheckSourceNative(sourceName, source, nil, bitfield.BitField16{}, &buffer, nil)
+	goCompiler, diagnostics := checker.CheckSourceNative(
+		sourceName,
+		source,
+		nil,
+		bitfield.BitField16FromBitFlag(checker.MeasureTimeFlag),
+		&buffer,
+		nil,
+	)
 	return compileResult(
 		&buffer,
 		goCompiler,
@@ -189,8 +196,8 @@ func silentSh(name string, args ...string) error {
 		return nil
 	}
 
-	fmt.Println(cmdStdout)
-	fmt.Println(cmdStderr)
+	fmt.Println(cmdStdout.String())
+	fmt.Println(cmdStderr.String())
 	var cmdBuff strings.Builder
 	cmdBuff.WriteString(name)
 	for _, arg := range args {

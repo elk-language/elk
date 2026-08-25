@@ -428,9 +428,10 @@ func newGoCatchScope(label *goLabel, isFinally bool) *goCatchScope {
 	}
 }
 
-func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer) *GoCompiler {
+func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool) *GoCompiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
+	compiler.measureTime = measureTime
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -438,9 +439,10 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 	return compiler
 }
 
-func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks bool) Compiler {
+func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
+	compiler.measureTime = measureTime
 	compiler.Errors = errors
 	return compiler
 }
@@ -673,6 +675,7 @@ type GoCompiler struct {
 	callCacheCounter      int
 	currentLineNumber     int
 	closureLevel          int // nesting level of the closure
+	measureTime           bool
 	isGenerator           bool
 	isAsync               bool
 	unhygienic            bool
@@ -1931,6 +1934,10 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
+
+		c.registerGoImport("fmt", "")
+		fmt.Fprintf(&funcBuffer, "\nstartTime := value.TimeNow()\n")
+		fmt.Fprintf(&funcBuffer, "defer func() { fmt.Printf(\"?: %%s\\n\", value.TimeSince(startTime).String()) }()\n\n")
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}

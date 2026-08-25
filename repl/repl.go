@@ -110,8 +110,10 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}()
 
+	startTime := time.Now()
 	e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
 	value, runtimeErr := e.vm.InterpretREPL(fn)
+	duration := time.Since(startTime)
 	cancelSignal()
 	markExecutionFinished()
 	if !runtimeErr.IsUndefined() {
@@ -119,7 +121,8 @@ func (e *evaluator) evaluate(input string) {
 		e.vm.ResetError()
 		return
 	}
-	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
+	fmt.Printf("=> %s\n", lexer.Colorize(value.Inspect()))
+	fmt.Printf("?: %s\n\n", duration.String())
 
 	if e.inspectStack {
 		e.vm.InspectValueStack()

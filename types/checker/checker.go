@@ -132,8 +132,9 @@ const (
 const (
 	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	GoCompilerFlag
-	AdditionalAbortChecks   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
-	BuiltinImportsProcessed // indicates that builtin imports do not need to be processed
+	AdditionalAbortChecksFlag   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
+	BuiltinImportsProcessedFlag // indicates that builtin imports do not need to be processed
+	MeasureTimeFlag
 	inferClosureReturnTypeFlag
 	inferClosureThrowTypeFlag
 	generatorFlag
@@ -284,14 +285,14 @@ func (c *Checker) setHasDefer(val bool) {
 }
 
 func (c *Checker) AreBuiltinImportsProcessed() bool {
-	return c.flags.HasFlag(BuiltinImportsProcessed)
+	return c.flags.HasFlag(BuiltinImportsProcessedFlag)
 }
 
 func (c *Checker) SetBuiltinImportsProcessed(val bool) {
 	if val {
-		c.flags.SetFlag(BuiltinImportsProcessed)
+		c.flags.SetFlag(BuiltinImportsProcessedFlag)
 	} else {
-		c.flags.UnsetFlag(BuiltinImportsProcessed)
+		c.flags.UnsetFlag(BuiltinImportsProcessedFlag)
 	}
 }
 
@@ -308,14 +309,26 @@ func (c *Checker) setReadonly(val bool) {
 }
 
 func (c *Checker) HasAdditionalAbortChecks() bool {
-	return c.flags.HasFlag(AdditionalAbortChecks)
+	return c.flags.HasFlag(AdditionalAbortChecksFlag)
 }
 
 func (c *Checker) SetAdditionalAbortChecks(val bool) {
 	if val {
-		c.flags.SetFlag(AdditionalAbortChecks)
+		c.flags.SetFlag(AdditionalAbortChecksFlag)
 	} else {
-		c.flags.UnsetFlag(AdditionalAbortChecks)
+		c.flags.UnsetFlag(AdditionalAbortChecksFlag)
+	}
+}
+
+func (c *Checker) HasMeasureTime() bool {
+	return c.flags.HasFlag(MeasureTimeFlag)
+}
+
+func (c *Checker) SetMeasureTime(val bool) {
+	if val {
+		c.flags.SetFlag(MeasureTimeFlag)
+	} else {
+		c.flags.UnsetFlag(MeasureTimeFlag)
 	}
 }
 
@@ -686,9 +699,9 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	parent := c.compiler
 	var mainCompiler compiler.Compiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks())
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks(), c.HasMeasureTime())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
-		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output)
+		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime())
 	} else {
 		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}

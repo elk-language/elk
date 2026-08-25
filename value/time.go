@@ -24,6 +24,11 @@ func TimeNow() Time {
 	return MakeTime(t.Hour(), t.Minute(), t.Second(), 0, 0, t.Nanosecond())
 }
 
+func TimeSince(t Time) TimeSpan {
+	now := TimeNow()
+	return now.Diff(t)
+}
+
 // Create a new Time value.
 func MakeTime(hour, min, sec, millisec, microsec, nsec int) Time {
 	duration := TimeSpan(hour)*Hour +
