@@ -1,6 +1,7 @@
 package value
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/big"
@@ -191,12 +192,24 @@ func MakeTimeSpan(hours, mins, secs, millisecs, microsecs, nsecs int) TimeSpan {
 	return TimeSpan(duration)
 }
 
-func DurationSince(t DateTime) TimeSpan {
+func TimeSpanSince(t DateTime) TimeSpan {
 	return TimeSpan(time.Since(t.native))
 }
 
-func DurationUntil(t DateTime) TimeSpan {
+func TimeSpanUntil(t DateTime) TimeSpan {
 	return TimeSpan(time.Until(t.native))
+}
+
+func TimeSpanSleep(span TimeSpan, ctx context.Context) (err Value) {
+	timer := time.NewTimer(span.Native())
+
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return Undefined
+	case <-ctx.Done():
+		return ExecutionAbortedError.ToValue()
+	}
 }
 
 func (t TimeSpan) ToTime() Time {

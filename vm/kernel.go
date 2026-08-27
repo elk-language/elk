@@ -122,8 +122,10 @@ func initKernel() {
 				duration = durationVal.AsInlineTimeSpan()
 			}
 
-			time.Sleep(duration.Native())
-
+			err := value.TimeSpanSleep(duration, vm.Aborter.Context())
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
