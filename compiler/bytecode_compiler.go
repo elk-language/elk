@@ -1849,9 +1849,9 @@ func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, fina
 
 	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
 
-	c.enterScope("", defaultBytecodeScopeType)
-
 	for _, catchNode := range catches {
+		c.enterScope("", defaultBytecodeScopeType)
+
 		location := catchNode.Location()
 
 		if catchNode.StackTraceVar != nil {
@@ -1885,6 +1885,8 @@ func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, fina
 		jump := c.emitJump(location.EndPos.Line, bytecode.JUMP)
 		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
 
+		c.leaveScope(location.EndPos.Line)
+
 		c.patchJump(jumpOverCatchBody, location)
 	}
 
@@ -1902,6 +1904,8 @@ func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, fina
 		c.patchJump(jump, location)
 	}
 	if finally != nil {
+		c.enterScope("", defaultBytecodeScopeType)
+
 		c.emit(location.EndPos.Line, bytecode.FALSE) // entry point for executing finally after catch
 		c.patchJump(jumpOverFalseOffset, location)
 
@@ -1944,9 +1948,9 @@ func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, fina
 		c.emit(location.EndPos.Line, bytecode.RETHROW)
 
 		c.patchJump(jumpToEndOffset, location)
-	}
 
-	c.leaveScope(location.EndPos.Line)
+		c.leaveScope(location.EndPos.Line)
+	}
 
 	c.patchJump(jumpOverCatchOffset, location)
 }

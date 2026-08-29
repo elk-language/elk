@@ -181,21 +181,21 @@ type nativeElkScopeType uint8
 const (
 	defaultNativeElkScopeType       nativeElkScopeType = iota
 	loopNativeElkScopeType                             // this scope is a loop
-	doFinallyNativeElkScopeType                        // this scope is inside do with a finally block
+	catchNativeElkScopeType                            // this scope is inside do catch or do finally
 	macroBoundaryNativeElkScopeType                    // this scope is a macro boundary, locals from the outer scopes should be ignored
 )
 
 // set of local variables
 type nativeElkScope struct {
 	localTable nativeElkLocalTable
-	label      string
 	typ        nativeElkScopeType
+	loopInfo   *nativeLoopInfo
+	catchInfo  *nativeCatchInfo
 }
 
-func newNativeElkScope(label string, typ nativeElkScopeType) *nativeElkScope {
+func newNativeElkScope(typ nativeElkScopeType) *nativeElkScope {
 	return &nativeElkScope{
 		localTable: nativeElkLocalTable{},
-		label:      label,
 		typ:        typ,
 	}
 }
@@ -214,23 +214,51 @@ func (s nativeElkScopes) first() *nativeElkScope {
 	return s[0]
 }
 
-type goLoopInfo struct {
+type nativeLoopInfo struct {
 	elkLabel                      string
-	goLabel                       string
+	goLabel                       *goLabel
 	resultVar                     *goLocal
-	loopDepth                     int
-	labelIsUsed                   bool
 	returnsValueFromLastIteration bool
 }
 
-func (l *goLoopInfo) createLabel() {
-	l.labelIsUsed = true
-
-	if l.goLabel != "" {
-		return
+func newNativeLoopInfo(elkLabel string, goLabel *goLabel, resultVar *goLocal, returnsValueFromLastIteration bool) *nativeLoopInfo {
+	return &nativeLoopInfo{
+		elkLabel:                      elkLabel,
+		goLabel:                       goLabel,
+		resultVar:                     resultVar,
+		returnsValueFromLastIteration: returnsValueFromLastIteration,
 	}
+}
 
-	l.goLabel = fmt.Sprintf("loop%d", l.loopDepth)
+func (l *nativeLoopInfo) markLabelUsed() {
+	l.goLabel.used = true
+}
+
+type nativeFinallyData struct {
+	body      []ast.StatementNode
+	scopes    nativeElkScopes
+	loopInfo  []*nativeLoopInfo
+	catchInfo []*nativeCatchInfo
+}
+
+func newNativeFinallyData(body []ast.StatementNode, scopes nativeElkScopes, loopInfo []*nativeLoopInfo, catchInfo []*nativeCatchInfo) *nativeFinallyData {
+	return &nativeFinallyData{
+		body:      body,
+		loopInfo:  loopInfo,
+		catchInfo: catchInfo,
+	}
+}
+
+type nativeCatchInfo struct {
+	goLabel     *goLabel
+	finallyData *nativeFinallyData
+}
+
+func newNativeCatchInfo(goLabel *goLabel, finallyData *nativeFinallyData) *nativeCatchInfo {
+	return &nativeCatchInfo{
+		goLabel:     goLabel,
+		finallyData: finallyData,
+	}
 }
 
 var goValueType = value.FetchGoType("value.Value")
@@ -413,18 +441,6 @@ func newGoImportEntry(path, name string) *goImportEntry {
 	return &goImportEntry{
 		path: path,
 		name: name,
-	}
-}
-
-type goCatchScope struct {
-	label     *goLabel
-	isFinally bool
-}
-
-func newGoCatchScope(label *goLabel, isFinally bool) *goCatchScope {
-	return &goCatchScope{
-		label:     label,
-		isFinally: isFinally,
 	}
 }
 
@@ -655,15 +671,15 @@ type GoCompiler struct {
 	scopes                nativeElkScopes
 	output                io.Writer
 	parent                *GoCompiler
-	buff                  bytes.Buffer // inner function code
-	packageBuff           bytes.Buffer // package level code
+	buff                  *bytes.Buffer // inner function code
+	packageBuff           *bytes.Buffer // package level code
 	checker               types.Checker
 	loc                   *position.Location
 	mode                  goMode
 	children              concurrent.Slice[*GoCompiler]
 	goLocals              ds.OrderedMap[string, *goLocal]
-	goCatchScopes         []*goCatchScope
-	loopInfo              []*goLoopInfo
+	loopInfo              []*nativeLoopInfo
+	catchInfo             []*nativeCatchInfo
 	nativeCallsToOptimise []*nativeCall
 	globalData            *nativeGlobalData
 	callFrameStartOffset  int // call frame definition start offset
@@ -686,8 +702,10 @@ func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Loc
 		elkName:           elkName,
 		goName:            goName,
 		mode:              mode,
+		packageBuff:       &bytes.Buffer{},
+		buff:              &bytes.Buffer{},
 		Errors:            diagnostic.NewSyncDiagnosticList(),
-		scopes:            nativeElkScopes{newNativeElkScope("", defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
+		scopes:            nativeElkScopes{newNativeElkScope(defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
 		goLocals:          ds.MakeOrderedMap[string, *goLocal](),
 		lastElkLocalIndex: -1,
 		globalData:        globalData,
@@ -778,13 +796,13 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 	p.children.Append(c)
 }
 
-func (c *GoCompiler) addLoopInfo(label string, resultVar *goLocal, returnsValFromLastIteration bool) *goLoopInfo {
-	info := &goLoopInfo{
-		elkLabel:                      label,
-		resultVar:                     resultVar,
-		returnsValueFromLastIteration: returnsValFromLastIteration,
-		loopDepth:                     c.loopCounter,
-	}
+func (c *GoCompiler) addLoopInfo(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeLoopInfo {
+	info := newNativeLoopInfo(
+		elkLabel,
+		newGoLabel(fmt.Sprintf("loop%d", c.loopCounter), false),
+		resultVar,
+		returnsValFromLastIteration,
+	)
 	c.loopInfo = append(
 		c.loopInfo,
 		info,
@@ -793,7 +811,7 @@ func (c *GoCompiler) addLoopInfo(label string, resultVar *goLocal, returnsValFro
 	return info
 }
 
-func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *goLoopInfo {
+func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *nativeLoopInfo {
 	if len(c.loopInfo) < 1 {
 		c.addFailure(
 			"cannot jump with `break` or `continue` outside of a loop",
@@ -820,8 +838,68 @@ func (c *GoCompiler) findLoopInfo(label string, location *position.Location) *go
 	return nil
 }
 
+func (c *GoCompiler) findLoopInfoAndGatherCatchInfo(label string, location *position.Location) (*nativeLoopInfo, []*nativeCatchInfo) {
+	if len(c.loopInfo) < 1 {
+		c.addFailure(
+			"cannot jump with `break` or `continue` outside of a loop",
+			location,
+		)
+		return nil, nil
+	}
+
+	var catchInfoSlice []*nativeCatchInfo
+	if label == "" {
+		// if there is no label, choose the closest enclosing loop
+		for _, scope := range slices.Backward(c.scopes) {
+			switch scope.typ {
+			case loopNativeElkScopeType:
+				return scope.loopInfo, catchInfoSlice
+			case catchNativeElkScopeType:
+				catchInfoSlice = append(catchInfoSlice, scope.catchInfo)
+			}
+		}
+
+		panic("no loop info")
+	}
+
+	for _, scope := range slices.Backward(c.scopes) {
+		switch scope.typ {
+		case loopNativeElkScopeType:
+			if scope.loopInfo.elkLabel == label {
+				return scope.loopInfo, catchInfoSlice
+			}
+		case catchNativeElkScopeType:
+			catchInfoSlice = append(catchInfoSlice, scope.catchInfo)
+		}
+	}
+
+	c.addFailure(
+		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
+		location,
+	)
+	return nil, nil
+}
+
 func (c *GoCompiler) popLoopInfo() {
 	c.loopInfo = c.loopInfo[:len(c.loopInfo)-1]
+}
+
+func (c *GoCompiler) addCatchInfo(goLabel *goLabel, finallyData *nativeFinallyData) *nativeCatchInfo {
+	info := newNativeCatchInfo(
+		goLabel,
+		finallyData,
+	)
+
+	c.catchInfo = append(
+		c.catchInfo,
+		info,
+	)
+
+	return info
+}
+
+func (c *GoCompiler) popCatchInfo() {
+	c.catchInfo = c.catchInfo[:len(c.catchInfo)-1]
 }
 
 func (c *GoCompiler) registerGoLocal(name string, goType *value.GoType) *goLocal {
@@ -993,7 +1071,7 @@ func (c *GoCompiler) optimiseNativeCalls() bool {
 	var newBuff bytes.Buffer
 	newBuff.Write(originalBytes[:c.callFrameStartOffset])
 	newBuff.Write(originalBytes[c.callFrameEndOffset:])
-	c.packageBuff = newBuff
+	c.packageBuff = &newBuff
 	return true
 }
 
@@ -1023,13 +1101,13 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 
 func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) *goValue {
 	endLabel := c.registerGoLabel()
-	c.enterScope("", defaultNativeElkScopeType)
+	c.enterDefaultScope()
 	typ := c.typeOf(node)
 	_, resultVar := c.defineTmpGoLocalIfNotIgnored(c.elkTypeToGoType(typ, false), valueIsIgnored)
 	_, val := c.wrapValueInTmpGoLocal(c.compileExpression(node.Value, false))
 
 	for _, caseNode := range node.Cases {
-		c.enterScope("", defaultNativeElkScopeType)
+		c.enterDefaultScope()
 
 		patternResult := c.compilePattern(caseNode.Pattern, val)
 
@@ -1619,7 +1697,7 @@ func (c *GoCompiler) compileSubtypeDefinition(parentNamespace types.Namespace, t
 // Prepend before the main block of source code in a func
 func (c *GoCompiler) emitPrepend(format string, a ...any) {
 	prevBuff := c.buff.Bytes()
-	c.buff = bytes.Buffer{}
+	c.buff = &bytes.Buffer{}
 	c.emit(format, a...)
 	c.emitBytes(prevBuff)
 }
@@ -1627,14 +1705,14 @@ func (c *GoCompiler) emitPrepend(format string, a ...any) {
 // Prepend before the main block of source code in a func
 func (c *GoCompiler) emitPrependBytes(byt []byte) {
 	prevBuff := c.buff.Bytes()
-	c.buff = bytes.Buffer{}
+	c.buff = &bytes.Buffer{}
 	c.emitBytes(byt)
 	c.emitBytes(prevBuff)
 }
 
 // Emit code inside of a func
 func (c *GoCompiler) emit(format string, a ...any) {
-	fmt.Fprintf(&c.buff, format, a...)
+	fmt.Fprintf(c.buff, format, a...)
 }
 
 // Emit code inside of a func
@@ -1647,7 +1725,7 @@ func (c *GoCompiler) emitBytes(byt []byte) {
 
 // Emit package level code
 func (c *GoCompiler) emitPackage(format string, a ...any) {
-	fmt.Fprintf(&c.packageBuff, format, a...)
+	fmt.Fprintf(c.packageBuff, format, a...)
 }
 
 // Emit package level code
@@ -1935,9 +2013,11 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
 
-		c.registerGoImport("fmt", "")
-		fmt.Fprintf(&funcBuffer, "\nstartTime := value.TimeNow()\n")
-		fmt.Fprintf(&funcBuffer, "defer func() { fmt.Printf(\"?: %%s\\n\", value.TimeSince(startTime).String()) }()\n\n")
+		if c.measureTime {
+			c.registerGoImport("fmt", "")
+			fmt.Fprintf(&funcBuffer, "\nstartTime := value.TimeNow()\n")
+			fmt.Fprintf(&funcBuffer, "defer func() { fmt.Printf(\"?: %%s\\n\", value.TimeSince(startTime).String()) }()\n\n")
+		}
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}
@@ -1985,7 +2065,7 @@ func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 }
 
 func (c *GoCompiler) compileLocals() {
-	c.compileLocalsTo(&c.buff)
+	c.compileLocalsTo(c.buff)
 }
 
 // Entry point to the compilation process
@@ -2984,11 +3064,19 @@ type goLabel struct {
 	used bool
 }
 
+func newGoLabel(name string, used bool) *goLabel {
+	return &goLabel{
+		name: name,
+		used: used,
+	}
+}
+
 func (c *GoCompiler) registerGoLabel() *goLabel {
 	c.goLabelCounter++
-	return &goLabel{
-		name: fmt.Sprintf("lbl%d", c.goLabelCounter),
-	}
+	return newGoLabel(
+		fmt.Sprintf("lbl%d", c.goLabelCounter),
+		false,
+	)
 }
 
 func (c *GoCompiler) registerUsedGoLabel() *goLabel {
@@ -3072,9 +3160,7 @@ func (c *GoCompiler) compileForIn(
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, resultVar, false)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, resultVar, false)
 
 	inVal := c.compileExpression(inExpression, false)
 	inExpressionType := c.typeOf(inExpression)
@@ -3083,7 +3169,7 @@ func (c *GoCompiler) compileForIn(
 	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType)
 	c.registerUnoptimisableErr()
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
 
 	patternResult := c.compilePattern(param, loopTmpVal)
@@ -3104,13 +3190,10 @@ func (c *GoCompiler) compileForIn(
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 	return result
 }
 
@@ -3598,38 +3681,47 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 		value = c.compileExpression(node.Value, false)
 	}
 
-	goLabelName := identifierToName(node.Label)
-	loopInfo := c.findLoopInfo(goLabelName, node.Location())
+	elkLabelName := identifierToName(node.Label)
+	loopInfo, catchInfoSlice := c.findLoopInfoAndGatherCatchInfo(elkLabelName, node.Location())
 	if loopInfo == nil {
 		return neverGoValue
 	}
 
-	loopInfo.createLabel()
-	goLabelName = loopInfo.goLabel
+	loopInfo.markLabelUsed()
 
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
 	}
 
-	c.emit("break %s\n", goLabelName)
+	for _, catchInfo := range catchInfoSlice {
+		c.compileFinallyFromCatchInfo(catchInfo)
+	}
+
+	c.emit("break %s\n", loopInfo.goLabel.name)
 	return neverGoValue
+}
 
-	// TODO: compile finally
-	// finallyCount := c.countFinallyInLoop(labelName)
-	// if finallyCount <= 0 {
-	// 	c.leaveScopeOnBreak(location.StartPos.Line, labelName)
+func (c *GoCompiler) compileFinallyFromCatchInfo(catchInfo *nativeCatchInfo) {
+	finally := catchInfo.finallyData
+	if finally == nil {
+		return
+	}
 
-	// 	breakJumpOffset := c.emitJump(location.StartPos.Line, bytecode.JUMP)
-	// 	c.addLoopJump(labelName, bytecodeBreakLoopJump, breakJumpOffset, location)
-	// 	return
-	// }
+	prevScopes := c.scopes
+	prevLoopInfo := c.loopInfo
+	prevCatchInfo := c.catchInfo
 
-	// jumpOffsetId := c.emitLoadValue(value.Undefined, location)
-	// c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	// c.addLoopJump(labelName, bytecodeBreakFinallyLoopJump, jumpOffsetId, location)
+	c.scopes = finally.scopes
+	c.loopInfo = finally.loopInfo
+	c.catchInfo = finally.catchInfo
 
-	// c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
-	// c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
+	c.enterDefaultScope()
+	c.compileStatements(finally.body, true)
+	c.leaveScope()
+
+	c.scopes = prevScopes
+	c.catchInfo = prevCatchInfo
+	c.loopInfo = prevLoopInfo
 }
 
 func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) *goValue {
@@ -3640,38 +3732,24 @@ func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionN
 		value = c.compileExpression(node.Value, false)
 	}
 
-	goLabelName := identifierToName(node.Label)
-	loopInfo := c.findLoopInfo(goLabelName, node.Location())
+	elkLabelName := identifierToName(node.Label)
+	loopInfo, catchInfoSlice := c.findLoopInfoAndGatherCatchInfo(elkLabelName, node.Location())
 	if loopInfo == nil {
 		return neverGoValue
 	}
 
-	loopInfo.createLabel()
-	goLabelName = loopInfo.goLabel
+	loopInfo.markLabelUsed()
 
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
 	}
 
-	c.emit("continue %s\n", goLabelName)
+	for _, catchInfo := range catchInfoSlice {
+		c.compileFinallyFromCatchInfo(catchInfo)
+	}
+
+	c.emit("continue %s\n", loopInfo.goLabel.name)
 	return neverGoValue
-
-	// TODO: compile finally
-	// finallyCount := c.countFinallyInLoop(labelName)
-	// if finallyCount <= 0 {
-	// 	c.leaveScopeOnContinue(location.StartPos.Line, labelName)
-
-	// 	continueJumpOffset := c.emitJump(location.StartPos.Line, bytecode.LOOP)
-	// 	c.addLoopJumpTo(loop, bytecodeContinueLoopJump, continueJumpOffset)
-	// 	return
-	// }
-
-	// jumpOffsetId := c.emitLoadValue(value.Undefined, location)
-	// c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
-	// c.addLoopJump(labelName, bytecodeContinueFinallyLoopJump, jumpOffsetId, location)
-
-	// c.emitValue(value.SmallInt(finallyCount).ToValue(), location)
-	// c.emit(location.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 func (c *GoCompiler) emitAssignGoLocalByName(name string, localType *value.GoType, val *goValue) {
@@ -3755,16 +3833,14 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, true)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, true)
 
 	// loop initialiser eg. `i := 0`
 	if init != nil {
 		init()
 	}
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
@@ -3792,13 +3868,10 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 
 	return result
 }
@@ -3823,41 +3896,31 @@ func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, false)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, false)
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	c.emit("for {\n")
 	c.compileStatements(body, true)
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 	return result
 }
 
-// Switch to a new buffer and return the previous one
-func (c *GoCompiler) switchBuffer(buff bytes.Buffer) bytes.Buffer {
+// Switch to the given buffer and return the previous one
+func (c *GoCompiler) switchBuffer(buff *bytes.Buffer) *bytes.Buffer {
 	prevBuff := c.buff
 	c.buff = buff
 	return prevBuff
 }
 
-func (c *GoCompiler) registerCatchScope(label *goLabel, isFinally bool) *goCatchScope {
-	catchScope := newGoCatchScope(label, isFinally)
-	c.goCatchScopes = append(c.goCatchScopes, catchScope)
-	return catchScope
-}
-
-func (c *GoCompiler) popCatchScope() {
-	c.goCatchScopes = c.goCatchScopes[:len(c.goCatchScopes)-1]
+// Switch to a new buffer and return the previous one
+func (c *GoCompiler) switchNewBuffer() *bytes.Buffer {
+	return c.switchBuffer(&bytes.Buffer{})
 }
 
 func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *goValue {
@@ -3878,135 +3941,106 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
 	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
 		// simple block without catch and finally
-		c.enterScope("", defaultNativeElkScopeType)
+		c.enterDefaultScope()
 		then := c.compileStatements(node.Body, valueIsIgnored)
 		c.leaveScope()
 
 		return then
 	}
 
-	var scopeType nativeElkScopeType
+	typ := c.typeOf(node)
+	var resultVar *goLocal
+	var resultVal *goValue
+
+	var finallyData *nativeFinallyData
 	if len(node.Finally) > 0 {
-		scopeType = doFinallyNativeElkScopeType
+		finallyData = newNativeFinallyData(
+			node.Finally,
+			slices.Clone(c.scopes),
+			slices.Clone(c.loopInfo),
+			slices.Clone(c.catchInfo),
+		)
+	}
+	catchLabel := c.registerGoLabel()
+	c.enterCatchScope(catchLabel, finallyData)
+
+	thenVal := c.compileStatements(node.Body, valueIsIgnored)
+	if valueIsIgnored {
+		resultVal = nilGoValue
+	} else if catchLabel.used {
+		resultVar = c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
+		resultVal = newGoValueWithLocal(resultVar, typ)
+		c.emitAssignGoLocal(resultVar, thenVal)
 	} else {
-		scopeType = defaultNativeElkScopeType
+		resultVal = thenVal
 	}
 
-	typ := c.typeOf(node)
-	resultVar := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
-	resultVal := newGoValueWithLocal(resultVar, typ)
-
-	catchLabel := c.registerGoLabel()
-
-	c.registerCatchScope(catchLabel, false)
-	c.enterScope("", scopeType)
-	thenVal := c.compileStatements(node.Body, false)
-	c.emitAssignGoLocal(resultVar, thenVal)
 	c.leaveScope()
-	c.popCatchScope()
 
 	if len(node.Finally) > 0 {
-		c.enterScope("", defaultNativeElkScopeType)
+		// finally post do statements
+		c.enterDefaultScope()
 		c.compileStatements(node.Finally, true)
 		c.leaveScope()
 	}
 
-	postCatchLabel := c.registerUsedGoLabel()
-	endLabel := c.registerUsedGoLabel()
-	c.emitGoto(endLabel)
+	if catchLabel.used {
+		endLabel := c.registerUsedGoLabel()
+		c.emitGoto(endLabel)
 
-	c.emitGoLabel(catchLabel)
+		c.emitGoLabel(catchLabel)
 
-	c.enterScope("", defaultNativeElkScopeType)
+		errVar := c.defineTmpGoLocal(goValueType)
+		errVal := newGoValueWithLocal(errVar, types.Any{})
+		c.emit("%s = err\n", errVar.name)
 
-	errVar := c.defineTmpGoLocal(goValueType)
-	errVal := newGoValueWithLocal(errVar, types.Any{})
-	c.emit("%s = err\n", errVar.name)
+		for _, catchNode := range node.Catches {
+			c.enterDefaultScope()
 
-	for _, catchNode := range node.Catches {
-		location := catchNode.Location()
+			location := catchNode.Location()
 
-		if catchNode.StackTraceVar != nil {
-			var stackTraceVarName string
-			switch s := catchNode.StackTraceVar.(type) {
-			case *ast.PublicIdentifierNode:
-				stackTraceVarName = s.Value
-			case *ast.PrivateIdentifierNode:
-				stackTraceVarName = s.Value
-			default:
-				panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+			if catchNode.StackTraceVar != nil {
+				var stackTraceVarName string
+				switch s := catchNode.StackTraceVar.(type) {
+				case *ast.PublicIdentifierNode:
+					stackTraceVarName = s.Value
+				case *ast.PrivateIdentifierNode:
+					stackTraceVarName = s.Value
+				default:
+					panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
+				}
+
+				stackTraceType := c.typeOf(catchNode.StackTraceVar)
+				stackTraceVar := c.defineLocal(stackTraceVarName, stackTraceType, c.elkTypeToGoType(stackTraceType, false), location)
+				if stackTraceVar != nil {
+					c.emit("%s = thread.ErrStackTrace()\n", stackTraceVar.name)
+				}
 			}
 
-			stackTraceType := c.typeOf(catchNode.StackTraceVar)
-			stackTraceVar := c.defineLocal(stackTraceVarName, stackTraceType, c.elkTypeToGoType(stackTraceType, false), location)
-			if stackTraceVar != nil {
-				c.emit("%s = thread.ErrStackTrace()\n", stackTraceVar.name)
+			patternResult := c.compilePattern(catchNode.Pattern, errVal)
+			c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
+			catchResult := c.compileStatements(catchNode.Body, valueIsIgnored)
+			if !valueIsIgnored {
+				c.emitAssignGoLocal(resultVar, catchResult)
 			}
+			c.emitGoto(endLabel)
+			c.emit("}\n")
+
+			c.leaveScope()
 		}
 
-		patternResult := c.compilePattern(catchNode.Pattern, errVal)
-		c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
-		catchResult := c.compileStatements(catchNode.Body, false)
-		c.emitAssignGoLocal(resultVar, catchResult)
-		c.emitGoto(postCatchLabel)
-		c.emit("}\n")
+		if len(node.Finally) > 0 {
+			// finally post catch
+			c.enterDefaultScope()
+			c.compileStatements(node.Finally, true)
+			c.leaveScope()
+		}
+
+		c.emitRethrow(errVal)
+
+		c.emitGoLabel(endLabel)
 	}
 
-	c.emitRethrow(errVal)
-	c.emitGoLabel(postCatchLabel)
-
-	finallyLabel := c.registerGoLabel()
-	c.registerCatchScope(finallyLabel, true)
-	c.emitGoLabel(finallyLabel)
-
-	if len(node.Finally) > 0 {
-		// c.emit(location.EndPos.Line, bytecode.FALSE)
-		// c.patchJump(jumpOverFalseOffset, location)
-
-		// jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-		// finallyEntryOffset := c.nextInstructionOffset()
-		// c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
-		// // entry point for return when executing finally
-		// c.emit(location.EndPos.Line, bytecode.NIL)
-
-		// jumpOverBreakOrContinueEntryOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-		// // entry point for break or continue when executing finally
-		// c.emit(location.EndPos.Line, bytecode.UNDEFINED)
-
-		// c.patchJump(jumpOverBreakOrContinueEntryOffset, location)
-		// c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, location)
-
-		// c.compileStatementsWithResult(node.Finally, location)
-
-		// c.emit(location.EndPos.Line, bytecode.SWAP)
-		// jumpOverFinallyBreakOrContinueOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_UNLESS_UNP)
-		// c.emit(location.EndPos.Line, bytecode.POP_2)
-		// c.emit(location.EndPos.Line, bytecode.JUMP_TO_FINALLY)
-		// c.patchJump(jumpOverFinallyBreakOrContinueOffset, location)
-
-		// jumpToRethrowOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NP)
-		// jumpToFinallyReturnOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP_IF_NIL_NP)
-		// // FALSE
-		// c.emit(location.EndPos.Line, bytecode.POP_2)          // pop the flag and return value of finally
-		// c.emit(location.EndPos.Line, bytecode.POP_2_SKIP_ONE) // pop the thrown value and the stack trace leaving the return value of catch
-		// jumpToEndOffset := c.emitJump(location.EndPos.Line, bytecode.JUMP)
-
-		// c.patchJump(jumpToFinallyReturnOffset, location)
-		// // return with finally
-		// c.emit(location.EndPos.Line, bytecode.POP_2) // pop the flag and return value of finally
-		// c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-
-		// c.patchJump(jumpToRethrowOffset, location)
-		// // pop the flag and the return value of finally
-		// c.emit(location.EndPos.Line, bytecode.POP_2)
-		// c.emit(location.EndPos.Line, bytecode.RETHROW)
-
-		// c.patchJump(jumpToEndOffset, location)
-	}
-	c.popCatchScope()
-	c.leaveScope()
-
-	c.emitGoLabel(endLabel)
 	return resultVal
 }
 
@@ -4083,11 +4117,9 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, true)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, true)
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
@@ -4110,13 +4142,10 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 
 	return result
 }
@@ -4153,11 +4182,9 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, true)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, true)
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
@@ -4180,13 +4207,10 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 
 	return result
 }
@@ -4219,11 +4243,9 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, true)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, true)
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
@@ -4241,13 +4263,10 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 
 	return result
 }
@@ -4280,11 +4299,9 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 		}
 	}
 
-	c.enterScope(label, loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(label, tmpVar, true)
-	c.loopCounter++
+	scope := c.enterLoopScope(label, tmpVar, true)
 
-	prevBuff := c.switchBuffer(bytes.Buffer{})
+	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
@@ -4302,13 +4319,10 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	if loopInfo.labelIsUsed {
-		c.emit("%s: ", loopInfo.goLabel)
-	}
+	c.emitGoLabel(scope.loopInfo.goLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
-	c.popLoopInfo()
 
 	return result
 }
@@ -7536,7 +7550,7 @@ func (c *GoCompiler) compileIfExpression(condType conditionType, condition ast.E
 func (c *GoCompiler) compileIfWithConditionExpression(condType conditionType, condition ast.ExpressionNode, then, els func() *goValue, typ types.Type, valueIsIgnored bool) *goValue {
 	if result := resolve(condition, c.checker); !result.IsUndefined() {
 		// if gets optimised away
-		c.enterScope("", defaultNativeElkScopeType)
+		c.enterDefaultScope()
 		defer c.leaveScope()
 
 		var checkFunc func(value.Value) bool
@@ -7587,7 +7601,7 @@ const (
 )
 
 func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func() *goValue, typ types.Type, valueIsIgnored bool) *goValue {
-	c.enterScope("", defaultNativeElkScopeType)
+	c.enterDefaultScope()
 	condVal := condition()
 
 	var ifResultVar *goLocal
@@ -7686,8 +7700,7 @@ func (c *GoCompiler) compileLocalVariableAccess(name string, elkType types.Type)
 func (c *GoCompiler) resolveLocal(name string) (*nativeElkLocal, bool) {
 	var localVal *nativeElkLocal
 	var found bool
-	for i := len(c.scopes) - 1; i >= 0; i-- {
-		varScope := c.scopes[i]
+	for _, varScope := range slices.Backward(c.scopes) {
 		local, ok := varScope.localTable[name]
 		if ok {
 			localVal = local
@@ -7910,23 +7923,23 @@ func (c *GoCompiler) emitThrow(val *goValue) {
 	c.emitRethrow(val)
 }
 
-func (c *GoCompiler) currentCatchScope() *goCatchScope {
-	if len(c.goCatchScopes) < 1 {
+func (c *GoCompiler) lastCatchInfo() *nativeCatchInfo {
+	if len(c.catchInfo) < 1 {
 		return nil
 	}
 
-	return c.goCatchScopes[len(c.goCatchScopes)-1]
+	return c.catchInfo[len(c.catchInfo)-1]
 }
 
 func (c *GoCompiler) emitRethrow(val *goValue) {
-	catchScope := c.currentCatchScope()
-	if catchScope != nil {
+	catchInfo := c.lastCatchInfo()
+	if catchInfo != nil {
 		if !val.isLocal() || val.locals[0].name != "err" {
 			c.emitAssignGoLocalByName("err", goValueType, val)
 			val = newGoValue("err", types.Any{}, goValueType)
 		}
 
-		c.emitGoto(catchScope.label)
+		c.emitGoto(catchInfo.goLabel)
 		return
 	}
 
@@ -17097,14 +17110,45 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 	)
 }
 
-func (c *GoCompiler) enterScope(label string, typ nativeElkScopeType) {
-	c.scopes = append(c.scopes, newNativeElkScope(label, typ))
+func (c *GoCompiler) enterScope(typ nativeElkScopeType) *nativeElkScope {
+	scope := newNativeElkScope(typ)
+	c.scopes = append(c.scopes, scope)
+	return scope
+}
+
+func (c *GoCompiler) enterDefaultScope() *nativeElkScope {
+	return c.enterScope(defaultNativeElkScopeType)
+}
+
+func (c *GoCompiler) enterLoopScope(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeElkScope {
+	scope := c.enterScope(loopNativeElkScopeType)
+	loopInfo := c.addLoopInfo(elkLabel, resultVar, returnsValFromLastIteration)
+	scope.loopInfo = loopInfo
+	c.loopCounter++
+	return scope
+}
+
+func (c *GoCompiler) enterCatchScope(goLabel *goLabel, finally *nativeFinallyData) *nativeElkScope {
+	scope := c.enterScope(catchNativeElkScopeType)
+	catchInfo := c.addCatchInfo(goLabel, finally)
+	scope.catchInfo = catchInfo
+	return scope
 }
 
 func (c *GoCompiler) leaveScope() {
 	currentDepth := len(c.scopes) - 1
+	scope := c.scopes[currentDepth]
+
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
+
+	if scope.catchInfo != nil {
+		c.popCatchInfo()
+	}
+
+	if scope.loopInfo != nil {
+		c.popLoopInfo()
+	}
 }
 
 func (c *GoCompiler) getLocal(name string) *nativeElkLocal {

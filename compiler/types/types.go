@@ -23,17 +23,19 @@ func NewGoPackageImporter() *GoPackageImporter {
 
 func NewGoPackageImporterFromSlice(pkgs []*packages.Package) *GoPackageImporter {
 	m := NewGoPackageImporter()
-
-	for _, pkg := range pkgs {
-		m.m[pkg.String()] = pkg
-	}
-
+	packages.Visit(pkgs, nil, func(pkg *packages.Package) {
+		if pkg.PkgPath == "" || pkg.Types == nil {
+			return
+		}
+		m.m[pkg.PkgPath] = pkg
+	})
 	return m
 }
 
 func NewGoPackageImporterForDir(dir string) (*GoPackageImporter, error) {
 	packagesCfg := &packages.Config{
 		Mode: packages.NeedTypes |
+			packages.NeedName |
 			packages.NeedTypesSizes |
 			packages.NeedImports |
 			packages.NeedDeps,

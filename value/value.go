@@ -3555,6 +3555,10 @@ func EqualVal(left, right Value) Value {
 	}
 }
 
+type NativeEquatable interface {
+	Equal(Value) bool
+}
+
 func Equal(left, right Value) bool {
 	class := left.Class()
 	if !IsA(right, class) {

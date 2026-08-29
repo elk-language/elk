@@ -293,41 +293,39 @@ type IntSize uint8
 // Add a value to the value pool.
 // Returns the index of the constant.
 func (f *BytecodeFunction) AddValue(obj value.Value) (int, IntSize) {
-	var id int
-	if obj.IsReference() {
-		objRef := obj.AsReference()
-		i := -1
-		for j, value := range f.Values {
-			if !value.IsReference() {
-				continue
-			}
+	id := -1
 
-			if value.AsReference() == objRef {
-				i = j
+	switch o := obj.ToInterface().(type) {
+	case value.Symbol, value.SmallInt,
+		value.Int64, value.Int32, value.Int16, value.Int8,
+		value.UInt64, value.UInt32, value.UInt16, value.UInt8, value.UInt,
+		value.Float, value.Float32, value.Float64,
+		value.ArrayList, value.ArrayTuple, HashMap, HashRecord, HashSet:
+		if i := slices.Index(f.Values, obj); i != -1 {
+			id = i
+			break
+		}
+		id = len(f.Values)
+		f.Values = append(f.Values, obj)
+	case value.NativeEquatable:
+		for j, val := range f.Values {
+			if o.Equal(val) {
 				id = j
 				break
 			}
 		}
-		if i == -1 {
-			id = len(f.Values)
-			f.Values = append(f.Values, obj)
-		}
-	} else {
-		switch obj.ValueFlag() {
-		case value.SYMBOL_FLAG, value.SMALL_INT_FLAG,
-			value.INT64_FLAG, value.INT32_FLAG, value.INT16_FLAG, value.INT8_FLAG,
-			value.UINT64_FLAG, value.UINT32_FLAG, value.UINT16_FLAG, value.UINT8_FLAG,
-			value.FLOAT_FLAG, value.FLOAT32_FLAG, value.FLOAT64_FLAG:
-			if i := slices.Index(f.Values, obj); i != -1 {
-				id = i
+	default:
+		for j, val := range f.Values {
+			if obj == val {
+				id = j
 				break
 			}
-			id = len(f.Values)
-			f.Values = append(f.Values, obj)
-		default:
-			id = len(f.Values)
-			f.Values = append(f.Values, obj)
 		}
+	}
+
+	if id == -1 {
+		id = len(f.Values)
+		f.Values = append(f.Values, obj)
 	}
 
 	if id <= math.MaxUint8 {

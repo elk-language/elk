@@ -8755,6 +8755,638 @@ func main() { // loc: <main>
 	}
 }
 
+func TestGoCatch(t *testing.T) {
+	tests := goTestTable{
+		"simple catch": {
+			input: `
+				result := do
+					throw :foo
+				catch String() as str
+					str
+				catch :foo
+					3
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+var cc_main_1 = &vm.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var result: Std::String | Std::Int
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var str: any
+	_ = l1
+	var t3 []value.Value
+	_ = t3
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	thread.CaptureStackTrace()
+	err = (sym2).ToValue()
+	goto lbl1
+	t1 = value.Nil
+	goto lbl2
+lbl1:
+	t2 = err
+	l1 = t2
+	if value.Bool(value.IsA(t2, value.StringClass)) {
+		t1 = l1
+		goto lbl2
+	}
+	t3 = value.ResizeNativeArgs(t3, 3)
+	t3[0] = t2
+	t3[1] = (sym2).ToValue()
+	callFrame.SetNativeLineNumber(6)
+	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.ToBool(t2) {
+		t1 = (value.SmallInt(3)).ToValue()
+		goto lbl2
+	}
+	thread.Panic(t2)
+lbl2:
+	l0 = t1
+}
+`,
+		},
+		// "catch with stack trace": {
+		// 	input: `
+		// 		do
+		// 			throw :foo
+		// 		catch String() as str, stack_trace
+		// 			str
+		// 		catch :foo
+		// 			3
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 2,
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.THROW),
+		// 			byte(bytecode.JUMP), 0, 33,
+		// 			byte(bytecode.DUP_SECOND),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.SET_LOCAL_2),
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.GET_CONST8), 1,
+		// 			byte(bytecode.IS_A),
+		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
+		// 			byte(bytecode.GET_LOCAL_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 12,
+		// 			byte(bytecode.DUP),
+		// 			byte(bytecode.LOAD_VALUE_0),
+		// 			byte(bytecode.EQUAL),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
+		// 			byte(bytecode.INT_3),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(101, 8, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(3, 2),
+		// 			bytecode.NewLineInfo(2, 3),
+		// 			bytecode.NewLineInfo(5, 1),
+		// 			bytecode.NewLineInfo(4, 15),
+		// 			bytecode.NewLineInfo(5, 5),
+		// 			bytecode.NewLineInfo(6, 6),
+		// 			bytecode.NewLineInfo(7, 5),
+		// 			bytecode.NewLineInfo(8, 2),
+		// 		},
+		// 		0,
+		// 		0,
+		// 		[]value.Value{
+		// 			value.ToSymbol("foo").ToValue(),
+		// 			value.ToSymbol("Std::String").ToValue(),
+		// 		},
+		// 		[]*vm.CatchEntry{
+		// 			vm.NewCatchEntry(2, 4, 7, false),
+		// 		},
+		// 	),
+		// },
+		// "finally": {
+		// 	input: `
+		// 		do
+		// 			println("foo")
+		// 		finally
+		// 			println("bar")
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.JUMP), 0, 39,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.FALSE),
+		// 			byte(bytecode.JUMP), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.SWAP),
+		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
+		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 4,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETURN_FINALLY),
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(67, 6, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 0),
+		// 			bytecode.NewLineInfo(3, 5),
+		// 			bytecode.NewLineInfo(5, 6),
+		// 			bytecode.NewLineInfo(2, 3),
+		// 			bytecode.NewLineInfo(6, 13),
+		// 			bytecode.NewLineInfo(5, 5),
+		// 			bytecode.NewLineInfo(6, 22),
+		// 		},
+		// 		0,
+		// 		0,
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.String("foo")),
+		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+		// 			value.Ref(value.String("bar")),
+		// 		},
+		// 		[]*vm.CatchEntry{
+		// 			vm.NewCatchEntry(0, 5, 14, false),
+		// 			vm.NewCatchEntry(0, 5, 22, true),
+		// 		},
+		// 	),
+		// },
+		// "finally between continue and loop": {
+		// 	input: `
+		// 		a := true
+		// 		while a
+		// 			do
+		// 				do
+		// 					println("foo")
+		// 					continue
+		// 				finally
+		// 					println("finally 1")
+		// 				end
+		// 			finally
+		// 				println("finally 2")
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 114,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 4,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.JUMP), 0, 40,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.FALSE),
+		// 			byte(bytecode.JUMP), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 4,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.SWAP),
+		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
+		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 4,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETURN_FINALLY),
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 5,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.JUMP), 0, 40,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.FALSE),
+		// 			byte(bytecode.JUMP), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 5,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.SWAP),
+		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
+		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 4,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETURN_FINALLY),
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.LOOP), 0, 118,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(190, 14, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 6),
+		// 			bytecode.NewLineInfo(6, 6),
+		// 			bytecode.NewLineInfo(7, 4),
+		// 			bytecode.NewLineInfo(9, 7),
+		// 			bytecode.NewLineInfo(5, 3),
+		// 			bytecode.NewLineInfo(10, 13),
+		// 			bytecode.NewLineInfo(9, 6),
+		// 			bytecode.NewLineInfo(10, 21),
+		// 			bytecode.NewLineInfo(12, 7),
+		// 			bytecode.NewLineInfo(4, 3),
+		// 			bytecode.NewLineInfo(13, 13),
+		// 			bytecode.NewLineInfo(12, 6),
+		// 			bytecode.NewLineInfo(13, 21),
+		// 			bytecode.NewLineInfo(14, 4),
+		// 		},
+		// 		0,
+		// 		0,
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.String("foo")),
+		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+		// 			value.SmallInt(5).ToValue(),
+		// 			value.Ref(value.String("finally 1")),
+		// 			value.Ref(value.String("finally 2")),
+		// 		},
+		// 		[]*vm.CatchEntry{
+		// 			vm.NewCatchEntry(10, 20, 30, false),
+		// 			vm.NewCatchEntry(10, 20, 38, true),
+		// 			vm.NewCatchEntry(10, 70, 80, false),
+		// 			vm.NewCatchEntry(10, 70, 88, true),
+		// 		},
+		// 	),
+		// },
+		// "finally between break and loop": {
+		// 	input: `
+		// 		a := true
+		// 		while a
+		// 			do
+		// 				do
+		// 					println("foo")
+		// 					break
+		// 				finally
+		// 					println("finally 1")
+		// 				end
+		// 			finally
+		// 				println("finally 2")
+		// 			end
+		// 		end
+		// 	`,
+		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
+		// 		mainSymbol,
+		// 		[]byte{
+		// 			byte(bytecode.PREP_LOCALS8), 1,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.SET_LOCAL_1),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.GET_LOCAL_1),
+		// 			byte(bytecode.JUMP_UNLESS), 0, 114,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE_1),
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.LOAD_VALUE_3),
+		// 			byte(bytecode.INT_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 4,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.JUMP), 0, 40,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.FALSE),
+		// 			byte(bytecode.JUMP), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 4,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.SWAP),
+		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
+		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 4,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETURN_FINALLY),
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 5,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.POP),
+		// 			byte(bytecode.JUMP), 0, 40,
+		// 			byte(bytecode.TRUE),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.FALSE),
+		// 			byte(bytecode.JUMP), 0, 5,
+		// 			byte(bytecode.NIL),
+		// 			byte(bytecode.JUMP), 0, 1,
+		// 			byte(bytecode.UNDEFINED),
+		// 			byte(bytecode.GET_CONST8), 0,
+		// 			byte(bytecode.LOAD_VALUE8), 5,
+		// 			byte(bytecode.CALL_METHOD_NT8), 2,
+		// 			byte(bytecode.SWAP),
+		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.JUMP_TO_FINALLY),
+		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
+		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.POP_2_SKIP_ONE),
+		// 			byte(bytecode.JUMP), 0, 4,
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETURN_FINALLY),
+		// 			byte(bytecode.POP_2),
+		// 			byte(bytecode.RETHROW),
+		// 			byte(bytecode.LOOP), 0, 118,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		L(P(0, 1, 1), P(187, 14, 8)),
+		// 		bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 			bytecode.NewLineInfo(2, 2),
+		// 			bytecode.NewLineInfo(3, 6),
+		// 			bytecode.NewLineInfo(6, 6),
+		// 			bytecode.NewLineInfo(7, 4),
+		// 			bytecode.NewLineInfo(9, 7),
+		// 			bytecode.NewLineInfo(5, 3),
+		// 			bytecode.NewLineInfo(10, 13),
+		// 			bytecode.NewLineInfo(9, 6),
+		// 			bytecode.NewLineInfo(10, 21),
+		// 			bytecode.NewLineInfo(12, 7),
+		// 			bytecode.NewLineInfo(4, 3),
+		// 			bytecode.NewLineInfo(13, 13),
+		// 			bytecode.NewLineInfo(12, 6),
+		// 			bytecode.NewLineInfo(13, 21),
+		// 			bytecode.NewLineInfo(14, 4),
+		// 		},
+		// 		0,
+		// 		0,
+		// 		[]value.Value{
+		// 			value.ToSymbol("Std::Kernel").ToValue(),
+		// 			value.Ref(value.String("foo")),
+		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+		// 			value.SmallInt(123).ToValue(),
+		// 			value.Ref(value.String("finally 1")),
+		// 			value.Ref(value.String("finally 2")),
+		// 		},
+		// 		[]*vm.CatchEntry{
+		// 			vm.NewCatchEntry(10, 20, 30, false),
+		// 			vm.NewCatchEntry(10, 20, 38, true),
+		// 			vm.NewCatchEntry(10, 70, 80, false),
+		// 			vm.NewCatchEntry(10, 70, 88, true),
+		// 		},
+		// 	),
+		// },
+
+		// TODO: Fix, execute finally after catch
+		"catch and finally": {
+			input: `
+				def foo! :foo
+					println "foo"
+					throw :foo
+				end
+
+				do
+					foo()
+				catch :foo
+					println "bar"
+				finally
+					println "baz"
+				end
+			`,
+			want: `package main
+
+import (
+	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+var sym4 = value.ToSymbol("main")
+var cc_main_1 = &vm.CallCache{}
+
+var sym0 = value.ToSymbol("Std::Kernel::foo")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+var sym3 = value.ToSymbol("foo")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = self
+	t1[1] = (value.String("foo")).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	thread.CaptureStackTrace()
+	return result, (sym3).ToValue()
+	return value.Nil, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var err value.Value
+	_ = err
+	var t1 []value.Value
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym4, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	_, err = fn_method0(thread, (value.KernelModule).ToValue()) // receiver: Std::Kernel, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		err = err
+		goto lbl1
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("baz")).ToValue()
+	callFrame.SetNativeLineNumber(12)
+	_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	goto lbl2
+lbl1:
+	t2 = err
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = t2
+	t1[1] = (sym3).ToValue()
+	callFrame.SetNativeLineNumber(9)
+	t3, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t1...) // receiver: any, name: ==
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.ToBool(t3) {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("bar")).ToValue()
+		callFrame.SetNativeLineNumber(10)
+		_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		goto lbl2
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("baz")).ToValue()
+	callFrame.SetNativeLineNumber(12)
+	_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	thread.Panic(t2)
+lbl2:
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
 // func TestBytecodeThrow(t *testing.T) {
 // 	tests := bytecodeTestTable{
 // 		"with a value": {
@@ -8780,350 +9412,6 @@ func main() { // loc: <main>
 // 			err: diagnostic.DiagnosticList{
 // 				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
 // 			},
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
-
-// func TestBytecodeCatch(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"simple catch": {
-// 			input: `
-// 				do
-// 					throw :foo
-// 				catch String() as str
-// 					str
-// 				catch :foo
-// 					3
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionWithCatchEntries(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 1,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.THROW),
-
-// 					byte(bytecode.JUMP), 0, 31,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.IS_A),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 12,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EQUAL),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.RETHROW),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(88, 8, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(3, 2),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(4, 14),
-// 					bytecode.NewLineInfo(5, 5),
-// 					bytecode.NewLineInfo(6, 6),
-// 					bytecode.NewLineInfo(7, 5),
-// 					bytecode.NewLineInfo(8, 2),
-// 				},
-// 				0,
-// 				0,
-// 				[]value.Value{
-// 					value.ToSymbol("foo").ToValue(),
-// 					value.ToSymbol("Std::String").ToValue(),
-// 				},
-// 				[]*vm.CatchEntry{
-// 					vm.NewCatchEntry(2, 4, 7, false),
-// 				},
-// 			),
-// 		},
-// 		"catch with stack trace": {
-// 			input: `
-// 				do
-// 					throw :foo
-// 				catch String() as str, stack_trace
-// 					str
-// 				catch :foo
-// 					3
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionWithCatchEntries(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.THROW),
-// 					byte(bytecode.JUMP), 0, 33,
-// 					byte(bytecode.DUP_SECOND),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.IS_A),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 12,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EQUAL),
-// 					byte(bytecode.JUMP_UNLESS), 0, 5,
-// 					byte(bytecode.INT_3),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.RETHROW),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(101, 8, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 2),
-// 					bytecode.NewLineInfo(3, 2),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(5, 1),
-// 					bytecode.NewLineInfo(4, 15),
-// 					bytecode.NewLineInfo(5, 5),
-// 					bytecode.NewLineInfo(6, 6),
-// 					bytecode.NewLineInfo(7, 5),
-// 					bytecode.NewLineInfo(8, 2),
-// 				},
-// 				0,
-// 				0,
-// 				[]value.Value{
-// 					value.ToSymbol("foo").ToValue(),
-// 					value.ToSymbol("Std::String").ToValue(),
-// 				},
-// 				[]*vm.CatchEntry{
-// 					vm.NewCatchEntry(2, 4, 7, false),
-// 				},
-// 			),
-// 		},
-// 		"finally": {
-// 			input: `
-// 				do
-// 					println("foo")
-// 				finally
-// 					println("bar")
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionWithCatchEntries(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.CALL_METHOD8), 4,
-// 					byte(bytecode.POP),
-
-// 					byte(bytecode.JUMP), 0, 39,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.FALSE),
-// 					byte(bytecode.JUMP), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.CALL_METHOD8), 5,
-// 					byte(bytecode.SWAP),
-// 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.JUMP_TO_FINALLY),
-// 					byte(bytecode.JUMP_IF_NP), 0, 10,
-// 					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 4,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.RETURN_FINALLY),
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.RETHROW),
-
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(67, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 0),
-// 					bytecode.NewLineInfo(3, 5),
-// 					bytecode.NewLineInfo(5, 6),
-// 					bytecode.NewLineInfo(2, 3),
-// 					bytecode.NewLineInfo(6, 13),
-// 					bytecode.NewLineInfo(5, 5),
-// 					bytecode.NewLineInfo(6, 22),
-// 				},
-// 				0,
-// 				0,
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(value.String("foo")),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.Ref(value.String("bar")),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 				},
-// 				[]*vm.CatchEntry{
-// 					vm.NewCatchEntry(0, 5, 14, false),
-// 					vm.NewCatchEntry(0, 5, 22, true),
-// 				},
-// 			),
-// 		},
-// 		"catch and finally": {
-// 			input: `
-// 				def foo! :foo
-// 					println "foo"
-// 					throw :foo
-// 				end
-
-// 				do
-// 					foo()
-// 				catch :foo
-// 					println "bar"
-// 				finally
-// 					println "baz"
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionWithCatchEntries(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.CALL_METHOD8), 4,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.JUMP), 0, 55,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.LOAD_VALUE8), 5,
-// 					byte(bytecode.EQUAL),
-// 					byte(bytecode.JUMP_UNLESS), 0, 9,
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE8), 6,
-// 					byte(bytecode.CALL_METHOD8), 7,
-// 					byte(bytecode.JUMP), 0, 4,
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.FALSE),
-// 					byte(bytecode.JUMP), 0, 5,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.JUMP), 0, 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.CALL_METHOD8), 8,
-// 					byte(bytecode.SWAP),
-// 					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.JUMP_TO_FINALLY),
-// 					byte(bytecode.JUMP_IF_NP), 0, 10,
-// 					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.POP_2_SKIP_ONE),
-// 					byte(bytecode.JUMP), 0, 4,
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.RETURN_FINALLY),
-// 					byte(bytecode.POP_2),
-// 					byte(bytecode.RETHROW),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(153, 13, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(8, 4),
-// 					bytecode.NewLineInfo(12, 6),
-// 					bytecode.NewLineInfo(7, 3),
-// 					bytecode.NewLineInfo(9, 7),
-// 					bytecode.NewLineInfo(10, 9),
-// 					bytecode.NewLineInfo(13, 13),
-// 					bytecode.NewLineInfo(12, 5),
-// 					bytecode.NewLineInfo(13, 22),
-// 				},
-// 				0,
-// 				0,
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(153, 13, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(13, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-// 								value.ToSymbol("foo"),
-// 								[]byte{
-// 									byte(bytecode.LOAD_VALUE_0),
-// 									byte(bytecode.CALL_SELF8), 1,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.LOAD_VALUE_2),
-// 									byte(bytecode.THROW),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(60, 5, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(3, 4),
-// 									bytecode.NewLineInfo(4, 2),
-// 									bytecode.NewLineInfo(5, 1),
-// 								},
-// 								[]value.Value{
-// 									value.Ref(value.String("foo")),
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 									value.ToSymbol("foo").ToValue(),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("foo"), 0)),
-// 					value.Ref(value.String("baz")),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.ToSymbol("foo").ToValue(),
-// 					value.Ref(value.String("bar")),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("println@1"), 1)),
-// 				},
-// 				[]*vm.CatchEntry{
-// 					vm.NewCatchEntry(3, 7, 16, false),
-// 					vm.NewCatchEntry(3, 7, 40, true),
-// 				},
-// 			),
 // 		},
 // 	}
 

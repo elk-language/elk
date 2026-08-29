@@ -112,6 +112,17 @@ func NewBytecodeCallSiteInfo(method *BytecodeFunction, argCount int, tailCall bo
 	}
 }
 
+func (ci *BytecodeCallSiteInfo) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BytecodeCallSiteInfo)
+	if !ok {
+		return false
+	}
+
+	return ci.Method == o.Method &&
+		ci.ArgumentCount == o.ArgumentCount &&
+		ci.TailCall == o.TailCall
+}
+
 func (*BytecodeCallSiteInfo) Class() *value.Class {
 	return nil
 }
@@ -165,6 +176,16 @@ func NewNativeCallSiteInfo(method *NativeMethod, argCount int) *NativeCallSiteIn
 		Method:        method,
 		ArgumentCount: argCount,
 	}
+}
+
+func (ci *NativeCallSiteInfo) Equal(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NativeCallSiteInfo)
+	if !ok {
+		return false
+	}
+
+	return ci.Method == o.Method &&
+		ci.ArgumentCount == o.ArgumentCount
 }
 
 func (*NativeCallSiteInfo) Class() *value.Class {
