@@ -26,16 +26,17 @@ func main() {
 	switch command {
 	case "repl":
 		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
-		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
-		transpile := fs.Bool("transpile", false, "run the REPL in Go transpiler mode")
-		native := fs.Bool("native", false, "run the REPL in native Go mode")
-		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
-		parse := fs.Bool("parse", false, "run the REPL in parser mode")
-		lex := fs.Bool("lex", false, "run the REPL in lexer mode")
-		typecheck := fs.Bool("typecheck", false, "run the REPL in type checker mode")
-		expand := fs.Bool("expand", false, "run the REPL in macro expansion mode")
+		opts := &repl.Options{}
+		fs.BoolVar(&opts.Disassemble, "disassemble", false, "run the REPL in disassembler mode")
+		fs.BoolVar(&opts.Transpile, "transpile", false, "run the REPL in Go transpiler mode")
+		fs.BoolVar(&opts.Native, "native", false, "run the REPL in native Go mode")
+		fs.BoolVar(&opts.InspectStack, "inspect-stack", false, "print the stack after each iteration of the REPL")
+		fs.BoolVar(&opts.Parse, "parse", false, "run the REPL in parser mode")
+		fs.BoolVar(&opts.Lex, "lex", false, "run the REPL in lexer mode")
+		fs.BoolVar(&opts.Typecheck, "typecheck", false, "run the REPL in type checker mode")
+		fs.BoolVar(&opts.Expand, "expand", false, "run the REPL in macro expansion mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(context.Background(), *disassemble, *transpile, *native, *inspectStack, *parse, *lex, *typecheck, *expand)
+		repl.Run(context.Background(), opts)
 	case "run":
 		if len(os.Args) < 3 {
 			runMain()

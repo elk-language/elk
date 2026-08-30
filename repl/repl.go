@@ -15,6 +15,8 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler/colorize"
 	"github.com/elk-language/elk/compiler/types"
+	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -27,6 +29,7 @@ import (
 )
 
 type evaluator struct {
+	executor       goprompt.Executor
 	ctx            context.Context
 	vm             *vm.Thread
 	inspectStack   bool
@@ -356,44 +359,77 @@ func (e *evaluator) lex(input string) {
 	pp.Println(tokens)
 }
 
-// Start the REPL.
-func Run(ctx context.Context, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) {
-	prompt.Run(executor(ctx, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand))
+type Options struct {
+	Disassemble  bool
+	Transpile    bool
+	Native       bool
+	InspectStack bool
+	Parse        bool
+	Lex          bool
+	Typecheck    bool
+	Expand       bool
 }
 
-func executor(ctx context.Context, disassemble, transpile, native, inspectStack, parse, lex, typecheck, expand bool) goprompt.Executor {
+// Start the REPL.
+func Run(ctx context.Context, opts *Options) {
+	eval := newEvaluator(ctx, opts)
+	banner.Display()
+	prompt.Run(eval.executor)
+}
+
+func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 	eval := &evaluator{
 		ctx:          ctx,
-		inspectStack: inspectStack,
+		inspectStack: opts.InspectStack,
 		sourceMap:    make(map[string]string),
 	}
-	if lex {
-		return eval.lex
+	eval.setExecutor(opts)
+	return eval
+}
+
+func (e *evaluator) setExecutor(opts *Options) {
+	if opts.Lex {
+		e.executor = e.lex
+		info.CurrentMode = info.ReplLex
+		return
 	}
-	if disassemble {
-		return eval.disassemble
+	if opts.Disassemble {
+		e.executor = e.disassemble
+		info.CurrentMode = info.ReplDisassemble
+		return
 	}
-	if transpile {
+	if opts.Transpile {
 		checker, err := types.NewGoTypechecker()
 		if err != nil {
 			panic(fmt.Sprintf("go typechecker error: %s\n", err))
 		}
 
-		eval.goTypechecker = checker
-		return eval.transpile
+		e.goTypechecker = checker
+		e.executor = e.transpile
+		info.CurrentMode = info.ReplTranspile
+		return
 	}
-	if native {
-		return eval.native
+	if opts.Native {
+		e.executor = e.native
+		info.CurrentMode = info.ReplNative
+		return
 	}
-	if parse {
-		return eval.parse
+	if opts.Parse {
+		e.executor = e.parse
+		info.CurrentMode = info.ReplParse
+		return
 	}
-	if typecheck {
-		return eval.typecheck
+	if opts.Typecheck {
+		e.executor = e.typecheck
+		info.CurrentMode = info.ReplTypecheck
+		return
 	}
-	if expand {
-		return eval.expand
+	if opts.Expand {
+		e.executor = e.expand
+		info.CurrentMode = info.ReplExpand
+		return
 	}
 
-	return eval.evaluate
+	e.executor = e.evaluate
+	info.CurrentMode = info.ReplInterpretMode
 }
