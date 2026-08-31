@@ -181,6 +181,7 @@ func runMain() {
 
 // Attempt to compile the given file.
 func compileFile(fileName string) {
+	info.CurrentMode = info.NativeMode
 	_, err := elk.CompileFile(fileName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())

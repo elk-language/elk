@@ -32,8 +32,9 @@ type ProgramNode struct {
 	NodeBase
 	Body        []StatementNode
 	ImportPaths []string
-	HasDefer    bool
 	State       ProgramState
+	HasDefer    bool
+	IsBuiltin   bool
 }
 
 func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -42,6 +43,7 @@ func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool)
 		Body:        SpliceSlice(n.Body, loc, args, unquote),
 		ImportPaths: n.ImportPaths,
 		HasDefer:    n.HasDefer,
+		IsBuiltin:   n.IsBuiltin,
 		State:       n.State,
 	}
 }

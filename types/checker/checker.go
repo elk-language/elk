@@ -575,7 +575,7 @@ func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup)
 
 	builtinPaths := c.resolveImportPath("builtin/**/*.elk", "", node.Location())
 	node.ImportPaths = append(node.ImportPaths, builtinPaths...)
-	c.checkImportPaths(builtinPaths, wg, node.Location())
+	c.checkImportPaths(builtinPaths, wg, node.Location(), true)
 	c.SetBuiltinImportsProcessed(true)
 }
 
@@ -893,19 +893,19 @@ func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg 
 	for _, importStmt := range imports {
 		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
-			c.checkImportPath(importPath, wg, importStmt.Location())
+			c.checkImportPath(importPath, wg, importStmt.Location(), false)
 		}
 	}
 
 }
 
-func (c *Checker) checkImportPaths(importPaths []string, wg *sync.WaitGroup, loc *position.Location) {
+func (c *Checker) checkImportPaths(importPaths []string, wg *sync.WaitGroup, loc *position.Location, builtin bool) {
 	for _, path := range importPaths {
-		c.checkImportPath(path, wg, loc)
+		c.checkImportPath(path, wg, loc, builtin)
 	}
 }
 
-func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *position.Location) {
+func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *position.Location, builtin bool) {
 	wg.Go(func() {
 		_, ok := c.ASTCache.Get(importPath)
 		if ok {
@@ -930,6 +930,7 @@ func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *po
 			return
 		}
 
+		ast.IsBuiltin = true
 		c.checkImportsForFile(importPath, ast, wg)
 	})
 }

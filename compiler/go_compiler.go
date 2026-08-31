@@ -470,11 +470,13 @@ func (c *GoCompiler) InitMainCompiler() {
 	c.registerGoImport("github.com/elk-language/elk/value", "")
 	c.registerGoImport("github.com/elk-language/elk/vm", "")
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
+	c.registerGoImport("github.com/elk-language/elk/info", "")
 
 	// noops to stop Go from complaining about unused imports
 	c.emitPackage("var _ = symbol.Value\n")
 	c.emitPackage("var _ = vm.New\n")
 	c.emitPackage("var _ = value.Truthy\n\n")
+	c.emitPackage("func init() { info.CurrentMode = info.NativeMode }\n\n")
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {

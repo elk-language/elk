@@ -16,6 +16,7 @@ func TestGoAs(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -24,6 +25,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -62,6 +65,7 @@ func main() { // loc: <main>
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -70,6 +74,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -126,6 +132,7 @@ func TestGoMust(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -134,6 +141,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -172,6 +181,7 @@ func main() { // loc: <main>
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -180,6 +190,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -235,6 +247,7 @@ func TestGoInstanceOf(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -243,6 +256,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -287,6 +302,7 @@ func TestGoReverseInstanceOf(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -295,6 +311,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -339,6 +357,7 @@ func TestGoIsA(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -347,6 +366,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -380,6 +401,7 @@ func main() { // loc: <main>
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -388,6 +410,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -432,6 +456,7 @@ func TestGoReverseIsA(t *testing.T) {
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -440,6 +465,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -473,6 +500,7 @@ func main() { // loc: <main>
 
 import (
 	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -481,6 +509,8 @@ import (
 var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
+
+func init() { info.CurrentMode = info.NativeMode }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
