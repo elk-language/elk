@@ -13,53 +13,124 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/ext/std/test"
+	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
-	"github.com/spf13/pflag"
+	"github.com/spf13/cobra"
 )
 
 // Main entry point to the interpreter.
 func main() {
-	command := os.Args[1]
-	switch command {
-	case "repl":
-		fs := pflag.NewFlagSet("repl", pflag.ExitOnError)
-		opts := &repl.Options{}
-		fs.BoolVar(&opts.Disassemble, "disassemble", false, "run the REPL in disassembler mode")
-		fs.BoolVar(&opts.Transpile, "transpile", false, "run the REPL in Go transpiler mode")
-		fs.BoolVar(&opts.Native, "native", false, "run the REPL in native Go mode")
-		fs.BoolVar(&opts.InspectStack, "inspect-stack", false, "print the stack after each iteration of the REPL")
-		fs.BoolVar(&opts.Parse, "parse", false, "run the REPL in parser mode")
-		fs.BoolVar(&opts.Lex, "lex", false, "run the REPL in lexer mode")
-		fs.BoolVar(&opts.Typecheck, "typecheck", false, "run the REPL in type checker mode")
-		fs.BoolVar(&opts.Expand, "expand", false, "run the REPL in macro expansion mode")
-		fs.Parse(os.Args[2:])
-		repl.Run(context.Background(), opts)
-	case "run":
-		if len(os.Args) < 3 {
-			runMain()
-		} else {
-			runFile(os.Args[2])
-		}
-	case "compile":
-		if len(os.Args) < 3 {
-			compileMain()
-		} else {
-			compileFile(os.Args[2])
-		}
-	case "test":
-		fs := pflag.NewFlagSet("test", pflag.ExitOnError)
-		main := fs.String("main", "main.elk.test", "specify the main test file that loads tests")
-		grep := fs.String("grep", "", "test name filter regex pattern")
-		path := fs.StringSliceP("path", "p", []string{}, "test file name glob with an optional line number")
-		fs.Parse(os.Args[2:])
-
-		runTest(*main, *grep, *path)
-	default:
+	// Every subcommand terminates the process itself when the Elk program
+	// fails, so an error here can only be a malformed invocation.
+	if err := rootCommand().Execute(); err != nil {
 		os.Exit(64)
 	}
+}
+
+// Build the `elk` command tree.
+func rootCommand() *cobra.Command {
+	root := &cobra.Command{
+		Use:     "elk",
+		Short:   "The Elk programming language toolchain",
+		Long:    banner.Render(),
+		Version: info.Version,
+	}
+
+	root.AddCommand(
+		replCommand(),
+		runCommand(),
+		compileCommand(),
+		testCommand(),
+	)
+	return root
+}
+
+// Build the `elk repl` command.
+func replCommand() *cobra.Command {
+	opts := &repl.Options{}
+	cmd := &cobra.Command{
+		Use:   "repl",
+		Short: "Start an interactive Elk session",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			repl.Run(context.Background(), opts)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.BoolVar(&opts.Disassemble, "disassemble", false, "run the REPL in disassembler mode; compiles Elk to bytecode and prints it in a human-readable format")
+	flags.BoolVar(&opts.Transpile, "transpile", false, "run the REPL in Go transpiler mode; compiles Elk to Go source code and prints it")
+	flags.BoolVar(&opts.Native, "native", false, "run the REPL in native Go mode; transpiles Elk to Go, compiles it to a binary and runs it")
+	flags.BoolVar(&opts.InspectStack, "inspect-stack", false, "print the stack after each iteration of the REPL")
+	flags.BoolVar(&opts.Parse, "parse", false, "run the REPL in parser mode; parses Elk to an AST and prints it in a human-readable format")
+	flags.BoolVar(&opts.Lex, "lex", false, "run the REPL in lexer mode; tokenizes Elk and prints the tokens in a human-readable format")
+	flags.BoolVar(&opts.Typecheck, "typecheck", false, "run the REPL in type checker mode; typechecks Elk and prints the typechecked AST in a human-readable format")
+	flags.BoolVar(&opts.Expand, "expand", false, "run the REPL in macro expansion mode; typechecks Elk, expands macros and prints the resulting AST in a human-readable format")
+
+	return cmd
+}
+
+// Build the `elk run` command.
+func runCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "run [file]",
+		Short: "Execute an Elk file",
+		Long:  "Execute an Elk file using the bytecode VM.\nWhen no file is given, `main.elk` in the current working directory is executed.",
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				runMain()
+				return
+			}
+			runFile(args[0])
+		},
+	}
+}
+
+// Build the `elk compile` command.
+func compileCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "compile [file]",
+		Short: "Compile an Elk file",
+		Long:  "Compile an Elk file to a binary.\nWhen no file is given, `main.elk` in the current working directory is compiled.",
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				compileMain()
+				return
+			}
+			compileFile(args[0])
+		},
+	}
+}
+
+// Build the `elk test` command.
+func testCommand() *cobra.Command {
+	var (
+		mainFile string
+		grep     string
+		paths    []string
+	)
+
+	cmd := &cobra.Command{
+		Use:   "test",
+		Short: "Run Elk tests",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			runTest(mainFile, grep, paths)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&mainFile, "main", "main.elk.test", "specify the main test file that loads tests")
+	flags.StringVar(&grep, "grep", "", "test name filter regex pattern")
+	flags.StringSliceVarP(&paths, "path", "p", []string{}, "test file name glob with an optional line number")
+
+	return cmd
 }
 
 // Attempt to execute the given file.
