@@ -29,8 +29,14 @@ type HashRecord interface {
 	SetVal(thread *Thread, key, val value.Value) value.Value
 }
 
+func hashRecordConstructor(class *value.Class) value.Value {
+	return NewHashRecordOfValue(5).ToValue()
+}
+
 // ::Std::HashRecord
 func initHashRecord() {
+	value.HashRecordClass.ConstructorFunc = hashRecordConstructor
+
 	// Instance methods
 	c := &value.HashRecordClass.MethodContainer
 	Def(

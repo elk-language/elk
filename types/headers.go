@@ -25,7 +25,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.DefineSubtype(value.ToSymbol("AnyFloat"), NewNamedType("Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env))))
 		namespace.DefineSubtype(value.ToSymbol("AnyInt"), NewNamedType("Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env), NameToType("Std::UInt", env))))
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, false, value.ToSymbol("ArrayList"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, true, false, value.ToSymbol("ArrayList"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -33,7 +33,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, false, value.ToSymbol("ArrayTuple"), objectClass, env)
+			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, true, false, value.ToSymbol("ArrayTuple"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -522,7 +522,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Thrown when an invalid glob pattern has been encountered.", false, false, false, false, false, value.ToSymbol("GlobError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, false, value.ToSymbol("HashMap"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, true, false, value.ToSymbol("HashMap"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -530,7 +530,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, false, value.ToSymbol("HashRecord"), objectClass, env)
+			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, true, false, value.ToSymbol("HashRecord"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -538,7 +538,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, false, value.ToSymbol("HashSet"), objectClass, env)
+			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, true, false, value.ToSymbol("HashSet"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error

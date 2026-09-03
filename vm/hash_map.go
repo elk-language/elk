@@ -15,8 +15,14 @@ type HashMap interface {
 	NewHashMap(capacity int) HashMap
 }
 
+func hashMapConstructor(class *value.Class) value.Value {
+	return NewHashMapOfValue(5).ToValue()
+}
+
 // ::Std::HashMap
 func initHashMap() {
+	value.HashMapClass.ConstructorFunc = hashMapConstructor
+
 	// Instance methods
 	c := &value.HashMapClass.MethodContainer
 	Def(

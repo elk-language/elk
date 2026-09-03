@@ -25,8 +25,14 @@ type HashSet interface {
 	NewHashSet(capacity int) HashSet
 }
 
+func hashSetConstructor(class *value.Class) value.Value {
+	return NewHashSetOfValue(5).ToValue()
+}
+
 // ::Std::HashSet
 func initHashSet() {
+	value.HashSetClass.ConstructorFunc = hashSetConstructor
+
 	// Instance methods
 	c := &value.HashSetClass.MethodContainer
 	Def(
