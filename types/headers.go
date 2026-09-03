@@ -41,11 +41,11 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, false, false, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from -∞ to a given value *(-∞, end]*", false, true, true, true, false, value.ToSymbol("BeginlessClosedRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, false, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from -∞ to a given value *(-∞, end)*", false, true, true, true, false, value.ToSymbol("BeginlessOpenRange"), objectClass, env)
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
@@ -69,7 +69,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, false, value.ToSymbol("Class"), objectClass, env)
 		namespace.TryDefineInterface("Represents a resource that can be closed.", value.ToSymbol("Closable"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, false, false, value.ToSymbol("ClosedRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, true, false, value.ToSymbol("ClosedRange"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -623,7 +623,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", value.ToSymbol("Kernel"), env)
 		{
-			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, false, false, value.ToSymbol("LeftOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, true, false, value.ToSymbol("LeftOpenRange"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -647,7 +647,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("", false, false, false, false, true, value.ToSymbol("Object"), objectClass, env)
 		namespace.TryDefineClass("Thrown when another thread tried to execute\nan open closure.\n\nAn open closure captures variables that still live\non the stack of the thread that created it.", false, false, false, false, false, value.ToSymbol("OpenClosureError"), objectClass, env)
 		{
-			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, false, false, value.ToSymbol("OpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents an open range from `start` to `end` *(start, end)*", false, true, true, true, false, value.ToSymbol("OpenRange"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
@@ -697,7 +697,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.Name() // noop - avoid unused variable error
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, false, false, value.ToSymbol("RightOpenRange"), objectClass, env)
+			namespace := namespace.TryDefineClass("Represents a right-open range from `start` to `end` *[start, end)*", false, true, true, true, false, value.ToSymbol("RightOpenRange"), objectClass, env)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, value.ToSymbol("Iterator"), objectClass, env)
 				namespace.Name() // noop - avoid unused variable error
