@@ -41,6 +41,17 @@ var cc_main_4 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -155,6 +166,17 @@ var cc_main_4 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -256,6 +278,17 @@ var cc_main_2 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -338,6 +371,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -407,6 +451,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -477,6 +532,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -546,6 +612,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -615,6 +692,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -685,6 +773,17 @@ var cc_main_2 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -764,6 +863,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -834,6 +944,17 @@ var cc_main_2 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -912,6 +1033,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -981,6 +1113,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1050,6 +1193,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1119,6 +1273,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1188,6 +1353,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1257,6 +1433,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1326,6 +1513,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1395,6 +1593,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1464,6 +1673,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1533,6 +1753,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1602,6 +1833,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1671,6 +1913,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1740,6 +1993,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1810,6 +2074,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -1882,6 +2157,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -1965,6 +2251,17 @@ var sym0 = value.ToSymbol("Foo")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -2069,6 +2366,17 @@ var sym0 = value.ToSymbol("Foo")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -2165,6 +2473,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2244,6 +2563,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -2329,6 +2659,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -2411,6 +2752,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2487,6 +2839,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2563,6 +2926,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2639,6 +3013,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2710,6 +3095,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2780,6 +3176,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2852,6 +3259,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2922,6 +3340,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -2994,6 +3423,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -3062,6 +3502,17 @@ var sym1 = value.ToSymbol("<main>")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -3115,6 +3566,17 @@ var sym1 = value.ToSymbol("<main>")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -3168,6 +3630,17 @@ var sym1 = value.ToSymbol("<main>")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -3225,6 +3698,17 @@ var fn_method0 vm.NativeFunction // Std::Regex.:matches
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.String // var a: Std::String
@@ -3295,6 +3779,17 @@ var sym1 = value.ToSymbol("<main>")
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: Std::Int
@@ -3348,6 +3843,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.Value // var a: any
@@ -3423,6 +3929,17 @@ var cc_main_1 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var namespace value.Value
 	_ = namespace
 	var callFrame *vm.CallFrame
@@ -3505,6 +4022,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
@@ -3615,6 +4143,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
@@ -3725,6 +4264,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::String]
@@ -3837,6 +4387,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Symbol]
@@ -3947,6 +4508,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
@@ -4057,6 +4629,17 @@ var fn_method1 vm.NativeFunction // Std::HashSet.:contains
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
@@ -4170,6 +4753,17 @@ var cc_main_5 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
@@ -4369,6 +4963,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayList.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::String]
@@ -4477,6 +5082,17 @@ var fn_method1 vm.NativeFunction // Std::Symbol.:==
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Symbol]
@@ -4600,6 +5216,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayList.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
@@ -4704,6 +5331,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayList.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
@@ -4811,6 +5449,17 @@ var cc_main_3 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
@@ -4980,6 +5629,17 @@ var cc_main_2 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int | Std::ArrayList[Std::Int]]
@@ -5126,6 +5786,17 @@ var cc_main_5 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Int]]
@@ -5326,6 +5997,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::String]
@@ -5435,6 +6117,17 @@ var fn_method1 vm.NativeFunction // Std::Symbol.:==
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Symbol]
@@ -5559,6 +6252,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
@@ -5664,6 +6368,17 @@ var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int]
@@ -5773,6 +6488,17 @@ var cc_main_3 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Int]]
@@ -5944,6 +6670,17 @@ var cc_main_2 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayTuple // var a: Std::ArrayTuple[Std::Int | Std::ArrayTuple[Std::Int]]
@@ -6089,6 +6826,17 @@ var cc_main_5 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashMap // var a: Std::HashMap[Std::Int | Std::Symbol | Std::String, Std::Int | Std::Symbol | Std::HashMap[Std::Symbol, Std::ArrayList[Std::Int]]]
@@ -6287,6 +7035,17 @@ var cc_main_5 = &vm.CallCache{}
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 vm.HashRecord // var a: Std::HashRecord[Std::Int | Std::Symbol | Std::String, Std::Int | Std::Symbol | Std::HashRecord[Std::Symbol, Std::ArrayList[Std::Int]]]
@@ -6483,6 +7242,17 @@ var fn_method1 vm.NativeFunction // Std::Iterable::FiniteBase.:first
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]
@@ -6631,6 +7401,17 @@ var fn_method2 vm.NativeFunction // Std::Kernel::puts@1
 func main() { // loc: <main>
 	thread := vm.New()
 	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l0 value.ArrayList // var a: Std::ArrayList[Std::Int]

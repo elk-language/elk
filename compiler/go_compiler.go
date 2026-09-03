@@ -2013,6 +2013,13 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
+		fmt.Fprintf(&funcBuffer, "\ndefer func() {")
+		fmt.Fprintf(&funcBuffer, "switch r := recover().(type) {\n")
+		fmt.Fprintf(&funcBuffer, "case value.Value: thread.Exit(r)\n")
+		fmt.Fprintf(&funcBuffer, "case nil:\n")
+		fmt.Fprintf(&funcBuffer, "default: panic(r)\n")
+		fmt.Fprintf(&funcBuffer, "}\n")
+		fmt.Fprintf(&funcBuffer, "}()\n\n")
 
 		if c.measureTime {
 			c.registerGoImport("fmt", "")
@@ -2284,6 +2291,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileDoExpressionNode(node, valueIsIgnored)
 	case *ast.ThrowExpressionNode:
 		return c.compileThrowExpressionNode(node)
+	case *ast.DeferExpressionNode:
+		return c.compileDeferExpressionNode(node)
 	case *ast.LabeledExpressionNode:
 		return c.compileLabeledExpressionNode(node, valueIsIgnored)
 	case *ast.ModifierNode:
@@ -3936,6 +3945,16 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 		)
 	}
 	c.emitThrow(val)
+	return nilGoValue
+}
+
+func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *goValue {
+	c.enterDefaultScope()
+	c.emit("defer func() {\n")
+	c.compileExpression(node.Expression, true)
+	c.emit("}()\n")
+	c.leaveScope()
+
 	return nilGoValue
 }
 

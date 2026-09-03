@@ -4055,6 +4055,10 @@ func (vm *Thread) PrintErrorValue(err value.Value) {
 }
 
 func (vm *Thread) Panic(err value.Value) {
+	panic(err)
+}
+
+func (vm *Thread) Exit(err value.Value) {
 	vm.state = errorState
 	vm.PrintErrorValue(err)
 	os.Exit(1)
