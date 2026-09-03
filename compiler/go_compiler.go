@@ -466,17 +466,16 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 func (c *GoCompiler) InitMainCompiler() {
 	c.registerGoPackageClause("main")
 
-	c.registerGoImport("github.com/elk-language/elk", "_")
+	c.registerGoImport("github.com/elk-language/elk", "")
 	c.registerGoImport("github.com/elk-language/elk/value", "")
 	c.registerGoImport("github.com/elk-language/elk/vm", "")
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
-	c.registerGoImport("github.com/elk-language/elk/info", "")
 
 	// noops to stop Go from complaining about unused imports
 	c.emitPackage("var _ = symbol.Value\n")
 	c.emitPackage("var _ = vm.New\n")
 	c.emitPackage("var _ = value.Truthy\n\n")
-	c.emitPackage("func init() { info.CurrentMode = info.NativeMode }\n\n")
+	c.emitPackage("func init() { elk.InitNative() }\n\n")
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {

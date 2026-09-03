@@ -24,8 +24,7 @@ func TestGoClosureLiteral(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -36,7 +35,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -134,8 +133,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -146,7 +144,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -245,8 +243,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -257,7 +254,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -335,8 +332,7 @@ func TestGoStringLiteral(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -346,7 +342,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -378,8 +374,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -389,7 +384,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -448,8 +443,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -459,7 +453,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -540,8 +534,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -551,7 +544,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -617,8 +610,7 @@ func TestGoSymbolLiteral(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -628,7 +620,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -661,8 +653,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -672,7 +663,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -731,8 +722,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -742,7 +732,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -823,8 +813,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -834,7 +823,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -900,8 +889,7 @@ func TestGoRangeLiteral(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -911,7 +899,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -939,8 +927,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -950,7 +937,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -978,8 +965,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -989,7 +975,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1017,8 +1003,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1028,7 +1013,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1056,8 +1041,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1067,7 +1051,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1095,8 +1079,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1106,7 +1089,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1134,8 +1117,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1145,7 +1127,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1173,8 +1155,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1184,7 +1165,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1215,8 +1196,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1226,7 +1206,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1259,8 +1239,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1270,7 +1249,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1303,8 +1282,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1314,7 +1292,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1347,8 +1325,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1358,7 +1335,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1391,8 +1368,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1402,7 +1378,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1435,8 +1411,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1446,7 +1421,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1479,8 +1454,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1490,7 +1464,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1523,8 +1497,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1534,7 +1507,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1576,8 +1549,7 @@ func TestGoSimpleLiterals(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1587,7 +1559,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1614,8 +1586,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1625,7 +1596,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1652,8 +1623,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1663,7 +1633,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1690,8 +1660,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1701,7 +1670,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1728,8 +1697,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1739,7 +1707,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1766,8 +1734,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1777,7 +1744,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1804,8 +1771,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1815,7 +1781,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1842,8 +1808,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1853,7 +1818,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1880,8 +1845,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1891,7 +1855,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1918,8 +1882,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1929,7 +1892,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1956,8 +1919,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1967,7 +1929,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -1995,8 +1957,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2006,7 +1967,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2033,8 +1994,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2044,7 +2004,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2071,8 +2031,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2082,7 +2041,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2109,8 +2068,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2120,7 +2078,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2147,8 +2105,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2158,7 +2115,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2185,8 +2142,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2196,7 +2152,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2223,8 +2179,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2234,7 +2189,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2261,8 +2216,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2272,7 +2226,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2299,8 +2253,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2310,7 +2263,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2337,8 +2290,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2348,7 +2300,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2375,8 +2327,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2386,7 +2337,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2413,8 +2364,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2424,7 +2374,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2452,8 +2402,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2463,7 +2412,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2502,8 +2451,7 @@ func TestGoArrayTuples(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2513,7 +2461,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2541,8 +2489,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2552,7 +2499,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2580,8 +2527,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2591,7 +2537,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2619,8 +2565,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2630,7 +2575,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2658,8 +2603,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2669,7 +2613,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2697,8 +2641,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2708,7 +2651,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2736,8 +2679,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2747,7 +2689,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2776,8 +2718,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2787,7 +2728,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2815,8 +2756,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2826,7 +2766,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2856,8 +2796,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2867,7 +2806,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2897,8 +2836,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2908,7 +2846,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2935,8 +2873,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2946,7 +2883,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -2977,8 +2914,7 @@ a := %[1, 'foo', 5 => 5,  String.name, 3 => 5.6, k => 12, 8.2]
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2988,7 +2924,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3048,8 +2984,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3059,7 +2994,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3101,8 +3036,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3112,7 +3046,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3156,8 +3090,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3167,7 +3100,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3217,7 +3150,7 @@ func main() { // loc: <main>
 		// var _ = vm.New
 		// var _ = value.Truthy
 
-		// func init() { info.CurrentMode = info.NativeMode }
+		// func init() { elk.InitNative() }
 
 		// func main() { // loc: <main>
 		// 	thread := vm.New()
@@ -3240,8 +3173,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3251,7 +3183,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3308,8 +3240,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3319,7 +3250,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3349,8 +3280,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3360,7 +3290,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3403,8 +3333,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3414,7 +3343,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3442,8 +3371,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3453,7 +3381,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3480,8 +3408,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3491,7 +3418,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3519,8 +3446,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3530,7 +3456,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3559,8 +3485,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3570,7 +3495,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3598,8 +3523,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3609,7 +3533,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3640,8 +3564,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3651,7 +3574,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3679,8 +3602,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3690,7 +3612,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3718,8 +3640,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3729,7 +3650,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3757,8 +3678,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3768,7 +3688,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3796,8 +3716,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3807,7 +3726,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3836,8 +3755,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3847,7 +3765,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3889,8 +3807,7 @@ func TestGoArrayLists(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3900,7 +3817,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3927,8 +3844,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3938,7 +3854,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -3965,8 +3881,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3976,7 +3891,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4003,8 +3918,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4014,7 +3928,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4041,8 +3955,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4052,7 +3965,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4079,8 +3992,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4090,7 +4002,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4121,8 +4033,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4132,7 +4043,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4162,8 +4073,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4173,7 +4083,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4200,8 +4110,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4211,7 +4120,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4238,8 +4147,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4249,7 +4157,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4280,8 +4188,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4291,7 +4198,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4321,8 +4228,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4332,7 +4238,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4359,8 +4265,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4370,7 +4275,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4397,8 +4302,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4408,7 +4312,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4435,8 +4339,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4446,7 +4349,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4474,8 +4377,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4485,7 +4387,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4513,8 +4415,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4524,7 +4425,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4552,8 +4453,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4563,7 +4463,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4590,8 +4490,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4601,7 +4500,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4628,8 +4527,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4639,7 +4537,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4667,8 +4565,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4678,7 +4575,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4708,8 +4605,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4719,7 +4615,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4752,8 +4648,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4763,7 +4658,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4796,8 +4691,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4807,7 +4701,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4842,8 +4736,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4853,7 +4746,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4888,8 +4781,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4899,7 +4791,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -4952,8 +4844,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4963,7 +4854,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5055,8 +4946,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5066,7 +4956,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5099,8 +4989,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5110,7 +4999,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5143,8 +5032,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5154,7 +5042,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5208,8 +5096,7 @@ func TestGoHashSet(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5219,7 +5106,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5246,8 +5133,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5257,7 +5143,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5284,8 +5170,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5295,7 +5180,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5322,8 +5207,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5333,7 +5217,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5360,8 +5244,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5371,7 +5254,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5398,8 +5281,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5409,7 +5291,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5448,8 +5330,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5459,7 +5340,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5500,8 +5381,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5511,7 +5391,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5538,8 +5418,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5549,7 +5428,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5576,8 +5455,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5587,7 +5465,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5617,8 +5495,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5628,7 +5505,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5658,8 +5535,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5669,7 +5545,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5696,8 +5572,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5707,7 +5582,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5735,8 +5610,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5746,7 +5620,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5773,8 +5647,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5784,7 +5657,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5814,8 +5687,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5825,7 +5697,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5868,8 +5740,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5879,7 +5750,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5922,8 +5793,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5933,7 +5803,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -5983,8 +5853,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5994,7 +5863,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6045,8 +5914,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6056,7 +5924,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6115,8 +5983,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6126,7 +5993,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6184,8 +6051,7 @@ func TestGoHashMap(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6195,7 +6061,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6225,8 +6091,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6236,7 +6101,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6270,8 +6135,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6281,7 +6145,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6315,8 +6179,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6326,7 +6189,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6357,8 +6220,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6368,7 +6230,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6446,8 +6308,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6457,7 +6318,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6497,8 +6358,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6508,7 +6368,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6549,8 +6409,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6560,7 +6419,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6590,8 +6449,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6601,7 +6459,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6646,8 +6504,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6657,7 +6514,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6714,8 +6571,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6725,7 +6581,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6782,8 +6638,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6793,7 +6648,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6833,8 +6688,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6844,7 +6698,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6896,8 +6750,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6907,7 +6760,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -6963,8 +6816,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6974,7 +6826,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7038,8 +6890,7 @@ func TestGoHashRecord(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7049,7 +6900,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7080,8 +6931,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7091,7 +6941,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7125,8 +6975,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7136,7 +6985,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7167,8 +7016,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7178,7 +7026,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7207,8 +7055,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7218,7 +7065,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7249,8 +7096,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7260,7 +7106,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7337,8 +7183,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7348,7 +7193,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7378,8 +7223,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7389,7 +7233,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7434,8 +7278,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7445,7 +7288,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7502,8 +7345,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7513,7 +7355,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7553,8 +7395,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7564,7 +7405,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7604,8 +7445,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7615,7 +7455,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7671,8 +7511,7 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
-	"github.com/elk-language/elk/info"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7682,7 +7521,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7746,9 +7585,8 @@ func TestGoRegex(t *testing.T) {
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7758,7 +7596,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7786,9 +7624,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -7799,7 +7636,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7827,9 +7664,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -7840,7 +7676,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7871,9 +7707,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -7884,7 +7719,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7918,9 +7753,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -7931,7 +7765,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -7973,9 +7807,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -7986,7 +7819,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
@@ -8028,9 +7861,8 @@ func main() { // loc: <main>
 			want: `package main
 
 import (
-	_ "github.com/elk-language/elk"
+	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/info"
 	reflag "github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -8041,7 +7873,7 @@ var _ = symbol.Value
 var _ = vm.New
 var _ = value.Truthy
 
-func init() { info.CurrentMode = info.NativeMode }
+func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")

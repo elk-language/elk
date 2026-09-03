@@ -38,6 +38,10 @@ func InitGlobalEnvironment() {
 	typesRuntime.InitGlobalEnvironment()
 }
 
+func InitNative() {
+	info.CurrentMode = info.NativeMode
+}
+
 func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagnostics diagnostic.DiagnosticList) (binPath string, err error) {
 	if diagnostics != nil && diagnostics.IsFailure() {
 		return "", diagnostics
