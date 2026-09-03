@@ -9106,13 +9106,13 @@ func main() { // loc: <main>
 	err = (sym2).ToValue()
 	goto lbl1
 	t1 = value.Nil
-	goto lbl2
+	goto lbl3
 lbl1:
 	t2 = err
 	l1 = t2
 	if value.Bool(value.IsA(t2, value.StringClass)) {
 		t1 = l1
-		goto lbl2
+		goto lbl3
 	}
 	t3 = value.ResizeNativeArgs(t3, 3)
 	t3[0] = t2
@@ -9125,408 +9125,476 @@ lbl1:
 	}
 	if value.ToBool(t2) {
 		t1 = (value.SmallInt(3)).ToValue()
-		goto lbl2
+		goto lbl3
 	}
 	thread.Panic(t2)
-lbl2:
+lbl3:
 	l0 = t1
 }
 `,
 		},
-		// "catch with stack trace": {
-		// 	input: `
-		// 		do
-		// 			throw :foo
-		// 		catch String() as str, stack_trace
-		// 			str
-		// 		catch :foo
-		// 			3
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 2,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.THROW),
-		// 			byte(bytecode.JUMP), 0, 33,
-		// 			byte(bytecode.DUP_SECOND),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_2),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.GET_CONST8), 1,
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.GET_LOCAL_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 12,
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.INT_3),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(101, 8, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(3, 2),
-		// 			bytecode.NewLineInfo(2, 3),
-		// 			bytecode.NewLineInfo(5, 1),
-		// 			bytecode.NewLineInfo(4, 15),
-		// 			bytecode.NewLineInfo(5, 5),
-		// 			bytecode.NewLineInfo(6, 6),
-		// 			bytecode.NewLineInfo(7, 5),
-		// 			bytecode.NewLineInfo(8, 2),
-		// 		},
-		// 		0,
-		// 		0,
-		// 		[]value.Value{
-		// 			value.ToSymbol("foo").ToValue(),
-		// 			value.ToSymbol("Std::String").ToValue(),
-		// 		},
-		// 		[]*vm.CatchEntry{
-		// 			vm.NewCatchEntry(2, 4, 7, false),
-		// 		},
-		// 	),
-		// },
-		// "finally": {
-		// 	input: `
-		// 		do
-		// 			println("foo")
-		// 		finally
-		// 			println("bar")
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.JUMP), 0, 39,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
-		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(67, 6, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 0),
-		// 			bytecode.NewLineInfo(3, 5),
-		// 			bytecode.NewLineInfo(5, 6),
-		// 			bytecode.NewLineInfo(2, 3),
-		// 			bytecode.NewLineInfo(6, 13),
-		// 			bytecode.NewLineInfo(5, 5),
-		// 			bytecode.NewLineInfo(6, 22),
-		// 		},
-		// 		0,
-		// 		0,
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.String("foo")),
-		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
-		// 			value.Ref(value.String("bar")),
-		// 		},
-		// 		[]*vm.CatchEntry{
-		// 			vm.NewCatchEntry(0, 5, 14, false),
-		// 			vm.NewCatchEntry(0, 5, 22, true),
-		// 		},
-		// 	),
-		// },
-		// "finally between continue and loop": {
-		// 	input: `
-		// 		a := true
-		// 		while a
-		// 			do
-		// 				do
-		// 					println("foo")
-		// 					continue
-		// 				finally
-		// 					println("finally 1")
-		// 				end
-		// 			finally
-		// 				println("finally 2")
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 114,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.JUMP), 0, 40,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
-		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.JUMP), 0, 40,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
-		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.LOOP), 0, 118,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(190, 14, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 6),
-		// 			bytecode.NewLineInfo(6, 6),
-		// 			bytecode.NewLineInfo(7, 4),
-		// 			bytecode.NewLineInfo(9, 7),
-		// 			bytecode.NewLineInfo(5, 3),
-		// 			bytecode.NewLineInfo(10, 13),
-		// 			bytecode.NewLineInfo(9, 6),
-		// 			bytecode.NewLineInfo(10, 21),
-		// 			bytecode.NewLineInfo(12, 7),
-		// 			bytecode.NewLineInfo(4, 3),
-		// 			bytecode.NewLineInfo(13, 13),
-		// 			bytecode.NewLineInfo(12, 6),
-		// 			bytecode.NewLineInfo(13, 21),
-		// 			bytecode.NewLineInfo(14, 4),
-		// 		},
-		// 		0,
-		// 		0,
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.String("foo")),
-		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
-		// 			value.SmallInt(5).ToValue(),
-		// 			value.Ref(value.String("finally 1")),
-		// 			value.Ref(value.String("finally 2")),
-		// 		},
-		// 		[]*vm.CatchEntry{
-		// 			vm.NewCatchEntry(10, 20, 30, false),
-		// 			vm.NewCatchEntry(10, 20, 38, true),
-		// 			vm.NewCatchEntry(10, 70, 80, false),
-		// 			vm.NewCatchEntry(10, 70, 88, true),
-		// 		},
-		// 	),
-		// },
-		// "finally between break and loop": {
-		// 	input: `
-		// 		a := true
-		// 		while a
-		// 			do
-		// 				do
-		// 					println("foo")
-		// 					break
-		// 				finally
-		// 					println("finally 1")
-		// 				end
-		// 			finally
-		// 				println("finally 2")
-		// 			end
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionWithCatchEntries(
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 114,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.JUMP), 0, 40,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 4,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
-		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.JUMP), 0, 40,
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.FALSE),
-		// 			byte(bytecode.JUMP), 0, 5,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.JUMP), 0, 1,
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.LOAD_VALUE8), 5,
-		// 			byte(bytecode.CALL_METHOD_NT8), 2,
-		// 			byte(bytecode.SWAP),
-		// 			byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.JUMP_TO_FINALLY),
-		// 			byte(bytecode.JUMP_IF_NP), 0, 10,
-		// 			byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.POP_2_SKIP_ONE),
-		// 			byte(bytecode.JUMP), 0, 4,
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETURN_FINALLY),
-		// 			byte(bytecode.POP_2),
-		// 			byte(bytecode.RETHROW),
-		// 			byte(bytecode.LOOP), 0, 118,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(187, 14, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 6),
-		// 			bytecode.NewLineInfo(6, 6),
-		// 			bytecode.NewLineInfo(7, 4),
-		// 			bytecode.NewLineInfo(9, 7),
-		// 			bytecode.NewLineInfo(5, 3),
-		// 			bytecode.NewLineInfo(10, 13),
-		// 			bytecode.NewLineInfo(9, 6),
-		// 			bytecode.NewLineInfo(10, 21),
-		// 			bytecode.NewLineInfo(12, 7),
-		// 			bytecode.NewLineInfo(4, 3),
-		// 			bytecode.NewLineInfo(13, 13),
-		// 			bytecode.NewLineInfo(12, 6),
-		// 			bytecode.NewLineInfo(13, 21),
-		// 			bytecode.NewLineInfo(14, 4),
-		// 		},
-		// 		0,
-		// 		0,
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Kernel").ToValue(),
-		// 			value.Ref(value.String("foo")),
-		// 			value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
-		// 			value.SmallInt(123).ToValue(),
-		// 			value.Ref(value.String("finally 1")),
-		// 			value.Ref(value.String("finally 2")),
-		// 		},
-		// 		[]*vm.CatchEntry{
-		// 			vm.NewCatchEntry(10, 20, 30, false),
-		// 			vm.NewCatchEntry(10, 20, 38, true),
-		// 			vm.NewCatchEntry(10, 70, 80, false),
-		// 			vm.NewCatchEntry(10, 70, 88, true),
-		// 		},
-		// 	),
-		// },
+		"catch with stack trace": {
+			input: `
+				do
+					throw :foo
+				catch String() as str, stack_trace
+					puts str
+				catch :foo
+					puts "symbol!"
+				end
+			`,
+			want: `package main
 
-		// TODO: Fix, execute finally after catch
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+var sym3 = value.ToSymbol("puts@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::puts@1
+var cc_main_1 = &vm.CallCache{}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var l0 value.Value // var stack_trace: Std::StackTrace
+	_ = l0
+	var l1 value.Value // var str: any
+	_ = l1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	thread.CaptureStackTrace()
+	err = (sym2).ToValue()
+	goto lbl1
+	goto lbl3
+lbl1:
+	t1 = err
+	l0 = thread.ErrStackTrace().ToValue()
+	l1 = t1
+	if value.Bool(value.IsA(t1, value.StringClass)) {
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l1
+		callFrame.SetNativeLineNumber(5)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: puts@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		goto lbl3
+	}
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = t1
+	t2[1] = (sym2).ToValue()
+	callFrame.SetNativeLineNumber(6)
+	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t2...) // receiver: any, name: ==
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if value.ToBool(t1) {
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("symbol!")).ToValue()
+		callFrame.SetNativeLineNumber(7)
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: puts@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		goto lbl3
+	}
+	thread.Panic(t1)
+lbl3:
+}
+`,
+		},
+		"finally": {
+			input: `
+				do
+					println("foo")
+				finally
+					println("bar")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("foo")).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		goto lbl1
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("bar")).ToValue()
+	callFrame.SetNativeLineNumber(5)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	goto lbl3
+lbl1:
+	t2 = err
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("bar")).ToValue()
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	thread.Panic(t2)
+lbl3:
+}
+`,
+		},
+		"finally between continue and loop": {
+			input: `
+				a := true
+				while a
+					do
+						do
+							println("foo")
+							continue
+						finally
+							println("finally 1")
+						end
+					finally
+						println("finally 2")
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Bool // var a: bool
+	_ = l0
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.True
+loop0:
+	for {
+		if !(l0) {
+			break
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(6)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl2
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		callFrame.SetNativeLineNumber(9)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		callFrame.SetNativeLineNumber(12)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		continue loop0
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		callFrame.SetNativeLineNumber(9)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		goto lbl4
+	lbl2:
+		t2 = err
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		err = t2
+		goto lbl1
+	lbl4:
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		callFrame.SetNativeLineNumber(12)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		goto lbl6
+	lbl1:
+		t2 = err
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		thread.Panic(t2)
+	lbl6:
+	}
+}
+`,
+		},
+		"finally between break and loop": {
+			input: `
+				a := true
+				while a
+					do
+						do
+							println("foo")
+							break
+						finally
+							println("finally 1")
+						end
+					finally
+						println("finally 2")
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Bool // var a: bool
+	_ = l0
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.True
+loop0:
+	for {
+		if !(l0) {
+			break
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(6)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl2
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		callFrame.SetNativeLineNumber(9)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		callFrame.SetNativeLineNumber(12)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		break loop0
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		callFrame.SetNativeLineNumber(9)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		goto lbl4
+	lbl2:
+		t2 = err
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		err = t2
+		goto lbl1
+	lbl4:
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		callFrame.SetNativeLineNumber(12)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		goto lbl6
+	lbl1:
+		t2 = err
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 2")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		thread.Panic(t2)
+	lbl6:
+	}
+}
+`,
+		},
 		"catch and finally": {
 			input: `
 				def foo! :foo
@@ -9613,7 +9681,6 @@ func main() { // loc: <main>
 	_, err = fn_method0(thread, (value.KernelModule).ToValue()) // receiver: Std::Kernel, name: foo
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
-		err = err
 		goto lbl1
 	}
 	t1 = value.ResizeNativeArgs(t1, 3)
@@ -9625,7 +9692,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	goto lbl2
+	goto lbl3
 lbl1:
 	t2 = err
 	t1 = value.ResizeNativeArgs(t1, 3)
@@ -9660,6 +9727,15 @@ lbl1:
 	}
 	thread.Panic(t2)
 lbl2:
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("baz")).ToValue()
+	_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+lbl3:
 }
 
 func methodDefinitions() {

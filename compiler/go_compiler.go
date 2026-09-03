@@ -3980,12 +3980,14 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 
 	if len(node.Finally) > 0 {
 		// finally post do statements
+		// only executed on the happy path
 		c.enterDefaultScope()
 		c.compileStatements(node.Finally, true)
 		c.leaveScope()
 	}
 
 	if catchLabel.used {
+		finallyAfterCatchLabel := c.registerGoLabel()
 		endLabel := c.registerUsedGoLabel()
 		c.emitGoto(endLabel)
 
@@ -4014,7 +4016,7 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 				stackTraceType := c.typeOf(catchNode.StackTraceVar)
 				stackTraceVar := c.defineLocal(stackTraceVarName, stackTraceType, c.elkTypeToGoType(stackTraceType, false), location)
 				if stackTraceVar != nil {
-					c.emit("%s = thread.ErrStackTrace()\n", stackTraceVar.name)
+					c.emit("%s = thread.ErrStackTrace().ToValue()\n", stackTraceVar.goLocal.name)
 				}
 			}
 
@@ -4024,20 +4026,37 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 			if !valueIsIgnored {
 				c.emitAssignGoLocal(resultVar, catchResult)
 			}
-			c.emitGoto(endLabel)
+
+			if len(node.Finally) > 0 {
+				c.emitGoto(finallyAfterCatchLabel)
+			} else {
+				c.emitGoto(endLabel)
+			}
+
 			c.emit("}\n")
 
 			c.leaveScope()
 		}
 
 		if len(node.Finally) > 0 {
-			// finally post catch
+			// finally when the exception wasn't caught
+			// results in the exception being rethrown
 			c.enterDefaultScope()
 			c.compileStatements(node.Finally, true)
 			c.leaveScope()
 		}
 
 		c.emitRethrow(errVal)
+
+		if len(node.Finally) > 0 && len(node.Catches) > 0 {
+			// finally after a successful catch
+			// does not rethrow, just continues the regular flow
+			c.emitGoLabel(finallyAfterCatchLabel)
+
+			c.enterDefaultScope()
+			c.compileStatements(node.Finally, true)
+			c.leaveScope()
+		}
 
 		c.emitGoLabel(endLabel)
 	}
@@ -7935,7 +7954,7 @@ func (c *GoCompiler) lastCatchInfo() *nativeCatchInfo {
 func (c *GoCompiler) emitRethrow(val *goValue) {
 	catchInfo := c.lastCatchInfo()
 	if catchInfo != nil {
-		if !val.isLocal() || val.locals[0].name != "err" {
+		if val.value != "err" && (!val.isLocal() || val.locals[0].name != "err") {
 			c.emitAssignGoLocalByName("err", goValueType, val)
 			val = newGoValue("err", types.Any{}, goValueType)
 		}
