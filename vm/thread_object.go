@@ -42,6 +42,10 @@ func (vm *Thread) StateSymbol() value.Symbol {
 	return stateSymbols[vm.state]
 }
 
+func (vm *Thread) State() State {
+	return vm.state
+}
+
 // Std::Thread
 func initThread() {
 	// Instance methods

@@ -47,7 +47,7 @@ func threadWorker(thread *Thread, queue chan *Promise) {
 			panic(fmt.Sprintf("invalid promise body: %T", task.Body))
 		}
 
-		thread.state = idleState
+		thread.state = IdleState
 	}
 }
 
@@ -55,13 +55,13 @@ func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) 
 	thread.callBytecodePromise(task)
 
 	switch thread.state {
-	case awaitState:
+	case AwaitState:
 		awaitedPromise := (*Promise)(thread.peek().Pointer())
 		awaitedPromise.RegisterContinuationUnsafe(task)
 
 		// promise has been locked in the VM
 		awaitedPromise.m.Unlock()
-	case errorState:
+	case ErrorState:
 		err := thread.popGet()
 		stackTrace := thread.GetStackTrace()
 		task.Reject(err, stackTrace)

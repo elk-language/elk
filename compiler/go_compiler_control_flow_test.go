@@ -11499,6 +11499,9 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	defer func() {
+		if thread.State() == vm.PanicState {
+			return
+		}
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("2. close file")).ToValue()
@@ -11519,6 +11522,9 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	defer func() {
+		if thread.State() == vm.PanicState {
+			return
+		}
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("4. close TCP socket")).ToValue()

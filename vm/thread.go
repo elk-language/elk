@@ -37,7 +37,7 @@ type Thread struct {
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
 	Aborter         *value.Aborter
-	state           state
+	state           State
 }
 
 // Create a new VM instance.
@@ -114,7 +114,7 @@ func (vm *Thread) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value)
 }
 
 func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.Value) {
-	vm.state = runningState
+	vm.state = RunningState
 
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
@@ -130,10 +130,10 @@ func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.
 }
 
 func (vm *Thread) runWithState() {
-	vm.state = runningState
+	vm.state = RunningState
 	vm.run()
-	if vm.state != errorState {
-		vm.state = terminatedState
+	if vm.state != ErrorState {
+		vm.state = TerminatedState
 	}
 }
 
@@ -143,7 +143,7 @@ func (vm *Thread) ThreadPool() *ThreadPool {
 
 // Get the stored error.
 func (vm *Thread) Err() value.Value {
-	if vm.state == errorState {
+	if vm.state == ErrorState {
 		return vm.peek()
 	}
 
@@ -199,7 +199,7 @@ func (vm *Thread) throwIfErr(err value.Value) {
 }
 
 func (vm *Thread) callBytecodePromise(promise *Promise) {
-	vm.state = runningState
+	vm.state = RunningState
 	vm.createCurrentCallFrame(true)
 
 	generator := promise.Body.(*Generator)
@@ -219,7 +219,7 @@ func (vm *Thread) callBytecodePromise(promise *Promise) {
 	vm.run()
 
 	switch vm.state {
-	case awaitState:
+	case AwaitState:
 		stack := vm.stack[vm.fpOffset():vm.spOffset()]
 		stackCopy := make([]value.Value, len(stack))
 		copy(stackCopy, stack)
@@ -227,7 +227,7 @@ func (vm *Thread) callBytecodePromise(promise *Promise) {
 		generator.ip = vm.ip
 
 		vm.restoreLastFrame()
-	case errorState:
+	case ErrorState:
 		vm.restoreLastFrame()
 	}
 }
@@ -255,8 +255,8 @@ func (vm *Thread) CallGeneratorNext(generator *Generator) (value.Value, value.Va
 	generator.stack = stackCopy
 	generator.ip = vm.ip
 
-	if vm.state == errorState {
-		vm.state = runningState
+	if vm.state == ErrorState {
+		vm.state = RunningState
 		vm.restoreLastFrame()
 		inst := generator.Bytecode.Instructions
 		// jump to the STOP_ITERATION at the end of the generator's bytecode
@@ -361,7 +361,7 @@ func (vm *Thread) CallBytecodeClosure(closure *BytecodeClosure, args ...value.Va
 		vm.push(arg)
 	}
 	vm.run()
-	if vm.state == errorState {
+	if vm.state == ErrorState {
 		vm.restoreLastFrame()
 		vm.state = initialState
 		return value.Undefined, vm.popGet()
@@ -421,7 +421,7 @@ func (vm *Thread) CallMethod(method value.Method, args ...value.Value) (value.Va
 			vm.push(arg)
 		}
 		vm.run()
-		if vm.state == errorState {
+		if vm.state == ErrorState {
 			vm.restoreLastFrame()
 			vm.state = initialState
 			return value.Undefined, vm.popGet()
@@ -500,7 +500,7 @@ func (vm *Thread) run() {
 		instruction := bytecode.OpCode(vm.readByte())
 		switch instruction {
 		case bytecode.STOP_ITERATION:
-			vm.state = errorState
+			vm.state = ErrorState
 			vm.errStackTrace = vm.BuildStackTrace()
 			vm.push(symbol.L_stop_iteration.ToValue())
 			return
@@ -571,7 +571,7 @@ func (vm *Thread) run() {
 
 			if !promise.IsResolved() {
 				// promise is not resolved, switching contexts
-				vm.state = awaitState
+				vm.state = AwaitState
 				return
 			}
 
@@ -1376,10 +1376,10 @@ func (vm *Thread) GoBytecode(closure *BytecodeClosure) *Thread {
 	)
 
 	go func(closure *BytecodeClosure, thread *Thread) {
-		thread.state = runningState
+		thread.state = RunningState
 		thread.callGo(closure)
-		if thread.state != errorState {
-			thread.state = terminatedState
+		if thread.state != ErrorState {
+			thread.state = TerminatedState
 			return
 		}
 
@@ -1399,10 +1399,10 @@ func (vm *Thread) GoNative(closure *NativeClosure) *Thread {
 	)
 
 	go func(closure *NativeClosure, thread *Thread) {
-		thread.state = runningState
+		thread.state = RunningState
 		closure.Function(thread, nil)
-		if thread.state != errorState {
-			thread.state = terminatedState
+		if thread.state != ErrorState {
+			thread.state = TerminatedState
 			return
 		}
 
@@ -1528,7 +1528,7 @@ func (vm *Thread) PrintError() {
 }
 
 func (vm *Thread) ResetError() {
-	vm.state = idleState
+	vm.state = IdleState
 	vm.errStackTrace = nil
 }
 
@@ -2044,7 +2044,7 @@ func (vm *Thread) opBreakpoint() {
 
 	vm.push(value.Nil)
 	prevState := vm.state
-	vm.state = idleState
+	vm.state = IdleState
 	originalCallFrame := vm.makeCurrentCallFrame(false)
 
 	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
@@ -3961,7 +3961,7 @@ func (vm *Thread) rethrow(err value.Value, stackTrace *value.StackTrace) {
 		}
 
 		if vm.cfp == uintptr(unsafe.Pointer(&vm.callFrames[0])) || vm.lastCallFrame().stopVM {
-			vm.state = errorState
+			vm.state = ErrorState
 			vm.errStackTrace = stackTrace
 			vm.push(err)
 			panic(stopVM{})
@@ -3976,7 +3976,7 @@ func (vm *Thread) throwNoCatch(err value.Value) {
 }
 
 func (vm *Thread) rethrowNoCatch(err value.Value, stackTrace *value.StackTrace) {
-	vm.state = errorState
+	vm.state = ErrorState
 	vm.errStackTrace = stackTrace
 	vm.push(err)
 	vm.restoreLastFrame()
@@ -4020,7 +4020,7 @@ func (vm *Thread) findFinallyCatchEntry() *CatchEntry {
 
 // Get the stored error stack trace.
 func (vm *Thread) ErrStackTrace() *value.StackTrace {
-	if vm.state == errorState {
+	if vm.state == ErrorState {
 		return vm.errStackTrace
 	}
 
@@ -4029,11 +4029,11 @@ func (vm *Thread) ErrStackTrace() *value.StackTrace {
 
 // Create a new stack trace and save it in the VM
 func (vm *Thread) CaptureStackTrace() *value.StackTrace {
-	if vm.state == errorState {
+	if vm.state == ErrorState {
 		return vm.errStackTrace
 	}
 
-	vm.state = errorState
+	vm.state = ErrorState
 	vm.errStackTrace = vm.BuildStackTrace()
 	return vm.errStackTrace
 }
@@ -4059,7 +4059,7 @@ func (vm *Thread) Panic(err value.Value) {
 }
 
 func (vm *Thread) Exit(err value.Value) {
-	vm.state = errorState
+	vm.state = ErrorState
 	vm.PrintErrorValue(err)
 	os.Exit(1)
 }

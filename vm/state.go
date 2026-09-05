@@ -2,20 +2,23 @@ package vm
 
 import "github.com/elk-language/elk/value"
 
-// VM state
-type state uint8
+// VM State
+type State uint8
 
 const (
-	idleState state = iota
-	runningState
-	errorState // the VM stopped after encountering an uncaught error
-	awaitState
-	terminatedState
+	IdleState State = iota
+	RunningState
+	ErrorState // the VM stopped after encountering an uncaught error
+	AwaitState
+	TerminatedState
+	PanicState
 )
 
 var stateSymbols = [...]value.Symbol{
-	idleState:       value.ToSymbol("idle"),
-	runningState:    value.ToSymbol("running"),
-	errorState:      value.ToSymbol("error"),
-	terminatedState: value.ToSymbol("terminated"),
+	IdleState:       value.ToSymbol("idle"),
+	RunningState:    value.ToSymbol("running"),
+	ErrorState:      value.ToSymbol("error"),
+	AwaitState:      value.ToSymbol("await"),
+	TerminatedState: value.ToSymbol("terminated"),
+	PanicState:      value.ToSymbol("panic"),
 }

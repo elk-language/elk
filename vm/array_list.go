@@ -180,7 +180,10 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			values := args[1]
 			for val := range Iterate(vm, values) {
-				self.AppendVal(val)
+				err := self.AppendVal(val)
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
 			}
 			return self.ToValue(), value.Undefined
 		},
@@ -226,7 +229,10 @@ func initArrayList() {
 		"<<",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
-			self.AppendVal(args[1])
+			err := self.AppendVal(args[1])
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 			return self.ToValue(), value.Undefined
 		},
 		DefWithParameters(1),

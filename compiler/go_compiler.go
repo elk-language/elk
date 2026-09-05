@@ -2013,7 +2013,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
 		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
-		fmt.Fprintf(&funcBuffer, "\ndefer func() {")
+		fmt.Fprintf(&funcBuffer, "\ndefer func() {\n")
 		fmt.Fprintf(&funcBuffer, "switch r := recover().(type) {\n")
 		fmt.Fprintf(&funcBuffer, "case value.Value: thread.Exit(r)\n")
 		fmt.Fprintf(&funcBuffer, "case nil:\n")
@@ -3951,6 +3951,7 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *goValue {
 	c.enterDefaultScope()
 	c.emit("defer func() {\n")
+	c.emit("if thread.State() == vm.PanicState { return }\n")
 	c.compileExpression(node.Expression, true)
 	c.emit("}()\n")
 	c.leaveScope()
