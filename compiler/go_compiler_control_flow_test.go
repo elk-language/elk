@@ -11460,6 +11460,7 @@ var sym0 = value.ToSymbol("main")
 var sym1 = value.ToSymbol("<main>")
 var sym2 = value.ToSymbol("puts@1")
 var fn_method0 vm.NativeFunction // Std::Kernel::puts@1
+var sym3 = value.ToSymbol("<defer>")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11477,10 +11478,16 @@ func main() { // loc: <main>
 
 	var callFrame *vm.CallFrame
 	_ = callFrame
-	var t1 []value.Value
-	_ = t1
+	var deferFns []func(*vm.Thread) value.Value
+	_ = deferFns
 	var err value.Value
 	_ = err
+	var t1 []value.Value
+	_ = t1
+	var t2 func(*vm.Thread) value.Value
+	_ = t2
+	var t3 value.Value
+	_ = t3
 	var self value.Value
 	_ = self
 
@@ -11496,22 +11503,29 @@ func main() { // loc: <main>
 	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
-		thread.Panic(err)
+		goto lbl1
 	}
-	defer func() {
-		if thread.State() == vm.PanicState {
-			return
-		}
+	t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:3:5
+		var callFrame *vm.CallFrame
+		_ = callFrame
+		var t1 []value.Value
+		_ = t1
+		var err value.Value
+		_ = err
+
+		callFrame = thread.AddNativeCallFrame(sym3, sym1, 3)
+		defer thread.PopNativeCallFrame()
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("2. close file")).ToValue()
-		callFrame.SetNativeLineNumber(3)
 		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
-			thread.Panic(err)
+			return err
 		}
-	}()
+		return value.Undefined
+	}
+	deferFns = append(deferFns, t2)
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = (value.KernelModule).ToValue()
 	t1[1] = (value.String("3. open TCP socket")).ToValue()
@@ -11519,22 +11533,50 @@ func main() { // loc: <main>
 	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
-		thread.Panic(err)
+		goto lbl1
 	}
-	defer func() {
-		if thread.State() == vm.PanicState {
-			return
-		}
+	t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:6:5
+		var callFrame *vm.CallFrame
+		_ = callFrame
+		var t1 []value.Value
+		_ = t1
+		var err value.Value
+		_ = err
+
+		callFrame = thread.AddNativeCallFrame(sym3, sym1, 6)
+		defer thread.PopNativeCallFrame()
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("4. close TCP socket")).ToValue()
-		callFrame.SetNativeLineNumber(6)
 		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			return err
+		}
+		return value.Undefined
+	}
+	deferFns = append(deferFns, t2)
+	for i := len(deferFns) - 1; i >= 0; i-- {
+		fn := deferFns[i]
+		err = fn(thread)
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-	}()
+	}
+	goto lbl3
+lbl1:
+	t3 = err
+	for i := len(deferFns) - 1; i >= 0; i-- {
+		fn := deferFns[i]
+		err = fn(thread)
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	thread.Panic(t3)
+lbl3:
 }
 `,
 		},

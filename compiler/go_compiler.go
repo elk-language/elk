@@ -151,6 +151,7 @@ const (
 	initMethodGoCompilerMode
 	setterMethodGoCompilerMode
 	closureGoCompilerMode
+	deferGoCompilerMode
 	valuePatternDeclarationGoCompilerMode
 )
 
@@ -235,17 +236,38 @@ func (l *nativeLoopInfo) markLabelUsed() {
 }
 
 type nativeFinallyData struct {
-	body      []ast.StatementNode
+	body      nativeFinallyBody
 	scopes    nativeElkScopes
 	loopInfo  []*nativeLoopInfo
 	catchInfo []*nativeCatchInfo
 }
 
-func newNativeFinallyData(body []ast.StatementNode, scopes nativeElkScopes, loopInfo []*nativeLoopInfo, catchInfo []*nativeCatchInfo) *nativeFinallyData {
+func newNativeFinallyData(body nativeFinallyBody, scopes nativeElkScopes, loopInfo []*nativeLoopInfo, catchInfo []*nativeCatchInfo) *nativeFinallyData {
 	return &nativeFinallyData{
 		body:      body,
 		loopInfo:  loopInfo,
 		catchInfo: catchInfo,
+	}
+}
+
+type nativeFinallyBody struct {
+	nodes    []ast.StatementNode
+	goSource []byte
+}
+
+func (f nativeFinallyBody) isPresent() bool {
+	return len(f.goSource) > 0 || len(f.nodes) > 0
+}
+
+func makeNativeFinallyNodes(nodes []ast.StatementNode) nativeFinallyBody {
+	return nativeFinallyBody{
+		nodes: nodes,
+	}
+}
+
+func makeNativeFinallyGoSource(goSource []byte) nativeFinallyBody {
+	return nativeFinallyBody{
+		goSource: goSource,
 	}
 }
 
@@ -621,6 +643,8 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	methodCompiler.method = method
 	methodCompiler.goMethod = goMethod
 	goMethod.compiler = methodCompiler
+	methodType := c.typeOf(node).(*types.Method)
+	methodCompiler.hasDefer = methodType.HasDefer()
 	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType, node.Location())
 
 	return methodCompiler
@@ -696,6 +720,7 @@ type GoCompiler struct {
 	isGenerator           bool
 	isAsync               bool
 	unhygienic            bool
+	hasDefer              bool
 }
 
 func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *nativeGlobalData, output io.Writer) *GoCompiler {
@@ -982,71 +1007,77 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	result := c.registerGoLocal("result", goReturnType)
 	result.predefined = true
 
-	for _, param := range parameters {
-		p := param.(*ast.MethodParameterNode)
-		pSpan := p.Location()
+	returnVal := c.compileWithDefer(
+		func() *goValue {
+			for _, param := range parameters {
+				p := param.(*ast.MethodParameterNode)
+				pSpan := p.Location()
 
-		pName := identifierToName(p.Name)
-		paramType := c.typeOf(p).(*types.Parameter)
-		typ := paramType.Type
-		local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
-		if local == nil {
-			return
-		}
+				pName := identifierToName(p.Name)
+				paramType := c.typeOf(p).(*types.Parameter)
+				typ := paramType.Type
+				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
+				if local == nil {
+					return errGoValue
+				}
 
-		localName := local.goIdent()
-		if p.Initialiser != nil {
-			fmt.Fprintf(&funcBuffer, ", arg_%s value.Value", localName)
+				localName := local.goIdent()
+				if p.Initialiser != nil {
+					fmt.Fprintf(&funcBuffer, ", arg_%s value.Value", localName)
 
-			c.emit("if (%s).IsUndefined() {\n", localName)
-			val := c.compileExpression(p.Initialiser, false)
-			c.emitAssignGoLocal(local.goLocal, val)
-			c.emit("} else {\n")
+					c.emit("if (%s).IsUndefined() {\n", localName)
+					val := c.compileExpression(p.Initialiser, false)
+					c.emitAssignGoLocal(local.goLocal, val)
+					c.emit("} else {\n")
 
-			argVal := newGoValue(
-				localName,
-				typ,
-				goValueType,
-			)
-			c.emitAssignGoLocal(local.goLocal, argVal)
-			c.emit("}\n")
-		} else {
-			local.goLocal.predefined = true
-			fmt.Fprintf(&funcBuffer, ", %s %s", localName, local.goLocal.goType.String())
-		}
+					argVal := newGoValue(
+						localName,
+						typ,
+						goValueType,
+					)
+					c.emitAssignGoLocal(local.goLocal, argVal)
+					c.emit("}\n")
+				} else {
+					local.goLocal.predefined = true
+					fmt.Fprintf(&funcBuffer, ", %s %s", localName, local.goLocal.goType.String())
+				}
 
-		if p.SetInstanceVariable {
-			val := c.convertValueToWiderType(
-				newGoValue(
-					localName,
-					local.elkType,
-					local.goLocal.goType,
-				),
-			)
-			c.emitSetInstanceVariable(value.ToSymbol(pName), val)
-		}
-	}
+				if p.SetInstanceVariable {
+					val := c.convertValueToWiderType(
+						newGoValue(
+							localName,
+							local.elkType,
+							local.goLocal.goType,
+						),
+					)
+					c.emitSetInstanceVariable(value.ToSymbol(pName), val)
+				}
+			}
 
-	// TODO: implement async and generators
+			// TODO: implement async and generators
 
-	// paramCount := len(parameters)
-	// if c.isGenerator {
-	// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
-	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-	// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
-	// } else if c.isAsync {
-	// 	poolVar := c.defineLocal("_pool", location)
-	// 	paramCount++
-	// 	c.predefinedLocals++
-	// 	c.bytecode.IncrementOptionalParameterCount()
+			// paramCount := len(parameters)
+			// if c.isGenerator {
+			// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
+			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
+			// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
+			// } else if c.isAsync {
+			// 	poolVar := c.defineLocal("_pool", location)
+			// 	paramCount++
+			// 	c.predefinedLocals++
+			// 	c.bytecode.IncrementOptionalParameterCount()
 
-	// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
-	// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
-	// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-	// }
+			// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
+			// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
+			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
+			// }
 
-	c.emitAddCallFrame(loc)
-	returnVal := c.compileStatements(body, false)
+			c.emitAddCallFrame(loc)
+			return c.compileStatements(body, false)
+		},
+		returnType,
+		false,
+	)
 
 	c.emitReturn(c.methodReturnValue(returnVal))
 
@@ -1087,6 +1118,8 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
+	closureType := c.typeOf(node).(*types.Callable)
+	closureCompiler.hasDefer = closureType.Body.HasDefer()
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
 	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
@@ -1098,6 +1131,26 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 		tmp,
 		typ,
 	)
+}
+
+func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *goValue {
+	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureCompiler := NewGoCompiler("<defer>", fmt.Sprintf("fn_cl%d", closureId), deferGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
+	closureCompiler.closureLevel = c.closureLevel + 1
+	closureCompiler.parent = c
+	closureCompiler.Errors = c.Errors
+	closureCompiler.hasDefer = node.HasDefer
+
+	tmp := c.defineTmpGoLocal(value.FetchGoType("func(*vm.Thread) value.Value"))
+	closureCompiler.compileDeferExpressionBody(node.Expression, tmp, node.Location())
+
+	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
+	c.emitBytes(closureCompiler.buff.Bytes())
+
+	c.emit("%[1]s = append(%[1]s, %s)\n", deferFnsVarName, tmp.name)
+	tmp.markFree()
+
+	return nilGoValue
 }
 
 func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) *goValue {
@@ -1150,6 +1203,7 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
+	closureCompiler.hasDefer = node.HasDefer
 
 	closureTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
 	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, true, closureTmp, node.Location())
@@ -1179,44 +1233,51 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
-	for i, param := range parameters {
-		p := param.(*ast.FormalParameterNode)
-		pSpan := p.Location()
+	val := c.compileWithDefer(
+		func() *goValue {
+			for i, param := range parameters {
+				p := param.(*ast.FormalParameterNode)
+				pSpan := p.Location()
 
-		pName := identifierToName(p.Name)
-		paramType := c.typeOf(p).(*types.Parameter)
-		typ := paramType.Type
-		local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
-		if local == nil {
-			return
-		}
+				pName := identifierToName(p.Name)
+				paramType := c.typeOf(p).(*types.Parameter)
+				typ := paramType.Type
+				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
+				if local == nil {
+					return errGoValue
+				}
 
-		if p.Initialiser != nil {
-			argVal := newGoValue(
-				fmt.Sprintf("args[%d]", i),
-				typ,
-				goValueType,
-			)
-			c.emit("if (%s).IsUndefined() {\n", argVal.value)
-			val := c.compileExpression(p.Initialiser, false)
-			c.emitAssignGoLocal(local.goLocal, val)
-			c.emit("} else {\n")
+				if p.Initialiser != nil {
+					argVal := newGoValue(
+						fmt.Sprintf("args[%d]", i),
+						typ,
+						goValueType,
+					)
+					c.emit("if (%s).IsUndefined() {\n", argVal.value)
+					val := c.compileExpression(p.Initialiser, false)
+					c.emitAssignGoLocal(local.goLocal, val)
+					c.emit("} else {\n")
 
-			c.emitAssignGoLocal(local.goLocal, argVal)
+					c.emitAssignGoLocal(local.goLocal, argVal)
 
-			c.emit("}\n")
-		} else {
-			argVal := newGoValue(
-				fmt.Sprintf("args[%d]", i),
-				typ,
-				goValueType,
-			)
-			c.emitAssignGoLocal(local.goLocal, argVal)
-		}
-	}
+					c.emit("}\n")
+				} else {
+					argVal := newGoValue(
+						fmt.Sprintf("args[%d]", i),
+						typ,
+						goValueType,
+					)
+					c.emitAssignGoLocal(local.goLocal, argVal)
+				}
+			}
 
-	c.emitAddCallFrame(loc)
-	val := c.compileStatements(body, false)
+			c.emitAddCallFrame(loc)
+			return c.compileStatements(body, false)
+		},
+		typ,
+		false,
+	)
+
 	c.emitReturn(c.convertValueToWiderType(val).fetchValue())
 
 	c.registerGoImport("github.com/elk-language/elk/position", "")
@@ -1248,6 +1309,33 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	if lambda && hasUpvalues {
 		c.emit("}\n") // close scope
 	}
+}
+
+func (c *GoCompiler) compileDeferExpressionBody(body ast.ExpressionNode, result *goLocal, loc *position.Location) {
+	var funcBuffer bytes.Buffer
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread) value.Value { // defer, loc: %s \n", loc.String())
+	selfLocal := c.registerGoLocal("self", goValueType)
+	selfLocal.predefined = true
+
+	c.compileWithDefer(
+		func() *goValue {
+			c.emitAddCallFrame(loc)
+			return c.compileExpression(body, true)
+		},
+		c.typeOf(body),
+		true,
+	)
+
+	c.emitReturn("")
+
+	c.compileLocalsTo(&funcBuffer)
+	c.emitPrependBytes(funcBuffer.Bytes())
+
+	var scopeBuffer bytes.Buffer
+	fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+	c.emitPrependBytes(scopeBuffer.Bytes())
+
+	c.emit("}\n")
 }
 
 func (c *GoCompiler) emitReturn(val string) {
@@ -1284,20 +1372,26 @@ func (c *GoCompiler) emitReturn(val string) {
 		// } else {
 		c.emit("return self, value.Undefined\n")
 		// }
-	// TODO: implement namespaces
-	// case namespaceBytecodeCompilerMode:
-	// 	if value != nil {
-	// 		c.compileNodeWithResult(value)
-	// 	}
-	// 	if c.lastOpCode != bytecode.NIL {
-	// 		c.emit(location.EndPos.Line, bytecode.POP)
-	// 		c.emit(location.EndPos.Line, bytecode.NIL)
-	// 	}
-	// 	if c.isNestedInFinally() {
-	// 		c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-	// 	} else {
-	// 		c.emit(location.EndPos.Line, bytecode.RETURN)
-	// 	}
+		// TODO: implement namespaces
+		// case namespaceBytecodeCompilerMode:
+		// 	if value != nil {
+		// 		c.compileNodeWithResult(value)
+		// 	}
+		// 	if c.lastOpCode != bytecode.NIL {
+		// 		c.emit(location.EndPos.Line, bytecode.POP)
+		// 		c.emit(location.EndPos.Line, bytecode.NIL)
+		// 	}
+		// 	if c.isNestedInFinally() {
+		// 		c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
+		// 	} else {
+		// 		c.emit(location.EndPos.Line, bytecode.RETURN)
+		// 	}
+	case deferGoCompilerMode: // TODO: implement finally
+		// if c.isNestedInFinally() {
+		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
+		// } else {
+		c.emit("return value.Undefined\n")
+		// }
 	default:
 		// TODO: implement finally
 		// if c.isNestedInFinally() {
@@ -1961,6 +2055,8 @@ func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compile
 }
 
 func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
+	c.hasDefer = node.HasDefer
+
 	var initCode string
 	if c.goName == "main" {
 		initCode = c.buff.String()
@@ -2078,7 +2174,13 @@ func (c *GoCompiler) compileLocals() {
 
 // Entry point to the compilation process
 func (c *GoCompiler) compileProgram(node *ast.ProgramNode, valueIsIgnored bool) *goValue {
-	return c.compileStatements(node.Body, valueIsIgnored)
+	return c.compileWithDefer(
+		func() *goValue {
+			return c.compileStatements(node.Body, valueIsIgnored)
+		},
+		types.Any{},
+		valueIsIgnored,
+	)
 }
 
 func (c *GoCompiler) compileStatements(nodes []ast.StatementNode, valueIsIgnored bool) *goValue {
@@ -3726,12 +3828,23 @@ func (c *GoCompiler) compileFinallyFromCatchInfo(catchInfo *nativeCatchInfo) {
 	c.catchInfo = finally.catchInfo
 
 	c.enterDefaultScope()
-	c.compileStatements(finally.body, true)
+	c.compileFinallyBody(finally.body)
 	c.leaveScope()
 
 	c.scopes = prevScopes
 	c.catchInfo = prevCatchInfo
 	c.loopInfo = prevLoopInfo
+}
+
+func (c *GoCompiler) compileFinallyBody(body nativeFinallyBody) {
+	if len(body.nodes) > 0 {
+		c.compileStatements(body.nodes, true)
+		return
+	}
+	if len(body.goSource) > 0 {
+		c.emitBytes(body.goSource)
+		return
+	}
 }
 
 func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionNode) *goValue {
@@ -3948,35 +4061,63 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 	return nilGoValue
 }
 
-func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *goValue {
-	c.enterDefaultScope()
-	c.emit("defer func() {\n")
-	c.emit("if thread.State() == vm.PanicState { return }\n")
-	c.compileExpression(node.Expression, true)
-	c.emit("}()\n")
-	c.leaveScope()
-
-	return nilGoValue
+func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
+	return c.compileDo(
+		func() *goValue {
+			return c.compileStatements(node.Body, valueIsIgnored)
+		},
+		node.Catches,
+		makeNativeFinallyNodes(node.Finally),
+		c.typeOf(node),
+		valueIsIgnored,
+	)
 }
 
-func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
-	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
+const deferFnsVarName = "deferFns"
+
+func (c *GoCompiler) compileWithDefer(body func() *goValue, typ types.Type, valueIsIgnored bool) *goValue {
+	if !c.hasDefer {
+		return body()
+	}
+
+	c.registerGoLocal(deferFnsVarName, value.FetchGoType("[]func(*vm.Thread) value.Value"))
+
+	c.registerUnoptimisableErr()
+	origBuff := c.switchNewBuffer()
+	c.emit("for i := len(deferFns)-1; i >= 0; i-- {\n")
+	c.emit("fn := deferFns[i]\n")
+	c.emit("err = fn(thread)\n")
+	c.emitErrorPropagation()
+	c.emit("}\n")
+	finallyBuff := c.switchBuffer(origBuff)
+
+	return c.compileDo(
+		body,
+		nil,
+		makeNativeFinallyGoSource(finallyBuff.Bytes()),
+		typ,
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, finally nativeFinallyBody, typ types.Type, valueIsIgnored bool) *goValue {
+	finallyIsPresent := finally.isPresent()
+	if len(catches) <= 0 && !finallyIsPresent {
 		// simple block without catch and finally
 		c.enterDefaultScope()
-		then := c.compileStatements(node.Body, valueIsIgnored)
+		then := body()
 		c.leaveScope()
 
 		return then
 	}
 
-	typ := c.typeOf(node)
 	var resultVar *goLocal
 	var resultVal *goValue
 
 	var finallyData *nativeFinallyData
-	if len(node.Finally) > 0 {
+	if finallyIsPresent {
 		finallyData = newNativeFinallyData(
-			node.Finally,
+			finally,
 			slices.Clone(c.scopes),
 			slices.Clone(c.loopInfo),
 			slices.Clone(c.catchInfo),
@@ -3985,7 +4126,7 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 	catchLabel := c.registerGoLabel()
 	c.enterCatchScope(catchLabel, finallyData)
 
-	thenVal := c.compileStatements(node.Body, valueIsIgnored)
+	thenVal := body()
 	if valueIsIgnored {
 		resultVal = nilGoValue
 	} else if catchLabel.used {
@@ -3998,11 +4139,11 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 
 	c.leaveScope()
 
-	if len(node.Finally) > 0 {
+	if finallyIsPresent {
 		// finally post do statements
 		// only executed on the happy path
 		c.enterDefaultScope()
-		c.compileStatements(node.Finally, true)
+		c.compileFinallyBody(finally)
 		c.leaveScope()
 	}
 
@@ -4017,7 +4158,7 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 		errVal := newGoValueWithLocal(errVar, types.Any{})
 		c.emit("%s = err\n", errVar.name)
 
-		for _, catchNode := range node.Catches {
+		for _, catchNode := range catches {
 			c.enterDefaultScope()
 
 			location := catchNode.Location()
@@ -4047,7 +4188,7 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 				c.emitAssignGoLocal(resultVar, catchResult)
 			}
 
-			if len(node.Finally) > 0 {
+			if finallyIsPresent {
 				c.emitGoto(finallyAfterCatchLabel)
 			} else {
 				c.emitGoto(endLabel)
@@ -4058,23 +4199,23 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 			c.leaveScope()
 		}
 
-		if len(node.Finally) > 0 {
+		if finallyIsPresent {
 			// finally when the exception wasn't caught
 			// results in the exception being rethrown
 			c.enterDefaultScope()
-			c.compileStatements(node.Finally, true)
+			c.compileFinallyBody(finally)
 			c.leaveScope()
 		}
 
 		c.emitRethrow(errVal)
 
-		if len(node.Finally) > 0 && len(node.Catches) > 0 {
+		if finallyIsPresent && len(catches) > 0 {
 			// finally after a successful catch
 			// does not rethrow, just continues the regular flow
 			c.emitGoLabel(finallyAfterCatchLabel)
 
 			c.enterDefaultScope()
-			c.compileStatements(node.Finally, true)
+			c.compileFinallyBody(finally)
 			c.leaveScope()
 		}
 
@@ -7183,7 +7324,7 @@ func (c *GoCompiler) compileModuleDeclarationNode(node *ast.ModuleDeclarationNod
 	elkName := fmt.Sprintf("<module: %s>", typ.Name())
 	goName := c.getGoIdentForNamespaceBody()
 
-	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.HasDefer, node.Location())
 }
 
 func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarationNode) *goValue {
@@ -7191,7 +7332,7 @@ func (c *GoCompiler) compileInterfaceDeclarationNode(node *ast.InterfaceDeclarat
 	elkName := fmt.Sprintf("<interface: %s>", typ.Name())
 	goName := c.getGoIdentForNamespaceBody()
 
-	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.HasDefer, node.Location())
 }
 
 func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode) *goValue {
@@ -7199,7 +7340,7 @@ func (c *GoCompiler) compileMixinDeclarationNode(node *ast.MixinDeclarationNode)
 	elkName := fmt.Sprintf("<mixin: %s>", typ.Name())
 	goName := c.getGoIdentForNamespaceBody()
 
-	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.HasDefer, node.Location())
 }
 
 func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode) *goValue {
@@ -7207,7 +7348,7 @@ func (c *GoCompiler) compileClassDeclarationNode(node *ast.ClassDeclarationNode)
 	elkName := fmt.Sprintf("<class: %s>", typ.Name())
 	goName := c.getGoIdentForNamespaceBody()
 
-	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.HasDefer, node.Location())
 }
 
 func (c *GoCompiler) compileSingletonBlockExpressionNode(node *ast.SingletonBlockExpressionNode) *goValue {
@@ -7215,10 +7356,10 @@ func (c *GoCompiler) compileSingletonBlockExpressionNode(node *ast.SingletonBloc
 	elkName := fmt.Sprintf("<singleton: %s>", typ.Name())
 	goName := c.getGoIdentForNamespaceBody()
 
-	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.Location())
+	return c.compileNamespaceDeclarationNode(elkName, goName, node.Body, typ, node.HasDefer, node.Location())
 }
 
-func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, body []ast.StatementNode, typ types.Namespace, loc *position.Location) *goValue {
+func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, body []ast.StatementNode, typ types.Namespace, hasDefer bool, loc *position.Location) *goValue {
 	if len(body) <= 0 {
 		return nilGoValue
 	}
@@ -7226,6 +7367,7 @@ func (c *GoCompiler) compileNamespaceDeclarationNode(elkName, goName string, bod
 	classCompiler := NewGoCompiler(elkName, goName, topLevelGoCompilerMode, loc, c.checker, c.globalData, c.output)
 	classCompiler.SetParent(c)
 	classCompiler.Errors = c.Errors
+	classCompiler.hasDefer = hasDefer
 
 	classCompiler.compileNamespaceBody(body, typ, loc)
 
@@ -7236,7 +7378,13 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 	c.registerGoLocal("self", goValueType)
 	c.emitAddCallFrame(loc)
 	buffLenBeforeStatements := c.buff.Len()
-	c.compileStatements(body, true)
+	c.compileWithDefer(
+		func() *goValue {
+			return c.compileStatements(body, true)
+		},
+		types.Any{},
+		true,
+	)
 	if c.buff.Len() == buffLenBeforeStatements {
 		c.buff.Reset()
 		c.packageBuff.Reset()
@@ -7761,8 +7909,10 @@ func (c *GoCompiler) resolveLocal(name string) (*nativeElkLocal, bool) {
 
 // Resolve an upvalue from an outer context
 func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
-	if c.mode != closureGoCompilerMode {
-		// don't look into parent compilers if we aren't in a closure
+	switch c.mode {
+	case closureGoCompilerMode, deferGoCompilerMode:
+	default:
+		// don't look into parent compilers if we aren't in a closure or defer
 		return nil, false
 	}
 
@@ -7988,6 +8138,8 @@ func (c *GoCompiler) emitRethrow(val *goValue) {
 		c.emit("thread.Panic(%s)\n", c.convertValueToWiderType(val).fetchValue())
 	case methodGoCompilerMode, setterMethodGoCompilerMode, initMethodGoCompilerMode:
 		c.emit("return result, %s\n", c.convertValueToWiderType(val).fetchValue())
+	case deferGoCompilerMode:
+		c.emit("return %s\n", c.convertValueToWiderType(val).fetchValue())
 	default:
 		c.emit("return value.Undefined, %s\n", c.convertValueToWiderType(val).fetchValue())
 	}
