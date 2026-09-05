@@ -5820,6 +5820,93 @@ func TestBytecodeCatch(t *testing.T) {
 				},
 			),
 		},
+		"finally around return": {
+			input: `
+				a := 5
+				do
+					println("foo")
+					return if a == 5
+					println("bar")
+				finally
+					println("baz")
+				end
+			`,
+			want: vm.NewBytecodeFunctionWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.INT_5),
+					byte(bytecode.SET_LOCAL_1),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_1),
+					byte(bytecode.CALL_METHOD_NT8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL_1),
+					byte(bytecode.INT_5),
+					byte(bytecode.JUMP_UNLESS_IEQ), 0, 2,
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE_3),
+					byte(bytecode.CALL_METHOD_NT8), 2,
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_METHOD_NT8), 2,
+					byte(bytecode.POP),
+					byte(bytecode.JUMP), 0, 40,
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.GET_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_METHOD_NT8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNP), 0, 2,
+					byte(bytecode.POP_2),
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF_NP), 0, 10,
+					byte(bytecode.JUMP_IF_NIL_NP), 0, 5,
+					byte(bytecode.POP_2),
+					byte(bytecode.POP_2_SKIP_ONE),
+					byte(bytecode.JUMP), 0, 4,
+					byte(bytecode.POP_2),
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_2),
+					byte(bytecode.RETHROW),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(120, 9, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(4, 6),
+					bytecode.NewLineInfo(5, 7),
+					bytecode.NewLineInfo(6, 5),
+					bytecode.NewLineInfo(8, 7),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(9, 13),
+					bytecode.NewLineInfo(8, 6),
+					bytecode.NewLineInfo(9, 22),
+				},
+				0,
+				0,
+				[]value.Value{
+					value.ToSymbol("Std::Kernel").ToValue(),
+					value.Ref(value.String("foo")),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
+					value.Ref(value.String("bar")),
+					value.Ref(value.String("baz")),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(4, 22, 32, false),
+					vm.NewCatchEntry(4, 22, 40, true),
+				},
+			),
+		},
 		"finally between continue and loop": {
 			input: `
 				a := true

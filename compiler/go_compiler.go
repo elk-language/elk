@@ -1338,7 +1338,18 @@ func (c *GoCompiler) compileDeferExpressionBody(body ast.ExpressionNode, result 
 	c.emit("}\n")
 }
 
+func (c *GoCompiler) compileAllFinally() {
+	for _, scope := range slices.Backward(c.scopes) {
+		switch scope.typ {
+		case catchNativeElkScopeType:
+			c.compileFinallyFromCatchInfo(scope.catchInfo)
+		}
+	}
+}
+
 func (c *GoCompiler) emitReturn(val string) {
+	c.compileAllFinally()
+
 	// TODO: implement generators
 	// if c.isGenerator {
 	// 	c.emitYield(location, value)
@@ -1354,51 +1365,16 @@ func (c *GoCompiler) emitReturn(val string) {
 	switch c.mode {
 	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
-		// TODO: implement finally
-		// if c.isNestedInFinally() {
-		// 	c.emit(location.EndPos.Line, bytecode.GET_LOCAL8, 1)
-		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-		// } else {
 		firstArg := c.goLocals.Get("l0")
 		result := newGoValueWithLocal(firstArg, c.method.ReturnType)
 		val = c.methodReturnValue(result)
 		c.emit("return %s, value.Undefined\n", val)
-		// }
 	case initMethodGoCompilerMode:
-		// TODO: implement finally
-		// if c.isNestedInFinally() {
-		// 	c.emit(location.EndPos.Line, bytecode.SELF)
-		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-		// } else {
 		c.emit("return self, value.Undefined\n")
-		// }
-		// TODO: implement namespaces
-		// case namespaceBytecodeCompilerMode:
-		// 	if value != nil {
-		// 		c.compileNodeWithResult(value)
-		// 	}
-		// 	if c.lastOpCode != bytecode.NIL {
-		// 		c.emit(location.EndPos.Line, bytecode.POP)
-		// 		c.emit(location.EndPos.Line, bytecode.NIL)
-		// 	}
-		// 	if c.isNestedInFinally() {
-		// 		c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-		// 	} else {
-		// 		c.emit(location.EndPos.Line, bytecode.RETURN)
-		// 	}
-	case deferGoCompilerMode: // TODO: implement finally
-		// if c.isNestedInFinally() {
-		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-		// } else {
+	case deferGoCompilerMode:
 		c.emit("return value.Undefined\n")
-		// }
 	default:
-		// TODO: implement finally
-		// if c.isNestedInFinally() {
-		// 	c.emit(location.EndPos.Line, bytecode.RETURN_FINALLY)
-		// } else {
 		c.emit("return %s, value.Undefined\n", val)
-		// }
 	}
 }
 

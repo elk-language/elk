@@ -10954,6 +10954,125 @@ lbl3:
 }
 `,
 		},
+		"finally around return": {
+			input: `
+				a := 5
+				do
+					println("foo")
+					return if a == 5
+					println("bar")
+				finally
+					println("baz")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(5)).ToValue()
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("foo")).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		goto lbl1
+	}
+	if value.Bool(value.EqualInts(l0, (value.SmallInt(5)).ToValue())) {
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("baz")).ToValue()
+		callFrame.SetNativeLineNumber(8)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		return
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("bar")).ToValue()
+	callFrame.SetNativeLineNumber(6)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		goto lbl1
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("baz")).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	goto lbl3
+lbl1:
+	t2 = err
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("baz")).ToValue()
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	thread.Panic(t2)
+lbl3:
+}
+`,
+		},
 		"finally between continue and loop": {
 			input: `
 				a := true
@@ -11102,6 +11221,147 @@ loop0:
 		thread.Panic(t2)
 	lbl6:
 	}
+}
+`,
+		},
+		"finally between continue and loop and outside": {
+			input: `
+				a := true
+				do
+					while a
+						do
+							println("foo")
+							continue
+						finally
+							println("finally 1")
+						end
+					end
+				finally
+					println("finally 2")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Bool // var a: bool
+	_ = l0
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.True
+loop0:
+	for {
+		if !(l0) {
+			break
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("foo")).ToValue()
+		callFrame.SetNativeLineNumber(6)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl2
+		}
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		callFrame.SetNativeLineNumber(9)
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		continue loop0
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		goto lbl4
+	lbl2:
+		t2 = err
+		t1 = value.ResizeNativeArgs(t1, 3)
+		t1[0] = (value.KernelModule).ToValue()
+		t1[1] = (value.String("finally 1")).ToValue()
+		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			goto lbl1
+		}
+		err = t2
+		goto lbl1
+	lbl4:
+	}
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("finally 2")).ToValue()
+	callFrame.SetNativeLineNumber(13)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	goto lbl6
+lbl1:
+	t2 = err
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (value.String("finally 2")).ToValue()
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	thread.Panic(t2)
+lbl6:
 }
 `,
 		},
