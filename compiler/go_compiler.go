@@ -468,7 +468,7 @@ func newGoImportEntry(path, name string) *goImportEntry {
 
 func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool) *GoCompiler {
 	name := "main"
-	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
 	compiler.Errors = errors
 	if parent != nil {
@@ -479,7 +479,7 @@ func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.L
 
 func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler {
 	name := "main"
-	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, newNativeGlobalData(), output)
+	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
 	compiler.Errors = errors
 	return compiler
@@ -597,8 +597,8 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
 	elkType := c.typeOf(node)
 	goType := init.goType
-	goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
-	c.globalData.constantCache.SetUnsafe(
+	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
+	c.globalData.native.constantCache.SetUnsafe(
 		fullConstName,
 		&nativeConstant{
 			ident:   goIdent,
@@ -622,6 +622,10 @@ func (c *GoCompiler) getFullConstName(namespaceName, constName string) string {
 }
 
 func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler {
+	if node.IsGenerator() || node.IsAsync() {
+		return c.CompileBytecodeMethodBody(node, name)
+	}
+
 	var mode goMode
 	if node.IsSetter() {
 		mode = setterMethodGoCompilerMode
@@ -646,6 +650,27 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	methodType := c.typeOf(node).(*types.Method)
 	methodCompiler.hasDefer = methodType.HasDefer()
 	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType, node.Location())
+
+	return methodCompiler
+}
+
+func (c *GoCompiler) CompileBytecodeMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler {
+	var mode bytecodeCompilerMode
+	if node.IsSetter() {
+		mode = setterMethodBytecodeCompilerMode
+	} else if identifierToName(node.Name) == "#init" {
+		mode = initMethodBytecodeCompilerMode
+	} else {
+		mode = methodBytecodeCompilerMode
+	}
+
+	methodCompiler := NewBytecodeCompiler(name.String(), mode, node.Location(), c.checker, c.globalData)
+	methodCompiler.isGenerator = node.IsGenerator()
+	methodCompiler.isAsync = node.IsAsync()
+	methodCompiler.Errors = c.Errors
+	methodType := c.typeOf(node).(*types.Method)
+	methodCompiler.hasDefer = methodType.HasDefer()
+	methodCompiler.compileMethodBody(node.Location(), node.Parameters, node.Body)
 
 	return methodCompiler
 }
@@ -706,7 +731,7 @@ type GoCompiler struct {
 	loopInfo              []*nativeLoopInfo
 	catchInfo             []*nativeCatchInfo
 	nativeCallsToOptimise []*nativeCall
-	globalData            *nativeGlobalData
+	globalData            *GlobalData
 	callFrameStartOffset  int // call frame definition start offset
 	callFrameEndOffset    int // call frame definition end offset
 	goLabelCounter        int
@@ -723,7 +748,7 @@ type GoCompiler struct {
 	hasDefer              bool
 }
 
-func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *nativeGlobalData, output io.Writer) *GoCompiler {
+func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *GlobalData, output io.Writer) *GoCompiler {
 	return &GoCompiler{
 		elkName:           elkName,
 		goName:            goName,
@@ -766,7 +791,7 @@ func (c *GoCompiler) Flush() {
 }
 
 func (c *GoCompiler) flushImport() {
-	imports := c.globalData.goImports
+	imports := c.globalData.native.goImports
 	if imports.Len() == 0 {
 		return
 	}
@@ -1113,7 +1138,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	}
 
 	typ := c.typeOf(node)
-	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureId := c.globalData.native.closureCounter.Add(1) - 1
 	closureCompiler := NewGoCompiler("<closure>", fmt.Sprintf("fn_cl%d", closureId), closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
@@ -1134,7 +1159,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 }
 
 func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *goValue {
-	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureId := c.globalData.native.closureCounter.Add(1) - 1
 	closureCompiler := NewGoCompiler("<defer>", fmt.Sprintf("fn_cl%d", closureId), deferGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
@@ -1198,7 +1223,7 @@ func (c *GoCompiler) compileMatchExpressionNode(node *ast.MatchExpressionNode) *
 
 func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIsIgnored bool) *goValue {
 	typ := c.typeOf(node)
-	closureId := c.globalData.closureCounter.Add(1) - 1
+	closureId := c.globalData.native.closureCounter.Add(1) - 1
 	closureCompiler := NewGoCompiler("<closure>", fmt.Sprintf("fn_cl%d", closureId), closureGoCompilerMode, node.Location(), c.checker, c.globalData, c.output)
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
@@ -1704,7 +1729,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("parentNamespace = %s\n", c.convertValueToWiderType(namespaceVal).fetchValue())
 		}
 
-		goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
+		goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
 		var elkType types.Type
 		var goType *value.GoType
 
@@ -1730,7 +1755,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		}
 
-		c.globalData.constantCache.SetUnsafe(
+		c.globalData.native.constantCache.SetUnsafe(
 			constName.String(),
 			&nativeConstant{
 				ident:   goIdent,
@@ -1814,7 +1839,7 @@ func (c *GoCompiler) registerGoPackageClause(name string) {
 
 // Emit import level code
 func (c *GoCompiler) registerGoImport(path, name string) {
-	imports := c.globalData.goImports
+	imports := c.globalData.native.goImports
 	imports.Lock()
 	defer imports.Unlock()
 
@@ -1854,11 +1879,11 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 		)
 	}
 
-	c.globalData.constantCache.Lock()
-	defer c.globalData.constantCache.Unlock()
+	c.globalData.native.constantCache.Lock()
+	defer c.globalData.native.constantCache.Unlock()
 
 	fullNameString := fullName.String()
-	if constant, ok := c.globalData.constantCache.GetUnsafe(fullNameString); ok {
+	if constant, ok := c.globalData.native.constantCache.GetUnsafe(fullNameString); ok {
 		return newGoValue(
 			constant.goIdent(),
 			elkType,
@@ -1867,9 +1892,9 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	}
 
 	val := c.convertValueToNarrowerType(c.emitDynamicGetConst(fullName, elkType))
-	goIdent := fmt.Sprintf("const%d", c.globalData.constantCache.Len())
+	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
 	c.emitPackage("var %s %s // %s\n", goIdent, val.goType, fullNameString)
-	c.globalData.constantCache.SetUnsafe(
+	c.globalData.native.constantCache.SetUnsafe(
 		fullNameString,
 		&nativeConstant{
 			ident:   goIdent,
@@ -2057,7 +2082,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	var funcBuffer bytes.Buffer
 	if c.goName == "main" {
 		var methodVarsBuff bytes.Buffer
-		for _, nativeMethod := range c.globalData.methodCache.Map.All() {
+		for _, nativeMethod := range c.globalData.native.methodCache.Map.All() {
 			if nativeMethod.init == "" {
 				continue
 			}
@@ -2070,7 +2095,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		}
 
 		var constVarsBuff bytes.Buffer
-		for _, nativeConst := range c.globalData.constantCache.Map.All() {
+		for _, nativeConst := range c.globalData.native.constantCache.Map.All() {
 			if nativeConst.init == "" {
 				continue
 			}
@@ -6755,43 +6780,43 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValues(receiverType, returnT
 }
 
 func (c *GoCompiler) registerElkMethodName(methodName string) *nativeMethod {
-	c.globalData.methodCache.Lock()
+	c.globalData.native.methodCache.Lock()
 
 	var method *nativeMethod
-	if entry, ok := c.globalData.methodCache.GetUnsafe(methodName); ok {
+	if entry, ok := c.globalData.native.methodCache.GetUnsafe(methodName); ok {
 		method = entry
 	} else {
-		goName := fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
+		goName := fmt.Sprintf("fn_method%d", c.globalData.native.methodCache.Len())
 		method = &nativeMethod{
 			ident: goName,
 		}
-		c.globalData.methodCache.SetUnsafe(
+		c.globalData.native.methodCache.SetUnsafe(
 			methodName,
 			method,
 		)
 	}
 
-	c.globalData.methodCache.Unlock()
+	c.globalData.native.methodCache.Unlock()
 
 	return method
 }
 
 func (c *GoCompiler) getGoIdentForNamespaceBody() string {
-	id := c.globalData.namespaceBodyCounter.Add(1) - 1
+	id := c.globalData.native.namespaceBodyCounter.Add(1) - 1
 	return fmt.Sprintf("fn_ns_expr%d", id)
 }
 
 func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
-	c.globalData.fileNames.Lock()
-	defer c.globalData.fileNames.Unlock()
+	c.globalData.native.fileNames.Lock()
+	defer c.globalData.native.fileNames.Unlock()
 
-	ident, ok := c.globalData.fileNames.GetUnsafe(fileName)
+	ident, ok := c.globalData.native.fileNames.GetUnsafe(fileName)
 	if ok {
 		return ident
 	}
 
-	ident = fmt.Sprintf("fn_file_expr%d", c.globalData.fileNames.Len())
-	c.globalData.fileNames.SetUnsafe(fileName, ident)
+	ident = fmt.Sprintf("fn_file_expr%d", c.globalData.native.fileNames.Len())
+	c.globalData.native.fileNames.SetUnsafe(fileName, ident)
 	return ident
 }
 
@@ -7099,12 +7124,12 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	if method == nil {
 		return nil
 	}
-	c.globalData.methodCache.Lock()
+	c.globalData.native.methodCache.Lock()
 
 	namespacedMethodName := method.NamespacedName()
-	goMethod, ok := c.globalData.methodCache.GetUnsafe(namespacedMethodName)
+	goMethod, ok := c.globalData.native.methodCache.GetUnsafe(namespacedMethodName)
 	if !ok {
-		goIdent := fmt.Sprintf("fn_method%d", c.globalData.methodCache.Len())
+		goIdent := fmt.Sprintf("fn_method%d", c.globalData.native.methodCache.Len())
 		nameSym := c.emitSymbol(name)
 		goMethod = &nativeMethod{
 			ident: goIdent,
@@ -7114,7 +7139,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 				nameSym,
 			),
 		}
-		c.globalData.methodCache.SetUnsafe(
+		c.globalData.native.methodCache.SetUnsafe(
 			namespacedMethodName,
 			goMethod,
 		)
@@ -7126,7 +7151,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		)
 	}
 
-	c.globalData.methodCache.Unlock()
+	c.globalData.native.methodCache.Unlock()
 
 	var tmp *goLocal
 	var tmpName string
@@ -7912,38 +7937,38 @@ func (c *GoCompiler) resolveUpvalue(name string) (*nativeElkLocal, bool) {
 }
 
 func (c *GoCompiler) emitBigFloat(val string) string {
-	c.globalData.bigFloatCache.Lock()
-	defer c.globalData.bigFloatCache.Unlock()
+	c.globalData.native.bigFloatCache.Lock()
+	defer c.globalData.native.bigFloatCache.Unlock()
 
-	bigFloat, ok := c.globalData.bigFloatCache.GetUnsafe(val)
+	bigFloat, ok := c.globalData.native.bigFloatCache.GetUnsafe(val)
 	if ok {
 		return bigFloat.goIdent()
 	}
 
 	bigFloat = &nativeBigFloat{
-		id:  c.globalData.bigFloatCache.Len(),
+		id:  c.globalData.native.bigFloatCache.Len(),
 		val: val,
 	}
-	c.globalData.bigFloatCache.SetUnsafe(val, bigFloat)
+	c.globalData.native.bigFloatCache.SetUnsafe(val, bigFloat)
 	ident := bigFloat.goIdent()
 	c.emitPackage("var %s = value.ParseBigFloatPanic(%q)\n", ident, val)
 	return ident
 }
 
 func (c *GoCompiler) emitBigInt(val string) string {
-	c.globalData.bigIntCache.Lock()
-	defer c.globalData.bigIntCache.Unlock()
+	c.globalData.native.bigIntCache.Lock()
+	defer c.globalData.native.bigIntCache.Unlock()
 
-	bigInt, ok := c.globalData.bigIntCache.GetUnsafe(val)
+	bigInt, ok := c.globalData.native.bigIntCache.GetUnsafe(val)
 	if ok {
 		return bigInt.goIdent()
 	}
 
 	bigInt = &nativeBigInt{
-		id:  c.globalData.bigIntCache.Len(),
+		id:  c.globalData.native.bigIntCache.Len(),
 		val: val,
 	}
-	c.globalData.bigIntCache.SetUnsafe(val, bigInt)
+	c.globalData.native.bigIntCache.SetUnsafe(val, bigInt)
 	ident := bigInt.goIdent()
 	c.emitPackage("var %s = value.ParseBigIntPanic(%q, 0)\n", ident, val)
 	return ident
@@ -7959,19 +7984,19 @@ func (c *GoCompiler) emitSymbolValue(val string) *goValue {
 }
 
 func (c *GoCompiler) emitSymbol(val string) string {
-	c.globalData.symbolCache.Lock()
-	defer c.globalData.symbolCache.Unlock()
+	c.globalData.native.symbolCache.Lock()
+	defer c.globalData.native.symbolCache.Unlock()
 
-	symbol, ok := c.globalData.symbolCache.GetUnsafe(val)
+	symbol, ok := c.globalData.native.symbolCache.GetUnsafe(val)
 	if ok {
 		return symbol.goIdent()
 	}
 
 	symbol = &nativeSymbol{
-		id:  c.globalData.symbolCache.Len(),
+		id:  c.globalData.native.symbolCache.Len(),
 		val: val,
 	}
-	c.globalData.symbolCache.SetUnsafe(val, symbol)
+	c.globalData.native.symbolCache.SetUnsafe(val, symbol)
 	ident := symbol.goIdent()
 	c.emitPackage("var %s = value.ToSymbol(%q)\n", ident, val)
 	return ident
@@ -7987,11 +8012,11 @@ func (c *GoCompiler) emitCachedValue(prefix string, val value.Value, goValue *go
 		return nil
 	}
 
-	c.globalData.valueCache.Lock()
-	defer c.globalData.valueCache.Unlock()
+	c.globalData.native.valueCache.Lock()
+	defer c.globalData.native.valueCache.Unlock()
 
 	inspect := val.Inspect()
-	if nativeVal, ok := c.globalData.valueCache.GetUnsafe(inspect); ok {
+	if nativeVal, ok := c.globalData.native.valueCache.GetUnsafe(inspect); ok {
 		return newGoValue(
 			nativeVal.goIdent(),
 			nativeVal.elkType,
@@ -8000,10 +8025,10 @@ func (c *GoCompiler) emitCachedValue(prefix string, val value.Value, goValue *go
 	}
 
 	nativeVal := &nativeValue{
-		ident: fmt.Sprintf("%s%d", prefix, c.globalData.valueCache.Len()),
+		ident: fmt.Sprintf("%s%d", prefix, c.globalData.native.valueCache.Len()),
 		val:   val,
 	}
-	c.globalData.valueCache.SetUnsafe(inspect, nativeVal)
+	c.globalData.native.valueCache.SetUnsafe(inspect, nativeVal)
 	ident := nativeVal.goIdent()
 
 	c.emitPackage("var %s = %s\n", ident, goValue.fetchValue())

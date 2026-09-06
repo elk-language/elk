@@ -27,7 +27,7 @@ import (
 const MainName = "<main>"
 
 func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) *BytecodeCompiler {
-	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, NewGlobalData())
 	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.Errors = errors
 	compiler.parent = parent
@@ -35,7 +35,7 @@ func CreateBytecodeCompiler(parent *BytecodeCompiler, checker types.Checker, loc
 }
 
 func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpointContext, errors *diagnostic.SyncDiagnosticList) *BytecodeCompiler {
-	compiler := NewBytecodeCompiler(context.Location.FilePath, breakpointBytecodeCompilerMode, context.Location, checker, newBytecodeGlobalData())
+	compiler := NewBytecodeCompiler(context.Location.FilePath, breakpointBytecodeCompilerMode, context.Location, checker, NewGlobalData())
 	compiler.Errors = errors
 	compiler.lastLocalIndex = context.lastLocalIndex
 	compiler.maxLocalIndex = context.maxLocalIndex
@@ -47,7 +47,7 @@ func CreateBreakpointCompiler(checker types.Checker, context *BytecodeBreakpoint
 }
 
 func (c *BytecodeCompiler) CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler {
-	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
+	compiler := NewBytecodeCompiler(loc.FilePath, topLevelBytecodeCompilerMode, loc, checker, NewGlobalData())
 	compiler.additionalAbortChecks = additionalAbortChecks
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
@@ -269,7 +269,7 @@ type BytecodeCompiler struct {
 	parent                *BytecodeCompiler
 	upvalues              bytecodeUpvalues
 	checker               types.Checker
-	globalData            *bytecodeGlobalData
+	globalData            *GlobalData
 	lastLocalIndex        int // index of the last local variable
 	maxLocalIndex         int // max index of a local variable
 	predefinedLocals      int
@@ -283,7 +283,7 @@ type BytecodeCompiler struct {
 }
 
 // Instantiate a NewBytecodeCompiler Compiler instance.
-func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker, globalData *bytecodeGlobalData) *BytecodeCompiler {
+func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker, globalData *GlobalData) *BytecodeCompiler {
 	c := &BytecodeCompiler{
 		bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
@@ -657,7 +657,7 @@ func (c *BytecodeCompiler) CompileMethods(location *position.Location, execOffse
 }
 
 func (c *BytecodeCompiler) optimiseCalls() {
-	for _, call := range c.globalData.callsToOptimise.Slice {
+	for _, call := range c.globalData.bytecode.callsToOptimise.Slice {
 		name := call.methodName
 		namespaceName := call.receiverType.Name()
 		namespaceName, isSingleton := c.singletonName(namespaceName)
@@ -9226,7 +9226,7 @@ func (c *BytecodeCompiler) compileOptimisedCallMethod(receiverType types.Type, n
 			tailCall,
 		)
 
-		c.globalData.callsToOptimise.Push(
+		c.globalData.bytecode.callsToOptimise.Push(
 			newBytecodeCall(
 				name,
 				c.bytecode,
@@ -9260,7 +9260,7 @@ func (c *BytecodeCompiler) compileOptimisedCallMethod(receiverType types.Type, n
 			tailCall,
 		)
 
-		c.globalData.callsToOptimise.Push(
+		c.globalData.bytecode.callsToOptimise.Push(
 			newBytecodeCall(
 				name,
 				c.bytecode,

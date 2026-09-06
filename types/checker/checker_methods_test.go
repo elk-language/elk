@@ -3260,6 +3260,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: 9 = HashMap::[String, Int]().map_pairs() |pair| -> Pair(1u8, 1.2)
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(39, 2, 39)), "cannot instantiate class `Std::HashMap` marked as `noinit`"),
 				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(pair: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
 				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
 				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
@@ -3270,6 +3271,7 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: 9 = HashMap::[String, Int]().map_pairs() |p| -> Pair(1u8, 1.2)
 			`,
 			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(39, 2, 39)), "cannot instantiate class `Std::HashMap` marked as `noinit`"),
 				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(p: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
 				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
 				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(73, 2, 73)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),

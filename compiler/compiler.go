@@ -41,10 +41,22 @@ type Compiler interface {
 	Flush() // Outputs the compiled code to an output file
 }
 
+type GlobalData struct {
+	bytecode *bytecodeGlobalData
+	native   *nativeGlobalData
+}
+
+func NewGlobalData() *GlobalData {
+	return &GlobalData{
+		bytecode: newBytecodeGlobalData(),
+		native:   newNativeGlobalData(),
+	}
+}
+
 func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) Compiler {
 	switch parent := parent.(type) {
 	case nil:
-		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, newBytecodeGlobalData())
+		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, NewGlobalData())
 		cmp.additionalAbortChecks = additionalAbortChecks
 		cmp.Errors = errors
 		cmp.SetParent(parent)
