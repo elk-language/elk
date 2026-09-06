@@ -65,7 +65,7 @@ func (c *CallFrame) FuncName() value.Symbol {
 		return value.Symbol(c.fp)
 	}
 
-	return c.bytecode.Name()
+	return c.bytecode.name
 }
 
 func (c *CallFrame) LineNumber() int {

@@ -82,6 +82,7 @@ type nativeMethod struct {
 	compiler   *GoCompiler
 	state      nativeMethodState
 	withoutErr bool
+	isBytecode bool
 }
 
 func (n *nativeMethod) optimiseNativeCalls() bool {
@@ -638,7 +639,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	method := c.typeOf(node).(*types.Method)
 
 	elkName := method.NamespacedName()
-	goMethod := c.registerElkMethodName(elkName)
+	goMethod := c.registerElkMethodName(elkName, false)
 
 	methodCompiler := NewGoCompiler(elkName, goMethod.ident, mode, node.Location(), c.checker, c.globalData, c.output)
 	methodCompiler.isGenerator = node.IsGenerator()
@@ -663,6 +664,11 @@ func (c *GoCompiler) CompileBytecodeMethodBody(node *ast.MethodDefinitionNode, n
 	} else {
 		mode = methodBytecodeCompilerMode
 	}
+
+	method := c.typeOf(node).(*types.Method)
+
+	elkName := method.NamespacedName()
+	c.registerElkMethodName(elkName, true)
 
 	methodCompiler := NewBytecodeCompiler(name.String(), mode, node.Location(), c.checker, c.globalData)
 	methodCompiler.isGenerator = node.IsGenerator()
@@ -1697,25 +1703,88 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
-	methodCompiler := (*GoCompiler)(method.Body.(*GoSourceMethod))
-	methodCompiler.goMethod.optimiseNativeCalls()
+	switch body := method.Body.(type) {
+	case *GoSourceMethod:
+		methodCompiler := (*GoCompiler)(body)
+		methodCompiler.goMethod.optimiseNativeCalls()
 
-	c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
-	c.emitBytes(methodCompiler.buff.Bytes())
-	methodCompiler.buff.Reset()
+		c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
+		c.emitBytes(methodCompiler.buff.Bytes())
+		methodCompiler.buff.Reset()
 
-	c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
-	methodCompiler.packageBuff.Reset()
-	c.emit(",")
+		c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
+		methodCompiler.packageBuff.Reset()
+		c.emit(",")
 
-	if len(method.Params) > 0 {
-		c.emit("vm.DefWithParameters(%d), ", len(method.Params))
+		if len(method.Params) > 0 {
+			c.emit("vm.DefWithParameters(%d), ", len(method.Params))
+		}
+
+		c.emit(")\n")
+	case *vm.BytecodeFunction:
+		c.emit("vm.DefBytecode(&class.MethodContainer, %q, ", name.String())
+		c.compileBytecodeMethodBody(body, method)
+		c.emit(")\n")
+	default:
+		panic(fmt.Sprintf("invalid method body type: %T", body))
 	}
-
-	c.emit(")\n")
 
 	method.SetCompiled(true)
 	method.Body = nil
+}
+
+func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) {
+	nativeMethod := c.registerElkMethodName(method.NamespacedName(), true)
+	c.emitPackage("var %s = vm.NewBytecodeFunctionWithOptions(\n", nativeMethod.goIdent())
+	c.emitPackage("vm.BytecodeFunctionWithInstructions([]byte{\n")
+	for _, byt := range body.Instructions {
+		c.emitPackage("%x,", byt)
+	}
+	c.emitPackage("}),\n")
+
+	c.emitPackage("vm.BytecodeFunctionWithLocation(position.NewLocation(\n")
+
+	c.emitPackage("%s,\n", body.Location.FilePath)
+	c.emitPackage("position.NewSpan(\n")
+
+	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.StartPos.ByteOffset, body.Location.StartPos.Line, body.Location.StartPos.Column)
+	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.EndPos.ByteOffset, body.Location.EndPos.Line, body.Location.EndPos.Column)
+
+	c.emitPackage("),\n") // end span
+
+	c.emitPackage(")),\n") // end location
+
+	c.emitPackage("vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
+	c.emitPackage("vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
+	c.emitPackage("vm.BytecodeFunctionWithParameters(%d),\n", body.ParameterCount())
+	c.emitPackage("vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
+
+	if len(body.CatchEntries) > 0 {
+		c.emitPackage("vm.BytecodeFunctionWithCatchEntriesVar(\n")
+		for _, entry := range body.CatchEntries {
+			c.emitPackage("vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
+		}
+		c.emitPackage("),\n") // end catch entries
+	}
+
+	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
+	c.emitPackage("vm.BytecodeFunctionWithLineInfoListVar(\n")
+	for _, info := range body.LineInfoList {
+		c.emitPackage("bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
+	}
+	c.emitPackage("),\n") // end line info list
+
+	if len(body.Values) > 0 {
+		c.emitPackage("vm.BytecodeFunctionWithValuesVar(\n")
+		for _, val := range body.Values {
+			// TODO: use the static type stored in runtime value instead of any
+			goVal := c.valueToGoSource(val, types.Any{}, true)
+			c.emitPackage("%s,\n", c.convertValueToWiderType(goVal).fetchValue())
+		}
+		c.emitPackage("),\n") // end values
+	}
+
+	c.emitPackage("}\n") // end struct
 }
 
 func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol) {
@@ -6779,7 +6848,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValues(receiverType, returnT
 	)
 }
 
-func (c *GoCompiler) registerElkMethodName(methodName string) *nativeMethod {
+func (c *GoCompiler) registerElkMethodName(methodName string, isBytecode bool) *nativeMethod {
 	c.globalData.native.methodCache.Lock()
 
 	var method *nativeMethod
@@ -6788,7 +6857,8 @@ func (c *GoCompiler) registerElkMethodName(methodName string) *nativeMethod {
 	} else {
 		goName := fmt.Sprintf("fn_method%d", c.globalData.native.methodCache.Len())
 		method = &nativeMethod{
-			ident: goName,
+			ident:      goName,
+			isBytecode: isBytecode,
 		}
 		c.globalData.native.methodCache.SetUnsafe(
 			methodName,
@@ -6822,7 +6892,7 @@ func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
-	c.registerElkMethodName(method.NamespacedName())
+	c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
 }
 
 func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -7171,7 +7241,26 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	goMethodWithoutErr := goMethod.withoutErr
 	goMethod.unlock()
 
-	if goMethod.hasArgsSlice() {
+	if goMethod.isBytecode {
+		callArgsVar := c.defineCallArgs(len(args))
+		for i, posArg := range args {
+			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
+		}
+
+		c.registerUnoptimisableErr()
+		c.emitSetCallFrameLineNumber(loc)
+		c.emit(
+			"%s, err = thread.CallBytecodeMethod(%s, %s) // receiver: %s, name: %s\n",
+			tmpName,
+			goMethod.goIdent(),
+			callArgsVar.name,
+			types.Inspect(receiverType),
+			name,
+		)
+		callArgsVar.markFree()
+
+		c.emitErrorPropagation()
+	} else if goMethod.hasArgsSlice() {
 		callArgsVar := c.defineCallArgs(len(args))
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())

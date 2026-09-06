@@ -24,7 +24,6 @@ type BytecodeFunction struct {
 	Values       []value.Value // The value pool
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
-	Doc          value.Value
 	CatchEntries []*CatchEntry
 	UpvalueCount int
 
@@ -167,6 +166,12 @@ func BytecodeFunctionWithLineInfoList(lineInfo bytecode.LineInfoList) BytecodeFu
 	}
 }
 
+func BytecodeFunctionWithLineInfoListVar(lineInfo ...*bytecode.LineInfo) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.LineInfoList = lineInfo
+	}
+}
+
 func BytecodeFunctionWithParameters(params int) BytecodeFunctionOption {
 	return func(b *BytecodeFunction) {
 		b.parameterCount = params
@@ -176,6 +181,36 @@ func BytecodeFunctionWithParameters(params int) BytecodeFunctionOption {
 func BytecodeFunctionWithOptionalParameters(optParams int) BytecodeFunctionOption {
 	return func(b *BytecodeFunction) {
 		b.optionalParameterCount = optParams
+	}
+}
+
+func BytecodeFunctionWithUpvalueCount(count int) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.UpvalueCount = count
+	}
+}
+
+func BytecodeFunctionWithCatchEntries(entries []*CatchEntry) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.CatchEntries = entries
+	}
+}
+
+func BytecodeFunctionWithCatchEntriesVar(entries ...*CatchEntry) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.CatchEntries = entries
+	}
+}
+
+func BytecodeFunctionWithValues(values []value.Value) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.Values = values
+	}
+}
+
+func BytecodeFunctionWithValuesVar(values ...value.Value) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.Values = values
 	}
 }
 

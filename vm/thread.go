@@ -404,38 +404,48 @@ func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **CallCache, a
 }
 
 func (vm *Thread) CallMethod(method value.Method, args ...value.Value) (value.Value, value.Value) {
-	self := args[0]
+	switch m := method.(type) {
+	case *BytecodeFunction:
+		return vm.CallBytecodeMethod(m, args...)
+	case *NativeMethod:
+		return vm.CallNativeMethod(m, args...)
+	case *GetterMethod:
+		return m.Call(args[0])
+	case *SetterMethod:
+		return m.Call(args[0], args[1])
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
+	}
+}
+
+func (vm *Thread) CallBytecodeMethod(method *BytecodeFunction, args ...value.Value) (value.Value, value.Value) {
 	paramCount := method.ParameterCount()
 	argCount := len(args) - 1
 	args = vm.populateMissingParametersInSlice(args, paramCount, argCount)
 
-	switch m := method.(type) {
-	case *BytecodeFunction:
-		initialState := vm.state
-		vm.createCurrentCallFrame(true)
-		vm.bytecode = m
-		vm.fp = vm.sp
-		vm.ipSet(&m.Instructions[0])
-		vm.localCount = len(args)
-		for _, arg := range args {
-			vm.push(arg)
-		}
-		vm.run()
-		if vm.state == ErrorState {
-			vm.restoreLastFrame()
-			vm.state = initialState
-			return value.Undefined, vm.popGet()
-		}
-		return vm.popGet(), value.Undefined
-	case *NativeMethod:
-		return m.Function(vm, args)
-	case *GetterMethod:
-		return m.Call(self)
-	case *SetterMethod:
-		return m.Call(self, args[1])
-	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
+	initialState := vm.state
+	vm.createCurrentCallFrame(true)
+	vm.bytecode = method
+	vm.fp = vm.sp
+	vm.ipSet(&method.Instructions[0])
+	vm.localCount = len(args)
+	for _, arg := range args {
+		vm.push(arg)
 	}
+	vm.run()
+	if vm.state == ErrorState {
+		vm.restoreLastFrame()
+		vm.state = initialState
+		return value.Undefined, vm.popGet()
+	}
+	return vm.popGet(), value.Undefined
+}
+
+func (vm *Thread) CallNativeMethod(method *NativeMethod, args ...value.Value) (value.Value, value.Value) {
+	paramCount := method.ParameterCount()
+	argCount := len(args) - 1
+	args = vm.populateMissingParametersInSlice(args, paramCount, argCount)
+	return method.Function(vm, args)
 }
 
 // Call a method without preprocessing its arguments, directly

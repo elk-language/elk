@@ -149,3 +149,16 @@ func Def(
 
 	container.Methods[symbolName] = nativeMethod
 }
+
+// Utility method that defines a new bytecode
+// method in the given container.
+//
+// Panics when the method cannot be defined.
+func DefBytecode(
+	container *value.MethodContainer,
+	name string,
+	body *BytecodeFunction,
+) {
+	symbolName := value.ToSymbol(name)
+	container.Methods[symbolName] = body
+}
