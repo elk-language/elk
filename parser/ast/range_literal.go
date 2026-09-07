@@ -170,7 +170,7 @@ func (n *RangeLiteralNode) Inspect() string {
 	}
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString("\n}")
 

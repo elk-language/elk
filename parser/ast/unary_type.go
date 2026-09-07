@@ -100,7 +100,7 @@ func (n *UnaryTypeNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryTypeNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  type_node: ")
 	indent.IndentStringFromSecondLine(&buff, n.TypeNode.Inspect(), 1)

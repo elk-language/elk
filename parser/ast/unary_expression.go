@@ -100,7 +100,7 @@ func (n *UnaryExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::UnaryExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  right: ")
 	indent.IndentStringFromSecondLine(&buff, n.Right.Inspect(), 1)

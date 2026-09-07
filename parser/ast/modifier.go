@@ -110,7 +110,7 @@ func (n *ModifierNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::ModifierNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  modifier: ")
-	indent.IndentStringFromSecondLine(&buff, n.Modifier.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Modifier).Inspect(), 1)
 
 	buff.WriteString(",\n  left: ")
 	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)

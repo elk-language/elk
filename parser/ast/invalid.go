@@ -78,7 +78,7 @@ func (n *InvalidNode) Inspect() string {
 	return fmt.Sprintf(
 		"Std::Elk::AST::InvalidNode{span: %s, token: %s}",
 		(*value.Location)(n.loc).Inspect(),
-		n.Token.Inspect(),
+		(*value.Token)(n.Token).Inspect(),
 	)
 }
 

@@ -14,7 +14,7 @@ func initBinaryExpressionNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argOp := args[1].MustReference().(*token.Token)
+			argOp := (*token.Token)(args[1].MustReference().(*value.Token))
 			argLeft := args[2].MustReference().(ast.ExpressionNode)
 			argRight := args[3].MustReference().(ast.ExpressionNode)
 
@@ -41,7 +41,7 @@ func initBinaryExpressionNode() {
 		"op",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BinaryExpressionNode)
-			result := value.Ref(self.Op)
+			result := value.Ref((*value.Token)(self.Op))
 			return result, value.Undefined
 
 		},

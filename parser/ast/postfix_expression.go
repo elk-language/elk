@@ -100,7 +100,7 @@ func (n *PostfixExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::PostfixExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  expression: ")
 	indent.IndentStringFromSecondLine(&buff, n.Expression.Inspect(), 1)

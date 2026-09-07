@@ -36,7 +36,7 @@ func initToken() {
 				token.Type(typ),
 				string(val),
 			)
-			return value.Ref(self), value.Undefined
+			return value.Ref((*value.Token)(self)), value.Undefined
 		},
 		DefWithParameters(3),
 	)
@@ -87,7 +87,7 @@ func initToken() {
 		c,
 		"inspect",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := (*token.Token)(args[0].Pointer())
+			self := (*value.Token)(args[0].Pointer())
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)

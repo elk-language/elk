@@ -1412,7 +1412,7 @@ func (n *GenericMethodCallNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)
@@ -1651,7 +1651,7 @@ func (n *MethodCallNode) Inspect() string {
 	indent.IndentStringFromSecondLine(&buff, n.Receiver.Inspect(), 1)
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  method_name: ")
 	indent.IndentStringFromSecondLine(&buff, n.MethodName.Inspect(), 1)

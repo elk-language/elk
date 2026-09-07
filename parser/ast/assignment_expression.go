@@ -78,7 +78,7 @@ func (n *AssignmentExpressionNode) Inspect() string {
 	fmt.Fprintf(&buff, "Std::Elk::AST::AssignmentExpressionNode{\n  location: %s", (*value.Location)(n.loc).Inspect())
 
 	buff.WriteString(",\n  op: ")
-	indent.IndentStringFromSecondLine(&buff, n.Op.Inspect(), 1)
+	indent.IndentStringFromSecondLine(&buff, (*value.Token)(n.Op).Inspect(), 1)
 
 	buff.WriteString(",\n  left: ")
 	indent.IndentStringFromSecondLine(&buff, n.Left.Inspect(), 1)

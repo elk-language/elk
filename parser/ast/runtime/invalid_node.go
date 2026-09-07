@@ -14,7 +14,7 @@ func initInvalidNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argToken := args[1].MustReference().(*token.Token)
+			argToken := (*token.Token)(args[1].MustReference().(*value.Token))
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -69,7 +69,7 @@ func initInvalidNode() {
 		"token",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.InvalidNode)
-			result := value.Ref(self.Token)
+			result := value.Ref((*value.Token)(self.Token))
 			return result, value.Undefined
 
 		},

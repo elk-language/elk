@@ -17,7 +17,6 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
-	"github.com/elk-language/elk/value"
 	"github.com/fatih/color"
 )
 
@@ -166,21 +165,6 @@ func Lex(source string) []*token.Token {
 	return tokens
 }
 
-// Lex the given string and return a slice containing all the tokens.
-func LexValue(source string) *value.ArrayListOfValue {
-	l := New(source)
-
-	tokens := value.NewArrayListOfValue(10)
-	for {
-		tok := l.Next()
-		if tok.Type == token.END_OF_FILE {
-			break
-		}
-		tokens.Append(value.Ref(tok))
-	}
-	return tokens
-}
-
 // Instantiates a new lexer for the given source code.
 func New(source string) *Lexer {
 	return NewWithName("<main>", source)
@@ -204,36 +188,8 @@ func NewWithMode(sourceName string, source string, m mode) *Lexer {
 	}
 }
 
-func (*Lexer) Class() *value.Class {
-	return value.ElkLexerClass
-}
-
-func (*Lexer) DirectClass() *value.Class {
-	return value.ElkLexerClass
-}
-
-func (l *Lexer) Inspect() string {
-	return fmt.Sprintf("Std::Elk::Lexer{&: %p, source_name: %s}", l, value.String(l.sourceName).Inspect())
-}
-
-func (l *Lexer) Error() string {
-	return l.Inspect()
-}
-
-func (l *Lexer) SingletonClass() *value.Class {
-	return nil
-}
-
-func (l *Lexer) InstanceVariables() *value.InstanceVariables {
-	return nil
-}
-
-func (l *Lexer) Copy() value.Reference {
-	return l
-}
-
-func (l *Lexer) ToValue() value.Value {
-	return value.Ref(l)
+func (l *Lexer) SourceName() string {
+	return l.sourceName
 }
 
 // Returns true if there is any code left to analyse.

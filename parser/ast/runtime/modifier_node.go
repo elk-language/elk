@@ -14,7 +14,7 @@ func initModifierNode() {
 		c,
 		"#init",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argModifier := args[1].MustReference().(*token.Token)
+			argModifier := (*token.Token)(args[1].MustReference().(*value.Token))
 			argLeft := args[2].MustReference().(ast.ExpressionNode)
 			argRight := args[3].MustReference().(ast.ExpressionNode)
 
@@ -41,7 +41,7 @@ func initModifierNode() {
 		"modifier",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.ModifierNode)
-			result := value.Ref(self.Modifier)
+			result := value.Ref((*value.Token)(self.Modifier))
 			return result, value.Undefined
 
 		},

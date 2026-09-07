@@ -19,7 +19,7 @@ func initRangeLiteralNode() {
 
 			var argOp *token.Token
 			if !args[3].IsUndefined() {
-				argOp = args[3].MustReference().(*token.Token)
+				argOp = (*token.Token)(args[3].MustReference().(*value.Token))
 			} else {
 				argOp = token.New(position.ZeroLocation, token.CLOSED_RANGE_OP)
 			}
@@ -69,7 +69,7 @@ func initRangeLiteralNode() {
 		"op",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.RangeLiteralNode)
-			result := value.Ref(self.Op)
+			result := value.Ref((*value.Token)(self.Op))
 			return result, value.Undefined
 
 		},

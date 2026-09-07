@@ -33,7 +33,7 @@ func initGenericMethodCallNode() {
 			if args[4].IsUndefined() {
 				argOp = token.New(argLoc, token.DOT)
 			} else {
-				argOp = args[4].MustReference().(*token.Token)
+				argOp = (*token.Token)(args[4].MustReference().(*value.Token))
 			}
 
 			var argPosArgs []ast.ExpressionNode
@@ -83,7 +83,7 @@ func initGenericMethodCallNode() {
 		"op",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
-			result := value.Ref(self.Op)
+			result := value.Ref((*value.Token)(self.Op))
 			return result, value.Undefined
 
 		},

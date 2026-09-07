@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
 	"github.com/fatih/color"
@@ -24,52 +23,6 @@ func (t *Token) Splice(loc *position.Location, unquote bool) *Token {
 		Value: t.Value,
 		loc:   position.SpliceLocation(loc, t.loc, unquote),
 	}
-}
-
-func (*Token) Class() *value.Class {
-	return value.ElkTokenClass
-}
-
-func (*Token) DirectClass() *value.Class {
-	return value.ElkTokenClass
-}
-
-func (*Token) SingletonClass() *value.Class {
-	return nil
-}
-
-func (t *Token) Copy() value.Reference {
-	return t
-}
-
-func (t *Token) ToValue() value.Value {
-	return value.Ref(t)
-}
-
-func (t *Token) InstanceVariables() *value.InstanceVariables {
-	return nil
-}
-
-func (t *Token) Inspect() string {
-	var buff strings.Builder
-
-	buff.WriteString("Std::Token{")
-	if t.Value != "" {
-		fmt.Fprintf(&buff, "value: %s, ", value.String(t.Value).Inspect())
-	}
-
-	fmt.Fprintf(
-		&buff,
-		"typ: %s, span: %s}",
-		t.Type.TypeName(),
-		(*value.Span)(t.Span()).Inspect(),
-	)
-
-	return buff.String()
-}
-
-func (t *Token) Error() string {
-	return t.Inspect()
 }
 
 func (t *Token) Equal(other *Token) bool {
