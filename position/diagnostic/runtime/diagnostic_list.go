@@ -232,7 +232,7 @@ func DiagnosticListEqual(v *vm.Thread, x, y *value.DiagnosticList) (bool, value.
 
 	for i := 0; i < xLen; i++ {
 		equal, err := v.CallMethodByName(
-			symbol.OpEqual,
+			value.S(symbol.OpEqual),
 			value.Ref(x.At(i)),
 			value.Ref(y.At(i)),
 		)
@@ -249,7 +249,7 @@ func DiagnosticListEqual(v *vm.Thread, x, y *value.DiagnosticList) (bool, value.
 func DiagnosticListContains(v *vm.Thread, list *value.DiagnosticList, val value.Value) (bool, value.Value) {
 	for _, element := range *list {
 		equal, err := v.CallMethodByName(
-			symbol.OpEqual,
+			value.S(symbol.OpEqual),
 			value.Ref((*value.Diagnostic)(element)),
 			val,
 		)

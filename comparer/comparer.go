@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -49,8 +50,8 @@ func init() {
 	Comparer = &opts
 	*Comparer = append(
 		*Comparer,
-		cmp.AllowUnexported(value.SymbolTableStruct{}),
-		cmpopts.IgnoreFields(value.SymbolTableStruct{}, "mutex"),
+		cmp.AllowUnexported(symbol.SymbolTableStruct{}),
+		cmpopts.IgnoreFields(symbol.SymbolTableStruct{}, "mutex"),
 		cmp.AllowUnexported(
 			value.Object{},
 			value.BigInt{},
@@ -65,7 +66,7 @@ func init() {
 		bigFloatComparer,
 		float32Comparer,
 		float64Comparer,
-		value.NewSymbolTableComparer(),
+		symbol.NewSymbolTableComparer(),
 		vm.NewNativeMethodComparer(),
 		// value.NewArrayListComparer(Comparer),
 		value.NewObjectComparer(Comparer),

@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Used during typechecking as a placeholder for a future
 // constant or type in using statements
 type ConstantPlaceholder struct {
-	AsName    value.Symbol
+	AsName    symbol.Symbol
 	FullName  string
 	Container ConstantMap
 	Location  *position.Location
@@ -33,7 +33,7 @@ func IsConstantPlaceholder(typ Type) bool {
 	return ok
 }
 
-func NewConstantPlaceholder(asName value.Symbol, fullName string, container ConstantMap, location *position.Location) *ConstantPlaceholder {
+func NewConstantPlaceholder(asName symbol.Symbol, fullName string, container ConstantMap, location *position.Location) *ConstantPlaceholder {
 	return &ConstantPlaceholder{
 		AsName:    asName,
 		FullName:  fullName,
@@ -81,7 +81,7 @@ func (p *ConstantPlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Co
 	}
 	moduleConstantPath := GetConstantPath(p.FullName)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
-	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newPlaceholder)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newPlaceholder)
 
 	newPlaceholder.Container = ConstantsDeepCopyEnv(p.Container, oldEnv, newEnv)
 

@@ -24,7 +24,7 @@ func initCollection() {
 					return value.Undefined, err
 				}
 
-				deletedElement, err := vm.CallMethodByName(symbol.L_remove, self, val)
+				deletedElement, err := vm.CallMethodByName(value.S(symbol.L_remove), self, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -51,7 +51,7 @@ func initCollection() {
 					return value.Undefined, err
 				}
 
-				_, err := vm.CallMethodByName(symbol.L_push, self, val)
+				_, err := vm.CallMethodByName(value.S(symbol.L_push), self, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -69,7 +69,7 @@ func initCollection() {
 			self := args[0]
 			val := args[1]
 
-			_, err = vm.CallMethodByName(symbol.L_push, self, val)
+			_, err = vm.CallMethodByName(value.S(symbol.L_push), self, val)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}

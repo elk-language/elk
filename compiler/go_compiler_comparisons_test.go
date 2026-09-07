@@ -2499,7 +2499,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThan, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: >
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThan), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: >
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5261,7 +5261,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThanEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: >=
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThanEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: >=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -8023,7 +8023,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -10785,7 +10785,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLessThanEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <=
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThanEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -13808,7 +13808,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpSpaceship, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <=>
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSpaceship), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: <=>
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -16656,7 +16656,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -19504,7 +19504,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -22280,7 +22280,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLaxEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: =~
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLaxEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -25056,7 +25056,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(8)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLaxEqual, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: =~
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLaxEqual), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

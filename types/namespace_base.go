@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func MakeFullConstantName(containerName, constName string) string {
@@ -16,13 +16,13 @@ func MakeFullConstantName(containerName, constName string) string {
 	return fmt.Sprintf("%s::%s", containerName, constName)
 }
 
-type MethodMap = map[value.Symbol]*Method
+type MethodMap = map[symbol.Symbol]*Method
 
-type TypeMap = map[value.Symbol]Type
+type TypeMap = map[symbol.Symbol]Type
 
-type InstanceVariableMap = map[value.Symbol]*InstanceVariable
+type InstanceVariableMap = map[symbol.Symbol]*InstanceVariable
 
-type ConstantMap = map[value.Symbol]Constant
+type ConstantMap = map[symbol.Symbol]Constant
 
 type Constant struct {
 	FullName string
@@ -102,87 +102,87 @@ func (c *NamespaceBase) Subtypes() ConstantMap {
 }
 
 // Get the constant with the given name.
-func (c *NamespaceBase) Constant(name value.Symbol) (Constant, bool) {
+func (c *NamespaceBase) Constant(name symbol.Symbol) (Constant, bool) {
 	result, ok := c.constants[name]
 	return result, ok
 }
 
 // Get the constant with the given name.
 func (c *NamespaceBase) ConstantString(name string) (Constant, bool) {
-	return c.Constant(value.ToSymbol(name))
+	return c.Constant(symbol.ToSymbol(name))
 }
 
 // Get the subtype with the given name.
-func (c *NamespaceBase) Subtype(name value.Symbol) (Constant, bool) {
+func (c *NamespaceBase) Subtype(name symbol.Symbol) (Constant, bool) {
 	result, ok := c.subtypes[name]
 	return result, ok
 }
 
 // Get the subtype with the given name.
 func (c *NamespaceBase) SubtypeString(name string) (Constant, bool) {
-	return c.Subtype(value.ToSymbol(name))
+	return c.Subtype(symbol.ToSymbol(name))
 }
 
-func (c *NamespaceBase) MustSubtype(name value.Symbol) Type {
+func (c *NamespaceBase) MustSubtype(name symbol.Symbol) Type {
 	return c.subtypes[name].Type
 }
 
 func (c *NamespaceBase) MustSubtypeString(name string) Type {
-	return c.subtypes[value.ToSymbol(name)].Type
+	return c.subtypes[symbol.ToSymbol(name)].Type
 }
 
 // Get the method with the given name.
-func (c *NamespaceBase) Method(name value.Symbol) *Method {
+func (c *NamespaceBase) Method(name symbol.Symbol) *Method {
 	return c.methods[name]
 }
 
 // Get the method with the given name.
 func (c *NamespaceBase) MethodString(name string) *Method {
-	return c.methods[value.ToSymbol(name)]
+	return c.methods[symbol.ToSymbol(name)]
 }
 
-func (c *NamespaceBase) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
+func (c *NamespaceBase) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable) {
 	c.instanceVariables[name] = ivar
 }
 
 // Get the instance variable with the given name.
-func (c *NamespaceBase) InstanceVariable(name value.Symbol) *InstanceVariable {
+func (c *NamespaceBase) InstanceVariable(name symbol.Symbol) *InstanceVariable {
 	return c.instanceVariables[name]
 }
 
 // Get the instance variable with the given name.
 func (c *NamespaceBase) InstanceVariableString(name string) *InstanceVariable {
-	return c.instanceVariables[value.ToSymbol(name)]
+	return c.instanceVariables[symbol.ToSymbol(name)]
 }
 
-func (c *NamespaceBase) DefineConstant(name value.Symbol, val Type) {
+func (c *NamespaceBase) DefineConstant(name symbol.Symbol, val Type) {
 	c.DefineConstantWithFullName(name, MakeFullConstantName(c.Name(), name.String()), val)
 }
 
-func (c *NamespaceBase) DefineConstantWithFullName(name value.Symbol, fullName string, val Type) {
+func (c *NamespaceBase) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
 	c.constants[name] = Constant{
 		FullName: fullName,
 		Type:     val,
 	}
 }
 
-func (c *NamespaceBase) DefineSubtype(name value.Symbol, val Type) {
+func (c *NamespaceBase) DefineSubtype(name symbol.Symbol, val Type) {
 	c.DefineSubtypeWithFullName(name, MakeFullConstantName(c.Name(), name.String()), val)
 }
 
-func (c *NamespaceBase) DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type) {
+func (c *NamespaceBase) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	c.subtypes[name] = Constant{
 		FullName: fullName,
 		Type:     val,
 	}
 }
 
-func (c *NamespaceBase) SetMethod(name value.Symbol, method *Method) {
+func (c *NamespaceBase) SetMethod(name symbol.Symbol, method *Method) {
 	c.methods[name] = method
 }
 
 // Define a new class if it does not exist
-func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineClass(docComment, abstract, sealed, primitive, noinit, immutable, name, parent, env)
@@ -205,7 +205,7 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	class := NewClass(docComment, abstract, sealed, primitive, noinit, immutable, fullName, parent, env)
 	c.DefineSubtypeWithFullName(name, fullName, class)
@@ -214,7 +214,7 @@ func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primiti
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
+func (c *NamespaceBase) TryDefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineModule(docComment, name, env)
@@ -226,7 +226,7 @@ func (c *NamespaceBase) TryDefineModule(docComment string, name value.Symbol, en
 }
 
 // Define a new module.
-func (c *NamespaceBase) DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
+func (c *NamespaceBase) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewModule(docComment, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)
@@ -235,7 +235,7 @@ func (c *NamespaceBase) DefineModule(docComment string, name value.Symbol, env *
 }
 
 // Define a new mixin if it does not exist.
-func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineMixin(docComment, abstract, name, env)
@@ -257,7 +257,7 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name va
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewMixin(docComment, abstract, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)
@@ -266,7 +266,7 @@ func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name value
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+func (c *NamespaceBase) TryDefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineInterface(docComment, name, env)
@@ -278,7 +278,7 @@ func (c *NamespaceBase) TryDefineInterface(docComment string, name value.Symbol,
 }
 
 // Define a new interface.
-func (c *NamespaceBase) DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+func (c *NamespaceBase) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewInterface(docComment, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)

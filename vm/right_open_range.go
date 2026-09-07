@@ -216,7 +216,7 @@ func RightOpenRangeIteratorAll(vm *Thread, i *value.RightOpenRangeIterator) iter
 		for {
 			element, err := RightOpenRangeIteratorNext(vm, i)
 			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

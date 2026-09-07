@@ -1,18 +1,45 @@
 package value
 
 import (
-	"encoding/binary"
-	"fmt"
-	"strings"
-	"unicode"
-	"unicode/utf8"
+	"slices"
 	"unsafe"
 
-	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/value/symbol"
 )
 
-// Numerical ID of a particular symbol.
-type Symbol int
+// Interned string
+type Symbol struct {
+	Id symbol.Symbol
+}
+
+func SortSymbolKeys[V any](m map[Symbol]V) []Symbol {
+	keys := make([]Symbol, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.SortFunc(keys, func(a, b Symbol) int {
+		aString := a.String()
+		bString := b.String()
+		if aString < bString {
+			return -1
+		}
+		if aString > bString {
+			return 1
+		}
+		return 0
+	})
+	return keys
+}
+
+// Convert a string to a Symbol
+func ToSymbol[T ~string](str T) Symbol {
+	return S(symbol.ToSymbol(str))
+}
+
+// Convert a simple symbol to an elk symbol value
+func S(sym symbol.Symbol) Symbol {
+	return Symbol{Id: sym}
+}
 
 var SymbolClass *Class // ::Std::Symbol
 
@@ -36,94 +63,19 @@ func (Symbol) SingletonClass() *Class {
 }
 
 func (s Symbol) String() string {
-	name, ok := SymbolTable.GetName(s)
-	if !ok {
-		panic(fmt.Sprintf("trying to get the name of a nonexistent symbol: %#v", s))
-	}
-	return name
+	return s.Id.String()
 }
 
 func (s Symbol) ToString() String {
 	return String(s.String())
 }
 
-func InspectSymbolContent(name string) string {
-	var quotes bool
-	var result strings.Builder
-	firstLetter := true
-	str := name
-
-	for {
-		if len(str) == 0 {
-			break
-		}
-		char, bytes := utf8.DecodeRuneInString(str)
-		str = str[bytes:]
-		switch char {
-		case '\\':
-			result.WriteString(`\\`)
-			quotes = true
-		case '\n':
-			result.WriteString(`\n`)
-			quotes = true
-		case '\t':
-			result.WriteString(`\t`)
-			quotes = true
-		case '\r':
-			result.WriteString(`\r`)
-			quotes = true
-		case '\a':
-			result.WriteString(`\a`)
-			quotes = true
-		case '\b':
-			result.WriteString(`\b`)
-			quotes = true
-		case '\v':
-			result.WriteString(`\v`)
-			quotes = true
-		case '\f':
-			result.WriteString(`\f`)
-			quotes = true
-		case '"':
-			result.WriteString(`\"`)
-			quotes = true
-		case '_':
-			result.WriteByte('_')
-		default:
-			if firstLetter && unicode.IsDigit(char) {
-				quotes = true
-			} else if !quotes && !unicode.IsDigit(char) && !unicode.IsLetter(char) {
-				quotes = true
-			}
-
-			if unicode.IsGraphic(char) {
-				result.WriteRune(char)
-			} else if bytes == 1 {
-				fmt.Fprintf(&result, `\x%02x`, char)
-			} else {
-				fmt.Fprintf(&result, `\U%08X`, char)
-			}
-		}
-
-		firstLetter = false
-	}
-
-	if quotes {
-		return fmt.Sprintf(`"%s"`, result.String())
-	}
-	return result.String()
-}
-
-func InspectSymbol(name string) string {
-	return fmt.Sprintf(`:%s`, InspectSymbolContent(name))
-}
-
 func (s Symbol) InspectContent() string {
-	return InspectSymbolContent(s.String())
+	return s.Id.InspectContent()
 }
 
 func (s Symbol) Inspect() string {
-	return InspectSymbol(s.String())
+	return s.Id.Inspect()
 }
 
 func (s Symbol) Error() string {
@@ -137,7 +89,7 @@ func (s Symbol) InstanceVariables() *InstanceVariables {
 // Check whether s is equal to other
 func (s Symbol) EqualVal(other Value) Value {
 	if other.IsInlineSymbol() {
-		return BoolVal(s == other.AsInlineSymbol())
+		return BoolVal(s.Id.EqualSymbol(other.AsInlineSymbol().Id))
 	}
 
 	return False.ToValue()
@@ -146,7 +98,7 @@ func (s Symbol) EqualVal(other Value) Value {
 // Check whether s is equal to other
 func (s Symbol) Equal(other Value) bool {
 	if other.IsInlineSymbol() {
-		return s == other.AsInlineSymbol()
+		return s.Id.EqualSymbol(other.AsInlineSymbol().Id)
 	}
 
 	return false
@@ -167,11 +119,7 @@ func (s Symbol) LaxEqualVal(other Value) Value {
 }
 
 func (s Symbol) Hash() UInt64 {
-	d := xxhash.New()
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(s))
-	d.Write(b)
-	return UInt64(d.Sum64())
+	return UInt64(s.Id.Hash())
 }
 
 func initSymbol() {

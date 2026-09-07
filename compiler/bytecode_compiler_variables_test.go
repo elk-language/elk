@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -99,7 +100,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -197,7 +198,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -275,7 +276,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -401,11 +402,11 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -533,12 +534,12 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
+								symbol.ToSymbol("bar"): 0,
 							}),
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
-								value.ToSymbol("foo"): 1,
+								symbol.ToSymbol("bar"): 0,
+								symbol.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -663,7 +664,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -862,7 +863,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -980,7 +981,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -1094,7 +1095,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -1208,7 +1209,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -1323,7 +1324,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1415,7 +1416,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1507,7 +1508,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1597,7 +1598,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1694,7 +1695,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -1824,11 +1825,11 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -1957,7 +1958,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2167,7 +2168,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2291,11 +2292,11 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2421,12 +2422,12 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
+								symbol.ToSymbol("bar"): 0,
 							}),
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
-								value.ToSymbol("foo"): 1,
+								symbol.ToSymbol("bar"): 0,
+								symbol.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -2553,7 +2554,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2748,7 +2749,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2864,7 +2865,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -2976,7 +2977,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -3088,7 +3089,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -3201,7 +3202,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3291,7 +3292,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3381,7 +3382,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3469,7 +3470,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),

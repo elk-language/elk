@@ -37,7 +37,7 @@ func initNode() {
 				}
 			default:
 				for node := range ast.Iter(self) {
-					ok, err := v.CallMethodByName(symbol.L_call, fn, value.Ref(node))
+					ok, err := v.CallMethodByName(value.S(symbol.L_call), fn, value.Ref(node))
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}

@@ -362,7 +362,7 @@ func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 
 	for {
 		if h.Index >= h.HashMap.Capacity() {
-			return value.Undefined, symbol.L_stop_iteration.ToValue()
+			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 		}
 
 		pair := h.HashMap.Table[h.Index]

@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -396,7 +397,7 @@ func TestBytecodeGetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -491,9 +492,9 @@ func TestBytecodeGetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("bar"): 0,
-								value.ToSymbol("baz"): 1,
-								value.ToSymbol("foo"): 2,
+								symbol.ToSymbol("bar"): 0,
+								symbol.ToSymbol("baz"): 1,
+								symbol.ToSymbol("foo"): 2,
 							}),
 						},
 					)),
@@ -607,7 +608,7 @@ func TestBytecodeSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -702,8 +703,8 @@ func TestBytecodeSetter(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("baz"): 0,
-								value.ToSymbol("foo"): 1,
+								symbol.ToSymbol("baz"): 0,
+								symbol.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -813,7 +814,7 @@ func TestBytecodeAttr(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("foo"): 0,
+								symbol.ToSymbol("foo"): 0,
 							}),
 						},
 					)),
@@ -911,8 +912,8 @@ func TestBytecodeAttr(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("baz"): 0,
-								value.ToSymbol("foo"): 1,
+								symbol.ToSymbol("baz"): 0,
+								symbol.ToSymbol("foo"): 1,
 							}),
 						},
 					)),
@@ -2434,8 +2435,8 @@ func TestBytecodeDefMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("b"): 1,
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("b"): 1,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2594,8 +2595,8 @@ func TestBytecodeDefMethod(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
-								value.ToSymbol("b"): 1,
+								symbol.ToSymbol("a"): 0,
+								symbol.ToSymbol("b"): 1,
 							}),
 						},
 					)),

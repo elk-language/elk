@@ -3,7 +3,7 @@ package types
 import (
 	"strings"
 
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type GenericNamedType struct {
@@ -105,7 +105,7 @@ func (g *GenericNamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Gener
 	classConstantPath := GetConstantPath(g.Name)
 	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
 	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newType)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newType)
 
 	newType.Type = DeepCopyEnv(g.Type, oldEnv, newEnv)
 	newType.TypeParameters = TypeParametersDeepCopyEnv(g.TypeParameters, oldEnv, newEnv)

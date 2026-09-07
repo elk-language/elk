@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/lexer"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Variance uint8
@@ -43,7 +43,7 @@ var varianceString = []string{
 }
 
 type TypeParameter struct {
-	Name       value.Symbol
+	Name       symbol.Symbol
 	Namespace  Namespace
 	LowerBound Type
 	UpperBound Type
@@ -103,7 +103,7 @@ func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypePara
 	return newTypeParam
 }
 
-func NewTypeParameter(name value.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
+func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
 	return &TypeParameter{
 		Name:       name,
 		Namespace:  namespace,

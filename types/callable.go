@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -20,7 +19,7 @@ func NewCallable(method *Method, isClosure bool) *Callable {
 	}
 }
 
-func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
+func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
 	callable := NewCallable(nil, isClosure)
 	method := NewMethod(
 		docComment,
@@ -136,7 +135,7 @@ func (c *Callable) Constants() ConstantMap {
 	return nil
 }
 
-func (c *Callable) Constant(name value.Symbol) (Constant, bool) {
+func (c *Callable) Constant(name symbol.Symbol) (Constant, bool) {
 	return Constant{}, false
 }
 
@@ -144,11 +143,11 @@ func (c *Callable) ConstantString(name string) (Constant, bool) {
 	return Constant{}, false
 }
 
-func (c *Callable) DefineConstant(name value.Symbol, val Type) {
+func (c *Callable) DefineConstant(name symbol.Symbol, val Type) {
 	panic("cannot define constants on callables")
 }
 
-func (c *Callable) DefineConstantWithFullName(name value.Symbol, fullName string, val Type) {
+func (c *Callable) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
 	panic("cannot define constants on callables")
 }
 
@@ -156,7 +155,7 @@ func (c *Callable) Subtypes() ConstantMap {
 	return nil
 }
 
-func (c *Callable) Subtype(name value.Symbol) (Constant, bool) {
+func (c *Callable) Subtype(name symbol.Symbol) (Constant, bool) {
 	return Constant{}, false
 }
 
@@ -168,15 +167,15 @@ func (c *Callable) MustSubtypeString(name string) Type {
 	return nil
 }
 
-func (c *Callable) MustSubtype(name value.Symbol) Type {
+func (c *Callable) MustSubtype(name symbol.Symbol) Type {
 	return nil
 }
 
-func (c *Callable) DefineSubtype(name value.Symbol, val Type) {
+func (c *Callable) DefineSubtype(name symbol.Symbol, val Type) {
 	panic("cannot define subtypes on callables")
 }
 
-func (c *Callable) DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type) {
+func (c *Callable) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	panic("cannot define subtypes on callables")
 }
 
@@ -189,7 +188,7 @@ func (c *Callable) Methods() MethodMap {
 	return m
 }
 
-func (c *Callable) Method(name value.Symbol) *Method {
+func (c *Callable) Method(name symbol.Symbol) *Method {
 	if name == symbol.L_call {
 		return c.Body
 	}
@@ -203,18 +202,18 @@ func (c *Callable) MethodString(name string) *Method {
 	return nil
 }
 
-func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on callables")
 }
 
-func (c *Callable) SetMethod(name value.Symbol, method *Method) {
+func (c *Callable) SetMethod(name symbol.Symbol, method *Method) {
 }
 
 func (c *Callable) InstanceVariables() InstanceVariableMap {
 	return nil
 }
 
-func (c *Callable) InstanceVariable(name value.Symbol) *InstanceVariable {
+func (c *Callable) InstanceVariable(name symbol.Symbol) *InstanceVariable {
 	return nil
 }
 
@@ -222,23 +221,23 @@ func (c *Callable) InstanceVariableString(name string) *InstanceVariable {
 	return nil
 }
 
-func (c *Callable) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
+func (c *Callable) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable) {
 	panic("cannot define instance variables on callables")
 }
 
-func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	panic("cannot define classes on callables")
 }
 
-func (c *Callable) DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
+func (c *Callable) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
 	panic("cannot define module on callables")
 }
 
-func (c *Callable) DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+func (c *Callable) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
 	panic("cannot define mixins on callables")
 }
 
-func (c *Callable) DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+func (c *Callable) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
 	panic("cannot define interfaces on callables")
 }
 

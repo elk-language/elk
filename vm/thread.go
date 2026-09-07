@@ -278,7 +278,7 @@ func (vm *Thread) CallCallable(args ...value.Value) (value.Value, value.Value) {
 	case *NativeClosure:
 		return vm.CallNativeClosure(f, args[1:]...)
 	default:
-		return vm.CallMethodByName(symbol.L_call, args...)
+		return vm.CallMethodByName(value.S(symbol.L_call), args...)
 	}
 }
 
@@ -291,7 +291,7 @@ func (vm *Thread) CallCallableWithCache(cc **CallCache, args ...value.Value) (va
 	case *NativeClosure:
 		return vm.CallNativeClosure(f, args[1:]...)
 	default:
-		return vm.CallMethodByNameWithCache(symbol.L_call, cc, args...)
+		return vm.CallMethodByNameWithCache(value.S(symbol.L_call), cc, args...)
 	}
 }
 
@@ -512,7 +512,7 @@ func (vm *Thread) run() {
 		case bytecode.STOP_ITERATION:
 			vm.state = ErrorState
 			vm.errStackTrace = vm.BuildStackTrace()
-			vm.push(symbol.L_stop_iteration.ToValue())
+			vm.push(value.S(symbol.L_stop_iteration).ToValue())
 			return
 		case bytecode.YIELD:
 			return
@@ -2070,7 +2070,7 @@ func (vm *Thread) opBreakpoint() {
 
 // Create a new instance of a class
 func (vm *Thread) opInstantiate(args int) (err value.Value) {
-	callInfo := NewCallSiteInfo(symbol.S_init, args)
+	callInfo := NewCallSiteInfo(value.S(symbol.S_init), args)
 	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	classVal := *classPtr
 	var class *value.Class
@@ -3088,27 +3088,27 @@ func (vm *Thread) opDecrementInt() {
 
 // Increment the element on top of the stack
 func (vm *Thread) opIncrement() (err value.Value) {
-	return vm.unaryOperation(value.IncrementVal, symbol.OpIncrement)
+	return vm.unaryOperation(value.IncrementVal, value.S(symbol.OpIncrement))
 }
 
 // Decrement the element on top of the stack
 func (vm *Thread) opDecrement() (err value.Value) {
-	return vm.unaryOperation(value.DecrementVal, symbol.OpDecrement)
+	return vm.unaryOperation(value.DecrementVal, value.S(symbol.OpDecrement))
 }
 
 // Negate the element on top of the stack
 func (vm *Thread) opNegate() (err value.Value) {
-	return vm.unaryOperation(value.NegateVal, symbol.OpNegate)
+	return vm.unaryOperation(value.NegateVal, value.S(symbol.OpNegate))
 }
 
 // Perform unary plus on the element on top of the stack
 func (vm *Thread) opUnaryPlus() (err value.Value) {
-	return vm.unaryOperation(value.UnaryPlusVal, symbol.OpUnaryPlus)
+	return vm.unaryOperation(value.UnaryPlusVal, value.S(symbol.OpUnaryPlus))
 }
 
 // Preform bitwise not on the element on top of the stack
 func (vm *Thread) opBitwiseNot() (err value.Value) {
-	return vm.unaryOperation(value.BitwiseNotVal, symbol.OpBitwiseNot)
+	return vm.unaryOperation(value.BitwiseNotVal, value.S(symbol.OpBitwiseNot))
 }
 
 func (vm *Thread) opAppendAt() value.Value {
@@ -3242,12 +3242,12 @@ func (vm *Thread) binaryOperation(fn binaryOperationFunc, methodName value.Symbo
 
 // Perform a bitwise AND and push the result to the stack.
 func (vm *Thread) opBitwiseAnd() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAndVal, symbol.OpAnd)
+	return vm.binaryOperation(value.BitwiseAndVal, value.S(symbol.OpAnd))
 }
 
 // Perform a bitwise AND NOT and push the result to the stack.
 func (vm *Thread) opBitwiseAndNot() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAndNotVal, symbol.OpAndNot)
+	return vm.binaryOperation(value.BitwiseAndNotVal, value.S(symbol.OpAndNot))
 }
 
 // Get the value under the given key and push the result to the stack.
@@ -3266,27 +3266,27 @@ func (vm *Thread) opSubscript() (err value.Value) {
 
 // Perform a bitwise OR and push the result to the stack.
 func (vm *Thread) opBitwiseOr() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseOrVal, symbol.OpOr)
+	return vm.binaryOperation(value.BitwiseOrVal, value.S(symbol.OpOr))
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 func (vm *Thread) opBitwiseXor() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseXorVal, symbol.OpXor)
+	return vm.binaryOperation(value.BitwiseXorVal, value.S(symbol.OpXor))
 }
 
 // Perform a comparison and push the result to the stack.
 func (vm *Thread) opCompare() (err value.Value) {
-	return vm.binaryOperation(value.CompareVal, symbol.OpSpaceship)
+	return vm.binaryOperation(value.CompareVal, value.S(symbol.OpSpaceship))
 }
 
 // Perform opModulo and push the result to the stack.
 func (vm *Thread) opModulo() (err value.Value) {
-	return vm.binaryOperation(value.ModuloVal, symbol.OpModulo)
+	return vm.binaryOperation(value.ModuloVal, value.S(symbol.OpModulo))
 }
 
 // Check whether two top elements on the stack are opEqual and push the result to the stack.
 func (vm *Thread) opEqual() (err value.Value) {
-	return vm.callEqualityOperator(value.EqualVal, symbol.OpEqual)
+	return vm.callEqualityOperator(value.EqualVal, value.S(symbol.OpEqual))
 }
 
 func (vm *Thread) callEqualityOperator(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
@@ -3341,17 +3341,17 @@ func (vm *Thread) callNegatedEqualityOperator(fn binaryOperationWithoutErrFunc, 
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *Thread) opNotEqual() (err value.Value) {
-	return vm.callNegatedEqualityOperator(value.NotEqualVal, symbol.OpEqual)
+	return vm.callNegatedEqualityOperator(value.NotEqualVal, value.S(symbol.OpEqual))
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *Thread) opLaxEqual() (err value.Value) {
-	return vm.callEqualityOperator(value.LaxEqualVal, symbol.OpLaxEqual)
+	return vm.callEqualityOperator(value.LaxEqualVal, value.S(symbol.OpLaxEqual))
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *Thread) opLaxNotEqual() (err value.Value) {
-	return vm.callNegatedEqualityOperator(value.LaxNotEqualVal, symbol.OpLaxEqual)
+	return vm.callNegatedEqualityOperator(value.LaxNotEqualVal, value.S(symbol.OpLaxEqual))
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
@@ -3374,22 +3374,22 @@ func (vm *Thread) opStrictNotEqual() {
 
 // Check whether the first operand is greater than the second and push the result to the stack.
 func (vm *Thread) opGreaterThan() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThanVal, symbol.OpGreaterThan)
+	return vm.binaryOperation(value.GreaterThanVal, value.S(symbol.OpGreaterThan))
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
 func (vm *Thread) opGreaterThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThanEqualVal, symbol.OpGreaterThanEqual)
+	return vm.binaryOperation(value.GreaterThanEqualVal, value.S(symbol.OpGreaterThanEqual))
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
 func (vm *Thread) opLessThan() (err value.Value) {
-	return vm.binaryOperation(value.LessThanVal, symbol.OpLessThan)
+	return vm.binaryOperation(value.LessThanVal, value.S(symbol.OpLessThan))
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
 func (vm *Thread) opLessThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.LessThanEqualVal, symbol.OpLessThanEqual)
+	return vm.binaryOperation(value.LessThanEqualVal, value.S(symbol.OpLessThanEqual))
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
@@ -3491,27 +3491,27 @@ func (vm *Thread) opGreaterThanEqualFloat() {
 
 // Perform a left bitshift and push the result to the stack.
 func (vm *Thread) opLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LeftBitshiftVal, symbol.OpLeftBitshift)
+	return vm.binaryOperation(value.LeftBitshiftVal, value.S(symbol.OpLeftBitshift))
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 func (vm *Thread) opLogicalLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalLeftBitshiftVal, symbol.OpLogicalLeftBitshift)
+	return vm.binaryOperation(value.LogicalLeftBitshiftVal, value.S(symbol.OpLogicalLeftBitshift))
 }
 
 // Perform a right bitshift and push the result to the stack.
 func (vm *Thread) opRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.RightBitshiftVal, symbol.OpRightBitshift)
+	return vm.binaryOperation(value.RightBitshiftVal, value.S(symbol.OpRightBitshift))
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 func (vm *Thread) opLogicalRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalRightBitshiftVal, symbol.OpLogicalRightBitshift)
+	return vm.binaryOperation(value.LogicalRightBitshiftVal, value.S(symbol.OpLogicalRightBitshift))
 }
 
 // Add two operands together and push the result to the stack.
 func (vm *Thread) opAdd() (err value.Value) {
-	return vm.binaryOperation(value.AddVal, symbol.OpAdd)
+	return vm.binaryOperation(value.AddVal, value.S(symbol.OpAdd))
 }
 
 func (vm *Thread) opBitwiseOrInt() {
@@ -3733,7 +3733,7 @@ func (vm *Thread) opAddFloat() {
 
 // Subtract two operands and push the result to the stack.
 func (vm *Thread) opSubtract() (err value.Value) {
-	return vm.binaryOperation(value.SubtractVal, symbol.OpSubtract)
+	return vm.binaryOperation(value.SubtractVal, value.S(symbol.OpSubtract))
 }
 
 // Subtract a value from an Int another value and push the result to the stack.
@@ -3912,17 +3912,17 @@ func (vm *Thread) opNotEqualFloat() {
 
 // Multiply two operands together and push the result to the stack.
 func (vm *Thread) opMultiply() (err value.Value) {
-	return vm.binaryOperation(value.MultiplyVal, symbol.OpMultiply)
+	return vm.binaryOperation(value.MultiplyVal, value.S(symbol.OpMultiply))
 }
 
 // Divide two operands and push the result to the stack.
 func (vm *Thread) opDivide() (err value.Value) {
-	return vm.binaryOperation(value.DivideVal, symbol.OpDivide)
+	return vm.binaryOperation(value.DivideVal, value.S(symbol.OpDivide))
 }
 
 // Exponentiate two operands and push the result to the stack.
 func (vm *Thread) opExponentiate() (err value.Value) {
-	return vm.binaryOperation(value.ExponentiateVal, symbol.OpExponentiate)
+	return vm.binaryOperation(value.ExponentiateVal, value.S(symbol.OpExponentiate))
 }
 
 // Throw an error when the value on top of the stack is `nil`

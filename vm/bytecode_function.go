@@ -32,10 +32,14 @@ type BytecodeFunction struct {
 	optionalParameterCount int
 }
 
+var _ value.Method = &BytecodeFunction{}
+
 func (b *BytecodeFunction) ipAddRaw(n uintptr) uintptr {
 	inst := b.Instructions
 	return uintptr(unsafe.Pointer(&inst[0])) + n
 }
+
+func (b *BytecodeFunction) MethodBody() {}
 
 func (b *BytecodeFunction) Name() value.Symbol {
 	return b.name

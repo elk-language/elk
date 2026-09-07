@@ -7,7 +7,7 @@ import (
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Represents a single local variable or local value
@@ -147,7 +147,7 @@ const (
 // Contains definitions of local variables and values
 type localEnvironment struct {
 	parent *localEnvironment
-	locals map[value.Symbol]*local
+	locals map[symbol.Symbol]*local
 	index  int
 	typ    localEnvType
 }
@@ -161,8 +161,8 @@ func (l *localEnvironment) copy() *localEnvironment {
 	}
 }
 
-func (l *localEnvironment) deepCloneLocalsForBreakpoint(localMapping map[*local]*local) map[value.Symbol]*local {
-	result := make(map[value.Symbol]*local)
+func (l *localEnvironment) deepCloneLocalsForBreakpoint(localMapping map[*local]*local) map[symbol.Symbol]*local {
+	result := make(map[symbol.Symbol]*local)
 	for name, local := range l.locals {
 		result[name] = local.deepCloneForBreakpoint(localMapping)
 	}
@@ -188,20 +188,20 @@ func (l *localEnvironment) deepCloneForBreakpoint(envMapping map[*localEnvironme
 	return newEnv
 }
 
-func (l *localEnvironment) addLocal(name value.Symbol, local *local) {
+func (l *localEnvironment) addLocal(name symbol.Symbol, local *local) {
 	local.envIndex = l.index
 	l.locals[name] = local
 }
 
 // Get the local with the specified name from this local environment
 func (l *localEnvironment) getLocal(name string) *local {
-	local := l.locals[value.ToSymbol(name)]
+	local := l.locals[symbol.ToSymbol(name)]
 	return local
 }
 
 // Resolve the local with the given name from this local environment or any parent environment
 func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, *localContext) {
-	nameSymbol := value.ToSymbol(name)
+	nameSymbol := symbol.ToSymbol(name)
 	currentEnv := l
 
 	var nestedInConditionalScope bool
@@ -234,7 +234,7 @@ func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, *
 func newLocalEnvironment(parent *localEnvironment, typ localEnvType) *localEnvironment {
 	return &localEnvironment{
 		parent: parent,
-		locals: make(map[value.Symbol]*local),
+		locals: make(map[symbol.Symbol]*local),
 		typ:    typ,
 	}
 }
@@ -250,10 +250,10 @@ func deepCloneLocalEnvsForBreakpoint(localEnvs []*localEnvironment) []*localEnvi
 	return result
 }
 
-func (c *Checker) allLocals() iter.Seq2[value.Symbol, *local] {
-	return func(yield func(value.Symbol, *local) bool) {
+func (c *Checker) allLocals() iter.Seq2[symbol.Symbol, *local] {
+	return func(yield func(symbol.Symbol, *local) bool) {
 		currentEnv := c.currentLocalEnv()
-		localNames := ds.MakeSet[value.Symbol]()
+		localNames := ds.MakeSet[symbol.Symbol]()
 
 		for currentEnv != nil {
 			for name, local := range currentEnv.locals {
@@ -273,10 +273,10 @@ func (c *Checker) allLocals() iter.Seq2[value.Symbol, *local] {
 	}
 }
 
-func (c *Checker) uninitialisedLocals() iter.Seq2[value.Symbol, *local] {
-	return func(yield func(value.Symbol, *local) bool) {
+func (c *Checker) uninitialisedLocals() iter.Seq2[symbol.Symbol, *local] {
+	return func(yield func(symbol.Symbol, *local) bool) {
 		currentEnv := c.currentLocalEnv()
-		localNames := ds.MakeSet[value.Symbol]()
+		localNames := ds.MakeSet[symbol.Symbol]()
 
 		for currentEnv != nil {
 			for name, local := range currentEnv.locals {
@@ -348,7 +348,7 @@ func (c *Checker) currentLocalEnv() *localEnvironment {
 // Add the local with the given name to the current local environment
 func (c *Checker) addLocal(name string, l *local) {
 	env := c.currentLocalEnv()
-	env.addLocal(value.ToSymbol(name), l)
+	env.addLocal(symbol.ToSymbol(name), l)
 }
 
 // Get the local with the specified name from the current local environment
@@ -381,7 +381,7 @@ func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*
 	for _, localEnv := range c.localEnvs {
 		newLocalEnv := &localEnvironment{
 			index:  localEnv.index,
-			locals: make(map[value.Symbol]*local),
+			locals: make(map[symbol.Symbol]*local),
 			typ:    localEnv.typ,
 		}
 		if localEnv.parent != nil {

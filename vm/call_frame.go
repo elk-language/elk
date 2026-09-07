@@ -5,6 +5,7 @@ import (
 
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 var CALL_STACK_SIZE int
@@ -42,8 +43,8 @@ func makeSentinelCallFrame() CallFrame {
 
 func makeNativeCallFrame(fileName, funcName value.Symbol, lineNumber, tailCallCounter int) CallFrame {
 	return CallFrame{
-		ip:              uintptr(fileName),
-		fp:              uintptr(funcName),
+		ip:              uintptr(fileName.Id),
+		fp:              uintptr(funcName.Id),
 		localCount:      lineNumber,
 		tailCallCounter: tailCallCounter,
 		isNative:        true,
@@ -62,7 +63,7 @@ func (c *CallFrame) IsNative() bool {
 
 func (c *CallFrame) FuncName() value.Symbol {
 	if c.isNative {
-		return value.Symbol(c.fp)
+		return value.S(symbol.Symbol(c.fp))
 	}
 
 	return c.bytecode.name
@@ -78,7 +79,7 @@ func (c *CallFrame) LineNumber() int {
 
 func (c *CallFrame) FileName() string {
 	if c.isNative {
-		return value.Symbol(c.ip).String()
+		return value.S(symbol.Symbol(c.ip)).String()
 	}
 
 	return c.bytecode.FileName()

@@ -5,7 +5,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ds"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -22,7 +22,7 @@ type Class struct {
 	Checked        bool
 	singleton      *SingletonClass
 	typeParameters []*TypeParameter
-	ivarIndices    *value.IvarIndices
+	ivarIndices    *ivar.IvarIndices
 	Children       ds.Set[*Class]
 	NamespaceBase
 }
@@ -36,11 +36,11 @@ func (c *Class) traverse(parent Type, enter func(node, parent Type) TraverseOpti
 	}
 }
 
-func (c *Class) IvarIndices() *value.IvarIndices {
+func (c *Class) IvarIndices() *ivar.IvarIndices {
 	return c.ivarIndices
 }
 
-func (c *Class) SetIvarIndices(in *value.IvarIndices) {
+func (c *Class) SetIvarIndices(in *ivar.IvarIndices) {
 	c.ivarIndices = in
 }
 
@@ -207,7 +207,7 @@ func (c *Class) RemoveTemporaryParents(env *GlobalEnvironment) {
 	}
 
 	c.parent = nil
-	c.singleton.parent = env.StdSubtypeClass(symbol.Class)
+	c.singleton.parent = env.StdSubtypeClass(symbol.C_Class)
 }
 
 func NewClass(
@@ -230,7 +230,7 @@ func NewClass(
 		native:        env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
-	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
+	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.C_Class))
 	class.SetParent(parent)
 
 	return class
@@ -261,13 +261,13 @@ func NewClassWithDetails(
 			methods:    methods,
 		},
 	}
-	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
+	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.C_Class))
 	class.SetParent(parent)
 
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
@@ -327,7 +327,7 @@ func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
 		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
 	}
 	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newClass)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newClass)
 
 	newClass.singleton = nil
 	newClass.singleton = DeepCopyEnv(c.singleton, oldEnv, newEnv).(*SingletonClass)

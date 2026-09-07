@@ -484,7 +484,7 @@ func (*NativeKeyHashRecordIterator[K]) InstanceVariables() *value.InstanceVariab
 
 func (h *NativeKeyHashRecordIterator[K]) Next() (p value.NativePair[K, value.Value], err value.Value) {
 	if h.index >= len(h.snapshot) {
-		return p, symbol.L_stop_iteration.ToValue()
+		return p, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	v := h.snapshot[h.index]

@@ -11,12 +11,12 @@ import (
 )
 
 func initResult(env *types.GlobalEnvironment) {
-	astModule := env.StdSubtypeModule(symbol.Elk).MustSubtype(symbol.AST).(*types.Module)
-	exprNode := astModule.MustSubtype(symbol.ExpressionNode)
-	patternNode := astModule.MustSubtype(symbol.PatternNode)
-	result := env.StdSubtypeClass(symbol.Result).Singleton()
+	astModule := env.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)
+	exprNode := astModule.MustSubtype(symbol.C_ExpressionNode)
+	patternNode := astModule.MustSubtype(symbol.C_PatternNode)
+	result := env.StdSubtypeClass(symbol.C_Result).Singleton()
 
-	types.DefMacro(
+	vm.DefMacro(
 		result,
 		`Expands to a pattern that matches successful Result values
 
@@ -76,7 +76,7 @@ Example:
 		},
 	)
 
-	types.DefMacro(
+	vm.DefMacro(
 		result,
 		`Expands to a pattern that matches failure Result values
 
@@ -136,7 +136,7 @@ Example:
 		},
 	)
 
-	types.DefMacro(
+	vm.DefMacro(
 		result,
 		`Converts the result of a method call to a Result.
 Catches any errors and wraps them in a Result.
@@ -151,7 +151,7 @@ Example:
 		"wrap!",
 		[]*types.Parameter{
 			types.NewParameter(
-				value.ToSymbol("expr"),
+				symbol.ToSymbol("expr"),
 				exprNode,
 				types.NormalParameterKind,
 				false,

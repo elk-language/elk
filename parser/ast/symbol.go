@@ -60,7 +60,7 @@ func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 }
 
 func (n *SimpleSymbolLiteralNode) String() string {
-	return value.InspectSymbol(n.Content)
+	return symbol.InspectSymbol(n.Content)
 }
 
 func (*SimpleSymbolLiteralNode) IsStatic() bool {
@@ -155,7 +155,7 @@ func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
 }
 
 func (*InterpolatedSymbolLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.Symbol)
+	return globalEnv.StdSubtype(symbol.C_Symbol)
 }
 
 func (*InterpolatedSymbolLiteralNode) Class() *value.Class {

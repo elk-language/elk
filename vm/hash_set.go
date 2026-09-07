@@ -195,7 +195,7 @@ func initHashSet() {
 
 			// callable is another value
 			for val := range self.All() {
-				result, err := vm.CallMethodByName(symbol.L_call, callable, val)
+				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, val)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

@@ -5,7 +5,6 @@ import (
 	"iter"
 	"strings"
 
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -36,7 +35,7 @@ func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 	}
 }
 
-type TypeArgumentMap map[value.Symbol]*TypeArgument
+type TypeArgumentMap map[symbol.Symbol]*TypeArgument
 
 func (t TypeArgumentMap) HasAllTypeParams(typeParams []*TypeParameter) bool {
 	for _, typeParam := range typeParams {
@@ -51,11 +50,11 @@ func (t TypeArgumentMap) HasAllTypeParams(typeParams []*TypeParameter) bool {
 
 type TypeArguments struct {
 	ArgumentMap   TypeArgumentMap
-	ArgumentOrder []value.Symbol
+	ArgumentOrder []symbol.Symbol
 }
 
-func CreateTypeArgumentOrderFromTypeParams(typeParams []*TypeParameter) []value.Symbol {
-	order := make([]value.Symbol, len(typeParams))
+func CreateTypeArgumentOrderFromTypeParams(typeParams []*TypeParameter) []symbol.Symbol {
+	order := make([]symbol.Symbol, len(typeParams))
 	for i, typeParam := range typeParams {
 		order[i] = typeParam.Name
 	}
@@ -106,8 +105,8 @@ func (t *TypeArguments) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArgu
 }
 
 // Iterates over every type argument in definition order.
-func (t *TypeArguments) AllArguments() iter.Seq2[value.Symbol, *TypeArgument] {
-	return func(yield func(name value.Symbol, arg *TypeArgument) bool) {
+func (t *TypeArguments) AllArguments() iter.Seq2[symbol.Symbol, *TypeArgument] {
+	return func(yield func(name symbol.Symbol, arg *TypeArgument) bool) {
 		for _, name := range t.ArgumentOrder {
 			arg := t.ArgumentMap[name]
 			if !yield(name, arg) {
@@ -126,7 +125,7 @@ func (t *TypeArguments) Len() int {
 	return len(t.ArgumentOrder)
 }
 
-func NewTypeArguments(m TypeArgumentMap, order []value.Symbol) *TypeArguments {
+func NewTypeArguments(m TypeArgumentMap, order []symbol.Symbol) *TypeArguments {
 	return &TypeArguments{
 		ArgumentMap:   m,
 		ArgumentOrder: order,
@@ -196,7 +195,7 @@ func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 	}
 
 	typeArgMap := make(TypeArgumentMap, len(args))
-	typeArgOrder := make([]value.Symbol, len(args))
+	typeArgOrder := make([]symbol.Symbol, len(args))
 
 	for i, typeParam := range namespace.TypeParameters() {
 		arg := args[i]
@@ -224,7 +223,7 @@ func NewGenericWithVariance(namespace Namespace, variance Variance, args ...Type
 	}
 
 	typeArgMap := make(TypeArgumentMap, len(args))
-	typeArgOrder := make([]value.Symbol, len(args))
+	typeArgOrder := make([]symbol.Symbol, len(args))
 
 	for i, typeParam := range namespace.TypeParameters() {
 		arg := args[i]

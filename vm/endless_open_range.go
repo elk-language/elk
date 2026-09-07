@@ -187,7 +187,7 @@ func EndlessOpenRangeIteratorAll(vm *Thread, i *value.EndlessOpenRangeIterator) 
 		for {
 			element, err := EndlessOpenRangeIteratorNext(vm, i)
 			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

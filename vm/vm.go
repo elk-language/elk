@@ -110,7 +110,7 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 		fmt.Fprint(stderr, ": ")
 		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
 
-		diagnostics := (*diagnostic.DiagnosticList)(errObj.GetInstanceVariable(symbol.L_diagnostics).Pointer())
+		diagnostics := (*diagnostic.DiagnosticList)(errObj.GetInstanceVariable(value.S(symbol.L_diagnostics)).Pointer())
 		result := diagnostics.HumanStringWithoutSource(true, lexer.Colorizer{})
 		fmt.Fprintf(stderr, "\n\n%s", result)
 	} else if value.IsA(err, value.ErrorClass) {

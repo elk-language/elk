@@ -5,7 +5,7 @@ import "github.com/elk-language/elk/value/symbol"
 type Bool struct{}
 
 func (Bool) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Bool)
+	return env.StdSubtype(symbol.C_Bool)
 }
 
 func (b Bool) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {

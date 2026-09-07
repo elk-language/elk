@@ -518,7 +518,7 @@ func (h *NativeKeyHashMapIterator[K]) Next() (p value.NativePair[K, value.Value]
 		return p, value.NewMutationDuringIterationError(h.Class().Name).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
-		return p, symbol.L_stop_iteration.ToValue()
+		return p, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	v := h.snapshot[h.index]

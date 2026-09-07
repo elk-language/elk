@@ -105,7 +105,7 @@ func (n *UninterpolatedRegexLiteralNode) String() string {
 }
 
 func (*UninterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {
-	return env.StdSubtype(symbol.Regex)
+	return env.StdSubtype(symbol.C_Regex)
 }
 
 func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
@@ -457,7 +457,7 @@ func (n *InterpolatedRegexLiteralNode) String() string {
 }
 
 func (*InterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {
-	return env.StdSubtype(symbol.Regex)
+	return env.StdSubtype(symbol.C_Regex)
 }
 
 func (*InterpolatedRegexLiteralNode) IsStatic() bool {

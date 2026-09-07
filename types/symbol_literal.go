@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -31,7 +30,7 @@ func NewSymbolLiteral(value string) *SymbolLiteral {
 }
 
 func (s *SymbolLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Symbol)
+	return env.StdSubtype(symbol.C_Symbol)
 }
 
 func (*SymbolLiteral) IsLiteral() bool {
@@ -39,5 +38,5 @@ func (*SymbolLiteral) IsLiteral() bool {
 }
 
 func (s *SymbolLiteral) inspect() string {
-	return fmt.Sprintf(":%s", value.InspectSymbolContent(s.Value))
+	return fmt.Sprintf(":%s", symbol.InspectSymbolContent(s.Value))
 }

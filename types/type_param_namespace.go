@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type TypeParamNamespace struct {
@@ -128,22 +128,22 @@ func (t *TypeParamNamespace) Constants() ConstantMap {
 	return t.constants
 }
 
-func (t *TypeParamNamespace) Constant(name value.Symbol) (Constant, bool) {
+func (t *TypeParamNamespace) Constant(name symbol.Symbol) (Constant, bool) {
 	result, ok := t.constants[name]
 	return result, ok
 }
 
 func (t *TypeParamNamespace) ConstantString(name string) (Constant, bool) {
-	return t.Constant(value.ToSymbol(name))
+	return t.Constant(symbol.ToSymbol(name))
 }
 
-func (t *TypeParamNamespace) DefineConstant(name value.Symbol, val Type) {
+func (t *TypeParamNamespace) DefineConstant(name symbol.Symbol, val Type) {
 	t.constants[name] = Constant{
 		Type: val,
 	}
 }
 
-func (t *TypeParamNamespace) DefineConstantWithFullName(name value.Symbol, fullName string, val Type) {
+func (t *TypeParamNamespace) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
 	t.constants[name] = Constant{
 		Type:     val,
 		FullName: fullName,
@@ -154,30 +154,30 @@ func (t *TypeParamNamespace) Subtypes() ConstantMap {
 	return nil
 }
 
-func (t *TypeParamNamespace) Subtype(name value.Symbol) (Constant, bool) {
+func (t *TypeParamNamespace) Subtype(name symbol.Symbol) (Constant, bool) {
 	result, ok := t.subtypes[name]
 	return result, ok
 }
 
 func (t *TypeParamNamespace) MustSubtypeString(name string) Type {
-	return t.subtypes[value.ToSymbol(name)].Type
+	return t.subtypes[symbol.ToSymbol(name)].Type
 }
 
-func (t *TypeParamNamespace) MustSubtype(name value.Symbol) Type {
+func (t *TypeParamNamespace) MustSubtype(name symbol.Symbol) Type {
 	return t.subtypes[name].Type
 }
 
 func (t *TypeParamNamespace) SubtypeString(name string) (Constant, bool) {
-	return t.Subtype(value.ToSymbol(name))
+	return t.Subtype(symbol.ToSymbol(name))
 }
 
-func (t *TypeParamNamespace) DefineSubtype(name value.Symbol, val Type) {
+func (t *TypeParamNamespace) DefineSubtype(name symbol.Symbol, val Type) {
 	t.subtypes[name] = Constant{
 		Type: val,
 	}
 }
 
-func (t *TypeParamNamespace) DefineSubtypeWithFullName(name value.Symbol, fullName string, val Type) {
+func (t *TypeParamNamespace) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	t.subtypes[name] = Constant{
 		Type: val,
 	}
@@ -187,7 +187,7 @@ func (t *TypeParamNamespace) Methods() MethodMap {
 	return nil
 }
 
-func (t *TypeParamNamespace) Method(name value.Symbol) *Method {
+func (t *TypeParamNamespace) Method(name symbol.Symbol) *Method {
 	return nil
 }
 
@@ -195,18 +195,18 @@ func (t *TypeParamNamespace) MethodString(name string) *Method {
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on type param namespaces")
 }
 
-func (t *TypeParamNamespace) SetMethod(name value.Symbol, method *Method) {
+func (t *TypeParamNamespace) SetMethod(name symbol.Symbol, method *Method) {
 }
 
 func (t *TypeParamNamespace) InstanceVariables() InstanceVariableMap {
 	return nil
 }
 
-func (t *TypeParamNamespace) InstanceVariable(name value.Symbol) *InstanceVariable {
+func (t *TypeParamNamespace) InstanceVariable(name symbol.Symbol) *InstanceVariable {
 	return nil
 }
 
@@ -214,23 +214,23 @@ func (t *TypeParamNamespace) InstanceVariableString(name string) *InstanceVariab
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineInstanceVariable(name value.Symbol, ivar *InstanceVariable) {
+func (t *TypeParamNamespace) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable) {
 	panic("cannot define instance variables on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name value.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
 	panic("cannot define classes on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineModule(docComment string, name value.Symbol, env *GlobalEnvironment) *Module {
+func (t *TypeParamNamespace) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
 	panic("cannot define module on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name value.Symbol, env *GlobalEnvironment) *Mixin {
+func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
 	panic("cannot define mixins on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineInterface(docComment string, name value.Symbol, env *GlobalEnvironment) *Interface {
+func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
 	panic("cannot define interfaces on type param namespaces")
 }
 

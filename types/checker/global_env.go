@@ -21,11 +21,11 @@ func NewGlobalEnvironment() *types.GlobalEnvironment {
 
 // Std::Macro
 func initMacro(env *types.GlobalEnvironment) {
-	astType := env.StdSubtypeModule(symbol.Elk).MustSubtype(symbol.AST).(*types.Module)
-	exprType := astType.MustSubtype(symbol.ExpressionNode)
-	macroType := env.StdSubtypeModule(symbol.Macro)
+	astType := env.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)
+	exprType := astType.MustSubtype(symbol.C_ExpressionNode)
+	macroType := env.StdSubtypeModule(symbol.C_Macro)
 
-	types.DefMacro(
+	vm.DefMacro(
 		macroType,
 		`Evaluates the if condition and returns the "then" body nodes if it's result is truthy.
 Otherwise returns the "else" body nodes if they're present or a "nil" node.
@@ -40,7 +40,7 @@ Example:
 		"compile_if!",
 		[]*types.Parameter{
 			types.NewParameter(
-				value.ToSymbol("if_node"),
+				symbol.ToSymbol("if_node"),
 				types.NewUnion(
 					astType.MustSubtypeString("IfExpressionNode"),
 					astType.MustSubtypeString("UnlessExpressionNode"),

@@ -3,7 +3,9 @@ package vm
 import (
 	"fmt"
 
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -13,11 +15,13 @@ type NativeFunction func(vm *Thread, args []value.Value) (returnVal, err value.V
 // A native Elk method
 type NativeMethod struct {
 	Function               NativeFunction
-	Doc                    value.Value
 	name                   value.Symbol
 	parameterCount         int
 	optionalParameterCount int
+	typ                    *types.Method
 }
+
+var _ value.Method = &NativeMethod{}
 
 func MethodToFunc(method value.Method) NativeFunction {
 	return method.(*NativeMethod).Function
@@ -30,6 +34,8 @@ func NewNativeMethodComparer() cmp.Option {
 			x.parameterCount == y.parameterCount
 	})
 }
+
+func (n *NativeMethod) MethodBody() {}
 
 func (n *NativeMethod) Name() value.Symbol {
 	return n.name
@@ -124,6 +130,28 @@ func DefWithOptionalParameters(optParams int) DefOption {
 	return func(n *NativeMethod) {
 		n.optionalParameterCount = optParams
 	}
+}
+
+// Define a native macro
+func DefMacro(namespace types.Namespace, docComment string, name string, params []*types.Parameter, returnType types.Type, fn NativeFunction) *types.Method {
+	symbolName := symbol.ToSymbol(name)
+	macro := namespace.DefineMethod(
+		docComment,
+		types.METHOD_MACRO_FLAG,
+		symbolName,
+		nil,
+		params,
+		returnType,
+		types.Never{},
+	)
+
+	macro.Body = NewNativeMethod(
+		value.S(symbolName),
+		len(params),
+		0,
+		fn,
+	)
+	return macro
 }
 
 // Utility method that creates a new native

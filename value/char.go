@@ -1,12 +1,12 @@
 package value
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/cespare/xxhash/v2"
+	elkstrings "github.com/elk-language/elk/value/strings"
 )
 
 // ::Std::Char
@@ -50,41 +50,7 @@ func (c Char) ToString() String {
 }
 
 func (c Char) Inspect() string {
-	var buff strings.Builder
-	buff.WriteRune('`')
-	switch c {
-	case '\\':
-		buff.WriteString(`\\`)
-	case '\n':
-		buff.WriteString(`\n`)
-	case '\t':
-		buff.WriteString(`\t`)
-	case '`':
-		buff.WriteString("\\`")
-	case '\r':
-		buff.WriteString(`\r`)
-	case '\a':
-		buff.WriteString(`\a`)
-	case '\b':
-		buff.WriteString(`\b`)
-	case '\v':
-		buff.WriteString(`\v`)
-	case '\f':
-		buff.WriteString(`\f`)
-	default:
-		if unicode.IsGraphic(rune(c)) {
-			buff.WriteRune(rune(c))
-		} else if c>>8 == 0 {
-			fmt.Fprintf(&buff, `\x%02x`, c.Rune())
-		} else if c>>16 == 0 {
-			fmt.Fprintf(&buff, `\u%04x`, c.Rune())
-		} else {
-			fmt.Fprintf(&buff, `\U%08X`, c.Rune())
-		}
-	}
-
-	buff.WriteRune('`')
-	return buff.String()
+	return elkstrings.InspectChar(c.Rune())
 }
 
 func (Char) InstanceVariables() *InstanceVariables {

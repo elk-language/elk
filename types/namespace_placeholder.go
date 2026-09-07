@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type ModulePlaceholder struct {
@@ -93,7 +93,7 @@ func (n *NamespacePlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) Na
 	}
 	moduleConstantPath := GetConstantPath(n.name)
 	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
-	parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newNamespace)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newNamespace)
 
 	newNamespace.Namespace = DeepCopyEnv(n.Namespace, oldEnv, newEnv).(Namespace)
 

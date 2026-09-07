@@ -13,6 +13,8 @@ type GetterMethod struct {
 	IvarIndex     int
 }
 
+var _ value.Method = &GetterMethod{}
+
 func (g *GetterMethod) Name() value.Symbol {
 	return g.AttributeName
 }
@@ -20,6 +22,8 @@ func (g *GetterMethod) Name() value.Symbol {
 func (*GetterMethod) ParameterCount() int {
 	return 0
 }
+
+func (*GetterMethod) MethodBody() {}
 
 func (*GetterMethod) Parameters() []value.Symbol {
 	return nil
@@ -79,7 +83,7 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 	if g.IvarIndex != -1 {
 		ivarIndex = g.IvarIndex
 	} else {
-		ivarIndex = self.DirectClass().IvarIndices[g.AttributeName]
+		ivarIndex = self.DirectClass().IvarIndices[g.AttributeName.Id]
 	}
 
 	result := iv.Get(ivarIndex)

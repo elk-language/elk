@@ -14,9 +14,13 @@ type SetterMethod struct {
 	IvarIndex     int
 }
 
+var _ value.Method = &SetterMethod{}
+
 func (s *SetterMethod) Name() value.Symbol {
 	return s.name
 }
+
+func (*SetterMethod) MethodBody() {}
 
 func (*SetterMethod) ParameterCount() int {
 	return 1
@@ -82,7 +86,7 @@ func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, val
 	if s.IvarIndex != -1 {
 		ivarIndex = s.IvarIndex
 	} else {
-		ivarIndex = self.DirectClass().IvarIndices[s.AttributeName]
+		ivarIndex = self.DirectClass().IvarIndices[s.AttributeName.Id]
 	}
 
 	iv.Set(ivarIndex, val)

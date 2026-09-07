@@ -9,9 +9,12 @@ import (
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
+
+type MethodBody interface {
+	MethodBody()
+}
 
 type ParameterKind uint8
 
@@ -34,7 +37,7 @@ const (
 )
 
 type Parameter struct {
-	Name             value.Symbol
+	Name             symbol.Symbol
 	Type             Type
 	Kind             ParameterKind
 	InstanceVariable bool
@@ -70,7 +73,7 @@ func (p *Parameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Parameter {
 	return newParam
 }
 
-func NewParameter(name value.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
+func NewParameter(name symbol.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
 	return &Parameter{
 		Name:             name,
 		Type:             typ,
@@ -174,7 +177,7 @@ const (
 type Method struct {
 	DocComment         string
 	FullName           string
-	Name               value.Symbol
+	Name               symbol.Symbol
 	OptionalParamCount int
 	PostParamCount     int
 	OverloadId         int
@@ -187,13 +190,13 @@ type Method struct {
 	ReturnType     Type
 	ThrowType      Type
 	DefinedUnder   Namespace
-	Body           value.Method
+	Body           MethodBody
 	location       *position.Location
 	// used to detect methods that circularly reference constants
-	UsedInConstants              ds.Set[value.Symbol] // set of constants in which this method is called
-	UsedConstants                ds.Set[value.Symbol] // set of constants references in this method's body
-	InitialisedInstanceVariables ds.Set[value.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
-	CalledMethods                []*Method            // list of methods called in this method's body
+	UsedInConstants              ds.Set[symbol.Symbol] // set of constants in which this method is called
+	UsedConstants                ds.Set[symbol.Symbol] // set of constants references in this method's body
+	InitialisedInstanceVariables ds.Set[symbol.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
+	CalledMethods                []*Method             // list of methods called in this method's body
 	Node                         AstNode
 }
 
@@ -206,7 +209,7 @@ func (m *Method) traverse(parent Type, enter func(node, parent Type) TraverseOpt
 	}
 }
 
-func NewMethodPlaceholder(fullName string, name value.Symbol, definedUnder Namespace, location *position.Location) *Method {
+func NewMethodPlaceholder(fullName string, name symbol.Symbol, definedUnder Namespace, location *position.Location) *Method {
 	m := &Method{
 		FullName:     fullName,
 		Name:         name,
@@ -317,7 +320,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 	return newMethod
 }
 
-func (m *Method) CreateAlias(newName value.Symbol) *Method {
+func (m *Method) CreateAlias(newName symbol.Symbol) *Method {
 	alias := m.Copy()
 	alias.Name = newName
 	alias.Base = m
@@ -356,7 +359,7 @@ func (m *Method) ReversedOverloads() iter.Seq[*Method] {
 func (m *Method) RegisterOverload(overload *Method) {
 	m.Overloads = append(m.Overloads, overload)
 	overload.OverloadId = len(m.Overloads)
-	overload.Name = value.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
+	overload.Name = symbol.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 
 	m.DefinedUnder.SetMethod(overload.Name, overload)
 }
@@ -558,7 +561,7 @@ func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
 	}
 }
 
-func NewMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -589,15 +592,15 @@ func NewMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, t
 		DefinedUnder:       definedUnder,
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
-		UsedInConstants:    make(ds.Set[value.Symbol]),
-		UsedConstants:      make(ds.Set[value.Symbol]),
+		UsedInConstants:    make(ds.Set[symbol.Symbol]),
+		UsedConstants:      make(ds.Set[symbol.Symbol]),
 		Flags:              bitfield.BitField16FromBitFlag(flags),
 	}
 	if hasNamedRestParam {
 		m.SetNamedRestParam(true)
 	}
 	if name == symbol.S_init {
-		m.InitialisedInstanceVariables = make(ds.Set[value.Symbol])
+		m.InitialisedInstanceVariables = make(ds.Set[symbol.Symbol])
 	}
 
 	return m
@@ -666,7 +669,7 @@ func (m *Method) inspect() string {
 	return inspectMethod(m.DefinedUnder, m.Name)
 }
 
-func inspectMethod(namespace Namespace, methodName value.Symbol) string {
+func inspectMethod(namespace Namespace, methodName symbol.Symbol) string {
 	switch scope := namespace.(type) {
 	case *Class, *Mixin:
 		return fmt.Sprintf("%s.:%s", scope.Name(), methodName.String())

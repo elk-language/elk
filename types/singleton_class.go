@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Type that represents the singleton class of a mixin, class etc.
@@ -45,7 +45,7 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	}
 }
 
-func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
@@ -76,7 +76,7 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 	singletonConstantPath := GetConstantPath(fullConstantName)
 	parentNamespace := DeepCopyNamespacePath(singletonConstantPath[:len(singletonConstantPath)-1], oldEnv, newEnv)
 	singletonConstantName := singletonConstantPath[len(singletonConstantPath)-1]
-	parentNamespace.DefineConstant(value.ToSymbol(singletonConstantName), newSingleton)
+	parentNamespace.DefineConstant(symbol.ToSymbol(singletonConstantName), newSingleton)
 
 	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
 	newSingleton.instanceVariables = InstanceVariablesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)

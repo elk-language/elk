@@ -296,7 +296,7 @@ func TestBytecodeEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
-					value.Ref(vm.NewCallSiteInfo(symbol.OpEqual, 1)),
+					value.Ref(vm.NewCallSiteInfo(value.S(symbol.OpEqual), 1)),
 				},
 			),
 		},
@@ -444,7 +444,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
-					value.Ref(vm.NewCallSiteInfo(symbol.OpEqual, 1)),
+					value.Ref(vm.NewCallSiteInfo(value.S(symbol.OpEqual), 1)),
 				},
 			),
 		},

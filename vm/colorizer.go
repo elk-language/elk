@@ -13,7 +13,7 @@ func (f Colorizer) Colorize(s string) (string, error) {
 
 func MakeColorizer(vm *Thread, val value.Value) Colorizer {
 	return func(s string) (string, error) {
-		result, err := vm.CallMethodByName(symbol.L_colorize, value.Ref(value.String(s)))
+		result, err := vm.CallMethodByName(value.S(symbol.L_colorize), value.Ref(value.String(s)))
 		if !err.IsUndefined() {
 			return "", err
 		}

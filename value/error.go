@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"math"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::Error
@@ -142,8 +144,8 @@ var NotBuiltinError *Object
 
 // Create a new Elk error.
 func NewError(class *Class, message string) *Object {
-	ivars := make([]Value, len(class.IvarIndices))
-	ivars[class.IvarIndices[SymbolTable.Add("message")]] = Ref(String(message))
+	ivars := make([]Value, class.IvarIndices.Length())
+	ivars[class.IvarIndices[symbol.SymbolTable.Add("message")]] = Ref(String(message))
 
 	return &Object{
 		class:             class,
@@ -635,26 +637,26 @@ var messageSymbol = ToSymbol("message")
 
 // Set the error message.
 func (e *Object) SetMessage(message Value) {
-	msgIndex := e.class.IvarIndices[messageSymbol]
+	msgIndex := e.class.IvarIndices[messageSymbol.Id]
 	e.instanceVariables[msgIndex] = message
 }
 
 // Set the error message.
 func (e *Object) SetMessageString(message string) {
-	msgIndex := e.class.IvarIndices[messageSymbol]
+	msgIndex := e.class.IvarIndices[messageSymbol.Id]
 	e.instanceVariables[msgIndex] = Ref(String(message))
 }
 
 // Get the error message.
 func (e *Object) Message() Value {
-	msgIndex := e.class.IvarIndices[messageSymbol]
+	msgIndex := e.class.IvarIndices[messageSymbol.Id]
 	return e.instanceVariables[msgIndex]
 }
 
 func initError() {
 	ErrorClass = NewClassWithOptions(
 		ClassWithIvarIndices(IvarIndices{
-			messageSymbol: 0,
+			messageSymbol.Id: 0,
 		}),
 	)
 	StdModule.AddConstantString("Error", Ref(ErrorClass))

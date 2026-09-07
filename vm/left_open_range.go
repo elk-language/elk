@@ -215,7 +215,7 @@ func LeftOpenRangeIteratorAll(vm *Thread, i *value.LeftOpenRangeIterator) iter.S
 		for {
 			element, err := LeftOpenRangeIteratorNext(vm, i)
 			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

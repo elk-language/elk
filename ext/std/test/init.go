@@ -22,18 +22,18 @@ func runtimeInit() {
 
 func typecheckerInit(checker types.Checker) {
 	env := checker.Env()
-	testModule := env.Std().DefineModule("", symbol.Test, env)
-	assertionsMixin := testModule.DefineMixin("", false, value.ToSymbol("Assertions"), env)
+	testModule := env.Std().DefineModule("", symbol.C_Test, env)
+	assertionsMixin := testModule.DefineMixin("", false, symbol.ToSymbol("Assertions"), env)
 	expressionNodeMixin := env.ExpressionNode()
 
 	n := assertionsMixin.Singleton()
-	types.DefMacro(
+	vm.DefMacro(
 		n,
 		"",
 		"assert!",
 		[]*types.Parameter{
 			types.NewParameter(
-				value.ToSymbol("expression"),
+				symbol.ToSymbol("expression"),
 				expressionNodeMixin,
 				types.NormalParameterKind,
 				false,

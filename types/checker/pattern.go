@@ -8,7 +8,6 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -428,7 +427,7 @@ func (c *Checker) checkMustPatternNode(node *ast.MustPatternNode, matchedType ty
 	return node, nonNilable
 }
 
-func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator value.Symbol) (*ast.UnaryExpressionNode, types.Type) {
+func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator symbol.Symbol) (*ast.UnaryExpressionNode, types.Type) {
 	node.Right = c.checkExpression(node.Right)
 	rightType := c.ToNonLiteral(c.TypeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Location()) {
@@ -621,7 +620,7 @@ func (c *Checker) checkInferredObjectPattern(node *ast.InferredObjectPatternNode
 
 func (c *Checker) checkObjectKeyValuePattern(typ types.Type, node *ast.SymbolKeyValuePatternNode) (attrType types.Type, fullyCaptured bool) {
 	keyStr := ast.IdentifierToString(node.Key)
-	getter := c.GetMethod(typ, value.ToSymbol(keyStr), node.Location())
+	getter := c.GetMethod(typ, symbol.ToSymbol(keyStr), node.Location())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
 		return types.Untyped{}, false
@@ -639,7 +638,7 @@ func (c *Checker) checkObjectKeyValuePattern(typ types.Type, node *ast.SymbolKey
 }
 
 func (c *Checker) checkObjectIdentifierPattern(typ types.Type, name string, location *position.Location) (attrType types.Type, fullyCaptured bool) {
-	getter := c.GetMethod(typ, value.ToSymbol(name), location)
+	getter := c.GetMethod(typ, symbol.ToSymbol(name), location)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, location)
 		return types.Untyped{}, false
@@ -655,7 +654,7 @@ func (c *Checker) checkObjectIdentifierPattern(typ types.Type, name string, loca
 }
 
 func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*ast.MapPatternNode, types.Type) {
-	mapMixin := c.Std(symbol.Map).(*types.Mixin)
+	mapMixin := c.Std(symbol.C_Map).(*types.Mixin)
 	mapOfAny := types.NewGenericWithVariance(mapMixin, types.COVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
@@ -676,11 +675,11 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 	for i, element := range node.Elements {
 		switch e := element.(type) {
 		case *ast.PublicIdentifierNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			newE, _ := c.checkPattern(e, valueType)
 			node.Elements[i] = newE
 		case *ast.PrivateIdentifierNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			newE, _ := c.checkPattern(e, valueType)
 			node.Elements[i] = newE
 		case *ast.KeyValuePatternNode:
@@ -690,7 +689,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		case *ast.SymbolKeyValuePatternNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		default:
@@ -701,7 +700,7 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 }
 
 func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type) (*ast.RecordPatternNode, types.Type) {
-	recordMixin := c.Std(symbol.Record).(*types.Mixin)
+	recordMixin := c.Std(symbol.C_Record).(*types.Mixin)
 	recordOfAny := types.NewGenericWithVariance(recordMixin, types.COVARIANT, types.Any{}, types.Any{})
 
 	var keyType types.Type
@@ -722,10 +721,10 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 	for i, element := range node.Elements {
 		switch e := element.(type) {
 		case *ast.PublicIdentifierNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.PrivateIdentifierNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			node.Elements[i], _ = c.checkPattern(e, valueType)
 		case *ast.KeyValuePatternNode:
 			e.Key = c.checkExpression(e.Key).(ast.LiteralPatternNode)
@@ -734,7 +733,7 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		case *ast.SymbolKeyValuePatternNode:
-			c.checkCanMatch(keyType, c.Std(symbol.Symbol), e.Location())
+			c.checkCanMatch(keyType, c.Std(symbol.C_Symbol), e.Location())
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		default:
@@ -835,7 +834,7 @@ func (c *Checker) checkCanMatchWithTypeArgs(assignedType types.Type, targetType 
 }
 
 func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) (*ast.TuplePatternNode, types.Type) {
-	tupleMixin := c.Std(symbol.Tuple).(*types.Mixin)
+	tupleMixin := c.Std(symbol.C_Tuple).(*types.Mixin)
 	tupleOfAny := types.NewGenericWithTypeArgs(tupleMixin, types.Any{})
 
 	var elementType types.Type
@@ -858,7 +857,7 @@ func (c *Checker) checkTuplePattern(node *ast.TuplePatternNode, typ types.Type) 
 }
 
 func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) (*ast.SetPatternNode, types.Type) {
-	setMixin := c.Std(symbol.Set).(*types.Mixin)
+	setMixin := c.Std(symbol.C_Set).(*types.Mixin)
 	setOfAny := types.NewGenericWithVariance(setMixin, types.BIVARIANT, types.Any{})
 
 	var elementType types.Type
@@ -880,7 +879,7 @@ func (c *Checker) checkSetPattern(node *ast.SetPatternNode, typ types.Type) (*as
 }
 
 func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*ast.ListPatternNode, types.Type) {
-	listMixin := c.Std(symbol.List).(*types.Mixin)
+	listMixin := c.Std(symbol.C_List).(*types.Mixin)
 	listOfAny := types.NewGenericWithVariance(listMixin, types.COVARIANT, types.Any{})
 
 	var elementType types.Type

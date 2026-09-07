@@ -17,7 +17,7 @@ func initTuple() {
 			self := args[0]
 			index := args[1]
 
-			return vm.CallMethodByName(symbol.L_at, self, index)
+			return vm.CallMethodByName(value.S(symbol.L_at), self, index)
 		},
 		DefWithParameters(1),
 	)
@@ -29,7 +29,7 @@ func initTuple() {
 			self := args[0]
 			rangeVal := args[1]
 
-			return vm.CallMethodByName(symbol.L_slice, self, rangeVal)
+			return vm.CallMethodByName(value.S(symbol.L_slice), self, rangeVal)
 		},
 		DefWithParameters(1),
 	)
@@ -41,7 +41,7 @@ func initTuple() {
 			self := args[0]
 			rangeVal := args[1].AsReference()
 
-			lengthVal, err := vm.CallMethodByName(symbol.L_length, self)
+			lengthVal, err := vm.CallMethodByName(value.S(symbol.L_length), self)
 			if err.IsNotUndefined() {
 				return value.Undefined, err
 			}
@@ -86,7 +86,7 @@ func initTuple() {
 
 			var result value.ArrayTupleOfValue
 			for i := start; i <= end; i++ {
-				element, err := vm.CallMethodByName(symbol.L_at, self, value.SmallInt(i).ToValue())
+				element, err := vm.CallMethodByName(value.S(symbol.L_at), self, value.SmallInt(i).ToValue())
 				if err.IsNotUndefined() {
 					return value.Undefined, err
 				}
@@ -106,7 +106,7 @@ func initTuple() {
 			self := args[0]
 			index := args[1]
 
-			val, err := vm.CallMethodByName(symbol.L_at, self, index)
+			val, err := vm.CallMethodByName(value.S(symbol.L_at), self, index)
 			if !err.IsUndefined() {
 				if err.Class() == value.IndexErrorClass {
 					return value.Nil, value.Undefined

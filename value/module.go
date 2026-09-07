@@ -70,7 +70,7 @@ func ModuleConstructor(class *Class) Value {
 		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
-		instanceVariables: make([]Value, len(class.IvarIndices)),
+		instanceVariables: make([]Value, class.IvarIndices.Length()),
 	})
 }
 

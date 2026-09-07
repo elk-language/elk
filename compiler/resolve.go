@@ -223,55 +223,55 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode, checker types.Checker) 
 		return resolveHashSetOfValue(node, checker)
 	}
 
-	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashSet[value.String](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashSet[value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashSet[value.UInt](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashSet[value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashSet[value.Int64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashSet[value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashSet[value.Int32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashSet[value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashSet[value.Int16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashSet[value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashSet[value.Int8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashSet[value.Float](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashSet[value.Float64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashSet[value.Float32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashSet[value.Char](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashSet[value.Date](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashSet[value.Time](node, checker)
 	}
 
@@ -323,62 +323,62 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) 
 	if !ok {
 		return resolveHashMapOfValue(node, checker)
 	}
-	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
+	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.C_Pair).(*types.Class)) {
 		return value.Undefined
 	}
 
 	keyType := g.Get(0).Type
 	valType := g.Get(1).Type
 
-	if checker.IsSubtype(keyType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMapOfString(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashMapOfSymbol(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashMapOfChar(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashMapOfFloat(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeKeyHashMap[value.Float64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeKeyHashMap[value.Float32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeKeyHashMap[value.UInt](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeKeyHashMap[value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeKeyHashMap[value.Int64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeKeyHashMap[value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeKeyHashMap[value.Int32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeKeyHashMap[value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeKeyHashMap[value.Int16](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeKeyHashMap[value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeKeyHashMap[value.Int8](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Date)) {
 		return resolveNativeKeyHashMap[value.Date](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Time)) {
 		return resolveNativeKeyHashMap[value.Time](node, checker)
 	}
 
@@ -386,58 +386,58 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) 
 }
 
 func resolveNativeHashMapOfString(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMap[value.String, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashMap[value.String, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashMap[value.String, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashMap[value.String, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashMap[value.String, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashMap[value.String, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashMap[value.String, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashMap[value.String, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashMap[value.String, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashMap[value.String, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashMap[value.String, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashMap[value.String, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashMap[value.String, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashMap[value.String, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashMap[value.String, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashMap[value.String, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashMap[value.String, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashMap[value.String, value.Time](node, checker)
 	}
 
@@ -445,58 +445,58 @@ func resolveNativeHashMapOfString(node *ast.HashMapLiteralNode, valType types.Ty
 }
 
 func resolveNativeHashMapOfFloat(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMap[value.Float, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashMap[value.Float, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashMap[value.Float, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashMap[value.Float, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashMap[value.Float, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashMap[value.Float, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashMap[value.Float, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashMap[value.Float, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashMap[value.Float, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashMap[value.Float, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashMap[value.Float, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashMap[value.Float, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashMap[value.Float, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashMap[value.Float, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashMap[value.Float, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashMap[value.Float, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashMap[value.Float, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashMap[value.Float, value.Time](node, checker)
 	}
 
@@ -504,58 +504,58 @@ func resolveNativeHashMapOfFloat(node *ast.HashMapLiteralNode, valType types.Typ
 }
 
 func resolveNativeHashMapOfChar(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMap[value.Char, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashMap[value.Char, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashMap[value.Char, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashMap[value.Char, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashMap[value.Char, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashMap[value.Char, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashMap[value.Char, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashMap[value.Char, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashMap[value.Char, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashMap[value.Char, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashMap[value.Char, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashMap[value.Char, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashMap[value.Char, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashMap[value.Char, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashMap[value.Char, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashMap[value.Char, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashMap[value.Char, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashMap[value.Char, value.Time](node, checker)
 	}
 
@@ -563,58 +563,58 @@ func resolveNativeHashMapOfChar(node *ast.HashMapLiteralNode, valType types.Type
 }
 
 func resolveNativeHashMapOfSymbol(node *ast.HashMapLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMap[value.Symbol, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashMap[value.Symbol, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashMap[value.Symbol, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashMap[value.Symbol, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashMap[value.Symbol, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashMap[value.Symbol, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashMap[value.Symbol, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashMap[value.Symbol, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashMap[value.Symbol, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashMap[value.Symbol, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashMap[value.Symbol, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashMap[value.Symbol, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashMap[value.Symbol, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashMap[value.Symbol, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashMap[value.Symbol, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashMap[value.Symbol, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashMap[value.Symbol, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashMap[value.Symbol, value.Time](node, checker)
 	}
 
@@ -743,62 +743,62 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Che
 	if !ok {
 		return resolveHashRecordOfValue(node, checker)
 	}
-	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.Pair).(*types.Class)) {
+	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.C_Pair).(*types.Class)) {
 		return value.Undefined
 	}
 
 	keyType := g.Get(0).Type
 	valType := g.Get(1).Type
 
-	if checker.IsSubtype(keyType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecordOfString(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashRecordOfSymbol(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashRecordOfChar(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashRecordOfFloat(node, valType, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeKeyHashRecord[value.Float64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeKeyHashRecord[value.Float32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeKeyHashRecord[value.UInt](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeKeyHashRecord[value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeKeyHashRecord[value.Int64](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeKeyHashRecord[value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeKeyHashRecord[value.Int32](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeKeyHashRecord[value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeKeyHashRecord[value.Int16](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeKeyHashRecord[value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeKeyHashRecord[value.Int8](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Date)) {
 		return resolveNativeKeyHashRecord[value.Date](node, checker)
 	}
-	if checker.IsSubtype(keyType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(keyType, checker.Std(symbol.C_Time)) {
 		return resolveNativeKeyHashRecord[value.Time](node, checker)
 	}
 
@@ -806,58 +806,58 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Che
 }
 
 func resolveNativeHashRecordOfString(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecord[value.String, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashRecord[value.String, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashRecord[value.String, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashRecord[value.String, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashRecord[value.String, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashRecord[value.String, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashRecord[value.String, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashRecord[value.String, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashRecord[value.String, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashRecord[value.String, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashRecord[value.String, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashRecord[value.String, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashRecord[value.String, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashRecord[value.String, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashRecord[value.String, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashRecord[value.String, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashRecord[value.String, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashRecord[value.String, value.Time](node, checker)
 	}
 
@@ -865,58 +865,58 @@ func resolveNativeHashRecordOfString(node *ast.HashRecordLiteralNode, valType ty
 }
 
 func resolveNativeHashRecordOfFloat(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecord[value.Float, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashRecord[value.Float, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashRecord[value.Float, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashRecord[value.Float, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashRecord[value.Float, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashRecord[value.Float, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashRecord[value.Float, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashRecord[value.Float, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashRecord[value.Float, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashRecord[value.Float, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashRecord[value.Float, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashRecord[value.Float, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashRecord[value.Float, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashRecord[value.Float, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashRecord[value.Float, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashRecord[value.Float, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashRecord[value.Float, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashRecord[value.Float, value.Time](node, checker)
 	}
 
@@ -924,58 +924,58 @@ func resolveNativeHashRecordOfFloat(node *ast.HashRecordLiteralNode, valType typ
 }
 
 func resolveNativeHashRecordOfChar(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecord[value.Char, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashRecord[value.Char, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashRecord[value.Char, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashRecord[value.Char, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashRecord[value.Char, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashRecord[value.Char, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashRecord[value.Char, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashRecord[value.Char, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashRecord[value.Char, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashRecord[value.Char, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashRecord[value.Char, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashRecord[value.Char, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashRecord[value.Char, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashRecord[value.Char, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashRecord[value.Char, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashRecord[value.Char, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashRecord[value.Char, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashRecord[value.Char, value.Time](node, checker)
 	}
 
@@ -983,58 +983,58 @@ func resolveNativeHashRecordOfChar(node *ast.HashRecordLiteralNode, valType type
 }
 
 func resolveNativeHashRecordOfSymbol(node *ast.HashRecordLiteralNode, valType types.Type, checker types.Checker) value.Value {
-	if checker.IsSubtype(valType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecord[value.Symbol, value.String](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeHashRecord[value.Symbol, value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeHashRecord[value.Symbol, value.UInt](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeHashRecord[value.Symbol, value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeHashRecord[value.Symbol, value.Int64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeHashRecord[value.Symbol, value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeHashRecord[value.Symbol, value.Int32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeHashRecord[value.Symbol, value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeHashRecord[value.Symbol, value.Int16](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeHashRecord[value.Symbol, value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeHashRecord[value.Symbol, value.Int8](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float)) {
 		return resolveNativeHashRecord[value.Symbol, value.Float](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeHashRecord[value.Symbol, value.Float64](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeHashRecord[value.Symbol, value.Float32](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Char)) {
 		return resolveNativeHashRecord[value.Symbol, value.Char](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeHashRecord[value.Symbol, value.Bool](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Date)) {
 		return resolveNativeHashRecord[value.Symbol, value.Date](node, checker)
 	}
-	if checker.IsSubtype(valType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(valType, checker.Std(symbol.C_Time)) {
 		return resolveNativeHashRecord[value.Symbol, value.Time](node, checker)
 	}
 
@@ -1205,58 +1205,58 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Check
 		return resolveArrayListOfValue(node, checker)
 	}
 
-	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_String)) {
 		return resolveNativeArrayList[value.String](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeArrayList[value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeArrayList[value.UInt](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeArrayList[value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeArrayList[value.Int64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeArrayList[value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeArrayList[value.Int32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeArrayList[value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeArrayList[value.Int16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeArrayList[value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeArrayList[value.Int8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float)) {
 		return resolveNativeArrayList[value.Float](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeArrayList[value.Float64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeArrayList[value.Float32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Char)) {
 		return resolveNativeArrayList[value.Char](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeArrayList[value.Bool](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Date)) {
 		return resolveNativeArrayList[value.Date](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Time)) {
 		return resolveNativeArrayList[value.Time](node, checker)
 	}
 
@@ -1445,19 +1445,19 @@ func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, capacit
 	}
 
 	elementType := g.Get(0).Type
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int)) {
 		return resolveBigIntSliceToArrayListOfValue(tmpList).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt64)) {
 		return resolveBigIntSliceToNativeArrayList[value.UInt64](tmpList).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt32)) {
 		return resolveBigIntSliceToNativeArrayList[value.UInt32](tmpList).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt16)) {
 		return resolveBigIntSliceToNativeArrayList[value.UInt16](tmpList).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt8)) {
 		return resolveBigIntSliceToNativeArrayList[value.UInt8](tmpList).ToValue()
 	}
 
@@ -1486,19 +1486,19 @@ func resolveIntArrayTupleLiteral(elements []ast.IntCollectionContentNode, typ ty
 	}
 
 	elementType := g.Get(0).Type
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int)) {
 		return resolveBigIntSliceToArrayTupleOfValue(tmpTuple).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt64)) {
 		return resolveBigIntSliceToNativeArrayTuple[value.UInt64](tmpTuple).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt32)) {
 		return resolveBigIntSliceToNativeArrayTuple[value.UInt32](tmpTuple).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt16)) {
 		return resolveBigIntSliceToNativeArrayTuple[value.UInt16](tmpTuple).ToValue()
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt8)) {
 		return resolveBigIntSliceToNativeArrayTuple[value.UInt8](tmpTuple).ToValue()
 	}
 
@@ -1554,58 +1554,58 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Che
 		return resolveArrayTupleOfValue(node, checker)
 	}
 
-	if checker.IsSubtype(elementType, checker.Std(symbol.String)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_String)) {
 		return resolveNativeArrayTuple[value.String](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Symbol)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Symbol)) {
 		return resolveNativeArrayTuple[value.Symbol](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt)) {
 		return resolveNativeArrayTuple[value.UInt](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt64)) {
 		return resolveNativeArrayTuple[value.UInt64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int64)) {
 		return resolveNativeArrayTuple[value.Int64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt32)) {
 		return resolveNativeArrayTuple[value.UInt32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int32)) {
 		return resolveNativeArrayTuple[value.Int32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt16)) {
 		return resolveNativeArrayTuple[value.UInt16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int16)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int16)) {
 		return resolveNativeArrayTuple[value.Int16](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.UInt8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_UInt8)) {
 		return resolveNativeArrayTuple[value.UInt8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Int8)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int8)) {
 		return resolveNativeArrayTuple[value.Int8](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float)) {
 		return resolveNativeArrayTuple[value.Float](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float64)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float64)) {
 		return resolveNativeArrayTuple[value.Float64](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Float32)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Float32)) {
 		return resolveNativeArrayTuple[value.Float32](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Char)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Char)) {
 		return resolveNativeArrayTuple[value.Char](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Bool)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Bool)) {
 		return resolveNativeArrayTuple[value.Bool](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Time)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Time)) {
 		return resolveNativeArrayTuple[value.Time](node, checker)
 	}
-	if checker.IsSubtype(elementType, checker.Std(symbol.Date)) {
+	if checker.IsSubtype(elementType, checker.Std(symbol.C_Date)) {
 		return resolveNativeArrayTuple[value.Date](node, checker)
 	}
 

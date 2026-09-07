@@ -56,7 +56,7 @@ func ClassWithDefinedIvars(names []Symbol) ClassOption {
 		}
 
 		for _, name := range names {
-			c.IvarIndices[name] = len(c.IvarIndices)
+			c.IvarIndices[name.Id] = c.IvarIndices.Length()
 		}
 	}
 }
@@ -169,11 +169,9 @@ func ClassConstructor(metaClass *Class) Value {
 	return Ref(c)
 }
 
-var docSymbol = SymbolTable.Add("doc")
-
-func (c *Class) GetIvarName(ivarIndex int) (Symbol, bool) {
+func (c *Class) GetIvarName(ivarIndex int) (s Symbol, ok bool) {
 	if c.IvarIndices == nil {
-		return 0, false
+		return s, false
 	}
 
 	return c.IvarIndices.GetNameOk(ivarIndex)
@@ -199,14 +197,6 @@ func (c *Class) Parents() iter.Seq[*Class] {
 			}
 		}
 	}
-}
-
-func (c *Class) SetDoc(doc String) {
-	c.Constants.Set(docSymbol, Ref(doc))
-}
-
-func (c *Class) Doc() Value {
-	return c.Constants.Get(docSymbol)
 }
 
 // Create a new instance of the class without initialising it.

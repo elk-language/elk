@@ -1245,7 +1245,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpAnd, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpAnd), &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2535,7 +2535,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpAndNot, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &~
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpAndNot), &cc_main_1, t2...) // receiver: Foo | Std::Int, name: &~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3825,7 +3825,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpOr, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: |
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpOr), &cc_main_1, t2...) // receiver: Foo | Std::Int, name: |
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5115,7 +5115,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpXor, &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ^
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpXor), &cc_main_1, t2...) // receiver: Std::Int | Foo, name: ^
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -8398,7 +8398,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLeftBitshift, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: <<
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLeftBitshift), &cc_main_1, t2...) // receiver: Foo | Std::Int, name: <<
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -9954,7 +9954,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(9)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLogicalLeftBitshift, &cc_main_1, t2...) // receiver: Foo | Std::Int64, name: <<<
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLogicalLeftBitshift), &cc_main_1, t2...) // receiver: Foo | Std::Int64, name: <<<
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -13236,7 +13236,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = l1
 	callFrame.SetNativeLineNumber(10)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpRightBitshift, &cc_main_1, t2...) // receiver: Foo | Std::Int, name: >>
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpRightBitshift), &cc_main_1, t2...) // receiver: Foo | Std::Int, name: >>
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -14560,7 +14560,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(10)).ToValue()
 	callFrame.SetNativeLineNumber(9)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpLogicalRightBitshift, &cc_main_1, t2...) // receiver: Foo | Std::Int64, name: >>>
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLogicalRightBitshift), &cc_main_1, t2...) // receiver: Foo | Std::Int64, name: >>>
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

@@ -15,7 +15,7 @@ func initComparable() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -35,7 +35,7 @@ func initComparable() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -55,7 +55,7 @@ func initComparable() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -75,7 +75,7 @@ func initComparable() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -95,7 +95,7 @@ func initComparable() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}
@@ -118,7 +118,7 @@ func initComparable() {
 			if self.Class() != other.Class() {
 				return value.False.ToValue(), value.Undefined
 			}
-			result, err := vm.CallMethodByName(symbol.OpSpaceship, self, other)
+			result, err := vm.CallMethodByName(value.S(symbol.OpSpaceship), self, other)
 			if !err.IsUndefined() {
 				return value.Undefined, err
 			}

@@ -77,7 +77,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.True).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -90,7 +90,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.False).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_2, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_2, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -103,7 +103,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(0)).ToValue()
 	callFrame.SetNativeLineNumber(6)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_3, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_3, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -116,7 +116,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(1)).ToValue()
 	callFrame.SetNativeLineNumber(7)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_4, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_4, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -198,7 +198,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.True).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t2...) // receiver: any, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t2...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -210,7 +210,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.False).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_2, t2...) // receiver: any, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_2, t2...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -222,7 +222,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(0)).ToValue()
 	callFrame.SetNativeLineNumber(6)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_3, t2...) // receiver: any, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_3, t2...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -234,7 +234,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = (value.SmallInt(1)).ToValue()
 	callFrame.SetNativeLineNumber(7)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_4, t2...) // receiver: any, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_4, t2...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -314,7 +314,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.True).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -327,7 +327,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.False).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_2, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_2, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -407,7 +407,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.True).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -487,7 +487,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.False).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -568,7 +568,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = value.Nil
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -648,7 +648,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.String("foo")).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -728,7 +728,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.String("foo")).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -810,7 +810,7 @@ func main() { // loc: <main>
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = l0
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t3...) // receiver: any, name: to_string
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.L_to_string), &cc_main_1, t3...) // receiver: any, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -818,7 +818,7 @@ func main() { // loc: <main>
 	t3 = value.ResizeNativeArgs(t3, 3)
 	t3[0] = l0
 	t3[1] = (value.String("f") + (t2).AsString()).ToValue()
-	t4, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_2, t3...) // receiver: any, name: ==
+	t4, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_2, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -899,7 +899,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (sym2).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -981,7 +981,7 @@ func main() { // loc: <main>
 	t3 = value.ResizeNativeArgs(t3, 2)
 	t3[0] = l0
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.L_to_string, &cc_main_1, t3...) // receiver: any, name: to_string
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.L_to_string), &cc_main_1, t3...) // receiver: any, name: to_string
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -989,7 +989,7 @@ func main() { // loc: <main>
 	t3 = value.ResizeNativeArgs(t3, 3)
 	t3[0] = l0
 	t3[1] = ((value.String("f") + (t2).AsString()).ToSymbol()).ToValue()
-	t4, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_2, t3...) // receiver: any, name: ==
+	t4, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_2, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1069,7 +1069,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1149,7 +1149,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Int64(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1229,7 +1229,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.UInt64(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1309,7 +1309,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Int32(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1389,7 +1389,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.UInt32(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1469,7 +1469,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Int16(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1549,7 +1549,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.UInt16(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1629,7 +1629,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Int8(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1709,7 +1709,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.UInt8(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1789,7 +1789,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Float(5.8)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1869,7 +1869,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Float64(5.8)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1949,7 +1949,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Float32(5.800000190734863)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2029,7 +2029,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.Float32(-5.8)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2110,7 +2110,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (bf0).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2199,7 +2199,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (const0).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2295,7 +2295,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (const1).ToValue()
 	callFrame.SetNativeLineNumber(7)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2410,7 +2410,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (const1).NegateVal()
 	callFrame.SetNativeLineNumber(7)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -2512,7 +2512,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (value.SmallInt(5)).ToValue()
 		callFrame.SetNativeLineNumber(4)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t4...) // receiver: any, name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t4...) // receiver: any, name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -2608,7 +2608,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (const0).ToValue()
 		callFrame.SetNativeLineNumber(5)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t4...) // receiver: any, name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t4...) // receiver: any, name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -2704,7 +2704,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (const0).NegateVal()
 		callFrame.SetNativeLineNumber(5)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t4...) // receiver: any, name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t4...) // receiver: any, name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -2791,7 +2791,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (value.SmallInt(5)).ToValue()
 		callFrame.SetNativeLineNumber(4)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThanEqual, &cc_main_1, t4...) // receiver: any, name: <=
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThanEqual), &cc_main_1, t4...) // receiver: any, name: <=
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -2878,7 +2878,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (value.SmallInt(5)).ToValue()
 		callFrame.SetNativeLineNumber(4)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThan, &cc_main_1, t4...) // receiver: any, name: >
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThan), &cc_main_1, t4...) // receiver: any, name: >
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -2965,7 +2965,7 @@ func main() { // loc: <main>
 		t4[0] = l0
 		t4[1] = (value.SmallInt(5)).ToValue()
 		callFrame.SetNativeLineNumber(4)
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThanEqual, &cc_main_1, t4...) // receiver: any, name: >=
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThanEqual), &cc_main_1, t4...) // receiver: any, name: >=
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -3049,7 +3049,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3131,7 +3131,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (regex0).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3215,7 +3215,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = l1
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3295,7 +3295,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3379,7 +3379,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = l1
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpLaxEqual, &cc_main_1, t3...) // receiver: any, name: =~
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLaxEqual), &cc_main_1, t3...) // receiver: any, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3459,7 +3459,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpLaxEqual, &cc_main_1, t3...) // receiver: any, name: =~
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLaxEqual), &cc_main_1, t3...) // receiver: any, name: =~
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3879,7 +3879,7 @@ func main() { // loc: <main>
 	t3[0] = (range0).ToValue()
 	t3[1] = l0
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(symbol.S_contains, &cc_main_1, t3...) // receiver: Std::Int, name: #contains
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #contains
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -3975,7 +3975,7 @@ func main() { // loc: <main>
 	t3[0] = (value.NewClosedRange((const0).ToValue(), (const1).NegateVal())).ToValue()
 	t3[1] = l0
 	callFrame.SetNativeLineNumber(6)
-	t2, err = thread.CallMethodByNameWithCache(symbol.S_contains, &cc_main_1, t3...) // receiver: Std::Int, name: #contains
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #contains
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4829,7 +4829,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: ==
+	t6, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4847,7 +4847,7 @@ func main() { // loc: <main>
 		t4 = value.ResizeNativeArgs(t4, 3)
 		t4[0] = t3
 		t4[1] = (value.SmallInt(8)).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -4872,7 +4872,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4885,7 +4885,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4894,7 +4894,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5540,7 +5540,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5553,7 +5553,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5572,7 +5572,7 @@ func main() { // loc: <main>
 		t4 = value.ResizeNativeArgs(t4, 3)
 		t4[0] = t3
 		t4[1] = (t6).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -5704,7 +5704,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5717,7 +5717,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayList[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5862,7 +5862,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t6, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: ==
+	t6, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5880,7 +5880,7 @@ func main() { // loc: <main>
 		t4 = value.ResizeNativeArgs(t4, 3)
 		t4[0] = t3
 		t4[1] = (value.SmallInt(8)).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -5905,7 +5905,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5918,7 +5918,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_4, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -5927,7 +5927,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(1)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_5, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6579,7 +6579,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6592,7 +6592,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6611,7 +6611,7 @@ func main() { // loc: <main>
 		t4 = value.ResizeNativeArgs(t4, 3)
 		t4[0] = t3
 		t4[1] = (t6).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_3, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -6745,7 +6745,7 @@ func main() { // loc: <main>
 	}
 	t4 = value.ResizeNativeArgs(t4, 2)
 	t4[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_1, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6758,7 +6758,7 @@ func main() { // loc: <main>
 	t4 = value.ResizeNativeArgs(t4, 3)
 	t4[0] = t3
 	t4[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t4...) // receiver: Std::Int | Std::ArrayTuple[Std::Int], name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6889,7 +6889,7 @@ func main() { // loc: <main>
 		t5 = value.ResizeNativeArgs(t5, 3)
 		t5[0] = t3
 		t5[1] = (value.SmallInt(8)).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t5...) // receiver: void, name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t5...) // receiver: void, name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -6921,7 +6921,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (sym2).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6933,7 +6933,7 @@ func main() { // loc: <main>
 	}
 	t5 = value.ResizeNativeArgs(t5, 2)
 	t5[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t5...) // receiver: void, name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_3, t5...) // receiver: void, name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6946,7 +6946,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_4, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -6955,7 +6955,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(1)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_5, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7098,7 +7098,7 @@ func main() { // loc: <main>
 		t5 = value.ResizeNativeArgs(t5, 3)
 		t5[0] = t3
 		t5[1] = (value.SmallInt(8)).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_1, t5...) // receiver: void, name: <
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_1, t5...) // receiver: void, name: <
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -7130,7 +7130,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (sym2).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_2, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_2, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7142,7 +7142,7 @@ func main() { // loc: <main>
 	}
 	t5 = value.ResizeNativeArgs(t5, 2)
 	t5[0] = t3
-	t3, err = thread.CallMethodByNameWithCache(symbol.L_length, &cc_main_3, t5...) // receiver: void, name: length
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.L_length), &cc_main_3, t5...) // receiver: void, name: length
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7155,7 +7155,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(0)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_4, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_4, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7164,7 +7164,7 @@ func main() { // loc: <main>
 	t5 = value.ResizeNativeArgs(t5, 3)
 	t5[0] = t3
 	t5[1] = (value.SmallInt(1)).ToValue()
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_5, t5...) // receiver: void, name: []
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_5, t5...) // receiver: void, name: []
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -7305,7 +7305,7 @@ func main() { // loc: <main>
 		t4 = value.ResizeNativeArgs(t4, 3)
 		t4[0] = t3
 		t4[1] = (value.SmallInt(1)).ToValue()
-		t3, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThan, &cc_main_1, t4...) // receiver: void, name: >
+		t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThan), &cc_main_1, t4...) // receiver: void, name: >
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -7320,7 +7320,7 @@ func main() { // loc: <main>
 			t4 = value.ResizeNativeArgs(t4, 3)
 			t4[0] = t3
 			t4[1] = (value.SmallInt(5)).ToValue()
-			t3, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t4...) // receiver: void, name: <
+			t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_2, t4...) // receiver: void, name: <
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				thread.Panic(err)
@@ -7461,7 +7461,7 @@ func main() { // loc: <main>
 		t3 = value.ResizeNativeArgs(t3, 3)
 		t3[0] = t2
 		t3[1] = (value.SmallInt(1)).ToValue()
-		t2, err = thread.CallMethodByNameWithCache(symbol.OpGreaterThan, &cc_main_1, t3...) // receiver: void, name: >
+		t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpGreaterThan), &cc_main_1, t3...) // receiver: void, name: >
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -7476,7 +7476,7 @@ func main() { // loc: <main>
 			t3 = value.ResizeNativeArgs(t3, 3)
 			t3[0] = t2
 			t3[1] = (value.SmallInt(5)).ToValue()
-			t2, err = thread.CallMethodByNameWithCache(symbol.OpLessThan, &cc_main_2, t3...) // receiver: void, name: <
+			t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpLessThan), &cc_main_2, t3...) // receiver: void, name: <
 			if err.IsNotUndefined() {
 				thread.CaptureStackTrace()
 				thread.Panic(err)

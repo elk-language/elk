@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -90,7 +89,7 @@ func NewInterface(docComment string, name string, env *GlobalEnvironment) *Inter
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 		compiled:      env.Init,
 	}
-	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.Interface))
+	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.C_Interface))
 
 	return iface
 }
@@ -115,7 +114,7 @@ func NewInterfaceWithDetails(
 	}
 }
 
-func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method
@@ -163,7 +162,7 @@ func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
 		NamespaceBase: MakeNamespaceBase(i.docComment, i.name),
 	}
 	constName := ifaceConstantPath[len(ifaceConstantPath)-1]
-	parentNamespace.DefineSubtype(value.ToSymbol(constName), newIface)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(constName), newIface)
 
 	newIface.singleton = nil
 	newIface.singleton = DeepCopyEnv(i.singleton, oldEnv, newEnv).(*SingletonClass)

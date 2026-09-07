@@ -215,7 +215,7 @@ func ClosedRangeIteratorAll(vm *Thread, i *value.ClosedRangeIterator) iter.Seq2[
 		for {
 			element, err := ClosedRangeIteratorNext(vm, i)
 			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == symbol.L_stop_iteration {
+				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

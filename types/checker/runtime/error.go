@@ -19,7 +19,7 @@ func initError() {
 			diagnostics := args[2]
 
 			self.SetMessage(message)
-			self.SetInstanceVariable(symbol.L_diagnostics, diagnostics)
+			self.SetInstanceVariable(value.S(symbol.L_diagnostics), diagnostics)
 
 			return value.Ref(self), value.Undefined
 		},
@@ -31,7 +31,7 @@ func initError() {
 		"diagnostics",
 		func(thread *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			self := args[0].AsReference().(*value.Object)
-			return self.GetInstanceVariable(symbol.L_diagnostics), value.Undefined
+			return self.GetInstanceVariable(value.S(symbol.L_diagnostics)), value.Undefined
 		},
 	)
 }

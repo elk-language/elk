@@ -459,7 +459,7 @@ func (*InterpolatedStringLiteralNode) IsStatic() bool {
 }
 
 func (*InterpolatedStringLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.String)
+	return globalEnv.StdSubtype(symbol.C_String)
 }
 
 func (*InterpolatedStringLiteralNode) Class() *value.Class {

@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -1690,7 +1691,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1828,7 +1829,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -1966,7 +1967,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2103,7 +2104,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2240,7 +2241,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2377,7 +2378,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2514,7 +2515,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2651,7 +2652,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2788,7 +2789,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -2925,7 +2926,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3062,7 +3063,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3199,7 +3200,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3336,7 +3337,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3473,7 +3474,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3610,7 +3611,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3746,7 +3747,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3860,7 +3861,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),
@@ -3974,7 +3975,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("a"): 0,
+								symbol.ToSymbol("a"): 0,
 							}),
 						},
 					)),

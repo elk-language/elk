@@ -8,7 +8,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Checks whether all constants specified in `using` statements have been defined
@@ -51,7 +51,7 @@ const (
 
 type constantDefinitionCheck struct {
 	state             constState
-	constName         value.Symbol
+	constName         symbol.Symbol
 	filename          string
 	constantScopes    []constantScope
 	methodScopes      []methodScope
@@ -60,7 +60,7 @@ type constantDefinitionCheck struct {
 	namespace         types.Namespace
 }
 
-func (c *Checker) registerConstantCheck(fullName string, constName value.Symbol, namespace types.Namespace, node *ast.ConstantDeclarationNode) {
+func (c *Checker) registerConstantCheck(fullName string, constName symbol.Symbol, namespace types.Namespace, node *ast.ConstantDeclarationNode) {
 	c.constantChecks.m[fullName] = &constantDefinitionCheck{
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
@@ -111,7 +111,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 		return
 	}
 
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
+	constantName := symbol.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 
 	switch constant.(type) {
@@ -225,7 +225,7 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		c.checkCanAssign(actualType, declaredType, init.Location())
 	}
 
-	symbolName := value.ToSymbol(name)
+	symbolName := symbol.ToSymbol(name)
 	check.referencedMethods = slices.Clone(c.methodCache.Slice)
 	for _, method := range c.methodCache.Slice {
 		method.UsedInConstants.Add(symbolName)
@@ -440,7 +440,7 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 	return nil, name
 }
 
-func (c *Checker) addToConstantCache(name value.Symbol) {
+func (c *Checker) addToConstantCache(name symbol.Symbol) {
 	if c.phase == methodCheckPhase {
 		c.method.UsedConstants.Add(name)
 	}
@@ -452,7 +452,7 @@ func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.Pub
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {
-		c.addToConstantCache(value.ToSymbol(name))
+		c.addToConstantCache(symbol.ToSymbol(name))
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -468,7 +468,7 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {
-		c.addToConstantCache(value.ToSymbol(name))
+		c.addToConstantCache(symbol.ToSymbol(name))
 	}
 
 	node.Value = name
@@ -481,7 +481,7 @@ func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.P
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {
-		c.addToConstantCache(value.ToSymbol(name))
+		c.addToConstantCache(symbol.ToSymbol(name))
 	}
 
 	node.Value = name

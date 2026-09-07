@@ -16,7 +16,7 @@ func Iterate(vm *Thread, iterableVal value.Value) iter.Seq2[value.Value, value.V
 		return c.Iterate()
 	default:
 		return func(yield func(value.Value, value.Value) bool) {
-			iterator, err := vm.CallMethodByName(symbol.L_iter, iterableVal)
+			iterator, err := vm.CallMethodByName(value.S(symbol.L_iter), iterableVal)
 			if !err.IsUndefined() {
 				yield(value.Undefined, err)
 				return
@@ -44,7 +44,7 @@ func IterateIterator(vm *Thread, iteratorVal value.Value) iter.Seq2[value.Value,
 	default:
 		return func(yield func(value.Value, value.Value) bool) {
 			for {
-				element, err := vm.CallMethodByName(symbol.L_next, iteratorVal)
+				element, err := vm.CallMethodByName(value.S(symbol.L_next), iteratorVal)
 				if err.IsUndefined() {
 					if !yield(element, value.Undefined) {
 						return
@@ -52,7 +52,7 @@ func IterateIterator(vm *Thread, iteratorVal value.Value) iter.Seq2[value.Value,
 					continue
 				}
 
-				if err != symbol.L_stop_iteration.ToValue() {
+				if err != value.S(symbol.L_stop_iteration).ToValue() {
 					yield(value.Undefined, err)
 				}
 				return

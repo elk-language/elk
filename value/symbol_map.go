@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"maps"
 	"strings"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 var SymbolMapClass *Class // ::Std::SymbolMap
@@ -82,12 +84,12 @@ func (s SymbolMap) Set(key Symbol, val Value) {
 
 // Get a value stored using the given key.
 func (s SymbolMap) GetString(key string) (val Value) {
-	symbol, ok := SymbolTable.Get(key)
+	symbol, ok := symbol.SymbolTable.Get(key)
 	if !ok {
 		return val
 	}
 
-	return s[symbol]
+	return s[S(symbol)]
 }
 
 // Check if the given key exists.
@@ -96,17 +98,17 @@ func (s SymbolMap) HasString(key string) bool {
 }
 
 func (s SymbolMap) DeleteString(key string) {
-	symbol, ok := SymbolTable.Get(key)
+	symbol, ok := symbol.SymbolTable.Get(key)
 	if !ok {
 		return
 	}
 
-	delete(s, symbol)
+	delete(s, S(symbol))
 }
 
 // Set the passed value under the given key.
 func (s SymbolMap) SetString(key string, val Value) {
-	s[SymbolTable.Add(key)] = val
+	s[S(symbol.SymbolTable.Add(key))] = val
 }
 
 func initSymbolMap() {

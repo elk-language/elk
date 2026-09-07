@@ -134,7 +134,7 @@ func initArrayTuple() {
 			// callable is another value
 			for i := range self.Length() {
 				element := self.AtVal(i)
-				result, err := vm.CallMethodByName(symbol.L_call, callable, element)
+				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, element)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -185,7 +185,7 @@ func ArrayTupleEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
 	}
 
 	for i := 0; i < xLen; i++ {
-		equal, err := vm.CallMethodByName(symbol.OpEqual, x.AtVal(i), y.AtVal(i))
+		equal, err := vm.CallMethodByName(value.S(symbol.OpEqual), x.AtVal(i), y.AtVal(i))
 		if !err.IsUndefined() {
 			return false, err
 		}

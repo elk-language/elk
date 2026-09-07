@@ -181,7 +181,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.ToValue())
+				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -224,7 +224,7 @@ func initHashRecord() {
 
 			// callable is another value
 			for pair := range self.All() {
-				result, err := vm.CallMethodByName(symbol.L_call, callable, pair.Value())
+				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, pair.Value())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}

@@ -39,7 +39,7 @@ func NewFloatLiteral(value string) *FloatLiteral {
 }
 
 func (*FloatLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Float)
+	return env.StdSubtype(symbol.C_Float)
 }
 
 func (*FloatLiteral) IsLiteral() bool {
@@ -93,7 +93,7 @@ func NewFloat64Literal(value string) *Float64Literal {
 }
 
 func (*Float64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Float64)
+	return env.StdSubtype(symbol.C_Float64)
 }
 
 func (*Float64Literal) IsLiteral() bool {
@@ -147,7 +147,7 @@ func NewFloat32Literal(value string) *Float32Literal {
 }
 
 func (*Float32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Float32)
+	return env.StdSubtype(symbol.C_Float32)
 }
 
 func (*Float32Literal) IsLiteral() bool {
@@ -201,7 +201,7 @@ func NewBigFloatLiteral(value string) *BigFloatLiteral {
 }
 
 func (*BigFloatLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.BigFloat)
+	return env.StdSubtype(symbol.C_BigFloat)
 }
 
 func (*BigFloatLiteral) IsLiteral() bool {

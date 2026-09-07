@@ -207,7 +207,7 @@ func Hash(vm *Thread, key value.Value) (value.UInt64, value.Value) {
 			return 0, value.Nil
 		}
 		class := key.DirectClass()
-		method := class.LookupMethod(symbol.L_hash)
+		method := class.LookupMethod(value.S(symbol.L_hash))
 		if method == nil {
 			return ObjectHash(key), value.Undefined
 		}
@@ -236,12 +236,12 @@ func Hash(vm *Thread, key value.Value) (value.UInt64, value.Value) {
 
 // Return the string representation of a value for debugging
 func Inspect(vm *Thread, val value.Value) (value.Value, value.Value) {
-	return vm.CallMethodByName(symbol.L_inspect, val)
+	return vm.CallMethodByName(value.S(symbol.L_inspect), val)
 }
 
 // Return the string representation of a value for debugging
 func InspectWithColor(vm *Thread, val value.Value) (string, value.Value) {
-	result, err := vm.CallMethodByName(symbol.L_inspect, val)
+	result, err := vm.CallMethodByName(value.S(symbol.L_inspect), val)
 	if !err.IsUndefined() {
 		return "", err
 	}
@@ -260,7 +260,7 @@ func Equal(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err := vm.CallMethodByName(symbol.OpEqual, left, right)
+	result, err := vm.CallMethodByName(value.S(symbol.OpEqual), left, right)
 	if !err.IsUndefined() {
 		return value.Undefined, err
 	}
@@ -277,7 +277,7 @@ func ToString(vm *Thread, val value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err := vm.CallMethodByName(symbol.L_to_string, val)
+	result, err := vm.CallMethodByName(value.S(symbol.L_to_string), val)
 	if !err.IsUndefined() {
 		return value.Undefined, err
 	}
@@ -295,7 +295,7 @@ func LaxEqual(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err := vm.CallMethodByName(symbol.OpLaxEqual, left, right)
+	result, err := vm.CallMethodByName(value.S(symbol.OpLaxEqual), left, right)
 	if !err.IsUndefined() {
 		return value.Undefined, err
 	}
@@ -316,7 +316,7 @@ func GreaterThan(vm *Thread, left, right value.Value) (value.Value, value.Value)
 		return value.Undefined, value.Nil
 	}
 
-	result, err2 := vm.CallMethodByName(symbol.OpGreaterThan, left, right)
+	result, err2 := vm.CallMethodByName(value.S(symbol.OpGreaterThan), left, right)
 	if !err2.IsUndefined() {
 		return value.Undefined, err2
 	}
@@ -337,7 +337,7 @@ func GreaterThanEqual(vm *Thread, left, right value.Value) (value.Value, value.V
 		return value.Undefined, value.Nil
 	}
 
-	result, err2 := vm.CallMethodByName(symbol.OpGreaterThanEqual, left, right)
+	result, err2 := vm.CallMethodByName(value.S(symbol.OpGreaterThanEqual), left, right)
 	if !err2.IsUndefined() {
 		return value.Undefined, err2
 	}
@@ -358,7 +358,7 @@ func LessThan(vm *Thread, left, right value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err2 := vm.CallMethodByName(symbol.OpLessThan, left, right)
+	result, err2 := vm.CallMethodByName(value.S(symbol.OpLessThan), left, right)
 	if !err2.IsUndefined() {
 		return value.Undefined, err2
 	}
@@ -379,7 +379,7 @@ func LessThanEqual(vm *Thread, left, right value.Value) (value.Value, value.Valu
 		return value.Undefined, value.Nil
 	}
 
-	result, err2 := vm.CallMethodByName(symbol.OpLessThanEqual, left, right)
+	result, err2 := vm.CallMethodByName(value.S(symbol.OpLessThanEqual), left, right)
 	if !err2.IsUndefined() {
 		return value.Undefined, err2
 	}
@@ -397,7 +397,7 @@ func Increment(vm *Thread, val value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err := vm.CallMethodByName(symbol.OpIncrement, val)
+	result, err := vm.CallMethodByName(value.S(symbol.OpIncrement), val)
 	if !err.IsUndefined() {
 		return value.Undefined, err
 	}
@@ -415,7 +415,7 @@ func Decrement(vm *Thread, val value.Value) (value.Value, value.Value) {
 		return value.Undefined, value.Nil
 	}
 
-	result, err := vm.CallMethodByName(symbol.OpDecrement, val)
+	result, err := vm.CallMethodByName(value.S(symbol.OpDecrement), val)
 	if !err.IsUndefined() {
 		return value.Undefined, err
 	}

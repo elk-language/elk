@@ -8,7 +8,6 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -121,7 +120,7 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 		return
 	}
 	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
+	constantName := symbol.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 
 	switch constant.(type) {
@@ -153,7 +152,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 		return
 	}
 	container, constant, fullConstantName := c.resolveConstantForNamespaceDeclaration(node.Constant)
-	constantName := value.ToSymbol(extractConstantName(node.Constant))
+	constantName := symbol.ToSymbol(extractConstantName(node.Constant))
 	node.Constant = ast.NewPublicConstantNode(node.Constant.Location(), fullConstantName)
 	switch constant.(type) {
 	case *types.ConstantPlaceholder, nil:
@@ -725,7 +724,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.runtimeEnv.StdSubtypeClass(symbol.Object)
+		superclass = c.runtimeEnv.StdSubtypeClass(symbol.C_Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -780,7 +779,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.runtimeEnv.StdSubtypeClass(symbol.Object)
+		superclass = c.runtimeEnv.StdSubtypeClass(symbol.C_Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -1031,7 +1030,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 	}
 
 	return types.NewTypeParameter(
-		value.ToSymbol(node.Name),
+		symbol.ToSymbol(node.Name),
 		namespace,
 		lowerType,
 		upperType,
@@ -1052,7 +1051,7 @@ func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, name
 	}
 
 	return types.NewTypeParameter(
-		value.ToSymbol(node.Name),
+		symbol.ToSymbol(node.Name),
 		namespace,
 		nil,
 		nil,

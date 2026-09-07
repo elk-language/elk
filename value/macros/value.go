@@ -10,11 +10,11 @@ import (
 )
 
 func initValue(env *types.GlobalEnvironment) {
-	astModule := env.StdSubtypeModule(symbol.Elk).MustSubtype(symbol.AST).(*types.Module)
-	exprNode := astModule.MustSubtype(symbol.ExpressionNode)
-	valueClass := env.StdSubtypeClass(symbol.Value).Singleton()
+	astModule := env.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)
+	exprNode := astModule.MustSubtype(symbol.C_ExpressionNode)
+	valueClass := env.StdSubtypeClass(symbol.C_Value).Singleton()
 
-	types.DefMacro(
+	vm.DefMacro(
 		valueClass,
 		`Expands to an expression with never type, an endless loop.
 Useful in header files for function parameter default value.

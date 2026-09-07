@@ -10735,7 +10735,7 @@ lbl1:
 	t3[0] = t2
 	t3[1] = (sym2).ToValue()
 	callFrame.SetNativeLineNumber(6)
-	t2, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t3...) // receiver: any, name: ==
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t3...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -10840,7 +10840,7 @@ lbl1:
 	t2[0] = t1
 	t2[1] = (sym2).ToValue()
 	callFrame.SetNativeLineNumber(6)
-	t1, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t2...) // receiver: any, name: ==
+	t1, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t2...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -11631,7 +11631,7 @@ lbl1:
 	t1[0] = t2
 	t1[1] = (sym3).ToValue()
 	callFrame.SetNativeLineNumber(9)
-	t3, err = thread.CallMethodByNameWithCache(symbol.OpEqual, &cc_main_1, t1...) // receiver: any, name: ==
+	t3, err = thread.CallMethodByNameWithCache(value.S(symbol.OpEqual), &cc_main_1, t1...) // receiver: any, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

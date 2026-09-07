@@ -191,7 +191,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 	return expr
 }
 
-func (c *Checker) resolveSingletonMacro(name value.Symbol) *types.Method {
+func (c *Checker) resolveSingletonMacro(name symbol.Symbol) *types.Method {
 	for _, methodScope := range ds.ReverseSlice(c.methodScopes) {
 		macro := c.resolveSingletonMacroForNamespace(methodScope.container, name)
 		if macro != nil {
@@ -202,7 +202,7 @@ func (c *Checker) resolveSingletonMacro(name value.Symbol) *types.Method {
 	return nil
 }
 
-func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, name symbol.Symbol) *types.Method {
 	switch n := namespace.(type) {
 	case *types.Class:
 		namespace = n.Singleton()
@@ -224,7 +224,7 @@ func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, n
 	return nil
 }
 
-func (c *Checker) resolveInstanceMacroForNamespace(namespace types.Namespace, name value.Symbol) *types.Method {
+func (c *Checker) resolveInstanceMacroForNamespace(namespace types.Namespace, name symbol.Symbol) *types.Method {
 	switch n := namespace.(type) {
 	case *types.Class, *types.Mixin, *types.Module, *types.SingletonClass:
 		namespace = n
@@ -253,7 +253,7 @@ func macroName(namespace types.Namespace, name string) string {
 	return fmt.Sprintf("%s::%s", namespaceName, name)
 }
 
-func (c *Checker) getMacroForNamespace(namespace types.Namespace, name value.Symbol, loc *position.Location) *types.Method {
+func (c *Checker) getMacroForNamespace(namespace types.Namespace, name symbol.Symbol, loc *position.Location) *types.Method {
 	macro := c.resolveSingletonMacroForNamespace(namespace, name)
 	if macro == nil {
 		c.addUndefinedMacroError(macroName(namespace, name.String()), loc)
@@ -283,7 +283,7 @@ func (c *Checker) addUndefinedInstanceMacroError(name string, typ types.Type, lo
 	)
 }
 
-func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Method {
+func (c *Checker) getMacro(name symbol.Symbol, loc *position.Location) *types.Method {
 	macro := c.resolveSingletonMacro(name)
 	if macro == nil {
 		c.addUndefinedMacroError(name.String(), loc)
@@ -292,7 +292,7 @@ func (c *Checker) getMacro(name value.Symbol, loc *position.Location) *types.Met
 	return macro
 }
 
-func (c *Checker) getInstanceMacro(name value.Symbol, typ types.Type, loc *position.Location) *types.Method {
+func (c *Checker) getInstanceMacro(name symbol.Symbol, typ types.Type, loc *position.Location) *types.Method {
 	typ = c.ToNonLiteral(typ, false)
 
 	var namespace types.Namespace
@@ -316,8 +316,8 @@ func (c *Checker) getInstanceMacro(name value.Symbol, typ types.Type, loc *posit
 	return macro
 }
 
-func (c *Checker) macroMethodName(macroName string) value.Symbol {
-	return value.ToSymbol(macroName + "!")
+func (c *Checker) macroMethodName(macroName string) symbol.Symbol {
+	return symbol.ToSymbol(macroName + "!")
 }
 
 func (c *Checker) expandMacroByName(name string, kind ast.MacroKind, posArgs []ast.ExpressionNode, namedArgs []ast.NamedArgumentNode, loc *position.Location) ast.Node {
@@ -857,14 +857,14 @@ func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *typ
 	c.method = nil
 
 	if c.shouldCompileMacro() && macro.IsCompilable() {
-		macro.Body = c.macroCompiler.CompileMacroBody(node, macro.Name)
+		macro.Body = c.macroCompiler.CompileMacroBody(node, value.S(macro.Name))
 	}
 }
 
 func (c *Checker) declareMacro(
 	macroNamespace types.Namespace,
 	docComment string,
-	name value.Symbol,
+	name symbol.Symbol,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode ast.TypeNode,
 	location *position.Location,
@@ -913,7 +913,7 @@ func (c *Checker) declareMacro(
 				)
 			}
 
-			name := value.ToSymbol(c.identifierToName(p.Name))
+			name := symbol.ToSymbol(c.identifierToName(p.Name))
 			paramType := types.NewParameter(
 				name,
 				declaredType,
@@ -1224,8 +1224,8 @@ func CompileNode(node ast.ExpressionNode) (*vm.BytecodeFunction, value.Value) {
 		err := value.NewObject(
 			value.ObjectWithClass(value.ElkTypeCheckerErrorClass),
 			value.ObjectWithInstanceVariablesByName(value.SymbolMap{
-				symbol.L_message:     value.String("macro eval checker error").ToValue(),
-				symbol.L_diagnostics: (*value.DiagnosticList)(dl).ToValue(),
+				value.S(symbol.L_message):     value.String("macro eval checker error").ToValue(),
+				value.S(symbol.L_diagnostics): (*value.DiagnosticList)(dl).ToValue(),
 			}),
 		).ToValue()
 		return nil, err

@@ -14,6 +14,7 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -35,7 +36,7 @@ type Compiler interface {
 	CompileMethods(location *position.Location, execOffset int)
 	InitIvarIndicesCompiler(location *position.Location) (Compiler, int)
 	FinishIvarIndicesCompiler(location *position.Location, execOffset int) Compiler
-	CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol)
+	CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName symbol.Symbol)
 	RegisterMethod(node *ast.MethodDefinitionNode)
 	CompileMethodBody(node *ast.MethodDefinitionNode, name value.Symbol) Compiler
 	Flush() // Outputs the compiled code to an output file

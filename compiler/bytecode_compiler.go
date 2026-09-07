@@ -396,7 +396,7 @@ func (c *BytecodeCompiler) compileNamespaceDefinition(parentNamespace, namespace
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, name, location)
+		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), location)
 	}
 }
 
@@ -461,7 +461,7 @@ func (c *BytecodeCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndi
 		c.emitGetConst(value.ToSymbol(target.Name()), location)
 	}
 
-	c.emitValue(value.Ref(target.IvarIndices()), location)
+	c.emitValue(value.Ref((*value.IvarIndices)(target.IvarIndices())), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_IVARS)
 }
 
@@ -683,7 +683,7 @@ func (c *BytecodeCompiler) optimiseCalls() {
 			}
 		}
 
-		method := c.checker.GetMethod(call.receiverType, name, nil)
+		method := c.checker.GetMethod(call.receiverType, name.Id, nil)
 		if method == nil {
 			return
 		}
@@ -692,7 +692,7 @@ func (c *BytecodeCompiler) optimiseCalls() {
 	}
 }
 
-func (c *BytecodeCompiler) patchOptimisedCall(call *bytecodeCall, method value.Method) {
+func (c *BytecodeCompiler) patchOptimisedCall(call *bytecodeCall, method types.MethodBody) {
 	opcode := bytecode.OpCode(call.bytecode.Instructions[call.bytecodeOffset])
 	switch body := method.(type) {
 	case *vm.BytecodeFunction:
@@ -756,7 +756,7 @@ func (c *BytecodeCompiler) compileMethodsWithinModule(module *types.Module, loca
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 		for methodName, method := range types.SortedOwnMethods(module) {
-			c.compileMethodDefinition(methodName, method, location)
+			c.compileMethodDefinition(value.S(methodName), method, location)
 
 			for i, overload := range method.Overloads {
 				overloadName := value.ToSymbol(
@@ -797,7 +797,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
 			}
-			nativeMethod, ok := class.Methods[method.Name]
+			nativeMethod, ok := class.Methods[value.S(method.Name)]
 			if !ok {
 				panic(fmt.Sprintf("undefined native method %s under %s", method.Name.String(), namespace.Inspect()))
 			}
@@ -822,11 +822,11 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 
 			switch n := namespace.(type) {
 			case *types.Class:
-				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+				index, ok = n.IvarIndices().GetIndexOk(ivarName.Id)
 			case *types.SingletonClass:
-				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+				index, ok = n.IvarIndices().GetIndexOk(ivarName.Id)
 			case *types.Module:
-				index, ok = n.IvarIndices().GetIndexOk(ivarName)
+				index, ok = n.IvarIndices().GetIndexOk(ivarName.Id)
 			default:
 				index = -1
 				ok = true
@@ -849,11 +849,11 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 
 		switch n := namespace.(type) {
 		case *types.Class:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		case *types.SingletonClass:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		case *types.Module:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		default:
 			index = -1
 			ok = true
@@ -868,7 +868,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		return
 	}
 
-	c.emitValue(method.Body.ToValue(), location)
+	c.emitValue(method.Body.(value.Method).ToValue(), location)
 	c.emitValue(name.ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
 	method.SetCompiled(true)
@@ -884,14 +884,14 @@ func (c *BytecodeCompiler) compileMethodsWithinNamespace(namespace types.Namespa
 		c.emitGetConst(value.ToSymbol(namespace.Name()), location)
 
 		for methodName, method := range types.SortedOwnMethods(namespace) {
-			c.compileMethodDefinition(methodName, method, location)
+			c.compileMethodDefinition(value.S(methodName), method, location)
 		}
 
 		if singletonHasCompiledMethods {
 			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
-				c.compileMethodDefinition(methodName, method, location)
+				c.compileMethodDefinition(value.S(methodName), method, location)
 			}
 		}
 
@@ -1614,21 +1614,21 @@ func (c *BytecodeCompiler) compileUnquoteNode(node *ast.UnquoteNode) {
 
 	switch node.Kind {
 	case ast.UNQUOTE_EXPRESSION_KIND:
-		methodName = symbol.L_to_ast_expr_node
+		methodName = value.S(symbol.L_to_ast_expr_node)
 	case ast.UNQUOTE_CONSTANT_KIND:
-		methodName = symbol.L_to_ast_const_node
+		methodName = value.S(symbol.L_to_ast_const_node)
 	case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
-		methodName = symbol.L_to_ast_complex_const_node
+		methodName = value.S(symbol.L_to_ast_complex_const_node)
 	case ast.UNQUOTE_PATTERN_KIND:
-		methodName = symbol.L_to_ast_pattern_node
+		methodName = value.S(symbol.L_to_ast_pattern_node)
 	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
-		methodName = symbol.L_to_ast_pattern_expr_node
+		methodName = value.S(symbol.L_to_ast_pattern_expr_node)
 	case ast.UNQUOTE_TYPE_KIND:
-		methodName = symbol.L_to_ast_type_node
+		methodName = value.S(symbol.L_to_ast_type_node)
 	case ast.UNQUOTE_IDENTIFIER_KIND:
-		methodName = symbol.L_to_ast_ident_node
+		methodName = value.S(symbol.L_to_ast_ident_node)
 	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
-		methodName = symbol.L_to_ast_ivar_node
+		methodName = value.S(symbol.L_to_ast_ivar_node)
 	default:
 		panic(fmt.Sprintf("invalid unquote kind %d", node.Kind))
 	}
@@ -1680,8 +1680,8 @@ func (c *BytecodeCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionN
 	}
 
 	c.compileCallMethod(
-		c.checker.Std(symbol.Kernel),
-		symbol.S_splice,
+		c.checker.Std(symbol.C_Kernel),
+		value.S(symbol.S_splice),
 		2,
 		node.Location(),
 		false,
@@ -1773,7 +1773,7 @@ func (c *BytecodeCompiler) registerCatch(from, to, jumpAddress int, finally bool
 	)
 }
 
-func (c *BytecodeCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
+func (c *BytecodeCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName symbol.Symbol) {
 	location := node.Location()
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
@@ -1784,7 +1784,7 @@ func (c *BytecodeCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarat
 		namespaceName := value.ToSymbol(n.Name())
 		c.emitGetConst(namespaceName, node.Constant.Location())
 	}
-	c.emitValue(constName.ToValue(), location)
+	c.emitValue(value.S(constName).ToValue(), location)
 	c.compileNode(node.Initialiser, false)
 	c.emit(location.StartPos.Line, bytecode.DEF_CONST)
 }
@@ -2483,10 +2483,10 @@ func (c *BytecodeCompiler) compileForInAsNumericFor(
 	}
 
 	inExpressionType := c.typeOf(inExpression)
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_Range)) {
 		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, location)
 	}
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_Int)) {
 		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, collectionLiteral, location)
 	}
 
@@ -2544,8 +2544,8 @@ func (c *BytecodeCompiler) compileForInIntAsNumericFor(label string, inExpressio
 func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	inExpressionType := c.typeOf(inExpression).(*types.Generic)
 
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessClosedRange)) ||
-		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessOpenRange)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_BeginlessClosedRange)) ||
+		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_BeginlessOpenRange)) {
 		return false
 	}
 
@@ -2566,12 +2566,12 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 	initVal.SetType(rangeElementType)
 
 	var cmpOp token.Type
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.ClosedRange)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_ClosedRange)) {
 		cmpOp = token.LESS_EQUAL
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessClosedRange)) {
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.RightOpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_EndlessClosedRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_RightOpenRange)) {
 		cmpOp = token.LESS
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_OpenRange)) {
 		cmpOp = token.LESS
 		initVal = ast.NewMethodCallNode(
 			location,
@@ -2581,7 +2581,7 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 			nil,
 			nil,
 		)
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_LeftOpenRange)) {
 		cmpOp = token.LESS_EQUAL
 		initVal = ast.NewMethodCallNode(
 			location,
@@ -2591,7 +2591,7 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 			nil,
 			nil,
 		)
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessOpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_EndlessOpenRange)) {
 		initVal = ast.NewMethodCallNode(
 			location,
 			initVal,
@@ -2796,7 +2796,7 @@ func (c *BytecodeCompiler) compileForIn(
 	} else {
 		c.compileCallMethod(
 			c.typeOf(inExpression),
-			symbol.L_iter,
+			value.S(symbol.L_iter),
 			0,
 			inExpression.Location(),
 			false,
@@ -2819,7 +2819,7 @@ func (c *BytecodeCompiler) compileForIn(
 	if c.checker.IsSubtype(iteratorType, c.checker.Std(symbol.S_BuiltinIterator)) {
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN_BUILTIN)
 	} else {
-		c.emitCallNext(vm.NewCallSiteInfo(symbol.L_next, 0), inExpression.Location())
+		c.emitCallNext(vm.NewCallSiteInfo(value.S(symbol.L_next), 0), inExpression.Location())
 		loopBodyOffset = c.emitJump(location.StartPos.Line, bytecode.FOR_IN)
 	}
 
@@ -2988,7 +2988,7 @@ func (c *BytecodeCompiler) compileIncrement(typ types.Type, location *position.L
 
 	c.compileCallMethod(
 		typ,
-		symbol.OpIncrement,
+		value.S(symbol.OpIncrement),
 		0,
 		location,
 		false,
@@ -3008,7 +3008,7 @@ func (c *BytecodeCompiler) compileDecrement(typ types.Type, location *position.L
 
 	c.compileCallMethod(
 		typ,
-		symbol.OpDecrement,
+		value.S(symbol.OpDecrement),
 		0,
 		location,
 		false,
@@ -3024,7 +3024,7 @@ func (c *BytecodeCompiler) compileSubscript(typ types.Type, location *position.L
 
 	c.compileCallMethod(
 		typ,
-		symbol.OpSubscript,
+		value.S(symbol.OpSubscript),
 		1,
 		location,
 		false,
@@ -3040,7 +3040,7 @@ func (c *BytecodeCompiler) compileSubscriptSet(typ types.Type, location *positio
 
 	c.compileCallMethod(
 		typ,
-		symbol.OpSubscriptSet,
+		value.S(symbol.OpSubscriptSet),
 		2,
 		location,
 		false,
@@ -3896,7 +3896,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode, valType types.Type) 
 
 		c.compileCallMethod(
 			valType,
-			symbol.S_contains,
+			value.S(symbol.S_contains),
 			1,
 			location,
 			false,
@@ -3932,7 +3932,7 @@ func (c *BytecodeCompiler) pattern(pattern ast.PatternNode, valType types.Type) 
 
 		c.compileCallMethod(
 			valType,
-			symbol.L_matches,
+			value.S(symbol.L_matches),
 			1,
 			location,
 			false,
@@ -4302,7 +4302,7 @@ func (c *BytecodeCompiler) setPattern(location *position.Location, elements []as
 	c.emit(location.StartPos.Line, bytecode.DUP)
 	c.compileCallMethod(
 		valType,
-		symbol.L_length,
+		value.S(symbol.L_length),
 		0,
 		location,
 		false,
@@ -4332,7 +4332,7 @@ subPatternLoop:
 		c.compileNodeWithResult(element)
 		c.compileCallMethod(
 			valType,
-			symbol.L_contains,
+			value.S(symbol.L_contains),
 			1,
 			location,
 			false,
@@ -4406,7 +4406,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 	c.emit(location.StartPos.Line, bytecode.DUP)
 	c.compileCallMethod(
 		typ,
-		symbol.L_length,
+		value.S(symbol.L_length),
 		0,
 		location,
 		false,
@@ -5429,39 +5429,39 @@ func (c *BytecodeCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNod
 	var firstDynamicIndex int
 	isNative := true
 
-	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_String)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.String](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Symbol)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Symbol](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt64)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int64)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt32)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int32)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt16)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt16](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int16)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int16](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt8)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.UInt8](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int8)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Int8](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float64)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float32)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Float32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Char)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Char](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Date)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Date](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Time)) {
 		baseSet, firstDynamicIndex = compileNativeHashSetBase[value.Time](c, node)
 	} else {
 		isNative = false
@@ -5722,41 +5722,41 @@ elementLoop:
 }
 
 func (c *BytecodeCompiler) compileNativeHashMapOfStringBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.String, value.Time](c, node)
 	} else {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.String](c, node)
@@ -5766,41 +5766,41 @@ func (c *BytecodeCompiler) compileNativeHashMapOfStringBase(node *ast.HashMapLit
 }
 
 func (c *BytecodeCompiler) compileNativeHashMapOfSymbolBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Symbol, value.Time](c, node)
 	} else {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Symbol](c, node)
@@ -5810,41 +5810,41 @@ func (c *BytecodeCompiler) compileNativeHashMapOfSymbolBase(node *ast.HashMapLit
 }
 
 func (c *BytecodeCompiler) compileNativeHashMapOfCharBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Char, value.Time](c, node)
 	} else {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Char](c, node)
@@ -5854,41 +5854,41 @@ func (c *BytecodeCompiler) compileNativeHashMapOfCharBase(node *ast.HashMapLiter
 }
 
 func (c *BytecodeCompiler) compileNativeHashMapOfFloatBase(node *ast.HashMapLiteralNode, valType types.Type) (baseMap vm.HashMap, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseMap, firstDynamicIndex = compileNativeHashMapBase[value.Float, value.Time](c, node)
 	} else {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float](c, node)
@@ -5909,7 +5909,7 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
 			keyType = types.Normalise(g.Get(0).Type)
 			valType = types.Normalise(g.Get(1).Type)
 		}
@@ -5919,39 +5919,39 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 	var firstDynamicIndex int
 	isNative := true
 
-	if c.checker.IsSubtype(keyType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_String)) {
 		baseMap, firstDynamicIndex = c.compileNativeHashMapOfStringBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Symbol)) {
 		baseMap, firstDynamicIndex = c.compileNativeHashMapOfSymbolBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Char)) {
 		baseMap, firstDynamicIndex = c.compileNativeHashMapOfCharBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float)) {
 		baseMap, firstDynamicIndex = c.compileNativeHashMapOfFloatBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float64)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float32)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Float32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt64)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int64)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt32)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int32)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt16)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt16](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int16)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int16](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt8)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.UInt8](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int8)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Int8](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Date)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Date](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Time)) {
 		baseMap, firstDynamicIndex = compileNativeKeyHashMapBase[value.Time](c, node)
 	} else {
 		isNative = false
@@ -6277,41 +6277,41 @@ elementLoop:
 }
 
 func (c *BytecodeCompiler) compileNativeHashRecordOfStringBase(node *ast.HashRecordLiteralNode, valType types.Type) (baseRecord vm.HashRecord, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.String, value.Time](c, node)
 	} else {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.String](c, node)
@@ -6321,41 +6321,41 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfStringBase(node *ast.HashRec
 }
 
 func (c *BytecodeCompiler) compileNativeHashRecordOfSymbolBase(node *ast.HashRecordLiteralNode, valType types.Type) (baseRecord vm.HashRecord, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Symbol, value.Time](c, node)
 	} else {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Symbol](c, node)
@@ -6365,41 +6365,41 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfSymbolBase(node *ast.HashRec
 }
 
 func (c *BytecodeCompiler) compileNativeHashRecordOfCharBase(node *ast.HashRecordLiteralNode, valType types.Type) (baseRecord vm.HashRecord, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Char, value.Time](c, node)
 	} else {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Char](c, node)
@@ -6409,41 +6409,41 @@ func (c *BytecodeCompiler) compileNativeHashRecordOfCharBase(node *ast.HashRecor
 }
 
 func (c *BytecodeCompiler) compileNativeHashRecordOfFloatBase(node *ast.HashRecordLiteralNode, valType types.Type) (baseRecord vm.HashRecord, firstDynamicIndex int) {
-	if c.checker.IsSubtype(valType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_String)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.String](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Symbol)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Symbol](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Int64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Int32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int16)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Int16](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_UInt8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.UInt8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Int8)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Int8](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Float](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float64)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Float64](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Float32)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Float32](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Char)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Char](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Bool)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Bool)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Bool](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Date)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Date](c, node)
-	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(valType, c.checker.Std(symbol.C_Time)) {
 		baseRecord, firstDynamicIndex = compileNativeHashRecordBase[value.Float, value.Time](c, node)
 	} else {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Float](c, node)
@@ -6464,7 +6464,7 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
 			keyType = types.Normalise(g.Get(0).Type)
 			valType = types.Normalise(g.Get(1).Type)
 		}
@@ -6474,39 +6474,39 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 	var firstDynamicIndex int
 	isNative := true
 
-	if c.checker.IsSubtype(keyType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_String)) {
 		baseRecord, firstDynamicIndex = c.compileNativeHashRecordOfStringBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Symbol)) {
 		baseRecord, firstDynamicIndex = c.compileNativeHashRecordOfSymbolBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Char)) {
 		baseRecord, firstDynamicIndex = c.compileNativeHashRecordOfCharBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float)) {
 		baseRecord, firstDynamicIndex = c.compileNativeHashRecordOfFloatBase(node, valType)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float64)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Float64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Float32)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Float32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.UInt](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt64)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.UInt64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int64)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Int64](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt32)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.UInt32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int32)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Int32](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt16)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.UInt16](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int16)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Int16](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_UInt8)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.UInt8](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Int8)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Int8](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Date)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Date](c, node)
-	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(keyType, c.checker.Std(symbol.C_Time)) {
 		baseRecord, firstDynamicIndex = compileNativeKeyHashRecordBase[value.Time](c, node)
 	} else {
 		isNative = false
@@ -6743,39 +6743,39 @@ func (c *BytecodeCompiler) compileArrayListLiteralNode(node *ast.ArrayListLitera
 	elementType, _ := c.checker.GetIteratorElementType(c.typeOf(node))
 	elementType = types.Normalise(elementType)
 
-	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_String)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.String](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Symbol)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Symbol](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt64)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt64](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int64)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int64](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt32)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt32](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int32)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int32](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt16)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt16](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int16)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int16](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt8)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.UInt8](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int8)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Int8](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float64)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float64](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float32)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Float32](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Char)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Char](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Date)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Date](c, node, keyValueCount)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Time)) {
 		baseList, firstDynamicIndex = compileNativeArrayListBase[value.Time](c, node, keyValueCount)
 	} else {
 		isNative = false
@@ -6993,39 +6993,39 @@ func (c *BytecodeCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLite
 	var firstDynamicIndex int
 	isNative := true
 
-	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_String)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.String](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Symbol)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Symbol)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Symbol](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt64)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int64)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt32)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int32)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt16)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt16](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int16)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int16)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int16](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.UInt8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_UInt8)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.UInt8](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Int8)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Int8)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Int8](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float64)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float64)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float64](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Float32)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Float32)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Float32](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Char)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Char)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Char](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Date)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Date)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Date](c, node)
-	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.Time)) {
+	} else if c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Time)) {
 		baseArrayTuple, firstDynamicIndex = compileNativeArrayTupleBase[value.Time](c, node)
 	} else {
 		isNative = false
@@ -7438,7 +7438,7 @@ func (c *BytecodeCompiler) compileInterpolatedStringLiteralNode(node *ast.Interp
 
 			c.compileCallMethod(
 				c.typeOf(element.Expression),
-				symbol.L_inspect,
+				value.S(symbol.L_inspect),
 				0,
 				element.Location(),
 				false,
@@ -7596,7 +7596,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpAdd,
+			value.S(symbol.OpAdd),
 			1,
 			location,
 			false,
@@ -7617,7 +7617,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 
 		c.compileCallMethod(
 			typ,
-			symbol.OpSubtract,
+			value.S(symbol.OpSubtract),
 			1,
 			location,
 			false,
@@ -7637,7 +7637,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpMultiply,
+			value.S(symbol.OpMultiply),
 			1,
 			location,
 			false,
@@ -7657,7 +7657,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpDivide,
+			value.S(symbol.OpDivide),
 			1,
 			location,
 			false,
@@ -7673,7 +7673,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpExponentiate,
+			value.S(symbol.OpExponentiate),
 			1,
 			location,
 			false,
@@ -7689,7 +7689,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLeftBitshift,
+			value.S(symbol.OpLeftBitshift),
 			1,
 			location,
 			false,
@@ -7701,7 +7701,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLogicalLeftBitshift,
+			value.S(symbol.OpLogicalLeftBitshift),
 			1,
 			location,
 			false,
@@ -7717,7 +7717,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpRightBitshift,
+			value.S(symbol.OpRightBitshift),
 			1,
 			location,
 			false,
@@ -7729,7 +7729,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLogicalRightBitshift,
+			value.S(symbol.OpLogicalRightBitshift),
 			1,
 			location,
 			false,
@@ -7745,7 +7745,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpAnd,
+			value.S(symbol.OpAnd),
 			1,
 			location,
 			false,
@@ -7757,7 +7757,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpAndNot,
+			value.S(symbol.OpAndNot),
 			1,
 			location,
 			false,
@@ -7773,7 +7773,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpOr,
+			value.S(symbol.OpOr),
 			1,
 			location,
 			false,
@@ -7789,7 +7789,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpXor,
+			value.S(symbol.OpXor),
 			1,
 			location,
 			false,
@@ -7809,7 +7809,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpModulo,
+			value.S(symbol.OpModulo),
 			1,
 			location,
 			false,
@@ -7821,7 +7821,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLaxEqual,
+			value.S(symbol.OpLaxEqual),
 			1,
 			location,
 			false,
@@ -7833,7 +7833,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLaxEqual,
+			value.S(symbol.OpLaxEqual),
 			1,
 			location,
 			false,
@@ -7854,7 +7854,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpEqual,
+			value.S(symbol.OpEqual),
 			1,
 			location,
 			false,
@@ -7874,7 +7874,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpEqual,
+			value.S(symbol.OpEqual),
 			1,
 			location,
 			false,
@@ -7899,7 +7899,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpGreaterThan,
+			value.S(symbol.OpGreaterThan),
 			1,
 			location,
 			false,
@@ -7919,7 +7919,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpGreaterThanEqual,
+			value.S(symbol.OpGreaterThanEqual),
 			1,
 			location,
 			false,
@@ -7939,7 +7939,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLessThan,
+			value.S(symbol.OpLessThan),
 			1,
 			location,
 			false,
@@ -7959,7 +7959,7 @@ func (c *BytecodeCompiler) emitBinaryOperation(typ types.Type, opToken *token.To
 		}
 		c.compileCallMethod(
 			typ,
-			symbol.OpLessThanEqual,
+			value.S(symbol.OpLessThanEqual),
 			1,
 			location,
 			false,
@@ -8358,7 +8358,7 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
 		ivarIndices := self.IvarIndices()
-		index := ivarIndices.GetIndex(ivarName)
+		index := ivarIndices.GetIndex(ivarName.Id)
 		c.emitSmallInt(value.SmallInt(index), location)
 
 		var callInfo *vm.CallSiteInfo
@@ -8409,7 +8409,7 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 
 		c.compileCallMethod(
 			c.typeOf(node.Right),
-			symbol.OpUnaryPlus,
+			value.S(symbol.OpUnaryPlus),
 			0,
 			node.Location(),
 			false,
@@ -8417,7 +8417,7 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 	case token.LBITSHIFT:
 		c.compileCallMethod(
 			c.typeOf(node.Right),
-			symbol.OpPop,
+			value.S(symbol.OpPop),
 			0,
 			node.Location(),
 			false,
@@ -8438,7 +8438,7 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 
 		c.compileCallMethod(
 			c.typeOf(node.Right),
-			symbol.OpNegate,
+			value.S(symbol.OpNegate),
 			0,
 			node.Location(),
 			false,
@@ -8455,7 +8455,7 @@ func (c *BytecodeCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionN
 
 		c.compileCallMethod(
 			c.typeOf(node.Right),
-			symbol.OpBitwiseNot,
+			value.S(symbol.OpBitwiseNot),
 			0,
 			node.Location(),
 			false,
@@ -8900,7 +8900,7 @@ func (c *BytecodeCompiler) emitSetInstanceVariablePop(name value.Symbol, locatio
 
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
-		index := self.IvarIndices().GetIndex(name)
+		index := self.IvarIndices().GetIndex(name.Id)
 		c.emitSetInstanceVariableByIndex(index, location)
 	default:
 		c.emitSetInstanceVariableByName(name, location)
@@ -8966,7 +8966,7 @@ func (c *BytecodeCompiler) emitGetInstanceVariable(name value.Symbol, location *
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
 		ivarIndices := self.IvarIndices()
-		index := ivarIndices.GetIndex(name)
+		index := ivarIndices.GetIndex(name.Id)
 		c.emitGetInstanceVariableByIndex(index, location)
 	default:
 		c.emitGetInstanceVariableByName(name, location)
@@ -9217,7 +9217,7 @@ func (c *BytecodeCompiler) compileOptimisedCallMethod(receiverType types.Type, n
 		}
 	}
 
-	method := c.checker.GetMethod(receiverType, name, nil)
+	method := c.checker.GetMethod(receiverType, name.Id, nil)
 	if method == nil {
 		offset := c.nextInstructionOffset()
 		callSiteIndex := c.emitCallMethod(

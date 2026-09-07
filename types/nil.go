@@ -14,7 +14,7 @@ func (Nil) traverse(parent Type, enter func(node, parent Type) TraverseOption, l
 }
 
 func (v Nil) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Nil)
+	return env.StdSubtype(symbol.C_Nil)
 }
 
 func (Nil) IsLiteral() bool {
@@ -27,7 +27,7 @@ func IsNilLiteral(t Type) bool {
 }
 
 func IsNil(t Type, env *GlobalEnvironment) bool {
-	return IsNilLiteral(t) || t == env.StdSubtype(symbol.Nil)
+	return IsNilLiteral(t) || t == env.StdSubtype(symbol.C_Nil)
 }
 
 func (Nil) inspect() string {

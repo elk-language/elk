@@ -107,7 +107,7 @@ func TestChannelOfValueNext(t *testing.T) {
 	ch = value.NewChannelOfValue(2)
 	ch.Close()
 	_, gotErr = ch.NextValue()
-	wantErr = symbol.L_stop_iteration.ToValue()
+	wantErr = value.S(symbol.L_stop_iteration).ToValue()
 	if diff := cmp.Diff(wantErr, gotErr, opts...); diff != "" {
 		t.Log(diff)
 		t.Fail()

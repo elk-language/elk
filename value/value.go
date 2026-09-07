@@ -8,6 +8,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -1098,7 +1099,7 @@ func (v Value) IsInlineSymbol() bool {
 }
 
 func (v Value) AsInlineSymbol() Symbol {
-	return Symbol(v.data)
+	return S(symbol.Symbol(v.data))
 }
 
 func (v Value) MustInlineSymbol() Symbol {
@@ -1196,7 +1197,7 @@ func SetInstanceVariableByName(object Value, name Symbol, val Value) (err Value)
 		return Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
 	}
 
-	ivarIndex := class.IvarIndices[name]
+	ivarIndex := class.IvarIndices[name.Id]
 	ivars.Set(ivarIndex, val)
 	return Undefined
 }
@@ -1214,7 +1215,7 @@ func GetInstanceVariableByName(object Value, name Symbol) (val, err Value) {
 		return Undefined, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
 	}
 
-	ivarIndex := class.IvarIndices[name]
+	ivarIndex := class.IvarIndices[name.Id]
 	val = ivars.Get(ivarIndex)
 	return val, Undefined
 }
@@ -1227,7 +1228,7 @@ func GetBoxOfInstanceVariableByName(object Value, name Symbol) (val *BoxOfValue,
 		return nil, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
 	}
 
-	ivarIndex := class.IvarIndices[name]
+	ivarIndex := class.IvarIndices[name.Id]
 	val = ivars.BoxOf(ivarIndex)
 	return val, Undefined
 }
@@ -1240,7 +1241,7 @@ func GetImmutableBoxOfInstanceVariableByName(object Value, name Symbol) (val *Im
 		return nil, Ref(NewCantSetInstanceVariablesOnPrimitiveError(object.Inspect()))
 	}
 
-	ivarIndex := class.IvarIndices[name]
+	ivarIndex := class.IvarIndices[name.Id]
 	val = ivars.ImmutableBoxOf(ivarIndex)
 	return val, Undefined
 }

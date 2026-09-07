@@ -40,7 +40,7 @@ func (c *Checker) enclosingCatchScope() catchScope {
 func (c *Checker) checkThrowExpressionNode(node *ast.ThrowExpressionNode) *ast.ThrowExpressionNode {
 	var thrownType types.Type
 	if node.Value == nil {
-		thrownType = c.Std(symbol.Error)
+		thrownType = c.Std(symbol.C_Error)
 	} else {
 		node.Value = c.checkExpression(node.Value)
 		thrownType = c.TypeOf(node.Value)

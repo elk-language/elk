@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -102,7 +101,7 @@ func (m *Mixin) RemoveTemporaryParents(env *GlobalEnvironment) {
 	}
 
 	m.parent = nil
-	m.singleton.parent = env.StdSubtypeClass(symbol.Mixin)
+	m.singleton.parent = env.StdSubtypeClass(symbol.C_Mixin)
 }
 
 func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
@@ -111,7 +110,7 @@ func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironm
 		defined:       env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
-	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
+	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.C_Mixin))
 
 	return mixin
 }
@@ -138,12 +137,12 @@ func NewMixinWithDetails(
 			subtypes:   subtypes,
 		},
 	}
-	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
+	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.C_Mixin))
 
 	return mixin
 }
 
-func (m *Mixin) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Mixin) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
@@ -193,7 +192,7 @@ func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
 		native:        m.native,
 		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
 	}
-	parentNamespace.DefineSubtype(value.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
 
 	newMixin.singleton = nil
 	newMixin.singleton = DeepCopyEnv(m.singleton, oldEnv, newEnv).(*SingletonClass)

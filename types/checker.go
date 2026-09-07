@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Checker interface {
@@ -26,7 +26,7 @@ type Checker interface {
 	StdFloat() *Class
 	StdBigFloat() *Class
 	StdClass() *Class
-	Std(name value.Symbol) Type
+	Std(name symbol.Symbol) Type
 	StdString() *Class
 	StdBool() *Class
 	StdNil() *Class
@@ -35,6 +35,6 @@ type Checker interface {
 	GetIteratorElementType(Type) (Type, Type)
 	GetIteratorType(Type) Type
 	SelfType() Type
-	GetMethod(typ Type, name value.Symbol, errSpan *position.Location) *Method
+	GetMethod(typ Type, name symbol.Symbol, errSpan *position.Location) *Method
 	ResolveGenericParent(namespace Namespace, targetParent Namespace) *Generic
 }

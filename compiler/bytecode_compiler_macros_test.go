@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -992,7 +993,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("BoxString").ToValue(),
 							value.Ref(&value.IvarIndices{
-								value.ToSymbol("value"): 0,
+								symbol.ToSymbol("value"): 0,
 							}),
 						},
 					)),
@@ -1148,7 +1149,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(&value.IvarIndices{
-									value.ToSymbol("bar"): 0,
+									symbol.ToSymbol("bar"): 0,
 								}),
 							},
 						)),

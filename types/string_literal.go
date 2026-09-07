@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/strings"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -33,14 +33,14 @@ func (s *StringLiteral) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	case *StringLiteral:
 		return s.Value == o.Value
 	case *Class:
-		return o == env.StdSubtype(symbol.String)
+		return o == env.StdSubtype(symbol.C_String)
 	default:
 		return false
 	}
 }
 
 func (s *StringLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.String)
+	return env.StdSubtype(symbol.C_String)
 }
 
 func (*StringLiteral) IsLiteral() bool {
@@ -48,5 +48,5 @@ func (*StringLiteral) IsLiteral() bool {
 }
 
 func (s *StringLiteral) inspect() string {
-	return value.String(s.Value).Inspect()
+	return strings.InspectString(s.Value)
 }

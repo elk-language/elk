@@ -39,7 +39,7 @@ func NewIntLiteral(value string) *IntLiteral {
 }
 
 func (i *IntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Int)
+	return env.StdSubtype(symbol.C_Int)
 }
 
 func (*IntLiteral) IsLiteral() bool {
@@ -93,7 +93,7 @@ func NewInt64Literal(value string) *Int64Literal {
 }
 
 func (i *Int64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Int64)
+	return env.StdSubtype(symbol.C_Int64)
 }
 
 func (*Int64Literal) IsLiteral() bool {
@@ -147,7 +147,7 @@ func NewInt32Literal(value string) *Int32Literal {
 }
 
 func (i *Int32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Int32)
+	return env.StdSubtype(symbol.C_Int32)
 }
 
 func (*Int32Literal) IsLiteral() bool {
@@ -201,7 +201,7 @@ func NewInt16Literal(value string) *Int16Literal {
 }
 
 func (i *Int16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Int16)
+	return env.StdSubtype(symbol.C_Int16)
 }
 
 func (*Int16Literal) IsLiteral() bool {
@@ -255,7 +255,7 @@ func NewInt8Literal(value string) *Int8Literal {
 }
 
 func (i *Int8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Int8)
+	return env.StdSubtype(symbol.C_Int8)
 }
 
 func (*Int8Literal) IsLiteral() bool {
@@ -309,7 +309,7 @@ func NewUIntLiteral(value string) *UIntLiteral {
 }
 
 func (i *UIntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt)
+	return env.StdSubtype(symbol.C_UInt)
 }
 
 func (*UIntLiteral) IsLiteral() bool {
@@ -363,7 +363,7 @@ func NewUInt64Literal(value string) *UInt64Literal {
 }
 
 func (i *UInt64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt64)
+	return env.StdSubtype(symbol.C_UInt64)
 }
 
 func (*UInt64Literal) IsLiteral() bool {
@@ -417,7 +417,7 @@ func NewUInt32Literal(value string) *UInt32Literal {
 }
 
 func (i *UInt32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt32)
+	return env.StdSubtype(symbol.C_UInt32)
 }
 
 func (*UInt32Literal) IsLiteral() bool {
@@ -471,7 +471,7 @@ func NewUInt16Literal(value string) *UInt16Literal {
 }
 
 func (i *UInt16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt16)
+	return env.StdSubtype(symbol.C_UInt16)
 }
 
 func (*UInt16Literal) IsLiteral() bool {
@@ -525,7 +525,7 @@ func NewUInt8Literal(value string) *UInt8Literal {
 }
 
 func (i *UInt8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.UInt8)
+	return env.StdSubtype(symbol.C_UInt8)
 }
 
 func (*UInt8Literal) IsLiteral() bool {

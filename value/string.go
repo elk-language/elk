@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"iter"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/cespare/xxhash/v2"
+	elkstrings "github.com/elk-language/elk/value/strings"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/rivo/uniseg"
 )
 
@@ -64,59 +65,7 @@ func (s String) Iterate() iter.Seq2[Value, Value] {
 }
 
 func (s String) Inspect() string {
-	var buffer strings.Builder
-
-	buffer.WriteString(`"`)
-	leftStr := string(s)
-	for {
-		char, size := utf8.DecodeRuneInString(leftStr)
-		if size == 0 {
-			// reached the end of the string
-			break
-		}
-		if char == utf8.RuneError && size == 1 {
-			// invalid UTF-8 character
-			char = rune(leftStr[0])
-		}
-		switch char {
-		case '\\':
-			buffer.WriteString(`\\`)
-		case '\n':
-			buffer.WriteString(`\n`)
-		case '\t':
-			buffer.WriteString(`\t`)
-		case '"':
-			buffer.WriteString(`\"`)
-		case '\r':
-			buffer.WriteString(`\r`)
-		case '\a':
-			buffer.WriteString(`\a`)
-		case '\b':
-			buffer.WriteString(`\b`)
-		case '\v':
-			buffer.WriteString(`\v`)
-		case '\f':
-			buffer.WriteString(`\f`)
-		case '$':
-			buffer.WriteString(`\$`)
-		case '#':
-			buffer.WriteString(`\#`)
-		default:
-			if unicode.IsGraphic(char) {
-				buffer.WriteRune(char)
-			} else if char>>8 == 0 {
-				fmt.Fprintf(&buffer, `\x%02x`, char)
-			} else if char>>16 == 0 {
-				fmt.Fprintf(&buffer, `\u%04x`, char)
-			} else {
-				fmt.Fprintf(&buffer, `\U%08X`, char)
-			}
-		}
-		leftStr = leftStr[size:]
-	}
-
-	buffer.WriteString(`"`)
-	return buffer.String()
+	return elkstrings.InspectString(string(s))
 }
 
 func (s String) InstanceVariables() *InstanceVariables {
@@ -685,7 +634,7 @@ func (s String) Hash() UInt64 {
 
 // Convert the String to a Symbol
 func (s String) ToSymbol() Symbol {
-	return SymbolTable.Add(string(s))
+	return S(symbol.SymbolTable.Add(string(s)))
 }
 
 type StringCharIterator struct {

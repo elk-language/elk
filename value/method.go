@@ -6,6 +6,7 @@ type Method interface {
 	Function
 	// Name of the method
 	Name() Symbol
+	MethodBody()
 }
 
 var MethodClass *Class // ::Std::Method

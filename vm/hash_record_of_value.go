@@ -315,7 +315,7 @@ func (*HashRecordOfValueIterator) InstanceVariables() *value.InstanceVariables {
 func (h *HashRecordOfValueIterator) NextValue() (value.Value, value.Value) {
 	for {
 		if h.Index >= len(h.HashRecord.Table) {
-			return value.Undefined, symbol.L_stop_iteration.ToValue()
+			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 		}
 
 		pair := h.HashRecord.Table[h.Index]

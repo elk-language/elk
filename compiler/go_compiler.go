@@ -22,12 +22,16 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
 type GoSourceMethod GoCompiler
 
+var _ value.Method = &GoSourceMethod{}
+
+func (c *GoSourceMethod) MethodBody()                               {}
 func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.goName) }
 func (*GoSourceMethod) Class() *value.Class                         { return nil }
 func (*GoSourceMethod) Copy() value.Reference                       { return nil }
@@ -578,7 +582,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 	return c.parent
 }
 
-func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName value.Symbol) {
+func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName symbol.Symbol) {
 	c.registerGoLocal("namespace", goValueType)
 
 	c.emit("\n")
@@ -1414,7 +1418,7 @@ func (c *GoCompiler) emitSetInstanceVariable(name value.Symbol, val *goValue) {
 
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
-		index := self.IvarIndices().GetIndex(name)
+		index := self.IvarIndices().GetIndex(name.Id)
 		c.emitSetInstanceVariableByIndex(index, val)
 	default:
 		c.emitSetInstanceVariableByName(name, val)
@@ -1478,7 +1482,7 @@ func (c *GoCompiler) emitGetInstanceVariable(name value.Symbol, typ types.Type, 
 
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
-		index := self.IvarIndices().GetIndex(name)
+		index := self.IvarIndices().GetIndex(name.Id)
 		return c.emitGetInstanceVariableByIndex(index, typ)
 	default:
 		return c.emitGetInstanceVariableByName(name, typ, valueIsIgnored)
@@ -1515,11 +1519,11 @@ func (c *GoCompiler) emitGetInstanceVariableByName(name value.Symbol, typ types.
 func (c *GoCompiler) compileMethodsWithinInterface(iface *types.Interface, location *position.Location) {
 	singleton := iface.Singleton()
 	if types.NamespaceHasAnyDefinableMethods(singleton) {
-		ifaceVal := c.emitGetConst(value.ToSymbol(iface.Name()), c.checker.Std(symbol.Interface))
+		ifaceVal := c.emitGetConst(value.ToSymbol(iface.Name()), c.checker.Std(symbol.C_Interface))
 		c.emit("class = (%s).SingletonClass() // %s\n", ifaceVal.fetchValue(), iface.Name())
 
 		for methodName, method := range types.SortedOwnMethods(singleton) {
-			c.compileMethodDefinition(methodName, method, location)
+			c.compileMethodDefinition(value.S(methodName), method, location)
 
 			for i, overload := range method.Overloads {
 				overloadName := value.ToSymbol(
@@ -1540,11 +1544,11 @@ func (c *GoCompiler) compileMethodsWithinInterface(iface *types.Interface, locat
 
 func (c *GoCompiler) compileMethodsWithinModule(module *types.Module, location *position.Location) {
 	if types.NamespaceHasAnyDefinableMethods(module) {
-		moduleVal := c.emitGetConst(value.ToSymbol(module.Name()), c.checker.Std(symbol.Module))
+		moduleVal := c.emitGetConst(value.ToSymbol(module.Name()), c.checker.Std(symbol.C_Module))
 		c.emit("class = (%s).SingletonClass() // %s\n", moduleVal.fetchValue(), module.Name())
 
 		for methodName, method := range types.SortedOwnMethods(module) {
-			c.compileMethodDefinition(methodName, method, location)
+			c.compileMethodDefinition(value.S(methodName), method, location)
 
 			for i, overload := range method.Overloads {
 				overloadName := value.ToSymbol(
@@ -1570,18 +1574,18 @@ func (c *GoCompiler) compileMethodsWithinClassOrMixin(namespace types.Namespace,
 	singletonHasCompiledMethods := types.NamespaceHasAnyDefinableMethods(singleton)
 
 	if namespaceHasCompiledMethods || singletonHasCompiledMethods {
-		namespaceVal := c.emitGetConst(value.ToSymbol(namespace.Name()), c.checker.Std(symbol.Class))
+		namespaceVal := c.emitGetConst(value.ToSymbol(namespace.Name()), c.checker.Std(symbol.C_Class))
 		c.emit("class = %s // %s\n", c.convertValueToNarrowerType(namespaceVal).fetchValue(), namespace.Name())
 
 		for methodName, method := range types.SortedOwnMethods(namespace) {
-			c.compileMethodDefinition(methodName, method, location)
+			c.compileMethodDefinition(value.S(methodName), method, location)
 		}
 
 		if singletonHasCompiledMethods {
 			c.emit("class = class.SingletonClass() // &%s\n", namespace.Name())
 
 			for methodName, method := range types.SortedOwnMethods(singleton) {
-				c.compileMethodDefinition(methodName, method, location)
+				c.compileMethodDefinition(value.S(methodName), method, location)
 			}
 		}
 	}
@@ -1622,10 +1626,10 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 			switch namespace.(type) {
 			case *value.Class:
-				classVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.Class))
+				classVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Class))
 				c.emit("aliasClass = %s\n", c.convertValueToNarrowerType(classVal).fetchValue())
 			case *value.Module:
-				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.Module))
+				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Module))
 				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.fetchValue())
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
@@ -1644,7 +1648,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	if method.IsAttribute() {
 		if method.IsSetter() {
 			nameStr := name.String()
-			ivarName := value.ToSymbol(nameStr[:len(nameStr)-1])
+			ivarName := symbol.ToSymbol(nameStr[:len(nameStr)-1])
 			namespace := method.DefinedUnder
 
 			var index int
@@ -1681,11 +1685,11 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		switch n := namespace.(type) {
 		case *types.Class:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		case *types.SingletonClass:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		case *types.Module:
-			index, ok = n.IvarIndices().GetIndexOk(name)
+			index, ok = n.IvarIndices().GetIndexOk(name.Id)
 		default:
 			index = -1
 			ok = true
@@ -1804,21 +1808,21 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 
 		switch namespace.(type) {
 		case *types.Module:
-			elkType = c.checker.Std(symbol.Module)
+			elkType = c.checker.Std(symbol.C_Module)
 			goType = value.FetchGoType("*value.Module")
 			c.emit("%s = value.NewModule()\n", goIdent)
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		case *types.Class:
-			elkType = c.checker.Std(symbol.Class)
+			elkType = c.checker.Std(symbol.C_Class)
 			goType = value.FetchGoType("*value.Class")
 			c.emit("%s = value.NewClassWithOptions(value.ClassWithSuperclass(nil))\n", goIdent)
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		case *types.Mixin:
-			elkType = c.checker.Std(symbol.Mixin)
+			elkType = c.checker.Std(symbol.C_Mixin)
 			goType = value.FetchGoType("*value.Mixin")
 			c.emit("%s = value.NewMixin()\n", goIdent)
 		case *types.Interface:
-			elkType = c.checker.Std(symbol.Interface)
+			elkType = c.checker.Std(symbol.C_Interface)
 			goType = value.FetchGoType("*value.Interface")
 			c.emit("%s = value.NewInterface()\n", goIdent)
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
@@ -1842,7 +1846,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, name)
+		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name))
 	}
 }
 
@@ -2001,10 +2005,10 @@ func (c *GoCompiler) CompileClassInheritance(class *types.Class, location *posit
 
 	class.SetCompiled(true)
 
-	classVal := c.emitGetConst(value.ToSymbol(class.Name()), c.checker.Std(symbol.Class))
+	classVal := c.emitGetConst(value.ToSymbol(class.Name()), c.checker.Std(symbol.C_Class))
 	c.emit("class = %s\n", c.convertValueToNarrowerType(classVal).fetchValue())
 
-	superclassVal := c.emitGetConst(value.ToSymbol(superclass.Name()), c.checker.Std(symbol.Class))
+	superclassVal := c.emitGetConst(value.ToSymbol(superclass.Name()), c.checker.Std(symbol.C_Class))
 	c.emit("superclass = %s\n", c.convertValueToNarrowerType(superclassVal).fetchValue())
 
 	c.emit("class.SetSuperclass(superclass)\n")
@@ -2021,7 +2025,7 @@ func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, l
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), types.Any{})
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.fetchValue())
 	default:
-		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.C_Class))
 		c.emit("class = %s\n", c.convertValueToNarrowerType(namespaceVal).fetchValue())
 	}
 
@@ -2034,11 +2038,11 @@ func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, 
 		namespaceVal := c.emitGetConst(value.ToSymbol(t.AttachedObject.Name()), types.Any{})
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.fetchValue())
 	default:
-		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.Class))
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.C_Class))
 		c.emit("class = %s\n", c.convertValueToNarrowerType(namespaceVal).fetchValue())
 	}
 
-	mixinVal := c.emitGetConst(value.ToSymbol(mixin.Name()), c.checker.Std(symbol.Mixin))
+	mixinVal := c.emitGetConst(value.ToSymbol(mixin.Name()), c.checker.Std(symbol.C_Mixin))
 	c.emit("mixin = %s\n", c.convertValueToNarrowerType(mixinVal).fetchValue())
 
 	c.emit("class.IncludeMixin(mixin)\n")
@@ -2761,7 +2765,7 @@ func (c *GoCompiler) compileRegexPatternNode(node ast.ExpressionNode, val *goVal
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		regexType,
 		types.Bool{},
-		"symbol.L_matches",
+		"value.S(symbol.L_matches)",
 		"matches",
 		[]*goValue{
 			regexVal,
@@ -2778,7 +2782,7 @@ func (c *GoCompiler) compileRangePatternNode(node *ast.RangeLiteralNode, val *go
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		rangeType,
 		types.Bool{},
-		"symbol.S_contains",
+		"value.S(symbol.S_contains)",
 		"#contains",
 		[]*goValue{
 			rangeVal,
@@ -2802,7 +2806,7 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 	}
 	isAResult := c.compileIsA(
 		val,
-		newGoValue(mixin, c.checker.Std(symbol.Mixin),
+		newGoValue(mixin, c.checker.Std(symbol.C_Mixin),
 			value.FetchGoType("*value.Mixin")),
 		types.Bool{},
 		loc,
@@ -2846,7 +2850,7 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 func (c *GoCompiler) newSmallIntValue(number int) *goValue {
 	return newGoValue(
 		fmt.Sprintf("value.SmallInt(%d)", number),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 	)
 }
@@ -2885,7 +2889,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	var restListVar *nativeElkLocal
 	if restVariableName != "" {
 		restVarType := types.NewGenericWithTypeArgs(
-			c.checker.Std(symbol.ArrayList).(types.Namespace),
+			c.checker.Std(symbol.C_ArrayList).(types.Namespace),
 			elementType,
 		)
 		restArrayListVar := c.arrayListToGoSource(
@@ -2907,7 +2911,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		val,
 		newGoValue(
 			mixin,
-			c.checker.Std(symbol.Mixin),
+			c.checker.Std(symbol.C_Mixin),
 			value.FetchGoType("*value.Mixin"),
 		),
 		types.Bool{},
@@ -2918,8 +2922,8 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 
 	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
-		c.checker.Std(symbol.Int),
-		"symbol.L_length",
+		c.checker.Std(symbol.C_Int),
+		"value.S(symbol.L_length)",
 		"length",
 		[]*goValue{
 			val,
@@ -3062,7 +3066,7 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 		val,
 		newGoValue(
 			"value.SetMixin",
-			c.checker.Std(symbol.Set),
+			c.checker.Std(symbol.C_Set),
 			value.FetchGoType("*value.Mixin"),
 		),
 		types.Bool{},
@@ -3073,8 +3077,8 @@ func (c *GoCompiler) compileSetPattern(val *goValue, elementNodes []ast.PatternN
 
 	lengthVal := c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
-		c.checker.Std(symbol.Int),
-		"symbol.L_length",
+		c.checker.Std(symbol.C_Int),
+		"value.S(symbol.L_length)",
 		"length",
 		[]*goValue{
 			val,
@@ -3106,7 +3110,7 @@ subPatternLoop:
 		containsVal := c.compileMethodCallWithLiteralArgValuesAndName(
 			val.elkType,
 			types.Bool{},
-			"symbol.L_contains",
+			"value.S(symbol.L_contains)",
 			"contains",
 			[]*goValue{
 				val,
@@ -3359,7 +3363,7 @@ func (c *GoCompiler) compileForIn(
 		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 		errVal := newGoValue(
 			"value.NewPatternNotMatchedInForInLoopError()",
-			c.checker.Std(symbol.Error),
+			c.checker.Std(symbol.C_Error),
 			value.FetchGoType("*value.Object"),
 		)
 		c.emitThrow(errVal)
@@ -3409,10 +3413,10 @@ func (c *GoCompiler) compileForInAsNumericFor(
 	}
 
 	inExpressionType := c.typeOf(inExpression)
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Range)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_Range)) {
 		return c.compileForInRangeAsNumericFor(label, inExpression, then, paramExpr, paramName, typ, loc, valueIsIgnored)
 	}
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_Int)) {
 		return c.compileForInIntAsNumericFor(label, inExpression, then, paramExpr, paramName, typ, loc, valueIsIgnored)
 	}
 
@@ -3514,19 +3518,19 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	inExpressionType := c.typeOf(inRange).(*types.Generic)
 
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessClosedRange)) ||
-		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.BeginlessOpenRange)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_BeginlessClosedRange)) ||
+		c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_BeginlessOpenRange)) {
 		return nil
 	}
 
 	var cmpOp token.Type
-	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.ClosedRange)) {
+	if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_ClosedRange)) {
 		cmpOp = token.LESS_EQUAL
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.RightOpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_RightOpenRange)) {
 		cmpOp = token.LESS
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_OpenRange)) {
 		cmpOp = token.LESS
-	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) {
+	} else if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_LeftOpenRange)) {
 		cmpOp = token.LESS_EQUAL
 	}
 
@@ -3556,9 +3560,9 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 			false,
 		)
 
-		if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.OpenRange)) ||
-			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.LeftOpenRange)) ||
-			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.EndlessOpenRange)) {
+		if c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_OpenRange)) ||
+			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_LeftOpenRange)) ||
+			c.checker.IsSubtype(inExpressionType, c.checker.Std(symbol.C_EndlessOpenRange)) {
 			initVal = c.compileIncrement(
 				initVal,
 				elementType,
@@ -3635,19 +3639,19 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 	var paramType *value.GoType
 	if isSmallInt {
 		paramType = value.FetchGoType("value.SmallInt")
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.Int), paramType, paramExpr.Location())
+		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
 	} else {
 		paramType = goValueType
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.Int), paramType, paramExpr.Location())
+		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
 	}
 	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
 
 	init := func() {
 		var initVal *goValue
 		if isSmallInt {
-			initVal = newGoValue("value.SmallInt(0)", c.checker.Std(symbol.Int), paramType)
+			initVal = newGoValue("value.SmallInt(0)", c.checker.Std(symbol.C_Int), paramType)
 		} else {
-			initVal = newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.Int), paramType)
+			initVal = newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.C_Int), paramType)
 		}
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
@@ -3691,11 +3695,11 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 
 func (c *GoCompiler) compileForInIntAsNumericFor(label string, inInt ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	paramType := goValueType
-	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.Int), paramType, paramExpr.Location())
+	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
 	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
 
 	init := func() {
-		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.Int), paramType)
+		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.C_Int), paramType)
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
 	increment := func() {
@@ -4123,7 +4127,7 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 	} else {
 		val = newGoValue(
 			"value.NewError(value.ErrorClass, \"error\")",
-			c.checker.Std(symbol.Error),
+			c.checker.Std(symbol.C_Error),
 			value.FetchGoType("*value.Object"),
 		)
 	}
@@ -5047,7 +5051,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	} else {
 		capacity = newGoValue(
 			"0",
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("int"),
 		)
 	}
@@ -5282,7 +5286,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 	} else {
 		capacity = newGoValue(
 			"0",
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("int"),
 		)
 	}
@@ -5477,7 +5481,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	} else {
 		capacity = newGoValue(
 			"0",
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("int"),
 		)
 	}
@@ -5492,7 +5496,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
 			keyType = types.Normalise(g.Get(0).Type)
 			goKeyType = c.elkTypeToGoKeyType(keyType)
 
@@ -5637,7 +5641,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5682,7 +5686,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5698,7 +5702,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5711,7 +5715,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				true,
 			)
 		case *ast.PublicIdentifierNode:
-			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileLocalVariableAccess(elementNode.Value, c.typeOf(elementNode))
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -5720,7 +5724,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				dependencies = append(dependencies, key, val)
 			}
 		case *ast.PrivateIdentifierNode:
-			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileLocalVariableAccess(elementNode.Value, c.typeOf(elementNode))
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -5738,7 +5742,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				dependencies = append(dependencies, key, val)
 			}
 		case *ast.SymbolKeyValueExpressionNode:
-			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileExpression(elementNode.Value, false)
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -5819,7 +5823,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.Pair).(*types.Class)) {
+		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
 			keyType = types.Normalise(g.Get(0).Type)
 			goKeyType = c.elkTypeToGoKeyType(keyType)
 
@@ -5940,7 +5944,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5969,7 +5973,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5985,7 +5989,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					case *ast.SymbolKeyValueExpressionNode:
-						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 						val := c.compileExpression(then.Value, false)
 						c.compileMapSet(tmp, key, val, then.Location())
 					default:
@@ -5998,7 +6002,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 				true,
 			)
 		case *ast.PublicIdentifierNode:
-			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileLocalVariableAccess(elementNode.Value, c.typeOf(elementNode))
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -6007,7 +6011,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 				dependencies = append(dependencies, key, val)
 			}
 		case *ast.PrivateIdentifierNode:
-			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(elementNode.Value).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileLocalVariableAccess(elementNode.Value, c.typeOf(elementNode))
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -6025,7 +6029,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 				dependencies = append(dependencies, key, val)
 			}
 		case *ast.SymbolKeyValueExpressionNode:
-			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.Symbol), false)
+			key := c.valueToGoSource(value.ToSymbol(identifierToName(elementNode.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
 			val := c.compileExpression(elementNode.Value, false)
 			if tmp != nil {
 				c.compileMapSet(tmp, key, val, elementNode.Location())
@@ -6112,7 +6116,7 @@ func (c *GoCompiler) compileInterpolationNode(expr ast.ExpressionNode, loc *posi
 		"value.Symbol", "*value.BigInt", "*value.Regex":
 		return narrowExprVal.newGoValue(
 			fmt.Sprintf("(%s).ToString()", narrowExprVal.value),
-			c.checker.Std(symbol.String),
+			c.checker.Std(symbol.C_String),
 			value.FetchGoType("value.String"),
 		)
 	}
@@ -6120,7 +6124,7 @@ func (c *GoCompiler) compileInterpolationNode(expr ast.ExpressionNode, loc *posi
 	result := c.compileMethodCallWithLiteralArgValuesAndName(
 		exprVal.elkType,
 		c.checker.StdString(),
-		"symbol.L_to_string",
+		"value.S(symbol.L_to_string)",
 		"to_string",
 		[]*goValue{exprVal},
 		loc,
@@ -6142,7 +6146,7 @@ func (c *GoCompiler) compileStringInspectInterpolationNode(node *ast.StringInspe
 		"value.Symbol", "*value.BigInt", "*value.Regex":
 		return narrowExpr.newGoValue(
 			fmt.Sprintf("value.String((%s).Inspect())", narrowExpr.value),
-			c.checker.Std(symbol.String),
+			c.checker.Std(symbol.C_String),
 			value.FetchGoType("value.String"),
 		)
 	}
@@ -6150,7 +6154,7 @@ func (c *GoCompiler) compileStringInspectInterpolationNode(node *ast.StringInspe
 	result := c.compileMethodCallWithLiteralArgValuesAndName(
 		expr.elkType,
 		c.checker.StdString(),
-		"symbol.L_inspect",
+		"value.S(symbol.L_inspect)",
 		"inspect",
 		[]*goValue{expr},
 		node.Location(),
@@ -6354,7 +6358,7 @@ func (c *GoCompiler) compileBoxOfInstanceVariable(ivarName value.Symbol, typ typ
 
 	switch self := self.(type) {
 	case types.NamespaceWithIvarIndices:
-		index := self.IvarIndices().GetIndex(ivarName)
+		index := self.IvarIndices().GetIndex(ivarName.Id)
 		return c.emitGetBoxOfInstanceVariableByIndex(index, typ, immutable)
 	default:
 		return c.emitGetBoxOfInstanceVariableByName(ivarName, typ, immutable, valueIsIgnored)
@@ -7176,13 +7180,13 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Name()), types.Any{})
 		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value)
 	case *types.Module:
-		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Module))
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.C_Module))
 		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value)
 	case *types.Class:
-		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Class))
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.C_Class))
 		return c.convertValueToNarrowerType(namespaceVal).value
 	case *types.Mixin:
-		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.Mixin))
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.C_Mixin))
 		return c.convertValueToNarrowerType(namespaceVal).value
 	default:
 		panic(fmt.Sprintf("invalid namespace: %T", typ))
@@ -7190,7 +7194,7 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 }
 
 func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
-	method := c.checker.GetMethod(receiverType, value.ToSymbol(name), nil)
+	method := c.checker.GetMethod(receiverType, symbol.ToSymbol(name), nil)
 	if method == nil {
 		return nil
 	}
@@ -7684,7 +7688,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		}
 	}
 
-	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayList)) {
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_ArrayList)) {
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
@@ -7712,7 +7716,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		)
 	}
 
-	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) {
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_HashMap)) {
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
 		c.registerUnoptimisableErr()
@@ -7729,7 +7733,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		receiver.elkType,
 		val.elkType,
-		"symbol.OpSubscriptSet",
+		"value.S(symbol.OpSubscriptSet)",
 		"[]=",
 		[]*goValue{
 			receiver,
@@ -8067,7 +8071,7 @@ func (c *GoCompiler) emitSymbolValue(val string) *goValue {
 	symbolName := c.emitSymbol(val)
 	return newGoValue(
 		symbolName,
-		c.checker.Std(symbol.Symbol),
+		c.checker.Std(symbol.C_Symbol),
 		value.FetchGoType("value.Symbol"),
 	)
 }
@@ -8606,7 +8610,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		}
 	}
 
-	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayList)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.ArrayTuple)) {
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_ArrayList)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_ArrayTuple)) {
 		intKey := c.convertValueToNativeInt(key)
 		if intKey != nil {
 			tmp := c.defineTmpGoLocal(goValueType)
@@ -8632,7 +8636,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		)
 	}
 
-	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashMap)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.HashRecord)) {
+	if c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_HashMap)) || c.checker.IsSubtype(receiver.elkType, c.checker.Std(symbol.C_HashRecord)) {
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
@@ -8648,7 +8652,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		receiver.elkType,
 		typ,
-		"symbol.OpSubscript",
+		"value.S(symbol.OpSubscript)",
 		"[]",
 		[]*goValue{
 			receiver,
@@ -8676,7 +8680,7 @@ func (c *GoCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode, v
 		return c.compileMethodCallWithLiteralArgValuesAndName(
 			rightVal.elkType,
 			typ,
-			"symbol.OpUnaryPlus",
+			"value.S(symbol.OpUnaryPlus)",
 			"+@",
 			[]*goValue{rightVal},
 			loc,
@@ -8694,7 +8698,7 @@ func (c *GoCompiler) compileUnaryExpressionNode(node *ast.UnaryExpressionNode, v
 		return c.compileMethodCallWithLiteralArgValuesAndName(
 			rightVal.elkType,
 			typ,
-			"symbol.OpPop",
+			"value.S(symbol.OpPop)",
 			"<<@",
 			[]*goValue{rightVal},
 			loc,
@@ -8750,7 +8754,7 @@ func (c *GoCompiler) compileArithmeticNegate(val *goValue, typ types.Type, loc *
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
 		typ,
-		"symbol.OpNegate",
+		"value.S(symbol.OpNegate)",
 		"-@",
 		[]*goValue{val},
 		loc,
@@ -8794,7 +8798,7 @@ func (c *GoCompiler) compileBitwiseNot(val *goValue, typ types.Type, loc *positi
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
 		typ,
-		"symbol.OpBitwiseNot",
+		"value.S(symbol.OpBitwiseNot)",
 		"~",
 		[]*goValue{val},
 		loc,
@@ -8805,7 +8809,7 @@ func (c *GoCompiler) compileBitwiseNot(val *goValue, typ types.Type, loc *positi
 func (c *GoCompiler) compileGetSingleton(val *goValue) *goValue {
 	return val.newGoValue(
 		fmt.Sprintf("(%s).SingletonClass()", c.convertValueToWiderType(val).value),
-		c.checker.Std(symbol.Class),
+		c.checker.Std(symbol.C_Class),
 		value.FetchGoType("*value.Class"),
 	)
 }
@@ -8980,12 +8984,12 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 		return c.compileGreaterEqualStrictNumeric(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.GreaterThanEqualInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -9044,7 +9048,7 @@ func (c *GoCompiler) compileGreaterEqual(left *goValue, right *goValue, typ type
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpGreaterThanEqual",
+		"value.S(symbol.OpGreaterThanEqual)",
 		">=",
 		[]*goValue{
 			left,
@@ -9175,12 +9179,12 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 		return c.compileGreaterStrictNumeric(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.GreaterThanInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -9239,7 +9243,7 @@ func (c *GoCompiler) compileGreater(left *goValue, right *goValue, typ types.Typ
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpGreaterThan",
+		"value.S(symbol.OpGreaterThan)",
 		">",
 		[]*goValue{
 			left,
@@ -9370,12 +9374,12 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 		return c.compileLessStrictNumeric(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.LessThanInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -9434,7 +9438,7 @@ func (c *GoCompiler) compileLess(left *goValue, right *goValue, typ types.Type, 
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLessThan",
+		"value.S(symbol.OpLessThan)",
 		"<",
 		[]*goValue{
 			left,
@@ -9565,12 +9569,12 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 		return c.compileLessEqualStrictNumeric(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.LessThanEqualInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -9629,7 +9633,7 @@ func (c *GoCompiler) compileLessEqual(left *goValue, right *goValue, typ types.T
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLessThanEqual",
+		"value.S(symbol.OpLessThanEqual)",
 		"<=",
 		[]*goValue{
 			left,
@@ -9778,15 +9782,15 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return c.compileCompareFloat32(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.CompareInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
-				c.checker.Std(symbol.Int),
+				c.checker.Std(symbol.C_Int),
 				value.FetchGoType("value.SmallInt"),
 				left, right,
 			)
@@ -9829,7 +9833,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpSpaceship",
+		"value.S(symbol.OpSpaceship)",
 		"<=>",
 		[]*goValue{
 			left,
@@ -9846,7 +9850,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 	case "value.String":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareString(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("value.SmallInt"),
 			left,
 			narrowRight,
@@ -9854,7 +9858,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 	case "value.Char":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareChar(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("value.SmallInt"),
 			left,
 			narrowRight,
@@ -9874,7 +9878,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 
 	return newGoValueWithLocal(
 		tmp,
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 	)
 }
 
@@ -9884,7 +9888,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	case "value.SmallInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareSmallInt(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("value.SmallInt"),
 			left,
 			narrowRight,
@@ -9892,7 +9896,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	case "*value.BigInt":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareBigInt(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			value.FetchGoType("value.SmallInt"),
 			left,
 			narrowRight,
@@ -9900,7 +9904,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	case "value.Float":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareFloat(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			goValueType,
 			left,
 			narrowRight,
@@ -9908,7 +9912,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	case "*value.BigFloat":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("(%s).CompareBigFloat(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.Int),
+			c.checker.Std(symbol.C_Int),
 			goValueType,
 			left,
 			narrowRight,
@@ -9928,14 +9932,14 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 
 	return newGoValueWithLocal(
 		tmp,
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 	)
 }
 
 func (c *GoCompiler) compileCompareInt64(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareInt64(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9945,7 +9949,7 @@ func (c *GoCompiler) compileCompareInt64(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareInt32(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareInt32(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9955,7 +9959,7 @@ func (c *GoCompiler) compileCompareInt32(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareInt16(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareInt16(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9965,7 +9969,7 @@ func (c *GoCompiler) compileCompareInt16(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareInt8(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareInt8(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9975,7 +9979,7 @@ func (c *GoCompiler) compileCompareInt8(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt64(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt64(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9985,7 +9989,7 @@ func (c *GoCompiler) compileCompareUInt64(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt32(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt32(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -9995,7 +9999,7 @@ func (c *GoCompiler) compileCompareUInt32(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt16(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt16(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -10005,7 +10009,7 @@ func (c *GoCompiler) compileCompareUInt16(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt8(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt8(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -10015,7 +10019,7 @@ func (c *GoCompiler) compileCompareUInt8(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareUInt(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareUInt(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		value.FetchGoType("value.SmallInt"),
 		left,
 		right,
@@ -10025,7 +10029,7 @@ func (c *GoCompiler) compileCompareUInt(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareFloat64(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareFloat64(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		goValueType,
 		left,
 		right,
@@ -10035,7 +10039,7 @@ func (c *GoCompiler) compileCompareFloat64(left, right *goValue) *goValue {
 func (c *GoCompiler) compileCompareFloat32(left, right *goValue) *goValue {
 	return newGoValueWithDependencies(
 		fmt.Sprintf("(%s).CompareFloat32(%s)", left.value, c.convertValueToNarrowerType(right).value),
-		c.checker.Std(symbol.Int),
+		c.checker.Std(symbol.C_Int),
 		goValueType,
 		left,
 		right,
@@ -10078,12 +10082,12 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return c.compileDivideFloat32(narrowLeft, right)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
@@ -10132,7 +10136,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpDivide",
+		"value.S(symbol.OpDivide)",
 		"/",
 		[]*goValue{
 			left,
@@ -10618,12 +10622,12 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return c.compileExponentiateBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.ExponentiateInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -10669,7 +10673,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpExponentiate",
+		"value.S(symbol.OpExponentiate)",
 		"**",
 		[]*goValue{
 			left,
@@ -11057,12 +11061,12 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.BitwiseAndInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11103,7 +11107,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpAnd",
+		"value.S(symbol.OpAnd)",
 		"&",
 		[]*goValue{
 			left,
@@ -11223,12 +11227,12 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.BitwiseAndNotInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11269,7 +11273,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpAndNot",
+		"value.S(symbol.OpAndNot)",
 		"&~",
 		[]*goValue{
 			left,
@@ -11389,12 +11393,12 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.BitwiseOrInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11435,7 +11439,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpOr",
+		"value.S(symbol.OpOr)",
 		"|",
 		[]*goValue{
 			left,
@@ -11555,12 +11559,12 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.BitwiseXorInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11601,7 +11605,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpXor",
+		"value.S(symbol.OpXor)",
 		"^",
 		[]*goValue{
 			left,
@@ -11730,12 +11734,12 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		return c.compileLeftBitshiftUInt(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.LeftBitshiftInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11776,7 +11780,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLeftBitshift",
+		"value.S(symbol.OpLeftBitshift)",
 		"<<",
 		[]*goValue{
 			left,
@@ -11831,7 +11835,7 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLogicalLeftBitshift",
+		"value.S(symbol.OpLogicalLeftBitshift)",
 		"<<<",
 		[]*goValue{
 			left,
@@ -11870,12 +11874,12 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return c.compileRightBitshiftUInt(narrowLeft, right, typ, loc)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.RightBitshiftInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -11916,7 +11920,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpRightBitshift",
+		"value.S(symbol.OpRightBitshift)",
 		">>",
 		[]*goValue{
 			left,
@@ -11971,7 +11975,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, 
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLogicalRightBitshift",
+		"value.S(symbol.OpLogicalRightBitshift)",
 		">>>",
 		[]*goValue{
 			left,
@@ -12996,12 +13000,12 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return c.compileMultiplyChar(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.MultiplyInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -13042,7 +13046,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpMultiply",
+		"value.S(symbol.OpMultiply)",
 		"*",
 		[]*goValue{
 			left,
@@ -13548,12 +13552,12 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return c.compileSubtractBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.SubtractInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -13594,7 +13598,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpSubtract",
+		"value.S(symbol.OpSubtract)",
 		"-",
 		[]*goValue{
 			left,
@@ -14019,7 +14023,7 @@ func (c *GoCompiler) compileIncrement(val *goValue, typ types.Type, loc *positio
 		)
 	}
 
-	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
@@ -14048,7 +14052,7 @@ func (c *GoCompiler) compileIncrement(val *goValue, typ types.Type, loc *positio
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
 		typ,
-		"symbol.OpIncrement",
+		"value.S(symbol.OpIncrement)",
 		"++",
 		[]*goValue{
 			val,
@@ -14082,7 +14086,7 @@ func (c *GoCompiler) compileDecrement(val *goValue, typ types.Type, loc *positio
 		)
 	}
 
-	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(narrowVal.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
@@ -14111,7 +14115,7 @@ func (c *GoCompiler) compileDecrement(val *goValue, typ types.Type, loc *positio
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		val.elkType,
 		typ,
-		"symbol.OpDecrement",
+		"value.S(symbol.OpDecrement)",
 		"--",
 		[]*goValue{
 			val,
@@ -14161,12 +14165,12 @@ func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Ty
 		return c.compileLaxEqualBigFloat(narrowLeft, right, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.EqualInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -14192,7 +14196,7 @@ func (c *GoCompiler) compileLaxEqual(left *goValue, right *goValue, typ types.Ty
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpLaxEqual",
+		"value.S(symbol.OpLaxEqual)",
 		"=~",
 		[]*goValue{
 			left,
@@ -14283,7 +14287,7 @@ func (c *GoCompiler) compileNegate(val *goValue) *goValue {
 func (c *GoCompiler) compileGetClass(val *goValue) *goValue {
 	return val.newGoValue(
 		fmt.Sprintf("(%s).Class()", val.value),
-		c.checker.Std(symbol.Class),
+		c.checker.Std(symbol.C_Class),
 		value.FetchGoType("*value.Class"),
 	)
 }
@@ -14328,12 +14332,12 @@ func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type,
 		return c.compileEqualBigFloat(narrowLeft, right, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.Bool(value.EqualInts(%s, %s))", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				types.Bool{},
@@ -14370,7 +14374,7 @@ func (c *GoCompiler) compileEqual(left *goValue, right *goValue, typ types.Type,
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpEqual",
+		"value.S(symbol.OpEqual)",
 		"==",
 		[]*goValue{
 			left,
@@ -14745,12 +14749,12 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		return c.compileModuloBigFloat(narrowLeft, right, typ, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			tmp := c.defineTmpGoLocal(goValueType)
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
@@ -14795,7 +14799,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpModulo",
+		"value.S(symbol.OpModulo)",
 		"%",
 		[]*goValue{
 			left,
@@ -15289,12 +15293,12 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return c.compileAddChar(narrowLeft, right, loc, valueIsIgnored)
 	}
 
-	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.Int)) {
+	if c.checker.IsSubtype(left.elkType, c.checker.Std(symbol.C_Int)) {
 		if valueIsIgnored {
 			return nilGoValue
 		}
 
-		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(right.elkType, c.checker.Std(symbol.C_Int)) {
 			return newGoValueWithDependencies(
 				fmt.Sprintf("value.AddInts(%s, %s)", c.convertValueToWiderType(left).value, c.convertValueToWiderType(right).value),
 				left.elkType,
@@ -15335,7 +15339,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		left.elkType,
 		typ,
-		"symbol.OpAdd",
+		"value.S(symbol.OpAdd)",
 		"+",
 		[]*goValue{
 			left,
@@ -15634,7 +15638,7 @@ func (c *GoCompiler) compileAddChar(left, right *goValue, loc *position.Location
 	case "value.Char":
 		return newGoValueWithDependencies(
 			fmt.Sprintf("%s.ConcatChar(%s)", left.value, narrowRight.value),
-			c.checker.Std(symbol.String),
+			c.checker.Std(symbol.C_String),
 			value.FetchGoType("value.String"),
 			left, narrowRight,
 		)
@@ -15648,7 +15652,7 @@ func (c *GoCompiler) compileAddChar(left, right *goValue, loc *position.Location
 
 	return newGoValueWithLocal(
 		tmp,
-		c.checker.Std(symbol.String),
+		c.checker.Std(symbol.C_String),
 	)
 }
 
@@ -15795,7 +15799,7 @@ func (c *GoCompiler) resolve(node ast.ExpressionNode) *goValue {
 	return c.valueToGoSource(result, c.typeOf(node), true)
 }
 
-func (c *GoCompiler) ivarIndicesToGoSource(ivars *value.IvarIndices) string {
+func (c *GoCompiler) ivarIndicesToGoSource(ivars *ivar.IvarIndices) string {
 	var buff strings.Builder
 
 	buff.WriteString("value.IvarIndices{")
@@ -15810,6 +15814,20 @@ func (c *GoCompiler) ivarIndicesToGoSource(ivars *value.IvarIndices) string {
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
+		case *vm.CallSiteInfo:
+			name := c.emitSymbol(v.Name.String())
+			return newGoValue(
+				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
+				types.Any{},
+				goValueType,
+			)
+		case *vm.NativeCallSiteInfo:
+			name := c.emitSymbol(v.Method.Name().String())
+			return newGoValue(
+				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
+				types.Any{},
+				goValueType,
+			)
 		case value.ArrayList:
 			if !allowMutable {
 				return nil
@@ -15846,25 +15864,25 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		case value.String:
 			return newGoValue(
 				fmt.Sprintf("value.String(%q)", v.String()),
-				c.checker.Std(symbol.String),
+				c.checker.Std(symbol.C_String),
 				value.FetchGoType("value.String"),
 			)
 		case value.Int64:
 			return newGoValue(
 				fmt.Sprintf("value.Int64(%d)", v),
-				c.checker.Std(symbol.Int64),
+				c.checker.Std(symbol.C_Int64),
 				value.FetchGoType("value.Int64"),
 			)
 		case value.UInt64:
 			return newGoValue(
 				fmt.Sprintf("value.UInt64(%d)", v),
-				c.checker.Std(symbol.UInt64),
+				c.checker.Std(symbol.C_UInt64),
 				value.FetchGoType("value.UInt64"),
 			)
 		case *value.BigInt:
 			return newGoValue(
 				c.emitBigInt(string(v.ToString())),
-				c.checker.Std(symbol.Int),
+				c.checker.Std(symbol.C_Int),
 				value.FetchGoType("*value.BigInt"),
 			)
 		case *value.BeginlessClosedRange, *value.BeginlessOpenRange,
@@ -15905,85 +15923,85 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	case value.INT64_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Int64(%d)", val.AsInt64()),
-			c.checker.Std(symbol.Int64),
+			c.checker.Std(symbol.C_Int64),
 			value.FetchGoType("value.Int64"),
 		)
 	case value.UINT_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.UInt(%d)", val.AsUInt()),
-			c.checker.Std(symbol.UInt),
+			c.checker.Std(symbol.C_UInt),
 			value.FetchGoType("value.UInt"),
 		)
 	case value.UINT64_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.UInt64(%d)", val.AsUInt64()),
-			c.checker.Std(symbol.UInt64),
+			c.checker.Std(symbol.C_UInt64),
 			value.FetchGoType("value.UInt64"),
 		)
 	case value.INT32_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Int32(%d)", val.AsInt32()),
-			c.checker.Std(symbol.Int32),
+			c.checker.Std(symbol.C_Int32),
 			value.FetchGoType("value.Int32"),
 		)
 	case value.UINT32_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.UInt32(%d)", val.AsUInt32()),
-			c.checker.Std(symbol.UInt32),
+			c.checker.Std(symbol.C_UInt32),
 			value.FetchGoType("value.UInt32"),
 		)
 	case value.INT16_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Int16(%d)", val.AsInt16()),
-			c.checker.Std(symbol.Int16),
+			c.checker.Std(symbol.C_Int16),
 			value.FetchGoType("value.Int16"),
 		)
 	case value.UINT16_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.UInt16(%d)", val.AsUInt16()),
-			c.checker.Std(symbol.UInt16),
+			c.checker.Std(symbol.C_UInt16),
 			value.FetchGoType("value.UInt16"),
 		)
 	case value.INT8_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Int8(%d)", val.AsInt8()),
-			c.checker.Std(symbol.Int8),
+			c.checker.Std(symbol.C_Int8),
 			value.FetchGoType("value.Int8"),
 		)
 	case value.UINT8_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.UInt8(%d)", val.AsUInt8()),
-			c.checker.Std(symbol.UInt8),
+			c.checker.Std(symbol.C_UInt8),
 			value.FetchGoType("value.UInt8"),
 		)
 	case value.CHAR_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Char(%q)", rune(val.AsChar())),
-			c.checker.Std(symbol.Char),
+			c.checker.Std(symbol.C_Char),
 			value.FetchGoType("value.Char"),
 		)
 	case value.SYMBOL_FLAG:
 		return newGoValue(
 			c.emitSymbol(val.AsInlineSymbol().String()),
-			c.checker.Std(symbol.Symbol),
+			c.checker.Std(symbol.C_Symbol),
 			value.FetchGoType("value.Symbol"),
 		)
 	case value.FLOAT_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Float(%g)", val.AsFloat()),
-			c.checker.Std(symbol.Float),
+			c.checker.Std(symbol.C_Float),
 			value.FetchGoType("value.Float"),
 		)
 	case value.FLOAT64_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Float64(%g)", val.AsFloat64()),
-			c.checker.Std(symbol.Float64),
+			c.checker.Std(symbol.C_Float64),
 			value.FetchGoType("value.Float64"),
 		)
 	case value.FLOAT32_FLAG:
 		return newGoValue(
 			fmt.Sprintf("value.Float32(%g)", val.AsFloat32()),
-			c.checker.Std(symbol.Float32),
+			c.checker.Std(symbol.C_Float32),
 			value.FetchGoType("value.Float32"),
 		)
 	}
@@ -16025,7 +16043,7 @@ func (c *GoCompiler) arrayListToGoSource(v value.ArrayList, typ types.Type) *goV
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.ArrayList),
+		c.checker.Std(symbol.C_ArrayList),
 		value.FetchGenericGoType(
 			"*value.NativeArrayList",
 			[]*value.GoType{
@@ -16059,7 +16077,7 @@ func (c *GoCompiler) arrayListOfValueToGoSource(v value.ArrayList) *goValue {
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.ArrayList),
+		c.checker.Std(symbol.C_ArrayList),
 		value.FetchGoType("*value.ArrayListOfValue"),
 		dependencies...,
 	)
@@ -16112,7 +16130,7 @@ func (c *GoCompiler) convertValueToNativeInt(v *goValue) *goValue {
 			value.FetchGoType("int"),
 		)
 	default:
-		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.C_Int)) {
 			return v.newGoValue(
 				fmt.Sprintf("(%s).AsInt()", c.convertValueToWiderType(v).value),
 				v.elkType,
@@ -16148,7 +16166,7 @@ func (c *GoCompiler) convertValueToSmallInt(v *goValue) *goValue {
 			value.FetchGoType("value.SmallInt"),
 		)
 	default:
-		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.C_Int)) {
 			return v.newGoValue(
 				fmt.Sprintf("value.SmallInt((%s).AsInt())", c.convertValueToWiderType(v).value),
 				v.elkType,
@@ -16228,7 +16246,7 @@ func (c *GoCompiler) mustConvertValueToNativeInt(v *goValue) *goValue {
 			value.FetchGoType("int"),
 		)
 	default:
-		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.Int)) {
+		if c.checker.IsSubtype(v.elkType, c.checker.Std(symbol.C_Int)) {
 			return v.newGoValue(
 				fmt.Sprintf("(%s).AsInt()", c.convertValueToWiderType(v).value),
 				v.elkType,
@@ -16261,245 +16279,245 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 			value.FetchGoType("value.Bool"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Symbol)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Symbol)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsSymbol()", v.value),
 			elkType,
 			value.FetchGoType("value.Symbol"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_String)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsString()", v.value),
 			elkType,
 			value.FetchGoType("value.String"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Char)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Char)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsChar()", v.value),
 			elkType,
 			value.FetchGoType("value.Char"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsFloat()", v.value),
 			elkType,
 			value.FetchGoType("value.Float"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float64)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsFloat64()", v.value),
 			elkType,
 			value.FetchGoType("value.Float64"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float32)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsFloat32()", v.value),
 			elkType,
 			value.FetchGoType("value.Float32"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BigFloat)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BigFloat)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.BigFloat)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.BigFloat"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int64)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsInt64()", v.value),
 			elkType,
 			value.FetchGoType("value.Int64"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int32)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsInt32()", v.value),
 			elkType,
 			value.FetchGoType("value.Int32"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int16)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsInt16()", v.value),
 			elkType,
 			value.FetchGoType("value.Int16"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int8)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsInt8()", v.value),
 			elkType,
 			value.FetchGoType("value.Int8"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsUInt()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt64)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsUInt64()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt64"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt32)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsUInt32()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt32"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt16)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsUInt16()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt16"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt8)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsUInt8()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt8"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayList)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayList)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(value.ArrayList)", v.value),
 			elkType,
 			value.FetchGoType("value.ArrayList"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayTuple)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayTuple)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(value.ArrayTuple)", v.value),
 			elkType,
 			value.FetchGoType("value.ArrayTuple"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashMap)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashMap)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(vm.HashMap)", v.value),
 			elkType,
 			value.FetchGoType("vm.HashMap"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashRecord)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashRecord)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(vm.HashRecord)", v.value),
 			elkType,
 			value.FetchGoType("vm.HashRecord"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashSet)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashSet)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(vm.HashSet)", v.value),
 			elkType,
 			value.FetchGoType("vm.HashSet"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessClosedRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.BeginlessClosedRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.BeginlessClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessOpenRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.BeginlessOpenRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.BeginlessOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_EndlessClosedRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.EndlessClosedRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.EndlessClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_EndlessOpenRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.EndlessOpenRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.EndlessOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ClosedRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.ClosedRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.ClosedRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.OpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_OpenRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.OpenRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.OpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.LeftOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_LeftOpenRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.LeftOpenRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.LeftOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.RightOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_RightOpenRange)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.RightOpenRange)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.RightOpenRange"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Class)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Class)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.Class)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.Class"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Module)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Module)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.Module)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.Module"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Mixin)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Mixin)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.Mixin)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.Mixin"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Interface)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Interface)) {
 		return v.newNarrower(
 			fmt.Sprintf("(*value.Interface)((%s).Pointer())", v.value),
 			elkType,
 			value.FetchGoType("*value.Interface"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Time)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Time)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsTime()", v.value),
 			elkType,
 			value.FetchGoType("value.Time"),
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Date)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Date)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsDate()", v.value),
 			elkType,
@@ -16527,58 +16545,58 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 	if c.checker.IsSubtype(elkType, types.Bool{}) {
 		return value.FetchGoType("value.Bool")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Symbol)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Symbol)) {
 		return value.FetchGoType("value.Symbol")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_String)) {
 		return value.FetchGoType("value.String")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Char)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Char)) {
 		return value.FetchGoType("value.Char")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Regex)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Regex)) {
 		return value.FetchGoType("*value.Regex")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float)) {
 		return value.FetchGoType("value.Float")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float64)) {
 		return value.FetchGoType("value.Float64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float32)) {
 		return value.FetchGoType("value.Float32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BigFloat)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BigFloat)) {
 		return value.FetchGoType("*value.BigFloat")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int64)) {
 		return value.FetchGoType("value.Int64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int32)) {
 		return value.FetchGoType("value.Int32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int16)) {
 		return value.FetchGoType("value.Int16")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int8)) {
 		return value.FetchGoType("value.Int8")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt)) {
 		return value.FetchGoType("value.UInt")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt64)) {
 		return value.FetchGoType("value.UInt64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt32)) {
 		return value.FetchGoType("value.UInt32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt16)) {
 		return value.FetchGoType("value.UInt16")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt8)) {
 		return value.FetchGoType("value.UInt8")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayList)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayList)) {
 		if !specialized {
 			return value.FetchGoType("value.ArrayList")
 		}
@@ -16602,7 +16620,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			},
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ArrayTuple)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayTuple)) {
 		if !specialized {
 			return value.FetchGoType("value.ArrayTuple")
 		}
@@ -16626,7 +16644,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			},
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashMap)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashMap)) {
 		if !specialized {
 			return value.FetchGoType("vm.HashMap")
 		}
@@ -16661,7 +16679,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			},
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashRecord)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashRecord)) {
 		if !specialized {
 			return value.FetchGoType("vm.HashRecord")
 		}
@@ -16696,7 +16714,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			},
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.HashSet)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_HashSet)) {
 		if !specialized {
 			return value.FetchGoType("vm.HashSet")
 		}
@@ -16720,40 +16738,40 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			},
 		)
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Box)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Box)) {
 		return value.FetchGoType("value.Box")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ImmutableBox)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ImmutableBox)) {
 		return value.FetchGoType("value.ImmutableBox")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessClosedRange)) {
 		return value.FetchGoType("*value.BeginlessClosedRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.BeginlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessOpenRange)) {
 		return value.FetchGoType("*value.BeginlessOpenRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_EndlessClosedRange)) {
 		return value.FetchGoType("*value.EndlessClosedRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.EndlessOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_EndlessOpenRange)) {
 		return value.FetchGoType("*value.EndlessOpenRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.ClosedRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ClosedRange)) {
 		return value.FetchGoType("*value.ClosedRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.OpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_OpenRange)) {
 		return value.FetchGoType("*value.OpenRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.LeftOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_LeftOpenRange)) {
 		return value.FetchGoType("*value.LeftOpenRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.RightOpenRange)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_RightOpenRange)) {
 		return value.FetchGoType("*value.RightOpenRange")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Date)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Date)) {
 		return value.FetchGoType("value.Date")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Time)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Time)) {
 		return value.FetchGoType("value.Time")
 	}
 	if elkType, ok := elkType.(*types.Callable); ok {
@@ -16768,55 +16786,55 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 // Convert an elk type to a native go type that can be used as a key
 // in a hash map or an element in a hash set
 func (c *GoCompiler) elkTypeToGoKeyType(elkType types.Type) *value.GoType {
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Symbol)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Symbol)) {
 		return value.FetchGoType("value.Symbol")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.String)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_String)) {
 		return value.FetchGoType("value.String")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Char)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Char)) {
 		return value.FetchGoType("value.Char")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float)) {
 		return value.FetchGoType("value.Float")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float64)) {
 		return value.FetchGoType("value.Float64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Float32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Float32)) {
 		return value.FetchGoType("value.Float32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int64)) {
 		return value.FetchGoType("value.Int64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int32)) {
 		return value.FetchGoType("value.Int32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int16)) {
 		return value.FetchGoType("value.Int16")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Int8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Int8)) {
 		return value.FetchGoType("value.Int8")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt)) {
 		return value.FetchGoType("value.UInt")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt64)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt64)) {
 		return value.FetchGoType("value.UInt64")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt32)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt32)) {
 		return value.FetchGoType("value.UInt32")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt16)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt16)) {
 		return value.FetchGoType("value.UInt16")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.UInt8)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_UInt8)) {
 		return value.FetchGoType("value.UInt8")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Date)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Date)) {
 		return value.FetchGoType("value.Date")
 	}
-	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.Time)) {
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Time)) {
 		return value.FetchGoType("value.Time")
 	}
 
@@ -16832,7 +16850,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				"value.NewBeginlessClosedRange(%s)",
 				end.value,
 			),
-			c.checker.Std(symbol.BeginlessClosedRange),
+			c.checker.Std(symbol.C_BeginlessClosedRange),
 			value.FetchGoType("*value.BeginlessClosedRange"),
 			end,
 		)
@@ -16843,7 +16861,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				"value.NewBeginlessOpenRange(%s)",
 				end.value,
 			),
-			c.checker.Std(symbol.BeginlessOpenRange),
+			c.checker.Std(symbol.C_BeginlessOpenRange),
 			value.FetchGoType("*value.BeginlessOpenRange"),
 			end,
 		)
@@ -16854,7 +16872,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				"value.NewEndlessClosedRange(%s)",
 				start.value,
 			),
-			c.checker.Std(symbol.EndlessClosedRange),
+			c.checker.Std(symbol.C_EndlessClosedRange),
 			value.FetchGoType("*value.EndlessClosedRange"),
 			start,
 		)
@@ -16865,7 +16883,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				"value.NewEndlessOpenRange(%s)",
 				start.value,
 			),
-			c.checker.Std(symbol.EndlessOpenRange),
+			c.checker.Std(symbol.C_EndlessOpenRange),
 			value.FetchGoType("*value.EndlessOpenRange"),
 			start,
 		)
@@ -16879,7 +16897,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				start.value,
 				end.value,
 			),
-			c.checker.Std(symbol.ClosedRange),
+			c.checker.Std(symbol.C_ClosedRange),
 			value.FetchGoType("*value.ClosedRange"),
 			start,
 			end,
@@ -16894,7 +16912,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				start.value,
 				end.value,
 			),
-			c.checker.Std(symbol.OpenRange),
+			c.checker.Std(symbol.C_OpenRange),
 			value.FetchGoType("*value.OpenRange"),
 			start,
 			end,
@@ -16909,7 +16927,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				start.value,
 				end.value,
 			),
-			c.checker.Std(symbol.LeftOpenRange),
+			c.checker.Std(symbol.C_LeftOpenRange),
 			value.FetchGoType("*value.LeftOpenRange"),
 			start,
 			end,
@@ -16924,7 +16942,7 @@ func (c *GoCompiler) rangeToGoSource(v value.Value, typ types.Type, mutable bool
 				start.value,
 				end.value,
 			),
-			c.checker.Std(symbol.RightOpenRange),
+			c.checker.Std(symbol.C_RightOpenRange),
 			value.FetchGoType("*value.RightOpenRange"),
 			start,
 			end,
@@ -16953,7 +16971,7 @@ func (c *GoCompiler) arrayTupleOfValueToGoSource(v value.ArrayTuple, mutable boo
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.ArrayTuple),
+		c.checker.Std(symbol.C_ArrayTuple),
 		value.FetchGoType("*value.ArrayTupleOfValue"),
 		dependencies...,
 	)
@@ -17008,7 +17026,7 @@ func (c *GoCompiler) regexToGoSource(v *value.Regex, typ types.Type) *goValue {
 
 	return newGoValue(
 		buff.String(),
-		c.checker.Std(symbol.Regex),
+		c.checker.Std(symbol.C_Regex),
 		value.FetchGoType("*value.Regex"),
 	)
 }
@@ -17042,7 +17060,7 @@ func (c *GoCompiler) arrayTupleToGoSource(v value.ArrayTuple, typ types.Type, mu
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.ArrayTuple),
+		c.checker.Std(symbol.C_ArrayTuple),
 		value.FetchGenericGoType(
 			"*value.NativeArrayTuple",
 			[]*value.GoType{
@@ -17082,7 +17100,7 @@ func (c *GoCompiler) hashSetToGoSource(v vm.HashSet, typ types.Type) *goValue {
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashSet),
+		c.checker.Std(symbol.C_HashSet),
 		value.FetchGenericGoType(
 			"*vm.NativeHashSet",
 			[]*value.GoType{
@@ -17112,7 +17130,7 @@ func (c *GoCompiler) hashSetOfValueToGoSource(v vm.HashSet) *goValue {
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashSet),
+		c.checker.Std(symbol.C_HashSet),
 		value.FetchGoType("*vm.HashSetOfValue"),
 		dependencies...,
 	)
@@ -17137,7 +17155,7 @@ func (c *GoCompiler) hashMapOfValueToGoSource(v vm.HashMap) *goValue {
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashMap),
+		c.checker.Std(symbol.C_HashMap),
 		value.FetchGoType("*vm.HashMapOfValue"),
 		dependencies...,
 	)
@@ -17148,7 +17166,7 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 	if types.IsUntyped(elementType) {
 		return c.hashMapOfValueToGoSource(v)
 	}
-	if !c.checker.IsSubtype(elementType, c.checker.Std(symbol.Pair)) {
+	if !c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Pair)) {
 		return c.hashMapOfValueToGoSource(v)
 	}
 
@@ -17194,7 +17212,7 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 		buff.WriteString("})")
 		return newGoValueWithDependencies(
 			buff.String(),
-			c.checker.Std(symbol.HashMap),
+			c.checker.Std(symbol.C_HashMap),
 			value.FetchGenericGoType(
 				"*vm.NativeKeyHashMap",
 				[]*value.GoType{
@@ -17232,7 +17250,7 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 	buff.WriteString("})")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashMap),
+		c.checker.Std(symbol.C_HashMap),
 		value.FetchGenericGoType(
 			"*vm.NativeHashMap",
 			[]*value.GoType{
@@ -17249,7 +17267,7 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 	if types.IsUntyped(elementType) {
 		return c.hashRecordOfValueToGoSource(v, allowMutable)
 	}
-	if !c.checker.IsSubtype(elementType, c.checker.Std(symbol.Pair)) {
+	if !c.checker.IsSubtype(elementType, c.checker.Std(symbol.C_Pair)) {
 		return c.hashRecordOfValueToGoSource(v, allowMutable)
 	}
 
@@ -17295,7 +17313,7 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 		buff.WriteString("})")
 		return newGoValueWithDependencies(
 			buff.String(),
-			c.checker.Std(symbol.HashMap),
+			c.checker.Std(symbol.C_HashMap),
 			value.FetchGenericGoType(
 				"vm.NativeKeyHashRecord",
 				[]*value.GoType{
@@ -17333,7 +17351,7 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 	buff.WriteString("})")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashMap),
+		c.checker.Std(symbol.C_HashMap),
 		value.FetchGenericGoType(
 			"vm.NativeHashRecord",
 			[]*value.GoType{
@@ -17364,7 +17382,7 @@ func (c *GoCompiler) hashRecordOfValueToGoSource(v vm.HashRecord, allowMutable b
 	buff.WriteString(")")
 	return newGoValueWithDependencies(
 		buff.String(),
-		c.checker.Std(symbol.HashRecord),
+		c.checker.Std(symbol.C_HashRecord),
 		value.FetchGoType("*vm.HashRecordOfValue"),
 		dependencies...,
 	)
@@ -17386,7 +17404,7 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 			c.convertValueToWiderType(k).value,
 			c.convertValueToWiderType(v).value,
 		),
-		c.checker.Std(symbol.Pair),
+		c.checker.Std(symbol.C_Pair),
 		value.FetchGoType("value.PairOfValue"),
 		k, v,
 	)

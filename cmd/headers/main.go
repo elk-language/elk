@@ -11,7 +11,6 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
-	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -36,13 +35,10 @@ func main() {
 
 			// This file is auto-generated, please do not edit it manually
 
-			import (
-				"github.com/elk-language/elk/value"
-				"github.com/elk-language/elk/value/symbol"
-			)
+			import "github.com/elk-language/elk/value/symbol"
 
 			func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
-				objectClass := env.StdSubtypeClass(symbol.Object)
+				objectClass := env.StdSubtypeClass(symbol.C_Object)
 				namespace := env.Root
 				var mixin *Mixin
 				var method *Method
@@ -66,7 +62,7 @@ func main() {
 }
 
 func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment) bool {
-	objectClass := env.StdSubtypeClass(symbol.Object)
+	objectClass := env.StdSubtypeClass(symbol.C_Object)
 	_, isSingleton := namespace.(*types.SingletonClass)
 	return len(namespace.Constants()) > 0 ||
 		len(namespace.Methods()) > 0 ||
@@ -77,7 +73,7 @@ func namespaceHasContent(namespace types.Namespace, env *types.GlobalEnvironment
 func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment, root bool) {
 	namespaceClass, namespaceIsClass := namespace.(*types.Class)
 	hasContent := namespaceHasContent(namespace, env)
-	objectClass := env.StdSubtypeClass(symbol.Object)
+	objectClass := env.StdSubtypeClass(symbol.C_Object)
 
 	if !hasContent {
 		return
@@ -250,10 +246,10 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			`
-				typeParam = NewTypeParameter(value.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s)
+				typeParam = NewTypeParameter(symbol.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s)
 				typeParams[%[3]d] = typeParam
-				namespace.DefineSubtype(value.ToSymbol(%[1]q), typeParam)
-				namespace.DefineConstant(value.ToSymbol(%[1]q), NoValue{})
+				namespace.DefineSubtype(symbol.ToSymbol(%[1]q), typeParam)
+				namespace.DefineConstant(symbol.ToSymbol(%[1]q), NoValue{})
 			`,
 			param.Name.String(),
 			param.Variance.String(),
@@ -291,7 +287,7 @@ func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*t
 	for _, param := range typeParams {
 		fmt.Fprintf(
 			buffer,
-			"NewTypeParameter(value.ToSymbol(%q), mixin, %s, %s, %s, %s)",
+			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s)",
 			param.Name.String(),
 			typeToCode(param.LowerBound, false),
 			typeToCode(param.UpperBound, false),
@@ -330,7 +326,7 @@ func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 	for name, typ := range types.SortedConstants(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineConstant(value.ToSymbol(%q), %s)\n",
+			"namespace.DefineConstant(symbol.ToSymbol(%q), %s)\n",
 			name.String(),
 			typeToCode(typ.Type, false),
 		)
@@ -342,7 +338,7 @@ func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 	for ivar := range types.SortedOwnInstanceVariables(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineInstanceVariable(value.ToSymbol(%q), NewInstanceVariable(value.ToSymbol(%q), %s, %q, %t))\n",
+			"namespace.DefineInstanceVariable(symbol.ToSymbol(%q), NewInstanceVariable(symbol.ToSymbol(%q), %s, %q, %t))\n",
 			ivar.Name.String(),
 			ivar.Name.String(),
 			typeToCode(ivar.Type, false),
@@ -366,7 +362,7 @@ func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace
 	}
 }
 
-func methodConstructorArguments(buffer *bytes.Buffer, methodName value.Symbol, method *types.Method) {
+func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, method *types.Method) {
 	fmt.Fprintf(
 		buffer,
 		"%q, 0",
@@ -394,7 +390,7 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName value.Symbol, m
 
 	fmt.Fprintf(
 		buffer,
-		", value.ToSymbol(%q), ",
+		", symbol.ToSymbol(%q), ",
 		methodName.String(),
 	)
 
@@ -417,7 +413,7 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName value.Symbol, m
 		for _, param := range method.Params {
 			fmt.Fprintf(
 				buffer,
-				"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
+				"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
 				param.Name.String(),
 				typeToCode(param.Type, false),
 				param.Kind,
@@ -463,7 +459,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 
 				fmt.Fprintf(
 					buffer,
-					"ivars.Add(value.ToSymbol(%q))\n",
+					"ivars.Add(symbol.ToSymbol(%q))\n",
 					name.String(),
 				)
 			}
@@ -503,7 +499,7 @@ func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespa
 func defineSubtype(buffer *bytes.Buffer, subtype types.Type, name string) {
 	fmt.Fprintf(
 		buffer,
-		"namespace.DefineSubtype(value.ToSymbol(%q), %s)\n",
+		"namespace.DefineSubtype(symbol.ToSymbol(%q), %s)\n",
 		name,
 		typeToCode(subtype, true),
 	)
@@ -524,7 +520,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, value.ToSymbol(%q), %s, env)
+		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, symbol.ToSymbol(%q), %s, env)
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
@@ -551,7 +547,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineMixin(%q, %t, value.ToSymbol(%q), env)
+		`namespace.TryDefineMixin(%q, %t, symbol.ToSymbol(%q), env)
 		`,
 		mixin.DocComment(),
 		mixin.IsAbstract(),
@@ -573,7 +569,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineModule(%q, value.ToSymbol(%q), env)
+		`namespace.TryDefineModule(%q, symbol.ToSymbol(%q), env)
 		`,
 		module.DocComment(),
 		constantName,
@@ -594,7 +590,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineInterface(%q, value.ToSymbol(%q), env)
+		`namespace.TryDefineInterface(%q, symbol.ToSymbol(%q), env)
 		`,
 		iface.DocComment(),
 		constantName,
@@ -705,7 +701,7 @@ func typeToCode(typ types.Type, init bool) string {
 		namespaceName := t.Namespace.Name()
 		if init || len(namespaceName) == 0 {
 			return fmt.Sprintf(
-				"NewTypeParameter(value.ToSymbol(%q), %s, %s, %s, %s, %s)",
+				"NewTypeParameter(symbol.ToSymbol(%q), %s, %s, %s, %s, %s)",
 				t.Name.String(),
 				namespaceToCode(t.Namespace),
 				typeToCode(t.LowerBound, false),
@@ -820,18 +816,18 @@ func typeToCode(typ types.Type, init bool) string {
 		for name, arg := range t.TypeArguments.AllArguments() {
 			fmt.Fprintf(
 				buff,
-				"value.ToSymbol(%q): NewTypeArgument(%s, %s),",
+				"symbol.ToSymbol(%q): NewTypeArgument(%s, %s),",
 				name.String(),
 				typeToCode(arg.Type, init),
 				arg.Variance.String(),
 			)
 		}
-		buff.WriteString("}, []value.Symbol{")
+		buff.WriteString("}, []symbol.Symbol{")
 
 		for _, name := range t.TypeArguments.ArgumentOrder {
 			fmt.Fprintf(
 				buff,
-				"value.ToSymbol(%q),",
+				"symbol.ToSymbol(%q),",
 				name.String(),
 			)
 		}
@@ -866,7 +862,7 @@ func typeToCode(typ types.Type, init bool) string {
 
 		fmt.Fprintf(
 			buff,
-			", value.ToSymbol(%q), ",
+			", symbol.ToSymbol(%q), ",
 			t.Body.Name.String(),
 		)
 
@@ -889,7 +885,7 @@ func typeToCode(typ types.Type, init bool) string {
 			for _, param := range t.Body.Params {
 				fmt.Fprintf(
 					buff,
-					"NewParameter(value.ToSymbol(%q), %s, %s, %t),",
+					"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
 					param.Name.String(),
 					typeToCode(param.Type, false),
 					param.Kind,

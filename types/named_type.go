@@ -1,6 +1,6 @@
 package types
 
-import "github.com/elk-language/elk/value"
+import "github.com/elk-language/elk/value/symbol"
 
 type NamedType struct {
 	Name string
@@ -54,7 +54,7 @@ func (n *NamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamedType {
 	classConstantPath := GetConstantPath(n.Name)
 	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
 	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(value.ToSymbol(classConstantName), newType)
+	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newType)
 
 	newType.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
 

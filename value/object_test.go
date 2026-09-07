@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func TestObjectInspect(t *testing.T) {
@@ -37,7 +38,7 @@ func TestObjectInspect(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithIvarIndices(
 							value.IvarIndices{
-								value.ToSymbol("message"): 0,
+								symbol.ToSymbol("message"): 0,
 							},
 						),
 					),

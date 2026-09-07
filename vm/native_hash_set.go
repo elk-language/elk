@@ -473,7 +473,7 @@ func (h *NativeHashSetIterator[V]) Next() (v V, err value.Value) {
 		return v, value.NewMutationDuringIterationError(h.Class().Name).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
-		return v, symbol.L_stop_iteration.ToValue()
+		return v, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	v = h.snapshot[h.index]

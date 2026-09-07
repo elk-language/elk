@@ -13,12 +13,12 @@ import (
 )
 
 func initWaitGroup(env *types.GlobalEnvironment) {
-	astModule := env.NamesToNamespace(symbol.Std, symbol.Elk, symbol.AST)
-	exprNode := astModule.MustSubtype(symbol.ExpressionNode)
-	goNode := astModule.MustSubtype(value.ToSymbol("GoExpressionNode"))
-	waitGroupClass := env.NamesToNamespace(symbol.Std, symbol.Sync, symbol.WaitGroup).Singleton()
+	astModule := env.NamesToNamespace(symbol.C_Std, symbol.C_Elk, symbol.C_AST)
+	exprNode := astModule.MustSubtype(symbol.C_ExpressionNode)
+	goNode := astModule.MustSubtype(symbol.ToSymbol("GoExpressionNode"))
+	waitGroupClass := env.NamesToNamespace(symbol.C_Std, symbol.C_Sync, symbol.C_WaitGroup).Singleton()
 
-	types.DefMacro(
+	vm.DefMacro(
 		waitGroupClass,
 		`Expands to an expression with never type, an endless loop.
 Useful in header files for function parameter default value.
@@ -45,13 +45,13 @@ Example:
 		"spawn!",
 		[]*types.Parameter{
 			types.NewParameter(
-				value.ToSymbol("wait_group"),
+				symbol.ToSymbol("wait_group"),
 				exprNode,
 				types.NormalParameterKind,
 				false,
 			),
 			types.NewParameter(
-				value.ToSymbol("go_expr"),
+				symbol.ToSymbol("go_expr"),
 				goNode,
 				types.NormalParameterKind,
 				false,

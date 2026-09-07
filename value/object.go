@@ -45,7 +45,7 @@ type ObjectOption = func(*Object)
 func ObjectWithClass(class *Class) ObjectOption {
 	return func(o *Object) {
 		o.class = class
-		o.instanceVariables = make([]Value, len(class.IvarIndices))
+		o.instanceVariables = make([]Value, class.IvarIndices.Length())
 	}
 }
 
@@ -74,7 +74,7 @@ func NewObject(opts ...ObjectOption) *Object {
 	}
 
 	if o.instanceVariables == nil {
-		o.instanceVariables = make([]Value, len(ObjectClass.IvarIndices))
+		o.instanceVariables = make([]Value, ObjectClass.IvarIndices.Length())
 	}
 
 	return o
@@ -84,7 +84,7 @@ func NewObject(opts ...ObjectOption) *Object {
 func ObjectConstructor(class *Class) Value {
 	return Ref(&Object{
 		class:             class,
-		instanceVariables: make([]Value, len(class.IvarIndices)),
+		instanceVariables: make([]Value, class.IvarIndices.Length()),
 	})
 }
 
@@ -106,13 +106,13 @@ func (o *Object) InstanceVariables() *InstanceVariables {
 }
 
 func (o *Object) GetInstanceVariable(name Symbol) Value {
-	ivarIndex := o.Class().IvarIndices[name]
+	ivarIndex := o.Class().IvarIndices[name.Id]
 	ivars := o.InstanceVariables()
 	return ivars.Get(ivarIndex)
 }
 
 func (o *Object) SetInstanceVariable(name Symbol, val Value) {
-	ivarIndex := o.Class().IvarIndices[name]
+	ivarIndex := o.Class().IvarIndices[name.Id]
 	ivars := o.InstanceVariables()
 	ivars.Set(ivarIndex, val)
 }

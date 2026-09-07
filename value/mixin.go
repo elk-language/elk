@@ -72,7 +72,7 @@ func MixinConstructor(class *Class) Value {
 			Methods: make(MethodMap),
 		},
 		metaClass:         MixinClass,
-		instanceVariables: make([]Value, len(class.IvarIndices)),
+		instanceVariables: make([]Value, class.IvarIndices.Length()),
 	}
 	m.SetMixin()
 

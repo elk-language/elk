@@ -120,7 +120,7 @@ func main() { // loc: <main>
 		t3[0] = l0
 		t3[1] = (value.SmallInt(1)).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		t2, err = thread.CallMethodByNameWithCache(symbol.OpSubscript, &cc_main_1, t3...) // receiver: Std::List[Std::Int]?, name: []
+		t2, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscript), &cc_main_1, t3...) // receiver: Std::List[Std::Int]?, name: []
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -4428,7 +4428,7 @@ func main() { // loc: <main>
 	t1[1] = (value.SmallInt(1)).ToValue()
 	t1[2] = (value.SmallInt(15)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	_, err = thread.CallMethodByNameWithCache(symbol.OpSubscriptSet, &cc_main_1, t1...) // receiver: Std::List[Std::Int], name: []=
+	_, err = thread.CallMethodByNameWithCache(value.S(symbol.OpSubscriptSet), &cc_main_1, t1...) // receiver: Std::List[Std::Int], name: []=
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

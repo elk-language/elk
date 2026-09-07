@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/strings"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -29,7 +29,7 @@ func NewCharLiteral(value rune) *CharLiteral {
 }
 
 func (*CharLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.Char)
+	return env.StdSubtype(symbol.C_Char)
 }
 
 func (*CharLiteral) IsLiteral() bool {
@@ -37,5 +37,5 @@ func (*CharLiteral) IsLiteral() bool {
 }
 
 func (c *CharLiteral) inspect() string {
-	return value.Char(c.Value).Inspect()
+	return strings.InspectChar(c.Value)
 }

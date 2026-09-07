@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/bitfield"
-	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -12,7 +12,7 @@ type Module struct {
 	defined     bool
 	native      bool
 	parent      Namespace
-	ivarIndices *value.IvarIndices
+	ivarIndices *ivar.IvarIndices
 	NamespaceBase
 }
 
@@ -25,11 +25,11 @@ func (m *Module) traverse(parent Type, enter func(node, parent Type) TraverseOpt
 	}
 }
 
-func (m *Module) IvarIndices() *value.IvarIndices {
+func (m *Module) IvarIndices() *ivar.IvarIndices {
 	return m.ivarIndices
 }
 
-func (m *Module) SetIvarIndices(in *value.IvarIndices) {
+func (m *Module) SetIvarIndices(in *ivar.IvarIndices) {
 	m.ivarIndices = in
 }
 
@@ -96,7 +96,7 @@ func (m *Module) IsImmutable() bool {
 func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
 	return &Module{
 		native:        env.Init,
-		parent:        env.StdSubtypeClass(symbol.Module),
+		parent:        env.StdSubtypeClass(symbol.C_Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 }
@@ -110,7 +110,7 @@ func NewModuleWithDetails(
 	env *GlobalEnvironment,
 ) *Module {
 	return &Module{
-		parent: env.StdSubtypeClass(symbol.Module),
+		parent: env.StdSubtypeClass(symbol.C_Module),
 		native: env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
@@ -134,7 +134,7 @@ func (m *Module) inspect() string {
 	return m.Name()
 }
 
-func (m *Module) DefineMethod(docComment string, flags bitfield.BitFlag16, name value.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Module) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
@@ -176,7 +176,7 @@ func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
 		native:        m.native,
 	}
 	if parentNamespace != nil {
-		parentNamespace.DefineSubtype(value.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
+		parentNamespace.DefineSubtype(symbol.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
 	}
 
 	newModule.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
