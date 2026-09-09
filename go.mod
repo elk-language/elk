@@ -1,6 +1,6 @@
 module github.com/elk-language/elk
 
-go 1.25.0
+go 1.27.1
 
 require (
 	github.com/ALTree/bigfloat v0.2.0

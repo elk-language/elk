@@ -1,5 +1,6 @@
 package ds
 
+// A set based on `map`
 type Set[V comparable] map[V]struct{}
 
 func MakeSet[V comparable](values ...V) Set[V] {
