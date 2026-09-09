@@ -1,22 +1,27 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type Callable struct {
-	Body      *Method
+	Body      Ref[*Method]
 	IsClosure bool
+	id        ID
 }
 
 func NewCallable(method *Method, isClosure bool) *Callable {
-	return &Callable{
-		Body:      method,
+	t := &Callable{
+		Body:      method.ToRef(),
 		IsClosure: isClosure,
 	}
+	Env.RegisterType(t)
+	return t
 }
 
 func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
@@ -31,8 +36,48 @@ func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name sym
 		throwType,
 		callable,
 	)
-	callable.Body = method
+	callable.Body = method.ToRef()
+	Env.RegisterType(callable)
 	return callable
+}
+
+func (c *Callable) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("callable:")
+
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(c.Body))
+	d.Write(b)
+
+	var isClosureByte byte
+	if c.IsClosure {
+		isClosureByte = 1
+	}
+	d.Write([]byte{byte(isClosureByte)})
+
+	return d.Sum64()
+}
+
+func (c *Callable) EqualAny(other any) bool {
+	o, ok := other.(*Callable)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.IsClosure == o.IsClosure &&
+		c.Body == o.Body
+}
+
+func (c *Callable) ID() ID {
+	return c.id
+}
+
+func (c *Callable) SetID(id ID) {
+	c.id = id
 }
 
 func (c *Callable) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -48,14 +93,6 @@ func (c *Callable) Copy() *Callable {
 	return &Callable{
 		Body: c.Body,
 	}
-}
-
-func (c *Callable) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Callable {
-	newCallable := c.Copy()
-	newCallable.Body = c.Body.DeepCopyEnv(oldEnv, newEnv)
-	c.Body.DefinedUnder = newCallable
-
-	return newCallable
 }
 
 func IsCallable(namespace Namespace) bool {
@@ -180,9 +217,10 @@ func (c *Callable) DefineSubtypeWithFullName(name symbol.Symbol, fullName string
 }
 
 func (c *Callable) Methods() MethodMap {
-	if c.Body == nil {
+	if c.Body.IsZero() {
 		return make(MethodMap)
 	}
+
 	m := make(MethodMap)
 	m[symbol.L_call] = c.Body
 	return m
@@ -190,14 +228,14 @@ func (c *Callable) Methods() MethodMap {
 
 func (c *Callable) Method(name symbol.Symbol) *Method {
 	if name == symbol.L_call {
-		return c.Body
+		return c.Body.Get()
 	}
 	return nil
 }
 
 func (c *Callable) MethodString(name string) *Method {
 	if name == "call" {
-		return c.Body
+		return c.Body.Get()
 	}
 	return nil
 }
@@ -243,7 +281,8 @@ func (c *Callable) DefineInterface(docComment string, name symbol.Symbol, env *G
 
 func (c *Callable) inspect() string {
 	buffer := new(strings.Builder)
-	if c.Body.IsPure() {
+	body := c.Body.Get()
+	if body.IsPure() {
 		buffer.WriteString("pure ")
 	}
 	if c.IsClosure {
@@ -252,7 +291,7 @@ func (c *Callable) inspect() string {
 		buffer.WriteRune('|')
 	}
 	firstIteration := true
-	for _, param := range c.Body.Params {
+	for _, param := range body.Params {
 		if !firstIteration {
 			buffer.WriteString(", ")
 		} else {
@@ -271,14 +310,14 @@ func (c *Callable) inspect() string {
 		buffer.WriteString(Inspect(param.Type))
 	}
 	buffer.WriteRune('|')
-	returnType := c.Body.ReturnType
+	returnType := body.ReturnType
 	if returnType == nil {
 		returnType = Void{}
 	}
 	buffer.WriteString(": ")
 	buffer.WriteString(Inspect(returnType))
 
-	throwType := c.Body.ThrowType
+	throwType := body.ThrowType
 	if throwType != nil && !IsNever(throwType) {
 		buffer.WriteString(" ! ")
 		buffer.WriteString(Inspect(throwType))
@@ -287,7 +326,7 @@ func (c *Callable) inspect() string {
 	return buffer.String()
 }
 
-func (c *Callable) ToNonLiteral(env *GlobalEnvironment) Type {
+func (c *Callable) ToNonLiteral() Type {
 	return c
 }
 

@@ -9,6 +9,21 @@ package types
 // It is used to detect unreachable code.
 type Never struct{}
 
+func (Never) HashUint64() uint64 {
+	return 6
+}
+
+func (Never) EqualAny(other any) bool {
+	_, ok := other.(Never)
+	return ok
+}
+
+func (Never) ID() ID {
+	return 6
+}
+
+func (Never) SetID(ID) {}
+
 func (Never) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(Never{}, parent) {
 	case TraverseBreak:

@@ -8,6 +8,21 @@ package types
 // calls to methods that do not exist. It helps with avoiding cascading errors.
 type Untyped struct{}
 
+func (Untyped) HashUint64() uint64 {
+	return 9
+}
+
+func (Untyped) EqualAny(other any) bool {
+	_, ok := other.(Untyped)
+	return ok
+}
+
+func (Untyped) ID() ID {
+	return 9
+}
+
+func (Untyped) SetID(ID) {}
+
 func (Untyped) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(Untyped{}, parent) {
 	case TraverseBreak:

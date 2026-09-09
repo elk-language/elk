@@ -10,7 +10,7 @@ import (
 )
 
 type Class struct {
-	parent         Namespace
+	parent         Ref[Namespace]
 	immutable      bool
 	noinit         bool
 	abstract       bool
@@ -20,11 +20,29 @@ type Class struct {
 	defined        bool
 	compiled       bool
 	Checked        bool
-	singleton      *SingletonClass
+	singleton      Ref[*SingletonClass]
 	typeParameters []*TypeParameter
 	ivarIndices    *ivar.IvarIndices
-	Children       ds.Set[*Class]
+	Children       ds.Set[Ref[*Class]]
+	id             ID
 	NamespaceBase
+}
+
+func (c *Class) ToRef() Ref[*Class] {
+	return Ref[*Class](c.id)
+}
+
+func (c *Class) EqualAny(other any) bool {
+	o, ok := other.(*Class)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.name == o.name
 }
 
 func (c *Class) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -138,15 +156,15 @@ func (c *Class) SetCompiled(val bool) {
 }
 
 func (c *Class) Parent() Namespace {
-	return c.parent
+	return c.parent.Get()
 }
 
 func (c *Class) Singleton() *SingletonClass {
-	return c.singleton
+	return c.singleton.Get()
 }
 
 func (c *Class) SetSingleton(singleton *SingletonClass) {
-	c.singleton = singleton
+	c.singleton = singleton.ToRef()
 }
 
 func getClass(namespace Namespace) Namespace {
@@ -164,7 +182,7 @@ func getClass(namespace Namespace) Namespace {
 }
 
 func (c *Class) Superclass() Namespace {
-	var currentParent Namespace = c.parent
+	var currentParent Namespace = c.parent.Get()
 	for {
 		if currentParent == nil {
 			return nil
@@ -178,14 +196,15 @@ func (c *Class) Superclass() Namespace {
 }
 
 func (c *Class) SetParent(parent Namespace) {
-	c.parent = parent
+	c.parent = ToRef(parent)
 	c.registerAsChild(parent)
 
 	superclass := c.Superclass()
-	if superclass != nil && c.singleton != nil {
+	currentSingleton := c.singleton.Get()
+	if superclass != nil && currentSingleton != nil {
 		singleton := superclass.Singleton()
-		c.singleton.parent = singleton
-		singleton.registerAsChild(c.singleton)
+		currentSingleton.parent = CastRef[Namespace](singleton)
+		singleton.registerAsChild(currentSingleton)
 	}
 }
 
@@ -193,21 +212,21 @@ func (c *Class) registerAsChild(parent Namespace) {
 	switch parent := parent.(type) {
 	case *Class:
 		if parent.Children == nil {
-			parent.Children = ds.Set[*Class]{}
+			parent.Children = ds.Set[Ref[*Class]]{}
 		}
-		parent.Children.Add(c)
+		parent.Children.Add(c.ToRef())
 	case *Generic:
 		c.registerAsChild(parent.Namespace)
 	}
 }
 
-func (c *Class) RemoveTemporaryParents(env *GlobalEnvironment) {
-	if _, ok := c.parent.(*TemporaryParent); !ok {
+func (c *Class) RemoveTemporaryParents() {
+	if _, ok := c.parent.Get().(*TemporaryParent); !ok {
 		return
 	}
 
-	c.parent = nil
-	c.singleton.parent = env.StdSubtypeClass(symbol.C_Class)
+	c.parent = 0
+	c.singleton.Get().parent = Ref[Namespace](Env.StdSubtypeClass(symbol.C_Class).ID())
 }
 
 func NewClass(
@@ -219,7 +238,6 @@ func NewClass(
 	immutable bool,
 	name string,
 	parent Namespace,
-	env *GlobalEnvironment,
 ) *Class {
 	class := &Class{
 		primitive:     primitive,
@@ -227,12 +245,13 @@ func NewClass(
 		abstract:      abstract,
 		noinit:        noinit,
 		immutable:     immutable,
-		native:        env.Init,
+		native:        Env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
-	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.C_Class))
+	class.singleton = NewSingletonClass(class, Env.StdSubtypeClass(symbol.C_Class)).ToRef()
 	class.SetParent(parent)
 
+	Env.RegisterType(class)
 	return class
 }
 
@@ -246,13 +265,12 @@ func NewClassWithDetails(
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,
-	env *GlobalEnvironment,
 ) *Class {
 	class := &Class{
 		primitive: primitive,
 		abstract:  abstract,
 		sealed:    sealed,
-		native:    env.Init,
+		native:    Env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -261,9 +279,10 @@ func NewClassWithDetails(
 			methods:    methods,
 		},
 	}
-	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.C_Class))
+	class.singleton = NewSingletonClass(class, Env.StdSubtypeClass(symbol.C_Class)).ToRef()
 	class.SetParent(parent)
 
+	Env.RegisterType(class)
 	return class
 }
 
@@ -277,7 +296,7 @@ func (c *Class) inspect() string {
 	return c.name
 }
 
-func (c *Class) ToNonLiteral(env *GlobalEnvironment) Type {
+func (c *Class) ToNonLiteral() Type {
 	return c
 }
 
@@ -305,43 +324,6 @@ func (c *Class) Copy() *Class {
 			methods:    c.methods,
 		},
 	}
-}
-
-func (c *Class) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Class {
-	classConstantPath := GetConstantPath(c.name)
-	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
-
-	if newType, ok := NameToTypeOk(c.name, newEnv); ok {
-		return newType.(*Class)
-	}
-
-	newClass := &Class{
-		noinit:        c.noinit,
-		abstract:      c.abstract,
-		sealed:        c.sealed,
-		primitive:     c.primitive,
-		defined:       c.defined,
-		native:        c.native,
-		compiled:      c.compiled,
-		Checked:       c.Checked,
-		NamespaceBase: MakeNamespaceBase(c.docComment, c.name),
-	}
-	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newClass)
-
-	newClass.singleton = nil
-	newClass.singleton = DeepCopyEnv(c.singleton, oldEnv, newEnv).(*SingletonClass)
-
-	newClass.typeParameters = TypeParametersDeepCopyEnv(c.typeParameters, oldEnv, newEnv)
-	newClass.methods = MethodsDeepCopyEnv(c.methods, oldEnv, newEnv)
-	newClass.instanceVariables = InstanceVariablesDeepCopyEnv(c.instanceVariables, oldEnv, newEnv)
-	newClass.constants = ConstantsDeepCopyEnv(c.constants, oldEnv, newEnv)
-	newClass.subtypes = ConstantsDeepCopyEnv(c.subtypes, oldEnv, newEnv)
-
-	if c.parent != nil {
-		newClass.parent = DeepCopyEnv(c.parent, oldEnv, newEnv).(Namespace)
-	}
-	return newClass
 }
 
 // Used for debugging deep copies of types

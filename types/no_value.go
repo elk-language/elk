@@ -4,6 +4,21 @@ package types
 // It is used to mark constants of pure types, that do not have a runtime value.
 type NoValue struct{}
 
+func (NoValue) HashUint64() uint64 {
+	return 7
+}
+
+func (NoValue) EqualAny(other any) bool {
+	_, ok := other.(NoValue)
+	return ok
+}
+
+func (NoValue) ID() ID {
+	return 7
+}
+
+func (NoValue) SetID(ID) {}
+
 func (NoValue) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(NoValue{}, parent) {
 	case TraverseBreak:

@@ -4,6 +4,21 @@ import "github.com/elk-language/elk/value/symbol"
 
 type True struct{}
 
+func (True) HashUint64() uint64 {
+	return 4
+}
+
+func (True) EqualAny(other any) bool {
+	_, ok := other.(True)
+	return ok
+}
+
+func (True) ID() ID {
+	return 4
+}
+
+func (True) SetID(ID) {}
+
 func (True) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(True{}, parent) {
 	case TraverseBreak:

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -14,9 +15,39 @@ type ConstantPlaceholder struct {
 	FullName  string
 	Container ConstantMap
 	Location  *position.Location
-	Sibling   *ConstantPlaceholder
+	Sibling   Ref[*ConstantPlaceholder]
 	Checked   bool
 	Replaced  bool
+	id        ID
+}
+
+func (c *ConstantPlaceholder) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("constant:")
+	d.WriteString(c.FullName)
+
+	return d.Sum64()
+}
+
+func (c *ConstantPlaceholder) EqualAny(other any) bool {
+	o, ok := other.(*ConstantPlaceholder)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.FullName == o.FullName
+}
+
+func (c *ConstantPlaceholder) ID() ID {
+	return c.id
+}
+
+func (c *ConstantPlaceholder) SetID(id ID) {
+	c.id = id
 }
 
 func (c *ConstantPlaceholder) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -42,7 +73,7 @@ func NewConstantPlaceholder(asName symbol.Symbol, fullName string, container Con
 	}
 }
 
-func (p *ConstantPlaceholder) ToNonLiteral(env *GlobalEnvironment) Type {
+func (p *ConstantPlaceholder) ToNonLiteral() Type {
 	return p
 }
 
@@ -64,26 +95,4 @@ func (p *ConstantPlaceholder) Copy() *ConstantPlaceholder {
 		Checked:   p.Checked,
 		Replaced:  p.Replaced,
 	}
-}
-
-func (p *ConstantPlaceholder) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *ConstantPlaceholder {
-	if newType, ok := NameToTypeOk(p.FullName, newEnv); ok {
-		return newType.(*ConstantPlaceholder)
-	}
-
-	newPlaceholder := &ConstantPlaceholder{
-		AsName:    p.AsName,
-		FullName:  p.FullName,
-		Location:  p.Location,
-		Checked:   p.Checked,
-		Replaced:  p.Replaced,
-		Container: make(ConstantMap),
-	}
-	moduleConstantPath := GetConstantPath(p.FullName)
-	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
-	parentNamespace.DefineSubtype(symbol.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newPlaceholder)
-
-	newPlaceholder.Container = ConstantsDeepCopyEnv(p.Container, oldEnv, newEnv)
-
-	return newPlaceholder
 }

@@ -3,21 +3,54 @@ package types
 import (
 	"strings"
 
-	"github.com/elk-language/elk/value/symbol"
+	"github.com/cespare/xxhash/v2"
 )
 
 type GenericNamedType struct {
 	Name           string
-	Type           Type
-	TypeParameters []*TypeParameter
+	Type           Ref[Type]
+	TypeParameters []Ref[*TypeParameter]
+	id             ID
 }
 
-func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *GenericNamedType {
-	return &GenericNamedType{
+func NewGenericNamedType(name string, typ Type, typeVars []Ref[*TypeParameter]) *GenericNamedType {
+	t := &GenericNamedType{
 		Name:           name,
-		Type:           typ,
+		Type:           ToRef(typ),
 		TypeParameters: typeVars,
 	}
+	Env.RegisterType(t)
+	return t
+}
+
+func (c *GenericNamedType) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("gnamed:")
+	d.WriteString(c.Name)
+
+	return d.Sum64()
+}
+
+func (c *GenericNamedType) EqualAny(other any) bool {
+	o, ok := other.(*GenericNamedType)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.Name == o.Name
+}
+
+func (c *GenericNamedType) ID() ID {
+	return c.id
+}
+
+func (c *GenericNamedType) SetID(id ID) {
+	c.id = id
 }
 
 func (g *GenericNamedType) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -28,12 +61,12 @@ func (g *GenericNamedType) traverse(parent Type, enter func(node, parent Type) T
 		return leave(g, parent)
 	}
 
-	if g.Type.traverse(g, enter, leave) == TraverseBreak {
+	if g.Type.Get().traverse(g, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
 	for _, typeParam := range g.TypeParameters {
-		if typeParam.traverse(g, enter, leave) == TraverseBreak {
+		if typeParam.Get().traverse(g, enter, leave) == TraverseBreak {
 			return TraverseBreak
 		}
 	}
@@ -41,7 +74,7 @@ func (g *GenericNamedType) traverse(parent Type, enter func(node, parent Type) T
 	return leave(g, parent)
 }
 
-func (g *GenericNamedType) ToNonLiteral(env *GlobalEnvironment) Type {
+func (g *GenericNamedType) ToNonLiteral() Type {
 	return g
 }
 
@@ -58,10 +91,11 @@ func (g *GenericNamedType) inspect() string {
 
 	buffer.WriteString(g.Name)
 	buffer.WriteRune('[')
-	for i, typeVar := range g.TypeParameters {
+	for i, typeVarRef := range g.TypeParameters {
 		if i > 0 {
 			buffer.WriteString(", ")
 		}
+		typeVar := typeVarRef.Get()
 		switch typeVar.Variance {
 		case COVARIANT:
 			buffer.WriteRune('+')
@@ -91,24 +125,4 @@ func (g *GenericNamedType) Copy() *GenericNamedType {
 		Type:           g.Type,
 		TypeParameters: g.TypeParameters,
 	}
-}
-
-func (g *GenericNamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *GenericNamedType {
-	if newType, ok := NameToTypeOk(g.Name, newEnv); ok {
-		return newType.(*GenericNamedType)
-	}
-
-	newType := &GenericNamedType{
-		Name: g.Name,
-	}
-
-	classConstantPath := GetConstantPath(g.Name)
-	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
-	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newType)
-
-	newType.Type = DeepCopyEnv(g.Type, oldEnv, newEnv)
-	newType.TypeParameters = TypeParametersDeepCopyEnv(g.TypeParameters, oldEnv, newEnv)
-
-	return newType
 }

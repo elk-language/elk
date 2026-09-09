@@ -1,15 +1,18 @@
 package types
 
 import (
+	"encoding/binary"
 	"fmt"
 	"iter"
 	"strings"
 
+	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type TypeArgument struct {
-	Type     Type
+	Type     Ref[Type]
 	Variance Variance
 }
 
@@ -21,25 +24,19 @@ func (t *TypeArgument) Copy() *TypeArgument {
 	}
 }
 
-func (t *TypeArgument) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArgument {
-	newTypeArg := t.Copy()
-	newType := DeepCopyEnv(t.Type, oldEnv, newEnv)
-	newTypeArg.Type = newType
-	return newTypeArg
-}
-
 func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
-	return &TypeArgument{
-		Type:     typ,
+	t := &TypeArgument{
+		Type:     ToRef(typ),
 		Variance: variance,
 	}
+	return t
 }
 
 type TypeArgumentMap map[symbol.Symbol]*TypeArgument
 
-func (t TypeArgumentMap) HasAllTypeParams(typeParams []*TypeParameter) bool {
+func (t TypeArgumentMap) HasAllTypeParams(typeParams []Ref[*TypeParameter]) bool {
 	for _, typeParam := range typeParams {
-		_, ok := t[typeParam.Name]
+		_, ok := t[typeParam.Get().Name]
 		if !ok {
 			return false
 		}
@@ -53,10 +50,10 @@ type TypeArguments struct {
 	ArgumentOrder []symbol.Symbol
 }
 
-func CreateTypeArgumentOrderFromTypeParams(typeParams []*TypeParameter) []symbol.Symbol {
+func CreateTypeArgumentOrderFromTypeParams(typeParams []Ref[*TypeParameter]) []symbol.Symbol {
 	order := make([]symbol.Symbol, len(typeParams))
 	for i, typeParam := range typeParams {
-		order[i] = typeParam.Name
+		order[i] = typeParam.Get().Name
 	}
 	return order
 }
@@ -82,21 +79,6 @@ func (t *TypeArguments) DeepCopy() *TypeArguments {
 	newMap := make(TypeArgumentMap, len(t.ArgumentMap))
 	for key, val := range t.ArgumentMap {
 		newMap[key] = val.Copy()
-	}
-	return &TypeArguments{
-		ArgumentMap:   newMap,
-		ArgumentOrder: t.ArgumentOrder,
-	}
-}
-
-func (t *TypeArguments) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeArguments {
-	newMap := make(TypeArgumentMap, len(t.ArgumentMap))
-	for key, val := range t.ArgumentMap {
-		if key == symbol.L_self {
-			continue
-		}
-		newVal := val.DeepCopyEnv(oldEnv, newEnv)
-		newMap[key] = newVal
 	}
 	return &TypeArguments{
 		ArgumentMap:   newMap,
@@ -133,21 +115,260 @@ func NewTypeArguments(m TypeArgumentMap, order []symbol.Symbol) *TypeArguments {
 }
 
 type Generic struct {
-	Namespace
+	Namespace Ref[Namespace]
 	*TypeArguments
+	id ID
 }
+
+var _ Namespace = &Generic{}
 
 func IsGeneric(typ Type) bool {
 	_, ok := typ.(*Generic)
 	return ok
 }
 
+func (g *Generic) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
+	switch enter(g, parent) {
+	case TraverseBreak:
+		return TraverseBreak
+	default:
+		return leave(g, parent)
+	}
+}
+
+func (g *Generic) Name() string {
+	return g.Namespace.Get().Name()
+}
+
+func (g *Generic) DocComment() string {
+	return g.Namespace.Get().DocComment()
+}
+
+func (g *Generic) SetDocComment(comment string) {
+	g.Namespace.Get().SetDocComment(comment)
+}
+
+func (g *Generic) AppendDocComment(comment string) {
+	g.Namespace.Get().AppendDocComment(comment)
+}
+
+func (g *Generic) Parent() Namespace {
+	return g.Namespace.Get().Parent()
+}
+
+func (g *Generic) SetParent(parent Namespace) {
+	g.Namespace.Get().SetParent(parent)
+}
+
+func (g *Generic) Singleton() *SingletonClass {
+	return g.Namespace.Get().Singleton()
+}
+
+func (g *Generic) SetSingleton(singleton *SingletonClass) {
+	g.Namespace.Get().SetSingleton(singleton)
+}
+
+func (g *Generic) IsAbstract() bool {
+	return g.Namespace.Get().IsAbstract()
+}
+
+func (g *Generic) IsSealed() bool {
+	return g.Namespace.Get().IsSealed()
+}
+
+func (g *Generic) IsPrimitive() bool {
+	return g.Namespace.Get().IsPrimitive()
+}
+
+func (g *Generic) IsImmutable() bool {
+	return g.Namespace.Get().IsImmutable()
+}
+
+func (g *Generic) IsGeneric() bool {
+	return g.Namespace.Get().IsGeneric()
+}
+
+func (g *Generic) IsDefined() bool {
+	return g.Namespace.Get().IsDefined()
+}
+
+func (g *Generic) SetDefined(defined bool) {
+	g.Namespace.Get().SetDefined(defined)
+}
+
+func (g *Generic) IsNative() bool {
+	return g.Namespace.Get().IsNative()
+}
+
+func (g *Generic) TypeParameters() []*TypeParameter {
+	return g.Namespace.Get().TypeParameters()
+}
+
+func (g *Generic) SetTypeParameters(typeParams []*TypeParameter) {
+	g.Namespace.Get().SetTypeParameters(typeParams)
+}
+
+func (g *Generic) Constants() ConstantMap {
+	return g.Namespace.Get().Constants()
+}
+
+func (g *Generic) Constant(name symbol.Symbol) (Constant, bool) {
+	return g.Namespace.Get().Constant(name)
+}
+
+func (g *Generic) ConstantString(name string) (Constant, bool) {
+	return g.Namespace.Get().ConstantString(name)
+}
+
+func (g *Generic) DefineConstant(name symbol.Symbol, val Type) {
+	g.Namespace.Get().DefineConstant(name, val)
+}
+
+func (g *Generic) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
+	g.Namespace.Get().DefineConstantWithFullName(name, fullName, val)
+}
+
+func (g *Generic) Subtypes() ConstantMap {
+	return g.Namespace.Get().Subtypes()
+}
+
+func (g *Generic) Subtype(name symbol.Symbol) (Constant, bool) {
+	return g.Namespace.Get().Subtype(name)
+}
+
+func (g *Generic) SubtypeString(name string) (Constant, bool) {
+	return g.Namespace.Get().SubtypeString(name)
+}
+
+func (g *Generic) MustSubtype(name symbol.Symbol) Type {
+	return g.Namespace.Get().MustSubtype(name)
+}
+
+func (g *Generic) MustSubtypeString(name string) Type {
+	return g.Namespace.Get().MustSubtypeString(name)
+}
+
+func (g *Generic) DefineSubtype(name symbol.Symbol, val Type) {
+	g.Namespace.Get().DefineSubtype(name, val)
+}
+
+func (g *Generic) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
+	g.Namespace.Get().DefineSubtypeWithFullName(name, fullName, val)
+}
+
+func (g *Generic) Methods() MethodMap {
+	return g.Namespace.Get().Methods()
+}
+
+func (g *Generic) Method(name symbol.Symbol) *Method {
+	return g.Namespace.Get().Method(name)
+}
+
+func (g *Generic) MethodString(name string) *Method {
+	return g.Namespace.Get().MethodString(name)
+}
+
+func (g *Generic) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	return g.Namespace.Get().DefineMethod(docComment, flags, name, typeParams, params, returnType, throwType)
+}
+
+func (g *Generic) SetMethod(name symbol.Symbol, method *Method) {
+	g.Namespace.Get().SetMethod(name, method)
+}
+
+func (g *Generic) InstanceVariables() InstanceVariableMap {
+	return g.Namespace.Get().InstanceVariables()
+}
+
+func (g *Generic) InstanceVariable(name symbol.Symbol) *InstanceVariable {
+	return g.Namespace.Get().InstanceVariable(name)
+}
+
+func (g *Generic) InstanceVariableString(name string) *InstanceVariable {
+	return g.Namespace.Get().InstanceVariableString(name)
+}
+
+func (g *Generic) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable) {
+	g.Namespace.Get().DefineInstanceVariable(name, ivar)
+}
+
+func (g *Generic) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+	return g.Namespace.Get().DefineClass(docComment, primitive, abstract, sealed, noinit, immutable, name, parent, env)
+}
+
+func (g *Generic) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
+	return g.Namespace.Get().DefineModule(docComment, name, env)
+}
+
+func (g *Generic) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
+	return g.Namespace.Get().DefineMixin(docComment, abstract, name, env)
+}
+
+func (g *Generic) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
+	return g.Namespace.Get().DefineInterface(docComment, name, env)
+}
+
+func (c *Generic) ToRef() Ref[*Generic] {
+	return ToRef(c)
+}
+
+func (c *Generic) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("generic:")
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(c.Namespace))
+	d.Write(b)
+
+	for _, typeArg := range c.TypeArguments.AllArguments() {
+		binary.LittleEndian.PutUint32(b, uint32(typeArg.Type))
+		d.Write(b)
+	}
+
+	return d.Sum64()
+}
+
+func (c *Generic) EqualAny(other any) bool {
+	o, ok := other.(*Generic)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	if c.Namespace != o.Namespace ||
+		len(c.ArgumentMap) != len(o.ArgumentMap) {
+		return false
+	}
+
+	for i := range len(c.ArgumentOrder) {
+		cArg := c.ArgumentMap[c.ArgumentOrder[i]]
+		oArg := o.ArgumentMap[o.ArgumentOrder[i]]
+		if cArg.Type != oArg.Type {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (c *Generic) ID() ID {
+	return c.id
+}
+
+func (c *Generic) SetID(id ID) {
+	c.id = id
+}
+
 func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 	generic := &Generic{
-		Namespace:     typ,
+		Namespace:     ToRef(typ),
 		TypeArguments: typeArgs,
 	}
 
+	Env.RegisterType(generic)
 	return generic
 }
 
@@ -249,13 +470,13 @@ func (g *Generic) FixVariance() {
 	if g == nil {
 		return
 	}
-	for _, typeParam := range g.Namespace.TypeParameters() {
+	for _, typeParam := range g.Namespace.Get().TypeParameters() {
 		arg := g.ArgumentMap[typeParam.Name]
 		arg.Variance = typeParam.Variance
 	}
 }
 
-func (g *Generic) ToNonLiteral(env *GlobalEnvironment) Type {
+func (g *Generic) ToNonLiteral() Type {
 	return g
 }
 
@@ -266,7 +487,7 @@ func (*Generic) IsLiteral() bool {
 func (g *Generic) inspect() string {
 	buffer := new(strings.Builder)
 
-	buffer.WriteString(Inspect(g.Namespace))
+	buffer.WriteString(Inspect(g.Namespace.Get()))
 	buffer.WriteRune('[')
 	first := true
 	for _, arg := range g.AllArguments() {
@@ -276,7 +497,7 @@ func (g *Generic) inspect() string {
 			first = false
 		}
 
-		buffer.WriteString(Inspect(arg.Type))
+		buffer.WriteString(Inspect(arg.Type.Get()))
 	}
 	buffer.WriteRune(']')
 	return buffer.String()
@@ -286,13 +507,6 @@ func (g *Generic) Copy() *Generic {
 	return &Generic{
 		Namespace:     g.Namespace,
 		TypeArguments: g.TypeArguments,
+		id:            g.id,
 	}
-}
-
-func (g *Generic) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Generic {
-	newGeneric := &Generic{}
-	newGeneric.Namespace = DeepCopyEnv(g.Namespace, oldEnv, newEnv).(Namespace)
-	newGeneric.TypeArguments = g.TypeArguments.DeepCopyEnv(oldEnv, newEnv)
-
-	return newGeneric
 }

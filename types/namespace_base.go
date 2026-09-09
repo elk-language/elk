@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -36,6 +37,7 @@ type NamespaceBase struct {
 	subtypes          ConstantMap
 	instanceVariables InstanceVariableMap
 	methods           MethodMap
+	id                ID
 }
 
 func MakeNamespaceBase(docComment, name string) NamespaceBase {
@@ -284,4 +286,19 @@ func (c *NamespaceBase) DefineInterface(docComment string, name symbol.Symbol, e
 	c.DefineSubtypeWithFullName(name, fullName, m)
 	c.DefineConstantWithFullName(name, fullName, m.singleton)
 	return m
+}
+
+func (c *NamespaceBase) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("constant:")
+	d.WriteString(c.name)
+	return d.Sum64()
+}
+
+func (c *NamespaceBase) ID() ID {
+	return c.id
+}
+
+func (c *NamespaceBase) SetID(id ID) {
+	c.id = id
 }

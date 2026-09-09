@@ -9,6 +9,24 @@ import (
 type SingletonClass struct {
 	AttachedObject Namespace
 	Class
+	id ID
+}
+
+func (c *SingletonClass) EqualAny(other any) bool {
+	o, ok := other.(*SingletonClass)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.name == o.name
+}
+
+func (c *SingletonClass) ToRef() Ref[*SingletonClass] {
+	return Ref[*SingletonClass](c.id)
 }
 
 func (c *SingletonClass) SetParent(parent Namespace) {

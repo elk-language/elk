@@ -14,13 +14,28 @@ func (a Any) traverse(parent Type, enter func(node, parent Type) TraverseOption,
 	}
 }
 
-func (n Any) ToNonLiteral(env *GlobalEnvironment) Type {
+func (n Any) ToNonLiteral() Type {
 	return n
 }
 
 func (Any) IsLiteral() bool {
 	return false
 }
+
+func (Any) HashUint64() uint64 {
+	return 1
+}
+
+func (Any) EqualAny(other any) bool {
+	_, ok := other.(Any)
+	return ok
+}
+
+func (Any) ID() ID {
+	return 1
+}
+
+func (Any) SetID(ID) {}
 
 func IsAny(t Type) bool {
 	_, ok := t.(Any)

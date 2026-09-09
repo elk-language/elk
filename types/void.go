@@ -4,6 +4,21 @@ package types
 // any other type.
 type Void struct{}
 
+func (Void) HashUint64() uint64 {
+	return 10
+}
+
+func (Void) EqualAny(other any) bool {
+	_, ok := other.(Void)
+	return ok
+}
+
+func (Void) ID() ID {
+	return 10
+}
+
+func (Void) SetID(ID) {}
+
 func (Void) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(Void{}, parent) {
 	case TraverseBreak:

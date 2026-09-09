@@ -1,13 +1,81 @@
 package types
 
 import (
+	"fmt"
+	"sync"
+
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value/symbol"
 )
 
+// Current global type environment
+var Env *GlobalEnvironment
+
 type GlobalEnvironment struct {
-	Root *Module
-	Init bool // Whether the global environment is in its initialisation stage
+	Root      *Module
+	TypeSet   *ds.HashSet[Type]
+	TypeIndex []Type
+	Init      bool // Whether the global environment is in its initialisation stage
+	mu        sync.RWMutex
+}
+
+func (g *GlobalEnvironment) GetType(id ID) Type {
+	g.mu.RLock()
+	result := g.TypeIndex[id-1]
+	g.mu.RUnlock()
+	return result
+}
+
+func (g *GlobalEnvironment) RegisterType(t Type) Type {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if existingType, ok := g.TypeSet.Get(t); ok {
+		t.SetID(existingType.ID())
+		return existingType
+	}
+
+	id := ID(len(g.TypeIndex))
+	t.SetID(id)
+	g.TypeIndex = append(g.TypeIndex, t)
+	g.TypeSet.Add(t)
+	return t
+}
+
+func (g *GlobalEnvironment) RegisterTypeWithID(t Type, id ID) Type {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if existingType, ok := g.TypeSet.Get(t); ok {
+		if existingType.ID() != id {
+			panic(fmt.Sprintf("tried to register a type with ID=%d but the type already has ID=%d", id, existingType.ID))
+		}
+		return existingType
+	}
+
+	currentId := ID(len(g.TypeIndex) + 1)
+	if currentId != id {
+		panic(fmt.Sprintf("tried to register a type with ID=%d but the type already has ID=%d", id, currentId))
+	}
+
+	t.SetID(id)
+	g.TypeIndex = append(g.TypeIndex, t)
+	g.TypeSet.Add(t)
+	return t
+}
+
+func (g *GlobalEnvironment) ReplaceTypeWithID(t Type, id ID) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if len(g.TypeIndex) >= int(id) {
+		panic(fmt.Sprintf("cannot replace type with ID=%d when index has length=%d", id, len(g.TypeIndex)))
+	}
+
+	t.SetID(id)
+	g.TypeIndex[id-1] = t
+	g.TypeSet.Add(t)
 }
 
 func (g *GlobalEnvironment) NamesToType(path ...symbol.Symbol) Type {
@@ -79,9 +147,21 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		native:        true,
 	}
 	env := &GlobalEnvironment{
-		Root: rootModule,
-		Init: true,
+		Root:    rootModule,
+		TypeSet: ds.NewHashSet[Type](30),
+		Init:    true,
 	}
+
+	env.RegisterTypeWithID(Any{}, 1)
+	env.RegisterTypeWithID(Bool{}, 2)
+	env.RegisterTypeWithID(False{}, 3)
+	env.RegisterTypeWithID(True{}, 4)
+	env.RegisterTypeWithID(Nil{}, 5)
+	env.RegisterTypeWithID(Never{}, 6)
+	env.RegisterTypeWithID(NoValue{}, 7)
+	env.RegisterTypeWithID(Self{}, 8)
+	env.RegisterTypeWithID(Untyped{}, 9)
+	env.RegisterTypeWithID(Void{}, 10)
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),

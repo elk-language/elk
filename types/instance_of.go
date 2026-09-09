@@ -1,17 +1,59 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type InstanceOf struct {
-	Type Type
+	Type Ref[Type]
+	id   ID
 }
 
 func NewInstanceOf(typ Type) *InstanceOf {
-	return &InstanceOf{
-		Type: typ,
+	t := &InstanceOf{
+		Type: ToRef(typ),
 	}
+	Env.RegisterType(t)
+	return t
+}
+
+func (c *InstanceOf) ToRef() Ref[*InstanceOf] {
+	return ToRef(c)
+}
+
+func (c *InstanceOf) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("instanceof:")
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(c.Type))
+	d.Write(b)
+
+	return d.Sum64()
+}
+
+func (c *InstanceOf) EqualAny(other any) bool {
+	o, ok := other.(*InstanceOf)
+	if !ok {
+		return false
+	}
+
+	if c.id > 0 {
+		return c.id == o.ID()
+	}
+
+	return c.Type == o.Type
+}
+
+func (c *InstanceOf) ID() ID {
+	return c.id
+}
+
+func (c *InstanceOf) SetID(id ID) {
+	c.id = id
 }
 
 func (i *InstanceOf) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -22,14 +64,14 @@ func (i *InstanceOf) traverse(parent Type, enter func(node, parent Type) Travers
 		return leave(i, parent)
 	}
 
-	if i.Type.traverse(i, enter, leave) == TraverseBreak {
+	if i.Type.Get().traverse(i, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
 	return leave(i, parent)
 }
 
-func (s *InstanceOf) ToNonLiteral(env *GlobalEnvironment) Type {
+func (s *InstanceOf) ToNonLiteral() Type {
 	return s
 }
 
@@ -40,8 +82,9 @@ func (*InstanceOf) IsLiteral() bool {
 func (s *InstanceOf) inspect() string {
 	var buf strings.Builder
 
+	typ := s.Type.Get()
 	var addParens bool
-	switch s.Type.(type) {
+	switch typ.(type) {
 	case *Union, *Intersection, *Not, *SingletonOf:
 		addParens = true
 	}
@@ -50,7 +93,7 @@ func (s *InstanceOf) inspect() string {
 	if addParens {
 		buf.WriteRune('(')
 	}
-	buf.WriteString(Inspect(s.Type))
+	buf.WriteString(Inspect(typ))
 	if addParens {
 		buf.WriteRune(')')
 	}
@@ -60,11 +103,6 @@ func (s *InstanceOf) inspect() string {
 func (i *InstanceOf) Copy() *InstanceOf {
 	return &InstanceOf{
 		Type: i.Type,
+		id:   i.id,
 	}
-}
-
-func (i *InstanceOf) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *InstanceOf {
-	newInstanceOf := i.Copy()
-	newInstanceOf.Type = DeepCopyEnv(i.Type, oldEnv, newEnv)
-	return newInstanceOf
 }

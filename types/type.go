@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 )
 
@@ -19,8 +20,41 @@ const (
 	TraverseBreak
 )
 
+// Unique ID of the type
+type ID uint32
+
+// Reference to a type using an ID
+type Ref[T Type] ID
+
+func ToRef[T Type](t T) Ref[T] {
+	return Ref[T](t.ID())
+}
+
+func CastRef[T Type](t Type) Ref[T] {
+	return Ref[T](t.ID())
+}
+
+func (ref Ref[T]) ID() ID {
+	return ID(ref)
+}
+
+func (ref Ref[T]) IsZero() bool {
+	return ref == 0
+}
+
+func (ref Ref[T]) Get() (result T) {
+	if ref == 0 {
+		return
+	}
+
+	return Env.GetType(ref.ID()).(T)
+}
+
 type Type interface {
-	ToNonLiteral(*GlobalEnvironment) Type
+	ds.Hashable
+	ID() ID
+	SetID(ID)
+	ToNonLiteral() Type
 	IsLiteral() bool
 	inspect() string
 	traverse(parent Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) TraverseOption

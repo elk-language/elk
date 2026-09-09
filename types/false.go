@@ -4,6 +4,21 @@ import "github.com/elk-language/elk/value/symbol"
 
 type False struct{}
 
+func (False) HashUint64() uint64 {
+	return 3
+}
+
+func (False) EqualAny(other any) bool {
+	_, ok := other.(False)
+	return ok
+}
+
+func (False) ID() ID {
+	return 3
+}
+
+func (False) SetID(ID) {}
+
 func (f False) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(f, parent) {
 	case TraverseBreak:
@@ -13,16 +28,16 @@ func (f False) traverse(parent Type, enter func(node, parent Type) TraverseOptio
 	}
 }
 
-func (False) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.C_Bool)
+func (False) ToNonLiteral() Type {
+	return Env.StdSubtype(symbol.C_Bool)
 }
 
 func (False) IsLiteral() bool {
 	return true
 }
 
-func IsFalse(t Type, env *GlobalEnvironment) bool {
-	return IsFalseLiteral(t) || t == env.StdSubtype(symbol.C_False)
+func IsFalse(t Type) bool {
+	return IsFalseLiteral(t) || t == Env.StdSubtype(symbol.C_False)
 }
 
 func IsFalseLiteral(t Type) bool {
