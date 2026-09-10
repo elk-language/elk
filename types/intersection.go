@@ -7,10 +7,11 @@ import (
 // Intersection type represents a list of types.
 // A value has to satisfy all of the types.
 type Intersection struct {
-	Elements []Type
+	Elements []Ref[Type]
+	id       ID
 }
 
-func NewIntersection(elements ...Type) *Intersection {
+func NewIntersection(elements ...Ref[Type]) *Intersection {
 	return &Intersection{
 		Elements: elements,
 	}
@@ -33,7 +34,7 @@ func (i *Intersection) traverse(parent Type, enter func(node, parent Type) Trave
 	return leave(i, parent)
 }
 
-func (u *Intersection) ToNonLiteral(env *GlobalEnvironment) Type {
+func (u *Intersection) ToNonLiteral() Type {
 	return u
 }
 
@@ -43,7 +44,8 @@ func (*Intersection) IsLiteral() bool {
 
 func (u *Intersection) inspect() string {
 	var buf strings.Builder
-	for i, element := range u.Elements {
+	for i, elementRef := range u.Elements {
+		element := elementRef.Get()
 		if i != 0 {
 			buf.WriteString(" & ")
 		}
@@ -67,16 +69,6 @@ func (u *Intersection) inspect() string {
 func (i *Intersection) Copy() *Intersection {
 	return &Intersection{
 		Elements: i.Elements,
+		id:       i.id,
 	}
-}
-
-func (i *Intersection) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Intersection {
-	newUnion := i.Copy()
-	newElements := make([]Type, len(i.Elements))
-	for i, element := range i.Elements {
-		newElements[i] = DeepCopyEnv(element, oldEnv, newEnv)
-	}
-	newUnion.Elements = newElements
-
-	return newUnion
 }

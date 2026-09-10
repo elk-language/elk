@@ -1,5 +1,7 @@
 package types
 
+const AnyID = 1
+
 // All types are subtypes of any.
 // Any is not a subtype of anything other than itself.
 // It is the top type.
@@ -23,7 +25,7 @@ func (Any) IsLiteral() bool {
 }
 
 func (Any) HashUint64() uint64 {
-	return 1
+	return AnyID
 }
 
 func (Any) EqualAny(other any) bool {
@@ -32,7 +34,7 @@ func (Any) EqualAny(other any) bool {
 }
 
 func (Any) ID() ID {
-	return 1
+	return AnyID
 }
 
 func (Any) SetID(ID) {}
@@ -40,6 +42,14 @@ func (Any) SetID(ID) {}
 func IsAny(t Type) bool {
 	_, ok := t.(Any)
 	return ok
+}
+
+func IsAnyID(id ID) bool {
+	return id == AnyID
+}
+
+func IsAnyRef[T Type](ref Ref[T]) bool {
+	return ref == AnyID
 }
 
 func (Any) inspect() string {

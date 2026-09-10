@@ -1,8 +1,10 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -44,23 +46,62 @@ var varianceString = []string{
 
 type TypeParameter struct {
 	Name       symbol.Symbol
-	Namespace  Namespace
-	LowerBound Type
-	UpperBound Type
-	Default    Type
+	Namespace  Ref[Namespace]
+	LowerBound Ref[Type]
+	UpperBound Ref[Type]
+	Default    Ref[Type]
 	Variance   Variance
+	id         ID
+}
+
+func (t *TypeParameter) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("typeparam:")
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(t.Namespace))
+	d.Write(b)
+	d.WriteString(t.Name.String())
+
+	return d.Sum64()
+}
+
+func (t *TypeParameter) EqualAny(other any) bool {
+	o, ok := other.(*TypeParameter)
+	if !ok {
+		return false
+	}
+
+	if t.id > 0 {
+		return t.id == o.id
+	}
+
+	return t.Namespace == o.Namespace &&
+		t.Name == o.Name &&
+		t.LowerBound == o.LowerBound &&
+		t.UpperBound == o.UpperBound &&
+		t.Default == o.Default &&
+		t.Variance == o.Variance
+}
+
+func (t *TypeParameter) ID() ID {
+	return t.id
+}
+
+func (t *TypeParameter) SetID(id ID) {
+	t.id = id
 }
 
 // Returns the default inferred type for the type parameter
 func (t *TypeParameter) InferredType() Type {
-	if t.Default != nil {
-		return t.Default
+	if !t.Default.IsZero() {
+		return t.Default.Get()
 	}
-	if !IsNever(t.LowerBound) {
-		return t.LowerBound
+	if !IsNeverRef(t.LowerBound) {
+		return t.LowerBound.Get()
 	}
 
-	return t.UpperBound
+	return t.UpperBound.Get()
 }
 
 func (t *TypeParameter) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -79,42 +120,24 @@ func (t *TypeParameter) Copy() *TypeParameter {
 		LowerBound: t.LowerBound,
 		UpperBound: t.UpperBound,
 		Variance:   t.Variance,
+		id:         t.id,
 	}
-}
-
-func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeParameter {
-	var namespace Namespace
-
-	if t.Namespace != nil && t.Namespace.Name() != "" {
-		namespace = DeepCopyEnv(t.Namespace, oldEnv, newEnv).(Namespace)
-		if subtype, ok := namespace.Subtype(t.Name); ok {
-			return subtype.Type.(*TypeParameter)
-		}
-	}
-
-	newTypeParam := t.Copy()
-	if namespace != nil {
-		namespace.DefineSubtype(t.Name, newTypeParam)
-	}
-	newTypeParam.Namespace = namespace
-	newTypeParam.LowerBound = DeepCopyEnv(t.LowerBound, oldEnv, newEnv)
-	newTypeParam.UpperBound = DeepCopyEnv(t.UpperBound, oldEnv, newEnv)
-	newTypeParam.Default = DeepCopyEnv(t.Default, oldEnv, newEnv)
-	return newTypeParam
 }
 
 func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
-	return &TypeParameter{
+	t := &TypeParameter{
 		Name:       name,
-		Namespace:  namespace,
-		LowerBound: lowerBound,
-		UpperBound: upperBound,
-		Default:    def,
+		Namespace:  ToRef(namespace),
+		LowerBound: ToRef(lowerBound),
+		UpperBound: ToRef(upperBound),
+		Default:    ToRef(def),
 		Variance:   variance,
 	}
+	Env.RegisterType(t)
+	return t
 }
 
-func (t *TypeParameter) ToNonLiteral(env *GlobalEnvironment) Type {
+func (t *TypeParameter) ToNonLiteral() Type {
 	return t
 }
 
@@ -138,14 +161,14 @@ func (t *TypeParameter) InspectSignature() string {
 	}
 	buffer.WriteString(t.Name.String())
 
-	if !IsNever(t.LowerBound) {
+	if !IsNeverRef(t.LowerBound) {
 		buffer.WriteString(" > ")
-		buffer.WriteString(Inspect(t.LowerBound))
+		buffer.WriteString(Inspect(t.LowerBound.Get()))
 	}
 
-	if !IsAny(t.UpperBound) {
+	if !IsAnyRef(t.UpperBound) {
 		buffer.WriteString(" < ")
-		buffer.WriteString(Inspect(t.UpperBound))
+		buffer.WriteString(Inspect(t.UpperBound.Get()))
 	}
 
 	return buffer.String()
@@ -155,10 +178,10 @@ func (t *TypeParameter) InspectSignatureWithColor() string {
 	return lexer.Colorize(t.InspectSignature())
 }
 
-func RequiredTypeParameters(typeParams []*TypeParameter) int {
+func RequiredTypeParameters(typeParams []Ref[*TypeParameter]) int {
 	var counter int
 	for _, typeParam := range typeParams {
-		if typeParam.Default != nil {
+		if !typeParam.Get().Default.IsZero() {
 			return counter
 		}
 		counter++

@@ -1,11 +1,13 @@
 package types
 
+const VoidID = 10
+
 // Void is the type that is incompatible with
 // any other type.
 type Void struct{}
 
 func (Void) HashUint64() uint64 {
-	return 10
+	return VoidID
 }
 
 func (Void) EqualAny(other any) bool {
@@ -14,7 +16,7 @@ func (Void) EqualAny(other any) bool {
 }
 
 func (Void) ID() ID {
-	return 10
+	return VoidID
 }
 
 func (Void) SetID(ID) {}
@@ -28,7 +30,7 @@ func (Void) traverse(parent Type, enter func(node, parent Type) TraverseOption, 
 	}
 }
 
-func (v Void) ToNonLiteral(env *GlobalEnvironment) Type {
+func (v Void) ToNonLiteral() Type {
 	return v
 }
 
@@ -39,6 +41,14 @@ func (Void) IsLiteral() bool {
 func IsVoid(t Type) bool {
 	_, ok := t.(Void)
 	return ok
+}
+
+func IsVoidID(id ID) bool {
+	return id == VoidID
+}
+
+func IsVoidRef[T Type](ref Ref[T]) bool {
+	return ref == VoidID
 }
 
 func (Void) inspect() string {

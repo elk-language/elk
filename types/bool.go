@@ -2,6 +2,8 @@ package types
 
 import "github.com/elk-language/elk/value/symbol"
 
+const BoolID = 2
+
 type Bool struct{}
 
 func (Bool) ToNonLiteral() Type {
@@ -26,8 +28,16 @@ func IsBool(t Type) bool {
 	return ok
 }
 
+func IsBoolID(id ID) bool {
+	return id == BoolID
+}
+
+func IsBoolRef[T Type](ref Ref[T]) bool {
+	return ref == BoolID
+}
+
 func (Bool) HashUint64() uint64 {
-	return 2
+	return BoolID
 }
 
 func (Bool) EqualAny(other any) bool {
@@ -36,7 +46,7 @@ func (Bool) EqualAny(other any) bool {
 }
 
 func (Bool) ID() ID {
-	return 2
+	return BoolID
 }
 
 func (Bool) SetID(ID) {}

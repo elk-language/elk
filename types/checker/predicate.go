@@ -91,9 +91,9 @@ func (c *Checker) isTheSameType(a, b types.Type, errLoc *position.Location) bool
 func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
 	switch narrowedA := a.(type) {
 	case *types.MixinProxy:
-		return narrowedA.Mixin
+		return narrowedA.Mixin.Get()
 	case *types.InterfaceProxy:
-		return narrowedA.Interface
+		return narrowedA.Interface.Get()
 	default:
 		return a
 	}
@@ -599,13 +599,13 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	case *types.Mixin:
 		return c.mixinIsSubtype(a, b, errLoc)
 	case *types.MixinProxy:
-		return c.mixinIsSubtype(a.Mixin, b, errLoc)
+		return c.mixinIsSubtype(a.Mixin.Get(), b, errLoc)
 	case *types.Module:
 		return c.moduleIsSubtype(a, b, errLoc)
 	case *types.Interface:
 		return c.interfaceIsSubtype(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.interfaceIsSubtype(a.Interface, b, errLoc)
+		return c.interfaceIsSubtype(a.Interface.Get(), b, errLoc)
 	case *types.Callable:
 		return c.callableIsSubtype(a, b, errLoc)
 	case *types.InstanceOf:
@@ -895,11 +895,11 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errLoc *position.
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
-		return c.isSubtypeOfMixin(a, b.Mixin)
+		return c.isSubtypeOfMixin(a, b.Mixin.Get())
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
+		return c.isSubtypeOfInterface(a, b.Interface.Get(), errLoc)
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, b, errLoc)
 	default:
@@ -916,11 +916,11 @@ func (c *Checker) moduleIsSubtype(a *types.Module, b types.Type, errLoc *positio
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
-		return c.isSubtypeOfMixin(a, b.Mixin)
+		return c.isSubtypeOfMixin(a, b.Mixin.Get())
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
+		return c.isSubtypeOfInterface(a, b.Interface.Get(), errLoc)
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, b, errLoc)
 	case *types.Module:
@@ -937,13 +937,13 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errLoc *position.
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
 	case *types.MixinProxy:
-		return c.isSubtypeOfMixin(a, b.Mixin)
+		return c.isSubtypeOfMixin(a, b.Mixin.Get())
 	case *types.Generic:
 		return c.isSubtypeOfGeneric(a, b, errLoc)
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, b, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, b.Interface, errLoc)
+		return c.isSubtypeOfInterface(a, b.Interface.Get(), errLoc)
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, b, errLoc)
 	default:
@@ -1029,7 +1029,7 @@ func (c *Checker) namespaceIsMixin(a types.Namespace, b *types.Mixin) bool {
 			return true
 		}
 	case *types.MixinProxy:
-		if a.Mixin.Name() == b.Name() {
+		if a.Name() == b.Name() {
 			return true
 		}
 	case *types.Generic:
@@ -1067,7 +1067,7 @@ func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Inter
 				return true
 			}
 		case *types.InterfaceProxy:
-			if p.Interface.Name() == b.Name() {
+			if p.Name() == b.Name() {
 				return true
 			}
 		case *types.Generic:
@@ -1258,7 +1258,7 @@ func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errLoc *p
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
+		return c.isSubtypeOfInterface(a, narrowedB.Interface.Get(), errLoc)
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, narrowedB, errLoc)
 	case *types.Generic:
@@ -1273,7 +1273,7 @@ func (c *Checker) callableIsSubtype(a *types.Callable, b types.Type, errLoc *pos
 	case *types.Interface:
 		return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 	case *types.InterfaceProxy:
-		return c.isSubtypeOfInterface(a, narrowedB.Interface, errLoc)
+		return c.isSubtypeOfInterface(a, narrowedB.Interface.Get(), errLoc)
 	case *types.Callable:
 		return c.isSubtypeOfCallable(a, narrowedB, errLoc)
 	default:

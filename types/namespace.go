@@ -38,8 +38,8 @@ type Namespace interface {
 	SetDefined(bool)
 	IsNative() bool
 
-	TypeParameters() []*TypeParameter
-	SetTypeParameters([]*TypeParameter)
+	TypeParameters() []Ref[*TypeParameter]
+	SetTypeParameters([]Ref[*TypeParameter])
 
 	Constants() ConstantMap
 	Constant(name symbol.Symbol) (Constant, bool)
@@ -58,7 +58,7 @@ type Namespace interface {
 	Methods() MethodMap
 	Method(name symbol.Symbol) *Method
 	MethodString(name string) *Method
-	DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method
+	DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name symbol.Symbol, method *Method)
 
 	InstanceVariables() InstanceVariableMap
@@ -66,63 +66,15 @@ type Namespace interface {
 	InstanceVariableString(name string) *InstanceVariable
 	DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable)
 
-	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class
-	DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module
-	DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin
-	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface
-}
-
-func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {
-	newTypeParameters := make([]*TypeParameter, len(typeParameters))
-	for name, typeParam := range typeParameters {
-		newTypeParameters[name] = typeParam.DeepCopyEnv(oldEnv, newEnv)
-	}
-	return newTypeParameters
-}
-
-func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironment) ConstantMap {
-	newConstants := make(ConstantMap, len(constants))
-	for constName, constant := range constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopyEnv(constant.Type, oldEnv, newEnv),
-		}
-	}
-	return newConstants
-}
-
-func TypesDeepCopyEnv(types TypeMap, oldEnv, newEnv *GlobalEnvironment) TypeMap {
-	newTypes := make(TypeMap, len(types))
-	for typeName, typ := range types {
-		newTypes[typeName] = DeepCopyEnv(typ, oldEnv, newEnv)
-	}
-	return newTypes
-}
-
-func InstanceVariablesDeepCopyEnv(ivars InstanceVariableMap, oldEnv, newEnv *GlobalEnvironment) InstanceVariableMap {
-	newIvars := make(InstanceVariableMap, len(ivars))
-	for name, ivar := range ivars {
-		newIvars[name] = NewInstanceVariable(
-			name,
-			DeepCopyEnv(ivar.Type, oldEnv, newEnv),
-			ivar.DocComment,
-			ivar.SingleAssignment,
-		)
-	}
-	return newIvars
-}
-
-func MethodsDeepCopyEnv(methods MethodMap, oldEnv, newEnv *GlobalEnvironment) MethodMap {
-	newMethods := make(MethodMap, len(methods))
-	for methodName, method := range methods {
-		newMethods[methodName] = method.DeepCopyEnv(oldEnv, newEnv)
-	}
-	return newMethods
+	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace) *Class
+	DefineModule(docComment string, name symbol.Symbol) *Module
+	DefineMixin(docComment string, abstract bool, name symbol.Symbol) *Mixin
+	DefineInterface(docComment string, name symbol.Symbol) *Interface
 }
 
 func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	for _, method := range namespace.Methods() {
-		if method.IsDefinable() {
+		if method.Get().IsDefinable() {
 			return true
 		}
 	}
@@ -130,11 +82,12 @@ func NamespaceHasAnyDefinableMethods(namespace Namespace) bool {
 	return false
 }
 
-func ConstructTypeArgumentsFromTypeParameters(typeParams []*TypeParameter) *TypeArguments {
+func ConstructTypeArgumentsFromTypeParameters(typeParams []Ref[*TypeParameter]) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]symbol.Symbol, len(typeParams))
 
-	for i, typeParam := range typeParams {
+	for i, typeParamRef := range typeParams {
+		typeParam := typeParamRef.Get()
 		typeArg := NewTypeArgument(
 			typeParam,
 			typeParam.Variance,
@@ -149,14 +102,15 @@ func ConstructTypeArgumentsFromTypeParameters(typeParams []*TypeParameter) *Type
 	)
 }
 
-func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParameter) *TypeArguments {
+func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []Ref[*TypeParameter]) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]symbol.Symbol, len(typeParams))
 
-	for i, typeParam := range typeParams {
+	for i, typeParamRef := range typeParams {
+		typeParam := typeParamRef.Get()
 		arg := typeParam.UpperBound
 
-		typeArg := NewTypeArgument(
+		typeArg := NewTypeArgumentWithRef(
 			arg,
 			typeParam.Variance,
 		)
@@ -170,14 +124,15 @@ func ConstructTypeArgumentsFromTypeParameterUpperBounds(typeParams []*TypeParame
 	)
 }
 
-func ConstructTypeArgumentsFromTypeParameterUpperBoundsAndVariance(typeParams []*TypeParameter, variance Variance) *TypeArguments {
+func ConstructTypeArgumentsFromTypeParameterUpperBoundsAndVariance(typeParams []Ref[*TypeParameter], variance Variance) *TypeArguments {
 	typeArgMap := make(TypeArgumentMap, len(typeParams))
 	typeArgOrder := make([]symbol.Symbol, len(typeParams))
 
-	for i, typeParam := range typeParams {
+	for i, typeParamRef := range typeParams {
+		typeParam := typeParamRef.Get()
 		arg := typeParam.UpperBound
 
-		typeArg := NewTypeArgument(
+		typeArg := NewTypeArgumentWithRef(
 			arg,
 			variance,
 		)
@@ -215,7 +170,7 @@ func includeMixin(target Namespace, mixin *Mixin) {
 	target.SetParent(proxy)
 }
 
-func IncludeMixinWithWhere(target Namespace, mixin *Mixin, where []*TypeParameter) *MixinWithWhere {
+func IncludeMixinWithWhere(target Namespace, mixin *Mixin, where []Ref[*TypeParameter]) *MixinWithWhere {
 	proxy := NewMixinProxy(mixin, target.Parent())
 	mixinWithWhere := NewMixinWithWhere(proxy, target, where)
 	target.SetParent(mixinWithWhere)
@@ -288,24 +243,24 @@ func NamespacesAreEqual(left, right Namespace) bool {
 	case *Mixin:
 		switch r := right.(type) {
 		case *MixinProxy:
-			return l == r.Mixin
+			return l.ToRef() == r.Mixin
 		}
 	case *MixinProxy:
 		switch r := right.(type) {
 		case *Mixin:
-			return l.Mixin == r
+			return l.Mixin == r.ToRef()
 		case *MixinProxy:
 			return l.Mixin == r.Mixin
 		}
 	case *Interface:
 		switch r := right.(type) {
 		case *InterfaceProxy:
-			return l == r.Interface
+			return ToRef(l) == r.Interface
 		}
 	case *InterfaceProxy:
 		switch r := right.(type) {
 		case *Interface:
-			return l.Interface == r
+			return l.Interface == ToRef(r)
 		case *InterfaceProxy:
 			return l.Interface == r.Interface
 		}
@@ -323,13 +278,13 @@ func GetConstantName(fullConstantPath string) string {
 	return constantPath[len(constantPath)-1]
 }
 
-func NameToConstantOk(fullSubtypePath string, env *GlobalEnvironment) (result Type, ok bool) {
-	if env.Root == nil {
+func NameToConstantOk(fullSubtypePath string) (result Type, ok bool) {
+	if Env.Root == nil {
 		return nil, false
 	}
 
 	subtypePath := GetConstantPath(fullSubtypePath)
-	var namespace Namespace = env.Root
+	var namespace Namespace = Env.Root
 	var currentType Type = namespace
 	for _, subtypeName := range subtypePath[:len(subtypePath)-1] {
 		if namespace == nil {
@@ -339,7 +294,7 @@ func NameToConstantOk(fullSubtypePath string, env *GlobalEnvironment) (result Ty
 		if !ok {
 			return nil, false
 		}
-		currentType = constant.Type
+		currentType = constant.Type.Get()
 
 		namespace, _ = currentType.(Namespace)
 	}
@@ -348,16 +303,16 @@ func NameToConstantOk(fullSubtypePath string, env *GlobalEnvironment) (result Ty
 		return nil, false
 	}
 
-	return constant.Type, true
+	return constant.Type.Get(), true
 }
 
-func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
-	if env.Root == nil {
+func NameToTypeOk(fullSubtypePath string) (Type, bool) {
+	if Env.Root == nil {
 		return nil, false
 	}
 
 	subtypePath := GetConstantPath(fullSubtypePath)
-	var namespace Namespace = env.Root
+	var namespace Namespace = Env.Root
 	var currentType Type = namespace
 	for _, subtypeName := range subtypePath {
 		if namespace == nil {
@@ -367,7 +322,7 @@ func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
 		if !ok {
 			return nil, false
 		}
-		currentType = constant.Type
+		currentType = constant.Type.Get()
 
 		namespace, _ = currentType.(Namespace)
 	}
@@ -375,9 +330,9 @@ func NameToTypeOk(fullSubtypePath string, env *GlobalEnvironment) (Type, bool) {
 	return currentType, true
 }
 
-func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
+func NameToType(fullSubtypePath string) Type {
 	subtypePath := GetConstantPath(fullSubtypePath)
-	var namespace Namespace = env.Root
+	var namespace Namespace = Env.Root
 	var currentType Type = namespace
 	for _, subtypeName := range subtypePath {
 		if namespace == nil {
@@ -398,7 +353,7 @@ func NameToType(fullSubtypePath string, env *GlobalEnvironment) Type {
 				),
 			)
 		}
-		currentType = constant.Type
+		currentType = constant.Type.Get()
 
 		namespace, _ = currentType.(Namespace)
 	}
@@ -427,7 +382,7 @@ func PathToNestedSubtype(path []symbol.Symbol, namespace Namespace) Type {
 				),
 			)
 		}
-		currentType = constant.Type
+		currentType = constant.Type.Get()
 
 		namespace, _ = currentType.(Namespace)
 	}
@@ -435,8 +390,8 @@ func PathToNestedSubtype(path []symbol.Symbol, namespace Namespace) Type {
 	return currentType
 }
 
-func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
-	return NameToType(fullSubtypePath, env).(Namespace)
+func NameToNamespace(fullSubtypePath string) Namespace {
+	return NameToType(fullSubtypePath).(Namespace)
 }
 
 func PathToNestedNamespace(path []symbol.Symbol, namespace Namespace) Namespace {
@@ -506,7 +461,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 						return
 					}
 
-					currentParent = cn.Mixin.parent
+					currentParent = cn.Mixin.Get().Parent()
 					continue parentLoop
 				case *InterfaceProxy:
 					ifaceParent := cn.Parent()
@@ -517,10 +472,10 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 						return
 					}
 
-					currentParent = cn.Interface.parent
+					currentParent = cn.Interface.Get().Parent()
 					continue parentLoop
 				case *Generic:
-					switch g := cn.Namespace.(type) {
+					switch g := cn.Namespace.Get().(type) {
 					case *MixinProxy:
 						genericParent := cn.Parent()
 						if genericParent != nil {
@@ -530,7 +485,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 							return
 						}
 
-						currentParent = g.Mixin.parent
+						currentParent = g.Mixin.Get().Parent()
 						continue parentLoop
 					case *InterfaceProxy:
 						genericParent := cn.Parent()
@@ -541,7 +496,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 							return
 						}
 
-						currentParent = g.Interface.parent
+						currentParent = g.Interface.Get().Parent()
 						continue parentLoop
 					}
 				case *TemporaryParent:
@@ -555,7 +510,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 							return
 						}
 
-						currentParent = t.Mixin.parent
+						currentParent = t.Mixin.Get().Parent()
 						continue parentLoop
 					}
 				}
@@ -810,7 +765,7 @@ func AllMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 					continue
 				}
 
-				if !yield(name, method) {
+				if !yield(name, method.Get()) {
 					return
 				}
 				seenMethods.Add(name)
@@ -833,7 +788,7 @@ func SortedMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 					continue
 				}
 
-				if !yield(name, method) {
+				if !yield(name, method.Get()) {
 					return
 				}
 				seenMethods.Add(name)
@@ -846,7 +801,7 @@ func SortedMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 func OwnMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 	return func(yield func(name symbol.Symbol, method *Method) bool) {
 		for name, method := range namespace.Methods() {
-			if !yield(name, method) {
+			if !yield(name, method.Get()) {
 				break
 			}
 		}
@@ -861,7 +816,7 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 
 		for _, name := range names {
 			method := methods[name]
-			if !yield(name, method) {
+			if !yield(name, method.Get()) {
 				break
 			}
 		}
@@ -870,7 +825,7 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 
 type InstanceVariable struct {
 	Name             symbol.Symbol
-	Type             Type
+	Type             Ref[Type]
 	DocComment       string
 	SingleAssignment bool
 }
@@ -885,7 +840,7 @@ func (i *InstanceVariable) Kind() string {
 func NewInstanceVariable(name symbol.Symbol, typ Type, docComment string, singleAssignment bool) *InstanceVariable {
 	return &InstanceVariable{
 		Name:             name,
-		Type:             typ,
+		Type:             ToRef(typ),
 		DocComment:       docComment,
 		SingleAssignment: singleAssignment,
 	}

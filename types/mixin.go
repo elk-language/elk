@@ -16,6 +16,10 @@ type Mixin struct {
 	NamespaceBase
 }
 
+func (m *Mixin) ToRef() Ref[*Mixin] {
+	return ToRef(m)
+}
+
 func (m *Mixin) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(m, parent) {
 	case TraverseBreak:

@@ -21,7 +21,7 @@ type Class struct {
 	compiled       bool
 	Checked        bool
 	singleton      Ref[*SingletonClass]
-	typeParameters []*TypeParameter
+	typeParameters []Ref[*TypeParameter]
 	ivarIndices    *ivar.IvarIndices
 	Children       ds.Set[Ref[*Class]]
 	id             ID
@@ -77,11 +77,11 @@ func (c *Class) IsGeneric() bool {
 	return len(c.typeParameters) > 0
 }
 
-func (c *Class) TypeParameters() []*TypeParameter {
+func (c *Class) TypeParameters() []Ref[*TypeParameter] {
 	return c.typeParameters
 }
 
-func (c *Class) SetTypeParameters(t []*TypeParameter) {
+func (c *Class) SetTypeParameters(t []Ref[*TypeParameter]) {
 	c.typeParameters = t
 }
 
@@ -172,7 +172,7 @@ func getClass(namespace Namespace) Namespace {
 	case *Class:
 		return namespace
 	case *Generic:
-		if _, ok := namespace.Namespace.(*Class); ok {
+		if _, ok := namespace.Namespace.Get().(*Class); ok {
 			return namespace
 		}
 	case *TemporaryParent:
@@ -216,7 +216,7 @@ func (c *Class) registerAsChild(parent Namespace) {
 		}
 		parent.Children.Add(c.ToRef())
 	case *Generic:
-		c.registerAsChild(parent.Namespace)
+		c.registerAsChild(parent.Namespace.Get())
 	}
 }
 
@@ -286,7 +286,7 @@ func NewClassWithDetails(
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
@@ -336,13 +336,13 @@ func (c *Class) inspectInheritance() {
 			fmt.Printf(" %T:%p", p.Namespace, p.Namespace)
 			fmt.Printf("[&:%p", p.ArgumentMap)
 			for _, val := range p.ArgumentMap {
-				switch t := val.Type.(type) {
+				switch t := val.Type.Get().(type) {
 				case *TypeParameter:
 					fmt.Printf(" %s:%p", t.InspectSignatureWithColor(), t)
 				}
 			}
 			fmt.Print("]")
-			switch n := p.Namespace.(type) {
+			switch n := p.Namespace.Get().(type) {
 			case *InterfaceProxy:
 				fmt.Printf(" %T:%p", n.Interface, n.Interface)
 			case *MixinProxy:

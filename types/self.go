@@ -1,9 +1,11 @@
 package types
 
+const SelfID = 8
+
 type Self struct{}
 
 func (Self) HashUint64() uint64 {
-	return 8
+	return SelfID
 }
 
 func (Self) EqualAny(other any) bool {
@@ -12,7 +14,7 @@ func (Self) EqualAny(other any) bool {
 }
 
 func (Self) ID() ID {
-	return 8
+	return SelfID
 }
 
 func (Self) SetID(ID) {}
@@ -26,7 +28,7 @@ func (Self) traverse(parent Type, enter func(node, parent Type) TraverseOption, 
 	}
 }
 
-func (s Self) ToNonLiteral(env *GlobalEnvironment) Type {
+func (s Self) ToNonLiteral() Type {
 	return s
 }
 
@@ -37,6 +39,14 @@ func (Self) IsLiteral() bool {
 func IsSelf(t Type) bool {
 	_, ok := t.(Self)
 	return ok
+}
+
+func IsSelfID(id ID) bool {
+	return id == SelfID
+}
+
+func IsSelfRef[T Type](ref Ref[T]) bool {
+	return ref == SelfID
 }
 
 func (Self) inspect() string {

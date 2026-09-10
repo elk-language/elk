@@ -7,7 +7,7 @@ import (
 
 // Type that represents the singleton class of a mixin, class etc.
 type SingletonClass struct {
-	AttachedObject Namespace
+	AttachedObject Ref[Namespace]
 	Class
 	id ID
 }
@@ -30,29 +30,29 @@ func (c *SingletonClass) ToRef() Ref[*SingletonClass] {
 }
 
 func (c *SingletonClass) SetParent(parent Namespace) {
-	c.parent = parent
+	c.parent = ToRef(parent)
 }
 
-func (c *SingletonClass) RemoveTemporaryParents(env *GlobalEnvironment) {
-	if _, ok := c.parent.(*TemporaryParent); !ok {
+func (c *SingletonClass) RemoveTemporaryParents() {
+	if _, ok := c.parent.Get().(*TemporaryParent); !ok {
 		return
 	}
 
-	c.parent = c.Superclass()
+	c.parent = ToRef(c.Superclass())
 }
 
 func NewSingletonClass(attached Namespace, parent Namespace) *SingletonClass {
 	singleton := &SingletonClass{
-		AttachedObject: attached,
+		AttachedObject: ToRef(attached),
 		Class: Class{
-			parent:        parent,
+			parent:        ToRef(parent),
 			NamespaceBase: MakeNamespaceBase("", "&"+attached.Name()),
 		},
 	}
 	return singleton
 }
 
-func (s *SingletonClass) ToNonLiteral(env *GlobalEnvironment) Type {
+func (s *SingletonClass) ToNonLiteral() Type {
 	return s
 }
 
@@ -63,47 +63,8 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	}
 }
 
-func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
-}
-
-func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *SingletonClass {
-	fullConstantName := s.name[1:]
-	if newType, ok := NameToConstantOk(fullConstantName, newEnv); ok {
-		return newType.(*SingletonClass)
-	}
-
-	newAttachedObject := DeepCopyEnv(s.AttachedObject, oldEnv, newEnv).(Namespace)
-	if newS := newAttachedObject.Singleton(); newS != nil {
-		return newS
-	}
-	newSingleton := &SingletonClass{
-		Class: Class{
-			primitive:     s.primitive,
-			sealed:        s.sealed,
-			abstract:      s.abstract,
-			defined:       s.defined,
-			native:        s.native,
-			compiled:      s.compiled,
-			NamespaceBase: MakeNamespaceBase(s.docComment, s.name),
-		},
-	}
-	newSingleton.AttachedObject = newAttachedObject
-	singletonConstantPath := GetConstantPath(fullConstantName)
-	parentNamespace := DeepCopyNamespacePath(singletonConstantPath[:len(singletonConstantPath)-1], oldEnv, newEnv)
-	singletonConstantName := singletonConstantPath[len(singletonConstantPath)-1]
-	parentNamespace.DefineConstant(symbol.ToSymbol(singletonConstantName), newSingleton)
-
-	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
-	newSingleton.instanceVariables = InstanceVariablesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)
-	newSingleton.subtypes = ConstantsDeepCopyEnv(s.subtypes, oldEnv, newEnv)
-	newSingleton.constants = ConstantsDeepCopyEnv(s.constants, oldEnv, newEnv)
-
-	if s.parent != nil {
-		newSingleton.parent = DeepCopyEnv(s.parent, oldEnv, newEnv).(Namespace)
-	}
-	newAttachedObject.SetSingleton(newSingleton)
-	return newSingleton
 }

@@ -106,13 +106,13 @@ func (g *GenericNamedType) inspect() string {
 		}
 
 		buffer.WriteString(typeVar.Name.String())
-		if !IsNever(typeVar.LowerBound) {
+		if !IsNeverRef(typeVar.LowerBound) {
 			buffer.WriteString(" > ")
-			buffer.WriteString(Inspect(typeVar.LowerBound))
+			buffer.WriteString(Inspect(typeVar.LowerBound.Get()))
 		}
-		if !IsAny(typeVar.UpperBound) {
+		if !IsAnyRef(typeVar.UpperBound) {
 			buffer.WriteString(" < ")
-			buffer.WriteString(Inspect(typeVar.UpperBound))
+			buffer.WriteString(Inspect(typeVar.UpperBound.Get()))
 		}
 	}
 	buffer.WriteRune(']')

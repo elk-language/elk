@@ -152,16 +152,16 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		Init:    true,
 	}
 
-	env.RegisterTypeWithID(Any{}, 1)
-	env.RegisterTypeWithID(Bool{}, 2)
-	env.RegisterTypeWithID(False{}, 3)
-	env.RegisterTypeWithID(True{}, 4)
-	env.RegisterTypeWithID(Nil{}, 5)
-	env.RegisterTypeWithID(Never{}, 6)
-	env.RegisterTypeWithID(NoValue{}, 7)
-	env.RegisterTypeWithID(Self{}, 8)
-	env.RegisterTypeWithID(Untyped{}, 9)
-	env.RegisterTypeWithID(Void{}, 10)
+	env.RegisterTypeWithID(Any{}, AnyID)
+	env.RegisterTypeWithID(Bool{}, BoolID)
+	env.RegisterTypeWithID(False{}, FalseID)
+	env.RegisterTypeWithID(True{}, TrueID)
+	env.RegisterTypeWithID(Nil{}, NilID)
+	env.RegisterTypeWithID(Never{}, NeverID)
+	env.RegisterTypeWithID(NoValue{}, NoValueID)
+	env.RegisterTypeWithID(Self{}, SelfID)
+	env.RegisterTypeWithID(Untyped{}, UntypedID)
+	env.RegisterTypeWithID(Void{}, VoidID)
 
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),

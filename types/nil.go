@@ -2,10 +2,12 @@ package types
 
 import "github.com/elk-language/elk/value/symbol"
 
+const NilID = 5
+
 type Nil struct{}
 
 func (Nil) HashUint64() uint64 {
-	return 5
+	return NilID
 }
 
 func (Nil) EqualAny(other any) bool {
@@ -14,7 +16,7 @@ func (Nil) EqualAny(other any) bool {
 }
 
 func (Nil) ID() ID {
-	return 5
+	return NilID
 }
 
 func (Nil) SetID(ID) {}
@@ -28,8 +30,8 @@ func (Nil) traverse(parent Type, enter func(node, parent Type) TraverseOption, l
 	}
 }
 
-func (v Nil) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.C_Nil)
+func (v Nil) ToNonLiteral() Type {
+	return Env.StdSubtype(symbol.C_Nil)
 }
 
 func (Nil) IsLiteral() bool {

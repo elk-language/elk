@@ -5,6 +5,7 @@ import (
 	"iter"
 	"strings"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
@@ -38,9 +39,16 @@ const (
 
 type Parameter struct {
 	Name             symbol.Symbol
-	Type             Type
+	Type             Ref[Type]
 	Kind             ParameterKind
 	InstanceVariable bool
+}
+
+func (p *Parameter) EqualParameter(other *Parameter) bool {
+	return p.Name == other.Name &&
+		p.Type == other.Type &&
+		p.Kind == other.Kind &&
+		p.InstanceVariable == other.InstanceVariable
 }
 
 func (p *Parameter) Copy() *Parameter {
@@ -60,23 +68,17 @@ func (p *Parameter) traverse(parent Type, enter func(node, parent Type) Traverse
 		return leave(p, parent)
 	}
 
-	if p.Type.traverse(p, enter, leave) == TraverseBreak {
+	if p.Type.Get().traverse(p, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
 	return leave(p, parent)
 }
 
-func (p *Parameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Parameter {
-	newParam := p.Copy()
-	newParam.Type = DeepCopyEnv(newParam.Type, oldEnv, newEnv)
-	return newParam
-}
-
 func NewParameter(name symbol.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
 	return &Parameter{
 		Name:             name,
-		Type:             typ,
+		Type:             ToRef(typ),
 		Kind:             kind,
 		InstanceVariable: instanceVariable,
 	}
@@ -117,7 +119,7 @@ func (p *Parameter) inspect() string {
 	}
 
 	buffer.WriteString(": ")
-	buffer.WriteString(Inspect(p.Type))
+	buffer.WriteString(Inspect(p.Type.Get()))
 	return buffer.String()
 }
 
@@ -133,7 +135,7 @@ func (p *Parameter) HasDefaultValue() bool {
 	return p.Kind == DefaultValueParameterKind
 }
 
-func (p *Parameter) ToNonLiteral(env *GlobalEnvironment) Type {
+func (p *Parameter) ToNonLiteral() Type {
 	return p
 }
 
@@ -181,23 +183,104 @@ type Method struct {
 	OptionalParamCount int
 	PostParamCount     int
 	OverloadId         int
+	id                 ID
 	Flags              bitfield.BitField16
 
 	Params         []*Parameter
-	TypeParameters []*TypeParameter
-	Overloads      []*Method
-	Base           *Method
-	ReturnType     Type
-	ThrowType      Type
-	DefinedUnder   Namespace
+	TypeParameters []Ref[*TypeParameter]
+	Overloads      []Ref[*Method]
+	Base           Ref[*Method]
+	ReturnType     Ref[Type]
+	ThrowType      Ref[Type]
+	DefinedUnder   Ref[Namespace]
 	Body           MethodBody
 	location       *position.Location
 	// used to detect methods that circularly reference constants
 	UsedInConstants              ds.Set[symbol.Symbol] // set of constants in which this method is called
 	UsedConstants                ds.Set[symbol.Symbol] // set of constants references in this method's body
 	InitialisedInstanceVariables ds.Set[symbol.Symbol] // a set of names of instance variables that have been initialised, used when checking constructors
-	CalledMethods                []*Method             // list of methods called in this method's body
+	CalledMethods                []Ref[*Method]        // list of methods called in this method's body
 	Node                         AstNode
+}
+
+func (m *Method) ToRef() Ref[*Method] {
+	if m == nil {
+		return 0
+	}
+
+	return Ref[*Method](m.id)
+}
+
+func (m *Method) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("method:")
+	definedUnder := m.DefinedUnder.Get()
+	if definedUnder != nil {
+		d.WriteString(definedUnder.Name())
+	}
+	d.WriteString(">")
+	d.WriteString(m.Name.String())
+
+	return d.Sum64()
+}
+
+func (m *Method) EqualAny(other any) bool {
+	o, ok := other.(*Method)
+	if !ok {
+		return false
+	}
+
+	if m.id > 0 {
+		return m.id == o.id
+	}
+
+	if m.Name != o.Name || m.FullName != o.FullName ||
+		m.OverloadId != o.OverloadId ||
+		m.DefinedUnder != o.DefinedUnder ||
+		m.OptionalParamCount != o.OptionalParamCount ||
+		m.PostParamCount != o.PostParamCount ||
+		m.ReturnType != o.ReturnType ||
+		m.ThrowType != o.ThrowType ||
+		len(m.Params) != len(o.Params) ||
+		len(m.TypeParameters) != len(o.TypeParameters) ||
+		len(m.Overloads) != len(o.Overloads) {
+		return false
+	}
+
+	for i := range len(m.Params) {
+		mParam := m.Params[i]
+		oParam := o.Params[i]
+		if !mParam.EqualParameter(oParam) {
+			return false
+		}
+	}
+
+	for i := range len(m.TypeParameters) {
+		mTypeParam := m.TypeParameters[i]
+		oTypeParam := o.TypeParameters[i]
+		if mTypeParam != oTypeParam {
+			return false
+		}
+	}
+
+	for i := range len(m.Overloads) {
+		mOverload := m.Overloads[i]
+		oOverload := o.Overloads[i]
+		if mOverload != oOverload {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (m *Method) ID() ID {
+	return m.id
+}
+
+func (m *Method) SetID(id ID) {
+	m.id = id
 }
 
 func (m *Method) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -213,7 +296,7 @@ func NewMethodPlaceholder(fullName string, name symbol.Symbol, definedUnder Name
 	m := &Method{
 		FullName:     fullName,
 		Name:         name,
-		DefinedUnder: definedUnder,
+		DefinedUnder: ToRef(definedUnder),
 		location:     location,
 	}
 	m.SetPlaceholder(true)
@@ -253,77 +336,14 @@ func (m *Method) Copy() *Method {
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
 		Overloads:                    m.Overloads,
+		id:                           m.id,
 	}
-}
-
-func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
-	var newDefinedUnder Namespace
-
-	if m.DefinedUnder != nil && !IsCallable(m.DefinedUnder) {
-		newDefinedUnder = DeepCopyEnv(m.DefinedUnder, oldEnv, newEnv).(Namespace)
-		if newMethod := newDefinedUnder.Method(m.Name); newMethod != nil {
-			return newMethod
-		}
-	}
-
-	newMethod := &Method{
-		OverloadId:                   m.OverloadId,
-		FullName:                     m.FullName,
-		Name:                         m.Name,
-		DocComment:                   m.DocComment,
-		OptionalParamCount:           m.OptionalParamCount,
-		PostParamCount:               m.PostParamCount,
-		Flags:                        m.Flags,
-		Body:                         m.Body,
-		location:                     m.location,
-		UsedInConstants:              m.UsedInConstants,
-		UsedConstants:                m.UsedConstants,
-		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
-		Node:                         m.Node,
-	}
-	if newDefinedUnder != nil {
-		newMethod.DefinedUnder = newDefinedUnder
-		newMethod.DefinedUnder.SetMethod(newMethod.Name, newMethod)
-	}
-
-	newOverloads := make([]*Method, len(m.Overloads))
-	for i, overload := range m.Overloads {
-		newOverloads[i] = overload.DeepCopyEnv(oldEnv, newEnv)
-	}
-	newMethod.Overloads = newOverloads
-
-	if m.Base != nil {
-		newMethod.Base = DeepCopyEnv(m.Base, oldEnv, newEnv).(*Method)
-	}
-
-	newMethod.ThrowType = DeepCopyEnv(m.ThrowType, oldEnv, newEnv)
-	newMethod.ReturnType = DeepCopyEnv(m.ReturnType, oldEnv, newEnv)
-
-	newParameters := make([]*Parameter, len(m.Params))
-	for i, param := range m.Params {
-		newParameters[i] = param.DeepCopyEnv(oldEnv, newEnv)
-	}
-	newMethod.Params = newParameters
-
-	newTypeParameters := make([]*TypeParameter, len(m.TypeParameters))
-	for i, typeParam := range m.TypeParameters {
-		newTypeParameters[i] = typeParam.DeepCopyEnv(oldEnv, newEnv)
-	}
-	newMethod.TypeParameters = newTypeParameters
-
-	newCalledMethods := make([]*Method, len(m.CalledMethods))
-	for i, calledMethod := range m.CalledMethods {
-		newCalledMethods[i] = calledMethod.DeepCopyEnv(oldEnv, newEnv)
-	}
-	newMethod.CalledMethods = newCalledMethods
-
-	return newMethod
 }
 
 func (m *Method) CreateAlias(newName symbol.Symbol) *Method {
 	alias := m.Copy()
 	alias.Name = newName
-	alias.Base = m
+	alias.Base = m.ToRef()
 	return alias
 }
 
@@ -334,7 +354,7 @@ func (m *Method) AllOverloads() iter.Seq[*Method] {
 		}
 
 		for _, overload := range m.Overloads {
-			if !yield(overload) {
+			if !yield(overload.Get()) {
 				return
 			}
 		}
@@ -345,7 +365,7 @@ func (m *Method) ReversedOverloads() iter.Seq[*Method] {
 	return func(yield func(*Method) bool) {
 		for i := len(m.Overloads) - 1; i >= 0; i-- {
 			overload := m.Overloads[i]
-			if !yield(overload) {
+			if !yield(overload.Get()) {
 				return
 			}
 		}
@@ -357,11 +377,11 @@ func (m *Method) ReversedOverloads() iter.Seq[*Method] {
 }
 
 func (m *Method) RegisterOverload(overload *Method) {
-	m.Overloads = append(m.Overloads, overload)
+	m.Overloads = append(m.Overloads, overload.ToRef())
 	overload.OverloadId = len(m.Overloads)
 	overload.Name = symbol.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 
-	m.DefinedUnder.SetMethod(overload.Name, overload)
+	m.DefinedUnder.Get().SetMethod(overload.Name, overload)
 }
 
 func (m *Method) Location() *position.Location {
@@ -497,8 +517,9 @@ func (m *Method) IsDefinable() bool {
 		return false
 	}
 
-	if m.Base != nil {
-		return m.Base.Body != nil || m.Base.IsAttribute() || m.Base.IsNative()
+	base := m.Base.Get()
+	if base != nil {
+		return base.Body != nil || base.IsAttribute() || base.IsNative()
 	}
 
 	return m.Body != nil || m.IsAttribute()
@@ -561,7 +582,7 @@ func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
 	}
 }
 
-func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -587,9 +608,9 @@ func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, 
 		TypeParameters:     typeParams,
 		DocComment:         docComment,
 		Params:             params,
-		ReturnType:         returnType,
-		ThrowType:          throwType,
-		DefinedUnder:       definedUnder,
+		ReturnType:         ToRef(returnType),
+		ThrowType:          ToRef(throwType),
+		DefinedUnder:       ToRef(definedUnder),
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
 		UsedInConstants:    make(ds.Set[symbol.Symbol]),
@@ -666,7 +687,7 @@ func (m *Method) NamespacedName() string {
 }
 
 func (m *Method) inspect() string {
-	return inspectMethod(m.DefinedUnder, m.Name)
+	return inspectMethod(m.DefinedUnder.Get(), m.Name)
 }
 
 func inspectMethod(namespace Namespace, methodName symbol.Symbol) string {
@@ -710,7 +731,8 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 	if len(m.TypeParameters) > 0 {
 		buffer.WriteRune('[')
 		firstIteration := true
-		for _, param := range m.TypeParameters {
+		for _, paramRef := range m.TypeParameters {
+			param := paramRef.Get()
 			if !firstIteration {
 				buffer.WriteString(", ")
 			} else {
@@ -758,14 +780,14 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 		buffer.WriteString(Inspect(param.Type))
 	}
 	buffer.WriteRune(')')
-	returnType := m.ReturnType
+	returnType := m.ReturnType.Get()
 	if returnType == nil {
 		returnType = Void{}
 	}
 	buffer.WriteString(": ")
 	buffer.WriteString(Inspect(returnType))
 
-	throwType := m.ThrowType
+	throwType := m.ThrowType.Get()
 	if throwType != nil && !IsNever(throwType) {
 		buffer.WriteString(" ! ")
 		buffer.WriteString(Inspect(throwType))
@@ -778,7 +800,7 @@ func (m *Method) InspectSignatureWithColor(showModifiers bool) string {
 	return lexer.Colorize(m.InspectSignature(showModifiers))
 }
 
-func (m *Method) ToNonLiteral(env *GlobalEnvironment) Type {
+func (m *Method) ToNonLiteral() Type {
 	return m
 }
 

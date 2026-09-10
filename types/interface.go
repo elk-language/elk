@@ -6,12 +6,29 @@ import (
 )
 
 type Interface struct {
-	parent         Namespace
-	singleton      *SingletonClass
+	parent         Ref[Namespace]
+	singleton      Ref[*SingletonClass]
 	Checked        bool
 	compiled       bool
-	typeParameters []*TypeParameter
+	typeParameters []Ref[*TypeParameter]
 	NamespaceBase
+}
+
+func (i *Interface) ToRef() Ref[*Interface] {
+	return ToRef(i)
+}
+
+func (i *Interface) EqualAny(other any) bool {
+	o, ok := other.(*Interface)
+	if !ok {
+		return false
+	}
+
+	if i.id > 0 {
+		return i.id == o.ID()
+	}
+
+	return i.name == o.name
 }
 
 func (i *Interface) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -27,11 +44,11 @@ func (i *Interface) IsGeneric() bool {
 	return len(i.typeParameters) > 0
 }
 
-func (i *Interface) TypeParameters() []*TypeParameter {
+func (i *Interface) TypeParameters() []Ref[*TypeParameter] {
 	return i.typeParameters
 }
 
-func (i *Interface) SetTypeParameters(t []*TypeParameter) {
+func (i *Interface) SetTypeParameters(t []Ref[*TypeParameter]) {
 	i.typeParameters = t
 }
 
@@ -41,11 +58,11 @@ func IsInterface(typ Type) bool {
 }
 
 func (i *Interface) Singleton() *SingletonClass {
-	return i.singleton
+	return i.singleton.Get()
 }
 
 func (i *Interface) SetSingleton(singleton *SingletonClass) {
-	i.singleton = singleton
+	i.singleton = ToRef(singleton)
 }
 
 func (i *Interface) IsDefined() bool {
@@ -77,19 +94,19 @@ func (*Interface) IsImmutable() bool {
 }
 
 func (i *Interface) Parent() Namespace {
-	return i.parent
+	return i.parent.Get()
 }
 
 func (i *Interface) SetParent(parent Namespace) {
-	i.parent = parent
+	i.parent = ToRef(parent)
 }
 
-func NewInterface(docComment string, name string, env *GlobalEnvironment) *Interface {
+func NewInterface(docComment string, name string) *Interface {
 	iface := &Interface{
 		NamespaceBase: MakeNamespaceBase(docComment, name),
-		compiled:      env.Init,
+		compiled:      Env.Init,
 	}
-	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.C_Interface))
+	iface.singleton = NewSingletonClass(iface, Env.StdSubtypeClass(symbol.C_Interface)).ToRef()
 
 	return iface
 }
@@ -103,7 +120,7 @@ func NewInterfaceWithDetails(
 	env *GlobalEnvironment,
 ) *Interface {
 	return &Interface{
-		parent:   parent,
+		parent:   ToRef[Namespace](parent),
 		compiled: env.Init,
 		NamespaceBase: NamespaceBase{
 			name:      name,
@@ -114,7 +131,7 @@ func NewInterfaceWithDetails(
 	}
 }
 
-func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method
@@ -124,7 +141,7 @@ func (i *Interface) inspect() string {
 	return i.name
 }
 
-func (i *Interface) ToNonLiteral(env *GlobalEnvironment) Type {
+func (i *Interface) ToNonLiteral() Type {
 	return i
 }
 
@@ -144,37 +161,7 @@ func (i *Interface) Copy() *Interface {
 			constants: i.constants,
 			methods:   i.methods,
 			subtypes:  i.subtypes,
+			id:        i.id,
 		},
 	}
-}
-
-func (i *Interface) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Interface {
-	ifaceConstantPath := GetConstantPath(i.name)
-	parentNamespace := DeepCopyNamespacePath(ifaceConstantPath[:len(ifaceConstantPath)-1], oldEnv, newEnv)
-
-	if newType, ok := NameToTypeOk(i.name, newEnv); ok {
-		return newType.(*Interface)
-	}
-
-	newIface := &Interface{
-		compiled:      i.compiled,
-		Checked:       i.Checked,
-		NamespaceBase: MakeNamespaceBase(i.docComment, i.name),
-	}
-	constName := ifaceConstantPath[len(ifaceConstantPath)-1]
-	parentNamespace.DefineSubtype(symbol.ToSymbol(constName), newIface)
-
-	newIface.singleton = nil
-	newIface.singleton = DeepCopyEnv(i.singleton, oldEnv, newEnv).(*SingletonClass)
-
-	newIface.typeParameters = TypeParametersDeepCopyEnv(i.typeParameters, oldEnv, newEnv)
-	newIface.methods = MethodsDeepCopyEnv(i.methods, oldEnv, newEnv)
-	newIface.instanceVariables = InstanceVariablesDeepCopyEnv(i.instanceVariables, oldEnv, newEnv)
-	newIface.subtypes = ConstantsDeepCopyEnv(i.subtypes, oldEnv, newEnv)
-	newIface.constants = ConstantsDeepCopyEnv(i.constants, oldEnv, newEnv)
-
-	if i.parent != nil {
-		newIface.parent = DeepCopyEnv(i.parent, oldEnv, newEnv).(Namespace)
-	}
-	return newIface
 }

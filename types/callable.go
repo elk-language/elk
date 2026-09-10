@@ -24,7 +24,7 @@ func NewCallable(method *Method, isClosure bool) *Callable {
 	return t
 }
 
-func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
+func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
 	callable := NewCallable(nil, isClosure)
 	method := NewMethod(
 		docComment,
@@ -92,6 +92,7 @@ func (c *Callable) traverse(parent Type, enter func(node, parent Type) TraverseO
 func (c *Callable) Copy() *Callable {
 	return &Callable{
 		Body: c.Body,
+		id:   c.id,
 	}
 }
 
@@ -240,7 +241,7 @@ func (c *Callable) MethodString(name string) *Method {
 	return nil
 }
 
-func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
 	panic("cannot define methods on callables")
 }
 
@@ -263,19 +264,19 @@ func (c *Callable) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVari
 	panic("cannot define instance variables on callables")
 }
 
-func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace) *Class {
 	panic("cannot define classes on callables")
 }
 
-func (c *Callable) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
+func (c *Callable) DefineModule(docComment string, name symbol.Symbol) *Module {
 	panic("cannot define module on callables")
 }
 
-func (c *Callable) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
+func (c *Callable) DefineMixin(docComment string, abstract bool, name symbol.Symbol) *Mixin {
 	panic("cannot define mixins on callables")
 }
 
-func (c *Callable) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
+func (c *Callable) DefineInterface(docComment string, name symbol.Symbol) *Interface {
 	panic("cannot define interfaces on callables")
 }
 
@@ -307,17 +308,17 @@ func (c *Callable) inspect() string {
 			buffer.WriteRune('?')
 		}
 		buffer.WriteString(": ")
-		buffer.WriteString(Inspect(param.Type))
+		buffer.WriteString(Inspect(param.Type.Get()))
 	}
 	buffer.WriteRune('|')
-	returnType := body.ReturnType
+	returnType := body.ReturnType.Get()
 	if returnType == nil {
 		returnType = Void{}
 	}
 	buffer.WriteString(": ")
 	buffer.WriteString(Inspect(returnType))
 
-	throwType := body.ThrowType
+	throwType := body.ThrowType.Get()
 	if throwType != nil && !IsNever(throwType) {
 		buffer.WriteString(" ! ")
 		buffer.WriteString(Inspect(throwType))
@@ -338,10 +339,10 @@ func (c *Callable) IsGeneric() bool {
 	return false
 }
 
-func (c *Callable) TypeParameters() []*TypeParameter {
+func (c *Callable) TypeParameters() []Ref[*TypeParameter] {
 	return nil
 }
 
-func (c *Callable) SetTypeParameters(t []*TypeParameter) {
+func (c *Callable) SetTypeParameters(t []Ref[*TypeParameter]) {
 	panic("cannot set type parameters on a callable")
 }

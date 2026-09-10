@@ -10,8 +10,8 @@ import (
 // `extend where Bar < Baz`
 type MixinWithWhere struct {
 	*MixinProxy
-	Namespace Namespace
-	Where     []*TypeParameter
+	Namespace Ref[Namespace]
+	Where     []Ref[*TypeParameter]
 }
 
 func IsMixinWithWhere(typ Type) bool {
@@ -19,15 +19,15 @@ func IsMixinWithWhere(typ Type) bool {
 	return ok
 }
 
-func NewMixinWithWhere(mixin *MixinProxy, namespace Namespace, where []*TypeParameter) *MixinWithWhere {
+func NewMixinWithWhere(mixin *MixinProxy, namespace Namespace, where []Ref[*TypeParameter]) *MixinWithWhere {
 	return &MixinWithWhere{
 		MixinProxy: mixin,
-		Namespace:  namespace,
+		Namespace:  ToRef(namespace),
 		Where:      where,
 	}
 }
 
-func (m *MixinWithWhere) ToNonLiteral(env *GlobalEnvironment) Type {
+func (m *MixinWithWhere) ToNonLiteral() Type {
 	return m
 }
 

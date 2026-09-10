@@ -2,10 +2,12 @@ package types
 
 import "github.com/elk-language/elk/value/symbol"
 
+const FalseID = 3
+
 type False struct{}
 
 func (False) HashUint64() uint64 {
-	return 3
+	return FalseID
 }
 
 func (False) EqualAny(other any) bool {
@@ -14,7 +16,7 @@ func (False) EqualAny(other any) bool {
 }
 
 func (False) ID() ID {
-	return 3
+	return FalseID
 }
 
 func (False) SetID(ID) {}

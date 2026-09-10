@@ -2,10 +2,12 @@ package types
 
 import "github.com/elk-language/elk/value/symbol"
 
+const TrueID = 4
+
 type True struct{}
 
 func (True) HashUint64() uint64 {
-	return 4
+	return TrueID
 }
 
 func (True) EqualAny(other any) bool {
@@ -14,7 +16,7 @@ func (True) EqualAny(other any) bool {
 }
 
 func (True) ID() ID {
-	return 4
+	return TrueID
 }
 
 func (True) SetID(ID) {}
@@ -28,16 +30,16 @@ func (True) traverse(parent Type, enter func(node, parent Type) TraverseOption, 
 	}
 }
 
-func (True) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype(symbol.C_Bool)
+func (True) ToNonLiteral() Type {
+	return Env.StdSubtype(symbol.C_Bool)
 }
 
 func (True) IsLiteral() bool {
 	return true
 }
 
-func IsTrue(t Type, env *GlobalEnvironment) bool {
-	return IsTrueLiteral(t) || t == env.StdSubtype(symbol.C_True)
+func IsTrue(t Type) bool {
+	return IsTrueLiteral(t) || t == Env.StdSubtype(symbol.C_True)
 }
 
 func IsTrueLiteral(t Type) bool {

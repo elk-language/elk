@@ -32,6 +32,14 @@ func NewTypeArgument(typ Type, variance Variance) *TypeArgument {
 	return t
 }
 
+func NewTypeArgumentWithRef(typ Ref[Type], variance Variance) *TypeArgument {
+	t := &TypeArgument{
+		Type:     typ,
+		Variance: variance,
+	}
+	return t
+}
+
 type TypeArgumentMap map[symbol.Symbol]*TypeArgument
 
 func (t TypeArgumentMap) HasAllTypeParams(typeParams []Ref[*TypeParameter]) bool {
@@ -200,11 +208,11 @@ func (g *Generic) IsNative() bool {
 	return g.Namespace.Get().IsNative()
 }
 
-func (g *Generic) TypeParameters() []*TypeParameter {
+func (g *Generic) TypeParameters() []Ref[*TypeParameter] {
 	return g.Namespace.Get().TypeParameters()
 }
 
-func (g *Generic) SetTypeParameters(typeParams []*TypeParameter) {
+func (g *Generic) SetTypeParameters(typeParams []Ref[*TypeParameter]) {
 	g.Namespace.Get().SetTypeParameters(typeParams)
 }
 
@@ -268,7 +276,7 @@ func (g *Generic) MethodString(name string) *Method {
 	return g.Namespace.Get().MethodString(name)
 }
 
-func (g *Generic) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (g *Generic) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
 	return g.Namespace.Get().DefineMethod(docComment, flags, name, typeParams, params, returnType, throwType)
 }
 
@@ -292,20 +300,20 @@ func (g *Generic) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVaria
 	g.Namespace.Get().DefineInstanceVariable(name, ivar)
 }
 
-func (g *Generic) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
-	return g.Namespace.Get().DefineClass(docComment, primitive, abstract, sealed, noinit, immutable, name, parent, env)
+func (g *Generic) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace) *Class {
+	return g.Namespace.Get().DefineClass(docComment, primitive, abstract, sealed, noinit, immutable, name, parent)
 }
 
-func (g *Generic) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
-	return g.Namespace.Get().DefineModule(docComment, name, env)
+func (g *Generic) DefineModule(docComment string, name symbol.Symbol) *Module {
+	return g.Namespace.Get().DefineModule(docComment, name)
 }
 
-func (g *Generic) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
-	return g.Namespace.Get().DefineMixin(docComment, abstract, name, env)
+func (g *Generic) DefineMixin(docComment string, abstract bool, name symbol.Symbol) *Mixin {
+	return g.Namespace.Get().DefineMixin(docComment, abstract, name)
 }
 
-func (g *Generic) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
-	return g.Namespace.Get().DefineInterface(docComment, name, env)
+func (g *Generic) DefineInterface(docComment string, name symbol.Symbol) *Interface {
+	return g.Namespace.Get().DefineInterface(docComment, name)
 }
 
 func (c *Generic) ToRef() Ref[*Generic] {
@@ -418,7 +426,8 @@ func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 	typeArgMap := make(TypeArgumentMap, len(args))
 	typeArgOrder := make([]symbol.Symbol, len(args))
 
-	for i, typeParam := range namespace.TypeParameters() {
+	for i, typeParamRef := range namespace.TypeParameters() {
+		typeParam := typeParamRef.Get()
 		arg := args[i]
 
 		typeArg := NewTypeArgument(
@@ -446,7 +455,8 @@ func NewGenericWithVariance(namespace Namespace, variance Variance, args ...Type
 	typeArgMap := make(TypeArgumentMap, len(args))
 	typeArgOrder := make([]symbol.Symbol, len(args))
 
-	for i, typeParam := range namespace.TypeParameters() {
+	for i, typeParamRef := range namespace.TypeParameters() {
+		typeParam := typeParamRef.Get()
 		arg := args[i]
 
 		typeArg := NewTypeArgument(
@@ -470,7 +480,8 @@ func (g *Generic) FixVariance() {
 	if g == nil {
 		return
 	}
-	for _, typeParam := range g.Namespace.Get().TypeParameters() {
+	for _, typeParamRef := range g.Namespace.Get().TypeParameters() {
+		typeParam := typeParamRef.Get()
 		arg := g.ArgumentMap[typeParam.Name]
 		arg.Variance = typeParam.Variance
 	}

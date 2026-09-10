@@ -1,11 +1,13 @@
 package types
 
+const NoValueID = 7
+
 // Represents no value.
 // It is used to mark constants of pure types, that do not have a runtime value.
 type NoValue struct{}
 
 func (NoValue) HashUint64() uint64 {
-	return 7
+	return NoValueID
 }
 
 func (NoValue) EqualAny(other any) bool {
@@ -14,7 +16,7 @@ func (NoValue) EqualAny(other any) bool {
 }
 
 func (NoValue) ID() ID {
-	return 7
+	return NoValueID
 }
 
 func (NoValue) SetID(ID) {}
@@ -28,7 +30,7 @@ func (NoValue) traverse(parent Type, enter func(node, parent Type) TraverseOptio
 	}
 }
 
-func (n NoValue) ToNonLiteral(env *GlobalEnvironment) Type {
+func (n NoValue) ToNonLiteral() Type {
 	return n
 }
 
@@ -39,6 +41,14 @@ func (NoValue) IsLiteral() bool {
 func IsNoValue(t Type) bool {
 	_, ok := t.(NoValue)
 	return ok
+}
+
+func IsNoValueID(id ID) bool {
+	return id == NoValueID
+}
+
+func IsNoValueRef[T Type](ref Ref[T]) bool {
+	return ref == NoValueID
 }
 
 func (NoValue) inspect() string {
