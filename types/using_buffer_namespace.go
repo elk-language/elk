@@ -1,7 +1,17 @@
 package types
 
+import "unsafe"
+
 type UsingBufferNamespace struct {
 	Module
+}
+
+func (u *UsingBufferNamespace) HashUint64() uint64 {
+	return uint64(uintptr(unsafe.Pointer(u)))
+}
+
+func (u *UsingBufferNamespace) EqualAny(other any) bool {
+	return u == other
 }
 
 func NewUsingBufferNamespace() *UsingBufferNamespace {
@@ -16,19 +26,4 @@ func (u *UsingBufferNamespace) Copy() *UsingBufferNamespace {
 	return &UsingBufferNamespace{
 		Module: u.Module,
 	}
-}
-
-func (u *UsingBufferNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *UsingBufferNamespace {
-	newNamespace := u.Copy()
-
-	newNamespace.methods = MethodsDeepCopyEnv(u.methods, oldEnv, newEnv)
-	newNamespace.instanceVariables = InstanceVariablesDeepCopyEnv(u.instanceVariables, oldEnv, newEnv)
-	newNamespace.constants = ConstantsDeepCopyEnv(u.constants, oldEnv, newEnv)
-	newNamespace.subtypes = ConstantsDeepCopyEnv(u.subtypes, oldEnv, newEnv)
-
-	if u.parent != nil {
-		newNamespace.parent = DeepCopyEnv(u.parent, oldEnv, newEnv).(Namespace)
-	}
-
-	return newNamespace
 }

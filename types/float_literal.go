@@ -78,7 +78,6 @@ func NewFloatLiteral(value string) *FloatLiteral {
 	t := &FloatLiteral{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -176,7 +175,6 @@ func NewFloat64Literal(value string) *Float64Literal {
 	t := &Float64Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -274,7 +272,6 @@ func NewFloat32Literal(value string) *Float32Literal {
 	t := &Float32Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -372,7 +369,6 @@ func NewBigFloatLiteral(value string) *BigFloatLiteral {
 	t := &BigFloatLiteral{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 

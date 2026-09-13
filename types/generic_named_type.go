@@ -19,7 +19,6 @@ func NewGenericNamedType(name string, typ Type, typeVars []Ref[*TypeParameter]) 
 		Type:           ToRef(typ),
 		TypeParameters: typeVars,
 	}
-	Env.RegisterType(t)
 	return t
 }
 

@@ -20,18 +20,31 @@ const (
 	TraverseBreak
 )
 
+// Type ID that indicates
+// the absence of an ID
+const ZERO_ID = 0
+
 // Unique ID of the type
 type ID uint32
 
 // Reference to a type using an ID
 type Ref[T Type] ID
 
+func FetchID(t Type) ID {
+	id := t.ID()
+	if id != ZERO_ID {
+		return id
+	}
+
+	return Env.RegisterType(t).ID()
+}
+
 func ToRef[T Type](t T) Ref[T] {
-	return Ref[T](t.ID())
+	return Ref[T](FetchID(t))
 }
 
 func CastRef[T Type](t Type) Ref[T] {
-	return Ref[T](t.ID())
+	return Ref[T](FetchID(t))
 }
 
 func (ref Ref[T]) ID() ID {
@@ -39,7 +52,7 @@ func (ref Ref[T]) ID() ID {
 }
 
 func (ref Ref[T]) IsZero() bool {
-	return ref == 0
+	return ref == ZERO_ID
 }
 
 func (ref Ref[T]) Get() (result T) {
@@ -72,32 +85,6 @@ func Traverse(typ Type, enter func(typ, parent Type) TraverseOption, leave func(
 	typ.traverse(nil, enter, leave)
 }
 
-func DeepCopyNamespacePath(constantPath []string, oldEnv, newEnv *GlobalEnvironment) Namespace {
-	var newNamespace Namespace = ToNamespaceInterface(newEnv.Root)
-	var oldNamespace Namespace = ToNamespaceInterface(oldEnv.Root)
-	var newCurrentType Type = ToTypeInterface(newEnv.Root)
-	var oldCurrentType Type = ToTypeInterface(oldEnv.Root)
-
-	for _, subtypeName := range constantPath {
-		oldSubtype, _ := oldNamespace.SubtypeString(subtypeName)
-		oldCurrentType = oldSubtype.Type
-		if oldCurrentType == nil {
-			panic(fmt.Sprintf("Subtype %s is nil under %s", subtypeName, oldNamespace.Name()))
-		}
-		oldNamespace = ToNamespaceInterface(oldCurrentType.(Namespace))
-
-		newSubtype, ok := newNamespace.SubtypeString(subtypeName)
-		if !ok {
-			newCurrentType = DeepCopyEnv(oldNamespace, oldEnv, newEnv)
-		} else {
-			newCurrentType = newSubtype.Type
-		}
-		newNamespace = ToNamespaceInterface(newCurrentType.(Namespace))
-	}
-
-	return newNamespace
-}
-
 func IsPointerNil(val any) bool {
 	if val == nil {
 		return true
@@ -106,81 +93,6 @@ func IsPointerNil(val any) bool {
 	value := reflect.ValueOf(val)
 	kind := value.Kind()
 	return kind == reflect.Pointer && value.IsNil()
-}
-
-func ToTypeInterface[T Type](typ T) Type {
-	if IsPointerNil(typ) {
-		return nil
-	}
-
-	return typ
-}
-
-func ToNamespaceInterface[T Namespace](typ T) Namespace {
-	if IsPointerNil(typ) {
-		return nil
-	}
-
-	return typ
-}
-
-func DeepCopyEnv(t Type, oldEnv, newEnv *GlobalEnvironment) Type {
-	switch t := t.(type) {
-	case *Module:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Class:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Mixin:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Method:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Interface:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *SingletonClass:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *MixinProxy:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *InterfaceProxy:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *MixinWithWhere:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Nilable:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *InstanceOf:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *SingletonOf:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Generic:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Not:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *NamedType:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *GenericNamedType:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Union:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Intersection:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *ConstantPlaceholder:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *ModulePlaceholder:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *NamespacePlaceholder:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *UsingBufferNamespace:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *TypeParamNamespace:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *Callable:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *TypeParameter:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	case *TemporaryParent:
-		return ToTypeInterface(t.DeepCopyEnv(oldEnv, newEnv))
-	default:
-		return ToTypeInterface(t)
-	}
 }
 
 type ModifierSet struct {
@@ -259,8 +171,8 @@ func I(typ Type) string {
 	return InspectWithColor(typ)
 }
 
-func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {
-	typ = typ.ToNonLiteral(env)
+func GetMethod(typ Type, name string) *Method {
+	typ = typ.ToNonLiteral()
 
 	switch t := typ.(type) {
 	case *Class:

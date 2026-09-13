@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/binary"
 	"fmt"
 	"iter"
 	"strings"
@@ -42,6 +43,55 @@ type Parameter struct {
 	Type             Ref[Type]
 	Kind             ParameterKind
 	InstanceVariable bool
+	id               ID
+}
+
+func (s *Parameter) ToRef() Ref[*Parameter] {
+	return Ref[*Parameter](s.id)
+}
+
+func (s *Parameter) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("param:")
+	d.WriteString(s.Name.String())
+
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(s.Type))
+	d.Write(b)
+
+	d.Write([]byte{byte(s.Kind)})
+
+	var ivarByte byte
+	if s.InstanceVariable {
+		ivarByte = 1
+	}
+	d.Write([]byte{ivarByte})
+
+	return d.Sum64()
+}
+
+func (s *Parameter) EqualAny(other any) bool {
+	o, ok := other.(*Parameter)
+	if !ok {
+		return false
+	}
+
+	if s.id > 0 {
+		return s.id == o.ID()
+	}
+
+	return s.Name == o.Name &&
+		s.Type == o.Type &&
+		s.Kind == o.Kind &&
+		s.InstanceVariable == o.InstanceVariable
+}
+
+func (s *Parameter) ID() ID {
+	return s.id
+}
+
+func (s *Parameter) SetID(id ID) {
+	s.id = id
 }
 
 func (p *Parameter) EqualParameter(other *Parameter) bool {
@@ -57,6 +107,7 @@ func (p *Parameter) Copy() *Parameter {
 		Type:             p.Type,
 		Kind:             p.Kind,
 		InstanceVariable: p.InstanceVariable,
+		id:               p.id,
 	}
 }
 
@@ -186,7 +237,7 @@ type Method struct {
 	id                 ID
 	Flags              bitfield.BitField16
 
-	Params         []*Parameter
+	Params         []Ref[*Parameter]
 	TypeParameters []Ref[*TypeParameter]
 	Overloads      []Ref[*Method]
 	Base           Ref[*Method]
@@ -251,7 +302,7 @@ func (m *Method) EqualAny(other any) bool {
 	for i := range len(m.Params) {
 		mParam := m.Params[i]
 		oParam := o.Params[i]
-		if !mParam.EqualParameter(oParam) {
+		if mParam != oParam {
 			return false
 		}
 	}
@@ -582,11 +633,12 @@ func (m *Method) SetFlag(flag bitfield.BitFlag16, val bool) {
 	}
 }
 
-func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
+func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
-	for _, param := range params {
+	for _, paramRef := range params {
+		param := paramRef.Get()
 		switch param.Kind {
 		case NormalParameterKind:
 			if postParamCount != -1 {
@@ -653,7 +705,7 @@ func (m *Method) ExpectedParamCountString() string {
 
 func (m *Method) NamedRestParam() *Parameter {
 	if m.HasNamedRestParam() {
-		return m.Params[len(m.Params)-1]
+		return m.Params[len(m.Params)-1].Get()
 	}
 	return nil
 }
@@ -679,7 +731,7 @@ func (m *Method) PositionalRestParam() *Parameter {
 	if index == -1 {
 		return nil
 	}
-	return m.Params[index]
+	return m.Params[index].Get()
 }
 
 func (m *Method) NamespacedName() string {
@@ -699,11 +751,11 @@ func inspectMethod(namespace Namespace, methodName symbol.Symbol) string {
 	case *Module:
 		return fmt.Sprintf("%s::%s", scope.Name(), methodName.String())
 	case *SingletonClass:
-		return fmt.Sprintf("%s::%s", scope.AttachedObject.Name(), methodName.String())
+		return fmt.Sprintf("%s::%s", scope.AttachedObject.Get().Name(), methodName.String())
 	case *Callable:
 		return "call"
 	case *MixinWithWhere:
-		return inspectMethod(scope.Namespace, methodName)
+		return inspectMethod(scope.Namespace.Get(), methodName)
 	default:
 		panic(fmt.Sprintf("method with invalid DefinedUnder: %#v, name: %s", namespace, methodName.String()))
 	}
@@ -747,13 +799,13 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 				buffer.WriteString("+-")
 			}
 			buffer.WriteString(param.Name.String())
-			if !IsNever(param.LowerBound) {
+			if !IsNeverRef(param.LowerBound) {
 				buffer.WriteString(" > ")
-				buffer.WriteString(Inspect(param.LowerBound))
+				buffer.WriteString(Inspect(param.LowerBound.Get()))
 			}
-			if !IsAny(param.UpperBound) {
+			if !IsAnyRef(param.UpperBound) {
 				buffer.WriteString(" < ")
-				buffer.WriteString(Inspect(param.UpperBound))
+				buffer.WriteString(Inspect(param.UpperBound.Get()))
 			}
 		}
 		buffer.WriteRune(']')
@@ -761,7 +813,8 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 
 	buffer.WriteRune('(')
 	firstIteration := true
-	for _, param := range m.Params {
+	for _, paramRef := range m.Params {
+		param := paramRef.Get()
 		if !firstIteration {
 			buffer.WriteString(", ")
 		} else {
@@ -777,7 +830,7 @@ func (m *Method) InspectSignature(showModifiers bool) string {
 			buffer.WriteRune('?')
 		}
 		buffer.WriteString(": ")
-		buffer.WriteString(Inspect(param.Type))
+		buffer.WriteString(Inspect(param.Type.Get()))
 	}
 	buffer.WriteRune(')')
 	returnType := m.ReturnType.Get()

@@ -58,7 +58,7 @@ type Namespace interface {
 	Methods() MethodMap
 	Method(name symbol.Symbol) *Method
 	MethodString(name string) *Method
-	DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method
+	DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method
 	SetMethod(name symbol.Symbol, method *Method)
 
 	InstanceVariables() InstanceVariableMap
@@ -156,7 +156,7 @@ func ImplementInterface(target, interfaceNamespace Namespace) {
 	case *Interface:
 		implementInterface(target, implemented)
 	case *Generic:
-		iface := implemented.Namespace.(*Interface)
+		iface := implemented.Namespace.Get().(*Interface)
 		proxy := NewInterfaceProxy(iface, target.Parent())
 		generic := NewGeneric(proxy, implemented.TypeArguments)
 		target.SetParent(generic)
@@ -182,7 +182,7 @@ func IncludeMixin(target, includedNamespace Namespace) {
 	case *Mixin:
 		includeMixin(target, included)
 	case *Generic:
-		includedMixin := included.Namespace.(*Mixin)
+		includedMixin := included.Namespace.Get().(*Mixin)
 		proxy := NewMixinProxy(includedMixin, target.Parent())
 		generic := NewGeneric(proxy, included.TypeArguments)
 		target.SetParent(generic)
@@ -500,7 +500,7 @@ func Parents(namespace Namespace) iter.Seq[Namespace] {
 						continue parentLoop
 					}
 				case *TemporaryParent:
-					switch t := cn.Namespace.(type) {
+					switch t := cn.Namespace.Get().(type) {
 					case *MixinProxy:
 						mixinParent := t.Parent()
 						if mixinParent != nil {
@@ -534,7 +534,7 @@ func IncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 			switch n := parent.(type) {
 			case *MixinProxy:
 			case *Generic:
-				if _, ok := n.Namespace.(*MixinProxy); !ok {
+				if _, ok := n.Namespace.Get().(*MixinProxy); !ok {
 					continue
 				}
 			default:
@@ -575,7 +575,7 @@ func DirectlyIncludedMixins(namespace Namespace) iter.Seq[Namespace] {
 			switch n := parent.(type) {
 			case *MixinProxy:
 			case *Generic:
-				if _, ok := n.Namespace.(*MixinProxy); !ok {
+				if _, ok := n.Namespace.Get().(*MixinProxy); !ok {
 					continue
 				}
 			case *Class:
@@ -608,7 +608,7 @@ func DirectlyIncludedAndImplemented(namespace Namespace) iter.Seq[Namespace] {
 			switch n := parent.(type) {
 			case *MixinProxy, *InterfaceProxy, *MixinWithWhere:
 			case *Generic:
-				switch n.Namespace.(type) {
+				switch n.Namespace.Get().(type) {
 				case *MixinProxy, *InterfaceProxy:
 				default:
 					continue
@@ -642,7 +642,7 @@ func ImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
-				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+				if _, ok := n.Namespace.Get().(*InterfaceProxy); !ok {
 					continue
 				}
 			default:
@@ -672,7 +672,7 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 			switch n := parent.(type) {
 			case *InterfaceProxy:
 			case *Generic:
-				if _, ok := n.Namespace.(*InterfaceProxy); !ok {
+				if _, ok := n.Namespace.Get().(*InterfaceProxy); !ok {
 					continue
 				}
 			case *Class:

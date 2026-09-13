@@ -1,7 +1,11 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
+
+	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/ds"
 )
 
 // Intersection type represents a list of types.
@@ -11,10 +15,70 @@ type Intersection struct {
 	id       ID
 }
 
-func NewIntersection(elements ...Ref[Type]) *Intersection {
+func NewIntersectionRef(elements ...Ref[Type]) *Intersection {
 	return &Intersection{
 		Elements: elements,
 	}
+}
+
+func NewIntersection(elements ...Type) *Intersection {
+	elementRefs := ds.MapSlice(elements, func(element Type) Ref[Type] {
+		return ToRef(element)
+	})
+
+	return &Intersection{
+		Elements: elementRefs,
+	}
+}
+
+func (i *Intersection) ToRef() Ref[*Intersection] {
+	return Ref[*Intersection](i.id)
+}
+
+func (i *Intersection) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("inter:")
+	b := make([]byte, 4)
+	for _, elemRef := range i.Elements {
+		binary.LittleEndian.PutUint32(b, uint32(elemRef))
+		d.Write(b)
+	}
+
+	return d.Sum64()
+}
+
+func (i *Intersection) EqualAny(other any) bool {
+	o, ok := other.(*Intersection)
+	if !ok {
+		return false
+	}
+
+	if i.id > 0 {
+		return i.id == o.id
+	}
+
+	if len(i.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for j := range len(i.Elements) {
+		iElem := i.Elements[j]
+		oElem := o.Elements[j]
+		if iElem != oElem {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *Intersection) ID() ID {
+	return s.id
+}
+
+func (s *Intersection) SetID(id ID) {
+	s.id = id
 }
 
 func (i *Intersection) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -26,7 +90,7 @@ func (i *Intersection) traverse(parent Type, enter func(node, parent Type) Trave
 	}
 
 	for _, element := range i.Elements {
-		if element.traverse(i, enter, leave) == TraverseBreak {
+		if element.Get().traverse(i, enter, leave) == TraverseBreak {
 			return TraverseBreak
 		}
 	}

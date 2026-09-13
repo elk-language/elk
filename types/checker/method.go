@@ -3126,7 +3126,7 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 		case *types.Generic:
 			generics = append(generics, p)
 		case *types.NamespacePlaceholder:
-			switch n := p.Namespace.(type) {
+			switch n := p.Namespace.Get().(type) {
 			case *types.Module:
 				parent = n
 			default:

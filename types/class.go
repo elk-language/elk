@@ -28,6 +28,8 @@ type Class struct {
 	NamespaceBase
 }
 
+var _ Namespace = &Class{}
+
 func (c *Class) ToRef() Ref[*Class] {
 	return Ref[*Class](c.id)
 }
@@ -176,7 +178,7 @@ func getClass(namespace Namespace) Namespace {
 			return namespace
 		}
 	case *TemporaryParent:
-		return getClass(namespace.Namespace)
+		return getClass(namespace.Namespace.Get())
 	}
 	return nil
 }
@@ -250,8 +252,6 @@ func NewClass(
 	}
 	class.singleton = NewSingletonClass(class, Env.StdSubtypeClass(symbol.C_Class)).ToRef()
 	class.SetParent(parent)
-
-	Env.RegisterType(class)
 	return class
 }
 
@@ -281,12 +281,10 @@ func NewClassWithDetails(
 	}
 	class.singleton = NewSingletonClass(class, Env.StdSubtypeClass(symbol.C_Class)).ToRef()
 	class.SetParent(parent)
-
-	Env.RegisterType(class)
 	return class
 }
 
-func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (c *Class) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method

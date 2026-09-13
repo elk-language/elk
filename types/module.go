@@ -16,6 +16,23 @@ type Module struct {
 	NamespaceBase
 }
 
+func (m *Module) ToRef() Ref[*Module] {
+	return Ref[*Module](m.id)
+}
+
+func (m *Module) EqualAny(other any) bool {
+	o, ok := other.(*Module)
+	if !ok {
+		return false
+	}
+
+	if m.id > 0 {
+		return m.id == o.ID()
+	}
+
+	return m.name == o.name
+}
+
 func (m *Module) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(m, parent) {
 	case TraverseBreak:
@@ -37,11 +54,11 @@ func (m *Module) IsGeneric() bool {
 	return false
 }
 
-func (m *Module) TypeParameters() []*TypeParameter {
+func (m *Module) TypeParameters() []Ref[*TypeParameter] {
 	return nil
 }
 
-func (m *Module) SetTypeParameters(t []*TypeParameter) {
+func (m *Module) SetTypeParameters(t []Ref[*TypeParameter]) {
 	panic("cannot set type parameters on a module")
 }
 
@@ -93,10 +110,10 @@ func (m *Module) IsImmutable() bool {
 	return false
 }
 
-func NewModule(docComment, name string, env *GlobalEnvironment) *Module {
+func NewModule(docComment, name string) *Module {
 	return &Module{
-		native:        env.Init,
-		parent:        env.StdSubtypeClass(symbol.C_Module),
+		native:        Env.Init,
+		parent:        Env.StdSubtypeClass(symbol.C_Module),
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
 }
@@ -107,11 +124,10 @@ func NewModuleWithDetails(
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,
-	env *GlobalEnvironment,
 ) *Module {
 	return &Module{
-		parent: env.StdSubtypeClass(symbol.C_Module),
-		native: env.Init,
+		parent: Env.StdSubtypeClass(symbol.C_Module),
+		native: Env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -122,7 +138,7 @@ func NewModuleWithDetails(
 	}
 }
 
-func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
+func (m *Module) ToNonLiteral() Type {
 	return m
 }
 
@@ -134,7 +150,7 @@ func (m *Module) inspect() string {
 	return m.Name()
 }
 
-func (m *Module) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Module) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
@@ -151,6 +167,7 @@ func (m *Module) Copy() *Module {
 			constants:  m.constants,
 			subtypes:   m.subtypes,
 			methods:    m.methods,
+			id:         m.id,
 		},
 	}
 }
@@ -160,41 +177,4 @@ func (m *Module) RemoveTemporaryParents() {
 		return
 	}
 	m.parent = nil
-}
-
-func (m *Module) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Module {
-	moduleConstantPath := GetConstantPath(m.name)
-	parentNamespace := DeepCopyNamespacePath(moduleConstantPath[:len(moduleConstantPath)-1], oldEnv, newEnv)
-
-	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
-		return newType.(*Module)
-	}
-
-	newModule := &Module{
-		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
-		defined:       m.defined,
-		native:        m.native,
-	}
-	if parentNamespace != nil {
-		parentNamespace.DefineSubtype(symbol.ToSymbol(moduleConstantPath[len(moduleConstantPath)-1]), newModule)
-	}
-
-	newModule.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
-	newModule.instanceVariables = InstanceVariablesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
-	newModule.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
-	newModule.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
-
-	if m.parent != nil {
-		newModule.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
-	}
-	return newModule
-}
-
-func (m *Module) deepCopyInPlace(oldModule *Module, oldEnv, newEnv *GlobalEnvironment) {
-	m.methods = MethodsDeepCopyEnv(oldModule.methods, oldEnv, newEnv)
-	m.subtypes = ConstantsDeepCopyEnv(oldModule.subtypes, oldEnv, newEnv)
-	m.constants = ConstantsDeepCopyEnv(oldModule.constants, oldEnv, newEnv)
-	if m.parent != nil {
-		m.parent = DeepCopyEnv(oldModule.parent, oldEnv, newEnv).(Namespace)
-	}
 }

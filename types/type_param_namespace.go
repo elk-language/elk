@@ -1,6 +1,8 @@
 package types
 
 import (
+	"unsafe"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -10,6 +12,27 @@ type TypeParamNamespace struct {
 	ForMethod  bool
 	constants  ConstantMap
 	subtypes   ConstantMap
+	id         ID
+}
+
+func (n *TypeParamNamespace) ToRef() Ref[*TypeParamNamespace] {
+	return Ref[*TypeParamNamespace](n.id)
+}
+
+func (n *TypeParamNamespace) HashUint64() uint64 {
+	return uint64(uintptr(unsafe.Pointer(n)))
+}
+
+func (n *TypeParamNamespace) EqualAny(other any) bool {
+	return n == other
+}
+
+func (n *TypeParamNamespace) ID() ID {
+	return n.id
+}
+
+func (n *TypeParamNamespace) SetID(id ID) {
+	n.id = id
 }
 
 func (t *TypeParamNamespace) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -37,15 +60,6 @@ func (t *TypeParamNamespace) Copy() *TypeParamNamespace {
 		constants:  t.constants,
 		subtypes:   t.subtypes,
 	}
-}
-
-func (t *TypeParamNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypeParamNamespace {
-	newNamespace := t.Copy()
-
-	newNamespace.constants = ConstantsDeepCopyEnv(t.constants, oldEnv, newEnv)
-	newNamespace.subtypes = ConstantsDeepCopyEnv(t.subtypes, oldEnv, newEnv)
-
-	return newNamespace
 }
 
 func (t *TypeParamNamespace) Name() string {
@@ -139,13 +153,13 @@ func (t *TypeParamNamespace) ConstantString(name string) (Constant, bool) {
 
 func (t *TypeParamNamespace) DefineConstant(name symbol.Symbol, val Type) {
 	t.constants[name] = Constant{
-		Type: val,
+		Type: ToRef(val),
 	}
 }
 
 func (t *TypeParamNamespace) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
 	t.constants[name] = Constant{
-		Type:     val,
+		Type:     ToRef(val),
 		FullName: fullName,
 	}
 }
@@ -160,11 +174,11 @@ func (t *TypeParamNamespace) Subtype(name symbol.Symbol) (Constant, bool) {
 }
 
 func (t *TypeParamNamespace) MustSubtypeString(name string) Type {
-	return t.subtypes[symbol.ToSymbol(name)].Type
+	return t.subtypes[symbol.ToSymbol(name)].Type.Get()
 }
 
 func (t *TypeParamNamespace) MustSubtype(name symbol.Symbol) Type {
-	return t.subtypes[name].Type
+	return t.subtypes[name].Type.Get()
 }
 
 func (t *TypeParamNamespace) SubtypeString(name string) (Constant, bool) {
@@ -173,13 +187,13 @@ func (t *TypeParamNamespace) SubtypeString(name string) (Constant, bool) {
 
 func (t *TypeParamNamespace) DefineSubtype(name symbol.Symbol, val Type) {
 	t.subtypes[name] = Constant{
-		Type: val,
+		Type: ToRef(val),
 	}
 }
 
 func (t *TypeParamNamespace) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	t.subtypes[name] = Constant{
-		Type: val,
+		Type: ToRef(val),
 	}
 }
 
@@ -234,7 +248,7 @@ func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symb
 	panic("cannot define interfaces on type param namespaces")
 }
 
-func (t *TypeParamNamespace) ToNonLiteral(env *GlobalEnvironment) Type {
+func (t *TypeParamNamespace) ToNonLiteral() Type {
 	return t
 }
 

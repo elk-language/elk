@@ -14,6 +14,8 @@ type InterfaceProxy struct {
 	id        ID
 }
 
+var _ Namespace = &InterfaceProxy{}
+
 func (i *InterfaceProxy) Parent() Namespace {
 	return i.parent.Get()
 }
@@ -27,7 +29,6 @@ func NewInterfaceProxy(iface *Interface, parent Namespace) *InterfaceProxy {
 		parent:    ToRef(parent),
 		Interface: iface.ToRef(),
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -148,7 +149,7 @@ func (i *InterfaceProxy) IsImmutable() bool {
 	return i.Interface.Get().IsImmutable()
 }
 
-func (i *InterfaceProxy) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (i *InterfaceProxy) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	return i.Interface.Get().DefineMethod(docComment, flags, name, typeParams, params, returnType, throwType)
 }
 

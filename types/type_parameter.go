@@ -54,6 +54,10 @@ type TypeParameter struct {
 	id         ID
 }
 
+func (n *TypeParameter) ToRef() Ref[*TypeParameter] {
+	return Ref[*TypeParameter](n.id)
+}
+
 func (t *TypeParameter) HashUint64() uint64 {
 	d := xxhash.New()
 
@@ -133,7 +137,6 @@ func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upper
 		Default:    ToRef(def),
 		Variance:   variance,
 	}
-	Env.RegisterType(t)
 	return t
 }
 

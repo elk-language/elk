@@ -6,18 +6,31 @@ import (
 )
 
 type Mixin struct {
-	parent         Namespace
+	parent         Ref[Namespace]
 	abstract       bool
 	defined        bool
 	native         bool
 	Checked        bool
-	singleton      *SingletonClass
-	typeParameters []*TypeParameter
+	singleton      Ref[*SingletonClass]
+	typeParameters []Ref[*TypeParameter]
 	NamespaceBase
 }
 
 func (m *Mixin) ToRef() Ref[*Mixin] {
 	return ToRef(m)
+}
+
+func (m *Mixin) EqualAny(other any) bool {
+	o, ok := other.(*Class)
+	if !ok {
+		return false
+	}
+
+	if m.id > 0 {
+		return m.id == o.ID()
+	}
+
+	return m.name == o.name
 }
 
 func (m *Mixin) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -33,11 +46,11 @@ func (m *Mixin) IsGeneric() bool {
 	return len(m.typeParameters) > 0
 }
 
-func (m *Mixin) TypeParameters() []*TypeParameter {
+func (m *Mixin) TypeParameters() []Ref[*TypeParameter] {
 	return m.typeParameters
 }
 
-func (m *Mixin) SetTypeParameters(t []*TypeParameter) {
+func (m *Mixin) SetTypeParameters(t []Ref[*TypeParameter]) {
 	m.typeParameters = t
 }
 
@@ -47,11 +60,11 @@ func IsMixin(typ Type) bool {
 }
 
 func (m *Mixin) Singleton() *SingletonClass {
-	return m.singleton
+	return m.singleton.Get()
 }
 
 func (m *Mixin) SetSingleton(singleton *SingletonClass) {
-	m.singleton = singleton
+	m.singleton = singleton.ToRef()
 }
 
 func (m *Mixin) SetAbstract(abstract bool) *Mixin {
@@ -92,29 +105,29 @@ func (m *Mixin) IsImmutable() bool {
 }
 
 func (m *Mixin) Parent() Namespace {
-	return m.parent
+	return m.parent.Get()
 }
 
 func (m *Mixin) SetParent(parent Namespace) {
-	m.parent = parent
+	m.parent = ToRef(parent)
 }
 
-func (m *Mixin) RemoveTemporaryParents(env *GlobalEnvironment) {
-	if _, ok := m.parent.(*TemporaryParent); !ok {
+func (m *Mixin) RemoveTemporaryParents() {
+	if _, ok := m.parent.Get().(*TemporaryParent); !ok {
 		return
 	}
 
-	m.parent = nil
-	m.singleton.parent = env.StdSubtypeClass(symbol.C_Mixin)
+	m.parent = ZERO_ID
+	m.singleton.Get().parent = CastRef[Namespace](Env.StdSubtypeClass(symbol.C_Mixin))
 }
 
-func NewMixin(docComment string, abstract bool, name string, env *GlobalEnvironment) *Mixin {
+func NewMixin(docComment string, abstract bool, name string) *Mixin {
 	mixin := &Mixin{
 		abstract:      abstract,
-		defined:       env.Init,
+		defined:       Env.Init,
 		NamespaceBase: MakeNamespaceBase(docComment, name),
 	}
-	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.C_Mixin))
+	mixin.singleton = NewSingletonClass(mixin, Env.StdSubtypeClass(symbol.C_Mixin)).ToRef()
 
 	return mixin
 }
@@ -127,12 +140,11 @@ func NewMixinWithDetails(
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,
-	env *GlobalEnvironment,
 ) *Mixin {
 	mixin := &Mixin{
-		parent:   parent,
+		parent:   ToRef(parent),
 		abstract: abstract,
-		defined:  env.Init,
+		defined:  Env.Init,
 		NamespaceBase: NamespaceBase{
 			docComment: docComment,
 			name:       name,
@@ -141,12 +153,12 @@ func NewMixinWithDetails(
 			subtypes:   subtypes,
 		},
 	}
-	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.C_Mixin))
+	mixin.singleton = NewSingletonClass(mixin, Env.StdSubtypeClass(symbol.C_Mixin)).ToRef()
 
 	return mixin
 }
 
-func (m *Mixin) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (m *Mixin) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, m)
 	m.SetMethod(name, method)
 	return method
@@ -156,7 +168,7 @@ func (m *Mixin) inspect() string {
 	return m.name
 }
 
-func (m *Mixin) ToNonLiteral(env *GlobalEnvironment) Type {
+func (m *Mixin) ToNonLiteral() Type {
 	return m
 }
 
@@ -177,38 +189,7 @@ func (m *Mixin) Copy() *Mixin {
 			constants:  m.constants,
 			methods:    m.methods,
 			subtypes:   m.subtypes,
+			id:         m.id,
 		},
 	}
-}
-
-func (m *Mixin) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Mixin {
-	mixinConstantPath := GetConstantPath(m.name)
-	parentNamespace := DeepCopyNamespacePath(mixinConstantPath[:len(mixinConstantPath)-1], oldEnv, newEnv)
-
-	if newType, ok := NameToTypeOk(m.name, newEnv); ok {
-		return newType.(*Mixin)
-	}
-
-	newMixin := &Mixin{
-		abstract:      m.abstract,
-		defined:       m.defined,
-		Checked:       m.Checked,
-		native:        m.native,
-		NamespaceBase: MakeNamespaceBase(m.docComment, m.name),
-	}
-	parentNamespace.DefineSubtype(symbol.ToSymbol(mixinConstantPath[len(mixinConstantPath)-1]), newMixin)
-
-	newMixin.singleton = nil
-	newMixin.singleton = DeepCopyEnv(m.singleton, oldEnv, newEnv).(*SingletonClass)
-
-	newMixin.typeParameters = TypeParametersDeepCopyEnv(m.typeParameters, oldEnv, newEnv)
-	newMixin.methods = MethodsDeepCopyEnv(m.methods, oldEnv, newEnv)
-	newMixin.instanceVariables = InstanceVariablesDeepCopyEnv(m.instanceVariables, oldEnv, newEnv)
-	newMixin.constants = ConstantsDeepCopyEnv(m.constants, oldEnv, newEnv)
-	newMixin.subtypes = ConstantsDeepCopyEnv(m.subtypes, oldEnv, newEnv)
-
-	if m.parent != nil {
-		newMixin.parent = DeepCopyEnv(m.parent, oldEnv, newEnv).(Namespace)
-	}
-	return newMixin
 }

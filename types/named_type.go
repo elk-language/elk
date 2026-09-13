@@ -1,17 +1,60 @@
 package types
 
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"encoding/binary"
+
+	"github.com/cespare/xxhash/v2"
+)
 
 type NamedType struct {
 	Name string
-	Type Type
+	Type Ref[Type]
+	id   ID
 }
 
 func NewNamedType(name string, typ Type) *NamedType {
 	return &NamedType{
 		Name: name,
-		Type: typ,
+		Type: ToRef(typ),
 	}
+}
+
+func (s *NamedType) ToRef() Ref[*NamedType] {
+	return Ref[*NamedType](s.id)
+}
+
+func (s *NamedType) HashUint64() uint64 {
+	d := xxhash.New()
+
+	d.WriteString("named:")
+	d.WriteString(s.Name)
+
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(s.Type))
+	d.Write(b)
+
+	return d.Sum64()
+}
+
+func (s *NamedType) EqualAny(other any) bool {
+	o, ok := other.(*NamedType)
+	if !ok {
+		return false
+	}
+
+	if s.id > 0 {
+		return s.id == o.id
+	}
+
+	return s.Name == o.Name && s.Type == o.Type
+}
+
+func (s *NamedType) ID() ID {
+	return s.id
+}
+
+func (s *NamedType) SetID(id ID) {
+	s.id = id
 }
 
 func (n *NamedType) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -23,7 +66,7 @@ func (n *NamedType) traverse(parent Type, enter func(node, parent Type) Traverse
 	}
 }
 
-func (n *NamedType) ToNonLiteral(env *GlobalEnvironment) Type {
+func (n *NamedType) ToNonLiteral() Type {
 	return n
 }
 
@@ -39,24 +82,6 @@ func (n *NamedType) Copy() *NamedType {
 	return &NamedType{
 		Name: n.Name,
 		Type: n.Type,
+		id:   n.id,
 	}
-}
-
-func (n *NamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamedType {
-	if newType, ok := NameToTypeOk(n.Name, newEnv); ok {
-		return newType.(*NamedType)
-	}
-
-	newType := &NamedType{
-		Name: n.Name,
-	}
-
-	classConstantPath := GetConstantPath(n.Name)
-	parentNamespace := DeepCopyNamespacePath(classConstantPath[:len(classConstantPath)-1], oldEnv, newEnv)
-	classConstantName := classConstantPath[len(classConstantPath)-1]
-	parentNamespace.DefineSubtype(symbol.ToSymbol(classConstantName), newType)
-
-	newType.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
-
-	return newType
 }

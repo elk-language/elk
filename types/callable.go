@@ -20,11 +20,10 @@ func NewCallable(method *Method, isClosure bool) *Callable {
 		Body:      method.ToRef(),
 		IsClosure: isClosure,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
-func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType Type, throwType Type, isClosure bool) *Callable {
+func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType Type, throwType Type, isClosure bool) *Callable {
 	callable := NewCallable(nil, isClosure)
 	method := NewMethod(
 		docComment,
@@ -37,7 +36,6 @@ func NewCallableWithMethod(docComment string, flags bitfield.BitFlag16, name sym
 		callable,
 	)
 	callable.Body = method.ToRef()
-	Env.RegisterType(callable)
 	return callable
 }
 
@@ -241,7 +239,7 @@ func (c *Callable) MethodString(name string) *Method {
 	return nil
 }
 
-func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (c *Callable) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	panic("cannot define methods on callables")
 }
 
@@ -292,7 +290,8 @@ func (c *Callable) inspect() string {
 		buffer.WriteRune('|')
 	}
 	firstIteration := true
-	for _, param := range body.Params {
+	for _, paramRef := range body.Params {
+		param := paramRef.Get()
 		if !firstIteration {
 			buffer.WriteString(", ")
 		} else {

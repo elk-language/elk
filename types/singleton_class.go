@@ -9,11 +9,10 @@ import (
 type SingletonClass struct {
 	AttachedObject Ref[Namespace]
 	Class
-	id ID
 }
 
 func (c *SingletonClass) EqualAny(other any) bool {
-	o, ok := other.(*SingletonClass)
+	o, ok := other.(Namespace)
 	if !ok {
 		return false
 	}
@@ -22,7 +21,7 @@ func (c *SingletonClass) EqualAny(other any) bool {
 		return c.id == o.ID()
 	}
 
-	return c.name == o.name
+	return c.name == o.Name()
 }
 
 func (c *SingletonClass) ToRef() Ref[*SingletonClass] {
@@ -63,7 +62,7 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	}
 }
 
-func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method

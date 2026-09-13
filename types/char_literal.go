@@ -66,7 +66,6 @@ func NewCharLiteral(value rune) *CharLiteral {
 	t := &CharLiteral{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 

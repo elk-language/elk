@@ -1,17 +1,57 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type Nilable struct {
-	Type Type
+	Type Ref[Type]
+	id   ID
 }
 
 func NewNilable(typ Type) *Nilable {
 	return &Nilable{
-		Type: typ,
+		Type: ToRef(typ),
 	}
+}
+
+func (n *Nilable) ToRef() Ref[*Nilable] {
+	return Ref[*Nilable](n.id)
+}
+
+func (n *Nilable) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("nilable:")
+
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(n.Type))
+	d.Write(b)
+
+	return d.Sum64()
+}
+
+func (n *Nilable) EqualAny(other any) bool {
+	o, ok := other.(*Nilable)
+	if !ok {
+		return false
+	}
+
+	if n.id > 0 {
+		return n.id == n.ID()
+	}
+
+	return n.Type == o.Type
+}
+
+func (n *Nilable) ID() ID {
+	return n.id
+}
+
+func (n *Nilable) SetID(id ID) {
+	n.id = id
 }
 
 func (n *Nilable) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -22,14 +62,14 @@ func (n *Nilable) traverse(parent Type, enter func(node, parent Type) TraverseOp
 		return leave(n, parent)
 	}
 
-	if n.Type.traverse(n, enter, leave) == TraverseBreak {
+	if n.Type.Get().traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
 	return leave(n, parent)
 }
 
-func (n *Nilable) ToNonLiteral(env *GlobalEnvironment) Type {
+func (n *Nilable) ToNonLiteral() Type {
 	return n
 }
 
@@ -40,8 +80,10 @@ func (*Nilable) IsLiteral() bool {
 func (n *Nilable) inspect() string {
 	var buf strings.Builder
 
+	typ := n.Type.Get()
+
 	var addParens bool
-	switch n.Type.(type) {
+	switch typ.(type) {
 	case *Union, *Intersection:
 		addParens = true
 	}
@@ -49,7 +91,7 @@ func (n *Nilable) inspect() string {
 	if addParens {
 		buf.WriteRune('(')
 	}
-	buf.WriteString(Inspect(n.Type))
+	buf.WriteString(Inspect(typ))
 	if addParens {
 		buf.WriteRune(')')
 	}
@@ -60,11 +102,6 @@ func (n *Nilable) inspect() string {
 func (n *Nilable) Copy() *Nilable {
 	return &Nilable{
 		Type: n.Type,
+		id:   n.id,
 	}
-}
-
-func (n *Nilable) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Nilable {
-	newNilable := n.Copy()
-	newNilable.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
-	return newNilable
 }

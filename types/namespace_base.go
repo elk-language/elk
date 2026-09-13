@@ -126,21 +126,21 @@ func (c *NamespaceBase) SubtypeString(name string) (Constant, bool) {
 }
 
 func (c *NamespaceBase) MustSubtype(name symbol.Symbol) Type {
-	return c.subtypes[name].Type
+	return c.subtypes[name].Type.Get()
 }
 
 func (c *NamespaceBase) MustSubtypeString(name string) Type {
-	return c.subtypes[symbol.ToSymbol(name)].Type
+	return c.subtypes[symbol.ToSymbol(name)].Type.Get()
 }
 
 // Get the method with the given name.
 func (c *NamespaceBase) Method(name symbol.Symbol) *Method {
-	return c.methods[name]
+	return c.methods[name].Get()
 }
 
 // Get the method with the given name.
 func (c *NamespaceBase) MethodString(name string) *Method {
-	return c.methods[symbol.ToSymbol(name)]
+	return c.methods[symbol.ToSymbol(name)].Get()
 }
 
 func (c *NamespaceBase) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable) {
@@ -161,7 +161,18 @@ func (c *NamespaceBase) DefineConstant(name symbol.Symbol, val Type) {
 	c.DefineConstantWithFullName(name, MakeFullConstantName(c.Name(), name.String()), val)
 }
 
+func (c *NamespaceBase) DefineConstantRef(name symbol.Symbol, val Ref[Type]) {
+	c.DefineConstantWithFullNameRef(name, MakeFullConstantName(c.Name(), name.String()), val)
+}
+
 func (c *NamespaceBase) DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type) {
+	c.constants[name] = Constant{
+		FullName: fullName,
+		Type:     ToRef(val),
+	}
+}
+
+func (c *NamespaceBase) DefineConstantWithFullNameRef(name symbol.Symbol, fullName string, val Ref[Type]) {
 	c.constants[name] = Constant{
 		FullName: fullName,
 		Type:     val,
@@ -175,12 +186,12 @@ func (c *NamespaceBase) DefineSubtype(name symbol.Symbol, val Type) {
 func (c *NamespaceBase) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	c.subtypes[name] = Constant{
 		FullName: fullName,
-		Type:     val,
+		Type:     ToRef(val),
 	}
 }
 
 func (c *NamespaceBase) SetMethod(name symbol.Symbol, method *Method) {
-	c.methods[name] = method
+	c.methods[name] = method.ToRef()
 }
 
 // Define a new class if it does not exist
@@ -190,7 +201,7 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 		return c.DefineClass(docComment, abstract, sealed, primitive, noinit, immutable, name, parent)
 	}
 
-	class := subtype.Type.(*Class)
+	class := subtype.Type.Get().(*Class)
 	class.AppendDocComment(docComment)
 
 	if class.IsPrimitive() != primitive || class.IsAbstract() != abstract || class.IsSealed() != sealed {
@@ -222,7 +233,7 @@ func (c *NamespaceBase) TryDefineModule(docComment string, name symbol.Symbol) *
 		return c.DefineModule(docComment, name)
 	}
 
-	module := subtype.Type.(*Module)
+	module := subtype.Type.Get().(*Module)
 	module.AppendDocComment(docComment)
 	return module
 }
@@ -243,7 +254,7 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name sy
 		return c.DefineMixin(docComment, abstract, name)
 	}
 
-	mixin := subtype.Type.(*Mixin)
+	mixin := subtype.Type.Get().(*Mixin)
 	mixin.AppendDocComment(docComment)
 	if mixin.IsAbstract() != abstract {
 		panic(
@@ -263,7 +274,7 @@ func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name symbo
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewMixin(docComment, abstract, fullName)
 	c.DefineSubtypeWithFullName(name, fullName, m)
-	c.DefineConstantWithFullName(name, fullName, m.singleton)
+	c.DefineConstantWithFullNameRef(name, fullName, Ref[Type](m.singleton))
 	return m
 }
 
@@ -274,7 +285,7 @@ func (c *NamespaceBase) TryDefineInterface(docComment string, name symbol.Symbol
 		return c.DefineInterface(docComment, name)
 	}
 
-	iface := subtype.Type.(*Interface)
+	iface := subtype.Type.Get().(*Interface)
 	iface.AppendDocComment(docComment)
 	return iface
 }

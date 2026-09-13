@@ -276,7 +276,7 @@ func (g *Generic) MethodString(name string) *Method {
 	return g.Namespace.Get().MethodString(name)
 }
 
-func (g *Generic) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (g *Generic) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	return g.Namespace.Get().DefineMethod(docComment, flags, name, typeParams, params, returnType, throwType)
 }
 
@@ -376,7 +376,6 @@ func NewGeneric(typ Namespace, typeArgs *TypeArguments) *Generic {
 		TypeArguments: typeArgs,
 	}
 
-	Env.RegisterType(generic)
 	return generic
 }
 

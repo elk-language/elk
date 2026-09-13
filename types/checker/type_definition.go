@@ -317,13 +317,13 @@ func (c *Checker) checkTypeDefinitionForMacros(typedefCheck *typeDefinitionCheck
 func (c *Checker) removeTemporaryParents(typ types.Type) {
 	switch typ := typ.(type) {
 	case *types.Mixin:
-		typ.RemoveTemporaryParents(c.runtimeEnv)
+		typ.RemoveTemporaryParents()
 	case *types.Class:
-		typ.RemoveTemporaryParents(c.runtimeEnv)
+		typ.RemoveTemporaryParents()
 	case *types.Module:
 		typ.RemoveTemporaryParents()
 	case *types.SingletonClass:
-		typ.RemoveTemporaryParents(c.runtimeEnv)
+		typ.RemoveTemporaryParents()
 	}
 }
 
@@ -1108,7 +1108,7 @@ func (c *Checker) ResolveGenericParent(namespace types.Namespace, targetParent t
 	for parent := range types.Parents(namespace) {
 		switch p := parent.(type) {
 		case *types.NamespacePlaceholder:
-			switch n := p.Namespace.(type) {
+			switch n := p.Namespace.Get().(type) {
 			case *types.Module:
 				parent = n
 			default:

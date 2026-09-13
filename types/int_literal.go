@@ -13,18 +13,18 @@ type IntLiteral struct {
 	id         ID
 }
 
-func (c *IntLiteral) ToRef() Ref[*IntLiteral] {
-	return Ref[*IntLiteral](c.id)
+func (i *IntLiteral) ToRef() Ref[*IntLiteral] {
+	return Ref[*IntLiteral](i.id)
 }
 
-func (f *IntLiteral) HashUint64() uint64 {
+func (i *IntLiteral) HashUint64() uint64 {
 	d := xxhash.New()
 
 	d.WriteString("int:")
-	d.WriteString(f.Value)
+	d.WriteString(i.Value)
 
 	var isNegativeByte byte
-	if f.isNegative {
+	if i.isNegative {
 		isNegativeByte = 1
 	}
 	d.Write([]byte{isNegativeByte})
@@ -32,25 +32,25 @@ func (f *IntLiteral) HashUint64() uint64 {
 	return d.Sum64()
 }
 
-func (f *IntLiteral) EqualAny(other any) bool {
+func (i *IntLiteral) EqualAny(other any) bool {
 	o, ok := other.(*IntLiteral)
 	if !ok {
 		return false
 	}
 
-	if f.id > 0 {
-		return f.id == o.id
+	if i.id > 0 {
+		return i.id == o.id
 	}
 
-	return f.Value == o.Value && f.isNegative == o.isNegative
+	return i.Value == o.Value && i.isNegative == o.isNegative
 }
 
-func (f *IntLiteral) ID() ID {
-	return f.id
+func (i *IntLiteral) ID() ID {
+	return i.id
 }
 
-func (f *IntLiteral) SetID(id ID) {
-	f.id = id
+func (i *IntLiteral) SetID(id ID) {
+	i.id = id
 }
 
 func (i *IntLiteral) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -78,7 +78,6 @@ func NewIntLiteral(value string) *IntLiteral {
 	t := &IntLiteral{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -176,7 +175,6 @@ func NewInt64Literal(value string) *Int64Literal {
 	t := &Int64Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -274,7 +272,6 @@ func NewInt32Literal(value string) *Int32Literal {
 	t := &Int32Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -372,7 +369,6 @@ func NewInt16Literal(value string) *Int16Literal {
 	t := &Int16Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -470,7 +466,6 @@ func NewInt8Literal(value string) *Int8Literal {
 	t := &Int8Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -568,7 +563,6 @@ func NewUIntLiteral(value string) *UIntLiteral {
 	t := &UIntLiteral{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -666,7 +660,6 @@ func NewUInt64Literal(value string) *UInt64Literal {
 	t := &UInt64Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -764,7 +757,6 @@ func NewUInt32Literal(value string) *UInt32Literal {
 	t := &UInt32Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -862,7 +854,6 @@ func NewUInt16Literal(value string) *UInt16Literal {
 	t := &UInt16Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 
@@ -959,7 +950,6 @@ func NewUInt8Literal(value string) *UInt8Literal {
 	t := &UInt8Literal{
 		Value: value,
 	}
-	Env.RegisterType(t)
 	return t
 }
 

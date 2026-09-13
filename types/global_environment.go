@@ -88,37 +88,37 @@ func (g *GlobalEnvironment) NamesToNamespace(path ...symbol.Symbol) Namespace {
 
 func (g *GlobalEnvironment) Std() *Module {
 	s, _ := g.Root.Subtype(symbol.C_Std)
-	return s.Type.(*Module)
+	return s.Type.Get().(*Module)
 }
 
 func (g *GlobalEnvironment) StdSubtype(name symbol.Symbol) Type {
 	s, _ := g.Std().Subtype(name)
-	return s.Type
+	return s.Type.Get()
 }
 
 func (g *GlobalEnvironment) StdSubtypeClass(name symbol.Symbol) *Class {
 	s, _ := g.Std().Subtype(name)
-	return s.Type.(*Class)
+	return s.Type.Get().(*Class)
 }
 
 func (g *GlobalEnvironment) StdSubtypeModule(name symbol.Symbol) *Module {
 	s, _ := g.Std().Subtype(name)
-	return s.Type.(*Module)
+	return s.Type.Get().(*Module)
 }
 
 func (g *GlobalEnvironment) StdSubtypeString(name string) Type {
 	s, _ := g.Std().SubtypeString(name)
-	return s.Type
+	return s.Type.Get()
 }
 
 func (g *GlobalEnvironment) StdConstString(name string) Type {
 	s, _ := g.Std().ConstantString(name)
-	return s.Type
+	return s.Type.Get()
 }
 
 func (g *GlobalEnvironment) StdConst(name symbol.Symbol) Type {
 	s, _ := g.Std().Constant(name)
-	return s.Type
+	return s.Type.Get()
 }
 
 func (g *GlobalEnvironment) ASTSubtype(name symbol.Symbol) Type {
@@ -151,6 +151,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		TypeSet: ds.NewHashSet[Type](30),
 		Init:    true,
 	}
+	Env = env
 
 	env.RegisterTypeWithID(Any{}, AnyID)
 	env.RegisterTypeWithID(Bool{}, BoolID)
@@ -182,7 +183,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineSubtype(symbol.C_Value, valueClass)
 
 	objectClass := &Class{
-		parent:        valueClass,
+		parent:        CastRef[Namespace](valueClass),
 		NamespaceBase: MakeNamespaceBase("", "Std::Object"),
 		native:        true,
 		immutable:     true,
@@ -190,86 +191,89 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineSubtype(symbol.C_Object, objectClass)
 
 	classClass := &Class{
-		parent:        objectClass,
+		parent:        CastRef[Namespace](objectClass),
 		NamespaceBase: MakeNamespaceBase("", "Std::Class"),
 		native:        true,
 		noinit:        true,
 	}
 	stdModule.DefineSubtype(symbol.C_Class, classClass)
 
-	valueClass.singleton = NewSingletonClass(valueClass, classClass)
-	stdModule.DefineConstant(symbol.C_Value, valueClass.singleton)
+	valueSingleton := NewSingletonClass(valueClass, classClass)
+	valueClass.singleton = valueSingleton.ToRef()
+	stdModule.DefineConstant(symbol.C_Value, valueSingleton)
 
-	objectClass.singleton = NewSingletonClass(objectClass, classClass)
-	stdModule.DefineConstant(symbol.C_Object, objectClass.singleton)
+	objectSingleton := NewSingletonClass(objectClass, classClass)
+	objectClass.singleton = objectSingleton.ToRef()
+	stdModule.DefineConstant(symbol.C_Object, objectSingleton)
 
-	classClass.singleton = NewSingletonClass(classClass, classClass)
-	stdModule.DefineConstant(symbol.C_Class, classClass.singleton)
+	classSingleton := NewSingletonClass(classClass, classClass)
+	classClass.singleton = classSingleton.ToRef()
+	stdModule.DefineConstant(symbol.C_Class, classSingleton)
 
 	// -- End of Bootstrapping --
 
-	moduleClass := stdModule.DefineClass("", false, false, false, true, false, symbol.C_Module, objectClass, env)
+	moduleClass := stdModule.DefineClass("", false, false, false, true, false, symbol.C_Module, objectClass)
 	rootModule.parent = moduleClass
 	stdModule.parent = moduleClass
 
-	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Mixin, objectClass, env)
-	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Interface, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Mixin, objectClass)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Interface, objectClass)
 
-	stdModule.DefineModule("", symbol.C_Kernel, env)
+	stdModule.DefineModule("", symbol.C_Kernel)
 
-	boxClass := stdModule.DefineClass("", false, true, true, false, false, symbol.C_Box, objectClass, env)
+	boxClass := stdModule.DefineClass("", false, true, true, false, false, symbol.C_Box, objectClass)
 	// Set up type parameters
 	var typeParam *TypeParameter
-	typeParams := make([]*TypeParameter, 1)
+	typeParams := make([]Ref[*TypeParameter], 1)
 	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), boxClass, Never{}, Any{}, nil, INVARIANT)
-	typeParams[0] = typeParam
+	typeParams[0] = typeParam.ToRef()
 	boxClass.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
 	boxClass.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
 	boxClass.SetTypeParameters(typeParams)
 
-	boolClass := stdModule.DefineClass("", false, true, true, true, false, symbol.C_Bool, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_True, boolClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_False, boolClass, env)
+	boolClass := stdModule.DefineClass("", false, true, true, true, false, symbol.C_Bool, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_True, boolClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_False, boolClass)
 
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Nil, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_String, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Symbol, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Char, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_BigFloat, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_ArrayList, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_ArrayTuple, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashMap, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashRecord, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashSet, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Regex, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Method, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Pair, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Nil, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_String, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Symbol, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Char, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_BigFloat, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float64, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float32, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int64, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int32, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int16, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int8, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt64, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt32, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt16, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt8, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt, valueClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_ArrayList, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_ArrayTuple, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashMap, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashRecord, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_HashSet, objectClass)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Regex, objectClass)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Method, objectClass)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Pair, objectClass)
 
-	tupleMixin := stdModule.DefineMixin("", true, symbol.C_Tuple, env)
-	typeParams = make([]*TypeParameter, 1)
+	tupleMixin := stdModule.DefineMixin("", true, symbol.C_Tuple)
+	typeParams = make([]Ref[*TypeParameter], 1)
 	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), tupleMixin, Never{}, Any{}, nil, COVARIANT)
-	typeParams[0] = typeParam
+	typeParams[0] = typeParam.ToRef()
 	tupleMixin.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
 	tupleMixin.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
 	tupleMixin.SetTypeParameters(typeParams)
 
-	listMixin := stdModule.DefineMixin("", true, symbol.C_List, env)
-	typeParams = make([]*TypeParameter, 1)
+	listMixin := stdModule.DefineMixin("", true, symbol.C_List)
+	typeParams = make([]Ref[*TypeParameter], 1)
 	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), listMixin, Never{}, Any{}, nil, INVARIANT)
-	typeParams[0] = typeParam
+	typeParams[0] = typeParam.ToRef()
 	listMixin.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
 	listMixin.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
 	listMixin.SetTypeParameters(typeParams)
@@ -521,24 +525,8 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	stdModule.DefineSubtype(symbol.S_BuiltinSubscriptable, BuiltinSubscriptable)
 
 	ElkTokenConstant, _ := env.StdSubtypeModule(symbol.C_Elk).Subtype(symbol.C_Token)
-	ElkTokenClass := ElkTokenConstant.Type.(*Class)
+	ElkTokenClass := ElkTokenConstant.Type.Get().(*Class)
 	for _, tokenName := range token.Types() {
 		ElkTokenClass.DefineConstant(symbol.ToSymbol(tokenName), UInt16)
 	}
-}
-
-func (g *GlobalEnvironment) DeepCopyEnv() *GlobalEnvironment {
-	newRoot := &Module{
-		NamespaceBase: MakeNamespaceBase("", "Root"),
-		defined:       true,
-	}
-	newRoot.DefineSubtype(symbol.C_Root, newRoot)
-
-	newEnv := &GlobalEnvironment{
-		Init: g.Init,
-		Root: newRoot,
-	}
-	newRoot.deepCopyInPlace(g.Root, g, newEnv)
-
-	return newEnv
 }

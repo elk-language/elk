@@ -1037,7 +1037,7 @@ func (c *Checker) namespaceIsMixin(a types.Namespace, b *types.Mixin) bool {
 			return true
 		}
 	case *types.TemporaryParent:
-		return c.namespaceIsMixin(a.Namespace, b)
+		return c.namespaceIsMixin(a.Namespace.Get(), b)
 	}
 
 	return false

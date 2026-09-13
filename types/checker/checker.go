@@ -539,7 +539,7 @@ func (c *Checker) doWithMacroScopes(fn func()) {
 
 func (c *Checker) checkNamespacePlaceholders() {
 	for _, placeholder := range c.namespacePlaceholders {
-		replacement := placeholder.Namespace
+		replacement := placeholder.Namespace.Get()
 		if _, ok := replacement.(*types.ModulePlaceholder); !ok {
 			continue
 		}
@@ -8793,7 +8793,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			t.Namespace = module
+			t.Namespace = types.ToRef[types.Namespace](module)
 			namespace.DefineConstant(constantName, module)
 			namespace.DefineSubtype(constantName, module)
 			return module
@@ -8918,7 +8918,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			t.Namespace = class
+			t.Namespace = types.ToRef[types.Namespace](class)
 			namespace.DefineConstant(constantName, class.Singleton())
 			namespace.DefineSubtype(constantName, class)
 			return class
@@ -9704,7 +9704,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			t.Namespace = mixin
+			t.Namespace = types.ToRef[types.Namespace](mixin)
 			namespace.DefineConstant(constantName, mixin.Singleton())
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
@@ -9755,7 +9755,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			t.Namespace = iface
+			t.Namespace = types.ToRef[types.Namespace](iface)
 			namespace.DefineConstant(constantName, iface.Singleton())
 			namespace.DefineSubtype(constantName, iface)
 			return iface

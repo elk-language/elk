@@ -14,6 +14,8 @@ type Interface struct {
 	NamespaceBase
 }
 
+var _ Namespace = &Interface{}
+
 func (i *Interface) ToRef() Ref[*Interface] {
 	return ToRef(i)
 }
@@ -131,7 +133,7 @@ func NewInterfaceWithDetails(
 	}
 }
 
-func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []*Parameter, returnType, throwType Type) *Method {
+func (i *Interface) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, i)
 	i.SetMethod(name, method)
 	return method

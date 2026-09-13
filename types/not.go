@@ -1,11 +1,51 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type Not struct {
-	Type Type
+	Type Ref[Type]
+	id   ID
+}
+
+func (n *Not) ToRef() Ref[*Not] {
+	return Ref[*Not](n.id)
+}
+
+func (n *Not) HashUint64() uint64 {
+	d := xxhash.New()
+	d.WriteString("not:")
+
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(n.Type))
+	d.Write(b)
+
+	return d.Sum64()
+}
+
+func (n *Not) EqualAny(other any) bool {
+	o, ok := other.(*Not)
+	if !ok {
+		return false
+	}
+
+	if n.id > 0 {
+		return n.id == n.ID()
+	}
+
+	return n.Type == o.Type
+}
+
+func (n *Not) ID() ID {
+	return n.id
+}
+
+func (n *Not) SetID(id ID) {
+	n.id = id
 }
 
 func (n *Not) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
@@ -16,7 +56,7 @@ func (n *Not) traverse(parent Type, enter func(node, parent Type) TraverseOption
 		return leave(n, parent)
 	}
 
-	if n.Type.traverse(n, enter, leave) == TraverseBreak {
+	if n.Type.Get().traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
@@ -25,11 +65,11 @@ func (n *Not) traverse(parent Type, enter func(node, parent Type) TraverseOption
 
 func NewNot(typ Type) *Not {
 	return &Not{
-		Type: typ,
+		Type: ToRef(typ),
 	}
 }
 
-func (n *Not) ToNonLiteral(env *GlobalEnvironment) Type {
+func (n *Not) ToNonLiteral() Type {
 	return n
 }
 
@@ -40,8 +80,9 @@ func (*Not) IsLiteral() bool {
 func (n *Not) inspect() string {
 	var buf strings.Builder
 
+	typ := n.Type.Get()
 	var addParens bool
-	switch n.Type.(type) {
+	switch typ.(type) {
 	case *Union, *Intersection, *Not:
 		addParens = true
 	}
@@ -50,7 +91,7 @@ func (n *Not) inspect() string {
 	if addParens {
 		buf.WriteRune('(')
 	}
-	buf.WriteString(Inspect(n.Type))
+	buf.WriteString(Inspect(typ))
 	if addParens {
 		buf.WriteRune(')')
 	}
@@ -60,11 +101,6 @@ func (n *Not) inspect() string {
 func (n *Not) Copy() *Not {
 	return &Not{
 		Type: n.Type,
+		id:   n.id,
 	}
-}
-
-func (n *Not) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Not {
-	newNot := n.Copy()
-	newNot.Type = DeepCopyEnv(n.Type, oldEnv, newEnv)
-	return newNot
 }

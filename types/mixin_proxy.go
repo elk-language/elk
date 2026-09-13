@@ -27,7 +27,6 @@ func NewMixinProxy(mixin *Mixin, parent Namespace) *MixinProxy {
 		parent: ToRef(parent),
 		Mixin:  mixin.ToRef(),
 	}
-	Env.RegisterType(m)
 	return m
 }
 
@@ -104,11 +103,11 @@ func (m *MixinProxy) IsGeneric() bool {
 	return m.Mixin.Get().IsGeneric()
 }
 
-func (m *MixinProxy) TypeParameters() []*TypeParameter {
+func (m *MixinProxy) TypeParameters() []Ref[*TypeParameter] {
 	return m.Mixin.Get().TypeParameters()
 }
 
-func (m *MixinProxy) SetTypeParameters(t []*TypeParameter) {
+func (m *MixinProxy) SetTypeParameters(t []Ref[*TypeParameter]) {
 	m.Mixin.Get().SetTypeParameters(t)
 }
 
@@ -156,11 +155,11 @@ func (m *MixinProxy) IsImmutable() bool {
 	return m.Mixin.Get().IsImmutable()
 }
 
-func (m *MixinProxy) RemoveTemporaryParents(env *GlobalEnvironment) {
-	m.Mixin.Get().RemoveTemporaryParents(env)
+func (m *MixinProxy) RemoveTemporaryParents() {
+	m.Mixin.Get().RemoveTemporaryParents()
 }
 
-func (m *MixinProxy) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (m *MixinProxy) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	return m.Mixin.Get().DefineMethod(docComment, flags, name, typeParams, params, returnType, throwType)
 }
 

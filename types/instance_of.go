@@ -13,11 +13,9 @@ type InstanceOf struct {
 }
 
 func NewInstanceOf(typ Type) *InstanceOf {
-	t := &InstanceOf{
+	return &InstanceOf{
 		Type: ToRef(typ),
 	}
-	Env.RegisterType(t)
-	return t
 }
 
 func (c *InstanceOf) ToRef() Ref[*InstanceOf] {
