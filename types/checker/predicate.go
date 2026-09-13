@@ -50,12 +50,12 @@ func (c *Checker) IsNil(typ types.Type) bool {
 
 // Type is always `false`
 func (c *Checker) IsFalse(typ types.Type) bool {
-	return types.IsFalse(typ, c.runtimeEnv)
+	return types.IsFalse(typ)
 }
 
 // Type is always `false`
 func (c *Checker) IsTrue(typ types.Type) bool {
-	return types.IsTrue(typ, c.runtimeEnv)
+	return types.IsTrue(typ)
 }
 
 // Type is always falsy.
@@ -120,23 +120,24 @@ func (c *Checker) typesIntersectWithTypeArgs(a, b types.Type, typeArgs types.Typ
 func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.TypeArgumentMap) bool {
 	switch a := a.(type) {
 	case *types.Nilable:
-		return c._typesIntersect(a.Type, b, typeArgs) || c._typesIntersect(types.Nil{}, b, typeArgs)
+		return c._typesIntersect(a.Type.Get(), b, typeArgs) || c._typesIntersect(types.Nil{}, b, typeArgs)
 	case *types.Union:
 		for _, element := range a.Elements {
-			if c._typesIntersect(element, b, typeArgs) {
+			if c._typesIntersect(element.Get(), b, typeArgs) {
 				return true
 			}
 		}
 		return false
 	case *types.Intersection:
 		for _, element := range a.Elements {
-			if c._typesIntersect(element, b, typeArgs) {
+			if c._typesIntersect(element.Get(), b, typeArgs) {
 				return true
 			}
 		}
 		return false
 	case *types.Generic:
-		if _, ok := a.Namespace.(*types.Interface); ok {
+		aNamespace := a.Namespace.Get()
+		if _, ok := aNamespace.(*types.Interface); ok {
 			return c.intersectsWithInterface(b, a, typeArgs)
 		}
 		genericB, ok := b.(*types.Generic)
@@ -144,7 +145,8 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.Typ
 			return c.isSubtype(a, b, nil)
 		}
 
-		if !c.isSubtype(a.Namespace, genericB.Namespace, nil) {
+		bNamespace := genericB.Namespace.Get()
+		if !c.isSubtype(aNamespace, bNamespace, nil) {
 			return false
 		}
 
@@ -155,7 +157,7 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.Typ
 				continue
 			}
 
-			if !c.IsTheSameNamespace(genericParent.Namespace, genericB.Namespace) {
+			if !c.IsTheSameNamespace(genericParent.Namespace.Get(), bNamespace) {
 				genericParents = append(genericParents, genericParent)
 				continue
 			}
@@ -168,7 +170,7 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.Typ
 			for name, argA := range genericParent.AllArguments() {
 				argB := genericB.ArgumentMap[name]
 
-				if !c._typesIntersect(argA.Type, argB.Type, typeArgs) {
+				if !c._typesIntersect(argA.Type.Get(), argB.Type.Get(), typeArgs) {
 					return false
 				}
 			}
@@ -178,11 +180,11 @@ func (c *Checker) _typesIntersect(a types.Type, b types.Type, typeArgs types.Typ
 
 		return false
 	case *types.Not:
-		return !c.isTheSameType(a.Type, b, nil)
+		return !c.isTheSameType(a.Type.Get(), b, nil)
 	case *types.NamedType:
-		return c._typesIntersect(a.Type, b, typeArgs)
+		return c._typesIntersect(a.Type.Get(), b, typeArgs)
 	case *types.TypeParameter:
-		return c.isSubtype(b, a.UpperBound, nil) && c.isSubtype(a.LowerBound, b, nil)
+		return c.isSubtype(b, a.UpperBound.Get(), nil) && c.isSubtype(a.LowerBound.Get(), b, nil)
 	case *types.Interface:
 		return c.intersectsWithInterface(b, a, typeArgs)
 	default:
@@ -221,28 +223,28 @@ func (c *Checker) intersectsWithInterface(a types.Type, b types.Namespace, typeA
 func (c *Checker) canBeIsA(a types.Type, b types.Type) bool {
 	switch a := a.(type) {
 	case *types.Nilable:
-		return c.canBeIsA(a.Type, b) || c.canBeIsA(types.Nil{}, b)
+		return c.canBeIsA(a.Type.Get(), b) || c.canBeIsA(types.Nil{}, b)
 	case *types.Union:
 		for _, element := range a.Elements {
-			if c.canBeIsA(element, b) {
+			if c.canBeIsA(element.Get(), b) {
 				return true
 			}
 		}
 		return false
 	case *types.Intersection:
 		for _, element := range a.Elements {
-			if c.canBeIsA(element, b) {
+			if c.canBeIsA(element.Get(), b) {
 				return true
 			}
 		}
 		return false
 	case *types.Not:
-		return !c.isTheSameType(a.Type, b, nil)
+		return !c.isTheSameType(a.Type.Get(), b, nil)
 	case *types.NamedType:
-		return c.canBeIsA(a.Type, b)
+		return c.canBeIsA(a.Type.Get(), b)
 	default:
 		if bTypeParam, ok := b.(*types.TypeParameter); ok {
-			return c.isSubtype(a, bTypeParam.UpperBound, nil) && c.isSubtype(bTypeParam.LowerBound, a, nil)
+			return c.isSubtype(a, bTypeParam.UpperBound.Get(), nil) && c.isSubtype(bTypeParam.LowerBound.Get(), a, nil)
 		}
 		return c.isSubtype(a, b, nil)
 	}
@@ -308,17 +310,17 @@ func (c *Checker) canIntersect(a, b types.Type) bool {
 func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 	switch a := a.(type) {
 	case *types.Nilable:
-		return c.canBeIsA(a.Type, b) || c.canBeIsA(types.Nil{}, b)
+		return c.canBeIsA(a.Type.Get(), b) || c.canBeIsA(types.Nil{}, b)
 	case *types.Union:
 		for _, element := range a.Elements {
-			if c.canBeIsA(element, b) {
+			if c.canBeIsA(element.Get(), b) {
 				return true
 			}
 		}
 		return false
 	case *types.Intersection:
 		for _, element := range a.Elements {
-			if c.canBeIsA(element, b) {
+			if c.canBeIsA(element.Get(), b) {
 				return true
 			}
 		}
@@ -328,7 +330,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		case *types.Mixin, *types.Interface, *types.Class, *types.NamedType, *types.TypeParameter:
 			return c.canIntersectWithInterfaceOrMixin(b, a)
 		case *types.Generic:
-			return c._canIntersect(a, narrowB.Namespace)
+			return c._canIntersect(a, narrowB.Namespace.Get())
 		default:
 			return false
 		}
@@ -339,25 +341,25 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		case *types.Mixin, *types.Interface, *types.NamedType, *types.TypeParameter:
 			return c.canIntersectWithInterfaceOrMixin(b, a)
 		case *types.Generic:
-			return c._canIntersect(a, narrowB.Namespace)
+			return c._canIntersect(a, narrowB.Namespace.Get())
 		default:
 			return false
 		}
 	case *types.NamedType:
-		return c._canIntersect(a.Type, b)
+		return c._canIntersect(a.Type.Get(), b)
 	case *types.Not:
-		return !c.isSubtype(b, a.Type, nil)
+		return !c.isSubtype(b, a.Type.Get(), nil)
 	case *types.Generic:
-		switch a.Namespace.(type) {
+		switch a.Namespace.Get().(type) {
 		case *types.Mixin, *types.Interface:
-			return c._canIntersect(a.Namespace, b)
+			return c._canIntersect(a.Namespace.Get(), b)
 		}
 		genericB, ok := b.(*types.Generic)
 		if !ok {
 			return c.isSubtype(a, b, nil)
 		}
 
-		if !c.isSubtype(a.Namespace, genericB.Namespace, nil) {
+		if !c.isSubtype(a.Namespace.Get(), genericB.Namespace.Get(), nil) {
 			return false
 		}
 
@@ -368,7 +370,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 				continue
 			}
 
-			if !c.IsTheSameNamespace(genericParent.Namespace, genericB.Namespace) {
+			if !c.IsTheSameNamespace(genericParent.Namespace.Get(), genericB.Namespace.Get()) {
 				genericParents = append(genericParents, genericParent)
 				continue
 			}
@@ -381,7 +383,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 			for name, argA := range genericParent.AllArguments() {
 				argB := genericB.ArgumentMap[name]
 
-				if !c.canIntersect(argA.Type, argB.Type) {
+				if !c.canIntersect(argA.Type.Get(), argB.Type.Get()) {
 					return false
 				}
 			}
@@ -398,40 +400,42 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 func (c *Checker) containsTypeParameters(typ types.Type) bool {
 	switch t := typ.(type) {
 	case *types.SingletonOf:
-		return c.containsTypeParameters(t.Type)
+		return c.containsTypeParameters(t.Type.Get())
 	case *types.InstanceOf:
-		return c.containsTypeParameters(t.Type)
+		return c.containsTypeParameters(t.Type.Get())
 	case *types.Callable:
-		for _, param := range t.Body.Params {
-			if c.containsTypeParameters(param.Type) {
+		body := t.Body.Get()
+		for _, paramRef := range body.Params {
+			param := paramRef.Get()
+			if c.containsTypeParameters(param.Type.Get()) {
 				return true
 			}
 		}
 
-		return c.containsTypeParameters(t.Body.ReturnType) || c.containsTypeParameters(t.Body.ThrowType)
+		return c.containsTypeParameters(body.ReturnType.Get()) || c.containsTypeParameters(body.ThrowType.Get())
 	case *types.Generic:
 		for _, arg := range t.AllArguments() {
-			if c.containsTypeParameters(arg.Type) {
+			if c.containsTypeParameters(arg.Type.Get()) {
 				return true
 			}
 		}
-		return c.containsTypeParameters(t.Namespace)
+		return c.containsTypeParameters(t.Namespace.Get())
 	case *types.TypeParameter:
 		return true
 	case *types.Nilable:
-		return c.containsTypeParameters(t.Type)
+		return c.containsTypeParameters(t.Type.Get())
 	case *types.Not:
-		return c.containsTypeParameters(t.Type)
+		return c.containsTypeParameters(t.Type.Get())
 	case *types.Union:
 		for _, element := range t.Elements {
-			if c.containsTypeParameters(element) {
+			if c.containsTypeParameters(element.Get()) {
 				return true
 			}
 		}
 		return false
 	case *types.Intersection:
 		for _, element := range t.Elements {
-			if c.containsTypeParameters(element) {
+			if c.containsTypeParameters(element.Get()) {
 				return true
 			}
 		}
@@ -474,7 +478,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	}
 
 	if bNamedType, ok := b.(*types.NamedType); ok {
-		b = bNamedType.Type
+		b = bNamedType.Type.Get()
 	}
 
 	if types.IsNever(a) || types.IsUntyped(a) {
@@ -482,7 +486,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	}
 	switch narrowedB := b.(type) {
 	case *types.NamedType:
-		return c.isSubtype(a, narrowedB.Type, errLoc)
+		return c.isSubtype(a, narrowedB.Type.Get(), errLoc)
 	case types.Any, types.Void, types.Untyped:
 		return true
 	case types.Nil:
@@ -503,24 +507,24 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 
 	switch a := a.(type) {
 	case *types.NamedType:
-		return c.isSubtype(a.Type, b, errLoc)
+		return c.isSubtype(a.Type.Get(), b, errLoc)
 	case *types.Exact:
 		if bExact, ok := b.(*types.Exact); ok {
-			return c.IsTheSameNamespace(a.Type, bExact.Type)
+			return c.IsTheSameNamespace(a.Type.Get(), bExact.Type.Get())
 		}
-		return c.isSubtype(a.Type, b, errLoc)
+		return c.isSubtype(a.Type.Get(), b, errLoc)
 	case *types.Union:
 		for _, aElement := range a.Elements {
-			if !c.isSubtype(aElement, b, errLoc) {
+			if !c.isSubtype(aElement.Get(), b, errLoc) {
 				return false
 			}
 		}
 		return true
 	case *types.Nilable:
-		return c.isSubtype(a.Type, b, errLoc) && c.isSubtype(types.Nil{}, b, errLoc)
+		return c.isSubtype(a.Type.Get(), b, errLoc) && c.isSubtype(types.Nil{}, b, errLoc)
 	case *types.Not:
 		if bNot, ok := b.(*types.Not); ok {
-			return c.isSubtype(bNot.Type, a.Type, nil)
+			return c.isSubtype(bNot.Type.Get(), a.Type.Get(), nil)
 		}
 		return false
 	case types.Self:
@@ -535,7 +539,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	if bIntersection, ok := b.(*types.Intersection); ok {
 		subtype := true
 		for _, bElement := range bIntersection.Elements {
-			if !c.isSubtype(a, bElement, errLoc) {
+			if !c.isSubtype(a, bElement.Get(), errLoc) {
 				subtype = false
 			}
 		}
@@ -545,20 +549,20 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.Exact:
 		if a, ok := a.(*types.Exact); ok {
-			return c.IsTheSameNamespace(a.Type, b.Type)
+			return c.IsTheSameNamespace(a.Type.Get(), b.Type.Get())
 		}
 		return false
 	case *types.Union:
 		for _, bElement := range b.Elements {
-			if c.isSubtype(a, bElement, nil) {
+			if c.isSubtype(a, bElement.Get(), nil) {
 				return true
 			}
 		}
 		return false
 	case *types.Nilable:
-		return c.isSubtype(a, b.Type, nil) || c.isSubtype(a, types.Nil{}, nil)
+		return c.isSubtype(a, b.Type.Get(), nil) || c.isSubtype(a, types.Nil{}, nil)
 	case *types.Not:
-		return !c.TypesIntersect(a, b.Type)
+		return !c.TypesIntersect(a, b.Type.Get())
 	case *types.TypeParameter:
 		result, end := c.isSubtypeOfTypeParameter(a, b, errLoc)
 		if end {
@@ -568,7 +572,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 
 	if aIntersection, ok := a.(*types.Intersection); ok {
 		for _, aElement := range aIntersection.Elements {
-			if c.isSubtype(aElement, b, nil) {
+			if c.isSubtype(aElement.Get(), b, nil) {
 				return true
 			}
 		}
@@ -611,26 +615,26 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 	case *types.InstanceOf:
 		switch narrowB := b.(type) {
 		case *types.InstanceOf:
-			return c.isSubtype(a.Type, narrowB.Type, errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Type.Get(), errLoc)
 		case *types.Class:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Singleton(), errLoc)
 		case *types.Mixin:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Singleton(), errLoc)
 		case *types.MixinProxy:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Singleton(), errLoc)
 		case *types.Interface:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Singleton(), errLoc)
 		case *types.InterfaceProxy:
-			return c.isSubtype(a.Type, narrowB.Singleton(), errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Singleton(), errLoc)
 		default:
 			return false
 		}
 	case *types.SingletonOf:
 		switch narrowB := b.(type) {
 		case *types.SingletonOf:
-			return c.isSubtype(a.Type, narrowB.Type, errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.Type.Get(), errLoc)
 		case *types.SingletonClass:
-			return c.isSubtype(a.Type, narrowB.AttachedObject, errLoc)
+			return c.isSubtype(a.Type.Get(), narrowB.AttachedObject.Get(), errLoc)
 		default:
 			return false
 		}
@@ -647,7 +651,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		case *types.Interface:
 			return c.isSubtypeOfInterface(a, narrowedB, errLoc)
 		default:
-			return c.isSubtype(a.Namespace, b, errLoc)
+			return c.isSubtype(a.Namespace.Get(), b, errLoc)
 		}
 	case *types.Method:
 		b, ok := b.(*types.Method)
@@ -765,27 +769,29 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 func (c *Checker) isSubtypeOfTypeParameter(a types.Type, b *types.TypeParameter, errLoc *position.Location) (result bool, end bool) {
 	switch c.mode {
 	case methodCompatibilityInAlgebraicTypeMode:
+		bLowerBound := b.LowerBound.Get()
+		bUpperBound := b.UpperBound.Get()
 		if a, ok := a.(*types.TypeParameter); ok {
-			if c.TypesIntersect(a.UpperBound, b.UpperBound) &&
-				c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
+			if c.TypesIntersect(a.UpperBound.Get(), bUpperBound) &&
+				c.isTheSameType(bLowerBound, a.LowerBound.Get(), nil) {
 				return true, true
 			}
 
 			return false, true
 		}
-		if !c.isSubtype(b.LowerBound, a, nil) {
+		if !c.isSubtype(bLowerBound, a, nil) {
 			return false, true
 		}
-		if c.isSubtype(b.UpperBound, a, nil) {
+		if c.isSubtype(bUpperBound, a, nil) {
 			return true, true
 		}
-		if c.isSubtype(a, b.UpperBound, nil) {
+		if c.isSubtype(a, bUpperBound, nil) {
 			return true, true
 		}
 
 		return false, true
 	default:
-		if c.isSubtype(a, b.LowerBound, errLoc) {
+		if c.isSubtype(a, b.LowerBound.Get(), errLoc) {
 			return true, true
 		}
 	}

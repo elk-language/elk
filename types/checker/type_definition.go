@@ -75,15 +75,16 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 	usingConst := placeholder.Container[placeholder.AsName]
 	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
-		Type:     constant,
+		Type:     types.ToRef(constant),
 	}
 
-	placeholder.Sibling.Replaced = true
-	subtypeContainer := placeholder.Sibling.Container
+	sibling := placeholder.Sibling.Get()
+	sibling.Replaced = true
+	subtypeContainer := sibling.Container
 	usingSubtype := subtypeContainer[placeholder.AsName]
 	subtypeContainer[placeholder.AsName] = types.Constant{
 		FullName: usingSubtype.FullName,
-		Type:     subtype,
+		Type:     types.ToRef(subtype),
 	}
 }
 
@@ -106,12 +107,12 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 		return
 	}
 
-	placeholder = placeholder.Sibling
+	placeholder = placeholder.Sibling.Get()
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
 	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
-		Type:     newType,
+		Type:     types.ToRef(newType),
 	}
 }
 
@@ -198,7 +199,7 @@ func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
 	namedType := c.TypeOf(node).(*types.NamedType)
 	typeNode := c.checkTypeNode(node.TypeNode)
 	typ := c.TypeOf(typeNode)
-	namedType.Type = typ
+	namedType.Type = types.ToRef(typ)
 
 	return true
 }
@@ -206,7 +207,7 @@ func (c *Checker) checkNamedType(node *ast.TypeDefinitionNode) bool {
 func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) bool {
 	namedType := c.TypeOf(node).(*types.GenericNamedType)
 
-	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
+	typeParams := make([]types.Ref[*types.TypeParameter], 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name), false)
 	c.pushConstScope(makeConstantScope(typeParamMod))
 
@@ -229,7 +230,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		}
 
 		t := c.checkTypeParameterNode(varNode, typeParamMod, false)
-		typeParams = append(typeParams, t)
+		typeParams = append(typeParams, t.ToRef())
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
 		typeParamMod.DefineConstant(t.Name, types.NoValue{})
@@ -240,7 +241,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	typ := c.TypeOf(node.TypeNode)
-	namedType.Type = typ
+	namedType.Type = types.ToRef(typ)
 	namedType.TypeParameters = typeParams
 
 	c.mode = prevMode
@@ -405,7 +406,7 @@ func (c *Checker) includeMixinForMacro(node ast.ComplexConstantNode) {
 		mixin = con
 	case *types.Generic:
 		var ok bool
-		mixin, ok = con.Namespace.(*types.Mixin)
+		mixin, ok = con.Namespace.Get().(*types.Mixin)
 		if !ok {
 			return
 		}
@@ -445,7 +446,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode, isNative bool) {
 		mixin = con
 	case *types.Generic:
 		var ok bool
-		mixin, ok = con.Namespace.(*types.Mixin)
+		mixin, ok = con.Namespace.Get().(*types.Mixin)
 		if !ok {
 			c.addFailure(
 				"only mixins can be included",
@@ -539,7 +540,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	case *types.Interface:
 		constantNamespace = con
 	case *types.Generic:
-		if _, ok := con.Namespace.(*types.Interface); !ok {
+		if _, ok := con.Namespace.Get().(*types.Interface); !ok {
 			c.addFailure(
 				"only interfaces can be implemented",
 				node.Location(),
@@ -624,16 +625,16 @@ func (c *Checker) checkNamespaceTypeParameters(
 	checked bool,
 	typeParamNodes []ast.TypeParameterNode,
 	namespace types.Namespace,
-	oldTypeParams []*types.TypeParameter,
+	oldTypeParams []types.Ref[*types.TypeParameter],
 	location *position.Location,
-) []*types.TypeParameter {
+) []types.Ref[*types.TypeParameter] {
 	prevMode := c.mode
 	c.mode = inheritanceMode
 	defer c.setMode(prevMode)
 
 	if !checked {
 		if len(typeParamNodes) > 0 {
-			typeParams := make([]*types.TypeParameter, 0, len(typeParamNodes))
+			typeParams := make([]types.Ref[*types.TypeParameter], 0, len(typeParamNodes))
 			var defaultSeen bool
 			for _, typeParamNode := range typeParamNodes {
 				varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
@@ -653,7 +654,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 				}
 
 				t := c.initTypeParameterNode(varNode, namespace)
-				typeParams = append(typeParams, t)
+				typeParams = append(typeParams, t.ToRef())
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
 				namespace.DefineConstant(t.Name, types.NoValue{})
@@ -680,7 +681,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 
 	for i := range len(oldTypeParams) {
 		typeParamNode := typeParamNodes[i]
-		oldTypeParam := oldTypeParams[i]
+		oldTypeParam := oldTypeParams[i].Get()
 
 		varNode, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 		if !ok {
@@ -692,8 +693,8 @@ func (c *Checker) checkNamespaceTypeParameters(
 
 		if newTypeParam.Name != oldTypeParam.Name ||
 			newTypeParam.Variance != oldTypeParam.Variance ||
-			!c.isTheSameType(newTypeParam.LowerBound, oldTypeParam.LowerBound, nil) ||
-			!c.isTheSameType(newTypeParam.UpperBound, oldTypeParam.UpperBound, nil) {
+			!c.isTheSameType(newTypeParam.LowerBound.Get(), oldTypeParam.LowerBound.Get(), nil) ||
+			!c.isTheSameType(newTypeParam.UpperBound.Get(), oldTypeParam.UpperBound.Get(), nil) {
 			c.addFailure(
 				fmt.Sprintf(
 					"type parameter mismatch in `%s`, is `%s`, should be `%s`",
@@ -739,7 +740,7 @@ superclassSwitch:
 			superclass = s
 		case *types.Generic:
 			superclass = s
-			if _, ok := s.Namespace.(*types.Class); !ok {
+			if _, ok := s.Namespace.Get().(*types.Class); !ok {
 				break superclassSwitch
 			}
 		default:
@@ -795,7 +796,7 @@ superclassSwitch:
 			superclass = s
 		case *types.Generic:
 			superclass = s
-			if _, ok := s.Namespace.(*types.Class); !ok {
+			if _, ok := s.Namespace.Get().(*types.Class); !ok {
 				c.addFailure(
 					fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 					node.Superclass.Location(),
@@ -880,9 +881,10 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 		return
 	}
 
-	mixin := types.NewMixin("", false, "", c.runtimeEnv)
+	mixin := types.NewMixin("", false, "")
 	originalTypeParams := currentNamespace.TypeParameters()
-	for _, typeParam := range originalTypeParams {
+	for _, typeParamRef := range originalTypeParams {
+		typeParam := typeParamRef.Get()
 		mixin.DefineSubtypeWithFullName(
 			typeParam.Name,
 			fmt.Sprintf("%s::%s", currentNamespace.Name(), typeParam.Name.String()),
@@ -893,14 +895,14 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 
 	prevMode := c.mode
 	c.mode = inheritanceMode
-	var where []*types.TypeParameter
+	var where []types.Ref[*types.TypeParameter]
 	for _, whereTypeParamNode := range node.Where {
 		whereTypeParamNode := whereTypeParamNode.(*ast.VariantTypeParameterNode)
 		whereTypeParam := c.checkTypeParameterNode(whereTypeParamNode, mixin, true)
 		originalTypeParamIndex := slices.IndexFunc(
 			originalTypeParams,
-			func(tp *types.TypeParameter) bool {
-				return tp.Name == whereTypeParam.Name
+			func(tp types.Ref[*types.TypeParameter]) bool {
+				return tp.Get().Name == whereTypeParam.Name
 			},
 		)
 		if originalTypeParamIndex == -1 {
@@ -913,44 +915,48 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			)
 			continue
 		}
-		originalTypeParam := originalTypeParams[originalTypeParamIndex]
+		originalTypeParam := originalTypeParams[originalTypeParamIndex].Get()
 
 		var newLowerBound types.Type
-		if whereTypeParam.LowerBound == nil {
-			newLowerBound = originalTypeParam.LowerBound
+		if whereTypeParam.LowerBound.IsZero() {
+			newLowerBound = originalTypeParam.LowerBound.Get()
 		} else {
-			if !c.isSubtype(originalTypeParam.LowerBound, whereTypeParam.LowerBound, nil) {
+			originalLowerBound := originalTypeParam.LowerBound.Get()
+			whereLowerBound := whereTypeParam.LowerBound.Get()
+			if !c.isSubtype(originalLowerBound, whereLowerBound, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"type parameter `%s` in where clause should have a wider lower bound, has `%s`, should have `%s` or its supertype",
 						lexer.Colorize(whereTypeParamNode.Name),
-						types.InspectWithColor(whereTypeParam.LowerBound),
-						types.InspectWithColor(originalTypeParam.LowerBound),
+						types.InspectWithColor(whereLowerBound),
+						types.InspectWithColor(originalLowerBound),
 					),
 					whereTypeParamNode.Location(),
 				)
 				continue
 			}
-			newLowerBound = whereTypeParam.LowerBound
+			newLowerBound = whereLowerBound
 		}
 
 		var newUpperBound types.Type
-		if whereTypeParam.UpperBound == nil {
-			newUpperBound = originalTypeParam.UpperBound
+		if whereTypeParam.UpperBound.IsZero() {
+			newUpperBound = originalTypeParam.UpperBound.Get()
 		} else {
-			if !c.isSubtype(whereTypeParam.UpperBound, originalTypeParam.UpperBound, nil) {
+			whereUpperBound := whereTypeParam.UpperBound.Get()
+			originalUpperBound := originalTypeParam.UpperBound.Get()
+			if !c.isSubtype(whereUpperBound, originalUpperBound, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"type parameter `%s` in where clause should have a narrower upper bound, has `%s`, should have `%s` or its subtype",
 						lexer.Colorize(whereTypeParamNode.Name),
-						types.InspectWithColor(whereTypeParam.UpperBound),
-						types.InspectWithColor(originalTypeParam.UpperBound),
+						types.InspectWithColor(whereUpperBound),
+						types.InspectWithColor(originalUpperBound),
 					),
 					whereTypeParamNode.Location(),
 				)
 				continue
 			}
-			newUpperBound = whereTypeParam.UpperBound
+			newUpperBound = whereUpperBound
 		}
 
 		if whereTypeParam.Variance != types.INVARIANT {
@@ -963,13 +969,13 @@ func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 			)
 			continue
 		}
-		whereTypeParam.LowerBound = newLowerBound
-		whereTypeParam.UpperBound = newUpperBound
-		where = append(where, whereTypeParam)
+		whereTypeParam.LowerBound = types.ToRef(newLowerBound)
+		whereTypeParam.UpperBound = types.ToRef(newUpperBound)
+		where = append(where, whereTypeParam.ToRef())
 
 		narrowerTypeParam := originalTypeParam.Copy()
-		narrowerTypeParam.LowerBound = newLowerBound
-		narrowerTypeParam.UpperBound = newUpperBound
+		narrowerTypeParam.LowerBound = types.ToRef(newLowerBound)
+		narrowerTypeParam.UpperBound = types.ToRef(newUpperBound)
 		mixin.DefineSubtypeWithFullName(
 			whereTypeParam.Name,
 			fmt.Sprintf("%s::%s", currentNamespace.Name(), whereTypeParam.Name.String()),
@@ -1097,9 +1103,9 @@ func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node
 		}
 	}
 
-	typ.LowerBound = lowerType
-	typ.UpperBound = upperType
-	typ.Default = def
+	typ.LowerBound = types.ToRef(lowerType)
+	typ.UpperBound = types.ToRef(upperType)
+	typ.Default = types.ToRef(def)
 }
 
 func (c *Checker) ResolveGenericParent(namespace types.Namespace, targetParent types.Namespace) *types.Generic {
@@ -1120,7 +1126,7 @@ func (c *Checker) ResolveGenericParent(namespace types.Namespace, targetParent t
 		case *types.Generic:
 			generics = append(generics, p)
 
-			if !c.IsTheSameNamespace(p.Namespace, targetParent) {
+			if !c.IsTheSameNamespace(p.Namespace.Get(), targetParent) {
 				continue
 			}
 

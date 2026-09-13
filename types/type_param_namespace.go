@@ -15,6 +15,8 @@ type TypeParamNamespace struct {
 	id         ID
 }
 
+var _ Namespace = &TypeParamNamespace{}
+
 func (n *TypeParamNamespace) ToRef() Ref[*TypeParamNamespace] {
 	return Ref[*TypeParamNamespace](n.id)
 }
@@ -130,11 +132,11 @@ func (t *TypeParamNamespace) IsGeneric() bool {
 	return false
 }
 
-func (t *TypeParamNamespace) TypeParameters() []*TypeParameter {
+func (t *TypeParamNamespace) TypeParameters() []Ref[*TypeParameter] {
 	return nil
 }
 
-func (t *TypeParamNamespace) SetTypeParameters([]*TypeParameter) {
+func (t *TypeParamNamespace) SetTypeParameters([]Ref[*TypeParameter]) {
 	panic("cannot set type parameters on a type parameter namespace")
 }
 
@@ -209,7 +211,7 @@ func (t *TypeParamNamespace) MethodString(name string) *Method {
 	return nil
 }
 
-func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+func (t *TypeParamNamespace) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	panic("cannot define methods on type param namespaces")
 }
 
@@ -232,19 +234,19 @@ func (t *TypeParamNamespace) DefineInstanceVariable(name symbol.Symbol, ivar *In
 	panic("cannot define instance variables on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class {
+func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace) *Class {
 	panic("cannot define classes on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module {
+func (t *TypeParamNamespace) DefineModule(docComment string, name symbol.Symbol) *Module {
 	panic("cannot define module on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin {
+func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name symbol.Symbol) *Mixin {
 	panic("cannot define mixins on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface {
+func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symbol) *Interface {
 	panic("cannot define interfaces on type param namespaces")
 }
 

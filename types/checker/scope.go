@@ -47,16 +47,6 @@ func makeConstantScope(container types.Namespace) constantScope {
 	}
 }
 
-func (c *Checker) deepCopyConstantScopes(oldEnv, newEnv *types.GlobalEnvironment) []constantScope {
-	var newConstantScopes []constantScope
-	for _, constantScope := range c.constantScopes {
-		constantScope.container = types.DeepCopyEnv(constantScope.container, oldEnv, newEnv).(types.Namespace)
-		newConstantScopes = append(newConstantScopes, constantScope)
-	}
-
-	return newConstantScopes
-}
-
 func (c *Checker) enclosingScopeIsAUsingBuffer() bool {
 	scope := c.enclosingConstScope()
 	return scope.kind == scopeUsingBufferKind
@@ -138,16 +128,6 @@ func (c *Checker) enclosingConstScope() constantScope {
 type methodScope struct {
 	container types.Namespace
 	kind      scopeKind
-}
-
-func (c *Checker) deepCopyMethodScopes(oldEnv, newEnv *types.GlobalEnvironment) []methodScope {
-	var newMethodScopes []methodScope
-	for _, methodScope := range c.methodScopes {
-		methodScope.container = types.DeepCopyEnv(methodScope.container, oldEnv, newEnv).(types.Namespace)
-		newMethodScopes = append(newMethodScopes, methodScope)
-	}
-
-	return newMethodScopes
 }
 
 func makeUsingMethodScope(container types.Namespace) methodScope {

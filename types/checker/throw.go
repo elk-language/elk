@@ -54,7 +54,7 @@ func (c *Checker) checkThrowExpressionNode(node *ast.ThrowExpressionNode) *ast.T
 }
 
 func (c *Checker) checkCalledMethodThrowType(method *types.Method, location *position.Location) {
-	if types.IsNever(method.ThrowType) {
+	if types.IsNeverRef(method.ThrowType) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func (c *Checker) checkCalledMethodThrowType(method *types.Method, location *pos
 		return
 	}
 
-	c.checkThrowType(method.ThrowType, location)
+	c.checkThrowType(method.ThrowType.Get(), location)
 }
 
 func (c *Checker) checkThrowType(throwType types.Type, location *position.Location) {
