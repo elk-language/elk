@@ -246,7 +246,7 @@ func macroName(namespace types.Namespace, name string) string {
 	var namespaceName string
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
-		namespaceName = n.AttachedObject.Name()
+		namespaceName = n.AttachedObject.Get().Name()
 	default:
 		namespaceName = namespace.Name()
 	}
@@ -362,7 +362,8 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	case ast.MACRO_TYPE_KIND:
 		expectedReturnType = typeNodeType
 	}
-	c.checkCanAssign(macro.ReturnType, expectedReturnType, loc)
+	macroReturnType := macro.ReturnType.Get()
+	c.checkCanAssign(macroReturnType, expectedReturnType, loc)
 
 	if c.Errors.IsFailure() {
 		return nil
@@ -404,7 +405,7 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 
 	resultNode := result.AsReference().(ast.Node)
 
-	switch macro.ReturnType {
+	switch macroReturnType {
 	case exprNodeType:
 		switch r := resultNode.(type) {
 		case *ast.DoExpressionNode:
@@ -496,16 +497,17 @@ func (c *Checker) checkMacroArguments(
 			)
 			break
 		}
-		param := method.Params[currentParamIndex]
+		param := method.Params[currentParamIndex].Get()
 
 		posArgType := c.MacroTypeOf(posArg)
 		checkedPositionalArguments = append(checkedPositionalArguments, posArg)
 
-		if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+		paramType := param.Type.Get()
+		if !c.isSubtype(posArgType, paramType, posArg.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-					types.InspectWithColor(param.Type),
+					types.InspectWithColor(paramType),
 					param.Name.String(),
 					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
@@ -532,7 +534,7 @@ func (c *Checker) checkMacroArguments(
 			location,
 			nil,
 		)
-		posRestParam := method.Params[positionalRestParamIndex]
+		posRestParam := method.Params[positionalRestParamIndex].Get()
 
 		currentArgIndex := currentParamIndex
 		// check rest arguments
@@ -540,11 +542,12 @@ func (c *Checker) checkMacroArguments(
 			posArg := positionalArguments[currentArgIndex]
 			posArgType := c.MacroTypeOf(posArg)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, posArg)
-			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Location()) {
+			posRestParamType := posRestParam.Type.Get()
+			if !c.isSubtype(posArgType, posRestParamType, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(posRestParam.Type),
+						types.InspectWithColor(posRestParamType),
 						posRestParam.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
@@ -560,15 +563,16 @@ func (c *Checker) checkMacroArguments(
 		for ; currentArgIndex < len(positionalArguments); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			currentParamIndex++
-			param := method.Params[currentParamIndex]
+			param := method.Params[currentParamIndex].Get()
 
 			posArgType := c.MacroTypeOf(posArg)
 			checkedPositionalArguments = append(checkedPositionalArguments, posArg)
-			if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+			paramType := param.Type.Get()
+			if !c.isSubtype(posArgType, paramType, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(param.Type),
+						types.InspectWithColor(paramType),
 						param.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
@@ -588,7 +592,7 @@ func (c *Checker) checkMacroArguments(
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
 	for i := range method.Params {
-		param := method.Params[i]
+		param := method.Params[i].Get()
 		switch param.Kind {
 		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
 			continue
@@ -625,11 +629,12 @@ func (c *Checker) checkMacroArguments(
 
 			namedArgType := c.MacroTypeOf(namedArg.Value)
 			checkedPositionalArguments = append(checkedPositionalArguments, namedArg.Value)
-			if !c.isSubtype(namedArgType, param.Type, namedArg.Location()) {
+			paramType := param.Type.Get()
+			if !c.isSubtype(namedArgType, paramType, namedArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(param.Type),
+						types.InspectWithColor(paramType),
 						param.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(namedArgType),
@@ -672,7 +677,7 @@ func (c *Checker) checkMacroArguments(
 			location,
 			nil,
 		)
-		namedRestParam := method.Params[len(method.Params)-1]
+		namedRestParam := method.Params[len(method.Params)-1].Get()
 		for i, defined := range definedNamedArgumentsSlice {
 			if defined {
 				continue
@@ -797,8 +802,8 @@ func (c *Checker) checkMacros() {
 			macroChecker := c.newMacroChecker(
 				node.Location().FilePath,
 				c.StdMacro().Singleton(),
-				macro.ReturnType,
-				macro.ThrowType,
+				macro.ReturnType.Get(),
+				macro.ThrowType.Get(),
 				macroMode,
 				c.threadPool,
 				node.Location(),
@@ -874,7 +879,7 @@ func (c *Checker) declareMacro(
 	typeNodeType := c.StdTypeNode()
 	patternNodeType := c.StdPatternNode()
 
-	var params []*types.Parameter
+	var params []types.Ref[*types.Parameter]
 	for _, paramNode := range paramNodes {
 		switch p := paramNode.(type) {
 		case *ast.FormalParameterNode:
@@ -921,7 +926,7 @@ func (c *Checker) declareMacro(
 				false,
 			)
 			p.SetType(paramType)
-			params = append(params, paramType)
+			params = append(params, paramType.ToRef())
 		default:
 			c.addFailure(
 				fmt.Sprintf("invalid param type %T", paramNode),
@@ -1067,7 +1072,7 @@ func (c *Checker) addMacroInMacroError(loc *position.Location) {
 func (c *Checker) getMacroScope(typ types.Type, loc *position.Location) types.Namespace {
 	switch typ := typ.(type) {
 	case *types.Exact:
-		return c.getMacroScope(typ.Type, loc)
+		return c.getMacroScope(typ.Type.Get(), loc)
 	case types.Namespace:
 		return typ
 	case types.Untyped:

@@ -5210,7 +5210,7 @@ func (c *Checker) TypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
-	return node.Type(c.runtimeEnv)
+	return node.Type()
 }
 
 // Returns the type of the AST node, for use in macros
@@ -5218,7 +5218,7 @@ func (c *Checker) MacroTypeOf(node ast.Node) types.Type {
 	if node == nil {
 		return types.Void{}
 	}
-	return node.MacroType(c.runtimeEnv)
+	return node.MacroType()
 }
 
 func (c *Checker) typeGuardVoid(typ types.Type, location *position.Location) types.Type {

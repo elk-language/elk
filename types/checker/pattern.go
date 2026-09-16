@@ -303,21 +303,21 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		}
 
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
-		leftType := c.TypeOf(node.Left)
+		leftType := node.Left.TypeRef()
 
 		node.Right, rightCatchType = c.checkPattern(node.Right, matchedType)
-		rightType := c.TypeOf(node.Right)
+		rightType := node.Right.TypeRef()
 
 		c.mode = prevMode
 		node.SetType(c.NewNormalisedUnion(leftType, rightType))
-		return node, c.NewNormalisedUnion(leftCatchType, rightCatchType)
+		return node, c.NewNormalisedUnion(types.ToRef(leftCatchType), types.ToRef(rightCatchType))
 	case token.AND_AND:
 		var leftCatchType, rightCatchType types.Type
 		node.Left, leftCatchType = c.checkPattern(node.Left, matchedType)
-		leftType := c.TypeOf(node.Left)
+		leftType := node.Left.TypeRef()
 
-		node.Right, rightCatchType = c.checkPattern(node.Right, leftType)
-		rightType := c.TypeOf(node.Right)
+		node.Right, rightCatchType = c.checkPattern(node.Right, leftType.Get())
+		rightType := node.Right.TypeRef()
 
 		intersection := c.NewNormalisedIntersection(leftType, rightType)
 		if types.IsNever(intersection) {
@@ -327,7 +327,7 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 			)
 		}
 		node.SetType(intersection)
-		return node, c.NewNormalisedIntersection(leftCatchType, rightCatchType)
+		return node, c.NewNormalisedIntersection(types.ToRef(leftCatchType), types.ToRef(rightCatchType))
 	default:
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.Name()))
 	}
@@ -435,7 +435,7 @@ func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedT
 		return node, types.Never{}
 	}
 
-	intersection := c.NewNormalisedIntersection(rightType, matchedType)
+	intersection := c.NewNormalisedIntersection(types.ToRef(rightType), types.ToRef(matchedType))
 	node.SetType(intersection)
 	c.GetMethod(intersection, operator, node.Op.Location())
 	return node, types.Never{}
@@ -908,26 +908,27 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 		switch c.mode {
 		case valuePatternMode:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal(varType, true, true)
+			local = newLocal(types.ToRef(varType), true, true)
 		case nilableValuePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal(varType, true, true)
+			local = newLocal(types.ToRef(varType), true, true)
 		case nilablePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal(varType, true, false)
+			local = newLocal(types.ToRef(varType), true, false)
 		default:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal(varType, true, false)
+			local = newLocal(types.ToRef(varType), true, false)
 		}
 		c.addLocal(name, local)
 		return patternType
 	}
 
+	variableType := variable.typ.Get()
 	variable.initialised = true
 	if variable.singleAssignment {
 		c.addValueReassignedError(name, location)
-		return variable.typ
+		return variableType
 	}
-	c.checkCanAssign(valueType, variable.typ, location)
-	return variable.typ
+	c.checkCanAssign(valueType, variableType, location)
+	return variableType
 }

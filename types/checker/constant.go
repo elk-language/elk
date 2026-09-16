@@ -14,11 +14,12 @@ import (
 // Checks whether all constants specified in `using` statements have been defined
 func (c *Checker) checkConstantPlaceholders() {
 	for _, placeholder := range c.constantPlaceholders {
-		if placeholder.Checked || placeholder.Sibling != nil && placeholder.Sibling.Checked {
+		sibling := placeholder.Sibling.Get()
+		if placeholder.Checked || sibling != nil && sibling.Checked {
 			continue
 		}
 		placeholder.Checked = true
-		if placeholder.Replaced || placeholder.Sibling != nil && placeholder.Sibling.Replaced {
+		if placeholder.Replaced || sibling != nil && sibling.Replaced {
 			continue
 		}
 
@@ -89,7 +90,7 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 	usingConst := placeholder.Container[placeholder.AsName]
 	placeholder.Container[placeholder.AsName] = types.Constant{
 		FullName: usingConst.FullName,
-		Type:     newType,
+		Type:     types.ToRef(newType),
 	}
 }
 
@@ -338,7 +339,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 	case *types.Module:
 		leftContainer = l
 	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
+		leftContainer = l.AttachedObject.Get()
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
@@ -358,7 +359,8 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 	if len(constant.FullName) > 0 {
 		constantName = constant.FullName
 	}
-	if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
+	constantType := constant.Type.Get()
+	if types.IsNoValueRef(constant.Type) || types.IsConstantPlaceholder(constantType) {
 		c.addInvalidValueInExpressionError(constantName, node.Right.Location())
 		return nil, constantName
 	}
@@ -366,7 +368,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 	if !c.checkConstantIfNecessary(constantName, node.Right.Location()) {
 		return types.Untyped{}, constantName
 	}
-	return constant.Type, constantName
+	return constantType, constantName
 }
 
 // Get the type of the public constant with the given name
@@ -388,11 +390,12 @@ func (c *Checker) resolvePublicConstant(name string, location *position.Location
 			return nil, fullName
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
+		constantType := constant.Type.Get()
+		if types.IsNoValueRef(constant.Type) || types.IsConstantPlaceholder(constantType) {
 			c.addInvalidValueInExpressionError(fullName, location)
 			return nil, fullName
 		}
-		return constant.Type, fullName
+		return constantType, fullName
 
 	}
 
@@ -425,11 +428,12 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 			return nil, fullName
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
+		constantType := constant.Type.Get()
+		if types.IsNoValueRef(constant.Type) || types.IsConstantPlaceholder(constantType) {
 			c.addInvalidValueInExpressionError(fullName, location)
 			return nil, fullName
 		}
-		return constant.Type, fullName
+		return constantType, fullName
 
 	}
 

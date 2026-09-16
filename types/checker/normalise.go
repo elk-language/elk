@@ -1301,7 +1301,7 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeNode, elements *[]ast.
 		leftTypeNode = c.checkTypeNode(leftTypeNode)
 		*elements = append(*elements, leftTypeNode)
 
-		leftType := c.TypeOf(leftTypeNode)
+		leftType := leftTypeNode.TypeRef()
 		union.Elements = append(union.Elements, leftType)
 	}
 
@@ -1313,7 +1313,7 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeNode, elements *[]ast.
 		rightTypeNode = c.checkTypeNode(rightTypeNode)
 		*elements = append(*elements, rightTypeNode)
 
-		rightType := c.TypeOf(rightTypeNode)
+		rightType := rightTypeNode.TypeRef()
 		union.Elements = append(union.Elements, rightType)
 	}
 }
@@ -1341,7 +1341,7 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeNode, elements 
 		leftTypeNode = c.checkTypeNode(leftTypeNode)
 		*elements = append(*elements, leftTypeNode)
 
-		leftType := c.TypeOf(leftTypeNode)
+		leftType := leftTypeNode.TypeRef()
 		intersection.Elements = append(intersection.Elements, leftType)
 	}
 
@@ -1353,7 +1353,7 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeNode, elements 
 		rightTypeNode = c.checkTypeNode(rightTypeNode)
 		*elements = append(*elements, rightTypeNode)
 
-		rightType := c.TypeOf(rightTypeNode)
+		rightType := rightTypeNode.TypeRef()
 		intersection.Elements = append(intersection.Elements, rightType)
 	}
 }

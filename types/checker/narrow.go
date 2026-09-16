@@ -88,8 +88,8 @@ func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) type
 		local = local.createShadow()
 		c.addLocal(name, local)
 	}
-	narrowedType := c.NewNormalisedIntersection(localType, typ)
-	local.typ = narrowedType
+	narrowedType := c.NewNormalisedIntersection(types.ToRef(localType), types.ToRef(typ))
+	local.typ = types.ToRef(narrowedType)
 	return narrowedType
 }
 
@@ -135,7 +135,7 @@ func (c *Checker) narrowLocalExcludeType(name string, localType, typ types.Type)
 		c.addLocal(name, local)
 	}
 	narrowedType := c.differenceType(localType, typ)
-	local.typ = narrowedType
+	local.typ = types.ToRef(narrowedType)
 	return narrowedType
 }
 
@@ -378,7 +378,7 @@ func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type)
 		local = local.createShadow()
 		c.addLocal(localName, local)
 	}
-	local.typ = c.NewNormalisedIntersection(local.typ, typ)
+	local.typ = types.ToRef(c.NewNormalisedIntersection(local.typ, types.ToRef(typ)))
 }
 
 func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
@@ -394,7 +394,7 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 
 	rightType := c.TypeOf(right)
 	if r, ok := rightType.(*types.Exact); ok {
-		rightType = r.Type
+		rightType = r.Type.Get()
 	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
@@ -413,17 +413,21 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = namespace
+		local.typ = namespace.Cast[types.Type]()
 	case assumptionFalsy:
-		local.typ = c.differenceType(local.typ, namespace)
+		local.typ = types.ToRef(c.differenceTypeRef(local.typ, namespace.Cast[types.Type]()))
 	case assumptionNotNil:
 	case assumptionNever, assumptionNil:
-		local.typ = types.Never{}
+		local.typ = types.NeverID
 	}
 }
 
 func (c *Checker) differenceType(a, b types.Type) types.Type {
-	return c.NewNormalisedIntersection(a, types.NewNot(b))
+	return c.NewNormalisedIntersection(types.ToRef(a), types.CastRef[types.Type](types.NewNot(b)))
+}
+
+func (c *Checker) differenceTypeRef(a, b types.Ref[types.Type]) types.Type {
+	return c.NewNormalisedIntersection(a, types.CastRef[types.Type](types.NewNot(b.Get())))
 }
 
 func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assumption) {
@@ -439,13 +443,13 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 
 	rightType := c.TypeOf(right)
 	if r, ok := rightType.(*types.Exact); ok {
-		rightType = r.Type
+		rightType = r.Type.Get()
 	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
 		return
 	}
-	class, ok := rightSingleton.AttachedObject.(*types.Class)
+	class, ok := rightSingleton.AttachedObject.Get().(*types.Class)
 	if !ok {
 		return
 	}
@@ -461,12 +465,12 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = types.NewExact(class)
+		local.typ = types.CastRef[types.Type](types.NewExact(class))
 	case assumptionFalsy:
-		local.typ = c.differenceType(local.typ, class)
+		local.typ = types.ToRef(c.differenceTypeRef(local.typ, types.CastRef[types.Type](class)))
 	case assumptionNotNil:
 	case assumptionNever, assumptionNil:
-		local.typ = types.Never{}
+		local.typ = types.NeverID
 	}
 }
 
@@ -489,15 +493,15 @@ func (c *Checker) narrowLocal(name string, localType types.Type, assume assumpti
 	}
 	switch assume {
 	case assumptionTruthy:
-		local.typ = c.ToNonFalsy(localType)
+		local.typ = types.ToRef(c.ToNonFalsy(localType))
 	case assumptionFalsy:
-		local.typ = c.ToNonTruthy(localType)
+		local.typ = types.ToRef(c.ToNonTruthy(localType))
 	case assumptionNever:
-		local.typ = types.Never{}
+		local.typ = types.NeverID
 	case assumptionNil:
-		local.typ = types.Nil{}
+		local.typ = types.NilID
 	case assumptionNotNil:
-		local.typ = c.ToNonNilable(localType)
+		local.typ = types.ToRef(c.ToNonNilable(localType))
 	}
 }
 
@@ -505,12 +509,20 @@ func (c *Checker) ToNonNilable(typ types.Type) types.Type {
 	return c.differenceType(typ, types.Nil{})
 }
 
+func (c *Checker) ToNonNilableRef(typ types.Ref[types.Type]) types.Type {
+	return c.differenceTypeRef(typ, types.NilID)
+}
+
 func (c *Checker) ToNonFalsy(typ types.Type) types.Type {
-	return c.NewNormalisedIntersection(typ, types.NewNot(types.Nil{}), types.NewNot(types.False{}))
+	return c.NewNormalisedIntersection(types.ToRef(typ), types.CastRef[types.Type](types.NewNotRef(types.NilID)), types.CastRef[types.Type](types.NewNotRef(types.FalseID)))
+}
+
+func (c *Checker) ToNonFalsyRef(typ types.Ref[types.Type]) types.Type {
+	return c.NewNormalisedIntersection(typ, types.CastRef[types.Type](types.NewNotRef(types.NilID)), types.CastRef[types.Type](types.NewNotRef(types.FalseID)))
 }
 
 func (c *Checker) ToNonTruthy(typ types.Type) types.Type {
-	return c.NewNormalisedIntersection(typ, types.NewUnion(types.Nil{}, types.False{}))
+	return c.NewNormalisedIntersection(types.ToRef(typ), types.CastRef[types.Type](types.NewUnionRef(types.NilID, types.FalseID)))
 }
 
 func (c *Checker) ToNonLiteral(typ types.Type, widenSingletonTypes bool) types.Type {
@@ -524,15 +536,15 @@ func (c *Checker) ToNonLiteral(typ types.Type, widenSingletonTypes bool) types.T
 		case types.False, types.True:
 			return types.Bool{}
 		case *types.Union:
-			newElements := make([]types.Type, len(t.Elements))
+			newElements := make([]types.Ref[types.Type], len(t.Elements))
 			for i, element := range t.Elements {
-				newElements[i] = c.ToNonLiteral(element, widenSingletonTypes)
+				newElements[i] = types.ToRef(c.ToNonLiteral(element.Get(), widenSingletonTypes))
 			}
 			return c.NewNormalisedUnion(newElements...)
 		}
 	}
 
-	return typ.ToNonLiteral(c.runtimeEnv)
+	return typ.ToNonLiteral()
 }
 
 func (c *Checker) ToNilable(typ types.Type) types.Type {

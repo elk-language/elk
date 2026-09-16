@@ -69,6 +69,12 @@ func NewNot(typ Type) *Not {
 	}
 }
 
+func NewNotRef(typ Ref[Type]) *Not {
+	return &Not{
+		Type: typ,
+	}
+}
+
 func (n *Not) ToNonLiteral() Type {
 	return n
 }

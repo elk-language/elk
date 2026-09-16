@@ -12,7 +12,7 @@ import (
 
 // Represents a single local variable or local value
 type local struct {
-	typ                        types.Type
+	typ                        types.Ref[types.Type]
 	shadowOf                   *local
 	envIndex                   int
 	conditionalSpecialisations []*local // specialisation of this local in conditional branches, used for determining if the local has been initialised
@@ -123,7 +123,7 @@ func (l *local) setInitialised() {
 	l.shadowOf.setInitialised()
 }
 
-func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
+func newLocal(typ types.Ref[types.Type], initialised, singleAssignment bool) *local {
 	return &local{
 		typ:              typ,
 		initialised:      initialised,
@@ -373,31 +373,4 @@ func (c *Checker) resolveLocal(name string, location *position.Location) (*local
 		)
 	}
 	return local, localCtx
-}
-
-func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*localEnvironment {
-	var newLocalEnvs []*localEnvironment
-
-	for _, localEnv := range c.localEnvs {
-		newLocalEnv := &localEnvironment{
-			index:  localEnv.index,
-			locals: make(map[symbol.Symbol]*local),
-			typ:    localEnv.typ,
-		}
-		if localEnv.parent != nil {
-			newLocalEnv.parent = newLocalEnvs[localEnv.parent.index]
-		}
-		for localName, local := range localEnv.locals {
-			newLocal := local.copy()
-			newLocal.typ = types.DeepCopyEnv(local.typ, oldEnv, newEnv)
-			if local.shadowOf != nil {
-				newShadowLocalEnv := newLocalEnvs[local.shadowOf.envIndex]
-				newLocal.shadowOf = newShadowLocalEnv.locals[localName]
-			}
-			newLocalEnv.locals[localName] = newLocal
-		}
-		newLocalEnvs = append(newLocalEnvs, newLocalEnv)
-	}
-
-	return newLocalEnvs
 }

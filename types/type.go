@@ -51,6 +51,10 @@ func (ref Ref[T]) ID() ID {
 	return ID(ref)
 }
 
+func (ref Ref[T]) Cast[R Type]() Ref[R] {
+	return Ref[R](ref)
+}
+
 func (ref Ref[T]) IsZero() bool {
 	return ref == ZERO_ID
 }

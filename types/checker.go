@@ -18,8 +18,8 @@ type Checker interface {
 	IsTheSameType(a, b Type) bool
 	IsTheSameNamespace(a, b Namespace) bool
 	TypesIntersect(a, b Type) bool
-	NewNormalisedUnion(elements ...Type) Type
-	NewNormalisedIntersection(elements ...Type) Type
+	NewNormalisedUnion(elements ...Ref[Type]) Type
+	NewNormalisedIntersection(elements ...Ref[Type]) Type
 	NormaliseType(typ Type) Type
 	StdValue() *Class
 	StdInt() *Class
