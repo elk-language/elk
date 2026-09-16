@@ -64,8 +64,8 @@ func (n *VariantTypeParameterNode) splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *VariantTypeParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::VariantTypeParameterNode", env)
+func (n *VariantTypeParameterNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::VariantTypeParameterNode")
 }
 
 func (n *VariantTypeParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

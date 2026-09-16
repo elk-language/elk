@@ -20,8 +20,8 @@ func (n *BreakpointNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *BreakpointNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BreakpointNode", env)
+func (n *BreakpointNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BreakpointNode")
 }
 
 func (n *BreakpointNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -48,14 +48,19 @@ func (n *BreakpointNode) String() string {
 	return "breakpoint"
 }
 
-func (*BreakpointNode) SetType(types.Type) {}
+func (*BreakpointNode) SetType(types.Type)               {}
+func (*BreakpointNode) SetTypeRef(types.Ref[types.Type]) {}
 
 func (*BreakpointNode) IsStatic() bool {
 	return true
 }
 
-func (*BreakpointNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*BreakpointNode) Type() types.Type {
 	return types.Nil{}
+}
+
+func (*BreakpointNode) TypeRef() types.Ref[types.Type] {
+	return types.NilID
 }
 
 func (*BreakpointNode) Class() *value.Class {

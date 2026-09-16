@@ -48,8 +48,8 @@ func (n *PublicIdentifierNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *PublicIdentifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PublicIdentifierNode", env)
+func (n *PublicIdentifierNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PublicIdentifierNode")
 }
 
 func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -144,8 +144,8 @@ func (n *PrivateIdentifierNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *PrivateIdentifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PrivateIdentifierNode", env)
+func (n *PrivateIdentifierNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PrivateIdentifierNode")
 }
 
 func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

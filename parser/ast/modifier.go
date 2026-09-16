@@ -28,8 +28,8 @@ func (n *ModifierNode) splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
-func (n *ModifierNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ModifierNode", env)
+func (n *ModifierNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierNode")
 }
 
 func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -158,8 +158,8 @@ func (n *ModifierIfElseNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ModifierIfElseNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ModifierIfElseNode", env)
+func (n *ModifierIfElseNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierIfElseNode")
 }
 
 func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -291,8 +291,8 @@ func (n *ModifierForInNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *ModifierForInNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ModifierForInNode", env)
+func (n *ModifierForInNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ModifierForInNode")
 }
 
 func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

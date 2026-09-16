@@ -44,8 +44,8 @@ func (n *InterfaceDeclarationNode) splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *InterfaceDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InterfaceDeclarationNode", env)
+func (n *InterfaceDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InterfaceDeclarationNode")
 }
 
 func (n *InterfaceDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

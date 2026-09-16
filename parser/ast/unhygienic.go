@@ -22,8 +22,8 @@ func (n *UnhygienicNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *UnhygienicNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UnhygienicNode", env)
+func (n *UnhygienicNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UnhygienicNode")
 }
 
 func (n *UnhygienicNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

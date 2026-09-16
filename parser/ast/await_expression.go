@@ -25,8 +25,8 @@ func (n *AwaitExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *AwaitExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::AwaitExpressionNode", env)
+func (n *AwaitExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::AwaitExpressionNode")
 }
 
 func (n *AwaitExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

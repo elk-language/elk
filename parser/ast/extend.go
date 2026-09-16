@@ -29,8 +29,8 @@ func (n *ExtendWhereBlockExpressionNode) splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *ExtendWhereBlockExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ExtendWhereBlockExpressionNode", env)
+func (n *ExtendWhereBlockExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ExtendWhereBlockExpressionNode")
 }
 
 func (n *ExtendWhereBlockExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

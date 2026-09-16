@@ -30,8 +30,8 @@ func (n *ThrowExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ThrowExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ThrowExpressionNode", env)
+func (n *ThrowExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ThrowExpressionNode")
 }
 
 func (n *ThrowExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -92,8 +92,12 @@ func (n *ThrowExpressionNode) String() string {
 	return buff.String()
 }
 
-func (*ThrowExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+func (*ThrowExpressionNode) Type() types.Type {
 	return types.Never{}
+}
+
+func (*ThrowExpressionNode) TypeRef() types.Ref[types.Type] {
+	return types.NeverID
 }
 
 func (*ThrowExpressionNode) IsStatic() bool {

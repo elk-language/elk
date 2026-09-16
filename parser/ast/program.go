@@ -48,8 +48,8 @@ func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
-func (n *ProgramNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ProgramNode", env)
+func (n *ProgramNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ProgramNode")
 }
 
 func (n *ProgramNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

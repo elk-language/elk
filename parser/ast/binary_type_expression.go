@@ -28,8 +28,8 @@ func (n *BinaryTypeNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *BinaryTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BinaryTypeNode", env)
+func (n *BinaryTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BinaryTypeNode")
 }
 
 func (n *BinaryTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

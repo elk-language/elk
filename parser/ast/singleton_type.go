@@ -23,8 +23,8 @@ func (n *SingletonTypeNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *SingletonTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SingletonTypeNode", env)
+func (n *SingletonTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SingletonTypeNode")
 }
 
 func (n *SingletonTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

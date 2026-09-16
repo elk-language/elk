@@ -36,8 +36,8 @@ func (n *SimpleSymbolLiteralNode) splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *SimpleSymbolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SimpleSymbolLiteralNode", env)
+func (n *SimpleSymbolLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SimpleSymbolLiteralNode")
 }
 
 func (n *SimpleSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -112,8 +112,8 @@ func (n *InterpolatedSymbolLiteralNode) splice(loc *position.Location, args *[]N
 	}
 }
 
-func (n *InterpolatedSymbolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InterpolatedSymbolLiteralNode", env)
+func (n *InterpolatedSymbolLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InterpolatedSymbolLiteralNode")
 }
 
 func (n *InterpolatedSymbolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -154,8 +154,12 @@ func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
 	return false
 }
 
-func (*InterpolatedSymbolLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.C_Symbol)
+func (*InterpolatedSymbolLiteralNode) Type() types.Type {
+	return types.Env.StdSubtype(symbol.C_Symbol)
+}
+
+func (*InterpolatedSymbolLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.ToRef(types.Env.StdSubtype(symbol.C_Symbol))
 }
 
 func (*InterpolatedSymbolLiteralNode) Class() *value.Class {

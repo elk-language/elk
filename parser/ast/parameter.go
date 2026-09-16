@@ -90,8 +90,8 @@ func (n *FormalParameterNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *FormalParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::FormalParameterNode", env)
+func (n *FormalParameterNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::FormalParameterNode")
 }
 
 func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -264,8 +264,8 @@ func (n *MethodParameterNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *MethodParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MethodParameterNode", env)
+func (n *MethodParameterNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MethodParameterNode")
 }
 
 func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -440,8 +440,8 @@ func (n *SignatureParameterNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *SignatureParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SignatureParameterNode", env)
+func (n *SignatureParameterNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SignatureParameterNode")
 }
 
 func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -588,8 +588,8 @@ func (n *AttributeParameterNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *AttributeParameterNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::AttributeParameterNode", env)
+func (n *AttributeParameterNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::AttributeParameterNode")
 }
 
 func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

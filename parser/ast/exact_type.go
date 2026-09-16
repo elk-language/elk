@@ -23,8 +23,8 @@ func (n *ExactTypeNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *ExactTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ExactTypeNode", env)
+func (n *ExactTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ExactTypeNode")
 }
 
 func (n *ExactTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

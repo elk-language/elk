@@ -39,8 +39,8 @@ func (n *ExpressionStatementNode) splice(loc *position.Location, args *[]Node, u
 	}
 }
 
-func (n *ExpressionStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ExpressionStatementNode", env)
+func (n *ExpressionStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ExpressionStatementNode")
 }
 
 func (n *ExpressionStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -133,8 +133,8 @@ func (n *EmptyStatementNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *EmptyStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::EmptyStatementNode", env)
+func (n *EmptyStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::EmptyStatementNode")
 }
 
 func (n *EmptyStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -207,8 +207,8 @@ func (n *ImportStatementNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ImportStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ImportStatementNode", env)
+func (n *ImportStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ImportStatementNode")
 }
 
 func (n *ImportStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -291,8 +291,8 @@ func (n *ParameterStatementNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *ParameterStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ParameterStatementNode", env)
+func (n *ParameterStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ParameterStatementNode")
 }
 
 func (n *ParameterStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -387,8 +387,8 @@ func (n *TypeStatementNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *TypeStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::TypeStatementNode", env)
+func (n *TypeStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::TypeStatementNode")
 }
 
 func (n *TypeStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -475,8 +475,8 @@ func (n *PatternStatementNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *PatternStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PatternStatementNode", env)
+func (n *PatternStatementNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PatternStatementNode")
 }
 
 func (n *PatternStatementNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

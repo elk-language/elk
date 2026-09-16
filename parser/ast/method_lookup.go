@@ -25,8 +25,8 @@ func (n *InstanceMethodLookupNode) splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *InstanceMethodLookupNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InstanceMethodLookupNode", env)
+func (n *InstanceMethodLookupNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceMethodLookupNode")
 }
 
 func (n *InstanceMethodLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -143,8 +143,8 @@ func (n *MethodLookupNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *MethodLookupNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MethodLookupNode", env)
+func (n *MethodLookupNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MethodLookupNode")
 }
 
 func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -262,8 +262,8 @@ func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *MethodLookupAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MethodLookupAsNode", env)
+func (n *MethodLookupAsNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MethodLookupAsNode")
 }
 
 func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

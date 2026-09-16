@@ -21,8 +21,8 @@ func (n *FloatLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *FloatLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::FloatLiteralNode", env)
+func (n *FloatLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::FloatLiteralNode")
 }
 
 func (n *FloatLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -99,8 +99,8 @@ func (n *BigFloatLiteralNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *BigFloatLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BigFloatLiteralNode", env)
+func (n *BigFloatLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BigFloatLiteralNode")
 }
 
 func (n *BigFloatLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -177,8 +177,8 @@ func (n *Float64LiteralNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *Float64LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Float64LiteralNode", env)
+func (n *Float64LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Float64LiteralNode")
 }
 
 func (n *Float64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -255,8 +255,8 @@ func (n *Float32LiteralNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *Float32LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Float32LiteralNode", env)
+func (n *Float32LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Float32LiteralNode")
 }
 
 func (n *Float32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

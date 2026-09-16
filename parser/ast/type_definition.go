@@ -29,8 +29,8 @@ func (n *GenericTypeDefinitionNode) splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *GenericTypeDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::GenericTypeDefinitionNode", env)
+func (n *GenericTypeDefinitionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::GenericTypeDefinitionNode")
 }
 
 func (n *GenericTypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -197,8 +197,8 @@ func (n *TypeDefinitionNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *TypeDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::TypeDefinitionNode", env)
+func (n *TypeDefinitionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::TypeDefinitionNode")
 }
 
 func (n *TypeDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

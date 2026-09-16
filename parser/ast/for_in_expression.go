@@ -27,8 +27,8 @@ func (n *ForInExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ForInExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ForInExpressionNode", env)
+func (n *ForInExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ForInExpressionNode")
 }
 
 func (n *ForInExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

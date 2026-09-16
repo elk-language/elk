@@ -307,14 +307,16 @@ type Node interface {
 	IsStatic() bool // Value is known at compile-time
 	// Return the static type of the value represented
 	// by the AST node
-	Type(*types.GlobalEnvironment) types.Type
+	Type() types.Type
+	TypeRef() types.Ref[types.Type]
 	SetType(types.Type)
+	SetTypeRef(types.Ref[types.Type])
 	SkipTypechecking() bool
 	Equal(value.Value) bool
 	String() string
 	// Return the type of the AST node object
 	// for use in macros
-	MacroType(*types.GlobalEnvironment) types.Type
+	MacroType() types.Type
 	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
 }
@@ -394,18 +396,26 @@ func (d *DocCommentableNodeBase) SetDocComment(comment string) {
 // Base typed AST node.
 type TypedNodeBase struct {
 	loc *position.Location
-	typ types.Type
+	typ types.Ref[types.Type]
 }
 
-func (t *TypedNodeBase) Type(*types.GlobalEnvironment) types.Type {
+func (t *TypedNodeBase) Type() types.Type {
+	return t.typ.Get()
+}
+
+func (t *TypedNodeBase) TypeRef() types.Ref[types.Type] {
 	return t.typ
 }
 
 func (t *TypedNodeBase) SkipTypechecking() bool {
-	return t.typ != nil
+	return t.typ.IsPresent()
 }
 
 func (t *TypedNodeBase) SetType(typ types.Type) {
+	t.typ = types.ToRef(typ)
+}
+
+func (t *TypedNodeBase) SetTypeRef(typ types.Ref[types.Type]) {
 	t.typ = typ
 }
 
@@ -462,11 +472,17 @@ type NodeBase struct {
 	loc *position.Location
 }
 
-func (*NodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*NodeBase) Type() types.Type {
 	return types.Void{}
 }
 
+func (*NodeBase) TypeRef() types.Ref[types.Type] {
+	return types.VoidID
+}
+
 func (*NodeBase) SetType(types.Type) {}
+
+func (*NodeBase) SetTypeRef(types.Ref[types.Type]) {}
 
 func (t *NodeBase) SkipTypechecking() bool {
 	return false

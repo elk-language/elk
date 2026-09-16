@@ -26,8 +26,8 @@ func (n *PostfixExpressionNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *PostfixExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PostfixExpressionNode", env)
+func (n *PostfixExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PostfixExpressionNode")
 }
 
 func (n *PostfixExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

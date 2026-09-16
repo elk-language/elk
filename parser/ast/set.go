@@ -33,8 +33,8 @@ func (n *HashSetLiteralNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *HashSetLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::HashSetLiteralNode", env)
+func (n *HashSetLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::HashSetLiteralNode")
 }
 
 func (n *HashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -234,8 +234,8 @@ func (n *WordHashSetLiteralNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *WordHashSetLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::WordHashSetLiteralNode", env)
+func (n *WordHashSetLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::WordHashSetLiteralNode")
 }
 
 func (n *WordHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -423,8 +423,8 @@ func (n *SymbolHashSetLiteralNode) splice(loc *position.Location, args *[]Node, 
 	}
 }
 
-func (n *SymbolHashSetLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SymbolHashSetLiteralNode", env)
+func (n *SymbolHashSetLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SymbolHashSetLiteralNode")
 }
 
 func (n *SymbolHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -611,8 +611,8 @@ func (n *HexHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *HexHashSetLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::HexHashSetLiteralNode", env)
+func (n *HexHashSetLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::HexHashSetLiteralNode")
 }
 
 func (n *HexHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -800,8 +800,8 @@ func (n *BinHashSetLiteralNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *BinHashSetLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BinHashSetLiteralNode", env)
+func (n *BinHashSetLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BinHashSetLiteralNode")
 }
 
 func (n *BinHashSetLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -983,8 +983,8 @@ func (n *SetPatternNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *SetPatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SetPatternNode", env)
+func (n *SetPatternNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SetPatternNode")
 }
 
 func (n *SetPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

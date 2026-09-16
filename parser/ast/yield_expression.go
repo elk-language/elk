@@ -30,8 +30,8 @@ func (n *YieldExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *YieldExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::YieldExpressionNode", env)
+func (n *YieldExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::YieldExpressionNode")
 }
 
 func (n *YieldExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

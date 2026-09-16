@@ -33,8 +33,8 @@ func (n *HashMapLiteralNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *HashMapLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::HashMapLiteralNode", env)
+func (n *HashMapLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::HashMapLiteralNode")
 }
 
 func (n *HashMapLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -227,8 +227,8 @@ func (n *HashRecordLiteralNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *HashRecordLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::HashRecordLiteralNode", env)
+func (n *HashRecordLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::HashRecordLiteralNode")
 }
 
 func (n *HashRecordLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

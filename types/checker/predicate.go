@@ -75,7 +75,13 @@ func (c *Checker) CanBeFalsy(typ types.Type) bool {
 
 // Type can be truthy
 func (c *Checker) CanBeTruthy(typ types.Type) bool {
-	return !types.IsNever(c.NewNormalisedIntersection(typ, types.NewNot(types.False{}), types.NewNot(types.Nil{})))
+	return !types.IsNever(
+		c.NewNormalisedIntersection(
+			types.ToRef(typ),
+			types.CastRef[types.Type](types.NewNot(types.False{})),
+			types.CastRef[types.Type](types.NewNot(types.Nil{})),
+		),
+	)
 }
 
 func (c *Checker) IsTheSameType(a, b types.Type) bool {
@@ -85,7 +91,7 @@ func (c *Checker) IsTheSameType(a, b types.Type) bool {
 // Check whether the two given types represent the same type.
 // Return true if they do, otherwise false.
 func (c *Checker) isTheSameType(a, b types.Type, errLoc *position.Location) bool {
-	return c.isSubtype(a, b, errLoc) && c.isSubtype(b, a, errLoc)
+	return a.ID() == b.ID() || c.isSubtype(a, b, errLoc) && c.isSubtype(b, a, errLoc)
 }
 
 func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
@@ -808,27 +814,31 @@ func (c *Checker) typeParameterIsSubtype(a *types.TypeParameter, b types.Type, e
 		}
 		return a.Name == b.Name, true
 	case methodCompatibilityInAlgebraicTypeMode:
+		aUpperBound := a.UpperBound.Get()
+		aLowerBound := a.LowerBound.Get()
 		if b, ok := b.(*types.TypeParameter); ok {
-			if c.TypesIntersect(a.UpperBound, b.UpperBound) &&
-				c.isTheSameType(b.LowerBound, a.LowerBound, nil) {
+			bUpperBound := b.UpperBound.Get()
+			bLowerBound := b.LowerBound.Get()
+			if c.TypesIntersect(aUpperBound, bUpperBound) &&
+				c.isTheSameType(bLowerBound, aLowerBound, nil) {
 				return true, true
 			}
 
 			return false, true
 		}
-		if !c.isSubtype(a.LowerBound, b, nil) {
+		if !c.isSubtype(aLowerBound, b, nil) {
 			return false, true
 		}
-		if c.isSubtype(a.UpperBound, b, nil) {
+		if c.isSubtype(aUpperBound, b, nil) {
 			return true, true
 		}
-		if c.isSubtype(b, a.UpperBound, nil) {
+		if c.isSubtype(b, aUpperBound, nil) {
 			return true, true
 		}
 
 		return false, true
 	default:
-		if c.isSubtype(a.UpperBound, b, errLoc) {
+		if c.isSubtype(a.UpperBound.Get(), b, errLoc) {
 			return true, true
 		}
 	}
@@ -850,19 +860,21 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errLoc *position
 
 		switch variance {
 		case types.INVARIANT:
-			if !c.isTheSameType(argA.Type, argB.Type, errLoc) {
+			if !c.isTheSameType(argA.Type.Get(), argB.Type.Get(), errLoc) {
 				return false
 			}
 		case types.COVARIANT:
-			if !c.isSubtype(argA.Type, argB.Type, errLoc) {
+			if !c.isSubtype(argA.Type.Get(), argB.Type.Get(), errLoc) {
 				return false
 			}
 		case types.CONTRAVARIANT:
-			if !c.isSubtype(argB.Type, argA.Type, errLoc) {
+			if !c.isSubtype(argB.Type.Get(), argA.Type.Get(), errLoc) {
 				return false
 			}
 		case types.BIVARIANT:
-			if !c.isSubtype(argB.Type, argA.Type, errLoc) && !c.isSubtype(argA.Type, argB.Type, errLoc) {
+			argAType := argA.Type.Get()
+			argBType := argB.Type.Get()
+			if !c.isSubtype(argBType, argAType, errLoc) && !c.isSubtype(argAType, argBType, errLoc) {
 				return false
 			}
 		}
@@ -874,9 +886,9 @@ func (c *Checker) typeArgsAreSubtype(a, b *types.TypeArguments, errLoc *position
 func (c *Checker) singletonClassIsSubtype(a *types.SingletonClass, b types.Type, errLoc *position.Location) bool {
 	switch b := b.(type) {
 	case *types.SingletonClass:
-		return c.isSubtype(a.AttachedObject, b.AttachedObject, errLoc)
+		return c.isSubtype(a.AttachedObject.Get(), b.AttachedObject.Get(), errLoc)
 	case *types.SingletonOf:
-		return c.isSubtype(a.AttachedObject, b.Type, errLoc)
+		return c.isSubtype(a.AttachedObject.Get(), b.Type.Get(), errLoc)
 	case *types.Class:
 		return c.namespaceIsSubtypeOfClass(a, b)
 	case *types.Mixin:
@@ -966,7 +978,7 @@ func (c *Checker) isSubtypeOfGeneric(a types.Namespace, b *types.Generic, errLoc
 		return false
 	}
 
-	switch b.Namespace.(type) {
+	switch b.Namespace.Get().(type) {
 	case *types.Interface:
 		return c.isImplicitSubtypeOfInterface(a, b, errLoc)
 	default:
@@ -983,7 +995,7 @@ func (c *Checker) isSubtypeOfGenericNamespace(a types.Namespace, b *types.Generi
 			continue
 		}
 
-		if c.IsTheSameNamespace(parent.Namespace, b.Namespace) {
+		if c.IsTheSameNamespace(parent.Namespace.Get(), b.Namespace.Get()) {
 			var target types.Type = parent
 			for _, generic := range slices.Backward(generics) {
 				target = c.replaceTypeParametersOfGeneric(target, generic)
@@ -1014,7 +1026,7 @@ func (c *Checker) namespaceIsSubtypeOfClass(a types.Namespace, b *types.Class) b
 		}
 		switch p := currentParent.(type) {
 		case *types.Generic:
-			if p.Namespace.Name() == b.Name() {
+			if p.Namespace.Get().Name() == b.Name() {
 				return true
 			}
 		}
@@ -1039,7 +1051,7 @@ func (c *Checker) namespaceIsMixin(a types.Namespace, b *types.Mixin) bool {
 			return true
 		}
 	case *types.Generic:
-		if c.IsTheSameNamespace(a.Namespace, b) {
+		if c.IsTheSameNamespace(a.Namespace.Get(), b) {
 			return true
 		}
 	case *types.TemporaryParent:
@@ -1077,7 +1089,7 @@ func (c *Checker) isExplicitSubtypeOfInterface(a types.Namespace, b *types.Inter
 				return true
 			}
 		case *types.Generic:
-			if c.IsTheSameNamespace(p.Namespace, b) {
+			if c.IsTheSameNamespace(p.Namespace.Get(), b) {
 				return true
 			}
 		}
@@ -1171,7 +1183,8 @@ abstractLoop:
 				implementation.InspectSignatureWithColor(false),
 			)
 
-			for _, overload := range implementation.Overloads {
+			for _, overloadRef := range implementation.Overloads {
+				overload := overloadRef.Get()
 				fmt.Fprintf(
 					methodDetailsBuff,
 					"\n                 `%s`",
@@ -1203,7 +1216,7 @@ abstractLoop:
 }
 
 func (c *Checker) isSubtypeOfCallable(a types.Namespace, b *types.Callable, errLoc *position.Location) bool {
-	abstractMethod := b.Body
+	abstractMethod := b.Body.Get()
 	method := c.resolveMethodInNamespace(a, symbol.L_call)
 	if b.IsClosure && !c.IsClosure(a) {
 		c.addFailure(

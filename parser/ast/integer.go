@@ -21,8 +21,8 @@ func (n *IntLiteralNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *IntLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::IntLiteralNode", env)
+func (n *IntLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::IntLiteralNode")
 }
 
 func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -98,8 +98,8 @@ func (n *Int64LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int64LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Int64LiteralNode", env)
+func (n *Int64LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Int64LiteralNode")
 }
 
 func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -169,8 +169,8 @@ type UIntLiteralNode struct {
 	Value string
 }
 
-func (n *UIntLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UIntLiteralNode", env)
+func (n *UIntLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UIntLiteralNode")
 }
 
 func (n *UIntLiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -247,8 +247,8 @@ type UInt64LiteralNode struct {
 	Value string
 }
 
-func (n *UInt64LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UInt64LiteralNode", env)
+func (n *UInt64LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UInt64LiteralNode")
 }
 
 func (n *UInt64LiteralNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
@@ -332,8 +332,8 @@ func (n *Int32LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int32LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Int32LiteralNode", env)
+func (n *Int32LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Int32LiteralNode")
 }
 
 func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -406,8 +406,8 @@ func (n *UInt32LiteralNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UInt32LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UInt32LiteralNode", env)
+func (n *UInt32LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UInt32LiteralNode")
 }
 
 func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -484,8 +484,8 @@ func (n *Int16LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *Int16LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Int16LiteralNode", env)
+func (n *Int16LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Int16LiteralNode")
 }
 
 func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -562,8 +562,8 @@ func (n *UInt16LiteralNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UInt16LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UInt16LiteralNode", env)
+func (n *UInt16LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UInt16LiteralNode")
 }
 
 func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -640,8 +640,8 @@ func (n *Int8LiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *Int8LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::Int8LiteralNode", env)
+func (n *Int8LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::Int8LiteralNode")
 }
 
 func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -718,8 +718,8 @@ func (n *UInt8LiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *UInt8LiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UInt8LiteralNode", env)
+func (n *UInt8LiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UInt8LiteralNode")
 }
 
 func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

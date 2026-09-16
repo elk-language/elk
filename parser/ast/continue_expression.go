@@ -35,8 +35,8 @@ func (n *ContinueExpressionNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *ContinueExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ContinueExpressionNode", env)
+func (n *ContinueExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ContinueExpressionNode")
 }
 
 func (n *ContinueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -114,8 +114,12 @@ func (n *ContinueExpressionNode) String() string {
 	return buff.String()
 }
 
-func (*ContinueExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+func (*ContinueExpressionNode) Type() types.Type {
 	return types.Never{}
+}
+
+func (*ContinueExpressionNode) TypeRef() types.Ref[types.Type] {
+	return types.NeverID
 }
 
 func (*ContinueExpressionNode) IsStatic() bool {

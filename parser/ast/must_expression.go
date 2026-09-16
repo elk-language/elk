@@ -23,8 +23,8 @@ func (n *MustExpressionNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *MustExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MustExpressionNode", env)
+func (n *MustExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MustExpressionNode")
 }
 
 func (n *MustExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -26,8 +26,8 @@ func (n *UnaryExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UnaryExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UnaryExpressionNode", env)
+func (n *UnaryExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UnaryExpressionNode")
 }
 
 func (n *UnaryExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

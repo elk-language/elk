@@ -51,8 +51,8 @@ func (n *UninterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *UninterpolatedRegexLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UninterpolatedRegexLiteralNode", env)
+func (n *UninterpolatedRegexLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UninterpolatedRegexLiteralNode")
 }
 
 func (n *UninterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -104,8 +104,12 @@ func (n *UninterpolatedRegexLiteralNode) String() string {
 	return buff.String()
 }
 
-func (*UninterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {
-	return env.StdSubtype(symbol.C_Regex)
+func (*UninterpolatedRegexLiteralNode) Type() types.Type {
+	return types.Env.StdSubtype(symbol.C_Regex)
+}
+
+func (*UninterpolatedRegexLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.ToRef(types.Env.StdSubtype(symbol.C_Regex))
 }
 
 func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
@@ -213,8 +217,8 @@ func (n *RegexLiteralContentSectionNode) splice(loc *position.Location, args *[]
 	}
 }
 
-func (n *RegexLiteralContentSectionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::RegexLiteralContentSectionNode", env)
+func (n *RegexLiteralContentSectionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::RegexLiteralContentSectionNode")
 }
 
 func (n *RegexLiteralContentSectionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -289,8 +293,8 @@ func (n *RegexInterpolationNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *RegexInterpolationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::RegexInterpolationNode", env)
+func (n *RegexInterpolationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::RegexInterpolationNode")
 }
 
 func (n *RegexInterpolationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -384,8 +388,8 @@ func (n *InterpolatedRegexLiteralNode) splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *InterpolatedRegexLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InterpolatedRegexLiteralNode", env)
+func (n *InterpolatedRegexLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InterpolatedRegexLiteralNode")
 }
 
 func (n *InterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -456,8 +460,12 @@ func (n *InterpolatedRegexLiteralNode) String() string {
 	return buff.String()
 }
 
-func (*InterpolatedRegexLiteralNode) Type(env *types.GlobalEnvironment) types.Type {
-	return env.StdSubtype(symbol.C_Regex)
+func (*InterpolatedRegexLiteralNode) Type() types.Type {
+	return types.Env.StdSubtype(symbol.C_Regex)
+}
+
+func (*InterpolatedRegexLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.ToRef(types.Env.StdSubtype(symbol.C_Regex))
 }
 
 func (*InterpolatedRegexLiteralNode) IsStatic() bool {

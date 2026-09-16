@@ -55,6 +55,10 @@ func (ref Ref[T]) IsZero() bool {
 	return ref == ZERO_ID
 }
 
+func (ref Ref[T]) IsPresent() bool {
+	return ref != ZERO_ID
+}
+
 func (ref Ref[T]) Get() (result T) {
 	if ref == 0 {
 		return

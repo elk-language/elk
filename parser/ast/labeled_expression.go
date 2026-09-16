@@ -25,8 +25,8 @@ func (n *LabeledExpressionNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *LabeledExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::LabeledExpressionNode", env)
+func (n *LabeledExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::LabeledExpressionNode")
 }
 
 func (n *LabeledExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -74,8 +74,12 @@ func (n *LabeledExpressionNode) String() string {
 	return buff.String()
 }
 
-func (l *LabeledExpressionNode) Type(env *types.GlobalEnvironment) types.Type {
-	return l.Expression.Type(env)
+func (l *LabeledExpressionNode) Type() types.Type {
+	return l.Expression.Type()
+}
+
+func (l *LabeledExpressionNode) TypeRef() types.Ref[types.Type] {
+	return l.Expression.TypeRef()
 }
 
 func (l *LabeledExpressionNode) IsStatic() bool {

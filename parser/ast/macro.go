@@ -44,8 +44,8 @@ func (n *MacroDefinitionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *MacroDefinitionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MacroDefinitionNode", env)
+func (n *MacroDefinitionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MacroDefinitionNode")
 }
 
 func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -274,8 +274,8 @@ func (n *ScopedMacroCallNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *ScopedMacroCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ScopedMacroCallNode", env)
+func (n *ScopedMacroCallNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ScopedMacroCallNode")
 }
 
 func (n *ScopedMacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -500,8 +500,8 @@ func (n *MacroCallNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *MacroCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MacroCallNode", env)
+func (n *MacroCallNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MacroCallNode")
 }
 
 func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -724,8 +724,8 @@ func (n *ReceiverlessMacroCallNode) splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *ReceiverlessMacroCallNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ReceiverlessMacroCallNode", env)
+func (n *ReceiverlessMacroCallNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ReceiverlessMacroCallNode")
 }
 
 func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

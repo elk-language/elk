@@ -55,8 +55,8 @@ func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[
 	}
 }
 
-func (n *InstanceVariableDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InstanceVariableDeclarationNode", env)
+func (n *InstanceVariableDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceVariableDeclarationNode")
 }
 
 func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
@@ -199,8 +199,8 @@ func (n *InstanceValueDeclarationNode) splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *InstanceValueDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InstanceValueDeclarationNode", env)
+func (n *InstanceValueDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InstanceValueDeclarationNode")
 }
 
 func (n *InstanceValueDeclarationNode) Equal(other value.Value) bool {

@@ -27,8 +27,8 @@ func (n *InvalidNode) splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
-func (n *InvalidNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::InvalidNode", env)
+func (n *InvalidNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::InvalidNode")
 }
 
 func (n *InvalidNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -630,7 +630,7 @@ func (c *Checker) checkObjectKeyValuePattern(typ types.Type, node *ast.SymbolKey
 		c.checkPattern(node.Value, types.Untyped{})
 		return types.Untyped{}, false
 	}
-	returnType := c.typeGuardVoid(getter.ReturnType, node.Location())
+	returnType := c.typeGuardVoid(getter.ReturnType.Get(), node.Location())
 
 	var fullyCapturedType types.Type
 	node.Value, fullyCapturedType = c.checkPattern(node.Value, returnType)
@@ -649,7 +649,7 @@ func (c *Checker) checkObjectIdentifierPattern(typ types.Type, name string, loca
 		return types.Untyped{}, false
 	}
 
-	returnType := c.typeGuardVoid(getter.ReturnType, location)
+	returnType := c.typeGuardVoid(getter.ReturnType.Get(), location)
 	return c.checkIdentifierPattern(name, returnType, returnType, location), true
 }
 

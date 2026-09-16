@@ -31,8 +31,8 @@ func (n *SingletonBlockExpressionNode) splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *SingletonBlockExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SingletonBlockExpressionNode", env)
+func (n *SingletonBlockExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SingletonBlockExpressionNode")
 }
 
 func (n *SingletonBlockExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

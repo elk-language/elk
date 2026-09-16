@@ -61,8 +61,8 @@ func (n *UsingAllEntryNode) splice(loc *position.Location, args *[]Node, unquote
 	}
 }
 
-func (n *UsingAllEntryNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UsingAllEntryNode", env)
+func (n *UsingAllEntryNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UsingAllEntryNode")
 }
 
 func (n *UsingAllEntryNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -155,8 +155,8 @@ func (n *UsingEntryWithSubentriesNode) splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *UsingEntryWithSubentriesNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UsingEntryWithSubentriesNode", env)
+func (n *UsingEntryWithSubentriesNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UsingEntryWithSubentriesNode")
 }
 
 func (n *UsingEntryWithSubentriesNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -287,8 +287,8 @@ func (n *UsingExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UsingExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UsingExpressionNode", env)
+func (n *UsingExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UsingExpressionNode")
 }
 
 func (n *UsingExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -419,8 +419,8 @@ func (n *UsingSubentryAsNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UsingSubentryAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UsingSubentryAsNode", env)
+func (n *UsingSubentryAsNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UsingSubentryAsNode")
 }
 
 func (n *UsingSubentryAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -515,8 +515,8 @@ func (n *MacroNameNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *MacroNameNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MacroNameNode", env)
+func (n *MacroNameNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MacroNameNode")
 }
 
 func (n *MacroNameNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

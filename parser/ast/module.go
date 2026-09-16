@@ -38,8 +38,8 @@ func (n *ModuleDeclarationNode) splice(loc *position.Location, args *[]Node, unq
 	}
 }
 
-func (n *ModuleDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ModuleDeclarationNode", env)
+func (n *ModuleDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ModuleDeclarationNode")
 }
 
 func (n *ModuleDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -55,8 +55,8 @@ func (n *RangeLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *RangeLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::RangeLiteralNode", env)
+func (n *RangeLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::RangeLiteralNode")
 }
 
 func (n *RangeLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

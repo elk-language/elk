@@ -23,8 +23,8 @@ func (n *MapPatternNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *MapPatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MapPatternNode", env)
+func (n *MapPatternNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MapPatternNode")
 }
 
 func (n *MapPatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

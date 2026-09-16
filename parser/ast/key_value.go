@@ -29,8 +29,8 @@ func (n *KeyValueExpressionNode) splice(loc *position.Location, args *[]Node, un
 	}
 }
 
-func (n *KeyValueExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::KeyValueExpressionNode", env)
+func (n *KeyValueExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::KeyValueExpressionNode")
 }
 
 func (n *KeyValueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -140,8 +140,8 @@ func (n *SymbolKeyValueExpressionNode) splice(loc *position.Location, args *[]No
 	}
 }
 
-func (n *SymbolKeyValueExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SymbolKeyValueExpressionNode", env)
+func (n *SymbolKeyValueExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SymbolKeyValueExpressionNode")
 }
 
 func (n *SymbolKeyValueExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -240,8 +240,8 @@ func (n *SymbolKeyValuePatternNode) splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *SymbolKeyValuePatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SymbolKeyValuePatternNode", env)
+func (n *SymbolKeyValuePatternNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SymbolKeyValuePatternNode")
 }
 
 func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -344,8 +344,8 @@ func (n *KeyValuePatternNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *KeyValuePatternNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::KeyValuePatternNode", env)
+func (n *KeyValuePatternNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::KeyValuePatternNode")
 }
 
 func (n *KeyValuePatternNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

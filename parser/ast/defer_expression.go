@@ -25,14 +25,19 @@ func (n *DeferExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (*DeferExpressionNode) SetType(types.Type) {}
+func (*DeferExpressionNode) SetType(types.Type)               {}
+func (*DeferExpressionNode) SetTypeRef(types.Ref[types.Type]) {}
 
-func (*DeferExpressionNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*DeferExpressionNode) Type() types.Type {
 	return types.Nil{}
 }
 
-func (n *DeferExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::DeferExpressionNode", env)
+func (*DeferExpressionNode) TypeRef() types.Ref[types.Type] {
+	return types.NilID
+}
+
+func (n *DeferExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::DeferExpressionNode")
 }
 
 func (n *DeferExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

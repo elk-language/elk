@@ -26,8 +26,8 @@ func (n *ConstantAsNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *ConstantAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ConstantAsNode", env)
+func (n *ConstantAsNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ConstantAsNode")
 }
 
 func (n *ConstantAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

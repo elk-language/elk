@@ -36,8 +36,8 @@ func (n *SwitchExpressionNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *SwitchExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SwitchExpressionNode", env)
+func (n *SwitchExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SwitchExpressionNode")
 }
 
 func (n *SwitchExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -204,8 +204,8 @@ func (n *SwitchCaseNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *SwitchCaseNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SwitchCaseNode", env)
+func (n *SwitchCaseNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SwitchCaseNode")
 }
 
 func (n *SwitchCaseNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

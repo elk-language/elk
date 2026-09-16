@@ -46,8 +46,8 @@ func (n *MixinDeclarationNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *MixinDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::MixinDeclarationNode", env)
+func (n *MixinDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::MixinDeclarationNode")
 }
 
 func (n *MixinDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

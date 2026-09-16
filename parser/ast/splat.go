@@ -23,8 +23,8 @@ func (n *DoubleSplatExpressionNode) splice(loc *position.Location, args *[]Node,
 	}
 }
 
-func (n *DoubleSplatExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::DoubleSplatExpressionNode", env)
+func (n *DoubleSplatExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::DoubleSplatExpressionNode")
 }
 
 func (n *DoubleSplatExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -125,8 +125,8 @@ func (n *SplatExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *SplatExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SplatExpressionNode", env)
+func (n *SplatExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SplatExpressionNode")
 }
 
 func (n *SplatExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

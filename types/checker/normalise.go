@@ -37,48 +37,54 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		if arg == nil {
 			return p
 		}
-		return arg.Type
+		return arg.Type.Get()
 	case *types.Callable:
 		g, ok := givenType.(*types.Callable)
 		if !ok {
 			return p
 		}
 
-		gMethod := g.Body
-		pMethod := p.Body
+		gMethod := g.Body.Get()
+		pMethod := p.Body.Get()
 		var isDifferent bool
 		newParams := slices.Clone(pMethod.Params)
 		for i := range min(len(pMethod.Params), len(gMethod.Params)) {
-			pParam := pMethod.Params[i]
-			gParam := gMethod.Params[i]
+			pParam := pMethod.Params[i].Get()
+			gParam := gMethod.Params[i].Get()
 			if pParam.Kind != gParam.Kind {
 				return p
 			}
-			result := c.inferTypeArgumentsWithFlags(gParam.Type, pParam.Type, typeArgMap, errLocation, flags)
+			pParamType := pParam.Type.Get()
+			gParamType := gParam.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(gParamType, pParamType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if result != pParam.Type {
+			if result != pParamType {
 				isDifferent = true
 				newParam := pParam.Copy()
-				newParam.Type = result
-				newParams[i] = newParam
+				newParam.Type = types.ToRef(result)
+				newParams[i] = newParam.ToRef()
 			}
 		}
 
-		returnType := c.inferTypeArgumentsWithFlags(gMethod.ReturnType, pMethod.ReturnType, typeArgMap, errLocation, flags)
+		gMethodReturnType := gMethod.ReturnType.Get()
+		pMethodReturnType := pMethod.ReturnType.Get()
+		returnType := c.inferTypeArgumentsWithFlags(gMethodReturnType, pMethodReturnType, typeArgMap, errLocation, flags)
 		if returnType == nil {
 			return nil
 		}
-		if returnType != pMethod.ReturnType {
+		if returnType != pMethodReturnType {
 			isDifferent = true
 		}
 
-		throwType := c.inferTypeArgumentsWithFlags(gMethod.ThrowType, pMethod.ThrowType, typeArgMap, errLocation, flags)
+		gMethodThrowType := gMethod.ThrowType.Get()
+		pMethodThrowType := pMethod.ThrowType.Get()
+		throwType := c.inferTypeArgumentsWithFlags(gMethodThrowType, pMethodThrowType, typeArgMap, errLocation, flags)
 		if throwType == nil {
 			return nil
 		}
-		if throwType != pMethod.ThrowType {
+		if throwType != pMethodThrowType {
 			isDifferent = true
 		}
 
@@ -94,14 +100,14 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 				throwType,
 				closure,
 			)
-			closure.Body = newMethod
+			closure.Body = newMethod.ToRef()
 			return closure
 		}
 		return p
 	case *types.TypeParameter:
 		typeArg := typeArgMap[p.Name]
 		if typeArg != nil {
-			return typeArg.Type
+			return typeArg.Type.Get()
 		}
 		if givenType == nil {
 			return nil
@@ -119,16 +125,19 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		}
 
 		inferredType := c.ToNonLiteral(givenType, false)
-		if !c.isSubtype(givenType, p.UpperBound, nil) {
-			c.addUpperBoundError(givenType, p.UpperBound, errLocation)
+		pUpperBound := p.UpperBound.Get()
+		if !c.isSubtype(givenType, pUpperBound, nil) {
+			c.addUpperBoundError(givenType, pUpperBound, errLocation)
 			return nil
 		}
-		if !c.isSubtype(p.LowerBound, inferredType, nil) {
-			if !c.isSubtype(inferredType, p.LowerBound, nil) {
-				c.addLowerBoundError(givenType, p.LowerBound, errLocation)
+
+		pLowerBound := p.LowerBound.Get()
+		if !c.isSubtype(pLowerBound, inferredType, nil) {
+			if !c.isSubtype(inferredType, pLowerBound, nil) {
+				c.addLowerBoundError(givenType, pLowerBound, errLocation)
 				return nil
 			}
-			inferredType = p.LowerBound
+			inferredType = pLowerBound
 		}
 		typeArgMap[p.Name] = types.NewTypeArgument(
 			inferredType,
@@ -137,18 +146,19 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		return inferredType
 	case *types.Generic:
 		gNamespace, ok := givenType.(types.Namespace)
-		if !ok || !c.isSubtype(gNamespace, p.Namespace, nil) {
+		pNamespace := p.Namespace.Get()
+		if !ok || !c.isSubtype(gNamespace, pNamespace, nil) {
 			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
 			for _, argName := range p.ArgumentOrder {
 				pArg := p.ArgumentMap[argName]
-				result := c.inferTypeArgumentsWithFlags(nil, pArg.Type, typeArgMap, errLocation, flags)
+				result := c.inferTypeArgumentsWithFlags(nil, pArg.Type.Get(), typeArgMap, errLocation, flags)
 				if result == nil {
 					return p
 				}
 				newArgMap[argName] = types.NewTypeArgument(result, pArg.Variance)
 			}
 			return types.NewGeneric(
-				p.Namespace,
+				pNamespace,
 				types.NewTypeArguments(
 					newArgMap,
 					p.ArgumentOrder,
@@ -156,7 +166,7 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			)
 		}
 		gGeneric, ok := gNamespace.(*types.Generic)
-		if ok && c.IsTheSameNamespace(gGeneric.Namespace, p.Namespace) {
+		if ok && c.IsTheSameNamespace(gGeneric.Namespace.Get(), pNamespace) {
 			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))
 			for _, argName := range p.ArgumentOrder {
 				pArg := p.ArgumentMap[argName]
@@ -164,14 +174,14 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 				if gArg == nil || pArg == nil {
 					return nil
 				}
-				result := c.inferTypeArgumentsWithFlags(gArg.Type, pArg.Type, typeArgMap, errLocation, flags)
+				result := c.inferTypeArgumentsWithFlags(gArg.Type.Get(), pArg.Type.Get(), typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
 				}
 				newArgMap[argName] = types.NewTypeArgument(result, gArg.Variance)
 			}
 			return types.NewGeneric(
-				p.Namespace,
+				pNamespace,
 				types.NewTypeArguments(
 					newArgMap,
 					p.ArgumentOrder,
@@ -192,7 +202,7 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			}
 			resolvedG = c.replaceTypeParametersInGeneric(gGenericParent, resolvedG.ArgumentMap, false)
 
-			if !c.IsTheSameNamespace(gGenericParent.Namespace, p.Namespace) {
+			if !c.IsTheSameNamespace(gGenericParent.Namespace.Get(), pNamespace) {
 				continue
 			}
 
@@ -207,23 +217,25 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 	case *types.SingletonOf:
 		switch g := givenType.(type) {
 		case *types.Exact:
-			return c.inferTypeArgumentsWithFlags(g.Type, p, typeArgMap, errLocation, flags)
+			return c.inferTypeArgumentsWithFlags(g.Type.Get(), p, typeArgMap, errLocation, flags)
 		case *types.SingletonClass:
-			result := c.inferTypeArgumentsWithFlags(g.AttachedObject, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.AttachedObject.Get(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			return types.NewSingletonOf(result)
 		case *types.SingletonOf:
-			result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
@@ -234,23 +246,25 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 	case *types.SingletonClass:
 		switch g := givenType.(type) {
 		case *types.Exact:
-			return c.inferTypeArgumentsWithFlags(g.Type, p, typeArgMap, errLocation, flags)
+			return c.inferTypeArgumentsWithFlags(g.Type.Get(), p, typeArgMap, errLocation, flags)
 		case *types.SingletonClass:
-			result := c.inferTypeArgumentsWithFlags(g.AttachedObject, p.AttachedObject, typeArgMap, errLocation, flags)
+			pAttachedObject := p.AttachedObject.Get()
+			result := c.inferTypeArgumentsWithFlags(g.AttachedObject.Get(), pAttachedObject, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.AttachedObject == result {
+			if pAttachedObject == result {
 				return p
 			}
 
 			return types.NewSingletonClass(result.(types.Namespace), p.Parent())
 		case *types.SingletonOf:
-			result := c.inferTypeArgumentsWithFlags(g.Type, p.AttachedObject, typeArgMap, errLocation, flags)
+			pAttachedObject := p.AttachedObject.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pAttachedObject, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.AttachedObject == result {
+			if pAttachedObject == result {
 				return p
 			}
 
@@ -262,67 +276,71 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		nonLiteral := c.ToNonLiteral(givenType, false)
 		switch g := nonLiteral.(type) {
 		case *types.InstanceOf:
-			result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			switch r := result.(type) {
 			case *types.SingletonClass:
-				return r.AttachedObject
+				return r.AttachedObject.Get()
 			case *types.SingletonOf:
-				return r.Type
+				return r.Type.Get()
 			}
 			return p
 		case *types.Class:
-			result := c.inferTypeArgumentsWithFlags(g.Singleton(), p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Singleton(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			switch r := result.(type) {
 			case *types.SingletonClass:
-				return r.AttachedObject
+				return r.AttachedObject.Get()
 			case *types.SingletonOf:
-				return r.Type
+				return r.Type.Get()
 			}
 			return p
 		case *types.Mixin:
-			result := c.inferTypeArgumentsWithFlags(g.Singleton(), p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Singleton(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			switch r := result.(type) {
 			case *types.SingletonClass:
-				return r.AttachedObject
+				return r.AttachedObject.Get()
 			case *types.SingletonOf:
-				return r.Type
+				return r.Type.Get()
 			}
 			return p
 		case *types.Interface:
-			result := c.inferTypeArgumentsWithFlags(g.Singleton(), p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Singleton(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			switch r := result.(type) {
 			case *types.SingletonClass:
-				return r.AttachedObject
+				return r.AttachedObject.Get()
 			case *types.SingletonOf:
-				return r.Type
+				return r.Type.Get()
 			}
 			return p
 		default:
@@ -334,11 +352,12 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			return p
 		}
 
-		result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+		pType := p.Type.Get()
+		result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pType, typeArgMap, errLocation, flags)
 		if result == nil {
 			return nil
 		}
-		if p.Type == result {
+		if pType == result {
 			return p
 		}
 
@@ -349,11 +368,12 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			return p
 		}
 
-		result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+		pType := p.Type.Get()
+		result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pType, typeArgMap, errLocation, flags)
 		if result == nil {
 			return nil
 		}
-		if p.Type == result {
+		if pType == result {
 			return p
 		}
 
@@ -364,7 +384,7 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			gElementsToSkip := make([]bool, len(g.Elements))
 			for _, pElement := range p.Elements {
 				for j, gElement := range g.Elements {
-					if c.isSubtype(gElement, pElement, nil) {
+					if c.isSubtype(gElement.Get(), pElement.Get(), nil) {
 						gElementsToSkip[j] = true
 						break
 					}
@@ -376,7 +396,7 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 				if gElementsToSkip[j] {
 					continue
 				}
-				newGElements = append(newGElements, gElement)
+				newGElements = append(newGElements, gElement.Get())
 			}
 			var newG types.Type
 			switch len(newGElements) {
@@ -390,7 +410,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 
 			newPElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
-			for _, pElement := range p.Elements {
+			for _, pElementRef := range p.Elements {
+				pElement := pElementRef.Get()
 				result := c.inferTypeArgumentsWithFlags(newG, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -407,8 +428,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			// try matching exactly as a last resort
 			newPElements = newPElements[:0]
 			for i := range len(p.Elements) {
-				pElement := p.Elements[i]
-				gElement := g.Elements[i]
+				pElement := p.Elements[i].Get()
+				gElement := g.Elements[i].Get()
 				result := c.inferTypeArgumentsWithFlags(gElement, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -426,7 +447,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		default:
 			newElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
-			for _, pElement := range p.Elements {
+			for _, pElementRef := range p.Elements {
+				pElement := pElementRef.Get()
 				result := c.inferTypeArgumentsWithFlags(g, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -446,7 +468,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		switch g := givenType.(type) {
 		case *types.Union:
 			narrowedGivenElements := make([]types.Type, 0, len(g.Elements))
-			for _, gElement := range g.Elements {
+			for _, gElementRef := range g.Elements {
+				gElement := gElementRef.Get()
 				if c.isSubtype(gElement, p, nil) {
 					continue
 				}
@@ -464,7 +487,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 
 			var isDifferent bool
 			newPElements := make([]types.Type, 0, len(p.Elements))
-			for _, pElement := range p.Elements {
+			for _, pElementRef := range p.Elements {
+				pElement := pElementRef.Get()
 				result := c.inferTypeArgumentsWithFlags(narrowedG, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -487,8 +511,8 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			// try matching exactly as a last resort
 			newPElements = newPElements[:0]
 			for i := range len(p.Elements) {
-				pElement := p.Elements[i]
-				gElement := g.Elements[i]
+				pElement := p.Elements[i].Get()
+				gElement := g.Elements[i].Get()
 				result := c.inferTypeArgumentsWithFlags(gElement, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -504,11 +528,12 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 			}
 			return p
 		case *types.Nilable:
-			return c.inferTypeArgumentsWithFlags(types.NewUnion(types.Nil{}, g.Type), p, typeArgMap, errLocation, flags)
+			return c.inferTypeArgumentsWithFlags(types.NewUnionRef(types.NilID, g.Type), p, typeArgMap, errLocation, flags)
 		default:
 			newElements := make([]types.Type, 0, len(p.Elements))
 			var isDifferent bool
-			for _, pElement := range p.Elements {
+			for _, pElementRef := range p.Elements {
+				pElement := pElementRef.Get()
 				result := c.inferTypeArgumentsWithFlags(g, pElement, typeArgMap, errLocation, flags)
 				if result == nil {
 					return nil
@@ -527,18 +552,20 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 	case *types.Nilable:
 		switch g := givenType.(type) {
 		case *types.Nilable:
-			result := c.inferTypeArgumentsWithFlags(g.Type, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(g.Type.Get(), pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			return types.NewNilable(result)
 		case *types.Union:
 			var withoutNil []types.Type
-			for _, element := range g.Elements {
+			for _, elementRef := range g.Elements {
+				element := elementRef.Get()
 				switch e := element.(type) {
 				case types.Nil:
 					continue
@@ -562,21 +589,23 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 				t = types.NewUnion(withoutNil...)
 			}
 
-			result := c.inferTypeArgumentsWithFlags(t, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(t, pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 
 			return types.NewNilable(result)
 		default:
-			result := c.inferTypeArgumentsWithFlags(givenType, p.Type, typeArgMap, errLocation, flags)
+			pType := p.Type.Get()
+			result := c.inferTypeArgumentsWithFlags(givenType, pType, typeArgMap, errLocation, flags)
 			if result == nil {
 				return nil
 			}
-			if p.Type == result {
+			if pType == result {
 				return p
 			}
 			return types.NewNilable(result)
@@ -593,74 +622,83 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 		if arg == nil {
 			return t
 		}
-		return arg.Type
+		return arg.Type.Get()
 	case *types.TypeParameter:
-		if !c.isTheSameType(t.Namespace, generic.Namespace, nil) {
+		if !c.isTheSameType(t.Namespace.Get(), generic.Namespace.Get(), nil) {
 			return t
 		}
 		arg := generic.ArgumentMap[t.Name]
 		if arg == nil {
 			return t
 		}
-		return arg.Type
+		return arg.Type.Get()
 	case *types.SingletonOf:
-		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c.replaceTypeParametersOfGeneric(tType, generic)
+		if result == tType {
 			return t
 		}
 		return types.NewSingletonOf(
 			result,
 		)
 	case *types.InstanceOf:
-		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c.replaceTypeParametersOfGeneric(tType, generic)
+		if result == tType {
 			return t
 		}
 		return types.NewInstanceOf(
 			result,
 		)
 	case *types.Callable:
-		newParams := make([]*types.Parameter, len(t.Body.Params))
+		body := t.Body.Get()
+		newParams := make([]types.Ref[*types.Parameter], len(body.Params))
 		var isDifferent bool
-		for i, param := range t.Body.Params {
-			result := c.replaceTypeParametersOfGeneric(param.Type, generic)
-			if result == param.Type {
-				newParams[i] = param
+		for i, paramRef := range body.Params {
+			param := paramRef.Get()
+			paramType := param.Type.Get()
+			result := c.replaceTypeParametersOfGeneric(paramType, generic)
+			if result == paramType {
+				newParams[i] = paramRef
 				continue
 			}
 
 			newParam := param.Copy()
-			newParam.Type = result
-			newParams[i] = newParam
+			newParam.Type = types.ToRef(result)
+			newParams[i] = newParam.ToRef()
 			isDifferent = true
 		}
 
-		returnType := c.replaceTypeParametersOfGeneric(t.Body.ReturnType, generic)
-		if returnType != t.Body.ReturnType {
+		bodyReturnType := body.ReturnType.Get()
+		returnType := c.replaceTypeParametersOfGeneric(bodyReturnType, generic)
+		if returnType != bodyReturnType {
 			isDifferent = true
 		}
-		throwType := c.replaceTypeParametersOfGeneric(t.Body.ThrowType, generic)
-		if throwType != t.Body.ThrowType {
+
+		bodyThrowType := body.ThrowType.Get()
+		throwType := c.replaceTypeParametersOfGeneric(bodyThrowType, generic)
+		if throwType != bodyThrowType {
 			isDifferent = true
 		}
 
 		if !isDifferent {
 			return t
 		}
-		method := t.Body.Copy()
+		method := body.Copy()
 		method.Params = newParams
-		method.ReturnType = returnType
-		method.ThrowType = throwType
+		method.ReturnType = types.ToRef(returnType)
+		method.ThrowType = types.ToRef(throwType)
 
 		closure := types.NewCallable(method, t.IsClosure)
-		method.DefinedUnder = closure
+		method.DefinedUnder = types.CastRef[types.Namespace](closure)
 		return closure
 	case *types.Generic:
 		newMap := make(types.TypeArgumentMap, len(t.ArgumentMap))
 		var isDifferent bool
 		for key, arg := range t.AllArguments() {
-			result := c.replaceTypeParametersOfGeneric(arg.Type, generic)
-			if result == arg.Type {
+			argType := arg.Type.Get()
+			result := c.replaceTypeParametersOfGeneric(argType, generic)
+			if result == argType {
 				newMap[key] = arg
 				continue
 			}
@@ -670,8 +708,10 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 			)
 			isDifferent = true
 		}
-		result := c.replaceTypeParametersOfGeneric(t.Namespace, generic)
-		if result != t.Namespace {
+
+		tNamespace := t.Namespace.Get()
+		result := c.replaceTypeParametersOfGeneric(tNamespace, generic)
+		if result != tNamespace {
 			isDifferent = true
 		}
 		if !isDifferent {
@@ -686,45 +726,49 @@ func (c *Checker) replaceTypeParametersOfGeneric(typ types.Type, generic *types.
 			),
 		)
 	case *types.Nilable:
-		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c.replaceTypeParametersOfGeneric(tType, generic)
+		if result == tType {
 			return t
 		}
 		return types.NewNilable(result)
 	case *types.Not:
-		result := c.replaceTypeParametersOfGeneric(t.Type, generic)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c.replaceTypeParametersOfGeneric(tType, generic)
+		if result == tType {
 			return t
 		}
 		return types.NewNot(result)
 	case *types.Union:
-		newElements := make([]types.Type, len(t.Elements))
+		newElements := make([]types.Ref[types.Type], len(t.Elements))
 		var isDifferent bool
-		for i, element := range t.Elements {
+		for i, elementRef := range t.Elements {
+			element := elementRef.Get()
 			result := c.replaceTypeParametersOfGeneric(element, generic)
 			if result != element {
 				isDifferent = true
 			}
-			newElements[i] = result
+			newElements[i] = types.ToRef(result)
 		}
 		if !isDifferent {
 			return t
 		}
-		return types.NewUnion(newElements...)
+		return types.NewUnionRef(newElements...)
 	case *types.Intersection:
-		newElements := make([]types.Type, len(t.Elements))
+		newElements := make([]types.Ref[types.Type], len(t.Elements))
 		var isDifferent bool
-		for i, element := range t.Elements {
+		for i, elementRef := range t.Elements {
+			element := elementRef.Get()
 			result := c.replaceTypeParametersOfGeneric(element, generic)
 			if result != element {
 				isDifferent = true
 			}
-			newElements[i] = result
+			newElements[i] = types.ToRef(result)
 		}
 		if !isDifferent {
 			return t
 		}
-		return types.NewIntersection(newElements...)
+		return types.NewIntersectionRef(newElements...)
 	default:
 		return t
 	}
@@ -741,101 +785,113 @@ func (c *Checker) _replaceTypeParameters(typ types.Type, typeArgMap types.TypeAr
 		if arg == nil {
 			return t
 		}
-		return arg.Type
+		return arg.Type.Get()
 	case *types.SingletonOf:
-		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c._replaceTypeParameters(tType, typeArgMap, replaceMethodTypeParams)
+		if result == tType {
 			return t
 		}
 		return types.NewSingletonOf(
 			result,
 		)
 	case *types.InstanceOf:
-		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c._replaceTypeParameters(tType, typeArgMap, replaceMethodTypeParams)
+		if result == tType {
 			return t
 		}
 		return types.NewInstanceOf(
 			result,
 		)
 	case *types.Callable:
-		newParams := make([]*types.Parameter, len(t.Body.Params))
+		body := t.Body.Get()
+		newParams := make([]types.Ref[*types.Parameter], len(body.Params))
 		var isDifferent bool
-		for i, param := range t.Body.Params {
-			result := c._replaceTypeParameters(param.Type, typeArgMap, replaceMethodTypeParams)
-			if result == param.Type {
-				newParams[i] = param
+		for i, paramRef := range body.Params {
+			param := paramRef.Get()
+			paramType := param.Type.Get()
+			result := c._replaceTypeParameters(paramType, typeArgMap, replaceMethodTypeParams)
+			if result == paramType {
+				newParams[i] = paramRef
 				continue
 			}
 
 			newParam := param.Copy()
-			newParam.Type = result
-			newParams[i] = newParam
+			newParam.Type = types.ToRef(result)
+			newParams[i] = newParam.ToRef()
 			isDifferent = true
 		}
 
-		returnType := c._replaceTypeParameters(t.Body.ReturnType, typeArgMap, replaceMethodTypeParams)
-		if returnType != t.Body.ReturnType {
+		bodyReturnType := body.ReturnType.Get()
+		returnType := c._replaceTypeParameters(bodyReturnType, typeArgMap, replaceMethodTypeParams)
+		if returnType != bodyReturnType {
 			isDifferent = true
 		}
-		throwType := c._replaceTypeParameters(t.Body.ThrowType, typeArgMap, replaceMethodTypeParams)
-		if throwType != t.Body.ThrowType {
+
+		bodyThrowType := body.ThrowType.Get()
+		throwType := c._replaceTypeParameters(bodyThrowType, typeArgMap, replaceMethodTypeParams)
+		if throwType != bodyThrowType {
 			isDifferent = true
 		}
 
 		if !isDifferent {
 			return t
 		}
-		method := t.Body.Copy()
+		method := body.Copy()
 		method.Params = newParams
-		method.ReturnType = returnType
-		method.ThrowType = throwType
+		method.ReturnType = types.ToRef(returnType)
+		method.ThrowType = types.ToRef(throwType)
 
 		closure := types.NewCallable(method, t.IsClosure)
-		method.DefinedUnder = closure
+		method.DefinedUnder = types.CastRef[types.Namespace](closure)
 		return closure
 	case *types.Generic:
 		return c.replaceTypeParametersInGeneric(t, typeArgMap, replaceMethodTypeParams)
 	case *types.TypeParameter:
 		// do not replace type parameters of methods when the `replaceMethodTypeParams` flag is false
-		if n, ok := t.Namespace.(*types.TypeParamNamespace); ok && n.ForMethod && !replaceMethodTypeParams {
+		if n, ok := t.Namespace.Get().(*types.TypeParamNamespace); ok && n.ForMethod && !replaceMethodTypeParams {
 			return t
 		}
 		arg := typeArgMap[t.Name]
 		if arg == nil {
 			return t
 		}
-		return arg.Type
+		return arg.Type.Get()
 	case *types.Nilable:
-		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c._replaceTypeParameters(tType, typeArgMap, replaceMethodTypeParams)
+		if result == tType {
 			return t
 		}
 		return types.NewNilable(result)
 	case *types.Not:
-		result := c._replaceTypeParameters(t.Type, typeArgMap, replaceMethodTypeParams)
-		if result == t.Type {
+		tType := t.Type.Get()
+		result := c._replaceTypeParameters(tType, typeArgMap, replaceMethodTypeParams)
+		if result == tType {
 			return t
 		}
 		return types.NewNot(result)
 	case *types.Union:
-		newElements := make([]types.Type, len(t.Elements))
+		newElements := make([]types.Ref[types.Type], len(t.Elements))
 		var isDifferent bool
-		for i, element := range t.Elements {
+		for i, elementRef := range t.Elements {
+			element := elementRef.Get()
 			result := c._replaceTypeParameters(element, typeArgMap, replaceMethodTypeParams)
 			if result != element {
 				isDifferent = true
 			}
-			newElements[i] = result
+			newElements[i] = types.ToRef(result)
 		}
 		if !isDifferent {
 			return t
 		}
-		return types.NewUnion(newElements...)
+		return types.NewUnionRef(newElements...)
 	case *types.Intersection:
 		newElements := make([]types.Type, len(t.Elements))
 		var isDifferent bool
-		for i, element := range t.Elements {
+		for i, elementRef := range t.Elements {
+			element := elementRef.Get()
 			result := c._replaceTypeParameters(element, typeArgMap, replaceMethodTypeParams)
 			if result != element {
 				isDifferent = true
@@ -855,8 +911,9 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 	newMap := make(types.TypeArgumentMap, len(t.ArgumentMap))
 	var isDifferent bool
 	for key, arg := range t.AllArguments() {
-		result := c._replaceTypeParameters(arg.Type, typeArgMap, replaceMethodTypeParams)
-		if result == arg.Type {
+		argType := arg.Type.Get()
+		result := c._replaceTypeParameters(argType, typeArgMap, replaceMethodTypeParams)
+		if result == argType {
 			newMap[key] = arg
 			continue
 		}
@@ -866,8 +923,10 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 		)
 		isDifferent = true
 	}
-	result := c._replaceTypeParameters(t.Namespace, typeArgMap, replaceMethodTypeParams)
-	if result != t.Namespace {
+
+	tNamespace := t.Namespace.Get()
+	result := c._replaceTypeParameters(tNamespace, typeArgMap, replaceMethodTypeParams)
+	if result != tNamespace {
 		isDifferent = true
 	}
 	if !isDifferent {
@@ -884,8 +943,9 @@ func (c *Checker) replaceTypeParametersInGeneric(t *types.Generic, typeArgMap ty
 }
 
 func (c *Checker) replaceTypeParametersInInstanceVariable(ivar *types.InstanceVariable, typeArgMap types.TypeArgumentMap, replaceMethodTypeParams bool) *types.InstanceVariable {
-	result := c._replaceTypeParameters(ivar.Type, typeArgMap, replaceMethodTypeParams)
-	if result == ivar.Type {
+	ivarType := ivar.Type.Get()
+	result := c._replaceTypeParameters(ivarType, typeArgMap, replaceMethodTypeParams)
+	if result == ivarType {
 		return ivar
 	}
 
@@ -898,9 +958,9 @@ func (c *Checker) replaceTypeParametersInInstanceVariable(ivar *types.InstanceVa
 }
 
 func (c *Checker) normaliseSingletonOf(typ *types.SingletonOf) types.Type {
-	switch nestedType := typ.Type.(type) {
+	switch nestedType := typ.Type.Get().(type) {
 	case *types.InstanceOf:
-		return nestedType.Type
+		return nestedType.Type.Get()
 	case *types.Class:
 		return nestedType.Singleton()
 	case *types.Mixin:
@@ -908,38 +968,39 @@ func (c *Checker) normaliseSingletonOf(typ *types.SingletonOf) types.Type {
 	case *types.Interface:
 		return nestedType.Singleton()
 	case *types.Generic:
-		return c.normaliseSingletonOf(types.NewSingletonOf(nestedType.Namespace))
+		return c.normaliseSingletonOf(types.NewSingletonOf(nestedType.Namespace.Get()))
 	default:
 		return typ
 	}
 }
 
 func (c *Checker) normaliseInstanceOf(typ *types.InstanceOf) types.Type {
-	switch nestedType := typ.Type.(type) {
+	switch nestedType := typ.Type.Get().(type) {
 	case *types.SingletonOf:
-		return nestedType.Type
+		return nestedType.Type.Get()
 	case *types.SingletonClass:
-		return nestedType.AttachedObject
+		return nestedType.AttachedObject.Get()
 	default:
 		return typ
 	}
 }
 
 func (c *Checker) normaliseNilable(t *types.Nilable) types.Type {
-	t.Type = c.NormaliseType(t.Type)
-	switch t.Type.(type) {
+	tType := c.NormaliseType(t.Type.Get())
+	t.Type = types.ToRef(tType)
+	switch tType.(type) {
 	case types.Never:
 		return types.Nil{}
 	case types.Any, types.Untyped:
-		return t.Type
+		return tType
 	}
-	if c.IsNilable(t.Type) {
-		return t.Type
+	if c.IsNilable(tType) {
+		return tType
 	}
-	if union, ok := t.Type.(*types.Union); ok {
+	if union, ok := tType.(*types.Union); ok {
 		return c.NewNormalisedUnion(
 			append(
-				[]types.Type{types.Nil{}},
+				[]types.Ref[types.Type]{types.NilID},
 				union.Elements...,
 			)...,
 		)
@@ -948,10 +1009,11 @@ func (c *Checker) normaliseNilable(t *types.Nilable) types.Type {
 }
 
 func (c *Checker) normaliseNot(t *types.Not) types.Type {
-	t.Type = c.NormaliseType(t.Type)
-	switch nestedType := t.Type.(type) {
+	tType := c.NormaliseType(t.Type.Get())
+	t.Type = types.ToRef(tType)
+	switch nestedType := tType.(type) {
 	case *types.Not:
-		return nestedType.Type
+		return nestedType.Type.Get()
 	case types.Never:
 		return types.Any{}
 	case types.Any:
@@ -959,15 +1021,15 @@ func (c *Checker) normaliseNot(t *types.Not) types.Type {
 	case types.Untyped:
 		return types.Untyped{}
 	case *types.Union:
-		intersectionElements := make([]types.Type, 0, len(nestedType.Elements))
+		intersectionElements := make([]types.Ref[types.Type], 0, len(nestedType.Elements))
 		for _, element := range nestedType.Elements {
-			intersectionElements = append(intersectionElements, types.NewNot(element))
+			intersectionElements = append(intersectionElements, types.CastRef[types.Type](types.NewNot(element.Get())))
 		}
 		return c.NewNormalisedIntersection(intersectionElements...)
 	case *types.Intersection:
-		unionElements := make([]types.Type, 0, len(nestedType.Elements))
+		unionElements := make([]types.Ref[types.Type], 0, len(nestedType.Elements))
 		for _, element := range nestedType.Elements {
-			unionElements = append(unionElements, types.NewNot(element))
+			unionElements = append(unionElements, types.CastRef[types.Type](types.NewNot(element.Get())))
 		}
 		return c.NewNormalisedUnion(unionElements...)
 	}
@@ -977,7 +1039,7 @@ func (c *Checker) normaliseNot(t *types.Not) types.Type {
 
 func (c *Checker) normaliseGeneric(t *types.Generic) types.Type {
 	for _, arg := range t.TypeArguments.AllArguments() {
-		arg.Type = c.NormaliseType(arg.Type)
+		arg.Type = types.ToRef(c.NormaliseType(arg.Type.Get()))
 	}
 	return t
 }
@@ -1003,17 +1065,17 @@ func (c *Checker) NormaliseType(typ types.Type) types.Type {
 	}
 }
 
-func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Type, intersectionElements []types.Type, i int) {
+func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Ref[types.Type], intersectionElements []types.Ref[types.Type], i int) {
 	if i == len(intersectionElements) {
-		*newUnionElements = append(*newUnionElements, types.NewIntersection(intersectionElements...))
+		*newUnionElements = append(*newUnionElements, types.CastRef[types.Type](types.NewIntersectionRef(intersectionElements...)))
 		return
 	}
 
-	intersectionElement := intersectionElements[i]
+	intersectionElement := intersectionElements[i].Get()
 	switch e := intersectionElement.(type) {
 	case *types.Union:
 		for _, subUnionElement := range e.Elements {
-			newIntersectionElements := make([]types.Type, 0, len(intersectionElements)+1)
+			newIntersectionElements := make([]types.Ref[types.Type], 0, len(intersectionElements)+1)
 			newIntersectionElements = append(newIntersectionElements, intersectionElements[:i]...)
 			newIntersectionElements = append(newIntersectionElements, subUnionElement)
 			if len(intersectionElements) >= i+2 {
@@ -1022,9 +1084,9 @@ func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Typ
 			c.distributeIntersectionOverUnions(newUnionElements, newIntersectionElements, i+1)
 		}
 	case *types.Nilable:
-		elements := []types.Type{e.Type, types.Nil{}}
+		elements := []types.Ref[types.Type]{e.Type, types.NilID}
 		for _, subUnionElement := range elements {
-			newIntersectionElements := make([]types.Type, 0, len(intersectionElements)+1)
+			newIntersectionElements := make([]types.Ref[types.Type], 0, len(intersectionElements)+1)
 			newIntersectionElements = append(newIntersectionElements, intersectionElements[:i]...)
 			newIntersectionElements = append(newIntersectionElements, subUnionElement)
 			if len(intersectionElements) >= i+2 {
@@ -1039,30 +1101,30 @@ func (c *Checker) distributeIntersectionOverUnions(newUnionElements *[]types.Typ
 
 // Transform an intersection of unions to a unions of intersections.
 // String & (Int | Float) => (String & Int) | (String & Float)
-func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElements []types.Type) types.Type {
-	newUnionElements := new([]types.Type)
+func (c *Checker) intersectionOfUnionsToUnionOfIntersections(intersectionElements []types.Ref[types.Type]) types.Type {
+	newUnionElements := new([]types.Ref[types.Type])
 	c.distributeIntersectionOverUnions(newUnionElements, intersectionElements, 0)
 	if len(*newUnionElements) == 0 {
 		return types.Never{}
 	}
 	if len(*newUnionElements) == 1 {
-		return (*newUnionElements)[0]
+		return (*newUnionElements)[0].Get()
 	}
-	return types.NewUnion(*newUnionElements...)
+	return types.NewUnionRef(*newUnionElements...)
 }
 
-func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
+func (c *Checker) NewNormalisedIntersection(elements ...types.Ref[types.Type]) types.Type {
 	var containsNot bool
 	var containsUninitialisedNamedTypes bool
 
 	for i := 0; i < len(elements); i++ {
-		element := c.NormaliseType(elements[i])
+		element := c.NormaliseType(elements[i].Get())
 		if types.IsNever(element) || types.IsUntyped(element) {
 			return element
 		}
 		switch e := element.(type) {
 		case *types.Intersection:
-			newElements := make([]types.Type, 0, len(elements)+len(e.Elements))
+			newElements := make([]types.Ref[types.Type], 0, len(elements)+len(e.Elements))
 			newElements = append(newElements, elements[:i]...)
 			newElements = append(newElements, e.Elements...)
 			if len(elements) >= i+2 {
@@ -1073,20 +1135,20 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 		case *types.Not:
 			containsNot = true
 		case *types.NamedType:
-			if e.Type == nil {
+			if e.Type.IsZero() {
 				containsUninitialisedNamedTypes = true
 			}
 		}
 	}
 	if containsUninitialisedNamedTypes {
-		return types.NewIntersection(elements...)
+		return types.NewIntersectionRef(elements...)
 	}
 	if containsNot {
 		// expand named types
 		for i := 0; i < len(elements); i++ {
-			switch e := elements[i].(type) {
+			switch e := elements[i].Get().(type) {
 			case *types.Intersection:
-				newElements := make([]types.Type, 0, len(elements)+len(e.Elements))
+				newElements := make([]types.Ref[types.Type], 0, len(elements)+len(e.Elements))
 				newElements = append(newElements, elements[:i]...)
 				newElements = append(newElements, e.Elements...)
 				if len(elements) >= i+2 {
@@ -1098,7 +1160,7 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 				elements[i] = e.Type
 				i--
 			case types.Bool:
-				elements[i] = types.NewUnion(types.True{}, types.False{})
+				elements[i] = types.CastRef[types.Type](types.NewUnionRef(types.TrueID, types.FalseID))
 			}
 		}
 	}
@@ -1109,60 +1171,62 @@ func (c *Checker) NewNormalisedIntersection(elements ...types.Type) types.Type {
 	}
 
 	elements = intersection.Elements
-	normalisedElements := make([]types.Type, 0, len(elements))
+	normalisedElements := make([]types.Ref[types.Type], 0, len(elements))
 
 	// detect empty intersections
-	for _, element := range elements {
+	for _, elementRef := range elements {
+		element := elementRef.Get()
 		if types.IsNever(element) || types.IsUntyped(element) {
 			return element
 		}
 
 		for _, normalisedElement := range normalisedElements {
-			if !c.canIntersect(element, normalisedElement) {
+			if !c.canIntersect(element, normalisedElement.Get()) {
 				return types.Never{}
 			}
 		}
-		normalisedElements = append(normalisedElements, element)
+		normalisedElements = append(normalisedElements, elementRef)
 	}
 
 	elements = normalisedElements
-	normalisedElements = make([]types.Type, 0, len(elements))
+	normalisedElements = make([]types.Ref[types.Type], 0, len(elements))
 
 eliminateSupertypesLoop:
 	for i := 0; i < len(elements); i++ {
-		elements[i] = c.NormaliseType(elements[i])
-		element := elements[i]
+		element := c.NormaliseType(elements[i].Get())
+		elementRef := types.ToRef(element)
+		elements[i] = elementRef
 
 		for j := 0; j < len(normalisedElements); j++ {
-			normalisedElement := normalisedElements[j]
+			normalisedElement := normalisedElements[j].Get()
 			if c.isSubtype(normalisedElement, element, nil) {
 				continue eliminateSupertypesLoop
 			}
 			if c.isSubtype(element, normalisedElement, nil) {
-				normalisedElements[j] = element
+				normalisedElements[j] = elementRef
 				continue eliminateSupertypesLoop
 			}
 
 		}
-		normalisedElements = append(normalisedElements, element)
+		normalisedElements = append(normalisedElements, elementRef)
 	}
 
 	if len(normalisedElements) == 0 {
 		return types.Never{}
 	}
 	if len(normalisedElements) == 1 {
-		return normalisedElements[0]
+		return normalisedElements[0].Get()
 	}
 
-	return types.NewIntersection(normalisedElements...)
+	return types.NewIntersectionRef(normalisedElements...)
 }
 
-func (c *Checker) NewNormalisedUnion(elements ...types.Type) types.Type {
+func (c *Checker) NewNormalisedUnion(elements ...types.Ref[types.Type]) types.Type {
 	var normalisedElements []types.Type
 
 elementLoop:
 	for i := 0; i < len(elements); i++ {
-		element := c.NormaliseType(elements[i])
+		element := c.NormaliseType(elements[i].Get())
 		if types.IsNever(element) || types.IsUntyped(element) {
 			continue elementLoop
 		}
@@ -1170,11 +1234,11 @@ elementLoop:
 		case *types.Union:
 			elements = append(elements, e.Elements...)
 		case *types.Nilable:
-			elements = append(elements, e.Type, types.Nil{})
+			elements = append(elements, e.Type, types.NilID)
 		case *types.Not:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if c.isTheSameType(e.Type, normalisedElement, nil) {
+				if c.isTheSameType(e.Type.Get(), normalisedElement, nil) {
 					return types.Any{}
 				}
 				if c.isSubtype(normalisedElement, element, nil) {
@@ -1189,7 +1253,7 @@ elementLoop:
 		default:
 			for j := 0; j < len(normalisedElements); j++ {
 				normalisedElement := normalisedElements[j]
-				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type, element, nil) {
+				if normalisedNot, ok := normalisedElement.(*types.Not); ok && c.isTheSameType(normalisedNot.Type.Get(), element, nil) {
 					return types.Any{}
 				}
 				if c.isSubtype(normalisedElement, element, nil) {

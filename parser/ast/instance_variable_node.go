@@ -34,8 +34,8 @@ func (n *PublicInstanceVariableNode) splice(loc *position.Location, args *[]Node
 	}
 }
 
-func (n *PublicInstanceVariableNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PublicInstanceVariableNode", env)
+func (n *PublicInstanceVariableNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PublicInstanceVariableNode")
 }
 
 func (n *PublicInstanceVariableNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

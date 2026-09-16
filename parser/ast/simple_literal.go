@@ -19,8 +19,8 @@ func (n *TrueLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *TrueLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::TrueLiteralNode", env)
+func (n *TrueLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::TrueLiteralNode")
 }
 
 func (n *TrueLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -51,8 +51,12 @@ func (*TrueLiteralNode) IsStatic() bool {
 	return true
 }
 
-func (*TrueLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*TrueLiteralNode) Type() types.Type {
 	return types.True{}
+}
+
+func (*TrueLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.TrueID
 }
 
 func (*TrueLiteralNode) Class() *value.Class {
@@ -93,8 +97,8 @@ func (n *FalseLiteralNode) splice(loc *position.Location, args *[]Node, unquote 
 	}
 }
 
-func (n *FalseLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::FalseLiteralNode", env)
+func (n *FalseLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::FalseLiteralNode")
 }
 
 func (n *FalseLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -125,8 +129,12 @@ func (*FalseLiteralNode) IsStatic() bool {
 	return true
 }
 
-func (*FalseLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*FalseLiteralNode) Type() types.Type {
 	return types.False{}
+}
+
+func (*FalseLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.FalseID
 }
 
 func (*FalseLiteralNode) Class() *value.Class {
@@ -167,8 +175,8 @@ func (n *SelfLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *SelfLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::SelfLiteralNode", env)
+func (n *SelfLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::SelfLiteralNode")
 }
 
 func (n *SelfLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -237,8 +245,8 @@ func (n *NilLiteralNode) splice(loc *position.Location, args *[]Node, unquote bo
 	}
 }
 
-func (n *NilLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::NilLiteralNode", env)
+func (n *NilLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::NilLiteralNode")
 }
 
 func (n *NilLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -265,14 +273,19 @@ func (n *NilLiteralNode) String() string {
 	return "nil"
 }
 
-func (*NilLiteralNode) SetType(types.Type) {}
+func (*NilLiteralNode) SetType(types.Type)               {}
+func (*NilLiteralNode) SetTypeRef(types.Ref[types.Type]) {}
 
 func (*NilLiteralNode) IsStatic() bool {
 	return true
 }
 
-func (*NilLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*NilLiteralNode) Type() types.Type {
 	return types.Nil{}
+}
+
+func (*NilLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.NilID
 }
 
 func (*NilLiteralNode) Class() *value.Class {
@@ -313,8 +326,8 @@ func (n *UndefinedLiteralNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *UndefinedLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UndefinedLiteralNode", env)
+func (n *UndefinedLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UndefinedLiteralNode")
 }
 
 func (n *UndefinedLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

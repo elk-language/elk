@@ -25,8 +25,8 @@ func (n *ValuePatternDeclarationNode) splice(loc *position.Location, args *[]Nod
 	}
 }
 
-func (n *ValuePatternDeclarationNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ValuePatternDeclarationNode", env)
+func (n *ValuePatternDeclarationNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ValuePatternDeclarationNode")
 }
 
 func (n *ValuePatternDeclarationNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

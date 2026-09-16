@@ -83,8 +83,8 @@ func (n *PublicConstantNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *PublicConstantNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PublicConstantNode", env)
+func (n *PublicConstantNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PublicConstantNode")
 }
 
 func (n *PublicConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -178,8 +178,8 @@ func (n *PrivateConstantNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *PrivateConstantNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PrivateConstantNode", env)
+func (n *PrivateConstantNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PrivateConstantNode")
 }
 
 func (n *PrivateConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -259,8 +259,8 @@ func (n *PublicConstantAsNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *PublicConstantAsNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::PublicConstantAsNode", env)
+func (n *PublicConstantAsNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::PublicConstantAsNode")
 }
 
 func (n *PublicConstantAsNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -357,8 +357,8 @@ func (n *ConstantLookupNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ConstantLookupNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ConstantLookupNode", env)
+func (n *ConstantLookupNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ConstantLookupNode")
 }
 
 func (n *ConstantLookupNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -477,8 +477,8 @@ func (n *GenericConstantNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *GenericConstantNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::GenericConstantNode", env)
+func (n *GenericConstantNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::GenericConstantNode")
 }
 
 func (n *GenericConstantNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

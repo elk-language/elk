@@ -23,8 +23,8 @@ func (n *IntersectionTypeNode) splice(loc *position.Location, args *[]Node, unqu
 	}
 }
 
-func (n *IntersectionTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::IntersectionTypeNode", env)
+func (n *IntersectionTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::IntersectionTypeNode")
 }
 
 func (n *IntersectionTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

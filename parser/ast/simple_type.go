@@ -19,8 +19,8 @@ func (n *BoolLiteralNode) splice(loc *position.Location, args *[]Node, unquote b
 	}
 }
 
-func (n *BoolLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BoolLiteralNode", env)
+func (n *BoolLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BoolLiteralNode")
 }
 
 func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -51,8 +51,12 @@ func (*BoolLiteralNode) IsStatic() bool {
 	return true
 }
 
-func (*BoolLiteralNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*BoolLiteralNode) Type() types.Type {
 	return types.Bool{}
+}
+
+func (*BoolLiteralNode) TypeRef() types.Ref[types.Type] {
+	return types.BoolID
 }
 
 func (*BoolLiteralNode) Class() *value.Class {
@@ -93,8 +97,8 @@ func (n *VoidTypeNode) splice(loc *position.Location, args *[]Node, unquote bool
 	}
 }
 
-func (n *VoidTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::VoidTypeNode", env)
+func (n *VoidTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::VoidTypeNode")
 }
 
 func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -162,8 +166,8 @@ func (n *NeverTypeNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *NeverTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::NeverTypeNode", env)
+func (n *NeverTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::NeverTypeNode")
 }
 
 func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -193,8 +197,12 @@ func (*NeverTypeNode) IsStatic() bool {
 	return true
 }
 
-func (*NeverTypeNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*NeverTypeNode) Type() types.Type {
 	return types.Never{}
+}
+
+func (*NeverTypeNode) TypeRef() types.Ref[types.Type] {
+	return types.NeverID
 }
 
 func (*NeverTypeNode) Class() *value.Class {
@@ -235,8 +243,8 @@ func (n *AnyTypeNode) splice(loc *position.Location, args *[]Node, unquote bool)
 	}
 }
 
-func (n *AnyTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::AnyTypeNode", env)
+func (n *AnyTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::AnyTypeNode")
 }
 
 func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -266,8 +274,12 @@ func (*AnyTypeNode) IsStatic() bool {
 	return true
 }
 
-func (*AnyTypeNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
+func (*AnyTypeNode) Type() types.Type {
 	return types.Any{}
+}
+
+func (*AnyTypeNode) TypeRef() types.Ref[types.Type] {
+	return types.AnyID
 }
 
 func (*AnyTypeNode) Class() *value.Class {

@@ -59,8 +59,8 @@ func (n *UnquoteNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *UnquoteNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UnquoteNode", env)
+func (n *UnquoteNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UnquoteNode")
 }
 
 func (n *UnquoteNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {

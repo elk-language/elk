@@ -25,8 +25,8 @@ func (n *UntilExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *UntilExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UntilExpressionNode", env)
+func (n *UntilExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UntilExpressionNode")
 }
 
 func (n *UntilExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

@@ -34,8 +34,8 @@ func (n *BreakExpressionNode) splice(loc *position.Location, args *[]Node, unquo
 	}
 }
 
-func (n *BreakExpressionNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::BreakExpressionNode", env)
+func (n *BreakExpressionNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::BreakExpressionNode")
 }
 
 func (n *BreakExpressionNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
@@ -115,8 +115,12 @@ func (*BreakExpressionNode) IsStatic() bool {
 	return false
 }
 
-func (*BreakExpressionNode) Type(*types.GlobalEnvironment) types.Type {
+func (*BreakExpressionNode) Type() types.Type {
 	return types.Never{}
+}
+
+func (*BreakExpressionNode) TypeRef() types.Ref[types.Type] {
+	return types.NeverID
 }
 
 // Create a new `break` expression node eg. `break`

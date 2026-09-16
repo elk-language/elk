@@ -47,8 +47,8 @@ func (n *ClosureLiteralNode) splice(loc *position.Location, args *[]Node, unquot
 	}
 }
 
-func (n *ClosureLiteralNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::ClosureLiteralNode", env)
+func (n *ClosureLiteralNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::ClosureLiteralNode")
 }
 
 func (n *ClosureLiteralNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {

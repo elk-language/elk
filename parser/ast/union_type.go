@@ -23,8 +23,8 @@ func (n *UnionTypeNode) splice(loc *position.Location, args *[]Node, unquote boo
 	}
 }
 
-func (n *UnionTypeNode) MacroType(env *types.GlobalEnvironment) types.Type {
-	return types.NameToType("Std::Elk::AST::UnionTypeNode", env)
+func (n *UnionTypeNode) MacroType() types.Type {
+	return types.NameToType("Std::Elk::AST::UnionTypeNode")
 }
 
 func (n *UnionTypeNode) traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption {
