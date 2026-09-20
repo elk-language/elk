@@ -56,7 +56,7 @@ type constantDefinitionCheck struct {
 	filename          string
 	constantScopes    []constantScope
 	methodScopes      []methodScope
-	referencedMethods []*types.Method
+	referencedMethods []types.Ref[*types.Method]
 	node              *ast.ConstantDeclarationNode
 	namespace         types.Namespace
 }
@@ -228,7 +228,8 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 
 	symbolName := symbol.ToSymbol(name)
 	check.referencedMethods = slices.Clone(c.methodCache.Slice)
-	for _, method := range c.methodCache.Slice {
+	for _, methodRef := range c.methodCache.Slice {
+		method := methodRef.Get()
 		method.UsedInConstants.Add(symbolName)
 	}
 

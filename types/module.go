@@ -167,7 +167,6 @@ func (m *Module) Copy() *Module {
 			constants:  m.constants,
 			subtypes:   m.subtypes,
 			methods:    m.methods,
-			id:         m.id,
 		},
 	}
 }

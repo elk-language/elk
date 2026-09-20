@@ -23,7 +23,9 @@ func NewUsingBufferNamespace() *UsingBufferNamespace {
 }
 
 func (u *UsingBufferNamespace) Copy() *UsingBufferNamespace {
-	return &UsingBufferNamespace{
+	result := &UsingBufferNamespace{
 		Module: u.Module,
 	}
+	result.id = ZERO_ID
+	return result
 }

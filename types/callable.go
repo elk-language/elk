@@ -89,8 +89,8 @@ func (c *Callable) traverse(parent Type, enter func(node, parent Type) TraverseO
 
 func (c *Callable) Copy() *Callable {
 	return &Callable{
-		Body: c.Body,
-		id:   c.id,
+		Body:      c.Body,
+		IsClosure: c.IsClosure,
 	}
 }
 

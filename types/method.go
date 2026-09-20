@@ -107,7 +107,6 @@ func (p *Parameter) Copy() *Parameter {
 		Type:             p.Type,
 		Kind:             p.Kind,
 		InstanceVariable: p.InstanceVariable,
-		id:               p.id,
 	}
 }
 
@@ -387,7 +386,6 @@ func (m *Method) Copy() *Method {
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
 		Overloads:                    m.Overloads,
-		id:                           m.id,
 	}
 }
 

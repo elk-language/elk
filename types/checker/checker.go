@@ -185,7 +185,7 @@ type Checker struct {
 	signatureChecks         *ds.OrderedMap[string, *[]signatureCheckEntry] // map of namespaces and their methods whose signatures have to be checked
 	constantChecks          *constantDefinitionChecks
 	typeDefinitionChecks    *typeDefinitionChecks
-	methodCache             *concurrent.Slice[*types.Method] // used in constant definition checks, the list of methods used in the current constant declaration
+	methodCache             *concurrent.Slice[types.Ref[*types.Method]] // used in constant definition checks, the list of methods used in the current constant declaration
 	extensions              *concurrent.Slice[*ext.Extension]
 	method                  *types.Method
 	namespacesWithIvars     *ds.OrderedMap[string, *namespaceWithIvarsData] // namespaces that declare instance variables
@@ -210,7 +210,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		constantChecks:       newConstantDefinitionChecks(),
 		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
 		signatureChecks:      ds.NewOrderedMap[string, *[]signatureCheckEntry](),
-		methodCache:          concurrent.NewSlice[*types.Method](),
+		methodCache:          concurrent.NewSlice[types.Ref[*types.Method]](),
 		extensions:           concurrent.NewSlice[*ext.Extension](),
 		output:               output,
 		threadPool:           threadPool,
@@ -1266,7 +1266,7 @@ func (c *Checker) checkExpressionWithTypeArgs(node ast.ExpressionNode, typ types
 	case *ast.ClosureLiteralNode:
 		switch t := typ.(type) {
 		case *types.NamedType:
-			return c.checkExpressionWithType(node, t.Type)
+			return c.checkExpressionWithType(node, t.Type.Get())
 		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t, typeArgsMap)
 		}
@@ -1280,37 +1280,37 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 	case *ast.ClosureLiteralNode:
 		switch t := typ.(type) {
 		case *types.NamedType:
-			return c.checkExpressionWithType(node, t.Type)
+			return c.checkExpressionWithType(node, t.Type.Get())
 		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t, nil)
 		}
 	case *ast.ArrayListLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayList(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayList(), generic.Namespace.Get(), nil) {
 			break
 		}
 		return c.checkArrayListLiteralNodeWithType(n, generic)
 	case *ast.ArrayTupleLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayTuple(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdArrayTuple(), generic.Namespace.Get(), nil) {
 			break
 		}
 		return c.checkArrayTupleLiteralNodeWithType(n, generic)
 	case *ast.HashSetLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdHashSet(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 1 || !c.isSubtype(c.StdHashSet(), generic.Namespace.Get(), nil) {
 			break
 		}
 		return c.checkHashSetLiteralNodeWithType(n, generic)
 	case *ast.HashMapLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashMap(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashMap(), generic.Namespace.Get(), nil) {
 			break
 		}
 		return c.checkHashMapLiteralNodeWithType(n, generic)
 	case *ast.HashRecordLiteralNode:
 		generic, ok := typ.(*types.Generic)
-		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashRecord(), generic.Namespace, nil) {
+		if !ok || generic.TypeArguments.Len() != 2 || !c.isSubtype(c.StdHashRecord(), generic.Namespace.Get(), nil) {
 			break
 		}
 		return c.checkHashRecordLiteralNodeWithType(n, generic)
@@ -1745,12 +1745,12 @@ func (c *Checker) StdElk() *types.Module {
 
 func (c *Checker) StdAST() *types.Module {
 	constant, _ := c.StdElk().Subtype(symbol.C_AST)
-	return constant.Type.(*types.Module)
+	return constant.Type.Get().(*types.Module)
 }
 
 func (c *Checker) StdNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_Node)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdMacro() *types.Module {
@@ -1759,87 +1759,87 @@ func (c *Checker) StdMacro() *types.Module {
 
 func (c *Checker) StdExpressionNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_ExpressionNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdConstantNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_ConstantNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdComplexConstantNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_ComplexConstantNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdPatternNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_PatternNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdLiteralPatternNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_LiteralPatternNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdTypeNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_TypeNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdIdentifierNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_IdentifierNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdInstanceVariableNode() *types.Mixin {
 	constant, _ := c.StdAST().Subtype(symbol.C_InstanceVariableNode)
-	return constant.Type.(*types.Mixin)
+	return constant.Type.Get().(*types.Mixin)
 }
 
 func (c *Checker) StdNodeConvertible() *types.Interface {
 	constant, _ := c.StdNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdExpressionNodeConvertible() *types.Interface {
 	constant, _ := c.StdExpressionNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdConstantNodeConvertible() *types.Interface {
 	constant, _ := c.StdConstantNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdComplexConstantNodeConvertible() *types.Interface {
 	constant, _ := c.StdComplexConstantNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdPatternNodeConvertible() *types.Interface {
 	constant, _ := c.StdPatternNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdLiteralPatternNodeConvertible() *types.Interface {
 	constant, _ := c.StdLiteralPatternNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdTypeNodeConvertible() *types.Interface {
 	constant, _ := c.StdTypeNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdIdentifierNodeConvertible() *types.Interface {
 	constant, _ := c.StdIdentifierNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdInstanceVariableNodeConvertible() *types.Interface {
 	constant, _ := c.StdInstanceVariableNode().Subtype(symbol.C_Convertible)
-	return constant.Type.(*types.Interface)
+	return constant.Type.Get().(*types.Interface)
 }
 
 func (c *Checker) StdString() *types.Class {
@@ -1848,7 +1848,7 @@ func (c *Checker) StdString() *types.Class {
 
 func (c *Checker) StdStringConvertible() types.Type {
 	constant, _ := c.StdString().Subtype(symbol.C_Convertible)
-	return constant.Type
+	return constant.Type.Get()
 }
 
 func (c *Checker) StdInspectable() types.Type {
@@ -2107,9 +2107,9 @@ func (c *Checker) checkBoxOfExpression(node *ast.BoxOfExpressionNode) ast.Expres
 		}
 		var box types.Type
 		if ivar.SingleAssignment {
-			box = types.NewGenericWithTypeArgs(c.Std(symbol.C_ImmutableBox).(*types.Class), ivar.Type)
+			box = types.NewGenericWithTypeArgs(c.Std(symbol.C_ImmutableBox).(*types.Class), ivar.Type.Get())
 		} else {
-			box = types.NewGenericWithTypeArgs(c.Std(symbol.C_Box).(*types.Class), ivar.Type)
+			box = types.NewGenericWithTypeArgs(c.Std(symbol.C_Box).(*types.Class), ivar.Type.Get())
 		}
 		node.SetType(box)
 		return node
@@ -2363,15 +2363,15 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		return elseKeyType, elseValueType
 	}
 
-	return c.NewNormalisedUnion(thenKeyType, elseKeyType), c.NewNormalisedUnion(thenValueType, elseValueType)
+	return c.NewNormalisedUnion(types.ToRef(thenKeyType), types.ToRef(elseKeyType)), c.NewNormalisedUnion(types.ToRef(thenValueType), types.ToRef(elseValueType))
 }
 
-func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Type, valueTypes []types.Type) {
+func (c *Checker) checkRecordPairs(pairs []ast.ExpressionNode) (keyTypes []types.Ref[types.Type], valueTypes []types.Ref[types.Type]) {
 	for i, pairNode := range pairs {
 		node, keyType, valueType := c.checkRecordPair(pairNode)
 		pairs[i] = node
-		keyTypes = append(keyTypes, keyType)
-		valueTypes = append(valueTypes, valueType)
+		keyTypes = append(keyTypes, types.ToRef(keyType))
+		valueTypes = append(valueTypes, types.ToRef(valueType))
 	}
 
 	return keyTypes, valueTypes
@@ -2486,8 +2486,8 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type.Get(), nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashMap(), types.Any{}, types.Any{})
@@ -2519,14 +2519,14 @@ func (c *Checker) checkRangeLiteralNode(node *ast.RangeLiteralNode) ast.Expressi
 }
 
 func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ *types.Generic) ast.ExpressionNode {
-	var valueTypes []types.Type
+	var valueTypes []types.Ref[types.Type]
 	if node.Start != nil {
 		node.Start = c.checkExpression(node.Start)
-		valueTypes = append(valueTypes, c.ToNonLiteral(c.TypeOf(node.Start), false))
+		valueTypes = append(valueTypes, types.ToRef(c.ToNonLiteral(c.TypeOf(node.Start), false)))
 	}
 	if node.End != nil {
 		node.End = c.checkExpression(node.End)
-		valueTypes = append(valueTypes, c.ToNonLiteral(c.TypeOf(node.End), false))
+		valueTypes = append(valueTypes, types.ToRef(c.ToNonLiteral(c.TypeOf(node.End), false)))
 	}
 
 	var rangeClassName symbol.Symbol
@@ -2566,14 +2566,14 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	}
 
 	rangeClass := c.Std(rangeClassName).(*types.Class)
-	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
+	if typ != nil && !c.IsTheSameNamespace(typ.Namespace.Get(), rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace.Get(), nil) {
 		typ = nil
 	}
 	comparable := c.Std(symbol.C_Comparable).(*types.Interface)
 	valueType := c.NewNormalisedUnion(valueTypes...)
 	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
 
-	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(valueTypes) == 0 {
 		c.addFailure(
@@ -2610,8 +2610,8 @@ func (c *Checker) checkHashRecordLiteralNodeWithType(node *ast.HashRecordLiteral
 	valueType := c.NewNormalisedUnion(valueTypes...)
 
 	if typ != nil &&
-		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type, nil) &&
-		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type, nil) {
+		c.isSubtype(keyType, typ.TypeArguments.Get(0).Type.Get(), nil) &&
+		c.isSubtype(valueType, typ.TypeArguments.Get(1).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(keyTypes) == 0 {
 		generic := types.NewGenericWithTypeArgs(c.StdHashRecord(), types.Any{}, types.Any{})
@@ -2637,12 +2637,12 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode, fn CheckExpr
 	}
 }
 
-func (c *Checker) checkTupleElements(elements []ast.ExpressionNode) []types.Type {
-	var elementTypes []types.Type
+func (c *Checker) checkTupleElements(elements []ast.ExpressionNode) []types.Ref[types.Type] {
+	var elementTypes []types.Ref[types.Type]
 	for i, elementNode := range elements {
 		elementNode = c.checkTupleElement(elementNode)
 		elements[i] = elementNode
-		elementTypes = append(elementTypes, c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		elementTypes = append(elementTypes, types.ToRef(c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false)))
 	}
 
 	return elementTypes
@@ -2697,12 +2697,12 @@ func (c *Checker) checkArrayListKeyValueExpression(node *ast.KeyValueExpressionN
 	return node
 }
 
-func (c *Checker) checkHashSetElements(elements []ast.ExpressionNode) []types.Type {
-	var elementTypes []types.Type
+func (c *Checker) checkHashSetElements(elements []ast.ExpressionNode) []types.Ref[types.Type] {
+	var elementTypes []types.Ref[types.Type]
 	for i, elementNode := range elements {
 		elementNode = c.checkHashSetElement(elementNode)
 		elements[i] = elementNode
-		elementTypes = append(elementTypes, c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false))
+		elementTypes = append(elementTypes, types.ToRef(c.ToNonLiteral(c.typeOfGuardVoid(elementNode), false)))
 	}
 
 	return elementTypes
@@ -2731,7 +2731,7 @@ func (c *Checker) checkArrayListLiteralNodeWithType(node *ast.ArrayListLiteralNo
 	elementTypes := c.checkTupleElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayList(), types.Any{}))
@@ -3002,7 +3002,7 @@ func (c *Checker) checkHashSetLiteralNodeWithType(node *ast.HashSetLiteralNode, 
 	elementTypes := c.checkHashSetElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdHashSet(), types.Any{}))
@@ -3035,7 +3035,7 @@ func (c *Checker) checkArrayTupleLiteralNodeWithType(node *ast.ArrayTupleLiteral
 	elementTypes := c.checkTupleElements(node.Elements)
 	elementType := c.NewNormalisedUnion(elementTypes...)
 
-	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type, nil) {
+	if typ != nil && c.isSubtype(elementType, typ.TypeArguments.Get(0).Type.Get(), nil) {
 		node.SetType(typ)
 	} else if len(elementTypes) == 0 {
 		node.SetType(types.NewGenericWithTypeArgs(c.StdArrayTuple(), types.Any{}))
@@ -3065,7 +3065,7 @@ func (c *Checker) checkContinueExpressionNode(node *ast.ContinueExpressionNode) 
 		if loop.returnType == nil {
 			loop.returnType = typ
 		} else {
-			loop.returnType = c.NewNormalisedUnion(loop.returnType, typ)
+			loop.returnType = c.NewNormalisedUnion(types.ToRef(loop.returnType), types.ToRef(typ))
 		}
 	}
 
@@ -3091,7 +3091,7 @@ func (c *Checker) checkBreakExpressionNode(node *ast.BreakExpressionNode) ast.Ex
 		if loop.returnType == nil {
 			loop.returnType = typ
 		} else {
-			loop.returnType = c.NewNormalisedUnion(loop.returnType, typ)
+			loop.returnType = c.NewNormalisedUnion(types.ToRef(loop.returnType), types.ToRef(typ))
 		}
 	}
 
@@ -3143,8 +3143,8 @@ func (c *Checker) checkAwaitExpressionNode(node *ast.AwaitExpressionNode) ast.Ex
 		node.SetType(types.Untyped{})
 		return node
 	}
-	returnType := promiseType.Get(0).Type
-	throwType := promiseType.Get(1).Type
+	returnType := promiseType.Get(0).Type.Get()
+	throwType := promiseType.Get(1).Type.Get()
 
 	c.checkThrowType(throwType, node.Location())
 	node.SetType(returnType)
@@ -3282,7 +3282,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.NewNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(types.ToRef(typ), types.ToRef(loop.returnType))
 	}
 	node.SetType(typ)
 	return node
@@ -3442,7 +3442,7 @@ func (c *Checker) getIteratorType(typ types.Type, location *position.Location) t
 		return types.Untyped{}
 	}
 
-	return iterMethod.ReturnType
+	return iterMethod.ReturnType.Get()
 }
 
 func (c *Checker) getIteratorElementType(typ types.Type, location *position.Location) (types.Type, types.Type) {
@@ -3451,13 +3451,13 @@ func (c *Checker) getIteratorElementType(typ types.Type, location *position.Loca
 		return types.Untyped{}, types.Untyped{}
 	}
 
-	nextMethod := c.GetMethod(iterMethod.ReturnType, symbol.L_next, location)
+	nextMethod := c.GetMethod(iterMethod.ReturnType.Get(), symbol.L_next, location)
 	if nextMethod == nil {
 		return types.Untyped{}, types.Untyped{}
 	}
 
-	throwType := c.differenceType(nextMethod.ThrowType, types.NewSymbolLiteral("stop_iteration"))
-	return nextMethod.ReturnType, throwType
+	throwType := c.differenceType(nextMethod.ThrowType.Get(), types.NewSymbolLiteral("stop_iteration"))
+	return nextMethod.ReturnType.Get(), throwType
 }
 
 func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpressionNode) ast.ExpressionNode {
@@ -3535,7 +3535,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.NewNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(types.ToRef(typ), types.ToRef(loop.returnType))
 	}
 	node.SetType(typ)
 	return node
@@ -3581,7 +3581,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.NewNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(types.ToRef(typ), types.ToRef(loop.returnType))
 	}
 	node.SetType(typ)
 	return node
@@ -3642,7 +3642,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.NewNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(types.ToRef(typ), types.ToRef(loop.returnType))
 	}
 	node.SetType(typ)
 	return node
@@ -3688,7 +3688,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 		typ = c.ToNilable(thenType)
 	}
 	if loop.returnType != nil {
-		typ = c.NewNormalisedUnion(typ, loop.returnType)
+		typ = c.NewNormalisedUnion(types.ToRef(typ), types.ToRef(loop.returnType))
 	}
 	node.SetType(typ)
 	return node
@@ -3766,7 +3766,7 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tail
 		return node
 	}
 
-	node.SetType(c.NewNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(types.ToRef(thenType), types.ToRef(elseType)))
 	return node
 }
 
@@ -3893,7 +3893,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 		return node
 	}
 
-	node.SetType(c.NewNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(types.ToRef(thenType), types.ToRef(elseType)))
 	return node
 }
 
@@ -3943,7 +3943,7 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 		return node
 	}
 
-	node.SetType(c.NewNormalisedUnion(thenType, elseType))
+	node.SetType(c.NewNormalisedUnion(types.ToRef(thenType), types.ToRef(elseType)))
 	return node
 }
 
@@ -4142,8 +4142,8 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	}
 
 	if hasCatches {
-		fullyCaughtTypes := make([]types.Type, 0, len(node.Catches))
-		catchResultTypes := make([]types.Type, 0, len(node.Catches))
+		fullyCaughtTypes := make([]types.Ref[types.Type], 0, len(node.Catches))
+		catchResultTypes := make([]types.Ref[types.Type], 0, len(node.Catches))
 
 		for _, catchNode := range node.Catches {
 			c.pushConditionalLocalEnv(false)
@@ -4159,14 +4159,14 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
 				catchNode.StackTraceVar.SetType(stackTraceType)
-				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true))
+				c.addLocal(stackTraceVarName, newLocal(types.ToRef(stackTraceType), true, true))
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
-			fullyCaughtTypes = append(fullyCaughtTypes, fullyCaughtType)
+			fullyCaughtTypes = append(fullyCaughtTypes, types.ToRef(fullyCaughtType))
 
 			catchResultType, _ := c.checkStatements(catchNode.Body, false)
-			catchResultTypes = append(catchResultTypes, catchResultType)
+			catchResultTypes = append(catchResultTypes, types.ToRef(catchResultType))
 
 			c.popLocalEnv()
 		}
@@ -4196,7 +4196,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	if resultType == nil {
 		resultType = bodyResultType
 	} else {
-		resultType = c.NewNormalisedUnion(resultType, bodyResultType)
+		resultType = c.NewNormalisedUnion(types.ToRef(resultType), types.ToRef(bodyResultType))
 	}
 	node.SetType(resultType)
 	return node
@@ -4381,7 +4381,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 		node.SetType(leftType)
 		return node
 	}
-	node.SetType(c.NewNormalisedUnion(c.ToNonNilable(leftType), rightType))
+	node.SetType(c.NewNormalisedUnion(types.ToRef(c.ToNonNilable(leftType)), types.ToRef(rightType)))
 
 	return node
 }
@@ -4420,7 +4420,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 		node.SetType(rightType)
 		return node
 	}
-	union := c.NewNormalisedUnion(c.ToNonFalsy(leftType), rightType)
+	union := c.NewNormalisedUnion(types.ToRef(c.ToNonFalsy(leftType)), types.ToRef(rightType))
 	node.SetType(union)
 
 	return node
@@ -4461,7 +4461,7 @@ func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.Expressio
 		return node
 	}
 
-	node.SetType(c.NewNormalisedUnion(c.ToNonTruthy(leftType), rightType))
+	node.SetType(c.NewNormalisedUnion(types.ToRef(c.ToNonTruthy(leftType)), types.ToRef(rightType)))
 
 	return node
 }
@@ -4645,7 +4645,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 	leftType := c.typeOfGuardVoid(left)
 	rightType := c.TypeOf(right)
 	if r, ok := rightType.(*types.Exact); ok {
-		rightType = r.Type
+		rightType = r.Type.Get()
 	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
@@ -4656,7 +4656,7 @@ func (c *Checker) checkInstanceOf(node *ast.BinaryExpressionNode, reverse bool) 
 		return
 	}
 
-	class, ok := rightSingleton.AttachedObject.(*types.Class)
+	class, ok := rightSingleton.AttachedObject.Get().(*types.Class)
 	if !ok {
 		c.addFailure(
 			"only classes are allowed as the right operand of the instance of operator `<<:`",
@@ -4705,7 +4705,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 	leftType := c.typeOfGuardVoid(left)
 	rightType := c.TypeOf(right)
 	if r, ok := rightType.(*types.Exact); ok {
-		rightType = r.Type
+		rightType = r.Type.Get()
 	}
 	rightSingleton, ok := rightType.(*types.SingletonClass)
 	if !ok {
@@ -4716,7 +4716,7 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		return
 	}
 
-	switch rightSingleton.AttachedObject.(type) {
+	switch rightSingleton.AttachedObject.Get().(type) {
 	case *types.Class, *types.Mixin:
 	default:
 		c.addFailure(
@@ -4726,24 +4726,24 @@ func (c *Checker) checkIsA(node *ast.BinaryExpressionNode, reverse bool) {
 		return
 	}
 
-	if c.isSubtype(leftType, rightSingleton.AttachedObject, nil) {
+	if c.isSubtype(leftType, rightSingleton.AttachedObject.Get(), nil) {
 		c.addWarning(
 			fmt.Sprintf(
 				"this \"is a\" check is always true, `%s` will always be an instance of `%s`",
 				types.InspectWithColor(leftType),
-				types.InspectWithColor(rightSingleton.AttachedObject),
+				types.InspectWithColor(rightSingleton.AttachedObject.Get()),
 			),
 			left.Location(),
 		)
 		return
 	}
 
-	if !c.canBeIsA(leftType, rightSingleton.AttachedObject) {
+	if !c.canBeIsA(leftType, rightSingleton.AttachedObject.Get()) {
 		c.addWarning(
 			fmt.Sprintf(
 				"impossible \"is a\" check, `%s` cannot ever be an instance of a descendant of `%s`",
 				types.InspectWithColor(leftType),
-				types.InspectWithColor(rightSingleton.AttachedObject),
+				types.InspectWithColor(rightSingleton.AttachedObject.Get()),
 			),
 			left.Location(),
 		)
@@ -4878,22 +4878,23 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 		if initialisedIvars.Contains(ivar.Name) {
 			continue
 		}
+		ivarType := ivar.Type.Get()
 		if ivar.SingleAssignment {
 			c.addFailure(
 				fmt.Sprintf(
 					"instance value `%s` must be initialised before `%s` can be used",
-					types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivarType),
 					lexer.Colorize("self"),
 				),
 				location,
 			)
 			continue
 		}
-		if c.IsNotNilable(ivar.Type) {
+		if c.IsNotNilable(ivarType) {
 			c.addFailure(
 				fmt.Sprintf(
 					"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
-					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivarType),
 					lexer.Colorize("self"),
 				),
 				location,
@@ -4972,12 +4973,13 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 
 	if init == nil {
 		for ivar := range types.SortedInstanceVariables(class) {
-			if !c.IsNilable(ivar.Type) {
+			ivarType := ivar.Type.Get()
+			if !c.IsNilable(ivarType) {
 				for _, loc := range locations {
 					c.addFailure(
 						fmt.Sprintf(
 							"instance variable `%s` must be initialised in the constructor, since it is not nilable",
-							types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+							types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivarType),
 						),
 						loc,
 					)
@@ -4988,7 +4990,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 					c.addFailure(
 						fmt.Sprintf(
 							"instance value `%s` must be initialised in the constructor",
-							types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+							types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivarType),
 						),
 						loc,
 					)
@@ -5010,12 +5012,13 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			continue
 		}
 
+		ivarType := ivar.Type.Get()
 		if ivar.SingleAssignment {
 			for _, loc := range locations {
 				c.addFailure(
 					fmt.Sprintf(
 						"instance value `%s` must be initialised in the constructor",
-						types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivarType),
 					),
 					loc,
 				)
@@ -5023,12 +5026,12 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 			continue
 		}
 
-		if !c.IsNilable(ivar.Type) {
+		if !c.IsNilable(ivarType) {
 			for _, loc := range locations {
 				c.addFailure(
 					fmt.Sprintf(
 						"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
-						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivarType),
 					),
 					loc,
 				)
@@ -5112,12 +5115,14 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			if superIvar == nil {
 				continue
 			}
-			if !c.isTheSameType(superIvar.Type, includedIvar.Type, nil) {
+			superIvarType := superIvar.Type.Get()
+			includedIvarType := includedIvar.Type.Get()
+			if !c.isTheSameType(superIvarType, includedIvarType, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
 					name:              includedIvar.Name,
-					super:             superIvar.Type,
+					super:             superIvarType,
 					superNamespace:    superNamespace,
-					override:          includedIvar.Type,
+					override:          includedIvarType,
 					overrideNamespace: includedNamespace,
 				})
 			}
@@ -5132,10 +5137,12 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			override := incompatibleMethod.override
 			superMethod := incompatibleMethod.superMethod
 
-			overrideNamespaceName := types.InspectWithColor(override.DefinedUnder)
-			superNamespaceName := types.InspectWithColor(superMethod.DefinedUnder)
-			overrideNamespaceWidth := uniseg.StringWidth(types.Inspect(override.DefinedUnder))
-			superNamespaceWidth := uniseg.StringWidth(types.Inspect(superMethod.DefinedUnder))
+			overrideDefinedUnder := override.DefinedUnder.Get()
+			superMethodDefinedUnder := superMethod.DefinedUnder.Get()
+			overrideNamespaceName := types.InspectWithColor(overrideDefinedUnder)
+			superNamespaceName := types.InspectWithColor(superMethodDefinedUnder)
+			overrideNamespaceWidth := uniseg.StringWidth(types.Inspect(overrideDefinedUnder))
+			superNamespaceWidth := uniseg.StringWidth(types.Inspect(superMethodDefinedUnder))
 			var overrideWidthDiff int
 			var superWidthDiff int
 			if overrideNamespaceWidth < superNamespaceWidth {
@@ -5290,10 +5297,10 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 			receiver.SetType(under)
 		case *types.SingletonClass:
 			// from using
-			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Name())
+			receiver = ast.NewPublicConstantNode(loc, under.AttachedObject.Get().Name())
 			receiver.SetType(under)
 		case *types.UsingBufferNamespace:
-			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
+			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder.Get(), false, loc)
 		case *types.NamespacePlaceholder:
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
 			receiver.SetType(under)
@@ -5358,7 +5365,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 	}
 	c.checkCalledMethodThrowType(method, node.Location())
 
-	newNode.SetType(method.ReturnType)
+	newNode.SetTypeRef(method.ReturnType)
 	return newNode
 }
 
@@ -5378,7 +5385,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	var typedPositionalArguments []ast.ExpressionNode
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
-		method = c.deepCopyMethod(method)
+		method = method.Copy()
 		method, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
 			node.PositionalArguments,
@@ -5466,7 +5473,7 @@ func (c *Checker) addLowerBoundError(arg, bound types.Type, location *position.L
 	c.addTypeParamBoundError(arg, bound, "lower", location)
 }
 
-func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []*types.TypeParameter, location *position.Location) (*types.TypeArguments, bool) {
+func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, typeParams []types.Ref[*types.TypeParameter], location *position.Location) (*types.TypeArguments, bool) {
 	reqParamCount := types.RequiredTypeParameters(typeParams)
 	if len(typeArgs) < reqParamCount || len(typeArgs) > len(typeParams) {
 		c.addTypeArgumentCountError(types.InspectWithColor(typ), reqParamCount, len(typeParams), len(typeArgs), location)
@@ -5477,7 +5484,7 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	typeArgumentOrder := make([]symbol.Symbol, 0, len(typeParams))
 	var fail bool
 	for i := range len(typeArgs) {
-		typeParameter := typeParams[i]
+		typeParameter := typeParams[i].Get()
 
 		typeArgs[i] = c.checkTypeNode(typeArgs[i])
 		typeArgumentNode := typeArgs[i]
@@ -5491,9 +5498,9 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 
 	// Fill missing type args with defaults
 	for i := len(typeArgs); i < len(typeParams); i++ {
-		typeParameter := typeParams[i]
+		typeParameter := typeParams[i].Get()
 
-		typeArgumentMap[typeParameter.Name] = types.NewTypeArgument(
+		typeArgumentMap[typeParameter.Name] = types.NewTypeArgumentWithRef(
 			typeParameter.Default,
 			typeParameter.Variance,
 		)
@@ -5501,22 +5508,22 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	}
 
 	for i := len(typeArgs); i < len(typeParams); i++ {
-		typeParameter := typeParams[i]
+		typeParameter := typeParams[i].Get()
 		typeArgument := typeArgumentMap[typeParameter.Name]
-		typeArgument.Type = c.replaceTypeParameters(typeArgument.Type, typeArgumentMap, true)
+		typeArgument.Type = types.ToRef(c.replaceTypeParameters(typeArgument.Type.Get(), typeArgumentMap, true))
 	}
 
 	for i := range len(typeArgs) {
-		typeParameter := typeParams[i]
+		typeParameter := typeParams[i].Get()
 		typeArgumentNode := typeArgs[i]
 		typeArgument := c.TypeOf(typeArgumentNode)
 
-		upperBound := c.replaceTypeParameters(typeParameter.UpperBound, typeArgumentMap, true)
+		upperBound := c.replaceTypeParameters(typeParameter.UpperBound.Get(), typeArgumentMap, true)
 		if !c.isSubtype(typeArgument, upperBound, typeArgumentNode.Location()) {
 			c.addUpperBoundError(typeArgument, upperBound, typeArgumentNode.Location())
 			fail = true
 		}
-		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound, typeArgumentMap, true)
+		lowerBound := c.replaceTypeParameters(typeParameter.LowerBound.Get(), typeArgumentMap, true)
 		if !c.isSubtype(lowerBound, typeArgument, typeArgumentNode.Location()) {
 			c.addLowerBoundError(typeArgument, lowerBound, typeArgumentNode.Location())
 			fail = true

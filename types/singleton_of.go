@@ -101,6 +101,5 @@ func (s *SingletonOf) inspect() string {
 func (s *SingletonOf) Copy() *SingletonOf {
 	return &SingletonOf{
 		Type: s.Type,
-		id:   s.id,
 	}
 }

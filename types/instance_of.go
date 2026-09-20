@@ -101,6 +101,5 @@ func (s *InstanceOf) inspect() string {
 func (i *InstanceOf) Copy() *InstanceOf {
 	return &InstanceOf{
 		Type: i.Type,
-		id:   i.id,
 	}
 }

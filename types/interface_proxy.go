@@ -40,7 +40,6 @@ func (i *InterfaceProxy) Copy() *InterfaceProxy {
 	return &InterfaceProxy{
 		parent:    i.parent,
 		Interface: i.Interface,
-		id:        i.id,
 	}
 }
 

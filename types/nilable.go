@@ -102,6 +102,5 @@ func (n *Nilable) inspect() string {
 func (n *Nilable) Copy() *Nilable {
 	return &Nilable{
 		Type: n.Type,
-		id:   n.id,
 	}
 }

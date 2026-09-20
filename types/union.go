@@ -133,6 +133,5 @@ func (u *Union) inspect() string {
 func (u *Union) Copy() *Union {
 	return &Union{
 		Elements: u.Elements,
-		id:       u.id,
 	}
 }

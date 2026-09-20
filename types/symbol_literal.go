@@ -12,6 +12,12 @@ type SymbolLiteral struct {
 	id    ID
 }
 
+func (s *SymbolLiteral) Copy() *SymbolLiteral {
+	return &SymbolLiteral{
+		Value: s.Value,
+	}
+}
+
 func (s *SymbolLiteral) ToRef() Ref[*SymbolLiteral] {
 	return Ref[*SymbolLiteral](s.id)
 }

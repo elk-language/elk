@@ -38,7 +38,6 @@ func (m *MixinProxy) Copy() *MixinProxy {
 	return &MixinProxy{
 		parent: m.parent,
 		Mixin:  m.Mixin,
-		id:     m.id,
 	}
 }
 

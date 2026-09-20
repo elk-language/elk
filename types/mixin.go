@@ -189,7 +189,6 @@ func (m *Mixin) Copy() *Mixin {
 			constants:  m.constants,
 			methods:    m.methods,
 			subtypes:   m.subtypes,
-			id:         m.id,
 		},
 	}
 }

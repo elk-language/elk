@@ -47,9 +47,11 @@ func NewModulePlaceholder(name string) *ModulePlaceholder {
 }
 
 func (m *ModulePlaceholder) Copy() *ModulePlaceholder {
-	return &ModulePlaceholder{
+	result := &ModulePlaceholder{
 		Module: m.Module,
 	}
+	result.id = ZERO_ID
+	return result
 }
 
 // Used during typechecking as a placeholder for a future
@@ -99,7 +101,6 @@ func (n *NamespacePlaceholder) Copy() *NamespacePlaceholder {
 		name:      n.name,
 		Namespace: n.Namespace,
 		Locations: n.Locations,
-		id:        n.id,
 	}
 }
 

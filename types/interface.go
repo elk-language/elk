@@ -163,7 +163,6 @@ func (i *Interface) Copy() *Interface {
 			constants: i.constants,
 			methods:   i.methods,
 			subtypes:  i.subtypes,
-			id:        i.id,
 		},
 	}
 }

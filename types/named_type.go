@@ -82,6 +82,5 @@ func (n *NamedType) Copy() *NamedType {
 	return &NamedType{
 		Name: n.Name,
 		Type: n.Type,
-		id:   n.id,
 	}
 }

@@ -838,7 +838,7 @@ func (c *Checker) newMacroChecker(
 			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
-		methodCache:          concurrent.NewSlice[*types.Method](),
+		methodCache:          concurrent.NewSlice[types.Ref[*types.Method]](),
 		threadPool:           threadPool,
 	}
 	checker.setMacroGlobalEnv(c.macroEnv)

@@ -11,6 +11,12 @@ type StringLiteral struct {
 	id    ID
 }
 
+func (s *StringLiteral) Copy() *StringLiteral {
+	return &StringLiteral{
+		Value: s.Value,
+	}
+}
+
 func (s *StringLiteral) ToRef() Ref[*StringLiteral] {
 	return Ref[*StringLiteral](s.id)
 }

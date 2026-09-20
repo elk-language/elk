@@ -601,7 +601,7 @@ func (c *Checker) newMethodChecker(
 			newLocalEnvironment(nil, defaultLocalEnvType),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
-		methodCache:          concurrent.NewSlice[*types.Method](),
+		methodCache:          concurrent.NewSlice[types.Ref[*types.Method]](),
 		threadPool:           threadPool,
 	}
 	checker.compiler = compiler.CreateCompiler(funcName, c.compiler, checker, loc, c.Errors, c.HasAdditionalAbortChecks())
@@ -672,9 +672,9 @@ func (c *Checker) checkMethodBodies() {
 				elkName,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
-				method.DefinedUnder,
-				method.ReturnType,
-				method.ThrowType,
+				method.DefinedUnder.Get(),
+				method.ReturnType.Get(),
+				method.ThrowType.Get(),
 				mode,
 				c.threadPool,
 				node.Location(),
@@ -688,7 +688,7 @@ func (c *Checker) checkMethodBodies() {
 			if len(method.UsedInConstants) > 0 {
 				// use the method cache to store methods
 				// that are used in constant definitions and have to be checked
-				c.methodCache.Push(method)
+				c.methodCache.Push(method.ToRef())
 			}
 		},
 	)
@@ -706,14 +706,15 @@ func (c *Checker) checkMethodBodies() {
 //	      FOO * 5
 //	    end
 func (c *Checker) checkMethodsInConstants() {
-	for _, method := range c.methodCache.Slice {
+	for _, methodRef := range c.methodCache.Slice {
+		method := methodRef.Get()
 		c.checkMethodInConstant(method, method.UsedInConstants)
 	}
 }
 
 func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds.Set[symbol.Symbol]) {
 	for _, calledMethod := range method.CalledMethods {
-		c.checkMethodInConstant(calledMethod, usedInConstants)
+		c.checkMethodInConstant(calledMethod.Get(), usedInConstants)
 	}
 
 	for usedInConstant := range usedInConstants {
@@ -790,47 +791,6 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 	}
 }
 
-// Create a deep copy of the method
-func (c *Checker) deepCopyMethod(method *types.Method) *types.Method {
-	if method.IsGeneric() {
-		newTypeParamTransformMap := make(types.TypeArgumentMap, len(method.TypeParameters))
-		newTypeParams := make([]*types.TypeParameter, len(method.TypeParameters))
-		for i, param := range method.TypeParameters {
-			newParam := param.Copy()
-			newTypeParams[i] = newParam
-			newTypeParamTransformMap[param.Name] = types.NewTypeArgument(newParam, param.Variance)
-		}
-		newParams := make([]*types.Parameter, len(method.Params))
-		for i, param := range method.Params {
-			newParam := param.Copy()
-			newParam.Type = c.replaceTypeParameters(newParam.Type, newTypeParamTransformMap, true)
-			newParams[i] = newParam
-		}
-
-		copy := method.Copy()
-		copy.TypeParameters = newTypeParams
-		copy.Params = newParams
-		copy.ReturnType = c.replaceTypeParameters(copy.ReturnType, newTypeParamTransformMap, true)
-		copy.ThrowType = c.replaceTypeParameters(copy.ThrowType, newTypeParamTransformMap, true)
-
-		newOverloads := make([]*types.Method, len(method.Overloads))
-		for i, overload := range method.Overloads {
-			newOverloads[i] = c.deepCopyMethod(overload)
-		}
-
-		return copy
-	}
-
-	newParams := make([]*types.Parameter, len(method.Params))
-	for i, param := range method.Params {
-		newParams[i] = param.Copy()
-	}
-
-	copy := method.Copy()
-	copy.Params = newParams
-	return copy
-}
-
 func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docComment string) {
 	setterName := c.identifierToName(node.Name) + "="
 
@@ -903,7 +863,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, loc *po
 		fmt.Sprintf(
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: `%s`",
 			baseMethod.Name.String(),
-			types.InspectWithColor(baseMethod.DefinedUnder),
+			types.InspectWithColor(baseMethod.DefinedUnder.Get()),
 			baseMethod.InspectSignatureWithColor(true),
 		),
 		loc,
@@ -919,7 +879,7 @@ func (c *Checker) checkMethodOverride(
 		return
 	}
 
-	overrideNamespace := overrideMethod.DefinedUnder
+	overrideNamespace := overrideMethod.DefinedUnder.Get()
 	if overrideNamespace != nil {
 		overrideGeneric := types.GetDefaultNamespaceGenericInstance(overrideNamespace)
 		overrideSelfMap := c.createTypeArgumentMapWithSelf(overrideGeneric)
@@ -933,7 +893,7 @@ func (c *Checker) checkMethodOverride(
 		fmt.Fprintf(
 			errDetailsBuff,
 			"missing overloads in `%s`\n  is: ",
-			I(overrideMethod.DefinedUnder),
+			I(overrideNamespace),
 		)
 
 		var i int
@@ -1023,8 +983,8 @@ func (c *Checker) _checkMethodOverride(
 		areIncompatible = true
 	} else {
 		for i := range overrideMethod.TypeParameters {
-			overrideTypeParam := overrideMethod.TypeParameters[i]
-			baseTypeParam := baseMethod.TypeParameters[i]
+			overrideTypeParam := overrideMethod.TypeParameters[i].Get()
+			baseTypeParam := baseMethod.TypeParameters[i].Get()
 
 			var isInvalid bool
 			if overrideTypeParam.Name != baseTypeParam.Name || overrideTypeParam.Variance != baseTypeParam.Variance {
@@ -1033,18 +993,18 @@ func (c *Checker) _checkMethodOverride(
 
 			switch baseTypeParam.Variance {
 			case types.INVARIANT:
-				if !c.isTheSameType(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
-					!c.isTheSameType(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+				if !c.isTheSameType(overrideTypeParam.UpperBound.Get(), baseTypeParam.UpperBound.Get(), nil) ||
+					!c.isTheSameType(overrideTypeParam.LowerBound.Get(), baseTypeParam.LowerBound.Get(), nil) {
 					isInvalid = true
 				}
 			case types.COVARIANT:
-				if !c.isSubtype(overrideTypeParam.UpperBound, baseTypeParam.UpperBound, nil) ||
-					!c.isSubtype(baseTypeParam.LowerBound, overrideTypeParam.LowerBound, nil) {
+				if !c.isSubtype(overrideTypeParam.UpperBound.Get(), baseTypeParam.UpperBound.Get(), nil) ||
+					!c.isSubtype(baseTypeParam.LowerBound.Get(), overrideTypeParam.LowerBound.Get(), nil) {
 					isInvalid = true
 				}
 			case types.CONTRAVARIANT:
-				if !c.isSubtype(baseTypeParam.UpperBound, overrideTypeParam.UpperBound, nil) ||
-					!c.isSubtype(overrideTypeParam.LowerBound, baseTypeParam.LowerBound, nil) {
+				if !c.isSubtype(baseTypeParam.UpperBound.Get(), overrideTypeParam.UpperBound.Get(), nil) ||
+					!c.isSubtype(overrideTypeParam.LowerBound.Get(), baseTypeParam.LowerBound.Get(), nil) {
 					isInvalid = true
 				}
 			}
@@ -1061,21 +1021,26 @@ func (c *Checker) _checkMethodOverride(
 		}
 	}
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
+	overrideReturnType := overrideMethod.ReturnType.Get()
+	baseReturnType := baseMethod.ReturnType.Get()
+	if !c.isSubtype(overrideReturnType, baseReturnType, nil) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has a different return type, is `%s`, should be `%s`",
-			types.InspectWithColor(overrideMethod.ReturnType),
-			types.InspectWithColor(baseMethod.ReturnType),
+			types.InspectWithColor(overrideReturnType),
+			types.InspectWithColor(baseReturnType),
 		)
 		areIncompatible = true
 	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, nil) {
+
+	overrideThrowType := overrideMethod.ThrowType.Get()
+	baseThrowType := baseMethod.ThrowType.Get()
+	if !c.isSubtype(overrideThrowType, baseThrowType, nil) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - has different throw type, is `%s`, should be `%s`",
-			types.InspectWithColor(overrideMethod.ThrowType),
-			types.InspectWithColor(baseMethod.ThrowType),
+			types.InspectWithColor(overrideThrowType),
+			types.InspectWithColor(baseThrowType),
 		)
 		areIncompatible = true
 	}
@@ -1084,9 +1049,9 @@ func (c *Checker) _checkMethodOverride(
 		errDetailsBuff.WriteString("\n  - has less parameters")
 	} else {
 		for i := range len(baseMethod.Params) {
-			oldParam := baseMethod.Params[i]
-			newParam := overrideMethod.Params[i]
-			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, nil) {
+			oldParam := baseMethod.Params[i].Get()
+			newParam := overrideMethod.Params[i].Get()
+			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type.Get(), newParam.Type.Get(), nil) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - has an incompatible parameter, is `%s`, should be `%s`",
@@ -1098,7 +1063,7 @@ func (c *Checker) _checkMethodOverride(
 		}
 
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
-			param := overrideMethod.Params[i]
+			param := overrideMethod.Params[i].Get()
 			if !param.IsOptional() {
 				fmt.Fprintf(
 					errDetailsBuff,
@@ -1182,7 +1147,7 @@ func (c *Checker) checkMethod(
 			if p.SetInstanceVariable {
 				c.registerInitialisedInstanceVariable(symbol.ToSymbol(pName))
 			}
-			declaredType = c.TypeOf(p).(*types.Parameter).Type
+			declaredType = c.TypeOf(p).(*types.Parameter).Type.Get()
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				switch p.Kind {
@@ -1198,14 +1163,14 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(pName, newLocal(declaredType, true, checkedMethod.IsGenerator()))
+			c.addLocal(pName, newLocal(types.ToRef(declaredType), true, checkedMethod.IsGenerator()))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		case *ast.FormalParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			pName := c.identifierToName(p.Name)
-			declaredType = c.TypeOf(p).(*types.Parameter).Type
+			declaredType = c.TypeOf(p).(*types.Parameter).Type.Get()
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
 				switch p.Kind {
@@ -1221,7 +1186,7 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(pName, newLocal(declaredType, true, false))
+			c.addLocal(pName, newLocal(types.ToRef(declaredType), true, false))
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		default:
@@ -1232,7 +1197,7 @@ func (c *Checker) checkMethod(
 	c.mode = prevMode
 	c.setOutputPositionTypeMode()
 
-	returnType := checkedMethod.ReturnType
+	returnType := checkedMethod.ReturnType.Get()
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
@@ -1240,17 +1205,17 @@ func (c *Checker) checkMethod(
 
 	origReturnType := returnType
 	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
-		returnType = origReturnType.(*types.Generic).Get(0).Type
+		returnType = origReturnType.(*types.Generic).Get(0).Type.Get()
 	}
 
-	throwType := checkedMethod.ThrowType
+	throwType := checkedMethod.ThrowType.Get()
 	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
 	}
 	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
-		throwType = origReturnType.(*types.Generic).Get(1).Type
+		throwType = origReturnType.(*types.Generic).Get(1).Type.Get()
 	}
 	if !types.IsNever(throwType) && throwType != nil {
 		c.pushCatchScope(makeCatchScope(throwType, false))
@@ -1295,7 +1260,7 @@ func (c *Checker) checkMethod(
 		if !checkedMethod.IsAbstract() && !c.IsHeader() {
 			if c.shouldInferClosureReturnType() {
 				c.addToReturnType(bodyReturnType)
-				checkedMethod.ReturnType = c.returnType
+				checkedMethod.ReturnType = types.ToRef(c.returnType)
 			} else {
 				if returnSpan == nil {
 					returnSpan = location
@@ -1305,9 +1270,9 @@ func (c *Checker) checkMethod(
 
 			if c.shouldInferClosureThrowType() {
 				if c.throwType == nil {
-					checkedMethod.ThrowType = types.Never{}
+					checkedMethod.ThrowType = types.NeverID
 				} else {
-					checkedMethod.ThrowType = c.throwType
+					checkedMethod.ThrowType = types.ToRef(c.throwType)
 				}
 			}
 		}
@@ -1349,7 +1314,7 @@ func (c *Checker) checkSpecialMethods(name symbol.Symbol, checkedMethod *types.M
 func (c *Checker) checkEqualityOperator(name symbol.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {
 	params := checkedMethod.Params
 
-	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+	if !c.isTheSameType(checkedMethod.ReturnType.Get(), types.Bool{}, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"equality operator `%s` must return `%s`",
@@ -1372,14 +1337,14 @@ func (c *Checker) checkEqualityOperator(name symbol.Symbol, checkedMethod *types
 		return
 	}
 
-	param := params[0]
+	param := params[0].Get()
 	var paramSpan *position.Location
 	if paramNodes != nil {
 		paramSpan = paramNodes[0].Location()
 	} else {
 		paramSpan = location
 	}
-	if !types.IsAny(param.Type) {
+	if !types.IsAnyRef(param.Type) {
 		c.addFailure(
 			fmt.Sprintf(
 				"parameter `%s` of equality operator `%s` must be of type `%s`",
@@ -1407,7 +1372,7 @@ func (c *Checker) checkEqualityOperator(name symbol.Symbol, checkedMethod *types
 func (c *Checker) checkRelationalOperator(name symbol.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {
 	params := checkedMethod.Params
 
-	if !c.isTheSameType(checkedMethod.ReturnType, types.Bool{}, nil) {
+	if !c.isTheSameType(checkedMethod.ReturnType.Get(), types.Bool{}, nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"relational operator `%s` must return `%s`",
@@ -1430,14 +1395,14 @@ func (c *Checker) checkRelationalOperator(name symbol.Symbol, checkedMethod *typ
 		return
 	}
 
-	param := checkedMethod.Params[0]
+	param := checkedMethod.Params[0].Get()
 	var paramSpan *position.Location
 	if paramNodes != nil {
 		paramSpan = paramNodes[0].Location()
 	} else {
 		paramSpan = location
 	}
-	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type, nil) {
+	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type.Get(), nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"parameter `%s` of relational operator `%s` must accept `%s`",
@@ -1465,7 +1430,7 @@ func (c *Checker) checkRelationalOperator(name symbol.Symbol, checkedMethod *typ
 func (c *Checker) checkFixedParameterCountMethod(name symbol.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, desiredParamCount int, location *position.Location) {
 	params := checkedMethod.Params
 
-	if types.IsVoid(checkedMethod.ReturnType) {
+	if types.IsVoid(checkedMethod.ReturnType.Get()) {
 		c.addFailure(
 			fmt.Sprintf(
 				"method `%s` cannot be void",
@@ -1488,13 +1453,14 @@ func (c *Checker) checkFixedParameterCountMethod(name symbol.Symbol, checkedMeth
 		return
 	}
 
-	for i, param := range params {
+	for i, paramRef := range params {
 		var paramSpan *position.Location
 		if paramNodes != nil {
 			paramSpan = paramNodes[i].Location()
 		} else {
 			paramSpan = location
 		}
+		param := paramRef.Get()
 
 		switch param.Kind {
 		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
@@ -1516,7 +1482,7 @@ func (c *Checker) addToReturnType(typ types.Type) {
 		return
 	}
 
-	c.returnType = c.NewNormalisedUnion(c.returnType, typ)
+	c.returnType = c.NewNormalisedUnion(types.ToRef(c.returnType), types.ToRef(typ))
 }
 
 func (c *Checker) addToThrowType(typ types.Type) {
@@ -1525,7 +1491,7 @@ func (c *Checker) addToThrowType(typ types.Type) {
 		return
 	}
 
-	c.throwType = c.NewNormalisedUnion(c.throwType, typ)
+	c.throwType = c.NewNormalisedUnion(types.ToRef(c.throwType), types.ToRef(typ))
 }
 
 type inferArg struct {
@@ -1539,7 +1505,7 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
-	typeParams []*types.TypeParameter,
+	typeParams []types.Ref[*types.TypeParameter],
 	location *position.Location,
 ) (
 	_method *types.Method,
@@ -1595,7 +1561,8 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 		method.InspectSignatureWithColor(false),
 	)
 
-	for _, overload := range method.Overloads {
+	for _, overloadRef := range method.Overloads {
+		overload := overloadRef.Get()
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n             `%s`",
@@ -1610,11 +1577,12 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	return nil, nil, nil
 }
 
+// TODO: Fix param mutation, do a copy and mutate the copy
 func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
 	namedArguments []ast.NamedArgumentNode,
-	typeParams []*types.TypeParameter,
+	typeParams []types.Ref[*types.TypeParameter],
 	location *position.Location,
 ) (
 	_posArgs []ast.ExpressionNode,
@@ -1665,7 +1633,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			)
 			break
 		}
-		param := method.Params[currentParamIndex]
+		param := method.Params[currentParamIndex].Get()
 
 		if _, ok := posArg.(*ast.ClosureLiteralNode); ok {
 			inferArgs = append(inferArgs, inferArg{
@@ -1676,19 +1644,25 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			})
 			continue
 		}
-		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+		paramType := param.Type.Get()
+		typedPosArg := c.checkExpressionWithType(posArg, paramType)
 		posArgType := c.TypeOf(typedPosArg)
 
-		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+		inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 
+		// TODO: fix, cannot mutate types with ids
 		var retry bool
 		switch inferredParamType {
 		case nil:
-			param.Type = types.Untyped{}
-		case param.Type:
+			paramCopy := param.Copy()
+			paramCopy.Type = types.UntypedID
+			method.Params[currentParamIndex] = paramCopy.ToRef()
+		case paramType:
 			retry = true
 		default:
-			param.Type = inferredParamType
+			paramCopy := param.Copy()
+			paramCopy.Type = types.ToRef(inferredParamType)
+			method.Params[currentParamIndex] = paramCopy.ToRef()
 		}
 		inferArgs = append(inferArgs, inferArg{
 			typedArg: typedPosArg,
@@ -1701,27 +1675,33 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		typedPosArg := inferArg.typedArg
 		posArgType := c.TypeOf(typedPosArg)
 		param := inferArg.param
+		paramType := param.Type.Get()
 
 		if inferArg.retry {
 			if inferArg.isClosure {
-				typedPosArg = c.checkExpressionWithTypeArgs(typedPosArg, param.Type, typeArgMap)
+				typedPosArg = c.checkExpressionWithTypeArgs(typedPosArg, paramType, typeArgMap)
 				posArgType = c.TypeOf(typedPosArg)
 			}
-			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+			inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				param.Type = types.Untyped{}
-			} else if inferredParamType != param.Type {
-				param.Type = inferredParamType
+				param.Type = types.UntypedID
+				paramCopy := param.Copy()
+				paramCopy.Type = types.UntypedID
+				method.Params[currentParamIndex] = paramCopy.ToRef()
+			} else if inferredParamType != paramType {
+				paramCopy := param.Copy()
+				paramCopy.Type = types.ToRef(inferredParamType)
+				method.Params[currentParamIndex] = paramCopy.ToRef()
 			}
 		}
 
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 
-		if !c.isSubtype(posArgType, param.Type, typedPosArg.Location()) {
+		if !c.isSubtype(posArgType, paramType, typedPosArg.Location()) {
 			c.addFailure(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-					types.InspectWithColor(param.Type),
+					types.InspectWithColor(paramType),
 					param.Name.String(),
 					types.InspectWithColor(method),
 					types.InspectWithColor(posArgType),
@@ -1748,27 +1728,28 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			location,
 			nil,
 		)
-		posRestParam := method.Params[positionalRestParamIndex]
+		posRestParam := method.Params[positionalRestParamIndex].Get()
+		posRestParamType := posRestParam.Type.Get()
 
 		currentArgIndex := currentParamIndex
 		// check rest arguments
 		for ; currentArgIndex < min(argCount-method.PostParamCount, len(positionalArguments)); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 
-			typedPosArg := c.checkRestArgument(posArg, posRestParam.Type)
+			typedPosArg := c.checkRestArgument(posArg, posRestParamType)
 			posArgType := c.TypeOf(typedPosArg)
-			inferredParamType := c.inferTypeArguments(posArgType, posRestParam.Type, typeArgMap, typedPosArg.Location())
+			inferredParamType := c.inferTypeArguments(posArgType, posRestParamType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				posRestParam.Type = types.Untyped{}
-			} else if inferredParamType != posRestParam.Type {
-				posRestParam.Type = inferredParamType
+				posRestParam.Type = types.UntypedID
+			} else if inferredParamType != posRestParamType {
+				posRestParam.Type = types.ToRef(inferredParamType)
 			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
-			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Location()) {
+			if !c.isSubtype(posArgType, posRestParamType, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(posRestParam.Type),
+						types.InspectWithColor(posRestParamType),
 						posRestParam.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
@@ -1793,22 +1774,23 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 		for ; currentArgIndex < len(positionalArguments); currentArgIndex++ {
 			posArg := positionalArguments[currentArgIndex]
 			currentParamIndex++
-			param := method.Params[currentParamIndex]
+			param := method.Params[currentParamIndex].Get()
+			paramType := param.Type.Get()
 
-			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			typedPosArg := c.checkExpressionWithType(posArg, paramType)
 			posArgType := c.TypeOf(typedPosArg)
-			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
+			inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				param.Type = types.Untyped{}
-			} else if inferredParamType != param.Type {
-				param.Type = inferredParamType
+				param.Type = types.UntypedID
+			} else if inferredParamType != paramType {
+				param.Type = types.ToRef(inferredParamType)
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
-			if !c.isSubtype(posArgType, param.Type, posArg.Location()) {
+			if !c.isSubtype(posArgType, paramType, posArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(param.Type),
+						types.InspectWithColor(paramType),
 						param.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(posArgType),
@@ -1828,7 +1810,8 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
 	for i := range method.Params {
-		param := method.Params[i]
+		param := method.Params[i].Get()
+		paramType := param.Type.Get()
 		switch param.Kind {
 		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
 			continue
@@ -1863,20 +1846,20 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, paramType)
 			namedArgType := c.TypeOf(typedNamedArgValue)
-			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
+			inferredParamType := c.inferTypeArguments(namedArgType, paramType, typeArgMap, typedNamedArgValue.Location())
 			if inferredParamType == nil {
-				param.Type = types.Untyped{}
-			} else if inferredParamType != param.Type {
-				param.Type = inferredParamType
+				param.Type = types.UntypedID
+			} else if inferredParamType != paramType {
+				param.Type = types.ToRef(inferredParamType)
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
-			if !c.isSubtype(namedArgType, param.Type, namedArg.Location()) {
+			if !c.isSubtype(namedArgType, paramType, namedArg.Location()) {
 				c.addFailure(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.InspectWithColor(param.Type),
+						types.InspectWithColor(paramType),
 						param.Name.String(),
 						types.InspectWithColor(method),
 						types.InspectWithColor(namedArgType),
@@ -1919,7 +1902,8 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			location,
 			nil,
 		)
-		namedRestParam := method.Params[len(method.Params)-1]
+		namedRestParam := method.Params[len(method.Params)-1].Get()
+		namedRestParamType := namedRestParam.Type.Get()
 		for i, defined := range definedNamedArgumentsSlice {
 			if defined {
 				continue
@@ -1928,13 +1912,13 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			switch namedArg := namedArgI.(type) {
 			case *ast.NamedCallArgumentNode:
-				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParamType)
 				posArgType := c.TypeOf(typedNamedArgValue)
-				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
+				inferredParamType := c.inferTypeArguments(posArgType, namedRestParamType, typeArgMap, typedNamedArgValue.Location())
 				if inferredParamType == nil {
-					namedRestParam.Type = types.Untyped{}
-				} else if inferredParamType != namedRestParam.Type {
-					namedRestParam.Type = inferredParamType
+					namedRestParam.Type = types.UntypedID
+				} else if inferredParamType != namedRestParamType {
+					namedRestParam.Type = types.ToRef(inferredParamType)
 				}
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,
@@ -2002,17 +1986,20 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 	}
 
 	if typeArgMap != nil && len(typeArgMap) != len(typeParams) {
-		for _, typeParam := range typeParams {
+		for _, typeParamRef := range typeParams {
+			typeParam := typeParamRef.Get()
 			typeArg := typeArgMap[typeParam.Name]
 			if typeArg != nil {
 				continue
 			}
 
+			typeParamLowerBound := typeParam.LowerBound.Get()
+			typeParamUpperBound := typeParam.UpperBound.Get()
 			var inferredType types.Type
-			if !types.IsNever(typeParam.LowerBound) && !c.containsTypeParameters(typeParam.LowerBound) {
-				inferredType = typeParam.LowerBound
-			} else if !c.containsTypeParameters(typeParam.UpperBound) {
-				inferredType = typeParam.UpperBound
+			if !types.IsNeverRef(typeParam.LowerBound) && !c.containsTypeParameters(typeParamLowerBound) {
+				inferredType = typeParamLowerBound
+			} else if !c.containsTypeParameters(typeParamUpperBound) {
+				inferredType = typeParamUpperBound
 			} else {
 				inferredType = types.Untyped{}
 				c.addFailure(
@@ -2059,14 +2046,15 @@ func (c *Checker) checkDoubleSplatArgument(methodName string, node *ast.DoubleSp
 }
 
 func (c *Checker) checkNamedRestArgumentType(methodName string, argType types.Type, param *types.Parameter, location *position.Location) {
-	if c.isSubtype(argType, param.Type, location) {
+	paramType := param.Type.Get()
+	if c.isSubtype(argType, paramType, location) {
 		return
 	}
 
 	c.addFailure(
 		fmt.Sprintf(
 			"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
-			types.InspectWithColor(param.Type),
+			types.InspectWithColor(paramType),
 			param.Name.String(),
 			lexer.Colorize(methodName),
 			types.InspectWithColor(argType),
@@ -2125,7 +2113,7 @@ func (c *Checker) checkMethodArguments(
 
 	if len(method.TypeParameters) > 0 {
 		var typeArgMap types.TypeArgumentMap
-		method = c.deepCopyMethod(method)
+		method = method.Copy()
 		var chosenMethod *types.Method
 		chosenMethod, typedPositionalArguments, typeArgMap = c.checkMethodArgumentsAndInferTypeArguments(
 			method,
@@ -2137,8 +2125,8 @@ func (c *Checker) checkMethodArguments(
 		if len(typeArgMap) != len(chosenMethod.TypeParameters) {
 			return nil, nil
 		}
-		chosenMethod.ReturnType = c.replaceTypeParameters(chosenMethod.ReturnType, typeArgMap, true)
-		chosenMethod.ThrowType = c.replaceTypeParameters(chosenMethod.ThrowType, typeArgMap, true)
+		chosenMethod.ReturnType = types.ToRef(c.replaceTypeParameters(chosenMethod.ReturnType.Get(), typeArgMap, true))
+		chosenMethod.ThrowType = types.ToRef(c.replaceTypeParameters(chosenMethod.ThrowType.Get(), typeArgMap, true))
 		return chosenMethod, typedPositionalArguments
 	}
 
@@ -2212,16 +2200,16 @@ func (c *Checker) checkSimpleMethodCall(
 	var returnType types.Type
 	switch op {
 	case token.DOT:
-		returnType = method.ReturnType
+		returnType = method.ReturnType.Get()
 	case token.QUESTION_DOT:
 		if !c.IsNilable(receiverType) {
 			c.addFailure(
 				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				location,
 			)
-			returnType = method.ReturnType
+			returnType = method.ReturnType.Get()
 		} else {
-			returnType = c.ToNilable(method.ReturnType)
+			returnType = c.ToNilable(method.ReturnType.Get())
 		}
 	case token.DOT_DOT:
 		returnType = receiverType
@@ -2427,10 +2415,10 @@ func (c *Checker) declareMethodWithBase(
 		c.mode = methodMode
 	}
 
-	var typeParams []*types.TypeParameter
+	var typeParams []types.Ref[*types.TypeParameter]
 	var typeParamMod *types.TypeParamNamespace
 	if len(typeParamNodes) > 0 {
-		typeParams = make([]*types.TypeParameter, 0, len(typeParamNodes))
+		typeParams = make([]types.Ref[*types.TypeParameter], 0, len(typeParamNodes))
 		typeParamMod = types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name), true)
 		c.pushConstScope(makeConstantScope(typeParamMod))
 		for _, typeParamNode := range typeParamNodes {
@@ -2440,7 +2428,7 @@ func (c *Checker) declareMethodWithBase(
 			}
 
 			t := c.checkTypeParameterNode(node, typeParamMod, false)
-			typeParams = append(typeParams, t)
+			typeParams = append(typeParams, t.ToRef())
 			typeParamNode.SetType(t)
 			typeParamMod.DefineSubtype(t.Name, t)
 			typeParamMod.DefineConstant(t.Name, types.NoValue{})
@@ -2451,7 +2439,7 @@ func (c *Checker) declareMethodWithBase(
 		c.mode = prevMode
 		c.setInputPositionTypeMode()
 	}
-	var params []*types.Parameter
+	var params []types.Ref[*types.Parameter]
 	for i, paramNode := range paramNodes {
 		switch p := paramNode.(type) {
 		case *ast.FormalParameterNode:
@@ -2461,7 +2449,7 @@ func (c *Checker) declareMethodWithBase(
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
 				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
-				declaredType = baseMethod.Params[i].Type
+				declaredType = baseMethod.Params[i].Get().Type.Get()
 				declaredType = c.inferTypeArgumentsWithFlags(declaredType, declaredType, typeArgMap, nil, bitfield.BitField8FromBitFlag(inferTypeArgumentsInferFromDefaults))
 			} else {
 				c.addFailure(
@@ -2490,7 +2478,7 @@ func (c *Checker) declareMethodWithBase(
 				false,
 			)
 			p.SetType(paramType)
-			params = append(params, paramType)
+			params = append(params, types.ToRef(paramType))
 		case *ast.MethodParameterNode:
 			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
@@ -2506,7 +2494,7 @@ func (c *Checker) declareMethodWithBase(
 							p.Location(),
 						)
 					} else {
-						declaredType = currentIvar.Type
+						declaredType = currentIvar.Type.Get()
 					}
 				} else {
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
@@ -2521,7 +2509,7 @@ func (c *Checker) declareMethodWithBase(
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
 				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
-				declaredType = baseMethod.Params[i].Type
+				declaredType = baseMethod.Params[i].Get().Type.Get()
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
@@ -2549,7 +2537,7 @@ func (c *Checker) declareMethodWithBase(
 				false,
 			)
 			p.SetType(paramType)
-			params = append(params, paramType)
+			params = append(params, paramType.ToRef())
 		case *ast.SignatureParameterNode:
 			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
@@ -2557,7 +2545,7 @@ func (c *Checker) declareMethodWithBase(
 				p.TypeNode = c.checkTypeNode(p.TypeNode)
 				declaredType = c.TypeOf(p.TypeNode)
 			} else if baseMethod != nil && len(baseMethod.Params) > i {
-				declaredType = baseMethod.Params[i].Type
+				declaredType = baseMethod.Params[i].Get().Type.Get()
 			} else {
 				c.addFailure(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", pName),
@@ -2585,7 +2573,7 @@ func (c *Checker) declareMethodWithBase(
 				false,
 			)
 			p.SetType(paramType)
-			params = append(params, paramType)
+			params = append(params, paramType.ToRef())
 		default:
 			c.addFailure(
 				fmt.Sprintf("invalid param type %T", paramNode),
@@ -2600,7 +2588,7 @@ func (c *Checker) declareMethodWithBase(
 			types.DefaultValueParameterKind,
 			false,
 		)
-		params = append(params, paramType)
+		params = append(params, paramType.ToRef())
 	}
 
 	c.mode = prevMode
@@ -2612,8 +2600,8 @@ func (c *Checker) declareMethodWithBase(
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 		returnType = c.TypeOf(typedReturnTypeNode)
 	} else if inferReturnType {
-	} else if baseMethod != nil && baseMethod.ReturnType != nil {
-		returnType = baseMethod.ReturnType
+	} else if baseMethod != nil && baseMethod.ReturnType.IsPresent() {
+		returnType = baseMethod.ReturnType.Get()
 	} else {
 		returnType = types.Void{}
 	}
@@ -2624,8 +2612,8 @@ func (c *Checker) declareMethodWithBase(
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.TypeOf(typedThrowTypeNode)
 	} else if inferReturnType {
-	} else if baseMethod != nil && baseMethod.ThrowType != nil {
-		throwType = baseMethod.ThrowType
+	} else if baseMethod != nil && baseMethod.ThrowType.IsPresent() {
+		throwType = baseMethod.ThrowType.Get()
 	} else {
 		throwType = types.Never{}
 	}
@@ -2728,7 +2716,7 @@ func (c *Checker) checkMethodOverrideWithPlaceholder(
 
 	if baseMethod.IsPlaceholder() {
 		baseMethod.SetReplaced(true)
-		baseMethod.DefinedUnder.SetMethod(baseMethod.Name, overrideMethod)
+		baseMethod.DefinedUnder.Get().SetMethod(baseMethod.Name, overrideMethod)
 		return
 	}
 
@@ -2813,25 +2801,29 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	}
 
 	if !widenReturnType {
-		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
+		overrideReturnType := overrideMethod.ReturnType.Get()
+		baseReturnType := baseMethod.ReturnType.Get()
+		if !c.isSubtype(overrideReturnType, baseReturnType, errSpan) {
 			fmt.Fprintf(
 				errDetailsBuff,
 				"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
 				types.InspectWithColor(overrideMethod),
 				types.InspectWithColor(baseMethod),
-				types.InspectWithColor(overrideMethod.ReturnType),
-				types.InspectWithColor(baseMethod.ReturnType),
+				types.InspectWithColor(overrideReturnType),
+				types.InspectWithColor(baseReturnType),
 			)
 			areCompatible = false
 		}
-		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
+		overrideThrowType := overrideMethod.ThrowType.Get()
+		baseThrowType := baseMethod.ThrowType.Get()
+		if !c.isSubtype(overrideThrowType, baseThrowType, errSpan) {
 			fmt.Fprintf(
 				errDetailsBuff,
 				"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
 				types.InspectWithColor(overrideMethod),
 				types.InspectWithColor(baseMethod),
-				types.InspectWithColor(overrideMethod.ThrowType),
-				types.InspectWithColor(baseMethod.ThrowType),
+				types.InspectWithColor(overrideThrowType),
+				types.InspectWithColor(baseThrowType),
 			)
 			areCompatible = false
 		}
@@ -2849,10 +2841,10 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		areCompatible = false
 	} else {
 		for i := range len(baseMethod.Params) {
-			oldParam := baseMethod.Params[i]
-			newParam := overrideMethod.Params[i]
+			oldParam := baseMethod.Params[i].Get()
+			newParam := overrideMethod.Params[i].Get()
 
-			if (validateParamNames && oldParam.Name != newParam.Name) || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
+			if (validateParamNames && oldParam.Name != newParam.Name) || oldParam.Kind != newParam.Kind || !c.isSubtype(oldParam.Type.Get(), newParam.Type.Get(), errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -2866,7 +2858,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 		}
 
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
-			param := overrideMethod.Params[i]
+			param := overrideMethod.Params[i].Get()
 			if !param.IsOptional() {
 				fmt.Fprintf(
 					errDetailsBuff,
@@ -2905,28 +2897,32 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 	areCompatible := true
 	errDetailsBuff := new(strings.Builder)
 
-	returnType := c.inferTypeArguments(baseMethod.ReturnType, overrideMethod.ReturnType, typeArgs, nil)
-	if returnType == nil || !c.isSubtype(returnType, baseMethod.ReturnType, errSpan) {
+	baseReturnType := baseMethod.ReturnType.Get()
+	overrideReturnType := overrideMethod.ReturnType.Get()
+	returnType := c.inferTypeArguments(baseReturnType, overrideReturnType, typeArgs, nil)
+	if returnType == nil || !c.isSubtype(returnType, baseReturnType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
 			types.InspectWithColor(overrideMethod),
 			types.InspectWithColor(baseMethod),
-			types.InspectWithColor(overrideMethod.ReturnType),
-			types.InspectWithColor(baseMethod.ReturnType),
+			types.InspectWithColor(overrideReturnType),
+			types.InspectWithColor(baseReturnType),
 		)
 		areCompatible = false
 	}
 
-	throwType := c.inferTypeArguments(baseMethod.ThrowType, overrideMethod.ThrowType, typeArgs, nil)
-	if throwType == nil || !c.isSubtype(throwType, baseMethod.ThrowType, errSpan) {
+	baseThrowType := baseMethod.ThrowType.Get()
+	overrideThrowType := overrideMethod.ThrowType.Get()
+	throwType := c.inferTypeArguments(baseThrowType, overrideThrowType, typeArgs, nil)
+	if throwType == nil || !c.isSubtype(throwType, baseThrowType, errSpan) {
 		fmt.Fprintf(
 			errDetailsBuff,
 			"\n  - method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
 			types.InspectWithColor(overrideMethod),
 			types.InspectWithColor(baseMethod),
-			types.InspectWithColor(overrideMethod.ThrowType),
-			types.InspectWithColor(baseMethod.ThrowType),
+			types.InspectWithColor(overrideThrowType),
+			types.InspectWithColor(baseThrowType),
 		)
 		areCompatible = false
 	}
@@ -2943,12 +2939,14 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 		areCompatible = false
 	} else {
 		for i := range len(baseMethod.Params) {
-			oldParam := baseMethod.Params[i]
-			newParam := overrideMethod.Params[i]
+			oldParam := baseMethod.Params[i].Get()
+			newParam := overrideMethod.Params[i].Get()
 
-			newParamType := c.inferTypeArguments(oldParam.Type, newParam.Type, typeArgs, nil)
+			oldParamType := oldParam.Type.Get()
+			newParamType := newParam.Type.Get()
+			newParamType = c.inferTypeArguments(oldParamType, newParamType, typeArgs, nil)
 			if oldParam.Name != newParam.Name || oldParam.Kind != newParam.Kind ||
-				newParamType == nil || !c.isSubtype(oldParam.Type, newParamType, errSpan) {
+				newParamType == nil || !c.isSubtype(oldParamType, newParamType, errSpan) {
 				fmt.Fprintf(
 					errDetailsBuff,
 					"\n  - method `%s` has an incompatible parameter with `%s`, has `%s`, should have `%s`",
@@ -2962,7 +2960,7 @@ func (c *Checker) checkMethodCompatibilityAndInferTypeArgs(baseMethod, overrideM
 		}
 
 		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
-			param := overrideMethod.Params[i]
+			param := overrideMethod.Params[i].Get()
 			if !param.IsOptional() {
 				fmt.Fprintf(
 					errDetailsBuff,
@@ -3011,7 +3009,7 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 			names := symbol.SortKeys(methods)
 		methodLoop:
 			for _, name := range names {
-				method := methods[name]
+				method := methods[name].Get()
 				if seenMethods.Contains(name) {
 					continue
 				}
@@ -3023,8 +3021,8 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 					continue
 				}
 
-				var whereParams []*types.TypeParameter
-				var whereArgs []types.Type
+				var whereParams []types.Ref[*types.TypeParameter]
+				var whereArgs []types.Ref[types.Type]
 				if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
 					whereParams = slices.Clone(mixinWithWhere.Where)
 					whereArgs = c.constructWhereArguments(whereParams)
@@ -3047,13 +3045,13 @@ func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 				}
 
 				for i := range len(whereParams) {
-					whereParam := whereParams[i]
-					whereArg := whereArgs[i]
+					whereParam := whereParams[i].Get()
+					whereArg := whereArgs[i].Get()
 
-					if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+					if !c.isSubtype(whereParam.LowerBound.Get(), whereArg, nil) {
 						continue methodLoop
 					}
-					if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+					if !c.isSubtype(whereArg, whereParam.UpperBound.Get(), nil) {
 						continue methodLoop
 					}
 				}
@@ -3080,7 +3078,8 @@ func (c *Checker) abstractMethodsInNamespace(namespace types.Namespace) iter.Seq
 			if !parent.IsAbstract() {
 				continue
 			}
-			for name, method := range parent.Methods() {
+			for name, methodRef := range parent.Methods() {
+				method := methodRef.Get()
 				if !method.IsAbstract() {
 					continue
 				}
@@ -3142,8 +3141,8 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 			continue
 		}
 
-		var whereParams []*types.TypeParameter
-		var whereArgs []types.Type
+		var whereParams []types.Ref[*types.TypeParameter]
+		var whereArgs []types.Ref[types.Type]
 		if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
 			if len(generics) < 1 {
 				return nil
@@ -3173,13 +3172,13 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 		}
 
 		for i := range len(whereParams) {
-			whereParam := whereParams[i]
-			whereArg := whereArgs[i]
+			whereParam := whereParams[i].Get()
+			whereArg := whereArgs[i].Get()
 
-			if !c.isSubtype(whereParam.LowerBound, whereArg, nil) {
+			if !c.isSubtype(whereParam.LowerBound.Get(), whereArg, nil) {
 				return nil
 			}
-			if !c.isSubtype(whereArg, whereParam.UpperBound, nil) {
+			if !c.isSubtype(whereArg, whereParam.UpperBound.Get(), nil) {
 				return nil
 			}
 		}
@@ -3190,10 +3189,10 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 	return nil
 }
 
-func (c *Checker) constructWhereArguments(whereParameters []*types.TypeParameter) []types.Type {
-	whereArgs := make([]types.Type, len(whereParameters))
+func (c *Checker) constructWhereArguments(whereParameters []types.Ref[*types.TypeParameter]) []types.Ref[types.Type] {
+	whereArgs := make([]types.Ref[types.Type], len(whereParameters))
 	for i, whereParam := range whereParameters {
-		whereArgs[i] = whereParam
+		whereArgs[i] = types.Ref[types.Type](whereParam)
 	}
 
 	return whereArgs
@@ -3275,127 +3274,157 @@ func (c *Checker) getMethodInNamespace(namespace types.Namespace, typ types.Type
 func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeArgs types.TypeArgumentMap, replaceMethodTypeParams bool) *types.Method {
 	var methodCopy *types.Method
 
-	for i, typeParam := range method.TypeParameters {
-		result := c.replaceTypeParameters(typeParam.LowerBound, typeArgs, replaceMethodTypeParams)
-		if typeParam.LowerBound != result {
+	for i, typeParamRef := range method.TypeParameters {
+		typeParam := typeParamRef.Get()
+		lowerBound := typeParam.LowerBound.Get()
+		newLowerBound := c.replaceTypeParameters(lowerBound, typeArgs, replaceMethodTypeParams)
+		upperBound := typeParam.UpperBound.Get()
+		newUpperBound := c.replaceTypeParameters(upperBound, typeArgs, replaceMethodTypeParams)
+
+		var typeParamCopy *types.TypeParameter
+		if lowerBound != newLowerBound {
 			if methodCopy == nil {
-				methodCopy = c.deepCopyMethod(method)
+				methodCopy = method.Copy()
 			}
-			methodCopy.TypeParameters[i].LowerBound = result
+			typeParamCopy = methodCopy.TypeParameters[i].Get().Copy()
+			typeParamCopy.LowerBound = types.ToRef(newLowerBound)
 		}
-		result = c.replaceTypeParameters(typeParam.UpperBound, typeArgs, replaceMethodTypeParams)
-		if typeParam.UpperBound != result {
+		if upperBound != newUpperBound {
 			if methodCopy == nil {
-				methodCopy = c.deepCopyMethod(method)
+				methodCopy = method.Copy()
 			}
-			methodCopy.TypeParameters[i].UpperBound = result
+			if typeParamCopy == nil {
+				typeParamCopy = methodCopy.TypeParameters[i].Get().Copy()
+			}
+			typeParamCopy.UpperBound = types.ToRef(newUpperBound)
+			methodCopy.TypeParameters[i] = typeParamCopy.ToRef()
 		}
-	}
-	result := c.replaceTypeParameters(method.ReturnType, typeArgs, replaceMethodTypeParams)
-	if method.ReturnType != result {
-		if methodCopy == nil {
-			methodCopy = c.deepCopyMethod(method)
-		}
-		methodCopy.ReturnType = result
-	}
-	result = c.replaceTypeParameters(method.ThrowType, typeArgs, replaceMethodTypeParams)
-	if method.ThrowType != result {
-		if methodCopy == nil {
-			methodCopy = c.deepCopyMethod(method)
-		}
-		methodCopy.ThrowType = result
 	}
 
-	for i, param := range method.Params {
-		result := c.replaceTypeParameters(param.Type, typeArgs, replaceMethodTypeParams)
-		if param.Type != result {
+	methodReturnType := method.ReturnType.Get()
+	result := c.replaceTypeParameters(methodReturnType, typeArgs, replaceMethodTypeParams)
+	if methodReturnType != result {
+		if methodCopy == nil {
+			methodCopy = method.Copy()
+		}
+		methodCopy.ReturnType = types.ToRef(result)
+	}
+
+	methodThrowType := method.ThrowType.Get()
+	result = c.replaceTypeParameters(methodThrowType, typeArgs, replaceMethodTypeParams)
+	if methodThrowType != result {
+		if methodCopy == nil {
+			methodCopy = method.Copy()
+		}
+		methodCopy.ThrowType = types.ToRef(result)
+	}
+
+	for i, paramRef := range method.Params {
+		param := paramRef.Get()
+		paramType := param.Type.Get()
+		result := c.replaceTypeParameters(paramType, typeArgs, replaceMethodTypeParams)
+		if paramType != result {
 			if methodCopy == nil {
-				methodCopy = c.deepCopyMethod(method)
+				methodCopy = method.Copy()
 			}
-			methodCopy.Params[i].Type = result
+			paramCopy := methodCopy.Params[i].Get().Copy()
+			paramCopy.Type = types.ToRef(result)
+			methodCopy.Params[i] = paramCopy.ToRef()
 		}
 	}
 
 	different := methodCopy != nil
-	var overloadsCopy []*types.Method
+	var overloadsCopy []types.Ref[*types.Method]
 
 	if different {
-		for i, overload := range method.Overloads {
-			method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
+		for i, overloadRef := range method.Overloads {
+			overload := overloadRef.Get()
+			overloadCopy := c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
+			methodCopy.Overloads[i] = overloadCopy.ToRef()
 		}
 	} else {
-		overloadsCopy := make([]*types.Method, len(method.Overloads))
-		for i, overload := range method.Overloads {
+		overloadsCopy = make([]types.Ref[*types.Method], len(method.Overloads))
+		for i, overloadRef := range method.Overloads {
+			overload := overloadRef.Get()
 			overloadCopy := c.replaceTypeParametersInMethodCopy(overload, typeArgs, replaceMethodTypeParams)
 			if overload != overloadCopy {
 				different = true
 			}
-			overloadsCopy[i] = overloadCopy
+			overloadsCopy[i] = types.ToRef(overloadCopy)
 		}
 	}
 
 	if different {
 		if methodCopy == nil {
-			methodCopy = c.deepCopyMethod(method)
-			for i, overload := range overloadsCopy {
-				if method.Overloads[i] == overload {
-					overloadsCopy[i] = c.deepCopyMethod(overload)
-				}
-			}
+			methodCopy = method.Copy()
 			methodCopy.Overloads = overloadsCopy
 		}
 		return methodCopy
 	}
+
 	return method
 }
 
 func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs types.TypeArgumentMap, replaceMethodTypeParams bool) *types.Method {
-	for _, typeParam := range method.TypeParameters {
-		typeParam.LowerBound = c.replaceTypeParameters(typeParam.LowerBound, typeArgs, replaceMethodTypeParams)
-		typeParam.UpperBound = c.replaceTypeParameters(typeParam.UpperBound, typeArgs, replaceMethodTypeParams)
-	}
-	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgs, replaceMethodTypeParams)
-	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgs, replaceMethodTypeParams)
+	for _, typeParamRef := range method.TypeParameters {
+		typeParam := typeParamRef.Get()
 
-	for _, param := range method.Params {
-		param.Type = c.replaceTypeParameters(param.Type, typeArgs, replaceMethodTypeParams)
+		lowerBound := typeParam.LowerBound.Get()
+		typeParam.LowerBound = types.ToRef(c.replaceTypeParameters(lowerBound, typeArgs, replaceMethodTypeParams))
+
+		upperBound := typeParam.UpperBound.Get()
+		typeParam.UpperBound = types.ToRef(c.replaceTypeParameters(upperBound, typeArgs, replaceMethodTypeParams))
+	}
+	method.ReturnType = types.ToRef(c.replaceTypeParameters(method.ReturnType.Get(), typeArgs, replaceMethodTypeParams))
+	method.ThrowType = types.ToRef(c.replaceTypeParameters(method.ThrowType.Get(), typeArgs, replaceMethodTypeParams))
+
+	for _, paramRef := range method.Params {
+		param := paramRef.Get()
+		param.Type = types.ToRef(c.replaceTypeParameters(param.Type.Get(), typeArgs, replaceMethodTypeParams))
 	}
 
-	for i, overload := range method.Overloads {
-		method.Overloads[i] = c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams)
+	for i, overloadRef := range method.Overloads {
+		overload := overloadRef.Get()
+		method.Overloads[i] = types.ToRef(c.replaceTypeParametersInMethod(overload, typeArgs, replaceMethodTypeParams))
 	}
 
 	return method
 }
 
-func (c *Checker) replaceTypeParametersInWhere(whereParams []*types.TypeParameter, whereArgs []types.Type, typeArgs types.TypeArgumentMap) {
+func (c *Checker) replaceTypeParametersInWhere(whereParams []types.Ref[*types.TypeParameter], whereArgs []types.Ref[types.Type], typeArgs types.TypeArgumentMap) {
 	for i, whereArg := range whereArgs {
-		whereArgs[i] = c.replaceTypeParameters(whereArg, typeArgs, false)
+		whereArgs[i] = types.ToRef(c.replaceTypeParameters(whereArg.Get(), typeArgs, false))
 	}
 
-	for i, whereParam := range whereParams {
+	for i, whereParamRef := range whereParams {
+		whereParam := whereParamRef.Get()
 		var whereParamCopy *types.TypeParameter
 
-		result := c.replaceTypeParameters(whereParam.LowerBound, typeArgs, false)
-		if result != whereParam.LowerBound {
+		whereParamLowerBound := whereParam.LowerBound.Get()
+		result := c.replaceTypeParameters(whereParamLowerBound, typeArgs, false)
+		if result != whereParamLowerBound {
 			whereParamCopy = whereParam.Copy()
-			whereParams[i] = whereParamCopy
-			whereParamCopy.LowerBound = result
+			whereParamCopy.LowerBound = types.ToRef(result)
 		}
 
-		result = c.replaceTypeParameters(whereParam.UpperBound, typeArgs, false)
-		if result != whereParam.LowerBound {
+		whereParamUpperBound := whereParam.UpperBound.Get()
+		result = c.replaceTypeParameters(whereParamUpperBound, typeArgs, false)
+		if result != whereParamUpperBound {
 			if whereParamCopy == nil {
 				whereParamCopy = whereParam.Copy()
-				whereParams[i] = whereParamCopy
 			}
-			whereParamCopy.UpperBound = result
+			whereParamCopy.UpperBound = types.ToRef(result)
+		}
+
+		if whereParamCopy != nil {
+			whereParams[i] = whereParamCopy.ToRef()
 		}
 	}
 }
 
 func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name symbol.Symbol, errSpan *position.Location, inParent, inSelf bool) *types.Method {
-	switch upper := typ.UpperBound.(type) {
+	upperBound := typ.UpperBound.Get()
+	switch upper := upperBound.(type) {
 	case *types.Class:
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.Mixin:
@@ -3408,7 +3437,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name symbo
 		return c.getMethodInNamespaceWithSelf(upper, typ, name, typ, errSpan, inParent, inSelf)
 	case *types.Generic:
 		var method *types.Method
-		switch genericType := upper.Namespace.(type) {
+		switch genericType := upper.Namespace.Get().(type) {
 		case *types.Class:
 			method = c._getMethodInNamespace(genericType, typ, name, errSpan, inParent)
 		case *types.Mixin:
@@ -3427,7 +3456,7 @@ func (c *Checker) getMethodForTypeParameter(typ *types.TypeParameter, name symbo
 		)
 		return c.replaceTypeParametersInMethodCopy(method, typeArgMap, true)
 	default:
-		return c._getMethod(typ.UpperBound, name, errSpan, inParent, inSelf)
+		return c._getMethod(upperBound, name, errSpan, inParent, inSelf)
 	}
 }
 
@@ -3438,7 +3467,7 @@ func (c *Checker) getReceiverlessMethod(name symbol.Symbol, location *position.L
 		if !local.initialised {
 			c.addUninitialisedLocalError(nameStr, location)
 		}
-		return c.GetMethod(local.typ, symbol.L_call, location), nil, true
+		return c.GetMethod(local.typ.Get(), symbol.L_call, location), nil, true
 	}
 	method := c.GetMethod(c.selfType, name, nil)
 	if method != nil {
@@ -3471,7 +3500,7 @@ func (c *Checker) _getMethod(typ types.Type, name symbol.Symbol, errLoc *positio
 	case types.Self:
 		return c._getMethod(c.selfType, name, errLoc, inParent, true)
 	case *types.NamedType:
-		return c._getMethod(t.Type, name, errLoc, inParent, inSelf)
+		return c._getMethod(t.Type.Get(), name, errLoc, inParent, inSelf)
 	case *types.TypeParameter:
 		return c.getMethodForTypeParameter(t, name, errLoc, inParent, inSelf)
 	case *types.Generic:
@@ -3512,7 +3541,7 @@ func (c *Checker) getMethodInNilable(typ *types.Nilable, name symbol.Symbol, err
 	if nilMethod == nil {
 		c.addMissingMethodError(nilType, name.String(), errLoc)
 	}
-	nonNilMethod := c.GetMethod(typ.Type, name, errLoc)
+	nonNilMethod := c.GetMethod(typ.Type.Get(), name, errLoc)
 	if nilMethod == nil || nonNilMethod == nil {
 		return nil
 	}
@@ -3532,8 +3561,8 @@ func (c *Checker) getMethodInNilable(typ *types.Nilable, name symbol.Symbol, err
 	}
 
 	method := baseMethod.Copy()
-	method.ReturnType = c.NewNormalisedUnion(baseMethod.ReturnType, overrideMethod.ReturnType)
-	method.ThrowType = c.NewNormalisedUnion(baseMethod.ThrowType, overrideMethod.ThrowType)
+	method.ReturnType = types.ToRef(c.NewNormalisedUnion(baseMethod.ReturnType, overrideMethod.ReturnType))
+	method.ThrowType = types.ToRef(c.NewNormalisedUnion(baseMethod.ThrowType, overrideMethod.ThrowType))
 	method.SetPure(baseMethod.IsPure() && overrideMethod.IsPure())
 	method.Overloads = nil
 	return method
@@ -3544,7 +3573,7 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 	var baseMethod *types.Method
 
 	for _, element := range typ.Elements {
-		elementMethod := c.GetMethod(element, name, errLoc)
+		elementMethod := c.GetMethod(element.Get(), name, errLoc)
 		if elementMethod == nil {
 			continue
 		}
@@ -3564,8 +3593,8 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 		return nil
 	}
 
-	returnTypes := make([]types.Type, len(methods)+1)
-	throwTypes := make([]types.Type, len(methods)+1)
+	returnTypes := make([]types.Ref[types.Type], len(methods)+1)
+	throwTypes := make([]types.Ref[types.Type], len(methods)+1)
 
 	returnTypes[0] = baseMethod.ReturnType
 	throwTypes[0] = baseMethod.ThrowType
@@ -3591,8 +3620,8 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 	}
 
 	method := baseMethod.Copy()
-	method.ReturnType = c.NewNormalisedUnion(returnTypes...)
-	method.ThrowType = c.NewNormalisedUnion(throwTypes...)
+	method.ReturnType = types.ToRef(c.NewNormalisedUnion(returnTypes...))
+	method.ThrowType = types.ToRef(c.NewNormalisedUnion(throwTypes...))
 	method.SetPure(isPure)
 	method.Overloads = nil
 	return method
@@ -3602,10 +3631,11 @@ func (c *Checker) getMethodInIntersection(typ *types.Intersection, name symbol.S
 	var methods []*types.Method
 	var baseMethod *types.Method
 
-	for _, element := range typ.Elements {
+	for _, elementRef := range typ.Elements {
+		element := elementRef.Get()
 		switch e := element.(type) {
 		case *types.Not:
-			switch t := e.Type.(type) {
+			switch t := e.Type.Get().(type) {
 			case *types.Interface:
 				elementMethod := c.GetMethod(t, name, nil)
 				if elementMethod == nil {
@@ -3660,13 +3690,13 @@ func calculateMethodBaseScore(typ types.Type) int {
 	case *types.Union:
 		var sum int
 		for _, element := range t.Elements {
-			sum += calculateMethodBaseScore(element)
+			sum += calculateMethodBaseScore(element.Get())
 		}
 		return sum
 	case *types.Intersection:
 		var sum int
 		for _, element := range t.Elements {
-			sum += calculateMethodBaseScore(element)
+			sum += calculateMethodBaseScore(element.Get())
 		}
 
 		return sum/len(t.Elements) - 1
@@ -3697,19 +3727,19 @@ func calculateMethodBaseScore(typ types.Type) int {
 	case *types.InstanceOf:
 		return 2
 	case *types.Nilable:
-		return calculateMethodBaseScore(t.Type) + 1
+		return calculateMethodBaseScore(t.Type.Get()) + 1
 	case *types.Never:
 		return -100
 	case *types.Generic:
-		return calculateMethodBaseScore(t.Namespace)
+		return calculateMethodBaseScore(t.Namespace.Get())
 	case *types.NamedType:
-		return calculateMethodBaseScore(t.Type)
+		return calculateMethodBaseScore(t.Type.Get())
 	case *types.Not:
-		return 100 - calculateMethodBaseScore(t.Type)
+		return 100 - calculateMethodBaseScore(t.Type.Get())
 	case *types.Any:
 		return 100
 	case *types.Callable:
-		return calculateMethodBaseScore(t.Body)
+		return calculateMethodBaseScore(t.Body.Get())
 	case *types.Method:
 		var result int
 
@@ -3719,13 +3749,13 @@ func calculateMethodBaseScore(typ types.Type) int {
 
 		var paramScore int
 		for _, param := range t.Params {
-			paramScore += calculateMethodBaseScore(param)
+			paramScore += calculateMethodBaseScore(param.Get())
 		}
 		result -= paramScore
 
 		var returnScore int
-		returnScore += calculateMethodBaseScore(t.ReturnType)
-		returnScore += calculateMethodBaseScore(t.ThrowType)
+		returnScore += calculateMethodBaseScore(t.ReturnType.Get())
+		returnScore += calculateMethodBaseScore(t.ThrowType.Get())
 		result += returnScore / 2
 
 		return result

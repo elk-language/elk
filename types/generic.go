@@ -517,6 +517,5 @@ func (g *Generic) Copy() *Generic {
 	return &Generic{
 		Namespace:     g.Namespace,
 		TypeArguments: g.TypeArguments,
-		id:            g.id,
 	}
 }

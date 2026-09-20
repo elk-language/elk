@@ -124,7 +124,6 @@ func (t *TypeParameter) Copy() *TypeParameter {
 		LowerBound: t.LowerBound,
 		UpperBound: t.UpperBound,
 		Variance:   t.Variance,
-		id:         t.id,
 	}
 }
 

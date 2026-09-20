@@ -56,10 +56,12 @@ func (s *SingletonClass) ToNonLiteral() Type {
 }
 
 func (s *SingletonClass) Copy() *SingletonClass {
-	return &SingletonClass{
+	result := &SingletonClass{
 		AttachedObject: s.AttachedObject,
 		Class:          s.Class,
 	}
+	result.id = ZERO_ID
+	return result
 }
 
 func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {

@@ -133,6 +133,5 @@ func (u *Intersection) inspect() string {
 func (i *Intersection) Copy() *Intersection {
 	return &Intersection{
 		Elements: i.Elements,
-		id:       i.id,
 	}
 }

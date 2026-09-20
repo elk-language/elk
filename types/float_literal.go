@@ -13,6 +13,13 @@ type FloatLiteral struct {
 	isNegative bool
 }
 
+func (c *FloatLiteral) Copy() *FloatLiteral {
+	return &FloatLiteral{
+		Value:      c.Value,
+		isNegative: c.isNegative,
+	}
+}
+
 func (c *FloatLiteral) ToRef() Ref[*FloatLiteral] {
 	return Ref[*FloatLiteral](c.id)
 }
@@ -108,6 +115,13 @@ type Float64Literal struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (c *Float64Literal) Copy() *Float64Literal {
+	return &Float64Literal{
+		Value:      c.Value,
+		isNegative: c.isNegative,
+	}
 }
 
 func (c *Float64Literal) ToRef() Ref[*Float64Literal] {
@@ -207,6 +221,13 @@ type Float32Literal struct {
 	id         ID
 }
 
+func (c *Float32Literal) Copy() *Float32Literal {
+	return &Float32Literal{
+		Value:      c.Value,
+		isNegative: c.isNegative,
+	}
+}
+
 func (c *Float32Literal) ToRef() Ref[*Float32Literal] {
 	return Ref[*Float32Literal](c.id)
 }
@@ -302,6 +323,13 @@ type BigFloatLiteral struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (c *BigFloatLiteral) Copy() *BigFloatLiteral {
+	return &BigFloatLiteral{
+		Value:      c.Value,
+		isNegative: c.isNegative,
+	}
 }
 
 func (c *BigFloatLiteral) ToRef() Ref[*BigFloatLiteral] {

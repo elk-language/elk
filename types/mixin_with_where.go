@@ -66,7 +66,6 @@ func (m *MixinWithWhere) Copy() *MixinWithWhere {
 		MixinProxy: m.MixinProxy,
 		Namespace:  m.Namespace,
 		Where:      m.Where,
-		id:         m.id,
 	}
 }
 

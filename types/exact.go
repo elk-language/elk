@@ -89,6 +89,5 @@ func (n *Exact) inspect() string {
 func (n *Exact) Copy() *Exact {
 	return &Exact{
 		Type: n.Type,
-		id:   n.id,
 	}
 }

@@ -107,6 +107,5 @@ func (n *Not) inspect() string {
 func (n *Not) Copy() *Not {
 	return &Not{
 		Type: n.Type,
-		id:   n.id,
 	}
 }

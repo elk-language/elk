@@ -26,6 +26,12 @@ func (c *CharLiteral) ToRef() Ref[*CharLiteral] {
 	return Ref[*CharLiteral](c.id)
 }
 
+func (c *CharLiteral) Copy() *CharLiteral {
+	return &CharLiteral{
+		Value: c.Value,
+	}
+}
+
 func (c *CharLiteral) HashUint64() uint64 {
 	d := xxhash.New()
 
