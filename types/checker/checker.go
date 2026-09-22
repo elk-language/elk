@@ -5401,8 +5401,8 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 			node.SetType(types.Untyped{})
 			return node
 		}
-		method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
-		method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
+		method.ReturnType = types.ToRef(c.replaceTypeParameters(method.ReturnType.Get(), typeArgMap, true))
+		method.ThrowType = types.ToRef(c.replaceTypeParameters(method.ThrowType.Get(), typeArgMap, true))
 	} else {
 		method, typedPositionalArguments = c.checkNonGenericMethodArguments(
 			method,
@@ -5436,7 +5436,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 	}
 	c.checkCalledMethodThrowType(method, node.MethodName.Location())
 
-	newNode.SetType(method.ReturnType)
+	newNode.SetType(method.ReturnType.Get())
 	return newNode
 }
 
@@ -5558,7 +5558,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 	case *types.Class:
 		class = t
 	case *types.SingletonClass:
-		if attached, ok := t.AttachedObject.(*types.Class); ok {
+		if attached, ok := t.AttachedObject.Get().(*types.Class); ok {
 			class = attached
 		}
 		isSingleton = true
@@ -5580,7 +5580,8 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 	if len(class.TypeParameters()) > 0 {
 		typeArgumentMap := make(types.TypeArgumentMap, len(class.TypeParameters()))
 		typeArgumentOrder := make([]symbol.Symbol, len(class.TypeParameters()))
-		for i, param := range class.TypeParameters() {
+		for i, paramRef := range class.TypeParameters() {
+			param := paramRef.Get()
 			typeArgumentMap[param.Name] = types.NewTypeArgument(
 				param,
 				param.Variance,
@@ -5722,7 +5723,7 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 func (c *Checker) addToMethodCache(method *types.Method) {
 	switch c.phase {
 	case constantCheckPhase, methodCheckPhase:
-		c.methodCache.PushUnsafe(method)
+		c.methodCache.PushUnsafe(types.ToRef(method))
 	}
 }
 
@@ -5818,7 +5819,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			class,
 		)
 	} else {
-		method = c.deepCopyMethod(method)
+		method = method.Copy()
 		c.addToMethodCache(method)
 	}
 
@@ -5833,11 +5834,11 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 		node.SetType(types.Untyped{})
 		return node
 	}
-	method.ReturnType = c.replaceTypeParameters(method.ReturnType, typeArgMap, true)
-	method.ThrowType = c.replaceTypeParameters(method.ThrowType, typeArgMap, true)
+	method.ReturnType = types.ToRef(c.replaceTypeParameters(method.ReturnType.Get(), typeArgMap, true))
+	method.ThrowType = types.ToRef(c.replaceTypeParameters(method.ThrowType.Get(), typeArgMap, true))
 	typeArgOrder := make([]symbol.Symbol, len(class.TypeParameters()))
 	for i, param := range class.TypeParameters() {
-		typeArgOrder[i] = param.Name
+		typeArgOrder[i] = param.Get().Name
 	}
 	generic := types.NewGeneric(
 		class,
@@ -5963,9 +5964,9 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 		node.ThrowType,
 		node.Location(),
 	)
-	closure.Body = method
+	closure.Body = method.ToRef()
 
-	local := newLocal(closure, true, false)
+	local := newLocal(types.CastRef[types.Type](closure), true, false)
 	c.addLocal(name, local)
 
 	returnTypeNode, throwTypeNode := c.checkMethod(
@@ -6016,7 +6017,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 		node.Body,
 		node.Location(),
 	)
-	closure.Body = method
+	closure.Body = method.ToRef()
 	node.ReturnType = returnTypeNode
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
@@ -6027,7 +6028,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 }
 
 func (c *Checker) checkClosureLiteralNodeWithType(node *ast.ClosureLiteralNode, closureType *types.Callable, typeArgMap types.TypeArgumentMap) ast.ExpressionNode {
-	baseMethod := closureType.Body
+	baseMethod := closureType.Body.Get()
 	return c.checkClosureLiteralNodeWithBase(node, baseMethod, typeArgMap)
 }
 
@@ -6289,7 +6290,7 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 		return node
 	}
 
-	node.Right = c.checkExpressionWithType(node.Right, ivar.Type)
+	node.Right = c.checkExpressionWithType(node.Right, ivar.Type.Get())
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssignInstanceVariable(name, assignedType, ivar, node.Right.Location())
 	c.registerInitialisedInstanceVariable(symbol.ToSymbol(name))
@@ -6334,14 +6335,15 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 		}
 	}
 
-	node.Right = c.checkExpressionWithType(node.Right, variable.typ)
+	variableType := variable.typ.Get()
+	node.Right = c.checkExpressionWithType(node.Right, variableType)
 	assignedType := c.typeOfGuardVoid(node.Right)
 
 	currentVar := variable
 	var shadows []*local
 	var canAssign bool
 	for ; currentVar != nil; currentVar = currentVar.shadowOf {
-		if c.isSubtype(assignedType, currentVar.typ, nil) {
+		if c.isSubtype(assignedType, currentVar.typ.Get(), nil) {
 			for _, shadow := range shadows {
 				shadow.typ = currentVar.typ
 			}
@@ -6352,8 +6354,8 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	}
 	if !canAssign {
 		// for interface implementation errors
-		c.isSubtype(assignedType, variable.typ, node.Right.Location())
-		c.addCannotBeAssignedError(assignedType, variable.typ, node.Right.Location())
+		c.isSubtype(assignedType, variableType, node.Right.Location())
+		c.addCannotBeAssignedError(assignedType, variableType, node.Right.Location())
 	}
 
 	variable.setInitialised()
@@ -6469,7 +6471,7 @@ func (c *Checker) resolveSimpleTypeInRoot(name string) types.Type {
 	root := c.runtimeEnv.Root
 	constant, ok := root.SubtypeString(name)
 	if ok {
-		return constant.Type
+		return constant.Type.Get()
 	}
 	return nil
 }
@@ -6479,7 +6481,7 @@ func (c *Checker) resolveSimpleConstantInRoot(name string) types.Type {
 	root := c.runtimeEnv.Root
 	constant, ok := root.ConstantString(name)
 	if ok {
-		return constant.Type
+		return constant.Type.Get()
 	}
 	return nil
 }
@@ -6496,7 +6498,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *ast.PublicConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6510,7 +6512,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *ast.PrivateConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6568,7 +6570,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *types.NamespacePlaceholder:
 		leftContainer = l
 	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
+		leftContainer = l.AttachedObject.Get()
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
@@ -6582,7 +6584,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	if len(constant.FullName) > 0 {
 		fullName = constant.FullName
 	}
-	constantType := constant.Type
+	constantType := constant.Type.Get()
 	if !ok && !firstCall {
 		placeholder := types.NewNamespacePlaceholder(fullName)
 		placeholder.Locations.Push(node.Right.Location())
@@ -6662,7 +6664,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6676,7 +6678,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6734,7 +6736,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *types.NamespacePlaceholder:
 		leftContainer = l
 	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
+		leftContainer = l.AttachedObject.Get()
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
@@ -6745,7 +6747,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	constantType := constant.Type
+	constantType := constant.Type.Get()
 	if !ok && !firstCall {
 		placeholder := types.NewNamespacePlaceholder(constantName)
 		placeholder.Locations.Push(node.Right.Location())
@@ -6768,7 +6770,7 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
@@ -6778,7 +6780,7 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		leftContainerType = leftConstant.Type.Get()
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
@@ -6837,7 +6839,7 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 	case *types.NamespacePlaceholder:
 		leftContainer = l
 	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
+		leftContainer = l.AttachedObject.Get()
 	default:
 		c.addFailure(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
@@ -6848,7 +6850,7 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	constantType := constant.Type
+	constantType := constant.Type.Get()
 	if !ok && !firstCall {
 		c.addUndefinedNamespaceError(rightName, node.Right.Location())
 		node.SetType(types.Untyped{})
@@ -6870,7 +6872,7 @@ func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, 
 	}
 
 	if ok {
-		return namespace, constant.Type, constant.FullName
+		return namespace, constant.Type.Get(), constant.FullName
 	}
 	return namespace, nil, fullName
 }
@@ -6983,7 +6985,8 @@ func (c *Checker) resolveType(name string, location *position.Location) (types.T
 		if !c.checkTypeIfNecessary(fullName, location) {
 			return nil, fullName
 		}
-		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
+		constantType := constant.Type.Get()
+		if types.IsNoValue(constantType) || types.IsConstantPlaceholder(constantType) {
 			c.addFailure(
 				fmt.Sprintf("undefined type `%s`", lexer.Colorize(fullName)),
 				location,
@@ -6991,8 +6994,8 @@ func (c *Checker) resolveType(name string, location *position.Location) (types.T
 			return nil, fullName
 		}
 
-		if c.checkIfTypeParameterIsAllowed(constant.Type, location) {
-			return constant.Type, fullName
+		if c.checkIfTypeParameterIsAllowed(constantType, location) {
+			return constantType, fullName
 		}
 		return nil, fullName
 	}
@@ -7144,7 +7147,8 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		typeName = subtype.FullName
 	}
 
-	if types.IsNoValue(subtype.Type) || types.IsConstantPlaceholder(subtype.Type) {
+	subtypeType := subtype.Type.Get()
+	if types.IsNoValue(subtypeType) || types.IsConstantPlaceholder(subtypeType) {
 		c.addFailure(
 			fmt.Sprintf("undefined type `%s`", lexer.Colorize(typeName)),
 			node.Right.Location(),
@@ -7152,14 +7156,14 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
-	if !c.checkIfTypeParameterIsAllowed(subtype.Type, node.Right.Location()) {
+	if !c.checkIfTypeParameterIsAllowed(subtypeType, node.Right.Location()) {
 		return nil, typeName
 	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Location()) {
 		return types.Untyped{}, typeName
 	}
-	return subtype.Type, typeName
+	return subtypeType, typeName
 }
 
 func (c *Checker) getConstantLookupTypeForMacro(node *ast.ConstantLookupNode) types.Type {
@@ -7197,11 +7201,12 @@ func (c *Checker) getConstantLookupTypeForMacro(node *ast.ConstantLookupNode) ty
 		return nil
 	}
 
-	if types.IsNoValue(subtype.Type) || types.IsConstantPlaceholder(subtype.Type) {
+	subtypeType := subtype.Type.Get()
+	if types.IsNoValue(subtypeType) || types.IsConstantPlaceholder(subtypeType) {
 		return nil
 	}
 
-	return subtype.Type
+	return subtypeType
 }
 
 func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ComplexConstantNode {
@@ -7247,11 +7252,12 @@ func (c *Checker) getSimpleConstantTypeForMacro(name string) types.Type {
 			continue
 		}
 
-		if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
+		constantType := constant.Type.Get()
+		if types.IsNoValue(constantType) || types.IsConstantPlaceholder(constantType) {
 			return nil
 		}
 
-		return constant.Type
+		return constantType
 	}
 
 	return nil
@@ -7291,7 +7297,7 @@ func (c *Checker) checkGenericConstantType(node *ast.GenericConstantNode) (ast.T
 			return node, fullName
 		}
 
-		node.SetType(c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap, false))
+		node.SetType(c.replaceTypeParameters(t.Type.Get(), typeArgumentMap.ArgumentMap, false))
 		return node, fullName
 	case *types.Class:
 		typeArgumentMap, ok := c.checkTypeArguments(
@@ -7364,7 +7370,7 @@ func (c *Checker) resolveGenericType(typ types.Type, location *position.Location
 			return types.Untyped{}
 		}
 
-		return c.replaceTypeParameters(t.Type, typeArgumentMap.ArgumentMap, false)
+		return c.replaceTypeParameters(t.Type.Get(), typeArgumentMap.ArgumentMap, false)
 	case *types.Class:
 		if !t.IsGeneric() {
 			return typ
@@ -7651,7 +7657,7 @@ func (c *Checker) checkSingletonTypeNode(node *ast.SingletonTypeNode) ast.TypeNo
 	case *types.Interface:
 		singleton = t.Singleton()
 	case *types.TypeParameter:
-		switch t.UpperBound.(type) {
+		switch t.UpperBound.Get().(type) {
 		case *types.Class, *types.Interface, *types.Mixin:
 		default:
 			c.addFailure(
@@ -7703,9 +7709,9 @@ func (c *Checker) checkInstanceOfTypeNode(node *ast.InstanceOfTypeNode) ast.Type
 
 	switch t := typ.(type) {
 	case *types.SingletonClass:
-		namespace = t.AttachedObject
+		namespace = t.AttachedObject.Get()
 	case *types.TypeParameter:
-		switch upper := t.UpperBound.(type) {
+		switch upper := t.UpperBound.Get().(type) {
 		case *types.SingletonClass:
 		case *types.Class:
 			switch upper.Name() {
@@ -7800,7 +7806,7 @@ func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode
 	if mod != nil {
 		c.popConstScope()
 	}
-	callable.Body = method
+	callable.Body = method.ToRef()
 	node.SetType(callable)
 	return node
 }
@@ -7821,7 +7827,7 @@ func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local,
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}
-	return local, local.typ
+	return local, local.typ.Get()
 }
 
 func (c *Checker) checkPublicIdentifierNode(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
@@ -7865,9 +7871,9 @@ func (c *Checker) checkInstanceVariableNode(node *ast.PublicInstanceVariableNode
 	c.checkNonNilableInstanceVariablesForSelf(node.Location())
 	ivar := c.checkInstanceVariable(node.Value, node.Location())
 	if ivar == nil {
-		node.SetType(types.Untyped{})
+		node.SetTypeRef(types.UntypedID)
 	} else {
-		node.SetType(ivar.Type)
+		node.SetTypeRef(ivar.Type)
 	}
 }
 
@@ -7898,13 +7904,14 @@ func (c *Checker) declareInstanceVariableForAttribute(name symbol.Symbol, typ ty
 	}
 
 	if currentIvar != nil {
-		if !c.isTheSameType(typ, currentIvar.Type, location) {
+		currentIvarType := currentIvar.Type.Get()
+		if !c.isTheSameType(typ, currentIvarType, location) {
 			c.addFailure(
 				fmt.Sprintf(
 					"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 					types.InspectInstanceVariableWithColor(name.String()),
 					types.InspectWithColor(typ),
-					types.InspectWithColor(currentIvar.Type),
+					types.InspectWithColor(currentIvarType),
 					types.InspectWithColor(ivarNamespace),
 				),
 				location,
@@ -8030,13 +8037,14 @@ func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.Instance
 				return
 			}
 
-			if !c.isTheSameType(ivar.Type, declaredType, nil) {
+			ivarType := ivar.Type.Get()
+			if !c.isTheSameType(ivarType, declaredType, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 						types.InspectInstanceVariableWithColor(name),
 						types.InspectWithColor(declaredType),
-						types.InspectWithColor(ivar.Type),
+						types.InspectWithColor(ivarType),
 						types.InspectWithColor(ivarNamespace),
 					),
 					node.Location(),
@@ -8108,13 +8116,14 @@ func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceVal
 				return
 			}
 
-			if !c.isTheSameType(ivar.Type, declaredType, nil) {
+			ivarType := ivar.Type.Get()
+			if !c.isTheSameType(ivarType, declaredType, nil) {
 				c.addFailure(
 					fmt.Sprintf(
 						"cannot redeclare instance variable `%s` with a different type, is `%s`, should be `%s`, previous definition found in `%s`",
 						types.InspectInstanceVariableWithColor(name),
 						types.InspectWithColor(declaredType),
-						types.InspectWithColor(ivar.Type),
+						types.InspectWithColor(ivarType),
 						types.InspectWithColor(ivarNamespace),
 					),
 					node.Location(),
@@ -8182,13 +8191,13 @@ func (c *Checker) checkLocalDeclaration(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment))
+			c.addLocal(name, newLocal(types.UntypedID, false, singleAssignment))
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
-		declaredType := c.TypeOf(declaredTypeNode)
+		declaredType := declaredTypeNode.TypeRef()
 		c.addLocal(name, newLocal(declaredType, false, singleAssignment))
 		return initialiser, declaredTypeNode, types.Void{}
 	}
@@ -8215,7 +8224,7 @@ func (c *Checker) checkLocalDeclaration(
 		if !singleAssignment {
 			actualType = c.ToNonLiteral(actualType, false)
 		}
-		local := newLocal(actualType, true, singleAssignment)
+		local := newLocal(types.ToRef(actualType), true, singleAssignment)
 		c.addLocal(name, local)
 		return init, nil, actualType
 	}
@@ -8225,7 +8234,7 @@ func (c *Checker) checkLocalDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(declaredType, true, singleAssignment)
+	local := newLocal(types.ToRef(declaredType), true, singleAssignment)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -8279,7 +8288,7 @@ func (c *Checker) checkValuePatternDeclarationNode(node *ast.ValuePatternDeclara
 
 func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tailPosition bool) *ast.SwitchExpressionNode {
 	if c.isReadonly() {
-		node.SetType(types.Untyped{})
+		node.SetTypeRef(types.UntypedID)
 		return node
 	}
 
@@ -8288,14 +8297,14 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 
 	hasElse := len(node.ElseBody) > 0
 
-	var returnTypes []types.Type
+	var returnTypes []types.Ref[types.Type]
 	for _, caseNode := range node.Cases {
 		c.pushConditionalLocalEnv(true)
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
 		c.narrowToType(node.Value, patternType)
 		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
-		returnTypes = append(returnTypes, caseType)
+		returnTypes = append(returnTypes, types.ToRef(caseType))
 		c.popLocalEnv()
 	}
 
@@ -8303,10 +8312,10 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 		c.pushConditionalLocalEnv(true)
 		c.narrowToType(node.Value, types.Any{})
 		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
-		returnTypes = append(returnTypes, elseType)
+		returnTypes = append(returnTypes, types.ToRef(elseType))
 		c.popLocalEnv()
 	} else {
-		returnTypes = append(returnTypes, types.Nil{})
+		returnTypes = append(returnTypes, types.NilID)
 	}
 
 	c.initialiseConditionalLocals()
@@ -8318,25 +8327,25 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 
 func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tailPosition bool) *ast.SelectExpressionNode {
 	if c.isReadonly() {
-		node.SetType(types.Untyped{})
+		node.SetTypeRef(types.UntypedID)
 		return node
 	}
 
 	hasElse := len(node.ElseBody) > 0
 
-	var returnTypes []types.Type
+	var returnTypes []types.Ref[types.Type]
 	for _, caseNode := range node.Cases {
 		c.pushConditionalLocalEnv(true)
 		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
 		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
-		returnTypes = append(returnTypes, caseType)
+		returnTypes = append(returnTypes, types.ToRef(caseType))
 		c.popLocalEnv()
 	}
 
 	if hasElse {
 		c.pushConditionalLocalEnv(true)
 		elseType, _ := c.checkStatements(node.ElseBody, tailPosition)
-		returnTypes = append(returnTypes, elseType)
+		returnTypes = append(returnTypes, types.ToRef(elseType))
 		c.popLocalEnv()
 	}
 
@@ -8517,8 +8526,8 @@ func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) 
 	rightType := c.TypeOf(node.Right)
 
 	channelType := c.NewNormalisedUnion(
-		c.Std(symbol.C_Channel),
-		c.Std(symbol.C_ReadChannel),
+		types.ToRef(c.Std(symbol.C_Channel)),
+		types.ToRef(c.Std(symbol.C_ReadChannel)),
 	)
 	if !c.isSubtype(rightType, channelType, node.Right.Location()) {
 		c.addFailure(
@@ -8534,7 +8543,7 @@ func (c *Checker) checkSelectUnaryExpressionNode(node *ast.UnaryExpressionNode) 
 	closedErrorClass := c.runtimeEnv.NamesToNamespace(symbol.C_Std, symbol.C_Channel, symbol.ToSymbol("ClosedError"))
 	channelVal := rightType.(*types.Generic).Get(0).Type
 
-	typ := types.NewGenericWithTypeArgs(resultClass, channelVal, closedErrorClass)
+	typ := types.NewGenericWithTypeArgs(resultClass, channelVal.Get(), closedErrorClass)
 	node.SetType(typ)
 
 	return node
@@ -8565,8 +8574,8 @@ func (c *Checker) checkSelectBinaryExpressionNode(node *ast.BinaryExpressionNode
 	leftType := c.TypeOf(left)
 
 	channelType := c.NewNormalisedUnion(
-		c.Std(symbol.C_Channel),
-		c.Std(symbol.C_WriteChannel),
+		types.ToRef(c.Std(symbol.C_Channel)),
+		types.ToRef(c.Std(symbol.C_WriteChannel)),
 	)
 	if !c.isSubtype(leftType, channelType, left.Location()) {
 		c.addFailure(
@@ -8588,7 +8597,7 @@ func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetPa
 	for parent := range types.Parents(namespace) {
 		switch p := parent.(type) {
 		case *types.Generic:
-			if c.IsTheSameNamespace(p.Namespace, targetParent) {
+			if c.IsTheSameNamespace(p.Namespace.Get(), targetParent) {
 				return p
 			}
 		case *types.Class:
@@ -8610,7 +8619,7 @@ func (c *Checker) findGenericNamespaceParent(namespace types.Namespace, targetPa
 func (c *Checker) combineTypeArguments(base, other *types.TypeArguments) {
 	for key, baseVal := range base.ArgumentMap {
 		otherVal := other.ArgumentMap[key]
-		baseVal.Type = c.NewNormalisedUnion(baseVal.Type, otherVal.Type)
+		baseVal.Type = types.ToRef(c.NewNormalisedUnion(baseVal.Type, otherVal.Type))
 	}
 }
 
@@ -8637,7 +8646,7 @@ func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace
 	case *types.Union:
 		var result *types.TypeArguments
 		for _, element := range l.Elements {
-			typeArgs := c._extractTypeArguments(element, namespace)
+			typeArgs := c._extractTypeArguments(element.Get(), namespace)
 			if typeArgs == nil {
 				continue
 			}
@@ -8656,7 +8665,7 @@ func (c *Checker) _extractTypeArguments(extractedNamespace types.Type, namespace
 }
 
 func (c *Checker) extractTypeArgumentsFromType(namespace types.Namespace, ofAny *types.Generic, typ types.Type) (extractedNamespace types.Type, typeArgs *types.TypeArguments) {
-	extractedNamespace = c.NewNormalisedIntersection(typ, ofAny)
+	extractedNamespace = c.NewNormalisedIntersection(types.ToRef(typ), types.CastRef[types.Type](ofAny))
 	typeArgs = c._extractTypeArguments(extractedNamespace, namespace)
 	return extractedNamespace, typeArgs
 }
@@ -8668,17 +8677,20 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 			break
 		}
 
-		patternKeyType := l.Get(0).Type
-		patternValueType := l.Get(1).Type
+		patternKeyType := l.Get(0).Type.Get()
+		patternValueType := l.Get(1).Type.Get()
 		recordOfPatternElement := types.NewGenericWithTypeArgs(recordMixin, patternKeyType, patternValueType)
 		if c.isSubtype(l, recordOfPatternElement, nil) {
 			return patternKeyType, patternValueType
 		}
 	case *types.Union:
-		newKeys := make([]types.Type, len(l.Elements))
-		newValues := make([]types.Type, len(l.Elements))
-		for i, element := range l.Elements {
-			newKeys[i], newValues[i] = c._extractRecordElement(element, recordMixin, recordOfAny)
+		newKeys := make([]types.Ref[types.Type], len(l.Elements))
+		newValues := make([]types.Ref[types.Type], len(l.Elements))
+		for i, elementRef := range l.Elements {
+			element := elementRef.Get()
+			newKey, newValue := c._extractRecordElement(element, recordMixin, recordOfAny)
+			newKeys[i] = types.ToRef(newKey)
+			newValues[i] = types.ToRef(newValue)
 		}
 		return c.NewNormalisedUnion(newKeys...), c.NewNormalisedUnion(newValues...)
 	}
@@ -8687,7 +8699,7 @@ func (c *Checker) _extractRecordElement(extractedRecord types.Type, recordMixin 
 }
 
 func (c *Checker) extractRecordElementFromType(recordMixin *types.Mixin, recordOfAny *types.Generic, typ types.Type) (extractedRecord, keyType, valueType types.Type) {
-	extractedRecord = c.NewNormalisedIntersection(typ, recordOfAny)
+	extractedRecord = c.NewNormalisedIntersection(types.ToRef(typ), types.CastRef[types.Type](recordOfAny))
 	keyType, valueType = c._extractRecordElement(extractedRecord, recordMixin, recordOfAny)
 	return extractedRecord, keyType, valueType
 }
@@ -8699,15 +8711,17 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 			break
 		}
 
-		patternElementType := l.Get(0).Type
+		patternElementType := l.Get(0).Type.Get()
 		collectionOfPatternElement := types.NewGenericWithTypeArgs(collectionMixin, patternElementType)
 		if c.isSubtype(l, collectionOfPatternElement, nil) {
 			return patternElementType
 		}
 	case *types.Union:
-		newElements := make([]types.Type, len(l.Elements))
-		for i, element := range l.Elements {
-			newElements[i] = c._extractCollectionElement(element, collectionMixin, collectionOfAny)
+		newElements := make([]types.Ref[types.Type], len(l.Elements))
+		for i, elementRef := range l.Elements {
+			element := elementRef.Get()
+			newElement := c._extractCollectionElement(element, collectionMixin, collectionOfAny)
+			newElements[i] = types.ToRef(newElement)
 		}
 		return c.NewNormalisedUnion(newElements...)
 	}
@@ -8716,7 +8730,7 @@ func (c *Checker) _extractCollectionElement(extractedCollection types.Type, coll
 }
 
 func (c *Checker) extractCollectionElementFromType(collectionMixin *types.Mixin, collectionOfAny *types.Generic, typ types.Type) (extractedCollection, elementType types.Type) {
-	extractedCollection = c.NewNormalisedIntersection(typ, collectionOfAny)
+	extractedCollection = c.NewNormalisedIntersection(types.ToRef(typ), types.CastRef[types.Type](collectionOfAny))
 	return extractedCollection, c._extractCollectionElement(extractedCollection, collectionMixin, collectionOfAny)
 }
 
@@ -8784,7 +8798,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if ok {
-			constantType = ct.AttachedObject
+			constantType = ct.AttachedObject.Get()
 		}
 
 		switch t := constantType.(type) {
@@ -8798,7 +8812,6 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.runtimeEnv,
 			)
 			t.Namespace = types.ToRef[types.Namespace](module)
 			namespace.DefineConstant(constantName, module)
@@ -8808,7 +8821,6 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			module := types.NewModule(
 				docComment,
 				fullConstantName,
-				c.runtimeEnv,
 			)
 			c.replaceSimpleNamespacePlaceholder(t, module, module)
 			namespace.DefineConstant(constantName, module)
@@ -8816,15 +8828,15 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 			return module
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+			return types.NewModule(docComment, fullConstantName)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+		return types.NewModule(docComment, fullConstantName)
 	}
 
-	return namespace.DefineModule(docComment, constantName, c.runtimeEnv)
+	return namespace.DefineModule(docComment, constantName)
 }
 
 func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
@@ -8864,7 +8876,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 	if constantType != nil {
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
-			constantType = ct.AttachedObject
+			constantType = ct.AttachedObject.Get()
 		case *types.ConstantPlaceholder:
 			class := types.NewClass(
 				docComment,
@@ -8875,7 +8887,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				immutable,
 				fullConstantName,
 				nil,
-				c.runtimeEnv,
 			)
 			classSingleton := class.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
@@ -8893,7 +8904,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				immutable,
 				fullConstantName,
 				nil,
-				c.runtimeEnv,
 			)
 		}
 
@@ -8923,7 +8933,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.runtimeEnv,
 			)
 			t.Namespace = types.ToRef[types.Namespace](class)
 			namespace.DefineConstant(constantName, class.Singleton())
@@ -8940,7 +8949,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				immutable,
 				fullConstantName,
 				nil,
-				c.runtimeEnv,
 			)
 		}
 	}
@@ -8955,7 +8963,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 			immutable,
 			fullConstantName,
 			nil,
-			c.runtimeEnv,
 		)
 	}
 
@@ -8968,7 +8975,6 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 		immutable,
 		constantName,
 		nil,
-		c.runtimeEnv,
 	)
 }
 
@@ -9005,14 +9011,15 @@ func (c *Checker) checkCanAssignInstanceVariable(name string, assignedType types
 		return
 	}
 
-	if !c.isSubtype(assignedType, ivar.Type, location) {
+	ivarType := ivar.Type.Get()
+	if !c.isSubtype(assignedType, ivarType, location) {
 		c.addFailure(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to instance %s `%s` of type `%s`",
 				types.InspectWithColor(assignedType),
 				ivar.Kind(),
 				types.InspectInstanceVariableWithColor(name),
-				types.InspectWithColor(ivar.Type),
+				types.InspectWithColor(ivarType),
 			),
 			location,
 		)
@@ -9547,7 +9554,7 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	usingNamespace := c.getUsingBufferNamespace()
 	switch n := constant.(type) {
 	case *types.SingletonClass:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject.Get())
 		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
 		return node
 	case *types.Module:
@@ -9580,8 +9587,8 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	)
 	c.registerConstantPlaceholder(placeholderConstant)
 
-	placeholderConstant.Sibling = placeholderType
-	placeholderType.Sibling = placeholderConstant
+	placeholderConstant.Sibling = placeholderType.ToRef()
+	placeholderType.Sibling = placeholderConstant.ToRef()
 
 	container.DefineSubtype(originalConstantSymbol, placeholderType)
 	usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, placeholderType)
@@ -9598,7 +9605,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 		var namespace types.Namespace
 		switch t := typ.(type) {
 		case *types.SingletonClass:
-			return c.checkSimpleUsingEntry(t.AttachedObject, constName, fullName, parentNamespace, location)
+			return c.checkSimpleUsingEntry(t.AttachedObject.Get(), constName, fullName, parentNamespace, location)
 		case *types.Module:
 			namespace = t
 		case *types.Mixin:
@@ -9667,13 +9674,12 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 	if constantType != nil {
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
-			constantType = ct.AttachedObject
+			constantType = ct.AttachedObject.Get()
 		case *types.ConstantPlaceholder:
 			mixin := types.NewMixin(
 				docComment,
 				abstract,
 				fullConstantName,
-				c.runtimeEnv,
 			)
 			mixinSingleton := mixin.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
@@ -9682,7 +9688,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			return types.NewMixin(docComment, abstract, fullConstantName)
 		}
 
 		switch t := constantType.(type) {
@@ -9709,7 +9715,6 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-				c.runtimeEnv,
 			)
 			t.Namespace = types.ToRef[types.Namespace](mixin)
 			namespace.DefineConstant(constantName, mixin.Singleton())
@@ -9717,27 +9722,26 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			return types.NewMixin(docComment, abstract, fullConstantName)
 		}
 	}
 
 	if namespace == nil {
-		return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+		return types.NewMixin(docComment, abstract, fullConstantName)
 	}
 
-	return namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv)
+	return namespace.DefineMixin(docComment, abstract, constantName)
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName symbol.Symbol, location *position.Location) *types.Interface {
 	if constantType != nil {
 		switch ct := constantType.(type) {
 		case *types.SingletonClass:
-			constantType = ct.AttachedObject
+			constantType = ct.AttachedObject.Get()
 		case *types.ConstantPlaceholder:
 			iface := types.NewInterface(
 				docComment,
 				fullConstantName,
-				c.runtimeEnv,
 			)
 			ifaceSingleton := iface.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
@@ -9746,7 +9750,7 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			return types.NewInterface(docComment, fullConstantName)
 		}
 
 		switch t := constantType.(type) {
@@ -9768,11 +9772,11 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			return types.NewInterface(docComment, fullConstantName)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+		return types.NewInterface(docComment, fullConstantName)
 	} else {
-		return namespace.DefineInterface(docComment, constantName, c.runtimeEnv)
+		return namespace.DefineInterface(docComment, constantName)
 	}
 }

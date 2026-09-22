@@ -1577,7 +1577,6 @@ func (c *Checker) checkMethodArgumentsAndInferTypeArguments(
 	return nil, nil, nil
 }
 
-// TODO: Fix param mutation, do a copy and mutate the copy
 func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 	method *types.Method,
 	positionalArguments []ast.ExpressionNode,
@@ -1650,7 +1649,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 
 		inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 
-		// TODO: fix, cannot mutate types with ids
 		var retry bool
 		switch inferredParamType {
 		case nil:
@@ -1684,7 +1682,6 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			}
 			inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				param.Type = types.UntypedID
 				paramCopy := param.Copy()
 				paramCopy.Type = types.UntypedID
 				method.Params[currentParamIndex] = paramCopy.ToRef()
@@ -1740,9 +1737,13 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, posRestParamType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				posRestParam.Type = types.UntypedID
+				posRestParamCopy := posRestParam.Copy()
+				posRestParamCopy.Type = types.UntypedID
+				method.Params[positionalRestParamIndex] = posRestParamCopy.ToRef()
 			} else if inferredParamType != posRestParamType {
-				posRestParam.Type = types.ToRef(inferredParamType)
+				posRestParamCopy := posRestParam.Copy()
+				posRestParamCopy.Type = types.ToRef(inferredParamType)
+				method.Params[positionalRestParamIndex] = posRestParamCopy.ToRef()
 			}
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			if !c.isSubtype(posArgType, posRestParamType, posArg.Location()) {
@@ -1781,9 +1782,13 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, paramType, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
-				param.Type = types.UntypedID
+				paramCopy := posRestParam.Copy()
+				paramCopy.Type = types.UntypedID
+				method.Params[currentParamIndex] = paramCopy.ToRef()
 			} else if inferredParamType != paramType {
-				param.Type = types.ToRef(inferredParamType)
+				paramCopy := posRestParam.Copy()
+				paramCopy.Type = types.ToRef(inferredParamType)
+				method.Params[currentParamIndex] = paramCopy.ToRef()
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			if !c.isSubtype(posArgType, paramType, posArg.Location()) {
@@ -1850,9 +1855,13 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, paramType, typeArgMap, typedNamedArgValue.Location())
 			if inferredParamType == nil {
-				param.Type = types.UntypedID
+				paramCopy := param.Copy()
+				paramCopy.Type = types.UntypedID
+				method.Params[i] = paramCopy.ToRef()
 			} else if inferredParamType != paramType {
-				param.Type = types.ToRef(inferredParamType)
+				paramCopy := param.Copy()
+				paramCopy.Type = types.ToRef(inferredParamType)
+				method.Params[i] = paramCopy.ToRef()
 			}
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
 			if !c.isSubtype(namedArgType, paramType, namedArg.Location()) {
@@ -1916,9 +1925,13 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 				posArgType := c.TypeOf(typedNamedArgValue)
 				inferredParamType := c.inferTypeArguments(posArgType, namedRestParamType, typeArgMap, typedNamedArgValue.Location())
 				if inferredParamType == nil {
-					namedRestParam.Type = types.UntypedID
+					namedRestParamCopy := namedRestParam.Copy()
+					namedRestParamCopy.Type = types.UntypedID
+					method.Params[len(method.Params)-1] = namedRestParamCopy.ToRef()
 				} else if inferredParamType != namedRestParamType {
-					namedRestParam.Type = types.ToRef(inferredParamType)
+					namedRestParamCopy := namedRestParam.Copy()
+					namedRestParamCopy.Type = types.ToRef(inferredParamType)
+					method.Params[len(method.Params)-1] = namedRestParamCopy.ToRef()
 				}
 				namedRestArgs.Elements = append(
 					namedRestArgs.Elements,

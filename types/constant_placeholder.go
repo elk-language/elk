@@ -21,6 +21,10 @@ type ConstantPlaceholder struct {
 	id        ID
 }
 
+func (c *ConstantPlaceholder) ToRef() Ref[*ConstantPlaceholder] {
+	return ToRef(c)
+}
+
 func (c *ConstantPlaceholder) HashUint64() uint64 {
 	d := xxhash.New()
 	d.WriteString("constant:")

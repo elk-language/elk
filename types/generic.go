@@ -446,6 +446,35 @@ func NewGenericWithTypeArgs(namespace Namespace, args ...Type) *Generic {
 	)
 }
 
+func NewGenericWithTypeArgRefs(namespace Namespace, args ...Ref[Type]) *Generic {
+	if len(namespace.TypeParameters()) != len(args) {
+		panic(fmt.Sprintf("invalid type argument count in new generic for %s, expected %d, got %d", Inspect(namespace), len(namespace.TypeParameters()), len(args)))
+	}
+
+	typeArgMap := make(TypeArgumentMap, len(args))
+	typeArgOrder := make([]symbol.Symbol, len(args))
+
+	for i, typeParamRef := range namespace.TypeParameters() {
+		typeParam := typeParamRef.Get()
+		arg := args[i]
+
+		typeArg := NewTypeArgumentWithRef(
+			arg,
+			typeParam.Variance,
+		)
+		typeArgMap[typeParam.Name] = typeArg
+		typeArgOrder[i] = typeParam.Name
+	}
+
+	return NewGeneric(
+		namespace,
+		NewTypeArguments(
+			typeArgMap,
+			typeArgOrder,
+		),
+	)
+}
+
 func NewGenericWithVariance(namespace Namespace, variance Variance, args ...Type) *Generic {
 	if len(namespace.TypeParameters()) != len(args) {
 		panic(fmt.Sprintf("invalid type argument count in new generic, expected %d, got %d", len(namespace.TypeParameters()), len(args)))
