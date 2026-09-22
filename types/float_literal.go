@@ -20,6 +20,10 @@ func (c *FloatLiteral) Copy() *FloatLiteral {
 	}
 }
 
+func (c *FloatLiteral) CopyType() Type {
+	return c.Copy()
+}
+
 func (c *FloatLiteral) ToRef() Ref[*FloatLiteral] {
 	return Ref[*FloatLiteral](c.id)
 }
@@ -122,6 +126,10 @@ func (c *Float64Literal) Copy() *Float64Literal {
 		Value:      c.Value,
 		isNegative: c.isNegative,
 	}
+}
+
+func (c *Float64Literal) CopyType() Type {
+	return c.Copy()
 }
 
 func (c *Float64Literal) ToRef() Ref[*Float64Literal] {
@@ -228,6 +236,10 @@ func (c *Float32Literal) Copy() *Float32Literal {
 	}
 }
 
+func (c *Float32Literal) CopyType() Type {
+	return c.Copy()
+}
+
 func (c *Float32Literal) ToRef() Ref[*Float32Literal] {
 	return Ref[*Float32Literal](c.id)
 }
@@ -330,6 +342,10 @@ func (c *BigFloatLiteral) Copy() *BigFloatLiteral {
 		Value:      c.Value,
 		isNegative: c.isNegative,
 	}
+}
+
+func (c *BigFloatLiteral) CopyType() Type {
+	return c.Copy()
 }
 
 func (c *BigFloatLiteral) ToRef() Ref[*BigFloatLiteral] {

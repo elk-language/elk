@@ -104,3 +104,7 @@ func (n *Nilable) Copy() *Nilable {
 		Type: n.Type,
 	}
 }
+
+func (n *Nilable) CopyType() Type {
+	return n.Copy()
+}

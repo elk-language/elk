@@ -125,3 +125,7 @@ func (g *GenericNamedType) Copy() *GenericNamedType {
 		TypeParameters: g.TypeParameters,
 	}
 }
+
+func (g *GenericNamedType) CopyType() Type {
+	return g.Copy()
+}

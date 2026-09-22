@@ -29,3 +29,7 @@ func (u *UsingBufferNamespace) Copy() *UsingBufferNamespace {
 	result.id = ZERO_ID
 	return result
 }
+
+func (u *UsingBufferNamespace) CopyType() Type {
+	return u.Copy()
+}

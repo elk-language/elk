@@ -77,6 +77,7 @@ type Type interface {
 	SetID(ID)
 	ToNonLiteral() Type
 	IsLiteral() bool
+	CopyType() Type
 	inspect() string
 	traverse(parent Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) TraverseOption
 }

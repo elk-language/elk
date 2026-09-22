@@ -20,6 +20,10 @@ func (Never) EqualAny(other any) bool {
 	return ok
 }
 
+func (n Never) CopyType() Type {
+	return n
+}
+
 func (Never) ID() ID {
 	return NeverID
 }

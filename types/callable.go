@@ -94,6 +94,10 @@ func (c *Callable) Copy() *Callable {
 	}
 }
 
+func (c *Callable) CopyType() Type {
+	return c.Copy()
+}
+
 func IsCallable(namespace Namespace) bool {
 	_, ok := namespace.(*Callable)
 	return ok

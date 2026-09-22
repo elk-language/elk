@@ -103,3 +103,7 @@ func (i *InstanceOf) Copy() *InstanceOf {
 		Type: i.Type,
 	}
 }
+
+func (i *InstanceOf) CopyType() Type {
+	return i.Copy()
+}

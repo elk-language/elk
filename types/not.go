@@ -109,3 +109,7 @@ func (n *Not) Copy() *Not {
 		Type: n.Type,
 	}
 }
+
+func (n *Not) CopyType() Type {
+	return n.Copy()
+}

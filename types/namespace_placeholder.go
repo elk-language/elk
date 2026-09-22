@@ -54,6 +54,10 @@ func (m *ModulePlaceholder) Copy() *ModulePlaceholder {
 	return result
 }
 
+func (m *ModulePlaceholder) CopyType() Type {
+	return m.Copy()
+}
+
 // Used during typechecking as a placeholder for a future
 // module, class, mixin, interface etc.
 type NamespacePlaceholder struct {
@@ -102,6 +106,10 @@ func (n *NamespacePlaceholder) Copy() *NamespacePlaceholder {
 		Namespace: n.Namespace,
 		Locations: n.Locations,
 	}
+}
+
+func (n *NamespacePlaceholder) CopyType() Type {
+	return n.Copy()
 }
 
 func (n *NamespacePlaceholder) ToRef() Ref[*NamespacePlaceholder] {

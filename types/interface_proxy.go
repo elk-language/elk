@@ -43,6 +43,10 @@ func (i *InterfaceProxy) Copy() *InterfaceProxy {
 	}
 }
 
+func (i *InterfaceProxy) CopyType() Type {
+	return i.Copy()
+}
+
 func (i *InterfaceProxy) ToRef() Ref[*InterfaceProxy] {
 	return ToRef(i)
 }

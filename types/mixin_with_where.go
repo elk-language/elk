@@ -69,6 +69,10 @@ func (m *MixinWithWhere) Copy() *MixinWithWhere {
 	}
 }
 
+func (m *MixinWithWhere) CopyType() Type {
+	return m.Copy()
+}
+
 func (m *MixinWithWhere) ToRef() Ref[*MixinWithWhere] {
 	return ToRef(m)
 }

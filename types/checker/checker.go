@@ -402,7 +402,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compil
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
-	envCopy := c.runtimeEnv.DeepCopyEnv()
+	envCopy := c.runtimeEnv.Copy()
 	localEnvsCopy := c.deepCopyLocalEnvs(c.runtimeEnv, envCopy)
 	constantScopesCopy := c.deepCopyConstantScopes(c.runtimeEnv, envCopy)
 	methodScopesCopy := c.deepCopyMethodScopes(c.runtimeEnv, envCopy)

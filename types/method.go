@@ -110,6 +110,10 @@ func (p *Parameter) Copy() *Parameter {
 	}
 }
 
+func (p *Parameter) CopyType() Type {
+	return p.Copy()
+}
+
 func (p *Parameter) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(p, parent) {
 	case TraverseBreak:
@@ -387,6 +391,10 @@ func (m *Method) Copy() *Method {
 		Node:                         m.Node,
 		Overloads:                    m.Overloads,
 	}
+}
+
+func (m *Method) CopyType() Type {
+	return m.Copy()
 }
 
 func (m *Method) CreateAlias(newName symbol.Symbol) *Method {

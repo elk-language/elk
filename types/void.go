@@ -15,6 +15,10 @@ func (Void) EqualAny(other any) bool {
 	return ok
 }
 
+func (v Void) CopyType() Type {
+	return v
+}
+
 func (Void) ID() ID {
 	return VoidID
 }

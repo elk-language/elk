@@ -15,6 +15,10 @@ func (Nil) EqualAny(other any) bool {
 	return ok
 }
 
+func (n Nil) CopyType() Type {
+	return n
+}
+
 func (Nil) ID() ID {
 	return NilID
 }

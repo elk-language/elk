@@ -548,3 +548,7 @@ func (g *Generic) Copy() *Generic {
 		TypeArguments: g.TypeArguments,
 	}
 }
+
+func (g *Generic) CopyType() Type {
+	return g.Copy()
+}

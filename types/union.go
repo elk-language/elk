@@ -135,3 +135,7 @@ func (u *Union) Copy() *Union {
 		Elements: u.Elements,
 	}
 }
+
+func (u *Union) CopyType() Type {
+	return u.Copy()
+}

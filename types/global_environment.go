@@ -139,6 +139,27 @@ func (g *GlobalEnvironment) TypeNode() *Mixin {
 	return g.ASTSubtype(symbol.C_TypeNode).(*Mixin)
 }
 
+func (g *GlobalEnvironment) Copy() *GlobalEnvironment {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	newTypeIndex := make([]Type, len(g.TypeIndex))
+	newTypeSet := ds.NewHashSet[Type](g.TypeSet.Capacity())
+	newEnv := &GlobalEnvironment{
+		TypeIndex: newTypeIndex,
+		TypeSet:   newTypeSet,
+	}
+
+	for i, typ := range g.TypeIndex {
+		typeCopy := typ.CopyType()
+		newEnv.ReplaceTypeWithID(typeCopy, typ.ID())
+		newTypeIndex[i] = typeCopy
+	}
+	newEnv.Root = g.TypeIndex[g.Root.id].(*Module)
+
+	return newEnv
+}
+
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	// -- Bootstrapping --
 

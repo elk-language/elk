@@ -84,3 +84,7 @@ func (n *NamedType) Copy() *NamedType {
 		Type: n.Type,
 	}
 }
+
+func (n *NamedType) CopyType() Type {
+	return n.Copy()
+}

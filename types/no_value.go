@@ -15,6 +15,10 @@ func (NoValue) EqualAny(other any) bool {
 	return ok
 }
 
+func (n NoValue) CopyType() Type {
+	return n
+}
+
 func (NoValue) ID() ID {
 	return NoValueID
 }

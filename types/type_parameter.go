@@ -127,6 +127,10 @@ func (t *TypeParameter) Copy() *TypeParameter {
 	}
 }
 
+func (t *TypeParameter) CopyType() Type {
+	return t.Copy()
+}
+
 func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
 	t := &TypeParameter{
 		Name:       name,

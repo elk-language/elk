@@ -33,6 +33,10 @@ func (Any) EqualAny(other any) bool {
 	return ok
 }
 
+func (a Any) CopyType() Type {
+	return a
+}
+
 func (Any) ID() ID {
 	return AnyID
 }

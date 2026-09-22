@@ -19,6 +19,10 @@ func (Untyped) EqualAny(other any) bool {
 	return ok
 }
 
+func (n Untyped) CopyType() Type {
+	return n
+}
+
 func (Untyped) ID() ID {
 	return UntypedID
 }

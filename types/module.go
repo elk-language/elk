@@ -171,6 +171,10 @@ func (m *Module) Copy() *Module {
 	}
 }
 
+func (m *Module) CopyType() Type {
+	return m.Copy()
+}
+
 func (m *Module) RemoveTemporaryParents() {
 	if _, ok := m.parent.(*TemporaryParent); !ok {
 		return

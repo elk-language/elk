@@ -17,6 +17,10 @@ func (s *StringLiteral) Copy() *StringLiteral {
 	}
 }
 
+func (s *StringLiteral) CopyType() Type {
+	return s.Copy()
+}
+
 func (s *StringLiteral) ToRef() Ref[*StringLiteral] {
 	return Ref[*StringLiteral](s.id)
 }

@@ -100,3 +100,7 @@ func (p *ConstantPlaceholder) Copy() *ConstantPlaceholder {
 		Replaced:  p.Replaced,
 	}
 }
+
+func (p *ConstantPlaceholder) CopyType() Type {
+	return p.Copy()
+}

@@ -15,6 +15,10 @@ func (True) EqualAny(other any) bool {
 	return ok
 }
 
+func (t True) CopyType() Type {
+	return t
+}
+
 func (True) ID() ID {
 	return TrueID
 }

@@ -41,6 +41,10 @@ func (m *MixinProxy) Copy() *MixinProxy {
 	}
 }
 
+func (m *MixinProxy) CopyType() Type {
+	return m.Copy()
+}
+
 func (m *MixinProxy) ToRef() Ref[*MixinProxy] {
 	return ToRef(m)
 }

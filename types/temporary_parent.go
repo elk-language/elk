@@ -22,6 +22,16 @@ func NewTemporaryParent(namespace Namespace) *TemporaryParent {
 	}
 }
 
+func (t *TemporaryParent) Copy() *TemporaryParent {
+	return &TemporaryParent{
+		Namespace: t.Namespace,
+	}
+}
+
+func (t *TemporaryParent) CopyType() Type {
+	return t.Copy()
+}
+
 func (n *TemporaryParent) ToNonLiteral() Type {
 	return n
 }

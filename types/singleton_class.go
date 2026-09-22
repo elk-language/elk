@@ -64,6 +64,10 @@ func (s *SingletonClass) Copy() *SingletonClass {
 	return result
 }
 
+func (s *SingletonClass) CopyType() Type {
+	return s.Copy()
+}
+
 func (c *SingletonClass) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []Ref[*TypeParameter], params []Ref[*Parameter], returnType, throwType Type) *Method {
 	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, c)
 	c.SetMethod(name, method)

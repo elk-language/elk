@@ -166,3 +166,7 @@ func (i *Interface) Copy() *Interface {
 		},
 	}
 }
+
+func (i *Interface) CopyType() Type {
+	return i.Copy()
+}

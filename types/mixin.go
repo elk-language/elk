@@ -192,3 +192,7 @@ func (m *Mixin) Copy() *Mixin {
 		},
 	}
 }
+
+func (m *Mixin) CopyType() Type {
+	return m.Copy()
+}

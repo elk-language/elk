@@ -18,6 +18,10 @@ func (s *SymbolLiteral) Copy() *SymbolLiteral {
 	}
 }
 
+func (s *SymbolLiteral) CopyType() Type {
+	return s.Copy()
+}
+
 func (s *SymbolLiteral) ToRef() Ref[*SymbolLiteral] {
 	return Ref[*SymbolLiteral](s.id)
 }

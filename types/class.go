@@ -324,6 +324,10 @@ func (c *Class) Copy() *Class {
 	}
 }
 
+func (c *Class) CopyType() Type {
+	return c.Copy()
+}
+
 // Used for debugging deep copies of types
 func (c *Class) inspectInheritance() {
 	fmt.Printf("Inheritance: ")

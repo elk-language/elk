@@ -135,3 +135,7 @@ func (i *Intersection) Copy() *Intersection {
 		Elements: i.Elements,
 	}
 }
+
+func (i *Intersection) CopyType() Type {
+	return i.Copy()
+}

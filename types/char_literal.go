@@ -32,6 +32,10 @@ func (c *CharLiteral) Copy() *CharLiteral {
 	}
 }
 
+func (c *CharLiteral) CopyType() Type {
+	return c.Copy()
+}
+
 func (c *CharLiteral) HashUint64() uint64 {
 	d := xxhash.New()
 

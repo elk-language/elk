@@ -91,3 +91,7 @@ func (n *Exact) Copy() *Exact {
 		Type: n.Type,
 	}
 }
+
+func (n *Exact) CopyType() Type {
+	return n.Copy()
+}

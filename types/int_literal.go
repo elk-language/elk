@@ -17,6 +17,17 @@ func (i *IntLiteral) ToRef() Ref[*IntLiteral] {
 	return Ref[*IntLiteral](i.id)
 }
 
+func (i *IntLiteral) Copy() *IntLiteral {
+	return &IntLiteral{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *IntLiteral) CopyType() Type {
+	return i.Copy()
+}
+
 func (i *IntLiteral) HashUint64() uint64 {
 	d := xxhash.New()
 
@@ -108,6 +119,17 @@ type Int64Literal struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (i *Int64Literal) Copy() *Int64Literal {
+	return &Int64Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *Int64Literal) CopyType() Type {
+	return i.Copy()
 }
 
 func (c *Int64Literal) ToRef() Ref[*Int64Literal] {
@@ -207,6 +229,17 @@ type Int32Literal struct {
 	id         ID
 }
 
+func (i *Int32Literal) Copy() *Int32Literal {
+	return &Int32Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *Int32Literal) CopyType() Type {
+	return i.Copy()
+}
+
 func (i *Int32Literal) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(i, parent) {
 	case TraverseBreak:
@@ -302,6 +335,17 @@ type Int16Literal struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (i *Int16Literal) Copy() *Int16Literal {
+	return &Int16Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *Int16Literal) CopyType() Type {
+	return i.Copy()
 }
 
 func (c *Int16Literal) ToRef() Ref[*Int16Literal] {
@@ -401,6 +445,17 @@ type Int8Literal struct {
 	id         ID
 }
 
+func (i *Int8Literal) Copy() *Int8Literal {
+	return &Int8Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *Int8Literal) CopyType() Type {
+	return i.Copy()
+}
+
 func (c *Int8Literal) ToRef() Ref[*Int8Literal] {
 	return Ref[*Int8Literal](c.id)
 }
@@ -496,6 +551,17 @@ type UIntLiteral struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (i *UIntLiteral) Copy() *UIntLiteral {
+	return &UIntLiteral{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *UIntLiteral) CopyType() Type {
+	return i.Copy()
 }
 
 func (c *UIntLiteral) ToRef() Ref[*UIntLiteral] {
@@ -595,6 +661,17 @@ type UInt64Literal struct {
 	id         ID
 }
 
+func (i *UInt64Literal) Copy() *UInt64Literal {
+	return &UInt64Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *UInt64Literal) CopyType() Type {
+	return i.Copy()
+}
+
 func (c *UInt64Literal) ToRef() Ref[*UInt64Literal] {
 	return Ref[*UInt64Literal](c.id)
 }
@@ -690,6 +767,17 @@ type UInt32Literal struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (i *UInt32Literal) Copy() *UInt32Literal {
+	return &UInt32Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *UInt32Literal) CopyType() Type {
+	return i.Copy()
 }
 
 func (c *UInt32Literal) ToRef() Ref[*UInt32Literal] {
@@ -789,6 +877,17 @@ type UInt16Literal struct {
 	id         ID
 }
 
+func (i *UInt16Literal) Copy() *UInt16Literal {
+	return &UInt16Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *UInt16Literal) CopyType() Type {
+	return i.Copy()
+}
+
 func (c *UInt16Literal) ToRef() Ref[*UInt16Literal] {
 	return Ref[*UInt16Literal](c.id)
 }
@@ -883,6 +982,17 @@ type UInt8Literal struct {
 	Value      string
 	isNegative bool
 	id         ID
+}
+
+func (i *UInt8Literal) Copy() *UInt8Literal {
+	return &UInt8Literal{
+		Value:      i.Value,
+		isNegative: i.isNegative,
+	}
+}
+
+func (i *UInt8Literal) CopyType() Type {
+	return i.Copy()
 }
 
 func (c *UInt8Literal) ToRef() Ref[*UInt8Literal] {

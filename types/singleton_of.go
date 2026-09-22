@@ -103,3 +103,7 @@ func (s *SingletonOf) Copy() *SingletonOf {
 		Type: s.Type,
 	}
 }
+
+func (s *SingletonOf) CopyType() Type {
+	return s.Copy()
+}

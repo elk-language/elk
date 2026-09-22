@@ -64,6 +64,10 @@ func (t *TypeParamNamespace) Copy() *TypeParamNamespace {
 	}
 }
 
+func (t *TypeParamNamespace) CopyType() Type {
+	return t.Copy()
+}
+
 func (t *TypeParamNamespace) Name() string {
 	return ""
 }

@@ -13,6 +13,10 @@ func (Self) EqualAny(other any) bool {
 	return ok
 }
 
+func (s Self) CopyType() Type {
+	return s
+}
+
 func (Self) ID() ID {
 	return SelfID
 }

@@ -45,6 +45,10 @@ func (Bool) EqualAny(other any) bool {
 	return ok
 }
 
+func (b Bool) CopyType() Type {
+	return b
+}
+
 func (Bool) ID() ID {
 	return BoolID
 }
