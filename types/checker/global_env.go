@@ -38,7 +38,7 @@ Example:
 	end)
 `,
 		"compile_if!",
-		[]*types.Parameter{
+		[]types.Ref[*types.Parameter]{
 			types.NewParameter(
 				symbol.ToSymbol("if_node"),
 				types.NewUnion(
@@ -47,7 +47,7 @@ Example:
 				),
 				types.NormalParameterKind,
 				false,
-			),
+			).ToRef(),
 		},
 		exprType,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {

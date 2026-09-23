@@ -87,15 +87,3 @@ func (s *HashSet[V]) Contains(val V) bool {
 func (s *HashSet[V]) ContainsUnsafe(val V) bool {
 	return s.Data.Contains(val)
 }
-
-func (s *HashSet[V]) Contains(val V) bool {
-	s.mu.Lock()
-	result := s.Data.Contains(val)
-	s.mu.Unlock()
-
-	return result
-}
-
-func (s *HashSet[V]) ContainsUnsafe(val V) bool {
-	return s.Data.Contains(val)
-}

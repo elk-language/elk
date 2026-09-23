@@ -161,6 +161,7 @@ func (g *GlobalEnvironment) Copy() *GlobalEnvironment {
 }
 
 func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
+	origEnv := Env
 	// -- Bootstrapping --
 
 	rootModule := &Module{
@@ -300,12 +301,15 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	listMixin.SetTypeParameters(typeParams)
 
 	env.Init = false
+	Env = origEnv
 	return env
 }
 
 // Create a new global environment for type checking.
 func NewGlobalEnvironment() *GlobalEnvironment {
 	env := NewGlobalEnvironmentWithoutHeaders()
+	origEnv := Env
+	Env = env
 
 	env.Init = true
 	setupGlobalEnvironmentFromHeaders(env)
@@ -313,6 +317,7 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 
 	setupHelperTypes(env)
 
+	Env = origEnv
 	return env
 }
 

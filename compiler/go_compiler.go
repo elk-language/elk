@@ -588,7 +588,7 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	c.emit("\n")
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
-		attachedObjectConst := c.emitGetConst(value.ToSymbol(n.AttachedObject.Name()), types.Any{})
+		attachedObjectConst := c.emitGetConst(value.ToSymbol(n.AttachedObject.Get().Name()), types.Any{})
 		c.emit("namespace = value.Ref((%s).SingletonClass())\n", attachedObjectConst.fetchValue())
 	default:
 		namespaceConst := c.emitGetConst(value.ToSymbol(n.Name()), types.Any{})
@@ -654,7 +654,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	goMethod.compiler = methodCompiler
 	methodType := c.typeOf(node).(*types.Method)
 	methodCompiler.hasDefer = methodType.HasDefer()
-	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType, node.Location())
+	methodCompiler.compileMethodBody(node.Parameters, node.Body, method.ReturnType.Get(), node.Location())
 
 	return methodCompiler
 }
@@ -1002,7 +1002,7 @@ func (c *GoCompiler) compileMethodBody(parameters []ast.ParameterNode, body []as
 	for i, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		paramType := c.typeOf(p).(*types.Parameter)
-		typ := paramType.Type
+		typ := paramType.Type.Get()
 
 		argVal := newGoValue(
 			fmt.Sprintf("args[%d]", i+1),
@@ -1050,7 +1050,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 
 				pName := identifierToName(p.Name)
 				paramType := c.typeOf(p).(*types.Parameter)
-				typ := paramType.Type
+				typ := paramType.Type.Get()
 				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
 				if local == nil {
 					return errGoValue
@@ -1154,7 +1154,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureType := c.typeOf(node).(*types.Callable)
-	closureCompiler.hasDefer = closureType.Body.HasDefer()
+	closureCompiler.hasDefer = closureType.Body.Get().HasDefer()
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
 	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
@@ -1276,7 +1276,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 
 				pName := identifierToName(p.Name)
 				paramType := c.typeOf(p).(*types.Parameter)
-				typ := paramType.Type
+				typ := paramType.Type.Get()
 				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
 				if local == nil {
 					return errGoValue
@@ -1401,7 +1401,7 @@ func (c *GoCompiler) emitReturn(val string) {
 	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
 		firstArg := c.goLocals.Get("l0")
-		result := newGoValueWithLocal(firstArg, c.method.ReturnType)
+		result := newGoValueWithLocal(firstArg, c.method.ReturnType.Get())
 		val = c.methodReturnValue(result)
 		c.emit("return %s, value.Undefined\n", val)
 	case initMethodGoCompilerMode:
@@ -1529,16 +1529,16 @@ func (c *GoCompiler) compileMethodsWithinInterface(iface *types.Interface, locat
 				overloadName := value.ToSymbol(
 					fmt.Sprintf("%s@%d", methodName.String(), i+1),
 				)
-				c.compileMethodDefinition(overloadName, overload, location)
+				c.compileMethodDefinition(overloadName, overload.Get(), location)
 			}
 		}
 	}
 
 	for _, subtype := range types.SortedSubtypes(iface) {
-		if subtype.Type == iface {
+		if subtype.Type.ID() == iface.ID() {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, location)
+		c.compileMethodsWithinType(subtype.Type.Get(), location)
 	}
 }
 
@@ -1554,16 +1554,16 @@ func (c *GoCompiler) compileMethodsWithinModule(module *types.Module, location *
 				overloadName := value.ToSymbol(
 					fmt.Sprintf("%s@%d", methodName.String(), i+1),
 				)
-				c.compileMethodDefinition(overloadName, overload, location)
+				c.compileMethodDefinition(overloadName, overload.Get(), location)
 			}
 		}
 	}
 
 	for _, subtype := range types.SortedSubtypes(module) {
-		if subtype.Type == module {
+		if subtype.Type.ID() == module.ID() {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, location)
+		c.compileMethodsWithinType(subtype.Type.Get(), location)
 	}
 }
 
@@ -1591,10 +1591,10 @@ func (c *GoCompiler) compileMethodsWithinClassOrMixin(namespace types.Namespace,
 	}
 
 	for _, subtype := range types.SortedSubtypes(namespace) {
-		if subtype.Type == namespace {
+		if subtype.Type.ID() == namespace.ID() {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, location)
+		c.compileMethodsWithinType(subtype.Type.Get(), location)
 	}
 }
 
@@ -1616,20 +1616,21 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
-	if method.Base != nil {
+	if method.Base.IsPresent() {
 		// handle aliases
-		method = method.Base
+		method = method.Base.Get()
 
 		if method.IsNative() {
-			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			definedUnder := method.DefinedUnder.Get()
+			namespace := value.RootModule.Constants.GetString(definedUnder.Name()).AsReference()
 			c.registerGoLocal("aliasClass", value.FetchGoType("*value.Class"))
 
 			switch namespace.(type) {
 			case *value.Class:
-				classVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Class))
+				classVal := c.emitGetConst(value.ToSymbol(definedUnder.Name()), c.checker.Std(symbol.C_Class))
 				c.emit("aliasClass = %s\n", c.convertValueToNarrowerType(classVal).fetchValue())
 			case *value.Module:
-				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Module))
+				moduleVal := c.emitGetConst(value.ToSymbol(definedUnder.Name()), c.checker.Std(symbol.C_Module))
 				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.fetchValue())
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
@@ -1649,7 +1650,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		if method.IsSetter() {
 			nameStr := name.String()
 			ivarName := symbol.ToSymbol(nameStr[:len(nameStr)-1])
-			namespace := method.DefinedUnder
+			namespace := method.DefinedUnder.Get()
 
 			var index int
 			var ok bool
@@ -1678,7 +1679,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			return
 		}
 
-		namespace := method.DefinedUnder
+		namespace := method.DefinedUnder.Get()
 
 		var index int
 		var ok bool
@@ -1795,7 +1796,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
-			namespaceVal := c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), types.Any{})
+			namespaceVal := c.emitGetConst(value.ToSymbol(p.AttachedObject.Get().Name()), types.Any{})
 			c.emit("parentNamespace = (%s).SingletonClass()\n", namespaceVal.fetchValue())
 		default:
 			namespaceVal := c.emitGetConst(value.ToSymbol(p.Name()), types.Any{})
@@ -1843,10 +1844,10 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 	}
 
 	for name, subtype := range types.SortedSubtypes(namespace) {
-		if subtype.Type == namespace {
+		if subtype.Type.ID() == namespace.ID() {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name))
+		c.compileSubtypeDefinition(namespace, subtype.Type.Get(), value.S(name))
 	}
 }
 
@@ -1924,7 +1925,7 @@ func (c *GoCompiler) registerGoImport(path, name string) {
 }
 
 func (c *GoCompiler) typeOf(node ast.Node) types.Type {
-	return node.Type(c.checker.Env())
+	return node.Type()
 }
 
 func (c *GoCompiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol) {
@@ -2019,7 +2020,7 @@ func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, l
 
 	switch target := target.(type) {
 	case *types.SingletonClass:
-		namespaceVal := c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), types.Any{})
+		namespaceVal := c.emitGetConst(value.ToSymbol(target.AttachedObject.Get().Name()), types.Any{})
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.fetchValue())
 	case *types.Module:
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), types.Any{})
@@ -2035,7 +2036,7 @@ func (c *GoCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, l
 func (c *GoCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
-		namespaceVal := c.emitGetConst(value.ToSymbol(t.AttachedObject.Name()), types.Any{})
+		namespaceVal := c.emitGetConst(value.ToSymbol(t.AttachedObject.Get().Name()), types.Any{})
 		c.emit("class = (%s).SingletonClass()\n", namespaceVal.fetchValue())
 	default:
 		namespaceVal := c.emitGetConst(value.ToSymbol(target.Name()), c.checker.Std(symbol.C_Class))
@@ -3539,7 +3540,7 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 		return nil
 	}
 
-	elementType := rangeType.TypeArguments.Get(0).Type
+	elementType := rangeType.TypeArguments.Get(0).Type.Get()
 	paramLocal := c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
 	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
 	_, rangeVal := c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
@@ -5496,11 +5497,11 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
-			keyType = types.Normalise(g.Get(0).Type)
+		if c.checker.IsTheSameNamespace(g.Namespace.Get(), c.checker.Std(symbol.C_Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type.Get())
 			goKeyType = c.elkTypeToGoKeyType(keyType)
 
-			valType = types.Normalise(g.Get(1).Type)
+			valType = types.Normalise(g.Get(1).Type.Get())
 			goValType = c.elkTypeToGoType(valType, false)
 		}
 	}
@@ -5823,11 +5824,11 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
-			keyType = types.Normalise(g.Get(0).Type)
+		if c.checker.IsTheSameNamespace(g.Namespace.Get(), c.checker.Std(symbol.C_Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type.Get())
 			goKeyType = c.elkTypeToGoKeyType(keyType)
 
-			valType = types.Normalise(g.Get(1).Type)
+			valType = types.Normalise(g.Get(1).Type.Get())
 			goValType = c.elkTypeToGoType(valType, false)
 		}
 	}
@@ -6294,7 +6295,7 @@ func (c *GoCompiler) compileBoxOfLocal(node ast.ExpressionNode, typ types.Type) 
 
 	generic := typ.(*types.Generic)
 	var immutable bool
-	if generic.Namespace.Name() == "Std::ImmutableBox" {
+	if generic.Namespace.Get().Name() == "Std::ImmutableBox" {
 		immutable = true
 	}
 
@@ -6352,7 +6353,7 @@ func (c *GoCompiler) compileBoxOfInstanceVariable(ivarName value.Symbol, typ typ
 
 	generic := typ.(*types.Generic)
 	var immutable bool
-	if generic.Namespace.Name() == "Std::ImmutableBox" {
+	if generic.Namespace.Get().Name() == "Std::ImmutableBox" {
 		immutable = true
 	}
 
@@ -6665,7 +6666,7 @@ func (c *GoCompiler) methodReturnValue(val *goValue) string {
 		return c.convertValueToWiderType(val).fetchValue()
 	}
 
-	goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)
+	goReturnType := c.elkTypeToGoType(c.method.ReturnType.Get(), false)
 	if goReturnType.Name == "value.Value" {
 		return c.convertValueToWiderType(val).fetchValue()
 	} else {
@@ -7083,7 +7084,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 	for {
 		switch narrowReceiverType := receiverType.(type) {
 		case *types.Exact:
-			receiverType = narrowReceiverType.Type
+			receiverType = narrowReceiverType.Type.Get()
 			exact = true
 			continue
 		case types.Self:
@@ -7096,7 +7097,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 				valueIsIgnored,
 			)
 		case *types.SingletonClass:
-			switch o := narrowReceiverType.AttachedObject.(type) {
+			switch o := narrowReceiverType.AttachedObject.Get().(type) {
 			case *types.Class:
 				if exact || o.Children.Len() == 0 {
 					// singleton class has no children so method lookup can be static
@@ -7146,7 +7147,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 				valueIsIgnored,
 			)
 		case *types.Generic:
-			switch n := narrowReceiverType.Namespace.(type) {
+			switch n := narrowReceiverType.Namespace.Get().(type) {
 			case *types.Class:
 				if exact || n.Children.Len() == 0 {
 					return c.compileOptimizedNativeMethodCallFromNamespace(
@@ -7168,7 +7169,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 			}
 
 			fallback = true
-			receiverType = receiverType.ToNonLiteral(c.checker.Env())
+			receiverType = receiverType.ToNonLiteral()
 			continue
 		}
 	}
@@ -7177,7 +7178,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromType(receiverType, retu
 func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
-		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Name()), types.Any{})
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Get().Name()), types.Any{})
 		return fmt.Sprintf("(%s).SingletonClass()", namespaceVal.value)
 	case *types.Module:
 		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.C_Module))
@@ -7209,7 +7210,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 			ident: goIdent,
 			init: fmt.Sprintf(
 				"vm.MethodToFunc((%s).LookupMethod(%s))",
-				c.generateGetNamespace(method.DefinedUnder),
+				c.generateGetNamespace(method.DefinedUnder.Get()),
 				nameSym,
 			),
 		}
@@ -7235,7 +7236,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		if goMethod.hasArgsSlice() {
 			tmp = c.defineTmpGoLocal(goValueType)
 		} else {
-			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType, false))
+			tmp = c.defineTmpGoLocal(c.elkTypeToGoType(method.ReturnType.Get(), false))
 		}
 		tmpName = tmp.name
 	}
@@ -7293,8 +7294,8 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		)
 
 		for i, arg := range args[1:] {
-			param := method.Params[i]
-			goParamType := c.elkTypeToGoType(param.Type, false)
+			param := method.Params[i].Get()
+			goParamType := c.elkTypeToGoType(param.Type.Get(), false)
 			if param.IsOptional() || goParamType.Name == "value.Value" {
 				c.emit(", %s", c.convertValueToWiderType(arg).fetchValue())
 				continue
@@ -7319,8 +7320,8 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		)
 
 		for i, arg := range args[1:] {
-			param := method.Params[i]
-			goParamType := c.elkTypeToGoType(param.Type, false)
+			param := method.Params[i].Get()
+			goParamType := c.elkTypeToGoType(param.Type.Get(), false)
 			if param.IsOptional() || goParamType.Name == "value.Value" {
 				c.emit(", %s", c.convertValueToWiderType(arg).fetchValue())
 				continue
@@ -7493,7 +7494,7 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
-		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Name()), types.Any{})
+		namespaceVal := c.emitGetConst(value.ToSymbol(typ.AttachedObject.Get().Name()), types.Any{})
 		fmt.Fprintf(&funcBuffer, "self = value.Ref((%s).SingletonClass())\n", namespaceVal.fetchValue())
 	case *types.Module:
 		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), types.Any{})
@@ -16606,7 +16607,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			return value.FetchGoType("*value.ArrayListOfValue")
 		}
 
-		elementType := elkType.Get(0).Type
+		elementType := elkType.Get(0).Type.Get()
 
 		goElementType := c.elkTypeToGoType(elementType, true)
 		if goElementType.Equal(goValueType) {
@@ -16630,7 +16631,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			return value.FetchGoType("*value.ArrayTupleOfValue")
 		}
 
-		elementType := elkType.Get(0).Type
+		elementType := elkType.Get(0).Type.Get()
 
 		goElementType := c.elkTypeToGoType(elementType, true)
 		if goElementType.Equal(goValueType) {
@@ -16654,8 +16655,8 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			return value.FetchGoType("*vm.HashMapOfValue")
 		}
 
-		keyType := elkType.Get(0).Type
-		valType := elkType.Get(1).Type
+		keyType := elkType.Get(0).Type.Get()
+		valType := elkType.Get(1).Type.Get()
 
 		nativeKeyType := c.elkTypeToGoKeyType(keyType)
 		if nativeKeyType.Equal(goValueType) {
@@ -16689,8 +16690,8 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			return value.FetchGoType("vm.HashRecordOfValue")
 		}
 
-		keyType := elkType.Get(0).Type
-		valType := elkType.Get(1).Type
+		keyType := elkType.Get(0).Type.Get()
+		valType := elkType.Get(1).Type.Get()
 
 		nativeKeyType := c.elkTypeToGoKeyType(keyType)
 		if nativeKeyType.Equal(goValueType) {
@@ -16724,7 +16725,7 @@ func (c *GoCompiler) elkTypeToGoType(elkType types.Type, specialized bool) *valu
 			return value.FetchGoType("*vm.HashSetOfValue")
 		}
 
-		elementType := elkType.Get(0).Type
+		elementType := elkType.Get(0).Type.Get()
 
 		goElementType := c.elkTypeToGoKeyType(elementType)
 		if goElementType.Equal(goValueType) {
@@ -17175,8 +17176,8 @@ func (c *GoCompiler) hashMapToGoSource(v vm.HashMap, typ types.Type) *goValue {
 		return c.hashMapOfValueToGoSource(v)
 	}
 
-	keyType := pairType.Get(0).Type
-	valType := pairType.Get(1).Type
+	keyType := pairType.Get(0).Type.Get()
+	valType := pairType.Get(1).Type.Get()
 
 	goKeyType := c.elkTypeToGoKeyType(keyType)
 	if goKeyType.Name == "value.Value" {
@@ -17276,8 +17277,8 @@ func (c *GoCompiler) hashRecordToGoSource(v vm.HashRecord, typ types.Type, allow
 		return c.hashRecordOfValueToGoSource(v, allowMutable)
 	}
 
-	keyType := pairType.Get(0).Type
-	valType := pairType.Get(1).Type
+	keyType := pairType.Get(0).Type.Get()
+	valType := pairType.Get(1).Type.Get()
 
 	goKeyType := c.elkTypeToGoKeyType(keyType)
 	if goKeyType.Name == "value.Value" {

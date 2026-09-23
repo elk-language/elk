@@ -149,13 +149,13 @@ Example:
 
 	result := Result::wrap! foo() #: Result[Int, any]`,
 		"wrap!",
-		[]*types.Parameter{
+		[]types.Ref[*types.Parameter]{
 			types.NewParameter(
 				symbol.ToSymbol("expr"),
 				exprNode,
 				types.NormalParameterKind,
 				false,
-			),
+			).ToRef(),
 		},
 		exprNode,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {

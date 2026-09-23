@@ -127,11 +127,10 @@ func NewInterfaceWithDetails(
 	consts ConstantMap,
 	subtypes ConstantMap,
 	methods MethodMap,
-	env *GlobalEnvironment,
 ) *Interface {
 	return &Interface{
 		parent:   ToRef[Namespace](parent),
-		compiled: env.Init,
+		compiled: Env.Init,
 		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,

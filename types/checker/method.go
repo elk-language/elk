@@ -2648,7 +2648,7 @@ func (c *Checker) declareMethodWithBase(
 
 	if generator {
 		returnType = types.NewGenericWithTypeArgs(
-			c.runtimeEnv.StdSubtypeClass(symbol.C_Generator),
+			types.Env.StdSubtypeClass(symbol.C_Generator),
 			returnType,
 			throwType,
 		)
@@ -2656,7 +2656,7 @@ func (c *Checker) declareMethodWithBase(
 		throwType = types.Never{}
 	} else if async {
 		returnType = types.NewGenericWithTypeArgs(
-			c.runtimeEnv.StdSubtypeClass(symbol.C_Promise),
+			types.Env.StdSubtypeClass(symbol.C_Promise),
 			returnType,
 			throwType,
 		)
@@ -3557,7 +3557,7 @@ func (c *Checker) _getMethod(typ types.Type, name symbol.Symbol, errLoc *positio
 }
 
 func (c *Checker) getMethodInNilable(typ *types.Nilable, name symbol.Symbol, errLoc *position.Location) *types.Method {
-	nilType := c.runtimeEnv.StdSubtype(symbol.C_Nil).(*types.Class)
+	nilType := types.Env.StdSubtype(symbol.C_Nil).(*types.Class)
 	nilMethod := nilType.Method(name)
 	if nilMethod == nil {
 		c.addMissingMethodError(nilType, name.String(), errLoc)

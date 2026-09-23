@@ -49,9 +49,9 @@ func resolve(node ast.Node, checker types.Checker) value.Value {
 	case *ast.SymbolArrayListLiteralNode:
 		return resolveSpecialNativeArrayListLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, n.Capacity, checker, n.IsStatic())
 	case *ast.BinArrayListLiteralNode:
-		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(), checker, n.IsStatic())
 	case *ast.HexArrayListLiteralNode:
-		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayListLiteral(n.Elements, n.Capacity, n.Type(), checker, n.IsStatic())
 	case *ast.ArrayTupleLiteralNode:
 		return resolveArrayTupleLiteral(n, checker)
 	case *ast.WordArrayTupleLiteralNode:
@@ -59,9 +59,9 @@ func resolve(node ast.Node, checker types.Checker) value.Value {
 	case *ast.SymbolArrayTupleLiteralNode:
 		return resolveSpecialNativeArrayTupleLiteral[ast.SymbolCollectionContentNode, value.Symbol](n.Elements, checker, n.IsStatic())
 	case *ast.BinArrayTupleLiteralNode:
-		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(), checker, n.IsStatic())
 	case *ast.HexArrayTupleLiteralNode:
-		return resolveIntArrayTupleLiteral(n.Elements, n.Type(checker.Env()), checker, n.IsStatic())
+		return resolveIntArrayTupleLiteral(n.Elements, n.Type(), checker, n.IsStatic())
 	case *ast.LogicalExpressionNode:
 		return resolveLogicalExpression(n, checker)
 	case *ast.BinaryExpressionNode:
@@ -217,7 +217,7 @@ func resolveHashSetLiteral(node *ast.HashSetLiteralNode, checker types.Checker) 
 		return value.Undefined
 	}
 
-	typ := node.Type(checker.Env())
+	typ := node.Type()
 	elementType, _ := checker.GetIteratorElementType(typ)
 	if types.IsUntyped(elementType) {
 		return resolveHashSetOfValue(node, checker)
@@ -317,18 +317,18 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode, checker types.Checker) 
 		return value.Undefined
 	}
 
-	typ := node.Type(checker.Env())
+	typ := node.Type()
 	elementType, _ := checker.GetIteratorElementType(typ)
 	g, ok := elementType.(*types.Generic)
 	if !ok {
 		return resolveHashMapOfValue(node, checker)
 	}
-	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.C_Pair).(*types.Class)) {
+	if !checker.IsTheSameNamespace(g.Namespace.Get(), checker.Std(symbol.C_Pair).(*types.Class)) {
 		return value.Undefined
 	}
 
-	keyType := g.Get(0).Type
-	valType := g.Get(1).Type
+	keyType := g.Get(0).Type.Get()
+	valType := g.Get(1).Type.Get()
 
 	if checker.IsSubtype(keyType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashMapOfString(node, valType, checker)
@@ -737,18 +737,18 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode, checker types.Che
 		return value.Undefined
 	}
 
-	typ := node.Type(checker.Env())
+	typ := node.Type()
 	elementType, _ := checker.GetIteratorElementType(typ)
 	g, ok := elementType.(*types.Generic)
 	if !ok {
 		return resolveHashRecordOfValue(node, checker)
 	}
-	if !checker.IsTheSameNamespace(g.Namespace, checker.Std(symbol.C_Pair).(*types.Class)) {
+	if !checker.IsTheSameNamespace(g.Namespace.Get(), checker.Std(symbol.C_Pair).(*types.Class)) {
 		return value.Undefined
 	}
 
-	keyType := g.Get(0).Type
-	valType := g.Get(1).Type
+	keyType := g.Get(0).Type.Get()
+	valType := g.Get(1).Type.Get()
 
 	if checker.IsSubtype(keyType, checker.Std(symbol.C_String)) {
 		return resolveNativeHashRecordOfString(node, valType, checker)
@@ -1199,7 +1199,7 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode, checker types.Check
 		return value.Undefined
 	}
 
-	typ := node.Type(checker.Env())
+	typ := node.Type()
 	elementType, _ := checker.GetIteratorElementType(typ)
 	if types.IsUntyped(elementType) {
 		return resolveArrayListOfValue(node, checker)
@@ -1444,7 +1444,7 @@ func resolveIntArrayListLiteral(elements []ast.IntCollectionContentNode, capacit
 		return value.Undefined
 	}
 
-	elementType := g.Get(0).Type
+	elementType := g.Get(0).Type.Get()
 	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int)) {
 		return resolveBigIntSliceToArrayListOfValue(tmpList).ToValue()
 	}
@@ -1485,7 +1485,7 @@ func resolveIntArrayTupleLiteral(elements []ast.IntCollectionContentNode, typ ty
 		return value.Undefined
 	}
 
-	elementType := g.Get(0).Type
+	elementType := g.Get(0).Type.Get()
 	if checker.IsSubtype(elementType, checker.Std(symbol.C_Int)) {
 		return resolveBigIntSliceToArrayTupleOfValue(tmpTuple).ToValue()
 	}
@@ -1548,7 +1548,7 @@ func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode, checker types.Che
 		return value.Undefined
 	}
 
-	typ := node.Type(checker.Env())
+	typ := node.Type()
 	elementType, _ := checker.GetIteratorElementType(typ)
 	if types.IsUntyped(elementType) {
 		return resolveArrayTupleOfValue(node, checker)

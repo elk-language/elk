@@ -45,7 +45,7 @@ func (c *Checker) IsNotNilable(typ types.Type) bool {
 
 // Type is always `nil`
 func (c *Checker) IsNil(typ types.Type) bool {
-	return types.IsNil(typ, c.runtimeEnv)
+	return types.IsNil(typ)
 }
 
 // Type is always `false`

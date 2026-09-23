@@ -47,8 +47,8 @@ func IsNilLiteral(t Type) bool {
 	return ok
 }
 
-func IsNil(t Type, env *GlobalEnvironment) bool {
-	return IsNilLiteral(t) || t == env.StdSubtype(symbol.C_Nil)
+func IsNil(t Type) bool {
+	return IsNilLiteral(t) || t == Env.StdSubtype(symbol.C_Nil)
 }
 
 func (Nil) inspect() string {

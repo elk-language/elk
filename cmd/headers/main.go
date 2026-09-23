@@ -179,7 +179,7 @@ func includeMixinsAndImplementInterfaces(buffer *bytes.Buffer, namespace types.N
 				buffer,
 				`
 					// %s
-					mixin = NewMixin("", false, "", env)
+					mixin = NewMixin("", false, "")
 					{
 						namespace := mixin
 						namespace.Name() // noop - avoid unused variable error
@@ -210,7 +210,7 @@ func includeMixinsAndImplementInterfaces(buffer *bytes.Buffer, namespace types.N
 				namespaceToCode(p),
 			)
 		case *types.Generic:
-			switch p.Namespace.(type) {
+			switch p.Namespace.Get().(type) {
 			case *types.MixinProxy:
 				fmt.Fprintf(
 					buffer,
@@ -242,7 +242,8 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		len(namespace.TypeParameters()),
 	)
 
-	for i, param := range namespace.TypeParameters() {
+	for i, paramRef := range namespace.TypeParameters() {
+		param := paramRef.Get()
 		fmt.Fprintf(
 			buffer,
 			`
@@ -256,25 +257,27 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 			i,
 		)
 
-		if !types.IsNever(param.LowerBound) {
+		lowerBound := param.LowerBound
+		if !types.IsNeverRef(lowerBound) {
 			fmt.Fprintf(
 				buffer,
 				"typeParam.LowerBound = %s\n",
-				typeToCode(param.LowerBound, false),
+				typeToCode(lowerBound.Get(), false),
 			)
 		}
-		if !types.IsAny(param.UpperBound) {
+		upperBound := param.UpperBound
+		if !types.IsAnyRef(upperBound) {
 			fmt.Fprintf(
 				buffer,
 				"typeParam.UpperBound = %s\n",
-				typeToCode(param.UpperBound, false),
+				typeToCode(upperBound.Get(), false),
 			)
 		}
-		if param.Default != nil {
+		if param.Default.IsPresent() {
 			fmt.Fprintf(
 				buffer,
 				"typeParam.Default = %s\n",
-				typeToCode(param.Default, false),
+				typeToCode(param.Default.Get(), false),
 			)
 		}
 	}
@@ -282,16 +285,17 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\nnamespace.SetTypeParameters(typeParams)\n\n")
 }
 
-func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*types.TypeParameter) {
+func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []types.Ref[*types.TypeParameter]) {
 	buffer.WriteString(`[]*TypeParameter{`)
-	for _, param := range typeParams {
+	for _, paramRef := range typeParams {
+		param := paramRef.Get()
 		fmt.Fprintf(
 			buffer,
 			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s)",
 			param.Name.String(),
-			typeToCode(param.LowerBound, false),
-			typeToCode(param.UpperBound, false),
-			typeToCode(param.Default, false),
+			typeToCode(param.LowerBound.Get(), false),
+			typeToCode(param.UpperBound.Get(), false),
+			typeToCode(param.Default.Get(), false),
 			param.Variance.String(),
 		)
 	}
@@ -312,7 +316,7 @@ func createTypeParameters(buffer *bytes.Buffer, typeParams []*types.TypeParamete
 
 func defineTypeParametersInSubtypes(buffer *bytes.Buffer, namespace types.Namespace) {
 	for _, subtype := range types.SortedSubtypes(namespace) {
-		param, ok := subtype.Type.(*types.TypeParameter)
+		param, ok := subtype.Type.Get().(*types.TypeParameter)
 		if !ok {
 			continue
 		}
@@ -328,7 +332,7 @@ func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 			buffer,
 			"namespace.DefineConstant(symbol.ToSymbol(%q), %s)\n",
 			name.String(),
-			typeToCode(typ.Type, false),
+			typeToCode(typ.Type.Get(), false),
 		)
 	}
 }
@@ -341,7 +345,7 @@ func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 			"namespace.DefineInstanceVariable(symbol.ToSymbol(%q), NewInstanceVariable(symbol.ToSymbol(%q), %s, %q, %t))\n",
 			ivar.Name.String(),
 			ivar.Name.String(),
-			typeToCode(ivar.Type, false),
+			typeToCode(ivar.Type.Get(), false),
 			ivar.DocComment,
 			ivar.SingleAssignment,
 		)
@@ -350,7 +354,7 @@ func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 
 func defineMethodsWithinSubtypes(buffer *bytes.Buffer, namespace types.Namespace, env *types.GlobalEnvironment) {
 	for _, subtype := range types.SortedSubtypes(namespace) {
-		subtypeNamespace, ok := subtype.Type.(types.Namespace)
+		subtypeNamespace, ok := subtype.Type.Get().(types.Namespace)
 		if !ok {
 			continue
 		}
@@ -400,7 +404,7 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, 
 			fmt.Fprintf(
 				buffer,
 				"%s,",
-				typeToCode(param, true),
+				typeToCode(param.Get(), true),
 			)
 		}
 		buffer.WriteString("}, ")
@@ -410,12 +414,13 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, 
 
 	if len(method.Params) > 0 {
 		buffer.WriteString("[]*Parameter{")
-		for _, param := range method.Params {
+		for _, paramRef := range method.Params {
+			param := paramRef.Get()
 			fmt.Fprintf(
 				buffer,
 				"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
 				param.Name.String(),
-				typeToCode(param.Type, false),
+				typeToCode(param.Type.Get(), false),
 				param.Kind,
 				param.InstanceVariable,
 			)
@@ -428,8 +433,8 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, 
 	fmt.Fprintf(
 		buffer,
 		"%s, %s",
-		typeToCode(method.ReturnType, false),
-		typeToCode(method.ThrowType, false),
+		typeToCode(method.ReturnType.Get(), false),
+		typeToCode(method.ThrowType.Get(), false),
 	)
 }
 
@@ -468,7 +473,7 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 		if hasOverloads {
 			for _, overload := range method.Overloads {
 				buffer.WriteString("method.RegisterOverload(NewMethod(")
-				methodConstructorArguments(buffer, methodName, overload)
+				methodConstructorArguments(buffer, methodName, overload.Get())
 				buffer.WriteString(", namespace))\n")
 			}
 		}
@@ -477,10 +482,10 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 
 func defineSubtypesWithinNamespace(buffer *bytes.Buffer, namespace types.Namespace) {
 	for name, subtype := range types.SortedSubtypes(namespace) {
-		if subtype.Type == namespace {
+		if subtype.Type.ID() == namespace.ID() {
 			continue
 		}
-		switch s := subtype.Type.(type) {
+		switch s := subtype.Type.Get().(type) {
 		case *types.Class:
 			defineClass(buffer, s, name.String())
 		case *types.Mixin:
@@ -520,7 +525,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, symbol.ToSymbol(%q), %s, env)
+		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, symbol.ToSymbol(%q), %s)
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
@@ -547,7 +552,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineMixin(%q, %t, symbol.ToSymbol(%q), env)
+		`namespace.TryDefineMixin(%q, %t, symbol.ToSymbol(%q))
 		`,
 		mixin.DocComment(),
 		mixin.IsAbstract(),
@@ -569,7 +574,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineModule(%q, symbol.ToSymbol(%q), env)
+		`namespace.TryDefineModule(%q, symbol.ToSymbol(%q))
 		`,
 		module.DocComment(),
 		constantName,
@@ -590,7 +595,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineInterface(%q, symbol.ToSymbol(%q), env)
+		`namespace.TryDefineInterface(%q, symbol.ToSymbol(%q))
 		`,
 		iface.DocComment(),
 		constantName,
@@ -610,37 +615,37 @@ func namespaceToCode(typ types.Namespace) string {
 		return "nil"
 	case *types.Class:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Class)",
+			"NameToType(%q).(*Class)",
 			t.Name(),
 		)
 	case *types.SingletonClass:
 		return fmt.Sprintf(
-			"NameToNamespace(%q, env).Singleton()",
-			t.AttachedObject.Name(),
+			"NameToNamespace(%q).Singleton()",
+			t.AttachedObject.Get().Name(),
 		)
 	case *types.Mixin:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Mixin)",
+			"NameToType(%q).(*Mixin)",
 			t.Name(),
 		)
 	case *types.MixinProxy:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Mixin)",
+			"NameToType(%q).(*Mixin)",
 			t.Name(),
 		)
 	case *types.Module:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Module)",
+			"NameToType(%q).(*Module)",
 			t.Name(),
 		)
 	case *types.Interface:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Interface)",
+			"NameToType(%q).(*Interface)",
 			t.Name(),
 		)
 	case *types.InterfaceProxy:
 		return fmt.Sprintf(
-			"NameToType(%q, env).(*Interface)",
+			"NameToType(%q).(*Interface)",
 			t.Name(),
 		)
 	case *types.Generic:
@@ -682,69 +687,70 @@ func typeToCode(typ types.Type, init bool) string {
 	case *types.Not:
 		return fmt.Sprintf(
 			"NewNot(%s)",
-			typeToCode(t.Type, init),
+			typeToCode(t.Type.Get(), init),
 		)
 	case *types.NamedType:
 		if init {
 			return fmt.Sprintf(
 				"NewNamedType(%q, %s)",
 				t.Name,
-				typeToCode(t.Type, init),
+				typeToCode(t.Type.Get(), init),
 			)
 		}
 
 		return fmt.Sprintf(
-			"NameToType(%q, env)",
+			"NameToType(%q)",
 			t.Name,
 		)
 	case *types.TypeParameter:
-		namespaceName := t.Namespace.Name()
+		namespace := t.Namespace.Get()
+		namespaceName := namespace.Name()
 		if init || len(namespaceName) == 0 {
 			return fmt.Sprintf(
 				"NewTypeParameter(symbol.ToSymbol(%q), %s, %s, %s, %s, %s)",
 				t.Name.String(),
-				namespaceToCode(t.Namespace),
-				typeToCode(t.LowerBound, false),
-				typeToCode(t.UpperBound, false),
-				typeToCode(t.Default, false),
+				namespaceToCode(namespace),
+				typeToCode(t.LowerBound.Get(), false),
+				typeToCode(t.UpperBound.Get(), false),
+				typeToCode(t.Default.Get(), false),
 				t.Variance.String(),
 			)
 		}
 
 		return fmt.Sprintf(
-			`NameToType("%s::%s", env)`,
+			`NameToType("%s::%s")`,
 			namespaceName,
 			t.Name.String(),
 		)
 	case *types.Class:
 		return fmt.Sprintf(
-			"NameToType(%q, env)",
+			"NameToType(%q)",
 			t.Name(),
 		)
 	case *types.SingletonClass:
 		return fmt.Sprintf(
-			"NameToNamespace(%q, env).Singleton()",
-			t.AttachedObject.Name(),
+			"NameToNamespace(%q).Singleton()",
+			t.AttachedObject.Get().Name(),
 		)
 	case *types.Mixin:
 		return fmt.Sprintf(
-			"NameToType(%q, env)",
+			"NameToType(%q)",
 			t.Name(),
 		)
 	case *types.Module:
 		return fmt.Sprintf(
-			"NameToType(%q, env)",
+			"NameToType(%q)",
 			t.Name(),
 		)
 	case *types.Interface:
 		return fmt.Sprintf(
-			"NameToType(%q, env)",
+			"NameToType(%q)",
 			t.Name(),
 		)
 	case *types.Nilable:
 		return fmt.Sprintf(
 			"NewNilable(%s)",
-			typeToCode(t.Type, init),
+			typeToCode(t.Type.Get(), init),
 		)
 	case *types.Union:
 		buff := new(strings.Builder)
@@ -753,7 +759,7 @@ func typeToCode(typ types.Type, init bool) string {
 			fmt.Fprintf(
 				buff,
 				"%s, ",
-				typeToCode(element, init),
+				typeToCode(element.Get(), init),
 			)
 		}
 		buff.WriteRune(')')
@@ -765,7 +771,7 @@ func typeToCode(typ types.Type, init bool) string {
 			fmt.Fprintf(
 				buff,
 				"%s, ",
-				typeToCode(element, init),
+				typeToCode(element.Get(), init),
 			)
 		}
 		buff.WriteRune(')')
@@ -803,22 +809,22 @@ func typeToCode(typ types.Type, init bool) string {
 	case *types.UInt8Literal:
 		return fmt.Sprintf("NewUInt8Literal(%q)", t.Value)
 	case *types.SingletonOf:
-		return fmt.Sprintf("NewSingletonOf(%s)", typeToCode(t.Type, init))
+		return fmt.Sprintf("NewSingletonOf(%s)", typeToCode(t.Type.Get(), init))
 	case *types.InstanceOf:
-		return fmt.Sprintf("NewInstanceOf(%s)", typeToCode(t.Type, init))
+		return fmt.Sprintf("NewInstanceOf(%s)", typeToCode(t.Type.Get(), init))
 	case *types.Generic:
 		buff := new(strings.Builder)
 		fmt.Fprintf(
 			buff,
 			"NewGeneric(%s, NewTypeArguments(TypeArgumentMap{",
-			namespaceToCode(t.Namespace),
+			namespaceToCode(t.Namespace.Get()),
 		)
 		for name, arg := range t.TypeArguments.AllArguments() {
 			fmt.Fprintf(
 				buff,
 				"symbol.ToSymbol(%q): NewTypeArgument(%s, %s),",
 				name.String(),
-				typeToCode(arg.Type, init),
+				typeToCode(arg.Type.Get(), init),
 				arg.Variance.String(),
 			)
 		}
@@ -838,41 +844,42 @@ func typeToCode(typ types.Type, init bool) string {
 		return fmt.Sprintf("NewTypeParamNamespace(%q, %t)", t.DocComment(), t.ForMethod)
 	case *types.Callable:
 		buff := new(strings.Builder)
+		body := t.Body.Get()
 		fmt.Fprintf(
 			buff,
 			"NewCallableWithMethod(%q, 0",
-			t.Body.DocComment,
+			body.DocComment,
 		)
 
-		if t.Body.IsAbstract() {
+		if body.IsAbstract() {
 			buff.WriteString("| METHOD_ABSTRACT_FLAG")
 		}
-		if t.Body.IsSealed() {
+		if body.IsSealed() {
 			buff.WriteString("| METHOD_SEALED_FLAG")
 		}
-		if t.Body.IsNative() {
+		if body.IsNative() {
 			buff.WriteString("| METHOD_NATIVE_FLAG")
 		}
-		if t.Body.IsGenerator() {
+		if body.IsGenerator() {
 			buff.WriteString("| METHOD_GENERATOR_FLAG")
 		}
-		if t.Body.IsAsync() {
+		if body.IsAsync() {
 			buff.WriteString("| METHOD_ASYNC_FLAG")
 		}
 
 		fmt.Fprintf(
 			buff,
 			", symbol.ToSymbol(%q), ",
-			t.Body.Name.String(),
+			body.Name.String(),
 		)
 
-		if len(t.Body.TypeParameters) > 0 {
+		if len(body.TypeParameters) > 0 {
 			buff.WriteString("[]*TypeParameter{")
-			for _, param := range t.Body.TypeParameters {
+			for _, param := range body.TypeParameters {
 				fmt.Fprintf(
 					buff,
 					"%s.(*TypeParameter),",
-					typeToCode(param, false),
+					typeToCode(param.Get(), false),
 				)
 			}
 			buff.WriteString("}, ")
@@ -880,14 +887,15 @@ func typeToCode(typ types.Type, init bool) string {
 			buff.WriteString("nil, ")
 		}
 
-		if len(t.Body.Params) > 0 {
+		if len(body.Params) > 0 {
 			buff.WriteString("[]*Parameter{")
-			for _, param := range t.Body.Params {
+			for _, paramRef := range body.Params {
+				param := paramRef.Get()
 				fmt.Fprintf(
 					buff,
 					"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
 					param.Name.String(),
-					typeToCode(param.Type, false),
+					typeToCode(param.Type.Get(), false),
 					param.Kind,
 					param.InstanceVariable,
 				)
@@ -900,8 +908,8 @@ func typeToCode(typ types.Type, init bool) string {
 		fmt.Fprintf(
 			buff,
 			"%s, %s, %t)",
-			typeToCode(t.Body.ReturnType, false),
-			typeToCode(t.Body.ThrowType, false),
+			typeToCode(body.ReturnType.Get(), false),
+			typeToCode(body.ThrowType.Get(), false),
 			t.IsClosure,
 		)
 		return buff.String()

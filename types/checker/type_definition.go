@@ -725,7 +725,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.runtimeEnv.StdSubtypeClass(symbol.C_Object)
+		superclass = types.Env.StdSubtypeClass(symbol.C_Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode
@@ -780,7 +780,7 @@ superclassSwitch:
 	switch node.Superclass.(type) {
 	case *ast.NilLiteralNode:
 	case nil:
-		superclass = c.runtimeEnv.StdSubtypeClass(symbol.C_Object)
+		superclass = types.Env.StdSubtypeClass(symbol.C_Object)
 		superclassType = superclass
 	default:
 		prevMode := c.mode

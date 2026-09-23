@@ -369,7 +369,7 @@ func (c *BytecodeCompiler) EmitReturn() {
 }
 
 func (c *BytecodeCompiler) typeOf(node ast.Node) types.Type {
-	return types.Normalise(node.Type(c.checker.Env()))
+	return types.Normalise(node.Type())
 }
 
 func (c *BytecodeCompiler) compileGlobalEnv() {
@@ -382,7 +382,7 @@ func (c *BytecodeCompiler) compileNamespaceDefinition(parentNamespace, namespace
 	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
-			c.emitGetConst(value.ToSymbol(p.AttachedObject.Name()), location)
+			c.emitGetConst(value.ToSymbol(p.AttachedObject.Get().Name()), location)
 			c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 		default:
 			c.emitGetConst(value.ToSymbol(p.Name()), location)
@@ -393,10 +393,10 @@ func (c *BytecodeCompiler) compileNamespaceDefinition(parentNamespace, namespace
 	}
 
 	for name, subtype := range types.SortedSubtypes(namespace) {
-		if subtype.Type == namespace {
+		if subtype.Type.ID() == namespace.ID() {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), location)
+		c.compileSubtypeDefinition(namespace, subtype.Type.Get(), value.S(name), location)
 	}
 }
 
@@ -452,7 +452,7 @@ func (c *BytecodeCompiler) CompileClassInheritance(class *types.Class, location 
 func (c *BytecodeCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location) {
 	switch target := target.(type) {
 	case *types.SingletonClass:
-		c.emitGetConst(value.ToSymbol(target.AttachedObject.Name()), location)
+		c.emitGetConst(value.ToSymbol(target.AttachedObject.Get().Name()), location)
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 	case *types.Module:
 		c.emitGetConst(value.ToSymbol(target.Name()), location)
@@ -468,7 +468,7 @@ func (c *BytecodeCompiler) CompileIvarIndices(target types.NamespaceWithIvarIndi
 func (c *BytecodeCompiler) CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location) {
 	switch t := target.(type) {
 	case *types.SingletonClass:
-		targetName := value.ToSymbol(t.AttachedObject.Name())
+		targetName := value.ToSymbol(t.AttachedObject.Get().Name())
 		c.emitGetConst(targetName, location)
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 	default:
@@ -762,7 +762,7 @@ func (c *BytecodeCompiler) compileMethodsWithinModule(module *types.Module, loca
 				overloadName := value.ToSymbol(
 					fmt.Sprintf("%s@%d", methodName.String(), i+1),
 				)
-				c.compileMethodDefinition(overloadName, overload, location)
+				c.compileMethodDefinition(overloadName, overload.Get(), location)
 			}
 		}
 
@@ -770,10 +770,10 @@ func (c *BytecodeCompiler) compileMethodsWithinModule(module *types.Module, loca
 	}
 
 	for _, subtype := range types.SortedSubtypes(module) {
-		if subtype.Type == module {
+		if subtype.Type.ID() == module.ID() {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, location)
+		c.compileMethodsWithinType(subtype.Type.Get(), location)
 	}
 }
 
@@ -782,12 +782,12 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		return
 	}
 
-	if method.Base != nil {
+	if method.Base.IsPresent() {
 		// handle aliases
-		method = method.Base
+		method = method.Base.Get()
 
 		if method.IsNative() {
-			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Get().Name()).AsReference()
 			var class *value.Class
 			switch n := namespace.(type) {
 			case *value.Class:
@@ -815,7 +815,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 			nameStr := name.String()
 			ivarName := value.ToSymbol(nameStr[:len(nameStr)-1])
 			c.emitValue(ivarName.ToValue(), location)
-			namespace := method.DefinedUnder
+			namespace := method.DefinedUnder.Get()
 
 			var index int
 			var ok bool
@@ -842,7 +842,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		}
 
 		c.emitValue(name.ToValue(), location)
-		namespace := method.DefinedUnder
+		namespace := method.DefinedUnder.Get()
 
 		var index int
 		var ok bool
@@ -899,10 +899,10 @@ func (c *BytecodeCompiler) compileMethodsWithinNamespace(namespace types.Namespa
 	}
 
 	for _, subtype := range types.SortedSubtypes(namespace) {
-		if subtype.Type == namespace {
+		if subtype.Type.ID() == namespace.ID() {
 			continue
 		}
-		c.compileMethodsWithinType(subtype.Type, location)
+		c.compileMethodsWithinType(subtype.Type.Get(), location)
 	}
 }
 
@@ -1777,7 +1777,7 @@ func (c *BytecodeCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarat
 	location := node.Location()
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
-		namespaceName := value.ToSymbol(n.AttachedObject.Name())
+		namespaceName := value.ToSymbol(n.AttachedObject.Get().Name())
 		c.emitGetConst(namespaceName, node.Constant.Location())
 		c.emit(location.StartPos.Line, bytecode.GET_SINGLETON)
 	default:
@@ -2562,7 +2562,7 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 		nil,
 		nil,
 	)
-	rangeElementType := types.Normalise(inExpressionType.Get(0).Type)
+	rangeElementType := types.Normalise(inExpressionType.Get(0).Type.Get())
 	initVal.SetType(rangeElementType)
 
 	var cmpOp token.Type
@@ -5028,7 +5028,7 @@ func (c *BytecodeCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNod
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
 	closureType := c.typeOf(node).(*types.Callable)
-	closureCompiler.hasDefer = closureType.Body.HasDefer()
+	closureCompiler.hasDefer = closureType.Body.Get().HasDefer()
 	closureCompiler.compileFunctionStatements(node.Location(), node.Parameters, node.Body)
 
 	result := closureCompiler.bytecode
@@ -5909,9 +5909,9 @@ func (c *BytecodeCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNod
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
-			keyType = types.Normalise(g.Get(0).Type)
-			valType = types.Normalise(g.Get(1).Type)
+		if c.checker.IsTheSameNamespace(g.Namespace.Get(), c.checker.Std(symbol.C_Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type.Get())
+			valType = types.Normalise(g.Get(1).Type.Get())
 		}
 	}
 
@@ -6464,9 +6464,9 @@ func (c *BytecodeCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLite
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
 	if g, ok := elementType.(*types.Generic); ok {
-		if c.checker.IsTheSameNamespace(g.Namespace, c.checker.Std(symbol.C_Pair).(*types.Class)) {
-			keyType = types.Normalise(g.Get(0).Type)
-			valType = types.Normalise(g.Get(1).Type)
+		if c.checker.IsTheSameNamespace(g.Namespace.Get(), c.checker.Std(symbol.C_Pair).(*types.Class)) {
+			keyType = types.Normalise(g.Get(0).Type.Get())
+			valType = types.Normalise(g.Get(1).Type.Get())
 		}
 	}
 
@@ -8323,7 +8323,7 @@ func (c *BytecodeCompiler) compileBoxOfLocal(name string, typ types.Type, loc *p
 
 	generic := typ.(*types.Generic)
 	var immutable bool
-	if generic.Namespace.Name() == "Std::ImmutableBox" {
+	if generic.Namespace.Get().Name() == "Std::ImmutableBox" {
 		immutable = true
 	}
 
@@ -8351,7 +8351,7 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 
 	generic := typ.(*types.Generic)
 	var immutable bool
-	if generic.Namespace.Name() == "Std::ImmutableBox" {
+	if generic.Namespace.Get().Name() == "Std::ImmutableBox" {
 		immutable = true
 	}
 
@@ -9041,7 +9041,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 	for {
 		switch narrowReceiverType := receiverType.(type) {
 		case *types.Exact:
-			receiverType = narrowReceiverType.Type
+			receiverType = narrowReceiverType.Type.Get()
 			exact = true
 			continue
 		case types.Self:
@@ -9054,7 +9054,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			)
 			return
 		case *types.SingletonClass:
-			switch o := narrowReceiverType.AttachedObject.(type) {
+			switch o := narrowReceiverType.AttachedObject.Get().(type) {
 			case *types.Class:
 				if exact || o.Children.Len() == 0 {
 					// singleton class has no children so method lookup can be static
@@ -9116,7 +9116,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			)
 			return
 		case *types.Generic:
-			switch n := narrowReceiverType.Namespace.(type) {
+			switch n := narrowReceiverType.Namespace.Get().(type) {
 			case *types.Class:
 				if exact || n.Children.Len() == 0 {
 					c.compileOptimisedCallMethod(
@@ -9148,7 +9148,7 @@ func (c *BytecodeCompiler) compileCallMethod(receiverType types.Type, name value
 			}
 
 			fallback = true
-			receiverType = receiverType.ToNonLiteral(c.checker.Env())
+			receiverType = receiverType.ToNonLiteral()
 			continue
 		}
 	}

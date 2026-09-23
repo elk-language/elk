@@ -43,19 +43,19 @@ Example:
 	wg.wait
 `,
 		"spawn!",
-		[]*types.Parameter{
+		[]types.Ref[*types.Parameter]{
 			types.NewParameter(
 				symbol.ToSymbol("wait_group"),
 				exprNode,
 				types.NormalParameterKind,
 				false,
-			),
+			).ToRef(),
 			types.NewParameter(
 				symbol.ToSymbol("go_expr"),
 				goNode,
 				types.NormalParameterKind,
 				false,
-			),
+			).ToRef(),
 		},
 		exprNode,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {

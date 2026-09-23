@@ -301,7 +301,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Location())
 	case nil:
-		leftContainerType = c.runtimeEnv.Root
+		leftContainerType = types.Env.Root
 	case *ast.ConstantLookupNode:
 		leftContainerType, leftContainerName = c.resolveConstantLookup(l, location)
 	default:

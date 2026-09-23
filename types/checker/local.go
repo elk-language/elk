@@ -374,3 +374,29 @@ func (c *Checker) resolveLocal(name string, location *position.Location) (*local
 	}
 	return local, localCtx
 }
+
+func (c *Checker) deepCopyLocalEnvs(oldEnv, newEnv *types.GlobalEnvironment) []*localEnvironment {
+	var newLocalEnvs []*localEnvironment
+
+	for _, localEnv := range c.localEnvs {
+		newLocalEnv := &localEnvironment{
+			index:  localEnv.index,
+			locals: make(map[symbol.Symbol]*local),
+			typ:    localEnv.typ,
+		}
+		if localEnv.parent != nil {
+			newLocalEnv.parent = newLocalEnvs[localEnv.parent.index]
+		}
+		for localName, local := range localEnv.locals {
+			newLocal := local.copy()
+			if local.shadowOf != nil {
+				newShadowLocalEnv := newLocalEnvs[local.shadowOf.envIndex]
+				newLocal.shadowOf = newShadowLocalEnv.locals[localName]
+			}
+			newLocalEnv.locals[localName] = newLocal
+		}
+		newLocalEnvs = append(newLocalEnvs, newLocalEnv)
+	}
+
+	return newLocalEnvs
+}

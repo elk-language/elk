@@ -133,7 +133,7 @@ func DefWithOptionalParameters(optParams int) DefOption {
 }
 
 // Define a native macro
-func DefMacro(namespace types.Namespace, docComment string, name string, params []*types.Parameter, returnType types.Type, fn NativeFunction) *types.Method {
+func DefMacro(namespace types.Namespace, docComment string, name string, params []types.Ref[*types.Parameter], returnType types.Type, fn NativeFunction) *types.Method {
 	symbolName := symbol.ToSymbol(name)
 	macro := namespace.DefineMethod(
 		docComment,
