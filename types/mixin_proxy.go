@@ -18,6 +18,10 @@ func (m *MixinProxy) Parent() Namespace {
 	return m.parent.Get()
 }
 
+func (m *MixinProxy) ParentRef() Ref[Namespace] {
+	return m.parent
+}
+
 func (m *MixinProxy) SetParent(parent Namespace) {
 	m.parent = ToRef(parent)
 }
@@ -116,6 +120,10 @@ func (m *MixinProxy) SetTypeParameters(t []Ref[*TypeParameter]) {
 
 func (m *MixinProxy) Singleton() *SingletonClass {
 	return m.Mixin.Get().Singleton()
+}
+
+func (m *MixinProxy) SingletonRef() Ref[*SingletonClass] {
+	return m.Mixin.Get().SingletonRef()
 }
 
 func (m *MixinProxy) SetSingleton(singleton *SingletonClass) {

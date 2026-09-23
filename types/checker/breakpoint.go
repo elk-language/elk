@@ -14,7 +14,7 @@ import (
 )
 
 type BreakpointContext struct {
-	selfType       types.Type
+	selfType       types.Ref[types.Type]
 	runtimeEnv     *types.GlobalEnvironment
 	macroEnv       *types.GlobalEnvironment
 	localEnvs      []*localEnvironment
@@ -83,8 +83,8 @@ func NewBreakpointChecker(context *compiler.BytecodeBreakpointContext) *Checker 
 	c := &Checker{
 		Filename:       context.Location.FilePath,
 		selfType:       checkerContext.selfType,
-		returnType:     types.Void{},
-		throwType:      types.Any{},
+		returnType:     types.VoidID,
+		throwType:      types.AnyID,
 		mode:           methodMode,
 		Errors:         new(diagnostic.SyncDiagnosticList),
 		localEnvs:      deepCloneLocalEnvsForBreakpoint(checkerContext.localEnvs),

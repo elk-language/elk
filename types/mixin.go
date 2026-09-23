@@ -63,6 +63,10 @@ func (m *Mixin) Singleton() *SingletonClass {
 	return m.singleton.Get()
 }
 
+func (m *Mixin) SingletonRef() Ref[*SingletonClass] {
+	return m.singleton
+}
+
 func (m *Mixin) SetSingleton(singleton *SingletonClass) {
 	m.singleton = singleton.ToRef()
 }
@@ -106,6 +110,10 @@ func (m *Mixin) IsImmutable() bool {
 
 func (m *Mixin) Parent() Namespace {
 	return m.parent.Get()
+}
+
+func (m *Mixin) ParentRef() Ref[Namespace] {
+	return m.parent
 }
 
 func (m *Mixin) SetParent(parent Namespace) {

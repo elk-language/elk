@@ -141,6 +141,10 @@ func (m *MixinWithWhere) Parent() Namespace {
 	return m.MixinProxy.Get().Parent()
 }
 
+func (m *MixinWithWhere) ParentRef() Ref[Namespace] {
+	return m.MixinProxy.Get().ParentRef()
+}
+
 func (m *MixinWithWhere) SetParent(parent Namespace) {
 	m.MixinProxy.Get().SetParent(parent)
 }
@@ -163,6 +167,10 @@ func (m *MixinWithWhere) SetTypeParameters(t []Ref[*TypeParameter]) {
 
 func (m *MixinWithWhere) Singleton() *SingletonClass {
 	return m.MixinProxy.Get().Singleton()
+}
+
+func (m *MixinWithWhere) SingletonRef() Ref[*SingletonClass] {
+	return m.MixinProxy.Get().SingletonRef()
 }
 
 func (m *MixinWithWhere) SetSingleton(singleton *SingletonClass) {

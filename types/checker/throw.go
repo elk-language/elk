@@ -11,11 +11,11 @@ import (
 )
 
 type catchScope struct {
-	typ        types.Type
+	typ        types.Ref[types.Type]
 	hasFinally bool
 }
 
-func makeCatchScope(typ types.Type, hasFinally bool) catchScope {
+func makeCatchScope(typ types.Ref[types.Type], hasFinally bool) catchScope {
 	return catchScope{
 		typ:        typ,
 		hasFinally: hasFinally,
@@ -72,7 +72,7 @@ func (c *Checker) checkThrowType(throwType types.Type, location *position.Locati
 	}
 
 	for _, catchScope := range c.catchScopes {
-		if c.isSubtype(throwType, catchScope.typ, nil) {
+		if c.isSubtype(throwType, catchScope.typ.Get(), nil) {
 			return
 		}
 	}
@@ -84,7 +84,7 @@ func (c *Checker) checkThrowType(throwType types.Type, location *position.Locati
 
 	switch c.mode {
 	case methodMode, initMode:
-		expectedThrowType := c.NewNormalisedUnion(types.ToRef(c.throwType), types.ToRef(throwType))
+		expectedThrowType := c.NewNormalisedUnion(c.throwType, types.ToRef(throwType))
 		c.addFailure(
 			fmt.Sprintf(
 				"thrown value of type `%s` must be caught or added to the signature of the function `%s`",

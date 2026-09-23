@@ -178,13 +178,13 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 		return c.expandTopLevelMacrosInExpression(result.(ast.ExpressionNode))
 	case *ast.InstanceVariableDeclarationNode,
 		*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
-		namespace := c.currentMethodScope().container
+		namespace := c.currentMethodScope().container.Get()
 		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", false)) // placeholder
 	case *ast.InstanceValueDeclarationNode:
-		namespace := c.currentMethodScope().container
+		namespace := c.currentMethodScope().container.Get()
 		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", true)) // placeholder
 	case *ast.GetterDeclarationNode:
-		namespace := c.currentMethodScope().container
+		namespace := c.currentMethodScope().container.Get()
 		namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", namespace.IsImmutable())) // placeholder
 	}
 
@@ -193,7 +193,7 @@ func (c *Checker) expandTopLevelMacrosInExpression(expr ast.ExpressionNode) ast.
 
 func (c *Checker) resolveSingletonMacro(name symbol.Symbol) *types.Method {
 	for _, methodScope := range ds.ReverseSlice(c.methodScopes) {
-		macro := c.resolveSingletonMacroForNamespace(methodScope.container, name)
+		macro := c.resolveSingletonMacroForNamespace(methodScope.container.Get(), name)
 		if macro != nil {
 			return macro
 		}
@@ -300,8 +300,8 @@ func (c *Checker) getInstanceMacro(name symbol.Symbol, typ types.Type, loc *posi
 	case types.Namespace:
 		namespace = t
 	case types.Self:
-		typ = c.selfType
-		namespace = c.selfType.(types.Namespace)
+		typ = c.selfType.Get()
+		namespace = typ.(types.Namespace)
 	default:
 		c.addUndefinedInstanceMacroError(name.String(), typ, loc)
 		return nil
@@ -749,7 +749,7 @@ func (c *Checker) checkMacroArguments(
 
 func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 	c.setDefinedMacros(true)
-	definedUnder := c.currentMethodScope().container
+	definedUnder := c.currentMethodScope().container.Get()
 	switch definedUnder.(type) {
 	case *types.Module, *types.Class, *types.Mixin, *types.SingletonClass:
 	default:
@@ -780,13 +780,13 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 }
 
 type macroCheckEntry struct {
-	macro *types.Method
+	macro types.Ref[*types.Method]
 	node  *ast.MacroDefinitionNode
 }
 
 func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinitionNode) {
 	c.macroChecks = append(c.macroChecks, macroCheckEntry{
-		macro: macro,
+		macro: types.ToRef(macro),
 		node:  node,
 	})
 }
@@ -797,13 +797,13 @@ func (c *Checker) checkMacros() {
 		MethodCheckConcurrencyLimit,
 		c.macroChecks,
 		func(macroCheck macroCheckEntry) {
-			macro := macroCheck.macro
+			macro := macroCheck.macro.Get()
 			node := macroCheck.node
 			macroChecker := c.newMacroChecker(
 				node.Location().FilePath,
-				c.StdMacro().Singleton(),
-				macro.ReturnType.Get(),
-				macro.ThrowType.Get(),
+				types.CastRef[types.Type](c.StdMacro().Singleton()),
+				macro.ReturnType,
+				macro.ThrowType,
 				macroMode,
 				c.threadPool,
 				node.Location(),
@@ -819,7 +819,7 @@ func (c *Checker) newMacroChecker(
 	filename string,
 	selfType,
 	returnType,
-	throwType types.Type,
+	throwType types.Ref[types.Type],
 	mode mode,
 	threadPool *vm.ThreadPool,
 	loc *position.Location,
@@ -850,7 +850,7 @@ func (c *Checker) newMacroChecker(
 func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *types.Method) {
 	c.method = macro
 	c.checkMethod(
-		c.currentMethodScope().container,
+		c.currentMethodScope().container.Get(),
 		macro,
 		node.Parameters,
 		nil,

@@ -10,7 +10,7 @@ import (
 type loop struct {
 	label                         string
 	returnsValueFromLastIteration bool
-	returnType                    types.Type
+	returnType                    types.Ref[types.Type]
 }
 
 func (c *Checker) registerLoop(label string, returnsValueFromLastIteration bool) *loop {

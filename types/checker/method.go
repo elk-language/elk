@@ -35,14 +35,14 @@ func (c *Checker) checkAllMethodSignaturesOfNamespace(namespace types.Namespace)
 type signatureCheckEntry struct {
 	constantScopes []constantScope
 	methodScopes   []methodScope
-	selfType       types.Type
+	selfType       types.Ref[types.Type]
 	flags          bitfield.BitField16
 	mode           mode
 	node           ast.Node
 }
 
 func (c *Checker) registerSignatureCheck(node ast.Node) {
-	namespaceName := c.currentMethodScope().container.Name()
+	namespaceName := c.currentMethodScope().container.Get().Name()
 	entry := signatureCheckEntry{
 		constantScopes: c.constantScopesCopyWithoutCache(),
 		methodScopes:   c.methodScopesCopyWithoutCache(),
@@ -197,7 +197,7 @@ func (c *Checker) checkSignatureOfAliasDeclaration(node *ast.AliasDeclarationNod
 	node.SetType(types.Untyped{})
 	namespace := c.currentMethodScope().container
 	for _, entry := range node.Entries {
-		c.hoistAliasEntry(entry, namespace)
+		c.hoistAliasEntry(entry, namespace.Get())
 	}
 }
 
@@ -281,23 +281,24 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 }
 
 func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLocation bool) {
+	typeRef := types.Ref[types.Namespace](entry.TypeRef())
 	typ := c.TypeOf(entry)
 	switch t := typ.(type) {
 	case *types.Module:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(makeUsingConstantScope(typeRef))
+		c.pushMethodScope(makeUsingMethodScope(typeRef))
 	case *types.Mixin:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(makeUsingConstantScope(typeRef))
+		c.pushMethodScope(makeUsingMethodScope(typeRef))
 	case *types.Class:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(makeUsingConstantScope(typeRef))
+		c.pushMethodScope(makeUsingMethodScope(typeRef))
 	case *types.Interface:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(makeUsingConstantScope(typeRef))
+		c.pushMethodScope(makeUsingMethodScope(typeRef))
 	case *types.NamespacePlaceholder:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(makeUsingConstantScope(typeRef))
+		c.pushMethodScope(makeUsingMethodScope(typeRef))
 		if pushPlaceholderLocation {
 			t.Locations.Push(entry.Location())
 		}
@@ -305,22 +306,23 @@ func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLoc
 		if c.enclosingScopeIsAUsingBuffer() {
 			return
 		}
-		c.pushConstScope(makeUsingBufferConstantScope(t))
-		c.pushMethodScope(makeUsingBufferMethodScope(t))
+		c.pushConstScope(makeUsingBufferConstantScope(typeRef))
+		c.pushMethodScope(makeUsingBufferMethodScope(typeRef))
 	}
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNode) {
+	typeRef := types.Ref[types.Namespace](node.TypeRef())
 	class, ok := c.TypeOf(node).(*types.Class)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
+		c.pushConstScope(makeLocalConstantScope(typeRef))
+		c.pushMethodScope(makeLocalMethodScope(typeRef))
 	}
 
 	previousMode := c.mode
 	previousSelf := c.selfType
 	c.mode = classMode
-	c.selfType = class
+	c.selfType = types.CastRef[types.Type](class)
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
@@ -362,16 +364,17 @@ func (c *Checker) registerNamespaceWithIvars(namespace types.NamespaceWithIvarIn
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
+	typeRef := types.Ref[types.Namespace](node.TypeRef())
 	module, ok := c.TypeOf(node).(*types.Module)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(module))
-		c.pushMethodScope(makeLocalMethodScope(module))
+		c.pushConstScope(makeLocalConstantScope(typeRef))
+		c.pushMethodScope(makeLocalMethodScope(typeRef))
 	}
 
 	previousMode := c.mode
 	previousSelf := c.selfType
 	c.mode = moduleMode
-	c.selfType = module
+	c.selfType = types.CastRef[types.Type](module)
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
@@ -384,16 +387,17 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNode) {
+	typeRef := types.Ref[types.Namespace](node.TypeRef())
 	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
+		c.pushConstScope(makeLocalConstantScope(typeRef))
+		c.pushMethodScope(makeLocalMethodScope(typeRef))
 	}
 
 	previousMode := c.mode
 	previousSelf := c.selfType
 	c.mode = mixinMode
-	c.selfType = mixin
+	c.selfType = types.CastRef[types.Type](mixin)
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
@@ -405,16 +409,17 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
+	typeRef := types.Ref[types.Namespace](node.TypeRef())
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(iface))
-		c.pushMethodScope(makeLocalMethodScope(iface))
+		c.pushConstScope(makeLocalConstantScope(typeRef))
+		c.pushMethodScope(makeLocalMethodScope(typeRef))
 	}
 
 	previousMode := c.mode
 	previousSelf := c.selfType
 	c.mode = interfaceMode
-	c.selfType = iface
+	c.selfType = types.CastRef[types.Type](iface)
 	c.hoistMethodDefinitions(node.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
@@ -426,19 +431,19 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlockExpressionNode) {
-	namespace := c.currentConstScope().container
+	namespace := c.currentConstScope().container.Get()
 	singleton := namespace.Singleton()
 	if singleton == nil {
 		return
 	}
 
-	c.pushConstScope(makeLocalConstantScope(singleton))
-	c.pushMethodScope(makeLocalMethodScope(singleton))
+	c.pushConstScope(makeLocalConstantScope(types.CastRef[types.Namespace](singleton)))
+	c.pushMethodScope(makeLocalMethodScope(types.CastRef[types.Namespace](singleton)))
 
 	previousMode := c.mode
 	previousSelf := c.selfType
 	c.mode = singletonMode
-	c.selfType = singleton
+	c.selfType = types.CastRef[types.Type](singleton)
 	c.hoistMethodDefinitions(expr.Body)
 	c.setMode(previousMode)
 	c.selfType = previousSelf
@@ -449,10 +454,11 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
-	namespace, ok := c.TypeOf(node).(*types.MixinWithWhere)
+	typeRef := types.Ref[types.Namespace](node.TypeRef())
+	_, ok := c.TypeOf(node).(*types.MixinWithWhere)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(namespace))
-		c.pushMethodScope(makeLocalMethodScope(namespace))
+		c.pushConstScope(makeLocalConstantScope(typeRef))
+		c.pushMethodScope(makeLocalMethodScope(typeRef))
 	}
 
 	previousMode := c.mode
@@ -520,7 +526,7 @@ func (c *Checker) hoistMethodDefinition(node *ast.MethodDefinitionNode) {
 }
 
 func (c *Checker) checkSignatureOfMethodDefinition(node *ast.MethodDefinitionNode) {
-	definedUnder := c.currentMethodScope().container
+	definedUnder := c.currentMethodScope().container.Get()
 	method, mod := c.declareMethod(
 		definedUnder,
 		node.DocComment(),
@@ -552,7 +558,7 @@ func (c *Checker) hoistMethodSignatureDefinition(node *ast.MethodSignatureDefini
 
 func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSignatureDefinitionNode) {
 	method, mod := c.declareMethod(
-		c.currentMethodScope().container,
+		c.currentMethodScope().container.Get(),
 		node.DocComment(),
 		true,
 		false,
@@ -580,7 +586,7 @@ func (c *Checker) newMethodChecker(
 	methodScopes []methodScope,
 	selfType,
 	returnType,
-	throwType types.Type,
+	throwType types.Ref[types.Type],
 	mode mode,
 	threadPool *vm.ThreadPool,
 	loc *position.Location,
@@ -611,7 +617,8 @@ func (c *Checker) newMethodChecker(
 
 // Checks whether all methods specified in `using` statements have been defined
 func (c *Checker) checkMethodPlaceholders() {
-	for _, placeholder := range c.methodPlaceholders {
+	for _, placeholderRef := range c.methodPlaceholders {
+		placeholder := placeholderRef.Get()
 		if placeholder.IsChecked() {
 			continue
 		}
@@ -629,7 +636,7 @@ func (c *Checker) checkMethodPlaceholders() {
 }
 
 type methodBodyCheckEntry struct {
-	method         *types.Method
+	method         types.Ref[*types.Method]
 	constantScopes []constantScope
 	methodScopes   []methodScope
 	node           *ast.MethodDefinitionNode
@@ -642,7 +649,7 @@ func (c *Checker) registerMethodBodyCheck(method *types.Method, node *ast.Method
 	}
 
 	c.methodBodyChecks = append(c.methodBodyChecks, methodBodyCheckEntry{
-		method:         method,
+		method:         types.ToRef(method),
 		constantScopes: c.constantScopesCopyWithoutCache(),
 		methodScopes:   c.methodScopesCopyWithoutCache(),
 		node:           node,
@@ -657,7 +664,7 @@ func (c *Checker) checkMethodBodies() {
 		MethodCheckConcurrencyLimit,
 		c.methodBodyChecks,
 		func(methodCheck methodBodyCheckEntry) {
-			method := methodCheck.method
+			method := methodCheck.method.Get()
 			node := methodCheck.node
 
 			var mode mode
@@ -672,9 +679,9 @@ func (c *Checker) checkMethodBodies() {
 				elkName,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,
-				method.DefinedUnder.Get(),
-				method.ReturnType.Get(),
-				method.ThrowType.Get(),
+				types.Ref[types.Type](method.DefinedUnder),
+				method.ReturnType,
+				method.ThrowType,
 				mode,
 				c.threadPool,
 				node.Location(),
@@ -734,7 +741,7 @@ func (c *Checker) checkMethodInConstant(method *types.Method, usedInConstants ds
 func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docComment string, pure bool) {
 	name := c.identifierToName(node.Name)
 	method, mod := c.declareMethod(
-		c.currentMethodScope().container,
+		c.currentMethodScope().container.Get(),
 		docComment,
 		false,
 		false,
@@ -812,7 +819,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		),
 	}
 	method, mod := c.declareMethod(
-		methodScope.container,
+		methodScope.container.Get(),
 		docComment,
 		false,
 		false,
@@ -1197,7 +1204,7 @@ func (c *Checker) checkMethod(
 	c.mode = prevMode
 	c.setOutputPositionTypeMode()
 
-	returnType := checkedMethod.ReturnType.Get()
+	returnType := checkedMethod.ReturnType
 	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
@@ -1205,19 +1212,19 @@ func (c *Checker) checkMethod(
 
 	origReturnType := returnType
 	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
-		returnType = origReturnType.(*types.Generic).Get(0).Type.Get()
+		returnType = origReturnType.Get().(*types.Generic).Get(0).Type
 	}
 
-	throwType := checkedMethod.ThrowType.Get()
+	throwType := checkedMethod.ThrowType
 	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
-		throwType = c.TypeOf(typedThrowTypeNode)
+		throwType = typedThrowTypeNode.TypeRef()
 	}
 	if checkedMethod.IsGenerator() || checkedMethod.IsAsync() {
-		throwType = origReturnType.(*types.Generic).Get(1).Type.Get()
+		throwType = origReturnType.Get().(*types.Generic).Get(1).Type
 	}
-	if !types.IsNever(throwType) && throwType != nil {
+	if !types.IsNeverRef(throwType) && throwType.IsPresent() {
 		c.pushCatchScope(makeCatchScope(throwType, false))
 	}
 
@@ -1233,10 +1240,10 @@ func (c *Checker) checkMethod(
 
 	if !c.IsHeader() {
 		if isClosure {
-			if returnType == nil {
+			if returnType.IsZero() {
 				c.setInferClosureReturnType(true)
 			}
-			if throwType == nil {
+			if throwType.IsZero() {
 				c.setInferClosureThrowType(true)
 			}
 		}
@@ -1260,19 +1267,19 @@ func (c *Checker) checkMethod(
 		if !checkedMethod.IsAbstract() && !c.IsHeader() {
 			if c.shouldInferClosureReturnType() {
 				c.addToReturnType(bodyReturnType)
-				checkedMethod.ReturnType = types.ToRef(c.returnType)
+				checkedMethod.ReturnType = c.returnType
 			} else {
 				if returnSpan == nil {
 					returnSpan = location
 				}
-				c.checkCanAssign(bodyReturnType, returnType, returnSpan)
+				c.checkCanAssign(bodyReturnType, returnType.Get(), returnSpan)
 			}
 
 			if c.shouldInferClosureThrowType() {
-				if c.throwType == nil {
+				if c.throwType.IsZero() {
 					checkedMethod.ThrowType = types.NeverID
 				} else {
-					checkedMethod.ThrowType = types.ToRef(c.throwType)
+					checkedMethod.ThrowType = c.throwType
 				}
 			}
 		}
@@ -1281,8 +1288,8 @@ func (c *Checker) checkMethod(
 	checkedMethod.SetHasDefer(c.hasDefer())
 
 	c.setHasDefer(prevHasDefer)
-	c.returnType = nil
-	c.throwType = nil
+	c.returnType = types.ZERO_ID
+	c.throwType = types.ZERO_ID
 	c.mode = prevMode
 	c.flags = prevFlags
 	c.catchScopes = prevCatchScopes
@@ -1402,13 +1409,14 @@ func (c *Checker) checkRelationalOperator(name symbol.Symbol, checkedMethod *typ
 	} else {
 		paramSpan = location
 	}
-	if !checkedMethod.IsAbstract() && !c.isSubtype(c.selfType, param.Type.Get(), nil) {
+	self := c.selfType.Get()
+	if !checkedMethod.IsAbstract() && !c.isSubtype(self, param.Type.Get(), nil) {
 		c.addFailure(
 			fmt.Sprintf(
 				"parameter `%s` of relational operator `%s` must accept `%s`",
 				lexer.Colorize(param.Name.String()),
 				lexer.Colorize(name.String()),
-				types.InspectWithColor(c.selfType),
+				types.InspectWithColor(self),
 			),
 			paramSpan,
 		)
@@ -1477,21 +1485,21 @@ func (c *Checker) checkFixedParameterCountMethod(name symbol.Symbol, checkedMeth
 }
 
 func (c *Checker) addToReturnType(typ types.Type) {
-	if c.returnType == nil {
-		c.returnType = typ
+	if c.returnType.IsZero() {
+		c.returnType = types.ToRef(typ)
 		return
 	}
 
-	c.returnType = c.NewNormalisedUnion(types.ToRef(c.returnType), types.ToRef(typ))
+	c.returnType = types.ToRef(c.NewNormalisedUnion(c.returnType, types.ToRef(typ)))
 }
 
 func (c *Checker) addToThrowType(typ types.Type) {
-	if c.throwType == nil {
-		c.throwType = typ
+	if c.throwType.IsZero() {
+		c.throwType = types.ToRef(typ)
 		return
 	}
 
-	c.throwType = c.NewNormalisedUnion(types.ToRef(c.throwType), types.ToRef(typ))
+	c.throwType = types.ToRef(c.NewNormalisedUnion(c.throwType, types.ToRef(typ)))
 }
 
 type inferArg struct {
@@ -2277,7 +2285,7 @@ func (c *Checker) checkBinaryOpMethodCall(
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *types.Method) {
 	c.method = method
 	returnType, throwType := c.checkMethod(
-		c.currentMethodScope().container,
+		c.currentMethodScope().container.Get(),
 		method,
 		node.Parameters,
 		node.ReturnType,
@@ -2433,7 +2441,7 @@ func (c *Checker) declareMethodWithBase(
 	if len(typeParamNodes) > 0 {
 		typeParams = make([]types.Ref[*types.TypeParameter], 0, len(typeParamNodes))
 		typeParamMod = types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name), true)
-		c.pushConstScope(makeConstantScope(typeParamMod))
+		c.pushConstScope(makeConstantScope(types.CastRef[types.Namespace](typeParamMod)))
 		for _, typeParamNode := range typeParamNodes {
 			node, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 			if !ok {
@@ -3482,7 +3490,7 @@ func (c *Checker) getReceiverlessMethod(name symbol.Symbol, location *position.L
 		}
 		return c.GetMethod(local.typ.Get(), symbol.L_call, location), nil, true
 	}
-	method := c.GetMethod(c.selfType, name, nil)
+	method := c.GetMethod(c.selfType.Get(), name, nil)
 	if method != nil {
 		return method, nil, false
 	}
@@ -3494,14 +3502,14 @@ func (c *Checker) getReceiverlessMethod(name symbol.Symbol, location *position.L
 			continue
 		}
 
-		namespace := methodScope.container
+		namespace := methodScope.container.Get()
 		method := c.GetMethod(namespace, name, nil)
 		if method != nil {
 			return method, namespace, false
 		}
 	}
 
-	c.addMissingMethodError(c.selfType, name.String(), location)
+	c.addMissingMethodError(c.selfType.Get(), name.String(), location)
 
 	return nil, nil, false
 }
@@ -3511,7 +3519,7 @@ func (c *Checker) _getMethod(typ types.Type, name symbol.Symbol, errLoc *positio
 
 	switch t := typ.(type) {
 	case types.Self:
-		return c._getMethod(c.selfType, name, errLoc, inParent, true)
+		return c._getMethod(c.selfType.Get(), name, errLoc, inParent, true)
 	case *types.NamedType:
 		return c._getMethod(t.Type.Get(), name, errLoc, inParent, inSelf)
 	case *types.TypeParameter:

@@ -92,12 +92,20 @@ func (t *TypeParamNamespace) Parent() Namespace {
 	return nil
 }
 
+func (t *TypeParamNamespace) ParentRef() Ref[Namespace] {
+	return 0
+}
+
 func (t *TypeParamNamespace) SetParent(Namespace) {
 	panic("cannot set parent of type param namespaces")
 }
 
 func (t *TypeParamNamespace) Singleton() *SingletonClass {
 	return nil
+}
+
+func (t *TypeParamNamespace) SingletonRef() Ref[*SingletonClass] {
+	return 0
 }
 
 func (t *TypeParamNamespace) SetSingleton(*SingletonClass) {

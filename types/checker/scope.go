@@ -16,32 +16,32 @@ const (
 )
 
 type constantScope struct {
-	container types.Namespace
+	container types.Ref[types.Namespace]
 	kind      scopeKind
 }
 
-func makeUsingConstantScope(container types.Namespace) constantScope {
+func makeUsingConstantScope(container types.Ref[types.Namespace]) constantScope {
 	return constantScope{
 		container: container,
 		kind:      scopeUsingKind,
 	}
 }
 
-func makeUsingBufferConstantScope(container types.Namespace) constantScope {
+func makeUsingBufferConstantScope(container types.Ref[types.Namespace]) constantScope {
 	return constantScope{
 		container: container,
 		kind:      scopeUsingBufferKind,
 	}
 }
 
-func makeLocalConstantScope(container types.Namespace) constantScope {
+func makeLocalConstantScope(container types.Ref[types.Namespace]) constantScope {
 	return constantScope{
 		container: container,
 		kind:      scopeLocalKind,
 	}
 }
 
-func makeConstantScope(container types.Namespace) constantScope {
+func makeConstantScope(container types.Ref[types.Namespace]) constantScope {
 	return constantScope{
 		container: container,
 	}
@@ -59,7 +59,7 @@ func (c *Checker) getUsingBufferNamespace() types.Namespace {
 
 	scope := c.enclosingConstScope()
 	if scope.kind == scopeUsingBufferKind {
-		return scope.container
+		return scope.container.Get()
 	}
 
 	return c.createUsingBufferNamespace()
@@ -126,32 +126,32 @@ func (c *Checker) enclosingConstScope() constantScope {
 }
 
 type methodScope struct {
-	container types.Namespace
+	container types.Ref[types.Namespace]
 	kind      scopeKind
 }
 
-func makeUsingMethodScope(container types.Namespace) methodScope {
+func makeUsingMethodScope(container types.Ref[types.Namespace]) methodScope {
 	return methodScope{
 		container: container,
 		kind:      scopeUsingKind,
 	}
 }
 
-func makeUsingBufferMethodScope(container types.Namespace) methodScope {
+func makeUsingBufferMethodScope(container types.Ref[types.Namespace]) methodScope {
 	return methodScope{
 		container: container,
 		kind:      scopeUsingBufferKind,
 	}
 }
 
-func makeLocalMethodScope(container types.Namespace) methodScope {
+func makeLocalMethodScope(container types.Ref[types.Namespace]) methodScope {
 	return methodScope{
 		container: container,
 		kind:      scopeLocalKind,
 	}
 }
 
-func makeMethodScope(container types.Namespace) methodScope {
+func makeMethodScope(container types.Ref[types.Namespace]) methodScope {
 	return methodScope{
 		container: container,
 	}
@@ -159,8 +159,8 @@ func makeMethodScope(container types.Namespace) methodScope {
 
 func (c *Checker) createUsingBufferNamespace() types.Namespace {
 	mod := types.NewUsingBufferNamespace()
-	c.pushConstScope(makeUsingBufferConstantScope(mod))
-	c.pushMethodScope(makeUsingBufferMethodScope(mod))
+	c.pushConstScope(makeUsingBufferConstantScope(types.CastRef[types.Namespace](mod)))
+	c.pushMethodScope(makeUsingBufferMethodScope(types.CastRef[types.Namespace](mod)))
 	return mod
 }
 

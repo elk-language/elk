@@ -376,7 +376,8 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 func (c *Checker) resolvePublicConstant(name string, location *position.Location) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant, ok := constScope.container.ConstantString(name)
+		container := constScope.container.Get()
+		constant, ok := container.ConstantString(name)
 		if !ok {
 			continue
 		}
@@ -385,7 +386,7 @@ func (c *Checker) resolvePublicConstant(name string, location *position.Location
 		if len(constant.FullName) > 0 {
 			fullName = constant.FullName
 		} else {
-			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+			fullName = types.MakeFullConstantName(container.Name(), name)
 		}
 		if !c.checkConstantIfNecessary(fullName, location) {
 			return nil, fullName
@@ -414,7 +415,9 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 		if constScope.kind != scopeLocalKind {
 			continue
 		}
-		constant, ok := constScope.container.ConstantString(name)
+
+		container := constScope.container.Get()
+		constant, ok := container.ConstantString(name)
 		if !ok {
 			continue
 		}
@@ -423,7 +426,7 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 		if len(constant.FullName) > 0 {
 			fullName = constant.FullName
 		} else {
-			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
+			fullName = types.MakeFullConstantName(container.Name(), name)
 		}
 		if !c.checkConstantIfNecessary(fullName, location) {
 			return nil, fullName

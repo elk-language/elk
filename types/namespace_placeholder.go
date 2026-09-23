@@ -160,12 +160,20 @@ func (n *NamespacePlaceholder) Parent() Namespace {
 	return n.Namespace.Get().Parent()
 }
 
+func (n *NamespacePlaceholder) ParentRef() Ref[Namespace] {
+	return n.Namespace.Get().ParentRef()
+}
+
 func (n *NamespacePlaceholder) SetParent(parent Namespace) {
 	n.Namespace.Get().SetParent(parent)
 }
 
 func (n *NamespacePlaceholder) Singleton() *SingletonClass {
 	return n.Namespace.Get().Singleton()
+}
+
+func (n *NamespacePlaceholder) SingletonRef() Ref[*SingletonClass] {
+	return n.Namespace.Get().SingletonRef()
 }
 
 func (n *NamespacePlaceholder) SetSingleton(singleton *SingletonClass) {

@@ -20,6 +20,10 @@ func (i *InterfaceProxy) Parent() Namespace {
 	return i.parent.Get()
 }
 
+func (i *InterfaceProxy) ParentRef() Ref[Namespace] {
+	return i.parent
+}
+
 func (i *InterfaceProxy) SetParent(parent Namespace) {
 	i.parent = ToRef(parent)
 }
@@ -118,6 +122,10 @@ func (i *InterfaceProxy) SetTypeParameters(t []Ref[*TypeParameter]) {
 
 func (i *InterfaceProxy) Singleton() *SingletonClass {
 	return i.Interface.Get().Singleton()
+}
+
+func (i *InterfaceProxy) SingletonRef() Ref[*SingletonClass] {
+	return i.Interface.Get().SingletonRef()
 }
 
 func (i *InterfaceProxy) SetSingleton(singleton *SingletonClass) {

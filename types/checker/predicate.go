@@ -479,7 +479,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		return true
 	}
 
-	if c.mode == implicitInterfaceSubtypeMode && c.typesAreIdentical(c.selfType, a) && c.typesAreIdentical(c.throwType, b) {
+	if c.mode == implicitInterfaceSubtypeMode && c.typesAreIdentical(c.selfType.Get(), a) && c.typesAreIdentical(c.throwType.Get(), b) {
 		return true
 	}
 
@@ -534,7 +534,7 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		}
 		return false
 	case types.Self:
-		return c.isSubtype(c.selfType, b, errLoc)
+		return c.isSubtype(c.selfType.Get(), b, errLoc)
 	case *types.TypeParameter:
 		result, end := c.typeParameterIsSubtype(a, b, errLoc)
 		if end {
@@ -1127,11 +1127,11 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 
 	// use `selfType` to store type `a`
 	prevSelf := c.selfType
-	c.selfType = a
+	c.selfType = types.CastRef[types.Type](a)
 
 	// use `throwType` to store type `b` (the interface)
 	prevThrow := c.throwType
-	c.throwType = b
+	c.throwType = types.CastRef[types.Type](b)
 
 	var incorrectMethods []methodOverride
 

@@ -131,12 +131,20 @@ func (c *Callable) Parent() Namespace {
 	return nil
 }
 
+func (c *Callable) ParentRef() Ref[Namespace] {
+	return 0
+}
+
 func (c *Callable) SetParent(Namespace) {
 	panic("cannot set parent of callable")
 }
 
 func (c *Callable) Singleton() *SingletonClass {
 	return nil
+}
+
+func (c *Callable) SingletonRef() Ref[*SingletonClass] {
+	return 0
 }
 
 func (c *Callable) SetSingleton(*SingletonClass) {

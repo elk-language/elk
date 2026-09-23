@@ -63,6 +63,10 @@ func (i *Interface) Singleton() *SingletonClass {
 	return i.singleton.Get()
 }
 
+func (i *Interface) SingletonRef() Ref[*SingletonClass] {
+	return i.singleton
+}
+
 func (i *Interface) SetSingleton(singleton *SingletonClass) {
 	i.singleton = ToRef(singleton)
 }
@@ -97,6 +101,10 @@ func (*Interface) IsImmutable() bool {
 
 func (i *Interface) Parent() Namespace {
 	return i.parent.Get()
+}
+
+func (i *Interface) ParentRef() Ref[Namespace] {
+	return i.parent
 }
 
 func (i *Interface) SetParent(parent Namespace) {

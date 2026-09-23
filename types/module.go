@@ -66,12 +66,23 @@ func (*Module) Singleton() *SingletonClass {
 	return nil
 }
 
+func (*Module) SingletonRef() Ref[*SingletonClass] {
+	return 0
+}
+
 func (m *Module) SetSingleton(*SingletonClass) {
 	panic(fmt.Sprintf("cannot set singleton class of a module: %s", m.Name()))
 }
 
 func (m *Module) Parent() Namespace {
 	return m.parent
+}
+
+func (m *Module) ParentRef() Ref[Namespace] {
+	if m.parent == nil {
+		return 0
+	}
+	return ToRef(m.parent)
 }
 
 func (m *Module) SetParent(parent Namespace) {

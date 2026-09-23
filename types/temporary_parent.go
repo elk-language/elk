@@ -107,12 +107,20 @@ func (n *TemporaryParent) Parent() Namespace {
 	return n.Namespace.Get().Parent()
 }
 
+func (n *TemporaryParent) ParentRef() Ref[Namespace] {
+	return n.Namespace.Get().ParentRef()
+}
+
 func (n *TemporaryParent) SetParent(parent Namespace) {
 	n.Namespace.Get().SetParent(parent)
 }
 
 func (n *TemporaryParent) Singleton() *SingletonClass {
 	return n.Namespace.Get().Singleton()
+}
+
+func (n *TemporaryParent) SingletonRef() Ref[*SingletonClass] {
+	return n.Namespace.Get().SingletonRef()
 }
 
 func (n *TemporaryParent) SetSingleton(singleton *SingletonClass) {

@@ -26,8 +26,10 @@ type Namespace interface {
 	SetDocComment(string)
 	AppendDocComment(string)
 	Parent() Namespace
+	ParentRef() Ref[Namespace]
 	SetParent(Namespace)
 	Singleton() *SingletonClass
+	SingletonRef() Ref[*SingletonClass]
 	SetSingleton(*SingletonClass)
 	IsAbstract() bool
 	IsSealed() bool
