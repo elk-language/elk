@@ -25,7 +25,7 @@ func (c *FloatLiteral) CopyType() Type {
 }
 
 func (c *FloatLiteral) ToRef() Ref[*FloatLiteral] {
-	return Ref[*FloatLiteral](c.id)
+	return ToRef(c)
 }
 
 func (f *FloatLiteral) HashUint64() uint64 {
@@ -133,7 +133,7 @@ func (c *Float64Literal) CopyType() Type {
 }
 
 func (c *Float64Literal) ToRef() Ref[*Float64Literal] {
-	return Ref[*Float64Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Float64Literal) HashUint64() uint64 {
@@ -241,7 +241,7 @@ func (c *Float32Literal) CopyType() Type {
 }
 
 func (c *Float32Literal) ToRef() Ref[*Float32Literal] {
-	return Ref[*Float32Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Float32Literal) HashUint64() uint64 {
@@ -349,7 +349,7 @@ func (c *BigFloatLiteral) CopyType() Type {
 }
 
 func (c *BigFloatLiteral) ToRef() Ref[*BigFloatLiteral] {
-	return Ref[*BigFloatLiteral](c.id)
+	return ToRef(c)
 }
 
 func (f *BigFloatLiteral) HashUint64() uint64 {

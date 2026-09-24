@@ -17,7 +17,7 @@ type Module struct {
 }
 
 func (m *Module) ToRef() Ref[*Module] {
-	return Ref[*Module](m.id)
+	return ToRef(m)
 }
 
 func (m *Module) EqualAny(other any) bool {

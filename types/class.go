@@ -31,7 +31,7 @@ type Class struct {
 var _ Namespace = &Class{}
 
 func (c *Class) ToRef() Ref[*Class] {
-	return Ref[*Class](c.id)
+	return ToRef(c)
 }
 
 func (c *Class) EqualAny(other any) bool {

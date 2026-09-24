@@ -32,7 +32,7 @@ func NewIntersection(elements ...Type) *Intersection {
 }
 
 func (i *Intersection) ToRef() Ref[*Intersection] {
-	return Ref[*Intersection](i.id)
+	return ToRef(i)
 }
 
 func (i *Intersection) HashUint64() uint64 {

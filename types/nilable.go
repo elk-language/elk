@@ -19,7 +19,7 @@ func NewNilable(typ Type) *Nilable {
 }
 
 func (n *Nilable) ToRef() Ref[*Nilable] {
-	return Ref[*Nilable](n.id)
+	return ToRef(n)
 }
 
 func (n *Nilable) HashUint64() uint64 {

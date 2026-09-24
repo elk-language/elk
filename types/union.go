@@ -32,7 +32,7 @@ func NewUnionRef(elements ...Ref[Type]) *Union {
 }
 
 func (u *Union) ToRef() Ref[*Union] {
-	return Ref[*Union](u.id)
+	return ToRef(u)
 }
 
 func (u *Union) HashUint64() uint64 {

@@ -12,7 +12,7 @@ type SingletonClass struct {
 }
 
 func (c *SingletonClass) EqualAny(other any) bool {
-	o, ok := other.(Namespace)
+	o, ok := other.(*SingletonClass)
 	if !ok {
 		return false
 	}
@@ -25,7 +25,7 @@ func (c *SingletonClass) EqualAny(other any) bool {
 }
 
 func (c *SingletonClass) ToRef() Ref[*SingletonClass] {
-	return Ref[*SingletonClass](c.id)
+	return ToRef(c)
 }
 
 func (c *SingletonClass) SetParent(parent Namespace) {
@@ -43,10 +43,8 @@ func (c *SingletonClass) RemoveTemporaryParents() {
 func NewSingletonClass(attached Namespace, parent Namespace) *SingletonClass {
 	singleton := &SingletonClass{
 		AttachedObject: ToRef(attached),
-		Class: Class{
-			parent:        ToRef(parent),
-			NamespaceBase: MakeNamespaceBase("", "&"+attached.Name()),
-		},
+		parent:         ToRef(parent),
+		NamespaceBase:  MakeNamespaceBase("", "&"+attached.Name()),
 	}
 	return singleton
 }

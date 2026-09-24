@@ -91,7 +91,7 @@ func (c *Checker) IsTheSameType(a, b types.Type) bool {
 // Check whether the two given types represent the same type.
 // Return true if they do, otherwise false.
 func (c *Checker) isTheSameType(a, b types.Type, errLoc *position.Location) bool {
-	return a.ID() == b.ID() || c.isSubtype(a, b, errLoc) && c.isSubtype(b, a, errLoc)
+	return c.isSubtype(a, b, errLoc) && c.isSubtype(b, a, errLoc)
 }
 
 func (c *Checker) toInnerNamespace(a types.Namespace) types.Namespace {
@@ -476,6 +476,9 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		return false
 	}
 	if a == nil && b == nil {
+		return true
+	}
+	if a.ID() == b.ID() {
 		return true
 	}
 

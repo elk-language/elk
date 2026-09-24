@@ -20,7 +20,7 @@ func NewNamedType(name string, typ Type) *NamedType {
 }
 
 func (s *NamedType) ToRef() Ref[*NamedType] {
-	return Ref[*NamedType](s.id)
+	return ToRef(s)
 }
 
 func (s *NamedType) HashUint64() uint64 {

@@ -23,7 +23,7 @@ func (s *SymbolLiteral) CopyType() Type {
 }
 
 func (s *SymbolLiteral) ToRef() Ref[*SymbolLiteral] {
-	return Ref[*SymbolLiteral](s.id)
+	return ToRef(s)
 }
 
 func (s *SymbolLiteral) HashUint64() uint64 {

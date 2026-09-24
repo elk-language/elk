@@ -14,7 +14,7 @@ type IntLiteral struct {
 }
 
 func (i *IntLiteral) ToRef() Ref[*IntLiteral] {
-	return Ref[*IntLiteral](i.id)
+	return ToRef(i)
 }
 
 func (i *IntLiteral) Copy() *IntLiteral {
@@ -133,7 +133,7 @@ func (i *Int64Literal) CopyType() Type {
 }
 
 func (c *Int64Literal) ToRef() Ref[*Int64Literal] {
-	return Ref[*Int64Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Int64Literal) HashUint64() uint64 {
@@ -250,7 +250,7 @@ func (i *Int32Literal) traverse(parent Type, enter func(node, parent Type) Trave
 }
 
 func (c *Int32Literal) ToRef() Ref[*Int32Literal] {
-	return Ref[*Int32Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Int32Literal) HashUint64() uint64 {
@@ -349,7 +349,7 @@ func (i *Int16Literal) CopyType() Type {
 }
 
 func (c *Int16Literal) ToRef() Ref[*Int16Literal] {
-	return Ref[*Int16Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Int16Literal) HashUint64() uint64 {
@@ -457,7 +457,7 @@ func (i *Int8Literal) CopyType() Type {
 }
 
 func (c *Int8Literal) ToRef() Ref[*Int8Literal] {
-	return Ref[*Int8Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *Int8Literal) HashUint64() uint64 {
@@ -565,7 +565,7 @@ func (i *UIntLiteral) CopyType() Type {
 }
 
 func (c *UIntLiteral) ToRef() Ref[*UIntLiteral] {
-	return Ref[*UIntLiteral](c.id)
+	return ToRef(c)
 }
 
 func (f *UIntLiteral) HashUint64() uint64 {
@@ -673,7 +673,7 @@ func (i *UInt64Literal) CopyType() Type {
 }
 
 func (c *UInt64Literal) ToRef() Ref[*UInt64Literal] {
-	return Ref[*UInt64Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *UInt64Literal) HashUint64() uint64 {
@@ -781,7 +781,7 @@ func (i *UInt32Literal) CopyType() Type {
 }
 
 func (c *UInt32Literal) ToRef() Ref[*UInt32Literal] {
-	return Ref[*UInt32Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *UInt32Literal) HashUint64() uint64 {
@@ -889,7 +889,7 @@ func (i *UInt16Literal) CopyType() Type {
 }
 
 func (c *UInt16Literal) ToRef() Ref[*UInt16Literal] {
-	return Ref[*UInt16Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *UInt16Literal) HashUint64() uint64 {
@@ -996,7 +996,7 @@ func (i *UInt8Literal) CopyType() Type {
 }
 
 func (c *UInt8Literal) ToRef() Ref[*UInt8Literal] {
-	return Ref[*UInt8Literal](c.id)
+	return ToRef(c)
 }
 
 func (f *UInt8Literal) HashUint64() uint64 {

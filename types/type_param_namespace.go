@@ -18,7 +18,7 @@ type TypeParamNamespace struct {
 var _ Namespace = &TypeParamNamespace{}
 
 func (n *TypeParamNamespace) ToRef() Ref[*TypeParamNamespace] {
-	return Ref[*TypeParamNamespace](n.id)
+	return ToRef(n)
 }
 
 func (n *TypeParamNamespace) HashUint64() uint64 {

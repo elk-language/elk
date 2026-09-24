@@ -222,7 +222,7 @@ func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primiti
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	class := NewClass(docComment, abstract, sealed, primitive, noinit, immutable, fullName, parent)
 	c.DefineSubtypeWithFullName(name, fullName, class)
-	c.DefineConstantWithFullName(name, fullName, class.singleton.Get())
+	c.DefineConstantWithFullNameRef(name, fullName, Ref[Type](class.singleton))
 	return class
 }
 

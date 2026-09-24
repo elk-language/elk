@@ -238,7 +238,7 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Set up type parameters\nvar typeParam *TypeParameter\n")
 	fmt.Fprintf(
 		buffer,
-		"typeParams := make([]*TypeParameter, %d)\n",
+		"typeParams := make([]Ref[*TypeParameter], %d)\n",
 		len(namespace.TypeParameters()),
 	)
 
@@ -248,7 +248,7 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 			buffer,
 			`
 				typeParam = NewTypeParameter(symbol.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s)
-				typeParams[%[3]d] = typeParam
+				typeParams[%[3]d] = typeParam.ToRef()
 				namespace.DefineSubtype(symbol.ToSymbol(%[1]q), typeParam)
 				namespace.DefineConstant(symbol.ToSymbol(%[1]q), NoValue{})
 			`,
@@ -286,12 +286,12 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 }
 
 func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []types.Ref[*types.TypeParameter]) {
-	buffer.WriteString(`[]*TypeParameter{`)
+	buffer.WriteString(`[]Ref[*TypeParameter]{`)
 	for _, paramRef := range typeParams {
 		param := paramRef.Get()
 		fmt.Fprintf(
 			buffer,
-			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s)",
+			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s).ToRef()",
 			param.Name.String(),
 			typeToCode(param.LowerBound.Get(), false),
 			typeToCode(param.UpperBound.Get(), false),
@@ -303,11 +303,11 @@ func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []ty
 }
 
 func createTypeParameters(buffer *bytes.Buffer, typeParams []*types.TypeParameter) {
-	buffer.WriteString(`[]*TypeParameter{`)
+	buffer.WriteString(`[]Ref[*TypeParameter]{`)
 	for _, param := range typeParams {
 		fmt.Fprintf(
 			buffer,
-			"%s,",
+			"%s.ToRef(),",
 			typeToCode(param, true),
 		)
 	}
@@ -399,11 +399,11 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, 
 	)
 
 	if len(method.TypeParameters) > 0 {
-		buffer.WriteString("[]*TypeParameter{")
+		buffer.WriteString("[]Ref[*TypeParameter]{")
 		for _, param := range method.TypeParameters {
 			fmt.Fprintf(
 				buffer,
-				"%s,",
+				"%s.ToRef(),",
 				typeToCode(param.Get(), true),
 			)
 		}
@@ -413,12 +413,12 @@ func methodConstructorArguments(buffer *bytes.Buffer, methodName symbol.Symbol, 
 	}
 
 	if len(method.Params) > 0 {
-		buffer.WriteString("[]*Parameter{")
+		buffer.WriteString("[]Ref[*Parameter]{")
 		for _, paramRef := range method.Params {
 			param := paramRef.Get()
 			fmt.Fprintf(
 				buffer,
-				"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
+				"NewParameter(symbol.ToSymbol(%q), %s, %s, %t).ToRef(),",
 				param.Name.String(),
 				typeToCode(param.Type.Get(), false),
 				param.Kind,
@@ -874,11 +874,11 @@ func typeToCode(typ types.Type, init bool) string {
 		)
 
 		if len(body.TypeParameters) > 0 {
-			buff.WriteString("[]*TypeParameter{")
+			buff.WriteString("[]Ref[*TypeParameter]{")
 			for _, param := range body.TypeParameters {
 				fmt.Fprintf(
 					buff,
-					"%s.(*TypeParameter),",
+					"CastRef[*TypeParameter](%s),",
 					typeToCode(param.Get(), false),
 				)
 			}
@@ -888,12 +888,12 @@ func typeToCode(typ types.Type, init bool) string {
 		}
 
 		if len(body.Params) > 0 {
-			buff.WriteString("[]*Parameter{")
+			buff.WriteString("[]Ref[*Parameter]{")
 			for _, paramRef := range body.Params {
 				param := paramRef.Get()
 				fmt.Fprintf(
 					buff,
-					"NewParameter(symbol.ToSymbol(%q), %s, %s, %t),",
+					"NewParameter(symbol.ToSymbol(%q), %s, %s, %t).ToRef(),",
 					param.Name.String(),
 					typeToCode(param.Type.Get(), false),
 					param.Kind,

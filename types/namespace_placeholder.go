@@ -22,7 +22,7 @@ func (m *ModulePlaceholder) traverse(parent Type, enter func(node, parent Type) 
 }
 
 func (m *ModulePlaceholder) ToRef() Ref[*ModulePlaceholder] {
-	return Ref[*ModulePlaceholder](m.id)
+	return ToRef(m)
 }
 
 func (m *ModulePlaceholder) EqualAny(other any) bool {

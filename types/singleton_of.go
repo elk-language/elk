@@ -19,7 +19,7 @@ func NewSingletonOf(typ Type) *SingletonOf {
 }
 
 func (s *SingletonOf) ToRef() Ref[*SingletonOf] {
-	return Ref[*SingletonOf](s.id)
+	return ToRef(s)
 }
 
 func (s *SingletonOf) HashUint64() uint64 {

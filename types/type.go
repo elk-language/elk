@@ -31,6 +31,10 @@ type ID uint32
 type Ref[T Type] ID
 
 func FetchID(t Type) ID {
+	if t == nil {
+		return ZERO_ID
+	}
+
 	id := t.ID()
 	if id != ZERO_ID {
 		return id

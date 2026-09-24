@@ -21,22 +21,27 @@ type GlobalEnvironment struct {
 }
 
 func (g *GlobalEnvironment) GetType(id ID) Type {
-	g.mu.RLock()
+	if !g.Init {
+		g.mu.RLock()
+		defer g.mu.RUnlock()
+	}
+
 	result := g.TypeIndex[id-1]
-	g.mu.RUnlock()
 	return result
 }
 
 func (g *GlobalEnvironment) RegisterType(t Type) Type {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	if !g.Init {
+		g.mu.Lock()
+		defer g.mu.Unlock()
+	}
 
 	if existingType, ok := g.TypeSet.Get(t); ok {
 		t.SetID(existingType.ID())
 		return existingType
 	}
 
-	id := ID(len(g.TypeIndex))
+	id := ID(len(g.TypeIndex)) + 1
 	t.SetID(id)
 	g.TypeIndex = append(g.TypeIndex, t)
 	g.TypeSet.Add(t)
@@ -186,10 +191,13 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	env.RegisterTypeWithID(Untyped{}, UntypedID)
 	env.RegisterTypeWithID(Void{}, VoidID)
 
+	env.RegisterType(rootModule)
+
 	stdModule := &Module{
 		NamespaceBase: MakeNamespaceBase("", "Std"),
 		native:        true,
 	}
+	env.RegisterType(stdModule)
 	rootModule.DefineConstant(symbol.C_Root, rootModule)
 	rootModule.DefineSubtype(symbol.C_Root, rootModule)
 
@@ -202,6 +210,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		immutable:     true,
 	}
 	valueClass.primitive = true
+	env.RegisterType(valueClass)
 	stdModule.DefineSubtype(symbol.C_Value, valueClass)
 
 	objectClass := &Class{
@@ -210,6 +219,7 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		native:        true,
 		immutable:     true,
 	}
+	env.RegisterType(objectClass)
 	stdModule.DefineSubtype(symbol.C_Object, objectClass)
 
 	classClass := &Class{
@@ -218,6 +228,8 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		native:        true,
 		noinit:        true,
 	}
+
+	env.RegisterType(classClass)
 	stdModule.DefineSubtype(symbol.C_Class, classClass)
 
 	valueSingleton := NewSingletonClass(valueClass, classClass)

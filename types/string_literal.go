@@ -22,7 +22,7 @@ func (s *StringLiteral) CopyType() Type {
 }
 
 func (s *StringLiteral) ToRef() Ref[*StringLiteral] {
-	return Ref[*StringLiteral](s.id)
+	return ToRef(s)
 }
 
 func (s *StringLiteral) HashUint64() uint64 {

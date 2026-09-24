@@ -55,7 +55,7 @@ type TypeParameter struct {
 }
 
 func (n *TypeParameter) ToRef() Ref[*TypeParameter] {
-	return Ref[*TypeParameter](n.id)
+	return ToRef(n)
 }
 
 func (t *TypeParameter) HashUint64() uint64 {

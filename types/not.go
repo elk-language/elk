@@ -13,7 +13,7 @@ type Not struct {
 }
 
 func (n *Not) ToRef() Ref[*Not] {
-	return Ref[*Not](n.id)
+	return ToRef(n)
 }
 
 func (n *Not) HashUint64() uint64 {

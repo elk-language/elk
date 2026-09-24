@@ -47,7 +47,7 @@ type Parameter struct {
 }
 
 func (s *Parameter) ToRef() Ref[*Parameter] {
-	return Ref[*Parameter](s.id)
+	return ToRef(s)
 }
 
 func (s *Parameter) HashUint64() uint64 {
@@ -262,17 +262,16 @@ func (m *Method) ToRef() Ref[*Method] {
 		return 0
 	}
 
-	return Ref[*Method](m.id)
+	return ToRef(m)
 }
 
 func (m *Method) HashUint64() uint64 {
 	d := xxhash.New()
 
 	d.WriteString("method:")
-	definedUnder := m.DefinedUnder.Get()
-	if definedUnder != nil {
-		d.WriteString(definedUnder.Name())
-	}
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(m.DefinedUnder))
+	d.Write(b)
 	d.WriteString(">")
 	d.WriteString(m.Name.String())
 

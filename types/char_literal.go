@@ -23,7 +23,7 @@ func (c *CharLiteral) traverse(parent Type, enter func(node, parent Type) Traver
 }
 
 func (c *CharLiteral) ToRef() Ref[*CharLiteral] {
-	return Ref[*CharLiteral](c.id)
+	return ToRef(c)
 }
 
 func (c *CharLiteral) Copy() *CharLiteral {
