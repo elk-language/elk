@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"iter"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -69,8 +71,8 @@ func CreateTypeArgumentOrderFromTypeParams(typeParams []Ref[*TypeParameter]) []s
 // Create a shallow copy
 func (t *TypeArguments) Copy() *TypeArguments {
 	return &TypeArguments{
-		ArgumentMap:   t.ArgumentMap,
-		ArgumentOrder: t.ArgumentOrder,
+		ArgumentMap:   maps.Clone(t.ArgumentMap),
+		ArgumentOrder: slices.Clone(t.ArgumentOrder),
 	}
 }
 
@@ -553,7 +555,7 @@ func (g *Generic) inspect() string {
 func (g *Generic) Copy() *Generic {
 	return &Generic{
 		Namespace:     g.Namespace,
-		TypeArguments: g.TypeArguments,
+		TypeArguments: g.TypeArguments.Copy(),
 	}
 }
 

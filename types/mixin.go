@@ -1,6 +1,9 @@
 package types
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -190,14 +193,12 @@ func (m *Mixin) Copy() *Mixin {
 		abstract:       m.abstract,
 		defined:        m.defined,
 		Checked:        m.Checked,
-		typeParameters: m.typeParameters,
-		NamespaceBase: NamespaceBase{
-			docComment: m.docComment,
-			name:       m.name,
-			constants:  m.constants,
-			methods:    m.methods,
-			subtypes:   m.subtypes,
-		},
+		typeParameters: slices.Clone(m.typeParameters),
+		docComment:     m.docComment,
+		name:           m.name,
+		constants:      maps.Clone(m.constants),
+		methods:        maps.Clone(m.methods),
+		subtypes:       maps.Clone(m.subtypes),
 	}
 }
 

@@ -2,6 +2,7 @@ package ds
 
 import (
 	"fmt"
+	"slices"
 )
 
 type hashSetEntryType uint8
@@ -51,6 +52,24 @@ func NewHashSetWithValues[V Hashable](values []V) *HashSet[V] {
 		s.Add(val)
 	}
 	return s
+}
+
+func (s *HashSet[V]) Copy() *HashSet[V] {
+	return &HashSet[V]{
+		table:         slices.Clone(s.table),
+		occupiedSlots: s.occupiedSlots,
+		elements:      s.elements,
+		version:       s.version,
+	}
+}
+
+func (s HashSet[V]) CopyVal() HashSet[V] {
+	return HashSet[V]{
+		table:         slices.Clone(s.table),
+		occupiedSlots: s.occupiedSlots,
+		elements:      s.elements,
+		version:       s.version,
+	}
 }
 
 func (s *HashSet[V]) Len() int {

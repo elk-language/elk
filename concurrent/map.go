@@ -1,6 +1,9 @@
 package concurrent
 
-import "sync"
+import (
+	"maps"
+	"sync"
+)
 
 type Map[K comparable, V any] struct {
 	Map map[K]V
@@ -16,6 +19,12 @@ func NewMap[K comparable, V any]() *Map[K, V] {
 func NewMapWithValues[K comparable, V any](m map[K]V) *Map[K, V] {
 	return &Map[K, V]{
 		Map: m,
+	}
+}
+
+func (m *Map[K, V]) Copy() *Map[K, V] {
+	return &Map[K, V]{
+		Map: maps.Clone(m.Map),
 	}
 }
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/elk-language/elk/position"
@@ -93,7 +94,7 @@ func (p *ConstantPlaceholder) Copy() *ConstantPlaceholder {
 	return &ConstantPlaceholder{
 		AsName:    p.AsName,
 		FullName:  p.FullName,
-		Container: p.Container,
+		Container: maps.Clone(p.Container),
 		Location:  p.Location,
 		Sibling:   p.Sibling,
 		Checked:   p.Checked,

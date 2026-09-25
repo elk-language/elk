@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -373,22 +374,22 @@ func (m *Method) Copy() *Method {
 		FullName:                     m.FullName,
 		Name:                         m.Name,
 		DocComment:                   m.DocComment,
-		Params:                       m.Params,
+		Params:                       slices.Clone(m.Params),
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
 		Flags:                        m.Flags,
-		TypeParameters:               m.TypeParameters,
+		TypeParameters:               slices.Clone(m.TypeParameters),
 		ReturnType:                   m.ReturnType,
 		ThrowType:                    m.ThrowType,
 		DefinedUnder:                 m.DefinedUnder,
 		Body:                         m.Body,
 		location:                     m.location,
-		UsedInConstants:              m.UsedInConstants,
-		UsedConstants:                m.UsedConstants,
-		CalledMethods:                m.CalledMethods,
-		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
+		UsedInConstants:              m.UsedInConstants.Copy(),
+		UsedConstants:                m.UsedConstants.Copy(),
+		CalledMethods:                slices.Clone(m.CalledMethods),
+		InitialisedInstanceVariables: m.InitialisedInstanceVariables.Copy(),
 		Node:                         m.Node,
-		Overloads:                    m.Overloads,
+		Overloads:                    slices.Clone(m.Overloads),
 	}
 }
 

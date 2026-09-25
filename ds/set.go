@@ -1,5 +1,7 @@
 package ds
 
+import "maps"
+
 // A set based on `map`
 type Set[V comparable] map[V]struct{}
 
@@ -9,6 +11,10 @@ func MakeSet[V comparable](values ...V) Set[V] {
 		set.Add(value)
 	}
 	return set
+}
+
+func (s Set[V]) Copy() Set[V] {
+	return maps.Clone(s)
 }
 
 func (s Set[V]) Len() int {

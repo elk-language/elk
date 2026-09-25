@@ -34,7 +34,7 @@ func (n *Not) EqualAny(other any) bool {
 	}
 
 	if n.id > 0 {
-		return n.id == n.ID()
+		return n.id == o.ID()
 	}
 
 	return n.Type == o.Type

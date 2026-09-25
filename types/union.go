@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -132,7 +133,7 @@ func (u *Union) inspect() string {
 
 func (u *Union) Copy() *Union {
 	return &Union{
-		Elements: u.Elements,
+		Elements: slices.Clone(u.Elements),
 	}
 }
 

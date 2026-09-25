@@ -261,7 +261,7 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		if !types.IsNeverRef(lowerBound) {
 			fmt.Fprintf(
 				buffer,
-				"typeParam.LowerBound = %s\n",
+				"typeParam.LowerBound = CastRef[Type](%s)\n",
 				typeToCode(lowerBound.Get(), false),
 			)
 		}
@@ -269,14 +269,14 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		if !types.IsAnyRef(upperBound) {
 			fmt.Fprintf(
 				buffer,
-				"typeParam.UpperBound = %s\n",
+				"typeParam.UpperBound = CastRef[Type](%s)\n",
 				typeToCode(upperBound.Get(), false),
 			)
 		}
 		if param.Default.IsPresent() {
 			fmt.Fprintf(
 				buffer,
-				"typeParam.Default = %s\n",
+				"typeParam.Default = CastRef[Type](%s)\n",
 				typeToCode(param.Default.Get(), false),
 			)
 		}

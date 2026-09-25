@@ -30,6 +30,12 @@ func NewHashSetWithValues[V ds.Hashable](values []V) *HashSet[V] {
 	}
 }
 
+func (s *HashSet[V]) Copy() *HashSet[V] {
+	return &HashSet[V]{
+		Data: s.Data.CopyVal(),
+	}
+}
+
 func (s *HashSet[V]) Len() int {
 	return s.Data.Len()
 }

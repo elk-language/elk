@@ -1,0 +1,852 @@
+go generate ./...
+go run ./cmd/headers/main.go -tags headers
+[FAIL] method `Std::Char.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::String | Std::Char): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/char.elh:39:2
+    39 |  pure sealed def <=>(other: String | Char): Int; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::Float32.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Float32): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float32`, should be `other: Std::Int`
+
+  headers/float32.elh:61:2
+    61 |  pure sealed def >=(other: Float32): Bool; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Float32.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Float32): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float32`, should be `other: Std::Int`
+
+  headers/float32.elh:65:2
+    65 |  pure sealed def <=(other: Float32): Bool; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Float32.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Float32): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Float32`, should be `other: Std::Int`
+
+  headers/float32.elh:59:2
+    59 |  pure sealed def <=>(other: Float32): Int; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Float32.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Float32): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float32`, should be `other: Std::Int`
+
+  headers/float32.elh:63:2
+    63 |  pure sealed def >(other: Float32): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Float64.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Float64): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float64`, should be `other: Std::Int`
+
+  headers/float64.elh:63:2
+    63 |  pure sealed def >(other: Float64): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Float64.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Float64): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float64`, should be `other: Std::Int`
+
+  headers/float64.elh:67:2
+    67 |  pure sealed def <(other: Float64): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Float32.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Float32): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float32`, should be `other: Std::Int`
+
+  headers/float32.elh:67:2
+    67 |  pure sealed def <(other: Float32): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Float64.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Float64): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float64`, should be `other: Std::Int`
+
+  headers/float64.elh:65:2
+    65 |  pure sealed def <=(other: Float64): Bool; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Float64.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Float64): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Float64`, should be `other: Std::Int`
+
+  headers/float64.elh:59:2
+    59 |  pure sealed def <=>(other: Float64): Int; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Float64.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Float64): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Float64`, should be `other: Std::Int`
+
+  headers/float64.elh:61:2
+    61 |  pure sealed def >=(other: Float64): Bool; end
+          └───────────────────────────────────────────┤
+                                                      └ Here
+
+[FAIL] method `Std::Int16.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Int16): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int16`, should be `other: Std::Int`
+
+  headers/int16.elh:85:2
+    85 |  pure sealed def >=(other: Int16): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int16.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Int16): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int16`, should be `other: Std::Int`
+
+  headers/int16.elh:87:2
+    87 |  pure sealed def >(other: Int16): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int16.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Int16): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int16`, should be `other: Std::Int`
+
+  headers/int16.elh:89:2
+    89 |  pure sealed def <=(other: Int16): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int16.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Int16): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Int16`, should be `other: Std::Int`
+
+  headers/int16.elh:83:2
+    83 |  pure sealed def <=>(other: Int16): Int; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int16.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Int16): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int16`, should be `other: Std::Int`
+
+  headers/int16.elh:91:2
+    91 |  pure sealed def <(other: Int16): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int32.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Int32): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int32`, should be `other: Std::Int`
+
+  headers/int32.elh:89:2
+    89 |  pure sealed def <=(other: Int32): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Char.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::String | Std::Char): bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/char.elh:45:2
+    45 |  pure sealed def >=(other: String | Char): bool; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::Int64.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Int64): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int64`, should be `other: Std::Int`
+
+  headers/int64.elh:85:2
+    85 |  pure sealed def >=(other: Int64): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Char.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::String | Std::Char): bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/char.elh:47:2
+    47 |  pure sealed def >(other: String | Char): bool; end
+          └────────────────────────────────────────────────┤
+                                                           └ Here
+
+[FAIL] method `Std::Int32.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Int32): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int32`, should be `other: Std::Int`
+
+  headers/int32.elh:85:2
+    85 |  pure sealed def >=(other: Int32): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int32.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Int32): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Int32`, should be `other: Std::Int`
+
+  headers/int32.elh:83:2
+    83 |  pure sealed def <=>(other: Int32): Int; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int32.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Int32): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int32`, should be `other: Std::Int`
+
+  headers/int32.elh:87:2
+    87 |  pure sealed def >(other: Int32): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int64.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Int64): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int64`, should be `other: Std::Int`
+
+  headers/int64.elh:87:2
+    87 |  pure sealed def >(other: Int64): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int32.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Int32): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int32`, should be `other: Std::Int`
+
+  headers/int32.elh:91:2
+    91 |  pure sealed def <(other: Int32): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int64.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Int64): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int64`, should be `other: Std::Int`
+
+  headers/int64.elh:91:2
+    91 |  pure sealed def <(other: Int64): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int64.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Int64): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int64`, should be `other: Std::Int`
+
+  headers/int64.elh:89:2
+    89 |  pure sealed def <=(other: Int64): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int64.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Int64): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Int64`, should be `other: Std::Int`
+
+  headers/int64.elh:83:2
+    83 |  pure sealed def <=>(other: Int64): Int; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::Int8.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::Int8): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int8`, should be `other: Std::Int`
+
+  headers/int8.elh:85:2
+    85 |  pure sealed def >=(other: Int8): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Int8.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::Int8): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int8`, should be `other: Std::Int`
+
+  headers/int8.elh:91:2
+    91 |  pure sealed def <(other: Int8): Bool; end
+          └───────────────────────────────────────┤
+                                                  └ Here
+
+[FAIL] method `Std::Int8.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::Int8): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int8`, should be `other: Std::Int`
+
+  headers/int8.elh:87:2
+    87 |  pure sealed def >(other: Int8): Bool; end
+          └───────────────────────────────────────┤
+                                                  └ Here
+
+[FAIL] method `Std::Int8.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::Int8): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::Int8`, should be `other: Std::Int`
+
+  headers/int8.elh:83:2
+    83 |  pure sealed def <=>(other: Int8): Int; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::ArrayList.:remove` is not a valid override of `Std::Collection.:remove`
+  is:        `native def remove(value: Val): bool`
+  should be: `abstract native def remove(value: Std::Diagnostic): bool`
+
+  - has an incompatible parameter, is `value: Val`, should be `value: Std::Diagnostic`
+
+  headers/array_list.elh:28:2
+    28 |  def remove(value: Val): bool; end
+          └───────────────────────────────┤
+                                          └ Here
+
+[FAIL] method `Std::Int8.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::Int8): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::Int8`, should be `other: Std::Int`
+
+  headers/int8.elh:89:2
+    89 |  pure sealed def <=(other: Int8): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Char.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::String | Std::Char): bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/char.elh:43:2
+    43 |  pure sealed def <(other: String | Char): bool; end
+          └────────────────────────────────────────────────┤
+                                                           └ Here
+
+[FAIL] method `Std::Char.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::String | Std::Char): bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/char.elh:41:2
+    41 |  pure sealed def <=(other: String | Char): bool; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::String.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::String | Std::Char): bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/string.elh:37:2
+    37 |  pure sealed def <=(other: String | Char): bool; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::String.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::String | Std::Char): bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/string.elh:41:2
+    41 |  pure sealed def >=(other: String | Char): bool; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::String.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::String | Std::Char): bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/string.elh:43:2
+    43 |  pure sealed def >(other: String | Char): bool; end
+          └────────────────────────────────────────────────┤
+                                                           └ Here
+
+[FAIL] method `Std::UInt.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::UInt): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt`, should be `other: Std::Int`
+
+  headers/uint.elh:90:2
+    90 |  pure sealed def <=(other: UInt): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::UInt.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::UInt): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::UInt`, should be `other: Std::Int`
+
+  headers/uint.elh:84:2
+    84 |  pure sealed def <=>(other: UInt): Int; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::UInt.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::UInt): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt`, should be `other: Std::Int`
+
+  headers/uint.elh:86:2
+    86 |  pure sealed def >=(other: UInt): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::UInt.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::UInt): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt`, should be `other: Std::Int`
+
+  headers/uint.elh:92:2
+    92 |  pure sealed def <(other: UInt): Bool; end
+          └───────────────────────────────────────┤
+                                                  └ Here
+
+[FAIL] method `Std::UInt.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::UInt): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt`, should be `other: Std::Int`
+
+  headers/uint.elh:88:2
+    88 |  pure sealed def >(other: UInt): Bool; end
+          └───────────────────────────────────────┤
+                                                  └ Here
+
+[FAIL] method `Std::UInt16.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::UInt16): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt16`, should be `other: Std::Int`
+
+  headers/uint16.elh:87:2
+    87 |  pure sealed def >(other: UInt16): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt16.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::UInt16): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::UInt16`, should be `other: Std::Int`
+
+  headers/uint16.elh:83:2
+    83 |  pure sealed def <=>(other: UInt16): Int; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt16.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::UInt16): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt16`, should be `other: Std::Int`
+
+  headers/uint16.elh:85:2
+    85 |  pure sealed def >=(other: UInt16): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt16.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::UInt16): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt16`, should be `other: Std::Int`
+
+  headers/uint16.elh:89:2
+    89 |  pure sealed def <=(other: UInt16): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt32.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::UInt32): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt32`, should be `other: Std::Int`
+
+  headers/uint32.elh:91:2
+    91 |  pure sealed def <(other: UInt32): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt16.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::UInt16): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt16`, should be `other: Std::Int`
+
+  headers/uint16.elh:91:2
+    91 |  pure sealed def <(other: UInt16): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt32.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::UInt32): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt32`, should be `other: Std::Int`
+
+  headers/uint32.elh:87:2
+    87 |  pure sealed def >(other: UInt32): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt32.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::UInt32): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt32`, should be `other: Std::Int`
+
+  headers/uint32.elh:85:2
+    85 |  pure sealed def >=(other: UInt32): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt32.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::UInt32): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt32`, should be `other: Std::Int`
+
+  headers/uint32.elh:89:2
+    89 |  pure sealed def <=(other: UInt32): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt32.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::UInt32): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::UInt32`, should be `other: Std::Int`
+
+  headers/uint32.elh:83:2
+    83 |  pure sealed def <=>(other: UInt32): Int; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::UInt64.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::UInt64): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt64`, should be `other: Std::Int`
+
+  headers/uint64.elh:85:2
+    85 |  pure sealed def >=(other: UInt64): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Iterable::FiniteBase.:contains` is not a valid override of `Std::Iterable.:contains`
+  is:        `native def contains[V > Std::Diagnostic < Std::Diagnostic](value: V): bool ! Err`
+  should be: `abstract native def contains[V > Val < Val](value: V): bool ! Err`
+
+  - has an incompatible type parameter, is `V > Std::Diagnostic < Std::Diagnostic`, should be `V > Val < Val`
+
+  headers/iterable.elh:223:3
+    223 |   def contains[V := Val](value: V): bool ! Err; end
+            └───────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::UInt64.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::UInt64): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt64`, should be `other: Std::Int`
+
+  headers/uint64.elh:87:2
+    87 |  pure sealed def >(other: UInt64): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt8.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::UInt8): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::UInt8`, should be `other: Std::Int`
+
+  headers/uint8.elh:83:2
+    83 |  pure sealed def <=>(other: UInt8): Int; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt8.:>=` is not a valid override of `Std::Comparable.:>=`
+  is:        `pure sealed native def >=(other: Std::UInt8): Std::Bool`
+  should be: `abstract native def >=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt8`, should be `other: Std::Int`
+
+  headers/uint8.elh:85:2
+    85 |  pure sealed def >=(other: UInt8): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt64.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::UInt64): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt64`, should be `other: Std::Int`
+
+  headers/uint64.elh:89:2
+    89 |  pure sealed def <=(other: UInt64): Bool; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::Set.:<<` is not a valid override of `Std::Collection::Base.:<<`
+  is:        `native def <<(value: Val): Std::Set[Val]`
+  should be: `native def <<(value: Std::Diagnostic): Std::Set[Val]`
+
+  - has an incompatible parameter, is `value: Val`, should be `value: Std::Diagnostic`
+
+  headers/set.elh:53:2
+    53 |  def <<(value: Val): self; end
+          └───────────────────────────┤
+                                      └ Here
+
+[FAIL] method `Std::Record.:contains` is not a valid override of `Std::Iterable::FiniteBase.:contains`
+  is:        `native def contains[V > Std::Pair[Key, Value] < Std::Pair[Key, Value]](value: V): bool`
+  should be: `native def contains[V > Std::Diagnostic < Std::Diagnostic](value: V): bool`
+
+  - has an incompatible type parameter, is `V > Std::Pair[Key, Value] < Std::Pair[Key, Value]`, should be `V > Std::Diagnostic < Std::Diagnostic`
+
+  headers/record.elh:23:2
+    23 |  def contains[V := Pair[Key, Value]](value: V): bool; end
+          └──────────────────────────────────────────────────────┤
+                                                                 └ Here
+
+[FAIL] method `Std::UInt64.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::UInt64): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt64`, should be `other: Std::Int`
+
+  headers/uint64.elh:91:2
+    91 |  pure sealed def <(other: UInt64): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt8.:<=` is not a valid override of `Std::Comparable.:<=`
+  is:        `pure sealed native def <=(other: Std::UInt8): Std::Bool`
+  should be: `abstract native def <=(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt8`, should be `other: Std::Int`
+
+  headers/uint8.elh:89:2
+    89 |  pure sealed def <=(other: UInt8): Bool; end
+          └─────────────────────────────────────────┤
+                                                    └ Here
+
+[FAIL] method `Std::UInt8.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::UInt8): Std::Bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt8`, should be `other: Std::Int`
+
+  headers/uint8.elh:91:2
+    91 |  pure sealed def <(other: UInt8): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::UInt8.:>` is not a valid override of `Std::Comparable.:>`
+  is:        `pure sealed native def >(other: Std::UInt8): Std::Bool`
+  should be: `abstract native def >(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::UInt8`, should be `other: Std::Int`
+
+  headers/uint8.elh:87:2
+    87 |  pure sealed def >(other: UInt8): Bool; end
+          └────────────────────────────────────────┤
+                                                   └ Here
+
+[FAIL] method `Std::Set.:append` is not a valid override of `Std::Collection::Base.:append`
+  is:        `native def append(*values: Val): Std::Set[Val]`
+  should be: `native def append(*values: Std::Diagnostic): Std::Set[Val]`
+
+  - has an incompatible parameter, is `*values: Val`, should be `*values: Std::Diagnostic`
+
+  headers/set.elh:46:2
+    46 |  def append(*values: Val): self; end
+          └─────────────────────────────────┤
+                                            └ Here
+
+[FAIL] method `Std::UInt64.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::UInt64): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::UInt64`, should be `other: Std::Int`
+
+  headers/uint64.elh:83:2
+    83 |  pure sealed def <=>(other: UInt64): Int; end
+          └──────────────────────────────────────────┤
+                                                     └ Here
+
+[FAIL] method `Std::RightOpenRange.:end` is not a valid override of `Std::Range.:end`
+  is:        `pure native def end(): Val`
+  should be: `pure native def end(): Err?`
+
+  - has a different return type, is `Val`, should be `Err?`
+
+  headers/right_open_range.elh:23:2
+    23 |  pure def end: Val; end
+          └────────────────────┤
+                               └ Here
+
+[FAIL] method `Std::RightOpenRange.:start` is not a valid override of `Std::Range.:start`
+  is:        `pure native def start(): Val`
+  should be: `pure native def start(): Err?`
+
+  - has a different return type, is `Val`, should be `Err?`
+
+  headers/right_open_range.elh:18:2
+    18 |  pure def start: Val; end
+          └──────────────────────┤
+                                 └ Here
+
+[FAIL] method `Std::String.:<=>` is not a valid override of `Std::Comparable.:<=>`
+  is:        `pure sealed native def <=>(other: Std::String | Std::Char): Std::Int`
+  should be: `abstract native def <=>(other: Std::Int): Std::Int?`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/string.elh:35:2
+    35 |  pure sealed def <=>(other: String | Char): Int; end
+          └─────────────────────────────────────────────────┤
+                                                            └ Here
+
+[FAIL] method `Std::String.:<` is not a valid override of `Std::Comparable.:<`
+  is:        `pure sealed native def <(other: Std::String | Std::Char): bool`
+  should be: `abstract native def <(other: Std::Int): bool`
+
+  - has an incompatible parameter, is `other: Std::String | Std::Char`, should be `other: Std::Int`
+
+  headers/string.elh:39:2
+    39 |  pure sealed def <(other: String | Char): bool; end
+          └────────────────────────────────────────────────┤
+                                                           └ Here
+
+[FAIL] method `Std::List.:map` is not a valid override of `Std::Collection::Base.:map`
+  is:        `native def map[V, E](fn: |element: Std::Diagnostic|: V ! E): Std::List[V] ! E`
+  should be: `native def map[V, E](fn: |element: Val|: V ! E): Std::Collection[V] ! E`
+
+  - has an incompatible parameter, is `fn: |element: Std::Diagnostic|: V ! E`, should be `fn: |element: Val|: V ! E`
+
+  headers/list.elh:41:2
+    41 |  def map[V, E](fn: |element: Val|: V ! E): List[V] ! E; end
+          └────────────────────────────────────────────────────────┤
+                                                                   └ Here
+
+[FAIL] method `Std::Iterable::FiniteBase.:filter` is not a valid override of `Std::Iterable.:filter`
+  is:        `native def filter[E](fn: |element: V|: bool ! E): Std::Iterable[Val, Err] ! E | Err`
+  should be: `abstract native def filter[E](fn: |element: Val|: bool ! E): Std::Iterable[Val, Err] ! E | Err`
+
+  - has an incompatible parameter, is `fn: |element: V|: bool ! E`, should be `fn: |element: Val|: bool ! E`
+
+  headers/iterable.elh:230:3
+    230 | def filter[E = never](fn: |element: Val|: bool ! E): Iterable[Val, Err] ! E | Er...
+          └──────────────────────────────────────────────────────────────────────────────┤
+                                                                                         └ Here
+
+[FAIL] method `Std::Iterable::FiniteBase.:map` is not a valid override of `Std::Iterable.:map`
+  is:        `native def map[V, E](fn: |element: Std::Pair[Key, Value]|: V ! E): Std::Iterable[V, Err] ! E | Err`
+  should be: `abstract native def map[V, E](fn: |element: Val|: V ! E): Std::Iterable[V, Err] ! E | Err`
+
+  - has an incompatible parameter, is `fn: |element: Std::Pair[Key, Value]|: V ! E`, should be `fn: |element: Val|: V ! E`
+
+  headers/iterable.elh:229:3
+    229 | def map[V, E = never](fn: |element: Val|: V ! E): Iterable[V, Err] ! E | Err; en...
+          └──────────────────────────────────────────────────────────────────────────────┤
+                                                                                         └ Here
+
+[FAIL] method `Std::ReadChannel.:iter` is not a valid override of `Std::PrimitiveIterable.:iter`
+  is:        `pure native def iter(): Std::ReadChannel[V]`
+  should be: `abstract native def iter(): Std::Iterator[V, never]`
+
+  - has a different return type, is `Std::ReadChannel[V]`, should be `Std::Iterator[V, never]`
+
+  headers/read_channel.elh:71:2
+    71 |  pure def iter: self; end
+          └──────────────────────┤
+                                 └ Here
+
+[FAIL] method `Std::Channel.:iter` is not a valid override of `Std::PrimitiveIterable.:iter`
+  is:        `pure native def iter(): Std::Channel[V]`
+  should be: `abstract native def iter(): Std::Iterator[V, never]`
+
+  - has a different return type, is `Std::Channel[V]`, should be `Std::Iterator[V, never]`
+
+  headers/channel.elh:139:2
+    139 |  pure def iter: self; end
+           └──────────────────────┤
+                                  └ Here
+
+ <nil>
+exit status 1
+make: *** [header] Error 1

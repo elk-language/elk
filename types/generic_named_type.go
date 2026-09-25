@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -122,7 +123,7 @@ func (g *GenericNamedType) Copy() *GenericNamedType {
 	return &GenericNamedType{
 		Name:           g.Name,
 		Type:           g.Type,
-		TypeParameters: g.TypeParameters,
+		TypeParameters: slices.Clone(g.TypeParameters),
 	}
 }
 

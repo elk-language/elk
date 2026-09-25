@@ -1,6 +1,9 @@
 package concurrent
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 type Slice[V any] struct {
 	Slice []V
@@ -14,6 +17,12 @@ func NewSlice[V any]() *Slice[V] {
 func NewSliceWithValues[V any](s []V) *Slice[V] {
 	return &Slice[V]{
 		Slice: s,
+	}
+}
+
+func (s *Slice[V]) Copy() *Slice[V] {
+	return &Slice[V]{
+		Slice: slices.Clone(s.Slice),
 	}
 }
 

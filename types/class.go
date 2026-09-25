@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ds"
@@ -275,17 +277,15 @@ func NewClassWithDetails(
 	methods MethodMap,
 ) *Class {
 	class := &Class{
-		primitive: primitive,
-		abstract:  abstract,
-		sealed:    sealed,
-		native:    Env.Init,
-		NamespaceBase: NamespaceBase{
-			docComment: docComment,
-			name:       name,
-			constants:  consts,
-			subtypes:   subtypes,
-			methods:    methods,
-		},
+		primitive:  primitive,
+		abstract:   abstract,
+		sealed:     sealed,
+		native:     Env.Init,
+		docComment: docComment,
+		name:       name,
+		constants:  consts,
+		subtypes:   subtypes,
+		methods:    methods,
 	}
 	class.singleton = NewSingletonClass(class, Env.StdSubtypeClass(symbol.C_Class)).ToRef()
 	class.SetParent(parent)
@@ -321,14 +321,32 @@ func (c *Class) Copy() *Class {
 		native:         c.native,
 		compiled:       c.compiled,
 		singleton:      c.singleton,
-		typeParameters: c.typeParameters,
-		NamespaceBase: NamespaceBase{
-			docComment: c.docComment,
-			name:       c.name,
-			constants:  c.constants,
-			subtypes:   c.subtypes,
-			methods:    c.methods,
-		},
+		typeParameters: slices.Clone(c.typeParameters),
+		docComment:     c.docComment,
+		name:           c.name,
+		constants:      maps.Clone(c.constants),
+		subtypes:       maps.Clone(c.subtypes),
+		methods:        maps.Clone(c.methods),
+	}
+}
+
+func (c Class) CopyVal() Class {
+	return Class{
+		parent:         c.parent,
+		noinit:         c.noinit,
+		primitive:      c.primitive,
+		sealed:         c.sealed,
+		abstract:       c.abstract,
+		defined:        c.defined,
+		native:         c.native,
+		compiled:       c.compiled,
+		singleton:      c.singleton,
+		typeParameters: slices.Clone(c.typeParameters),
+		docComment:     c.docComment,
+		name:           c.name,
+		constants:      maps.Clone(c.constants),
+		subtypes:       maps.Clone(c.subtypes),
+		methods:        maps.Clone(c.methods),
 	}
 }
 

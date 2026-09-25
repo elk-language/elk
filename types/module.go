@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/ivar"
@@ -169,16 +170,27 @@ func (m *Module) DefineMethod(docComment string, flags bitfield.BitFlag16, name 
 
 func (m *Module) Copy() *Module {
 	return &Module{
-		parent:  m.parent,
-		defined: m.defined,
-		native:  m.native,
-		NamespaceBase: NamespaceBase{
-			docComment: m.docComment,
-			name:       m.name,
-			constants:  m.constants,
-			subtypes:   m.subtypes,
-			methods:    m.methods,
-		},
+		parent:     m.parent,
+		defined:    m.defined,
+		native:     m.native,
+		docComment: m.docComment,
+		name:       m.name,
+		constants:  maps.Clone(m.constants),
+		subtypes:   maps.Clone(m.subtypes),
+		methods:    maps.Clone(m.methods),
+	}
+}
+
+func (m Module) CopyVal() Module {
+	return Module{
+		parent:     m.parent,
+		defined:    m.defined,
+		native:     m.native,
+		docComment: m.docComment,
+		name:       m.name,
+		constants:  maps.Clone(m.constants),
+		subtypes:   maps.Clone(m.subtypes),
+		methods:    maps.Clone(m.methods),
 	}
 }
 

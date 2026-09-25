@@ -56,7 +56,7 @@ func (s *SingletonClass) ToNonLiteral() Type {
 func (s *SingletonClass) Copy() *SingletonClass {
 	result := &SingletonClass{
 		AttachedObject: s.AttachedObject,
-		Class:          s.Class,
+		Class:          s.Class.CopyVal(),
 	}
 	result.id = ZERO_ID
 	return result

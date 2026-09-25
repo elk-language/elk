@@ -1,6 +1,9 @@
 package types
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -164,13 +167,11 @@ func (i *Interface) Copy() *Interface {
 		compiled:       i.compiled,
 		Checked:        i.Checked,
 		singleton:      i.singleton,
-		typeParameters: i.typeParameters,
-		NamespaceBase: NamespaceBase{
-			name:      i.name,
-			constants: i.constants,
-			methods:   i.methods,
-			subtypes:  i.subtypes,
-		},
+		typeParameters: slices.Clone(i.typeParameters),
+		name:           i.name,
+		constants:      maps.Clone(i.constants),
+		methods:        maps.Clone(i.methods),
+		subtypes:       maps.Clone(i.subtypes),
 	}
 }
 

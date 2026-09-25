@@ -30,6 +30,12 @@ func NewOrderedMapWithPairs[K comparable, V any](pairs ...ds.Pair[K, V]) *Ordere
 	}
 }
 
+func (m *OrderedMap[K, V]) Copy() *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		Map: m.Map.CopyVal(),
+	}
+}
+
 func (m *OrderedMap[K, V]) Lock() {
 	m.mu.Lock()
 }

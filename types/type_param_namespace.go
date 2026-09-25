@@ -1,6 +1,7 @@
 package types
 
 import (
+	"maps"
 	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
@@ -59,8 +60,8 @@ func (t *TypeParamNamespace) Copy() *TypeParamNamespace {
 	return &TypeParamNamespace{
 		docComment: t.docComment,
 		ForMethod:  t.ForMethod,
-		constants:  t.constants,
-		subtypes:   t.subtypes,
+		constants:  maps.Clone(t.constants),
+		subtypes:   maps.Clone(t.subtypes),
 	}
 }
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -132,7 +133,7 @@ func (u *Intersection) inspect() string {
 
 func (i *Intersection) Copy() *Intersection {
 	return &Intersection{
-		Elements: i.Elements,
+		Elements: slices.Clone(i.Elements),
 	}
 }
 

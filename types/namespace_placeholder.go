@@ -48,7 +48,7 @@ func NewModulePlaceholder(name string) *ModulePlaceholder {
 
 func (m *ModulePlaceholder) Copy() *ModulePlaceholder {
 	result := &ModulePlaceholder{
-		Module: m.Module,
+		Module: m.Module.CopyVal(),
 	}
 	result.id = ZERO_ID
 	return result
@@ -104,7 +104,7 @@ func (n *NamespacePlaceholder) Copy() *NamespacePlaceholder {
 	return &NamespacePlaceholder{
 		name:      n.name,
 		Namespace: n.Namespace,
-		Locations: n.Locations,
+		Locations: n.Locations.Copy(),
 	}
 }
 

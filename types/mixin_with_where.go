@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"slices"
 	"strings"
 
 	"github.com/cespare/xxhash/v2"
@@ -65,7 +66,7 @@ func (m *MixinWithWhere) Copy() *MixinWithWhere {
 	return &MixinWithWhere{
 		MixinProxy: m.MixinProxy,
 		Namespace:  m.Namespace,
-		Where:      m.Where,
+		Where:      slices.Clone(m.Where),
 	}
 }
 

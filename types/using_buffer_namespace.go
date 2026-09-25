@@ -16,15 +16,13 @@ func (u *UsingBufferNamespace) EqualAny(other any) bool {
 
 func NewUsingBufferNamespace() *UsingBufferNamespace {
 	return &UsingBufferNamespace{
-		Module: Module{
-			NamespaceBase: MakeNamespaceBase("", "<using buffer namespace>"),
-		},
+		NamespaceBase: MakeNamespaceBase("", "<using buffer namespace>"),
 	}
 }
 
 func (u *UsingBufferNamespace) Copy() *UsingBufferNamespace {
 	result := &UsingBufferNamespace{
-		Module: u.Module,
+		Module: u.Module.CopyVal(),
 	}
 	result.id = ZERO_ID
 	return result
