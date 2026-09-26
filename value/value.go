@@ -65,6 +65,7 @@ const (
 	TIME_FLAG
 	TIME_SPAN_FLAG
 	DATE_SPAN_FLAG
+	SIZE_FLAG
 )
 
 // Performs a downcast of the given Value
@@ -133,6 +134,8 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsDate()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan()
+	case SIZE_FLAG:
+		return v.AsSize()
 	case TIME_FLAG:
 		return v.AsTime()
 	case WEAK_FLAG:
@@ -388,6 +391,8 @@ func (v Value) SingletonClass() *Class {
 		return v.AsDateSpan().SingletonClass()
 	case TIME_FLAG:
 		return v.AsTime().SingletonClass()
+	case SIZE_FLAG:
+		return v.AsSize().SingletonClass()
 	case WEAK_FLAG:
 		return v.AsWeak().SingletonClass()
 	case RESULT_OK_FLAG:
@@ -1047,6 +1052,22 @@ func (v Value) MustTime() Time {
 		return v.AsReference().(Time)
 	} else {
 		return v.MustInlineTime()
+	}
+}
+
+func (v Value) IsInlineSize() bool {
+	return v.flag == SIZE_FLAG
+}
+
+func (v Value) AsInlineSize() Size {
+	return Size(v.data)
+}
+
+func (v Value) AsSize() Size {
+	if v.IsReference() {
+		return v.AsReference().(Size)
+	} else {
+		return v.AsInlineSize()
 	}
 }
 
