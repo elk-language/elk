@@ -1,0 +1,25 @@
+##[
+	Represents the number of bytes.
+]##
+sealed primitive noinit class ::Std::Size < Value
+	sealed def -@: Size; end
+	sealed def +@: Size; end
+
+	def +(other: Size): Size; end
+
+	##[
+		Returns the string representation of the date span in the format "5Y2M10D".
+	]##
+	def to_string: String; end
+
+	##[
+		Returns the approximate count of kilobytes in this size as a Float.
+	]##
+	def in_kilobytes: Float; end
+
+	##[
+		Returns the amount of full kilobytes in this size.
+	]##
+	def kilobytes: Int; end
+
+end
