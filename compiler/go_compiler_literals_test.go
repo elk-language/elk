@@ -31,7 +31,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -151,7 +151,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -272,7 +272,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -371,7 +371,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -424,7 +424,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -504,7 +504,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -606,7 +606,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -693,7 +693,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -747,7 +747,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -827,7 +827,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -929,7 +929,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1016,7 +1016,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1065,7 +1065,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1114,7 +1114,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1163,7 +1163,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1212,7 +1212,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1261,7 +1261,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1310,7 +1310,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1359,7 +1359,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1411,7 +1411,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1465,7 +1465,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1519,7 +1519,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1573,7 +1573,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1627,7 +1627,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1681,7 +1681,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1735,7 +1735,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1789,7 +1789,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1852,7 +1852,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1900,7 +1900,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1948,7 +1948,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1996,7 +1996,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2044,7 +2044,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2092,7 +2092,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2140,7 +2140,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2188,7 +2188,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2236,7 +2236,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2284,7 +2284,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2332,7 +2332,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2381,7 +2381,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2429,7 +2429,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2477,7 +2477,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2525,7 +2525,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2573,7 +2573,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2621,7 +2621,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2669,7 +2669,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2717,7 +2717,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2765,7 +2765,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2813,7 +2813,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2861,7 +2861,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2909,7 +2909,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2958,7 +2958,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3018,7 +3018,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3067,7 +3067,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3116,7 +3116,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3165,7 +3165,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3214,7 +3214,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3263,7 +3263,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3312,7 +3312,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3362,7 +3362,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3411,7 +3411,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3462,7 +3462,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3513,7 +3513,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3561,7 +3561,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3613,7 +3613,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3694,7 +3694,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3757,7 +3757,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3822,7 +3822,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3883,7 +3883,7 @@ func main() { // loc: <main>
 
 		// import "github.com/elk-language/elk/value/symbol"
 
-		// var _ = symbol.Value
+		// var _ = symbol.C_Value
 		// var _ = vm.New
 		// var _ = value.Truthy
 
@@ -3916,7 +3916,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3994,7 +3994,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4045,7 +4045,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4109,7 +4109,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4158,7 +4158,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4206,7 +4206,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4255,7 +4255,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4305,7 +4305,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4354,7 +4354,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4406,7 +4406,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4455,7 +4455,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4504,7 +4504,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4553,7 +4553,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4602,7 +4602,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4652,7 +4652,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4715,7 +4715,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4763,7 +4763,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4811,7 +4811,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4859,7 +4859,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4907,7 +4907,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4955,7 +4955,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5007,7 +5007,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5058,7 +5058,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5106,7 +5106,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5154,7 +5154,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5206,7 +5206,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5257,7 +5257,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5305,7 +5305,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5353,7 +5353,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5401,7 +5401,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5450,7 +5450,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5499,7 +5499,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5548,7 +5548,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5596,7 +5596,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5644,7 +5644,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5693,7 +5693,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5744,7 +5744,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5798,7 +5798,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5852,7 +5852,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5908,7 +5908,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5964,7 +5964,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6038,7 +6038,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6151,7 +6151,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6205,7 +6205,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6259,7 +6259,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6334,7 +6334,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6382,7 +6382,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6430,7 +6430,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6478,7 +6478,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6526,7 +6526,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6574,7 +6574,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6634,7 +6634,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6696,7 +6696,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6744,7 +6744,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6792,7 +6792,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6843,7 +6843,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6894,7 +6894,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6942,7 +6942,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -6991,7 +6991,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7039,7 +7039,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7090,7 +7090,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7154,7 +7154,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7218,7 +7218,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7289,7 +7289,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7361,7 +7361,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7441,7 +7441,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7520,7 +7520,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7571,7 +7571,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7626,7 +7626,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7681,7 +7681,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7733,7 +7733,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7832,7 +7832,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7893,7 +7893,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -7955,7 +7955,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8006,7 +8006,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8072,7 +8072,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8150,7 +8150,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8228,7 +8228,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8289,7 +8289,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8362,7 +8362,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8439,7 +8439,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8524,7 +8524,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8576,7 +8576,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8631,7 +8631,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8683,7 +8683,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8733,7 +8733,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8785,7 +8785,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8883,7 +8883,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -8934,7 +8934,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9000,7 +9000,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9078,7 +9078,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9139,7 +9139,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9200,7 +9200,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9277,7 +9277,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9363,7 +9363,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9414,7 +9414,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9465,7 +9465,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9519,7 +9519,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9576,7 +9576,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9641,7 +9641,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -9706,7 +9706,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 

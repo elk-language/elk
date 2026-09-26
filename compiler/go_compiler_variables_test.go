@@ -50,7 +50,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -116,7 +116,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 `,
 		},
@@ -131,7 +131,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -199,7 +199,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -262,7 +262,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 `,
 		},
@@ -288,7 +288,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -384,7 +384,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -422,7 +422,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -504,7 +504,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -540,7 +540,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -632,9 +632,9 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -672,7 +672,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -764,9 +764,9 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("bar"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("bar"): 0}
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("bar"): 0, value.ToSymbol("foo"): 1}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("bar"): 0, symbol.ToSymbol("foo"): 1}
 }
 
 func methodDefinitions() {
@@ -804,7 +804,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -895,7 +895,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -930,7 +930,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1038,7 +1038,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1117,7 +1117,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -1153,7 +1153,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1235,7 +1235,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -1273,7 +1273,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1351,7 +1351,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -1389,7 +1389,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1468,7 +1468,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -1502,7 +1502,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1571,7 +1571,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -1606,7 +1606,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1671,7 +1671,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -1706,7 +1706,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1772,7 +1772,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -1811,7 +1811,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1877,7 +1877,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -1913,7 +1913,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -1991,7 +1991,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2027,7 +2027,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2109,7 +2109,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2145,7 +2145,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2231,7 +2231,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2268,7 +2268,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2356,9 +2356,9 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2397,7 +2397,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2484,7 +2484,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2519,7 +2519,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2626,7 +2626,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2704,7 +2704,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2741,7 +2741,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2829,9 +2829,9 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -2870,7 +2870,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -2973,9 +2973,9 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const0
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("bar"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("bar"): 0}
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("bar"): 0, value.ToSymbol("foo"): 1}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("bar"): 0, symbol.ToSymbol("foo"): 1}
 }
 
 func methodDefinitions() {
@@ -3014,7 +3014,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3101,7 +3101,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = const1
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -3136,7 +3136,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3243,7 +3243,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3318,7 +3318,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -3355,7 +3355,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3433,7 +3433,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -3471,7 +3471,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3545,7 +3545,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -3583,7 +3583,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3658,7 +3658,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("foo"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("foo"): 0}
 }
 
 func methodDefinitions() {
@@ -3692,7 +3692,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3761,7 +3761,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -3798,7 +3798,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3863,7 +3863,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -3900,7 +3900,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -3966,7 +3966,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -4001,7 +4001,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4067,7 +4067,7 @@ func ivarIndices(thread *vm.Thread) {
 	_ = class
 
 	class = (const0).SingletonClass()
-	class.IvarIndices = value.IvarIndices{value.ToSymbol("a"): 0}
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0}
 }
 
 func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
@@ -4107,7 +4107,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4154,7 +4154,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4276,7 +4276,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4327,7 +4327,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4379,7 +4379,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4441,7 +4441,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4495,7 +4495,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4550,7 +4550,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4609,7 +4609,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4671,7 +4671,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4726,7 +4726,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4785,7 +4785,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4849,7 +4849,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4906,7 +4906,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -4974,7 +4974,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5028,7 +5028,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5082,7 +5082,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5136,7 +5136,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5191,7 +5191,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5292,7 +5292,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5409,7 +5409,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5459,7 +5459,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5565,7 +5565,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5639,7 +5639,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5695,7 +5695,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 
@@ -5752,7 +5752,7 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-var _ = symbol.Value
+var _ = symbol.C_Value
 var _ = vm.New
 var _ = value.Truthy
 

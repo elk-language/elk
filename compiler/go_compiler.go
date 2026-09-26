@@ -499,7 +499,7 @@ func (c *GoCompiler) InitMainCompiler() {
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
 
 	// noops to stop Go from complaining about unused imports
-	c.emitPackage("var _ = symbol.Value\n")
+	c.emitPackage("var _ = symbol.C_Value\n")
 	c.emitPackage("var _ = vm.New\n")
 	c.emitPackage("var _ = value.Truthy\n\n")
 	c.emitPackage("func init() { elk.InitNative() }\n\n")
@@ -15805,7 +15805,7 @@ func (c *GoCompiler) ivarIndicesToGoSource(ivars *ivar.IvarIndices) string {
 	buff.WriteString("value.IvarIndices{")
 	for _, key := range symbol.SortKeys(*ivars) {
 		val := ivars.GetIndex(key)
-		fmt.Fprintf(&buff, "value.ToSymbol(%q): %d,", key.String(), val)
+		fmt.Fprintf(&buff, "symbol.ToSymbol(%q): %d,", key.String(), val)
 	}
 	buff.WriteString("}")
 	return buff.String()
