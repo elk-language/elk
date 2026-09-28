@@ -1,6 +1,10 @@
 package ds
 
-import "iter"
+import (
+	"iter"
+	"maps"
+	"slices"
+)
 
 // OrderedMap implements a map with ordered keys.
 // It iterates in insertion order.
@@ -51,6 +55,20 @@ func NewOrderedMapWithPairs[K comparable, V any](pairs ...Pair[K, V]) *OrderedMa
 
 func (m *OrderedMap[K, V]) Len() int {
 	return len(m.data)
+}
+
+func (m *OrderedMap[K, V]) Copy() *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		data:  maps.Clone(m.data),
+		order: slices.Clone(m.order),
+	}
+}
+
+func (m OrderedMap[K, V]) CopyVal() OrderedMap[K, V] {
+	return OrderedMap[K, V]{
+		data:  maps.Clone(m.data),
+		order: slices.Clone(m.order),
+	}
 }
 
 // Get return the value for the given key

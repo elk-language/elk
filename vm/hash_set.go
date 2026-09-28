@@ -483,6 +483,7 @@ func HashSetOfValueDelete(vm *Thread, hashSet *HashSetOfValue, val value.Value) 
 	// `DeletedHashSetValue` means that the entry has been deleted
 	hashSet.table[index] = DeletedHashSetValue
 	hashSet.elements--
+	hashSet.version++
 
 	return true, value.Undefined
 }
@@ -520,6 +521,7 @@ func HashSetOfValueCopyTable(vm *Thread, target *HashSetOfValue, source []value.
 		}
 	}
 
+	target.version++
 	return value.Undefined
 }
 
@@ -530,6 +532,7 @@ func HashSetOfValueCopy(vm *Thread, target *HashSetOfValue, source *HashSetOfVal
 		HashSetOfValueSetCapacity(vm, target, requiredCapacity)
 	}
 
+	target.version++
 	for _, entry := range source.table {
 		if entry == DeletedHashSetValue || entry.IsUndefined() {
 			continue
@@ -566,6 +569,7 @@ func HashSetOfValueSetCapacity(vm *Thread, set *HashSetOfValue, capacity int) va
 	tmpHashSet := &HashSetOfValue{
 		table: newTable,
 	}
+	set.version++
 
 	for _, entry := range oldTable {
 		if entry == DeletedHashSetValue || entry.IsUndefined() {
@@ -620,6 +624,7 @@ func HashSetOfValueAppendWithMaxLoad(vm *Thread, set *HashSetOfValue, val value.
 	}
 
 	set.table[index] = val
+	set.version++
 
 	return newValue, value.Undefined
 }
