@@ -4579,6 +4579,14 @@ func GetConstant(name Symbol) Value {
 	return RootModule.constants.Get(name)
 }
 
+func GetClass(name Symbol) *Class {
+	return GetConstant(name).AsReference().(*Class)
+}
+
+func GetSingletonClass(name Symbol) *Class {
+	return GetClass(name).SingletonClass()
+}
+
 // Resize the given args slice.
 // If it has lower than needed capacity a new slice will be allocated.
 // If it has enough capacity the length will be adjusted.

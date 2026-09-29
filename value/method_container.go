@@ -36,6 +36,10 @@ func (m *MethodContainer) Methods() MethodMap {
 	return m.methods
 }
 
+func (m *MethodContainer) GetMethod(name Symbol) Method {
+	return m.methods[name]
+}
+
 // Search for a method with the given name in
 // this container and its ancestors.
 func (m *MethodContainer) LookupMethod(name Symbol) Method {

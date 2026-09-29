@@ -21,6 +21,12 @@ func NewSelect(cases []SelectCase) *Select {
 	}
 }
 
+func NewSelectVar(cases ...SelectCase) *Select {
+	return &Select{
+		Cases: cases,
+	}
+}
+
 func (s *Select) ToValue() value.Value {
 	return value.Ref(s)
 }
@@ -65,4 +71,10 @@ func (s *Select) Error() string {
 
 type SelectCase struct {
 	Direction reflect.SelectDir
+}
+
+func MakeSelectCase(dir reflect.SelectDir) SelectCase {
+	return SelectCase{
+		Direction: dir,
+	}
 }

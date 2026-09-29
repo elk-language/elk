@@ -1363,6 +1363,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 				// Define methods
 				namespace.DefineMethod("Returns the name of the class.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the singleton class of this class.\nA singleton class holds class methods for other classes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("singleton"), nil, nil, NameToType("Std::Class", env), Never{})
 				namespace.DefineMethod("Returns the superclass (parent class) of this class.\nReturns `nil` when the class does not inherit from any class.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("superclass"), nil, nil, NewNilable(NameToType("Std::Class", env)), Never{})
 
 				// Define constants

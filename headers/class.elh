@@ -3,6 +3,12 @@
 ]##
 noinit class ::Std::Class < Object
 	##[
+		Returns the singleton class of this class.
+		A singleton class holds class methods for other classes.
+	]##
+	pure def singleton: Class; end
+
+	##[
 		Returns the superclass (parent class) of this class.
 		Returns `nil` when the class does not inherit from any class.
 	]##

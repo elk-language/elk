@@ -1741,56 +1741,65 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) {
 	nativeMethod := c.registerElkMethodName(method.NamespacedName(), true)
-	c.emitPackage("var %s = vm.NewBytecodeFunctionWithOptions(\n", nativeMethod.goIdent())
-	c.emitPackage("vm.BytecodeFunctionWithInstructions([]byte{\n")
+	bodySource := c.bytecodeToGoSource(body)
+	c.emitPackage("var %s = %s\n", nativeMethod.goIdent(), bodySource)
+}
+
+func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
+	var buff bytes.Buffer
+
+	fmt.Fprintf(&buff, "vm.NewBytecodeFunctionWithOptions(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithInstructions([]byte{\n")
 	for _, byt := range body.Instructions {
-		c.emitPackage("%x,", byt)
+		fmt.Fprintf(&buff, "%x,", byt)
 	}
-	c.emitPackage("}),\n")
+	fmt.Fprintf(&buff, "}),\n")
 
-	c.emitPackage("vm.BytecodeFunctionWithLocation(position.NewLocation(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLocation(position.NewLocation(\n")
 
-	c.emitPackage("%s,\n", body.Location.FilePath)
-	c.emitPackage("position.NewSpan(\n")
+	fmt.Fprintf(&buff, "%s,\n", body.Location.FilePath)
+	fmt.Fprintf(&buff, "position.NewSpan(\n")
 
-	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.StartPos.ByteOffset, body.Location.StartPos.Line, body.Location.StartPos.Column)
-	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.EndPos.ByteOffset, body.Location.EndPos.Line, body.Location.EndPos.Column)
+	fmt.Fprintf(&buff, "position.New(%d, %d, %d),\n", body.Location.StartPos.ByteOffset, body.Location.StartPos.Line, body.Location.StartPos.Column)
+	fmt.Fprintf(&buff, "position.New(%d, %d, %d),\n", body.Location.EndPos.ByteOffset, body.Location.EndPos.Line, body.Location.EndPos.Column)
 
-	c.emitPackage("),\n") // end span
+	fmt.Fprintf(&buff, "),\n") // end span
 
-	c.emitPackage(")),\n") // end location
+	fmt.Fprintf(&buff, ")),\n") // end location
 
-	c.emitPackage("vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
-	c.emitPackage("vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
-	c.emitPackage("vm.BytecodeFunctionWithParameters(%d),\n", body.ParameterCount())
-	c.emitPackage("vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithParameters(%d),\n", body.ParameterCount())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
 
 	if len(body.CatchEntries) > 0 {
 		c.emitPackage("vm.BytecodeFunctionWithCatchEntriesVar(\n")
 		for _, entry := range body.CatchEntries {
-			c.emitPackage("vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
+			fmt.Fprintf(&buff, "vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
 		}
-		c.emitPackage("),\n") // end catch entries
+		fmt.Fprintf(&buff, "),\n") // end catch entries
 	}
 
 	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
 	c.emitPackage("vm.BytecodeFunctionWithLineInfoListVar(\n")
 	for _, info := range body.LineInfoList {
-		c.emitPackage("bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
+		fmt.Fprintf(&buff, "bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
 	}
-	c.emitPackage("),\n") // end line info list
+	fmt.Fprintf(&buff, "),\n") // end line info list
 
 	if len(body.Values) > 0 {
-		c.emitPackage("vm.BytecodeFunctionWithValuesVar(\n")
+		fmt.Fprintf(&buff, "vm.BytecodeFunctionWithValuesVar(\n")
 		for _, val := range body.Values {
 			// TODO: use the static type stored in runtime value instead of any
 			goVal := c.valueToGoSource(val, types.Any{}, true)
-			c.emitPackage("%s,\n", c.convertValueToWiderType(goVal).fetchValue())
+			fmt.Fprintf(&buff, "%s,\n", c.convertValueToWiderType(goVal).fetchValue())
 		}
-		c.emitPackage("),\n") // end values
+		fmt.Fprintf(&buff, "),\n") // end values
 	}
 
-	c.emitPackage("}\n") // end struct
+	fmt.Fprintf(&buff, "}\n") // end struct
+
+	return buff.String()
 }
 
 func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol) {
@@ -15816,6 +15825,20 @@ func (c *GoCompiler) ivarIndicesToGoSource(ivars *ivar.IvarIndices) string {
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
+		case *vm.BytecodeFunction:
+			source := c.bytecodeToGoSource(v)
+			return newGoValue(
+				source,
+				types.Any{},
+				value.FetchGoType("*vm.BytecodeFunction"),
+			)
+		case *value.IvarIndices:
+			source := c.ivarIndicesToGoSource((*ivar.IvarIndices)(v))
+			return newGoValue(
+				source,
+				types.Any{},
+				value.FetchGoType("*value.IvarIndices"),
+			)
 		case *vm.CallSiteInfo:
 			name := c.emitSymbol(v.Name.String())
 			return newGoValue(
@@ -15823,12 +15846,65 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				types.Any{},
 				value.FetchGoType("*vm.CallSiteInfo"),
 			)
-		case *vm.NativeCallSiteInfo:
-			name := c.emitSymbol(v.Method.Name().String())
+		case *BytecodeBreakpointContext:
 			return newGoValue(
-				fmt.Sprintf("vm.NewNativeCallSiteInfo(%s, %d)", name, v.ArgumentCount),
+				"value.Undefined",
+				types.Any{},
+				goValueType,
+			)
+		case *vm.Select:
+			var buff bytes.Buffer
+
+			buff.WriteString("vm.NewSelectVar(")
+			for _, selectCase := range v.Cases {
+				fmt.Fprintf(&buff, "vm.MakeSelectCase(%d), ", selectCase.Direction)
+			}
+			buff.WriteString(")")
+
+			return newGoValue(
+				buff.String(),
+				types.Any{},
+				value.FetchGoType("*vm.Select"),
+			)
+		case *value.Class:
+			var buff bytes.Buffer
+			if v.IsSingleton() {
+				className := v.Name()[1:]
+				classNameSym := c.emitSymbol(className)
+				fmt.Fprintf(&buff, "value.GetSingletonClass(%s)", classNameSym)
+			} else {
+				fmt.Fprintf(&buff, "value.GetClass(%s)", v.Name())
+			}
+			return newGoValue(
+				buff.String(),
+				types.Any{},
+				value.FetchGoType("*value.Class"),
+			)
+		case value.Method:
+			class := v.Namespace()
+			classGoVal := c.valueToGoSource(class.ToValue(), types.Any{}, false)
+			methodNameSym := c.emitSymbol(v.Name().String())
+
+			return newGoValue(
+				fmt.Sprintf("(%s).GetMethod(%s)", classGoVal.fetchValue(), methodNameSym),
+				types.Any{},
+				value.FetchGoType("value.Method"),
+			)
+		case *vm.NativeCallSiteInfo:
+			methodGoVal := c.valueToGoSource(v.Method.ToValue(), types.Any{}, false)
+
+			return newGoValue(
+				fmt.Sprintf("vm.NewNativeCallSiteInfo(%s.(*vm.NativeMethod), %d)", methodGoVal.fetchValue(), v.ArgumentCount),
 				types.Any{},
 				value.FetchGoType("*vm.NativeCallSiteInfo"),
+			)
+		case *vm.BytecodeCallSiteInfo:
+			methodGoVal := c.valueToGoSource(v.Method.ToValue(), types.Any{}, false)
+
+			return newGoValue(
+				fmt.Sprintf("vm.NewBytecodeCallSiteInfo(%s.(*vm.BytecodeFunction), %d, %t)", methodGoVal.fetchValue(), v.ArgumentCount, v.TailCall),
+				types.Any{},
+				value.FetchGoType("*vm.BytecodeCallSiteInfo"),
 			)
 		case value.ArrayList:
 			if !allowMutable {
