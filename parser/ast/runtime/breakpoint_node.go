@@ -8,7 +8,7 @@ import (
 )
 
 func initBreakpointNode() {
-	c := &value.BreakpointNodeClass.MethodContainer
+	c := value.BreakpointNodeClass
 	vm.Def(
 		c,
 		"#init",

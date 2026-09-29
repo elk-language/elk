@@ -8,7 +8,7 @@ import (
 )
 
 func initCharLiteralNode() {
-	c := &value.CharLiteralNodeClass.MethodContainer
+	c := value.CharLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -74,7 +74,7 @@ func initCharLiteralNode() {
 		},
 	)
 
-	c = &value.CharClass.MethodContainer
+	c = value.CharClass
 	vm.Def(
 		c,
 		"to_ast_node",

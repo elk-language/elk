@@ -8,7 +8,7 @@ import (
 )
 
 func initSymbolKeyValueExpressionNode() {
-	c := &value.SymbolKeyValueExpressionNodeClass.MethodContainer
+	c := value.SymbolKeyValueExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 // ::Std::ArrayTuple
 func initArrayTuple() {
 	// Instance methods
-	c := &value.ArrayTupleClass.MethodContainer
+	c := value.ArrayTupleClass
 	Def(
 		c,
 		"iter",
@@ -150,7 +150,7 @@ func initArrayTuple() {
 // ::Std::ArrayTupleIterator
 func initArrayTupleIterator() {
 	// Instance methods
-	c := &value.ArrayTupleIteratorClass.MethodContainer
+	c := value.ArrayTupleIteratorClass
 	Def(
 		c,
 		"next",

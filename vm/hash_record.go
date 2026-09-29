@@ -38,7 +38,7 @@ func initHashRecord() {
 	value.HashRecordClass.ConstructorFunc = hashRecordConstructor
 
 	// Instance methods
-	c := &value.HashRecordClass.MethodContainer
+	c := value.HashRecordClass
 	Def(
 		c,
 		"iter",
@@ -169,7 +169,7 @@ func initHashRecord() {
 					}
 					r, ok := result.SafeAsReference().(value.Pair)
 					if !ok {
-						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
+						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 					}
 					err = HashRecordOfValueSet(vm, newRecord, r.Key(), r.Value())
 					if !err.IsUndefined() {
@@ -187,7 +187,7 @@ func initHashRecord() {
 				}
 				r, ok := result.SafeAsReference().(value.Pair)
 				if !ok {
-					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
+					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 				}
 				err = HashRecordOfValueSet(vm, newRecord, r.Key(), r.Value())
 				if !err.IsUndefined() {
@@ -242,7 +242,7 @@ func initHashRecord() {
 // ::Std::HashRecord::Iterator
 func initHashRecordIterator() {
 	// Instance methods
-	c := &value.HashRecordIteratorClass.MethodContainer
+	c := value.HashRecordIteratorClass
 	Def(
 		c,
 		"next",

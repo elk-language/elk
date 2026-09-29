@@ -8,7 +8,7 @@ import (
 )
 
 func initBoxOfExpressionNode() {
-	c := &value.BoxOfExpressionNodeClass.MethodContainer
+	c := value.BoxOfExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

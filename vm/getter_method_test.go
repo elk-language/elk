@@ -11,72 +11,70 @@ import (
 
 func TestDefineGetter(t *testing.T) {
 	tests := map[string]struct {
-		container      *value.MethodContainer
-		attrName       string
-		containerAfter *value.MethodContainer
+		attrName string
+		methods  func(namespace *value.Class) (before, after value.MethodMap)
 	}{
 		"define getter in empty method map": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{},
-			},
 			attrName: "foo",
-			containerAfter: &value.MethodContainer{
-				Methods: value.MethodMap{
+			methods: func(namespace *value.Class) (value.MethodMap, value.MethodMap) {
+				return value.MethodMap{}, value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
+						namespace,
 						value.ToSymbol("foo"),
 						-1,
 					),
-				},
+				}
 			},
 		},
 		"define getter in populated method map": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("bar"): vm.NewGetterMethod(
-						value.ToSymbol("bar"),
-						-1,
-					),
-				},
-			},
 			attrName: "foo",
-			containerAfter: &value.MethodContainer{
-				Methods: value.MethodMap{
+			methods: func(namespace *value.Class) (value.MethodMap, value.MethodMap) {
+				getter := vm.NewGetterMethod(
+					namespace,
+					value.ToSymbol("bar"),
+					-1,
+				)
+				return value.MethodMap{
+					value.ToSymbol("bar"): getter,
+				}, value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
+						namespace,
 						value.ToSymbol("foo"),
 						-1,
 					),
-					value.ToSymbol("bar"): vm.NewGetterMethod(
-						value.ToSymbol("bar"),
-						-1,
-					),
-				},
+					value.ToSymbol("bar"): getter,
+				}
 			},
 		},
 		"override getter in populated method map": {
-			container: &value.MethodContainer{
-				Methods: value.MethodMap{
-					value.ToSymbol("foo"): vm.NewGetterMethod(
-						value.ToSymbol("foo"),
-						-1,
-					),
-				},
-			},
 			attrName: "foo",
-			containerAfter: &value.MethodContainer{
-				Methods: value.MethodMap{
+			methods: func(namespace *value.Class) (value.MethodMap, value.MethodMap) {
+				return value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
+						namespace,
 						value.ToSymbol("foo"),
 						-1,
 					),
-				},
+				}, value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						namespace,
+						value.ToSymbol("foo"),
+						-1,
+					),
+				}
 			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName), -1)
-			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
+			class := value.NewClass()
+			before, after := tc.methods(class)
+			for methodName, method := range before {
+				class.AttachMethod(methodName, method)
+			}
+			vm.DefineGetter(class, value.ToSymbol(tc.attrName), -1)
+			if diff := cmp.Diff(after, class.Methods(), comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}
 		})

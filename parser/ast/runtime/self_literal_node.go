@@ -8,7 +8,7 @@ import (
 )
 
 func initSelfLiteralNode() {
-	c := &value.SelfLiteralNodeClass.MethodContainer
+	c := value.SelfLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

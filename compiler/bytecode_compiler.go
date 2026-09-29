@@ -286,6 +286,7 @@ type BytecodeCompiler struct {
 func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.Location, checker types.Checker, globalData *GlobalData) *BytecodeCompiler {
 	c := &BytecodeCompiler{
 		bytecode: vm.NewBytecodeFunctionSimple(
+			nil,
 			value.ToSymbol(name),
 			[]byte{},
 			loc,
@@ -323,6 +324,7 @@ func (c *BytecodeCompiler) createBreakpointContext(typecheckerContext value.Refe
 
 func (c *BytecodeCompiler) ResetBreakpoint() {
 	c.bytecode = vm.NewBytecodeFunctionSimple(
+		nil,
 		c.bytecode.Name(),
 		[]byte{},
 		c.bytecode.Location,
@@ -787,7 +789,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		method = method.Base
 
 		if method.IsNative() {
-			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			namespace := value.RootModule.Constants().GetString(method.DefinedUnder.Name()).AsReference()
 			var class *value.Class
 			switch n := namespace.(type) {
 			case *value.Class:
@@ -797,7 +799,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
 			}
-			nativeMethod, ok := class.Methods[value.S(method.Name)]
+			nativeMethod, ok := class.Methods()[value.S(method.Name)]
 			if !ok {
 				panic(fmt.Sprintf("undefined native method %s under %s", method.Name.String(), namespace.Inspect()))
 			}

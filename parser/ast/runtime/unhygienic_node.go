@@ -8,7 +8,7 @@ import (
 )
 
 func initUnhygienicNode() {
-	c := &value.UnhygienicNodeClass.MethodContainer
+	c := value.UnhygienicNodeClass
 	vm.Def(
 		c,
 		"#init",

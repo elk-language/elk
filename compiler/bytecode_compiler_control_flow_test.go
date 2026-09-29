@@ -25,6 +25,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				end
 `,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -100,6 +101,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				end
 		`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -155,6 +157,7 @@ func TestBytecodeSelectExpression(t *testing.T) {
 				end
 `,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -243,6 +246,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 		"with a single expression": {
 			input: "go println('foo')",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -256,6 +260,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -285,6 +290,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -304,6 +310,7 @@ func TestBytecodeGoExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -350,6 +357,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -394,6 +402,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -444,6 +453,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -488,6 +498,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
@@ -545,6 +556,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -584,6 +596,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -663,6 +676,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -712,6 +726,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -762,6 +777,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -811,6 +827,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -857,6 +874,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -905,6 +923,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
@@ -970,6 +989,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
@@ -1035,6 +1055,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
@@ -1099,6 +1120,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 4,
@@ -1167,6 +1189,7 @@ func TestBytecodeReturnExpression(t *testing.T) {
 		"return a value": {
 			input: "return 5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_5),
@@ -1196,6 +1219,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 		"await in a synchronous context": {
 			input: "await timeout(2.seconds)",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -1224,6 +1248,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1239,6 +1264,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1258,6 +1284,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -1299,6 +1326,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1314,6 +1342,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1333,6 +1362,7 @@ func TestBytecodeAwaitExpression(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -1380,6 +1410,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 		"iterate": {
 			input: `println(i) for i in [1, 2, 3]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1412,6 +1443,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 		"with a pattern": {
 			input: `println(a + b) for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -1492,6 +1524,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 		"resolve static condition with empty then and else": {
 			input: `if false; end`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -1510,6 +1543,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 		"empty then and else": {
 			input: "a := true; if a; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1536,6 +1570,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
@@ -1560,6 +1595,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -1587,6 +1623,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_5),
@@ -1613,6 +1650,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1651,6 +1689,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1693,6 +1732,7 @@ func TestBytecodeIfExpression(t *testing.T) {
 				b
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1737,6 +1777,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 		"resolve static condition with empty then and else": {
 			input: "unless true; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -1755,6 +1796,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 		"empty then and else": {
 			input: "a := true; unless a; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1781,6 +1823,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
@@ -1805,6 +1848,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -1832,6 +1876,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_5),
@@ -1858,6 +1903,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1894,6 +1940,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1936,6 +1983,7 @@ func TestBytecodeUnlessExpression(t *testing.T) {
 				b
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2101,6 +2149,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOOP), 0, 3,
@@ -2122,6 +2171,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2156,6 +2206,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2203,6 +2254,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2254,6 +2306,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2321,6 +2374,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2384,6 +2438,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2424,6 +2479,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2469,6 +2525,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2534,6 +2591,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2597,6 +2655,7 @@ func TestBytecodeLoopExpression(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2645,6 +2704,7 @@ func TestBytecodeLogicalOrOperator(t *testing.T) {
 				a || true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2677,6 +2737,7 @@ func TestBytecodeLogicalOrOperator(t *testing.T) {
 				a || true || 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2729,6 +2790,7 @@ func TestBytecodeLogicalAndOperator(t *testing.T) {
 				a && true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2762,6 +2824,7 @@ func TestBytecodeLogicalAndOperator(t *testing.T) {
 				a && true && 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2812,6 +2875,7 @@ func TestBytecodeNilCoalescingOperator(t *testing.T) {
 				a ?? true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2844,6 +2908,7 @@ func TestBytecodeNilCoalescingOperator(t *testing.T) {
 				a ?? true ?? 3
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2892,6 +2957,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOOP), 0, 3,
@@ -2913,6 +2979,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2946,6 +3013,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2986,6 +3054,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3026,6 +3095,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3074,6 +3144,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3122,6 +3193,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3170,6 +3242,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3218,6 +3291,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3258,6 +3332,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3291,6 +3366,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3328,6 +3404,7 @@ func TestBytecodeNumericFor(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3382,6 +3459,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				i += 1 while i < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3416,6 +3494,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while i < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3454,6 +3533,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3497,6 +3577,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3541,6 +3622,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3588,6 +3670,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while j < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3655,6 +3738,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while j < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3722,6 +3806,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while j < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3789,6 +3874,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while j < 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3850,6 +3936,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -3882,6 +3969,7 @@ func TestBytecodeModifierWhile(t *testing.T) {
 				end while false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -3924,6 +4012,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3962,6 +4051,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4005,6 +4095,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4048,6 +4139,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4096,6 +4188,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4163,6 +4256,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4230,6 +4324,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4298,6 +4393,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4358,6 +4454,7 @@ func TestBytecodeWhile(t *testing.T) {
 				while i < 5; end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4388,6 +4485,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -4420,6 +4518,7 @@ func TestBytecodeWhile(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -4455,6 +4554,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				i += 1 until i >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4489,6 +4589,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until i >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4527,6 +4628,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4570,6 +4672,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4613,6 +4716,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4660,6 +4764,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until j >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4727,6 +4832,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until j >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4794,6 +4900,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until j >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4861,6 +4968,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until j >= 5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4922,6 +5030,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until false
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -4954,6 +5063,7 @@ func TestBytecodeModifierUntil(t *testing.T) {
 				end until true
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -4996,6 +5106,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5034,6 +5145,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5077,6 +5189,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5120,6 +5233,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5167,6 +5281,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -5234,6 +5349,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -5301,6 +5417,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -5368,6 +5485,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -5428,6 +5546,7 @@ func TestBytecodeUntil(t *testing.T) {
 				until i >= 5; end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5458,6 +5577,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -5490,6 +5610,7 @@ func TestBytecodeUntil(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -5524,6 +5645,7 @@ func TestBytecodeMust(t *testing.T) {
 				var a: Int? = nil
 				must a`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5559,6 +5681,7 @@ func TestBytecodeAs(t *testing.T) {
 				a as ::Std::Int
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5594,6 +5717,7 @@ func TestBytecodeThrow(t *testing.T) {
 		"with a value": {
 			input: `throw unchecked :foo`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -5637,6 +5761,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5699,6 +5824,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -5761,6 +5887,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -5832,6 +5959,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -5924,6 +6052,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -6054,6 +6183,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -6183,6 +6313,7 @@ func TestBytecodeCatch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -6244,6 +6375,7 @@ func TestBytecodeCatch(t *testing.T) {
 				0,
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -6263,6 +6395,7 @@ func TestBytecodeCatch(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Std::Kernel").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Std::Kernel::foo"),
 								[]byte{
 									byte(bytecode.SELF),
@@ -6290,6 +6423,7 @@ func TestBytecodeCatch(t *testing.T) {
 					)),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(vm.NewBytecodeCallSiteInfo(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("Std::Kernel::foo"),
 						[]byte{
 							byte(bytecode.SELF),
@@ -6343,6 +6477,7 @@ func TestBytecodeDefer(t *testing.T) {
 				defer puts "4. close TCP socket"
 			`,
 			want: vm.NewBytecodeFunctionWithCatchEntries(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -6418,6 +6553,7 @@ func TestBytecodeDefer(t *testing.T) {
 					value.Ref(value.String("1. open file")),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<defer>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -6437,6 +6573,7 @@ func TestBytecodeDefer(t *testing.T) {
 					)),
 					value.Ref(value.String("3. open TCP socket")),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<defer>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,

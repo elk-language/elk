@@ -8,7 +8,7 @@ import (
 )
 
 func initPublicConstantNode() {
-	c := &value.PublicConstantNodeClass.MethodContainer
+	c := value.PublicConstantNodeClass
 	vm.Def(
 		c,
 		"#init",

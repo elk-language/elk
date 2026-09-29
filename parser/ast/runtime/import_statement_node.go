@@ -8,7 +8,7 @@ import (
 )
 
 func initImportStatementNode() {
-	c := &value.ImportStatementNodeClass.MethodContainer
+	c := value.ImportStatementNodeClass
 	vm.Def(
 		c,
 		"#init",

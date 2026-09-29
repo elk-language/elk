@@ -8,7 +8,7 @@ import (
 )
 
 func initMustExpressionNode() {
-	c := &value.MustExpressionNodeClass.MethodContainer
+	c := value.MustExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

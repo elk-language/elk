@@ -8,7 +8,7 @@ import (
 )
 
 func initAliasDeclarationEntry() {
-	c := &value.AliasDeclarationEntryClass.MethodContainer
+	c := value.AliasDeclarationEntryClass
 	vm.Def(
 		c,
 		"#init",

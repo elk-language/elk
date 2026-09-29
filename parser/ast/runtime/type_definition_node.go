@@ -8,7 +8,7 @@ import (
 )
 
 func initTypeDefinitionNode() {
-	c := &value.TypeDefinitionNodeClass.MethodContainer
+	c := value.TypeDefinitionNodeClass
 	vm.Def(
 		c,
 		"#init",

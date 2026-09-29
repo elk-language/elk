@@ -34,7 +34,7 @@ func initHashSet() {
 	value.HashSetClass.ConstructorFunc = hashSetConstructor
 
 	// Instance methods
-	c := &value.HashSetClass.MethodContainer
+	c := value.HashSetClass
 	Def(
 		c,
 		"iter",
@@ -213,7 +213,7 @@ func initHashSet() {
 // ::Std::HashSet::Iterator
 func initHashSetIterator() {
 	// Instance methods
-	c := &value.HashSetIteratorClass.MethodContainer
+	c := value.HashSetIteratorClass
 	Def(
 		c,
 		"next",

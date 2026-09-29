@@ -9,7 +9,7 @@ import (
 )
 
 func initUnaryExpressionNode() {
-	c := &value.UnaryExpressionNodeClass.MethodContainer
+	c := value.UnaryExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -7,7 +7,7 @@ import (
 // Std::Symbol
 func initSymbol() {
 	// Instance methods
-	c := &value.SymbolClass.MethodContainer
+	c := value.SymbolClass
 
 	Def(
 		c,

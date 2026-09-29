@@ -8,7 +8,7 @@ import (
 )
 
 func initSimpleSymbolLiteralNode() {
-	c := &value.SimpleSymbolLiteralNodeClass.MethodContainer
+	c := value.SimpleSymbolLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -83,7 +83,7 @@ func initSimpleSymbolLiteralNode() {
 		},
 	)
 
-	c = &value.SymbolClass.MethodContainer
+	c = value.SymbolClass
 	vm.Def(
 		c,
 		"to_ast_node",

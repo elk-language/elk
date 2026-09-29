@@ -8,7 +8,7 @@ import (
 )
 
 func initInterfaceDeclarationNode() {
-	c := &value.InterfaceDeclarationNodeClass.MethodContainer
+	c := value.InterfaceDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

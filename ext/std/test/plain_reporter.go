@@ -156,7 +156,7 @@ func (s *PlainReporter) reportFailure(report Report) {
 				err := testErr.Err.AsReference().(*value.Object)
 				fmt.Printf(
 					"    error: %s,\n    message: %s\n",
-					lexer.Colorize(testErr.Err.Class().Name),
+					lexer.Colorize(testErr.Err.Class().Name()),
 					lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
 				)
 				indent.IndentString(os.Stdout, testErr.StackTrace.String(), 2)

@@ -7,7 +7,7 @@ import (
 // Std::Result
 func initResult() {
 	// Instance methods
-	c := &value.ResultClass.MethodContainer
+	c := value.ResultClass
 	Def(
 		c,
 		"value",
@@ -46,7 +46,7 @@ func initResult() {
 	Alias(c, "or_throw", "unwrap")
 
 	// Singleton methods
-	c = &value.ResultClass.SingletonClass().MethodContainer
+	c = value.ResultClass.SingletonClass()
 	Def(
 		c,
 		"ok",

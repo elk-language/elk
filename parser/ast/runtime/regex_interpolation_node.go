@@ -8,7 +8,7 @@ import (
 )
 
 func initRegexInterpolationNode() {
-	c := &value.RegexInterpolationNodeClass.MethodContainer
+	c := value.RegexInterpolationNodeClass
 	vm.Def(
 		c,
 		"#init",

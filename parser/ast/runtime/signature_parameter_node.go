@@ -8,7 +8,7 @@ import (
 )
 
 func initSignatureParameterNode() {
-	c := &value.SignatureParameterNodeClass.MethodContainer
+	c := value.SignatureParameterNodeClass
 	vm.Def(
 		c,
 		"#init",

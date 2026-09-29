@@ -15,12 +15,14 @@ type Module struct {
 	ConstantContainer
 }
 
+var _ Namespace = &Module{}
+
 // Module constructor option function.
 type ModuleOption func(*Module)
 
 func ModuleWithName(name string) ModuleOption {
 	return func(m *Module) {
-		m.ConstantContainer.Name = name
+		m.ConstantContainer.name = name
 	}
 }
 
@@ -38,7 +40,7 @@ func ModuleWithSingletonClass() ModuleOption {
 
 func ModuleWithConstants(constants SymbolMap) ModuleOption {
 	return func(m *Module) {
-		m.Constants = constants
+		m.constants = constants
 	}
 }
 
@@ -47,7 +49,7 @@ func NewModule() *Module {
 	return &Module{
 		class: ModuleClass,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 	}
 }
@@ -68,20 +70,20 @@ func ModuleConstructor(class *Class) Value {
 	return Ref(&Module{
 		class: class,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		instanceVariables: make([]Value, class.IvarIndices.Length()),
 	})
 }
 
 func (m *Module) Copy() Reference {
-	newConstants := maps.Clone(m.Constants)
+	newConstants := maps.Clone(m.constants)
 	newInstanceVariables := slices.Clone(m.instanceVariables)
 
 	newModule := &Module{
 		ConstantContainer: ConstantContainer{
-			Constants: newConstants,
-			Name:      m.Name,
+			constants: newConstants,
+			name:      m.name,
 		},
 		class:             m.class,
 		instanceVariables: newInstanceVariables,
@@ -115,7 +117,7 @@ func (m *Module) SingletonClass() *Class {
 		return m.class
 	}
 
-	singletonClass := NewSingletonClass(m.class, m.Name)
+	singletonClass := NewSingletonClass(m.class, m.name)
 	m.class = singletonClass
 	return singletonClass
 }
@@ -138,7 +140,7 @@ func NewModuleComparer(opts *cmp.Options) cmp.Option {
 			return true
 		}
 
-		return x.Name == y.Name &&
+		return x.name == y.name &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...) &&
 			cmp.Equal(x.Constants, y.Constants, *opts...) &&
 			cmp.Equal(x.class, y.class, *opts...)

@@ -8,7 +8,7 @@ import (
 )
 
 func initExtendWhereBlockExpressionNode() {
-	c := &value.ExtendWhereBlockExpressionNodeClass.MethodContainer
+	c := value.ExtendWhereBlockExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

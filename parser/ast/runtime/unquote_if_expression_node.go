@@ -8,7 +8,7 @@ import (
 )
 
 func initUnquoteIfExpressionNode() {
-	c := &value.UnquoteIfExpressionNodeClass.MethodContainer
+	c := value.UnquoteIfExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

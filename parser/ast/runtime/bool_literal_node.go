@@ -8,7 +8,7 @@ import (
 )
 
 func initBoolLiteralNode() {
-	c := &value.BoolLiteralNodeClass.MethodContainer
+	c := value.BoolLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

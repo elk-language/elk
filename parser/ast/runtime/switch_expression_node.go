@@ -8,7 +8,7 @@ import (
 )
 
 func initSwitchExpressionNode() {
-	c := &value.SwitchExpressionNodeClass.MethodContainer
+	c := value.SwitchExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

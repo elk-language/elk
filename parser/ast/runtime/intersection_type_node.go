@@ -8,7 +8,7 @@ import (
 )
 
 func initIntersectionTypeNode() {
-	c := &value.IntersectionTypeNodeClass.MethodContainer
+	c := value.IntersectionTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

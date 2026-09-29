@@ -8,7 +8,7 @@ import (
 )
 
 func initUsingAllEntryNode() {
-	c := &value.UsingAllEntryNodeClass.MethodContainer
+	c := value.UsingAllEntryNodeClass
 	vm.Def(
 		c,
 		"#init",

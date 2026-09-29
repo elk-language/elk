@@ -8,7 +8,7 @@ import (
 )
 
 func initMacroBoundaryNode() {
-	c := &value.MacroBoundaryNodeClass.MethodContainer
+	c := value.MacroBoundaryNodeClass
 	vm.Def(
 		c,
 		"#init",

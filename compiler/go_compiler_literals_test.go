@@ -6102,6 +6102,7 @@ func main() { // loc: <main>
 		// 		[Object(), 5 if a, [:foo]]
 		// 	`,
 		// 	want: vm.NewBytecodeFunctionNoParams(
+		// 		nil,
 		// 		mainSymbol,
 		// 		[]byte{
 		// 			byte(bytecode.PREP_LOCALS8), 1,
@@ -7775,6 +7776,7 @@ func main() { // loc: <main>
 		// 		"with static elements and for loops": {
 		// 			input: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
 		// 			want: vm.NewBytecodeFunctionNoParams(
+		// 				nil,
 		// 				mainSymbol,
 		// 				[]byte{
 		// 					byte(bytecode.PREP_LOCALS8), 2,
@@ -8827,6 +8829,7 @@ func main() { // loc: <main>
 		// 		"with static elements and for loops": {
 		// 			input: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
 		// 			want: vm.NewBytecodeFunctionNoParams(
+		// 				nil,
 		// 				mainSymbol,
 		// 				[]byte{
 		// 					byte(bytecode.PREP_LOCALS8), 2,

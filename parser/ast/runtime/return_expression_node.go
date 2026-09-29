@@ -8,7 +8,7 @@ import (
 )
 
 func initReturnExpressionNode() {
-	c := &value.ReturnExpressionNodeClass.MethodContainer
+	c := value.ReturnExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

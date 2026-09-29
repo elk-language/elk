@@ -8,7 +8,7 @@ import (
 )
 
 func initVariantTypeParameterNode() {
-	c := &value.VariantTypeParameterNodeClass.MethodContainer
+	c := value.VariantTypeParameterNodeClass
 	vm.Def(
 		c,
 		"#init",

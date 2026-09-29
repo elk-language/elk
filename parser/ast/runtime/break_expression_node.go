@@ -8,7 +8,7 @@ import (
 )
 
 func initBreakExpressionNode() {
-	c := &value.BreakExpressionNodeClass.MethodContainer
+	c := value.BreakExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

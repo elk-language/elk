@@ -8,7 +8,7 @@ import (
 )
 
 func initKeyValuePatternNode() {
-	c := &value.KeyValuePatternNodeClass.MethodContainer
+	c := value.KeyValuePatternNodeClass
 	vm.Def(
 		c,
 		"#init",

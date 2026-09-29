@@ -7,7 +7,7 @@ import (
 // ::Std::Pair
 func initPair() {
 	// Instance methods
-	c := &value.PairClass.MethodContainer
+	c := value.PairClass
 	Def(
 		c,
 		"#init",

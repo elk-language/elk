@@ -9,7 +9,7 @@ import (
 )
 
 func initAssignmentExpressionNode() {
-	c := &value.AssignmentExpressionNodeClass.MethodContainer
+	c := value.AssignmentExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

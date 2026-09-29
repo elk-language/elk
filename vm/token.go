@@ -9,7 +9,7 @@ import (
 // Std::Elk::Token
 func initToken() {
 	// Singleton methods
-	c := &value.ElkTokenClass.SingletonClass().MethodContainer
+	c := value.ElkTokenClass.SingletonClass()
 	Def(
 		c,
 		"type_name",
@@ -22,7 +22,7 @@ func initToken() {
 	)
 
 	// Instance methods
-	c = &value.ElkTokenClass.MethodContainer
+	c = value.ElkTokenClass
 	Def(
 		c,
 		"#init",

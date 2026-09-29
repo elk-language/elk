@@ -8,7 +8,7 @@ import (
 )
 
 func initKeyValueExpressionNode() {
-	c := &value.KeyValueExpressionNodeClass.MethodContainer
+	c := value.KeyValueExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

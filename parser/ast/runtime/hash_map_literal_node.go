@@ -8,7 +8,7 @@ import (
 )
 
 func initHashMapLiteralNode() {
-	c := &value.HashMapLiteralNodeClass.MethodContainer
+	c := value.HashMapLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

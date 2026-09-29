@@ -9,7 +9,7 @@ import (
 )
 
 func initMethodDefinitionNode() {
-	c := &value.MethodDefinitionNodeClass.MethodContainer
+	c := value.MethodDefinitionNodeClass
 	vm.Def(
 		c,
 		"#init",

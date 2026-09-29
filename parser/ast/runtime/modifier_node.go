@@ -9,7 +9,7 @@ import (
 )
 
 func initModifierNode() {
-	c := &value.ModifierNodeClass.MethodContainer
+	c := value.ModifierNodeClass
 	vm.Def(
 		c,
 		"#init",

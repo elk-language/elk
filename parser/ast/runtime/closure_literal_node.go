@@ -8,7 +8,7 @@ import (
 )
 
 func initClosureLiteralNode() {
-	c := &value.ClosureLiteralNodeClass.MethodContainer
+	c := value.ClosureLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

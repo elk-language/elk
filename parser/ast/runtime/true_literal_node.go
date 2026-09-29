@@ -8,7 +8,7 @@ import (
 )
 
 func initTrueLiteralNode() {
-	c := &value.TrueLiteralNodeClass.MethodContainer
+	c := value.TrueLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -60,7 +60,7 @@ func initTrueLiteralNode() {
 		},
 	)
 
-	c = &value.TrueClass.MethodContainer
+	c = value.TrueClass
 	vm.Def(
 		c,
 		"to_ast_node",

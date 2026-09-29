@@ -8,7 +8,7 @@ import (
 )
 
 func initSubscriptExpressionNode() {
-	c := &value.SubscriptExpressionNodeClass.MethodContainer
+	c := value.SubscriptExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

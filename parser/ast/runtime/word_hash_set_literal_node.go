@@ -8,7 +8,7 @@ import (
 )
 
 func initWordHashSetLiteralNode() {
-	c := &value.WordHashSetLiteralNodeClass.MethodContainer
+	c := value.WordHashSetLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

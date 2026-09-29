@@ -7,7 +7,7 @@ import (
 // Std::Datetime::Span
 func initDateTimeSpan() {
 	// Singleton methods
-	c := &value.DateTimeSpanClass.SingletonClass().MethodContainer
+	c := value.DateTimeSpanClass.SingletonClass()
 	Def(
 		c,
 		"parse",
@@ -19,7 +19,7 @@ func initDateTimeSpan() {
 	)
 
 	// Instance methods
-	c = &value.DateTimeSpanClass.MethodContainer
+	c = value.DateTimeSpanClass
 
 	Def(
 		c,

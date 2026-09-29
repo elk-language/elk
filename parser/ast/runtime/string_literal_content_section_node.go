@@ -8,7 +8,7 @@ import (
 )
 
 func initStringLiteralContentSectionNode() {
-	c := &value.StringLiteralContentSectionNodeClass.MethodContainer
+	c := value.StringLiteralContentSectionNodeClass
 	vm.Def(
 		c,
 		"#init",

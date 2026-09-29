@@ -8,7 +8,7 @@ import (
 )
 
 func initArrayListLiteralNode() {
-	c := &value.ArrayListLiteralNodeClass.MethodContainer
+	c := value.ArrayListLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

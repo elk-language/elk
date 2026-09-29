@@ -13,6 +13,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 		"absolute path ::Std": {
 			input: "::Std",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -30,6 +31,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 		"absolute nested path ::Std::Float::INF": {
 			input: "::Std::Float::INF",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -50,6 +52,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 				I
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -75,6 +78,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -99,6 +103,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -124,6 +129,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 					value.ToSymbol("Foo").ToValue(),
 					value.ToSymbol("BAR").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -141,6 +147,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo::Baz").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("<module: Foo::Baz>"),
 								[]byte{
 									byte(bytecode.GET_CONST8), 0,
@@ -180,6 +187,7 @@ func TestBytecodeDefConstant(t *testing.T) {
 		"relative path Foo": {
 			input: "const Foo = 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,

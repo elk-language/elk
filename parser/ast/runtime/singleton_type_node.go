@@ -8,7 +8,7 @@ import (
 )
 
 func initSingletonTypeNode() {
-	c := &value.SingletonTypeNodeClass.MethodContainer
+	c := value.SingletonTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

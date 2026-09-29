@@ -8,7 +8,7 @@ import (
 )
 
 func initLoopExpressionNode() {
-	c := &value.LoopExpressionNodeClass.MethodContainer
+	c := value.LoopExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

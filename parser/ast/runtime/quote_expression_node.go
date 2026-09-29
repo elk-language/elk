@@ -8,7 +8,7 @@ import (
 )
 
 func initQuoteExpressionNode() {
-	c := &value.QuoteExpressionNodeClass.MethodContainer
+	c := value.QuoteExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

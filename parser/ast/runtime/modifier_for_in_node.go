@@ -8,7 +8,7 @@ import (
 )
 
 func initModifierForInNode() {
-	c := &value.ModifierForInNodeClass.MethodContainer
+	c := value.ModifierForInNodeClass
 	vm.Def(
 		c,
 		"#init",

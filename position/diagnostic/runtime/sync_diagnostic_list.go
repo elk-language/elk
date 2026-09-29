@@ -13,7 +13,7 @@ import (
 
 // Std::Sync::DiagnosticList
 func initSyncDiagnosticList() {
-	c := &value.DiagnosticListClass.MethodContainer
+	c := value.DiagnosticListClass
 
 	vm.Def(
 		c,
@@ -203,7 +203,7 @@ func initSyncDiagnosticList() {
 // ::Std::Sync::DiagnosticList::Iterator
 func initSyncDiagnosticListIterator() {
 	// Instance methods
-	c := &value.SyncDiagnosticListIteratorClass.MethodContainer
+	c := value.SyncDiagnosticListIteratorClass
 	vm.Def(
 		c,
 		"next",

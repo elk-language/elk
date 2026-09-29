@@ -8,7 +8,7 @@ import (
 )
 
 func initYieldExpressionNode() {
-	c := &value.YieldExpressionNodeClass.MethodContainer
+	c := value.YieldExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

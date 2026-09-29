@@ -9,7 +9,7 @@ import (
 )
 
 func initInvalidNode() {
-	c := &value.InvalidNodeClass.MethodContainer
+	c := value.InvalidNodeClass
 	vm.Def(
 		c,
 		"#init",

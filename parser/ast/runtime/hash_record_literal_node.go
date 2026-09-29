@@ -8,7 +8,7 @@ import (
 )
 
 func initHashRecordLiteralNode() {
-	c := &value.HashRecordLiteralNodeClass.MethodContainer
+	c := value.HashRecordLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

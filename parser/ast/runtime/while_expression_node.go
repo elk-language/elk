@@ -8,7 +8,7 @@ import (
 )
 
 func initWhileExpressionNode() {
-	c := &value.WhileExpressionNodeClass.MethodContainer
+	c := value.WhileExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

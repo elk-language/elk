@@ -7,7 +7,7 @@ import (
 // Std::Int16
 func initInt16() {
 	// Instance methods
-	c := &value.Int16Class.MethodContainer
+	c := value.Int16Class
 	Def(
 		c,
 		"hash",

@@ -8,7 +8,7 @@ import (
 )
 
 func initAttributeAccessNode() {
-	c := &value.AttributeAccessNodeClass.MethodContainer
+	c := value.AttributeAccessNodeClass
 	vm.Def(
 		c,
 		"#init",

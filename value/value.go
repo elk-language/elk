@@ -4568,7 +4568,7 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 		)
 	}
 
-	if _, ok := cc.Constants[name]; ok {
+	if _, ok := cc.constants[name]; ok {
 		return
 	}
 
@@ -4576,7 +4576,7 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 }
 
 func GetConstant(name Symbol) Value {
-	return RootModule.Constants.Get(name)
+	return RootModule.constants.Get(name)
 }
 
 // Resize the given args slice.

@@ -22,6 +22,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -90,6 +91,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -143,6 +145,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -182,6 +185,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -222,6 +226,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -261,6 +266,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -301,6 +307,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -341,6 +348,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -383,6 +391,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -423,6 +432,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -465,6 +475,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -504,6 +515,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -543,6 +555,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -582,6 +595,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -621,6 +635,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -660,6 +675,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -699,6 +715,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -738,6 +755,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -777,6 +795,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -816,6 +835,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -856,6 +876,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -896,6 +917,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -936,6 +958,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -976,6 +999,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1017,6 +1041,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1066,6 +1091,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1103,6 +1129,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1139,6 +1166,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1177,6 +1205,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1210,6 +1239,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1258,6 +1288,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1313,6 +1344,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1368,6 +1400,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1415,6 +1448,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1462,6 +1496,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1509,6 +1544,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1548,6 +1584,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1589,6 +1626,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1631,6 +1669,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1671,6 +1710,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1714,6 +1754,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1753,6 +1794,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1792,6 +1834,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1831,6 +1874,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1871,6 +1915,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1914,6 +1959,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1953,6 +1999,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1997,6 +2044,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2054,6 +2102,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2117,6 +2166,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2181,6 +2231,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2249,6 +2300,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2317,6 +2369,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2381,6 +2434,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2444,6 +2498,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2583,6 +2638,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2656,6 +2712,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2728,6 +2785,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2798,6 +2856,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2868,6 +2927,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 7,
@@ -3024,6 +3084,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 5,
@@ -3132,6 +3193,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3274,6 +3336,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3345,6 +3408,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3416,6 +3480,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3485,6 +3550,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3554,6 +3620,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 7,
@@ -3714,6 +3781,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 5,
@@ -3827,6 +3895,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -3993,6 +4062,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -4160,6 +4230,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -4252,6 +4323,7 @@ func TestBytecodeMatch(t *testing.T) {
 			end
 		`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,

@@ -7,7 +7,7 @@ import (
 // ::Std::BeginlessOpenRange
 func initBeginlessOpenRange() {
 	// Instance methods
-	c := &value.BeginlessOpenRangeClass.MethodContainer
+	c := value.BeginlessOpenRangeClass
 	Def(
 		c,
 		"==",

@@ -8,7 +8,7 @@ import (
 )
 
 func initModifierIfElseNode() {
-	c := &value.ModifierIfElseNodeClass.MethodContainer
+	c := value.ModifierIfElseNodeClass
 	vm.Def(
 		c,
 		"#init",

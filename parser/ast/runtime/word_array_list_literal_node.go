@@ -8,7 +8,7 @@ import (
 )
 
 func initWordArrayListLiteralNode() {
-	c := &value.WordArrayListLiteralNodeClass.MethodContainer
+	c := value.WordArrayListLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

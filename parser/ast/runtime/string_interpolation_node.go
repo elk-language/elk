@@ -8,7 +8,7 @@ import (
 )
 
 func initStringInterpolationNode() {
-	c := &value.StringInterpolationNodeClass.MethodContainer
+	c := value.StringInterpolationNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initCatchNode() {
-	c := &value.CatchNodeClass.MethodContainer
+	c := value.CatchNodeClass
 	vm.Def(
 		c,
 		"#init",

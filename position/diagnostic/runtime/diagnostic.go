@@ -11,7 +11,7 @@ import (
 
 // Std::Diagnostic
 func initDiagnostic() {
-	c := &value.DiagnosticClass.MethodContainer
+	c := value.DiagnosticClass
 
 	vm.Def(
 		c,

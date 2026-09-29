@@ -8,7 +8,7 @@ import (
 )
 
 func initNilablePatternNode() {
-	c := &value.NilablePatternNodeClass.MethodContainer
+	c := value.NilablePatternNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -9,7 +9,7 @@ import (
 )
 
 func initGetterDeclarationNode() {
-	c := &value.GetterDeclarationNodeClass.MethodContainer
+	c := value.GetterDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

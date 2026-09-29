@@ -8,7 +8,7 @@ import (
 // Std::Comparable
 func initComparable() {
 	// Instance methods
-	c := &value.ComparableMixin.MethodContainer
+	c := value.ComparableMixin
 	Def(
 		c,
 		">",

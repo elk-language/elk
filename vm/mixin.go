@@ -7,7 +7,7 @@ import (
 // Std::Mixin
 func initMixin() {
 	// Instance methods
-	c := &value.MixinClass.MethodContainer
+	c := value.MixinClass
 	Accessor(c, "doc")
 
 	Def(
@@ -15,7 +15,7 @@ func initMixin() {
 		"name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Mixin)
-			return value.Ref(value.String(self.Name)), value.Undefined
+			return value.Ref(value.String(self.Name())), value.Undefined
 		},
 	)
 }

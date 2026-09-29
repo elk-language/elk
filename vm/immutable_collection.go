@@ -7,7 +7,7 @@ import (
 // Std::ImmutableCollection::Base
 func initImmutableCollection() {
 	// Instance methods
-	c := &value.ImmutableCollectionBaseMixin.MethodContainer
+	c := value.ImmutableCollectionBaseMixin
 
 	Def(
 		c,

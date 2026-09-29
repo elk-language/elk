@@ -6,6 +6,8 @@ type Method interface {
 	Function
 	// Name of the method
 	Name() Symbol
+	Namespace() *Class
+	SetNamespace(*Class)
 	MethodBody()
 }
 

@@ -2593,7 +2593,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "%", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "%", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -2724,7 +2724,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "%", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "%", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -5379,7 +5379,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "/", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "/", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -5510,7 +5510,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "/", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "/", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -7997,7 +7997,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "+", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "+", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -8128,7 +8128,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "+", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "+", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -10615,7 +10615,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "-", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "-", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -10746,7 +10746,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "-", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "-", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -13233,7 +13233,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "*", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "*", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -13364,7 +13364,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "*", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "*", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -15851,7 +15851,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
@@ -15982,7 +15982,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (const0).SingletonClass() // Foo
-	vm.Def(&class.MethodContainer, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "**", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))

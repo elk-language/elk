@@ -8,7 +8,7 @@ import (
 )
 
 func initMapPatternNode() {
-	c := &value.MapPatternNodeClass.MethodContainer
+	c := value.MapPatternNodeClass
 	vm.Def(
 		c,
 		"#init",

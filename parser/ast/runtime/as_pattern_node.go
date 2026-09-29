@@ -8,7 +8,7 @@ import (
 )
 
 func initAsPatternNode() {
-	c := &value.AsPatternNodeClass.MethodContainer
+	c := value.AsPatternNodeClass
 	vm.Def(
 		c,
 		"#init",

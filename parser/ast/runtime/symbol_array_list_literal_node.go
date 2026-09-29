@@ -8,7 +8,7 @@ import (
 )
 
 func initSymbolArrayListLiteralNode() {
-	c := &value.SymbolArrayListLiteralNodeClass.MethodContainer
+	c := value.SymbolArrayListLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

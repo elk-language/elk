@@ -8,7 +8,7 @@ import (
 )
 
 func initMacroCallNode() {
-	c := &value.MacroCallNodeClass.MethodContainer
+	c := value.MacroCallNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initMixinDeclarationNode() {
-	c := &value.MixinDeclarationNodeClass.MethodContainer
+	c := value.MixinDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

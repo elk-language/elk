@@ -8,7 +8,7 @@ import (
 )
 
 func initNumericForExpressionNode() {
-	c := &value.NumericForExpressionNodeClass.MethodContainer
+	c := value.NumericForExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

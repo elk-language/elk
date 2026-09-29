@@ -8,7 +8,7 @@ import (
 )
 
 func initUndefinedLiteralNode() {
-	c := &value.UndefinedLiteralNodeClass.MethodContainer
+	c := value.UndefinedLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

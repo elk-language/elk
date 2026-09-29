@@ -6,7 +6,7 @@ import (
 
 func initClass() {
 	// Instance methods
-	c := &value.ClassClass.MethodContainer
+	c := value.ClassClass
 	Accessor(c, "doc")
 
 	Def(
@@ -26,7 +26,7 @@ func initClass() {
 		"name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Class)
-			return value.Ref(value.String(self.Name)), value.Undefined
+			return value.Ref(value.String(self.Name())), value.Undefined
 		},
 	)
 }

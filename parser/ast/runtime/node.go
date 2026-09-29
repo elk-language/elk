@@ -9,7 +9,7 @@ import (
 
 func initNode() {
 	// Std::Elk::AST::Node
-	c := &value.NodeMixin.MethodContainer
+	c := value.NodeMixin
 	vm.Def(
 		c,
 		"to_ast_node",

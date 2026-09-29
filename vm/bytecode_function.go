@@ -27,6 +27,7 @@ type BytecodeFunction struct {
 	CatchEntries []*CatchEntry
 	UpvalueCount int
 
+	namespace              *value.Class
 	name                   value.Symbol
 	parameterCount         int
 	optionalParameterCount int
@@ -43,6 +44,14 @@ func (b *BytecodeFunction) MethodBody() {}
 
 func (b *BytecodeFunction) Name() value.Symbol {
 	return b.name
+}
+
+func (b *BytecodeFunction) Namespace() *value.Class {
+	return b.namespace
+}
+
+func (b *BytecodeFunction) SetNamespace(namespace *value.Class) {
+	b.namespace = namespace
 }
 
 func (b *BytecodeFunction) ParameterCount() int {
@@ -86,7 +95,7 @@ func (b *BytecodeFunction) ToValue() value.Value {
 }
 
 func (b *BytecodeFunction) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
+	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s, namespace: %s}", b.name.Inspect(), b.Location.String(), b.namespace.Inspect())
 }
 
 func (b *BytecodeFunction) Error() string {
@@ -109,8 +118,9 @@ func (b *BytecodeFunction) GetLineNumber(ip int) int {
 }
 
 // Create a new bytecode method.
-func NewBytecodeFunctionSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeFunction {
+func NewBytecodeFunctionSimple(namespace *value.Class, name value.Symbol, instruct []byte, loc *position.Location) *BytecodeFunction {
 	return &BytecodeFunction{
+		namespace:    namespace,
 		Instructions: instruct,
 		Location:     loc,
 		name:         name,
@@ -119,6 +129,7 @@ func NewBytecodeFunctionSimple(name value.Symbol, instruct []byte, loc *position
 
 // Create a new bytecode method.
 func NewBytecodeFunction(
+	namespace *value.Class,
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
@@ -128,6 +139,7 @@ func NewBytecodeFunction(
 	values []value.Value,
 ) *BytecodeFunction {
 	return &BytecodeFunction{
+		namespace:              namespace,
 		name:                   name,
 		Instructions:           instruct,
 		Location:               loc,
@@ -194,6 +206,12 @@ func BytecodeFunctionWithUpvalueCount(count int) BytecodeFunctionOption {
 	}
 }
 
+func BytecodeFunctionWithNamespace(namespace *value.Class) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
+		b.namespace = namespace
+	}
+}
+
 func BytecodeFunctionWithCatchEntries(entries []*CatchEntry) BytecodeFunctionOption {
 	return func(b *BytecodeFunction) {
 		b.CatchEntries = entries
@@ -231,17 +249,19 @@ func NewBytecodeFunctionWithOptions(opts ...BytecodeFunctionOption) *BytecodeFun
 
 // Create a new bytecode method.
 func NewBytecodeFunctionNoParams(
+	namespace *value.Class,
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
 	lineInfo bytecode.LineInfoList,
 	values []value.Value,
 ) *BytecodeFunction {
-	return NewBytecodeFunction(name, instruct, loc, lineInfo, 0, 0, values)
+	return NewBytecodeFunction(namespace, name, instruct, loc, lineInfo, 0, 0, values)
 }
 
 // Create a new bytecode method.
 func NewBytecodeFunctionWithCatchEntries(
+	namespace *value.Class,
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
@@ -252,6 +272,7 @@ func NewBytecodeFunctionWithCatchEntries(
 	catchEntries []*CatchEntry,
 ) *BytecodeFunction {
 	return &BytecodeFunction{
+		namespace:              namespace,
 		name:                   name,
 		Instructions:           instruct,
 		Location:               loc,
@@ -265,6 +286,7 @@ func NewBytecodeFunctionWithCatchEntries(
 
 // Create a new bytecode method.
 func NewBytecodeFunctionWithUpvalues(
+	namespace *value.Class,
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
@@ -275,6 +297,7 @@ func NewBytecodeFunctionWithUpvalues(
 	upvalueCount int,
 ) *BytecodeFunction {
 	return &BytecodeFunction{
+		namespace:              namespace,
 		name:                   name,
 		Instructions:           instruct,
 		Location:               loc,

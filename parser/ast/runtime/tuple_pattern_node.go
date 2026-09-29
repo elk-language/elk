@@ -8,7 +8,7 @@ import (
 )
 
 func initTuplePatternNode() {
-	c := &value.TuplePatternNodeClass.MethodContainer
+	c := value.TuplePatternNodeClass
 	vm.Def(
 		c,
 		"#init",

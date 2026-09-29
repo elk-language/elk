@@ -75,7 +75,7 @@ func (*Generator) InstanceVariables() *value.InstanceVariables {
 
 func initGenerator() {
 	// Instance methods
-	c := &value.GeneratorClass.MethodContainer
+	c := value.GeneratorClass
 	Def(
 		c,
 		"next",

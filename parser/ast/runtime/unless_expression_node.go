@@ -8,7 +8,7 @@ import (
 )
 
 func initUnlessExpressionNode() {
-	c := &value.UnlessExpressionNodeClass.MethodContainer
+	c := value.UnlessExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

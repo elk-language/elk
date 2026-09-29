@@ -8,7 +8,7 @@ import (
 )
 
 func initPatternExpressionNode() {
-	c := &value.PatternExpressionNodeClass.MethodContainer
+	c := value.PatternExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -7,7 +7,7 @@ import (
 // Std::UInt64
 func initUInt64() {
 	// Instance methods
-	c := &value.UInt64Class.MethodContainer
+	c := value.UInt64Class
 	Def(
 		c,
 		"hash",

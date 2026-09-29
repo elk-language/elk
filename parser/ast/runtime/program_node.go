@@ -8,7 +8,7 @@ import (
 )
 
 func initProgramNode() {
-	c := &value.ProgramNodeClass.MethodContainer
+	c := value.ProgramNodeClass
 	vm.Def(
 		c,
 		"#init",

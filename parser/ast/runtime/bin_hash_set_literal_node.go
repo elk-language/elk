@@ -8,7 +8,7 @@ import (
 )
 
 func initBinHashSetLiteralNode() {
-	c := &value.BinHashSetLiteralNodeClass.MethodContainer
+	c := value.BinHashSetLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

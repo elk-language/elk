@@ -9,7 +9,7 @@ import (
 )
 
 func initInterpolatedRegexLiteralNode() {
-	c := &value.InterpolatedRegexLiteralNodeClass.MethodContainer
+	c := value.InterpolatedRegexLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

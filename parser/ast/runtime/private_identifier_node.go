@@ -10,7 +10,7 @@ import (
 )
 
 func initPrivateIdentifierNode() {
-	c := &value.PrivateIdentifierNodeClass.MethodContainer
+	c := value.PrivateIdentifierNodeClass
 	vm.Def(
 		c,
 		"#init",

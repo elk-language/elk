@@ -9,7 +9,7 @@ import (
 // Std::Method
 func initMethod() {
 	// Instance methods
-	c := &value.MethodClass.MethodContainer
+	c := value.MethodClass
 	nativeSymbol := value.ToSymbol("native")
 	bytecodeSymbol := value.ToSymbol("bytecode")
 	getterSymbol := value.ToSymbol("getter")

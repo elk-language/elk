@@ -8,7 +8,7 @@ import (
 )
 
 func initUntilExpressionNode() {
-	c := &value.UntilExpressionNodeClass.MethodContainer
+	c := value.UntilExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initBinArrayTupleLiteralNode() {
-	c := &value.BinArrayTupleLiteralNodeClass.MethodContainer
+	c := value.BinArrayTupleLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initRawStringLiteralNode() {
-	c := &value.RawStringLiteralNodeClass.MethodContainer
+	c := value.RawStringLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

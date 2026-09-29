@@ -8,7 +8,7 @@ import (
 )
 
 func initNilableTypeNode() {
-	c := &value.NilableTypeNodeClass.MethodContainer
+	c := value.NilableTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

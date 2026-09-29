@@ -8,7 +8,7 @@ import (
 )
 
 func initSingletonBlockExpressionNode() {
-	c := &value.SingletonBlockExpressionNodeClass.MethodContainer
+	c := value.SingletonBlockExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initSwitchCaseNode() {
-	c := &value.SwitchCaseNodeClass.MethodContainer
+	c := value.SwitchCaseNodeClass
 	vm.Def(
 		c,
 		"#init",

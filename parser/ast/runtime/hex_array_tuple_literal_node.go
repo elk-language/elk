@@ -8,7 +8,7 @@ import (
 )
 
 func initHexArrayTupleLiteralNode() {
-	c := &value.HexArrayTupleLiteralNodeClass.MethodContainer
+	c := value.HexArrayTupleLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

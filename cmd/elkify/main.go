@@ -319,7 +319,7 @@ import (
 	)
 
 	fmt.Fprintf(buffer, "func init%s() {\n", structDef.name)
-	fmt.Fprintf(buffer, "c := &value.%sClass.MethodContainer", structDef.name)
+	fmt.Fprintf(buffer, "c := value.%sClass", structDef.name)
 
 	generateConstructorForStruct(buffer, structDef)
 	generateInstanceMethodsForStruct(buffer, structDef)

@@ -24,6 +24,7 @@ func TestBytecodeClosureLiteral(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -41,6 +42,7 @@ func TestBytecodeClosureLiteral(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_LOCAL_1),
@@ -88,6 +90,7 @@ func TestBytecodeClosureLiteral(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -110,6 +113,7 @@ func TestBytecodeClosureLiteral(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_LOCAL_1),
@@ -150,6 +154,7 @@ func TestBytecodeStringLiteral(t *testing.T) {
 		"static string": {
 			input: `"foo bar"`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -171,6 +176,7 @@ func TestBytecodeStringLiteral(t *testing.T) {
 				"foo: ${foo + 2}, bar: $bar"
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -208,6 +214,7 @@ func TestBytecodeStringLiteral(t *testing.T) {
 				"foo: #{foo + 2}, bar: #bar"
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -256,6 +263,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static closed range": {
 			input: `2...5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -273,6 +281,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static open range": {
 			input: `2<.<5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -290,6 +299,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static left open range": {
 			input: `2<..5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -307,6 +317,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static right open range": {
 			input: `2..<5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -324,6 +335,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static beginless closed range": {
 			input: `...5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -341,6 +353,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static beginless open range": {
 			input: `..<5`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -358,6 +371,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static endless closed range": {
 			input: `2...`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -375,6 +389,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 		"static endless open range": {
 			input: `2<..`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -395,6 +410,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a...5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -420,6 +436,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a<.<5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -445,6 +462,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a<..5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -470,6 +488,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a..<5
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -495,6 +514,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				...a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -519,6 +539,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				..<a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -543,6 +564,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a...
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -567,6 +589,7 @@ func TestBytecodeRangeLiteral(t *testing.T) {
 				a<..
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -599,6 +622,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put UInt8": {
 			input: "1u8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_UINT8), 1,
@@ -614,6 +638,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put UInt16": {
 			input: "25u16",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_UINT16_8), 25,
@@ -629,6 +654,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put UInt32": {
 			input: "450_200u32",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -646,6 +672,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put UInt64": {
 			input: "450_200u64",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -663,6 +690,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put UInt": {
 			input: "450_200u",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -680,6 +708,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Int8": {
 			input: "1i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT8), 1,
@@ -695,6 +724,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Int16": {
 			input: "25i16",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT16_8), 25,
@@ -710,6 +740,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Int32": {
 			input: "450_200i32",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -727,6 +758,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Int64": {
 			input: "450_200i64",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -744,6 +776,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put SmallInt": {
 			input: "450_200",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -761,6 +794,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put BigInt": {
 			input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -785,6 +819,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Float64": {
 			input: "45.5f64",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -802,6 +837,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Float32": {
 			input: "45.5f32",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -819,6 +855,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Float": {
 			input: "45.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -836,6 +873,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Raw String": {
 			input: `'foo\n'`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -853,6 +891,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put String": {
 			input: `"foo\n"`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -870,6 +909,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put raw Char": {
 			input: "`I`",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_CHAR_8), 'I',
@@ -885,6 +925,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put Char": {
 			input: "`\\n`",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_CHAR_8), '\n',
@@ -900,6 +941,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put nil": {
 			input: `nil`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.NIL),
@@ -915,6 +957,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put true": {
 			input: `true`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -930,6 +973,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put false": {
 			input: `false`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -945,6 +989,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put simple Symbol": {
 			input: `:foo`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -962,6 +1007,7 @@ func TestBytecodeLiterals(t *testing.T) {
 		"put self": {
 			input: `self`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -988,6 +1034,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"empty arrayTuple": {
 			input: "%[]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1005,6 +1052,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static elements": {
 			input: "%[1, 'foo', 5, 5.6]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1027,6 +1075,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static keyed elements": {
 			input: "%[1, 'foo', 5 => 5,  3 => 5.6, :lol]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1052,6 +1101,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"nested static arrayTuples": {
 			input: "%[1, %['bar', %[7.2]]]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1075,6 +1125,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"nested static with mutable elements": {
 			input: "%[1, %['bar', [7.2]]]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1103,6 +1154,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static keyed and dynamic elements": {
 			input: "%[1, 'foo', 5 => 5,  3 => 5.6, String.name]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1125,6 +1177,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static and dynamic elements": {
 			input: "%[1, 'foo', 5, Object(), 5, %[:foo]]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1155,6 +1208,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with dynamic elements": {
 			input: "%[Object(), 5, %[:foo]]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -1183,6 +1237,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				%[1, 5 if a, %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1224,6 +1279,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				%[1, 5 unless a, %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1261,6 +1317,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				%[1, i * 2 for i in [1, 2, 3], %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1308,6 +1365,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				%[String.name, 5 if a, %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1342,6 +1400,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with dynamic and keyed elements": {
 			input: "%[Object(), 1, 'foo', 5 => 5,  3 => 5.6]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -1375,6 +1434,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				%[3 => 5 if a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1403,6 +1463,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static concat": {
 			input: "%[1, 2, 3] + %[4, 5, 6] + %[10]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1428,6 +1489,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static concat with list": {
 			input: "%[1, 2, 3] + [4, 5, 6] + %[10]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1454,6 +1516,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static repeat": {
 			input: "%[1, 2, 3] * 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1481,6 +1544,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"with static concat and nested tuples": {
 			input: "%[1, 2, 3] + %[4, 5, 6, %[7, 8]] + %[10]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1510,6 +1574,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"word arrayTuple": {
 			input: `%w[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1531,6 +1596,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"symbol arrayTuple": {
 			input: `%s[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1552,6 +1618,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"hex arrayTuple uint8": {
 			input: `%x[ab cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1573,6 +1640,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"hex arrayTuple uint16": {
 			input: `%x[100 cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1594,6 +1662,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"hex arrayTuple uint32": {
 			input: `%x[10000 cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1615,6 +1684,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"hex arrayTuple uint64": {
 			input: `%x[100000000 cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1636,6 +1706,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"hex arrayTuple int": {
 			input: `%x[10000000000000000 cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1657,6 +1728,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 		"bin arrayTuple": {
 			input: `%b[101 11 10]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1689,6 +1761,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"empty list": {
 			input: "[]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1707,6 +1780,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static elements": {
 			input: "[1, 'foo', 5, 5.6]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1730,6 +1804,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static elements and static capacity": {
 			input: "[1, 'foo', 5, 5.6]:10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
@@ -1758,6 +1833,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 'foo', 5, 5.6]:cap
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1787,6 +1863,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"word list": {
 			input: `\w[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1809,6 +1886,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"word list with capacity": {
 			input: `\w[foo bar baz]:15`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
@@ -1832,6 +1910,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"symbol list": {
 			input: `\s[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1855,6 +1934,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"symbol list with capacity": {
 			input: `\s[foo bar baz]:15`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
@@ -1878,6 +1958,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"hex list": {
 			input: `\x[ab cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1900,6 +1981,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"hex list with capacity": {
 			input: `\x[ab cd 5f]:2`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_2),
@@ -1923,6 +2005,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"bin list": {
 			input: `\b[101 11 10]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1945,6 +2028,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"bin list with capacity": {
 			input: `\b[101 11 10]:3`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
@@ -1969,6 +2053,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static keyed elements": {
 			input: "[1, 'foo', 5 => 5,  3 => 5.6, :lol]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1995,6 +2080,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static keyed elements and static capacity": {
 			input: "[1, 'foo', 5 => 5,  3 => 5.6, :lol]:6",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 6,
@@ -2022,6 +2108,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static concat": {
 			input: "[1, 2, 3] + [4, 5, 6] + [10]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2048,6 +2135,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static repeat": {
 			input: "[1, 2, 3] * 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2076,6 +2164,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"with static concat and nested lists": {
 			input: "[1, 2, 3] + [4, 5, 6, [7, 8]] + [10]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -2110,6 +2199,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 		"nested static lists": {
 			input: "[1, ['bar', [7.2]]]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -2145,6 +2235,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 'foo', 5 => 5,  3 => 5.6, a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2180,6 +2271,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 'foo', 5 => 5,  3 => 5.6, a]:15
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2215,6 +2307,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 'foo', 5, a, 5, %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2252,6 +2345,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[a, 5, [:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2286,6 +2380,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 5 if a, [:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2338,6 +2433,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, 5 unless a, [:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2377,6 +2473,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[1, i * 2 for i in [1, 2, 3], %[:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2425,6 +2522,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[Object(), 5 if a, [:foo]]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2466,6 +2564,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[a, 1, 'foo', 5 => 5,  3 => 5.6]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2504,6 +2603,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[a, 1, 'foo', 5 => 5,  3 => 5.6]:7
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2542,6 +2642,7 @@ func TestBytecodeArrayLists(t *testing.T) {
 				[3 => 5 if a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2581,6 +2682,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"empty list": {
 			input: "^[]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2599,6 +2701,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"with static elements": {
 			input: "^[1, 'foo', 5, 5.6]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2623,6 +2726,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"with static elements and static capacity": {
 			input: "^[1, 'foo', 5, 5.6]:10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
@@ -2653,6 +2757,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[1, 'foo', 5, 5.6]:cap
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2686,6 +2791,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"word set": {
 			input: `^w[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2708,6 +2814,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"word set with capacity": {
 			input: `^w[foo bar baz]:15`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
@@ -2731,6 +2838,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"symbol set": {
 			input: `^s[foo bar baz]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2753,6 +2861,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"symbol set with capacity": {
 			input: `^s[foo bar baz]:15`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 15,
@@ -2776,6 +2885,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"hex set": {
 			input: `^x[ab cd 5f]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2799,6 +2909,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"hex set with capacity": {
 			input: `^x[ab cd 5f]:2`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_2),
@@ -2824,6 +2935,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"bin set": {
 			input: `^b[101 11 10]`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2847,6 +2959,7 @@ func TestBytecodeHashSet(t *testing.T) {
 		"bin set with capacity": {
 			input: `^b[101 11 10]:3`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
@@ -2874,6 +2987,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[1, 'foo', 5, a, 5]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2909,6 +3023,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[a, 5]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2936,6 +3051,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[1, 5 if a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2984,6 +3100,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[1, 5 unless a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3019,6 +3136,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[1, i * 2 for i in [1, 2, 3], 2]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3067,6 +3185,7 @@ func TestBytecodeHashSet(t *testing.T) {
 				^[Object(), 5 if a]
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3109,6 +3228,7 @@ func TestBytecodeHashMap(t *testing.T) {
 		"empty": {
 			input: "{}",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3130,6 +3250,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ foo }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3160,6 +3281,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ _foo }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3187,6 +3309,7 @@ func TestBytecodeHashMap(t *testing.T) {
 		"with static elements": {
 			input: `{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3219,6 +3342,7 @@ func TestBytecodeHashMap(t *testing.T) {
 		"with static elements and for loops": {
 			input: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3268,6 +3392,7 @@ func TestBytecodeHashMap(t *testing.T) {
 		"with static elements and static capacity": {
 			input: `{ 1 => 'foo', foo: 5, "bar" => 5.6 }:10`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 10,
@@ -3304,6 +3429,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ 1 => 'foo', foo: 5, "bar" => 5.6 }:cap
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3342,6 +3468,7 @@ func TestBytecodeHashMap(t *testing.T) {
 		"nested static": {
 			input: "{ 1 => { 'bar' => [7.2] } }",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -3376,6 +3503,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ 1 => 'foo', 5 => a, 5 => %[:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3417,6 +3545,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ 2 => 5, 1 => 5 if a, a: [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3477,6 +3606,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ 1 => 5 unless a, 9 => [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3516,6 +3646,7 @@ func TestBytecodeHashMap(t *testing.T) {
 				{ Object() => 5 if a, 0 => [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3565,6 +3696,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 		"empty": {
 			input: "%{}",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3585,6 +3717,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ foo }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3614,6 +3747,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ _foo }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3640,6 +3774,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 		"with static elements": {
 			input: `%{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3671,6 +3806,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 		"with static elements and for loops": {
 			input: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3719,6 +3855,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 		"nested static": {
 			input: "%{ 'foo' => 9, 1 => %{ 'bar' => [7.2] } }",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3755,6 +3892,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ 1 => 'foo', 5 => a, 5 => %[:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3795,6 +3933,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ 2 => 5, 1 => 5 if a, a: [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3842,6 +3981,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ 1 => 5 unless a, 9 => [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3880,6 +4020,7 @@ func TestBytecodeHashRecord(t *testing.T) {
 				%{ Object() => 5 if a, 0 => [:foo] }
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3928,6 +4069,7 @@ func TestBytecodeRegex(t *testing.T) {
 		"empty": {
 			input: "%//",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3945,6 +4087,7 @@ func TestBytecodeRegex(t *testing.T) {
 		"empty with flags": {
 			input: "%//imx",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3962,6 +4105,7 @@ func TestBytecodeRegex(t *testing.T) {
 		"with content": {
 			input: `%/foo \w+ bar/i`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3982,6 +4126,7 @@ func TestBytecodeRegex(t *testing.T) {
 				%/foo \w+ ${a} bar/i
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,

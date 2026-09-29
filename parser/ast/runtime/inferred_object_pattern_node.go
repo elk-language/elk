@@ -8,7 +8,7 @@ import (
 )
 
 func initInferredObjectPatternNode() {
-	c := &value.InferredObjectPatternNodeClass.MethodContainer
+	c := value.InferredObjectPatternNodeClass
 	vm.Def(
 		c,
 		"#init",

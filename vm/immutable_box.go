@@ -7,7 +7,7 @@ import (
 // Std::ImmutableBox
 func initImmutableBox() {
 	// Instance methods
-	c := &value.ImmutableBoxClass.MethodContainer
+	c := value.ImmutableBoxClass
 	Def(
 		c,
 		"#init",

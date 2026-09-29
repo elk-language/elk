@@ -8,7 +8,7 @@ import (
 )
 
 func initReceiverlessMacroCallNode() {
-	c := &value.ReceiverlessMacroCallNodeClass.MethodContainer
+	c := value.ReceiverlessMacroCallNodeClass
 	vm.Def(
 		c,
 		"#init",

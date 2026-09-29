@@ -64,7 +64,7 @@ func initTest() *value.Module {
 	testModule := value.NewModule()
 	value.StdModule.AddConstantString("Test", value.Ref(testModule))
 
-	c := &testModule.SingletonClass().MethodContainer
+	c := testModule.SingletonClass()
 	vm.Def(
 		c,
 		"describe",

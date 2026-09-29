@@ -6,7 +6,7 @@ import (
 )
 
 func initExpressionNode() {
-	c := &value.ExpressionNodeMixin.MethodContainer
+	c := value.ExpressionNodeMixin
 	vm.Def(
 		c,
 		"to_ast_expr_node",

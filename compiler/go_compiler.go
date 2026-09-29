@@ -31,6 +31,8 @@ type GoSourceMethod GoCompiler
 
 var _ value.Method = &GoSourceMethod{}
 
+func (c *GoSourceMethod) Namespace() *value.Class                   { return nil }
+func (c *GoSourceMethod) SetNamespace(namespace *value.Class)       {}
 func (c *GoSourceMethod) MethodBody()                               {}
 func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.goName) }
 func (*GoSourceMethod) Class() *value.Class                         { return nil }
@@ -1621,7 +1623,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		method = method.Base
 
 		if method.IsNative() {
-			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			namespace := value.RootModule.Constants().GetString(method.DefinedUnder.Name()).AsReference()
 			c.registerGoLocal("aliasClass", value.FetchGoType("*value.Class"))
 
 			switch namespace.(type) {
@@ -1637,7 +1639,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 			oldNameSymbol := c.emitSymbol(method.Name.String())
 			newNameSymbol := c.emitSymbol(name.String())
-			c.emit("class.Methods[%s] = aliasClass.Methods[%s]\n", newNameSymbol, oldNameSymbol)
+			c.emit("class.AttachMethod(%s, aliasClass.Methods()[%s])\n", newNameSymbol, oldNameSymbol)
 
 			method.SetCompiled(true)
 			method.Body = nil
@@ -1671,7 +1673,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			}
 
 			ivarNameSymbol := c.emitSymbol(ivarName.String())
-			c.emit("vm.DefineSetter(&class.MethodContainer, %s, %d)\n", ivarNameSymbol, index)
+			c.emit("vm.DefineSetter(class, %s, %d)\n", ivarNameSymbol, index)
 
 			method.SetCompiled(true)
 			method.Body = nil
@@ -1700,7 +1702,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		}
 
 		nameSymbol := c.emitSymbol(name.String())
-		c.emit("vm.DefineGetter(&class.MethodContainer, %s, %d)\n", nameSymbol, index)
+		c.emit("vm.DefineGetter(class, %s, %d)\n", nameSymbol, index)
 
 		method.SetCompiled(true)
 		method.Body = nil
@@ -1712,7 +1714,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		methodCompiler := (*GoCompiler)(body)
 		methodCompiler.goMethod.optimiseNativeCalls()
 
-		c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
+		c.emit("vm.Def(class, %q, ", name.String())
 		c.emitBytes(methodCompiler.buff.Bytes())
 		methodCompiler.buff.Reset()
 
@@ -1726,7 +1728,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		c.emit(")\n")
 	case *vm.BytecodeFunction:
-		c.emit("vm.DefBytecode(&class.MethodContainer, %q, ", name.String())
+		c.emit("vm.DefBytecode(class, %q, ", name.String())
 		c.compileBytecodeMethodBody(body, method)
 		c.emit(")\n")
 	default:
@@ -15819,14 +15821,14 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 			return newGoValue(
 				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
 				types.Any{},
-				goValueType,
+				value.FetchGoType("*vm.CallSiteInfo"),
 			)
 		case *vm.NativeCallSiteInfo:
 			name := c.emitSymbol(v.Method.Name().String())
 			return newGoValue(
-				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
+				fmt.Sprintf("vm.NewNativeCallSiteInfo(%s, %d)", name, v.ArgumentCount),
 				types.Any{},
-				goValueType,
+				value.FetchGoType("*vm.NativeCallSiteInfo"),
 			)
 		case value.ArrayList:
 			if !allowMutable {

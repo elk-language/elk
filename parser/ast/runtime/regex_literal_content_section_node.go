@@ -8,7 +8,7 @@ import (
 )
 
 func initRegexLiteralContentSectionNode() {
-	c := &value.RegexLiteralContentSectionNodeClass.MethodContainer
+	c := value.RegexLiteralContentSectionNodeClass
 	vm.Def(
 		c,
 		"#init",

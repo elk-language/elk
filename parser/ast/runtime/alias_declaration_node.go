@@ -8,7 +8,7 @@ import (
 )
 
 func initAliasDeclarationNode() {
-	c := &value.AliasDeclarationNodeClass.MethodContainer
+	c := value.AliasDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

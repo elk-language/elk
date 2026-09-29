@@ -326,7 +326,7 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 			fmt.Fprintf(
 				&result,
 				"    error: %s,\n    message: %s\n    took: %s\n",
-				lexer.Colorize(testErr.Err.Class().Name),
+				lexer.Colorize(testErr.Err.Class().Name()),
 				lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
 				report.Duration(),
 			)

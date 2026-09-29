@@ -8,7 +8,7 @@ import (
 )
 
 func initMethodParameterNode() {
-	c := &value.MethodParameterNodeClass.MethodContainer
+	c := value.MethodParameterNodeClass
 	vm.Def(
 		c,
 		"#init",

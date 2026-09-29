@@ -10,7 +10,7 @@ import (
 // Std::Once
 func initOnce() {
 	// Singleton methods
-	c := &value.OnceClass.SingletonClass().MethodContainer
+	c := value.OnceClass.SingletonClass()
 	Def(
 		c,
 		"memo",
@@ -29,7 +29,7 @@ func initOnce() {
 	)
 
 	// Instance methods
-	c = &value.OnceClass.MethodContainer
+	c = value.OnceClass
 	Def(
 		c,
 		"call",

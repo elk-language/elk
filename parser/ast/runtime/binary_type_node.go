@@ -9,7 +9,7 @@ import (
 )
 
 func initBinaryTypeNode() {
-	c := &value.BinaryTypeNodeClass.MethodContainer
+	c := value.BinaryTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initStructDeclarationNode() {
-	c := &value.StructDeclarationNodeClass.MethodContainer
+	c := value.StructDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

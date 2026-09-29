@@ -8,7 +8,7 @@ import (
 )
 
 func initPublicInstanceVariableNode() {
-	c := &value.PublicInstanceVariableNodeClass.MethodContainer
+	c := value.PublicInstanceVariableNodeClass
 	vm.Def(
 		c,
 		"#init",

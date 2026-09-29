@@ -9,7 +9,7 @@ import (
 )
 
 func initBinaryExpressionNode() {
-	c := &value.BinaryExpressionNodeClass.MethodContainer
+	c := value.BinaryExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

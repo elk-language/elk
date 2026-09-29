@@ -8,7 +8,7 @@ import (
 )
 
 func initUInt32LiteralNode() {
-	c := &value.UInt32LiteralNodeClass.MethodContainer
+	c := value.UInt32LiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -90,7 +90,7 @@ func initUInt32LiteralNode() {
 		},
 	)
 
-	c = &value.UInt32Class.MethodContainer
+	c = value.UInt32Class
 	vm.Def(
 		c,
 		"to_ast_node",

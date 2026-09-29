@@ -20,7 +20,7 @@ func initAssertions(testModule *value.Module) {
 	)
 	testModule.AddConstantString("AssertionError", value.Ref(AssertionErrorClass))
 
-	c := &assertionsMixin.MethodContainer
+	c := assertionsMixin
 	vm.Def(
 		c,
 		"assert_truthy",

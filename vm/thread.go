@@ -488,7 +488,7 @@ func (vm *Thread) callMethodOnStackByName(name value.Symbol, args int) value.Val
 				"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
 				method,
 				name,
-				class.Name,
+				class.Name(),
 			),
 		)
 	}
@@ -1815,7 +1815,7 @@ func (vm *Thread) opDefNamespace() {
 		)
 	}
 
-	if _, ok := parentConstantContainer.Constants[name]; ok {
+	if _, ok := parentConstantContainer.Constants()[name]; ok {
 		return
 	}
 
@@ -2070,8 +2070,8 @@ func (vm *Thread) opBreakpoint() {
 
 // Create a new instance of a class
 func (vm *Thread) opInstantiate(args int) (err value.Value) {
-	callInfo := NewCallSiteInfo(value.S(symbol.S_init), args)
-	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	name := value.S(symbol.S_init)
+	classPtr := vm.spAdd(-args - 1)
 	classVal := *classPtr
 	var class *value.Class
 	switch c := classVal.SafeAsReference().(type) {
@@ -2084,14 +2084,14 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 	instance := class.CreateInstance()
 	// replace the class with the instance
 	*classPtr = instance
-	method := class.LookupMethod(callInfo.Name)
+	method := class.LookupMethod(name)
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
+		vm.callBytecodeFunction(m, args)
 		return value.Undefined
 	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo.ArgumentCount)
+		return vm.callNativeMethod(m, args)
 	case nil:
 		// no initialiser defined
 		// no arguments given
@@ -2176,7 +2176,7 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name(), self.Inspect()))
 	}
 }
 
@@ -2200,7 +2200,7 @@ func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name(), self.Inspect()))
 	}
 }
 
@@ -2359,7 +2359,8 @@ func (vm *Thread) opDefMethod() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		m.Methods[name] = body
+		m.AttachMethod(name, body)
+		body.SetNamespace(m)
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2386,7 +2387,7 @@ func (vm *Thread) opDefGetter() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineGetter(&m.MethodContainer, name, int(index))
+		DefineGetter(m, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2400,7 +2401,7 @@ func (vm *Thread) opDefSetter() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineSetter(&m.MethodContainer, name, int(index))
+		DefineSetter(m, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2549,7 +2550,7 @@ func (vm *Thread) opSetSuperclass() {
 	newSuperclass := vm.popGet().AsReference().(*value.Class)
 	class := vm.popGet().AsReference().(*value.Class)
 
-	if class.Parent != nil {
+	if class.Superclass() != nil {
 		return
 	}
 
@@ -2560,7 +2561,7 @@ func (vm *Thread) opSetSuperclass() {
 func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 
-	val := value.RootModule.Constants.Get(symbol)
+	val := value.RootModule.Constants().Get(symbol)
 	if val.IsUndefined() {
 		return value.Ref(value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String()))
 	}

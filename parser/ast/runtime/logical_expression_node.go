@@ -9,7 +9,7 @@ import (
 )
 
 func initLogicalExpressionNode() {
-	c := &value.LogicalExpressionNodeClass.MethodContainer
+	c := value.LogicalExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initMethodSignatureDefinitionNode() {
-	c := &value.MethodSignatureDefinitionNodeClass.MethodContainer
+	c := value.MethodSignatureDefinitionNodeClass
 	vm.Def(
 		c,
 		"#init",

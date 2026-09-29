@@ -8,7 +8,7 @@ import (
 )
 
 func initSetterDeclarationNode() {
-	c := &value.SetterDeclarationNodeClass.MethodContainer
+	c := value.SetterDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

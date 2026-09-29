@@ -8,7 +8,7 @@ import (
 )
 
 func initThrowExpressionNode() {
-	c := &value.ThrowExpressionNodeClass.MethodContainer
+	c := value.ThrowExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

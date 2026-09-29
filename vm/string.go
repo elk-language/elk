@@ -7,7 +7,7 @@ import (
 // Std::String
 func initString() {
 	// Instance methods
-	c := &value.StringClass.MethodContainer
+	c := value.StringClass
 	Def(
 		c,
 		"+",
@@ -286,7 +286,7 @@ func initString() {
 // ::Std::String::CharIterator
 func initStringCharIterator() {
 	// Instance methods
-	c := &value.StringCharIteratorClass.MethodContainer
+	c := value.StringCharIteratorClass
 	Def(
 		c,
 		"next",
@@ -317,7 +317,7 @@ func initStringCharIterator() {
 // ::Std::String::ByteIterator
 func initStringByteIterator() {
 	// Instance methods
-	c := &value.StringByteIteratorClass.MethodContainer
+	c := value.StringByteIteratorClass
 	Def(
 		c,
 		"next",
@@ -348,7 +348,7 @@ func initStringByteIterator() {
 // ::Std::String::GraphemeIterator
 func initStringGraphemeIterator() {
 	// Instance methods
-	c := &value.StringGraphemeIteratorClass.MethodContainer
+	c := value.StringGraphemeIteratorClass
 	Def(
 		c,
 		"next",

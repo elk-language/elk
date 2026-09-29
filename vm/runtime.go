@@ -8,7 +8,7 @@ import (
 
 // ::Std::Runtime
 func initRuntime() {
-	c := &value.RuntimeModule.SingletonClass().MethodContainer
+	c := value.RuntimeModule.SingletonClass()
 	Def(
 		c,
 		"gc",

@@ -8,7 +8,7 @@ import (
 )
 
 func initAwaitExpressionNode() {
-	c := &value.AwaitExpressionNodeClass.MethodContainer
+	c := value.AwaitExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

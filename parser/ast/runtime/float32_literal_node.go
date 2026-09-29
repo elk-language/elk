@@ -10,7 +10,7 @@ import (
 )
 
 func initFloat32LiteralNode() {
-	c := &value.Float32LiteralNodeClass.MethodContainer
+	c := value.Float32LiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -104,7 +104,7 @@ func initFloat32LiteralNode() {
 		},
 	)
 
-	c = &value.Float32Class.MethodContainer
+	c = value.Float32Class
 	vm.Def(
 		c,
 		"to_ast_node",

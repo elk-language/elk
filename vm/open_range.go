@@ -10,7 +10,7 @@ import (
 // ::Std::OpenRange
 func initOpenRange() {
 	// Instance methods
-	c := &value.OpenRangeClass.MethodContainer
+	c := value.OpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initOpenRange() {
 // ::Std::OpenRange::Iterator
 func initOpenRangeIterator() {
 	// Instance methods
-	c := &value.OpenRangeIteratorClass.MethodContainer
+	c := value.OpenRangeIteratorClass
 	Def(
 		c,
 		"next",

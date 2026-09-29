@@ -8,7 +8,7 @@ import (
 )
 
 func initContinueExpressionNode() {
-	c := &value.ContinueExpressionNodeClass.MethodContainer
+	c := value.ContinueExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

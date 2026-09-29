@@ -6,7 +6,7 @@ import (
 )
 
 func initTypeNode() {
-	c := &value.TypeNodeMixin.MethodContainer
+	c := value.TypeNodeMixin
 	vm.Def(
 		c,
 		"to_ast_type_node",

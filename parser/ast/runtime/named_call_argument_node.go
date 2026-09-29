@@ -8,7 +8,7 @@ import (
 )
 
 func initNamedCallArgumentNode() {
-	c := &value.NamedCallArgumentNodeClass.MethodContainer
+	c := value.NamedCallArgumentNodeClass
 	vm.Def(
 		c,
 		"#init",

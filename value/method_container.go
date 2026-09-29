@@ -1,31 +1,50 @@
 package value
 
 type MethodContainer struct {
-	Methods MethodMap
-	Parent  *Class
+	methods MethodMap
+	parent  *Class
+}
+
+func MakeMethodContainer(methods MethodMap, parent *Class) MethodContainer {
+	return MethodContainer{
+		methods: methods,
+		parent:  parent,
+	}
+}
+
+func NewMethodContainer(methods MethodMap, parent *Class) *MethodContainer {
+	return &MethodContainer{
+		methods: methods,
+		parent:  parent,
+	}
 }
 
 // Get the superclass (skipping any mixin proxies)
 func (m *MethodContainer) Superclass() *Class {
-	currentClass := m.Parent
+	currentClass := m.parent
 	for {
 		if currentClass == nil || !currentClass.IsMixinProxy() {
 			return currentClass
 		}
 
-		currentClass = currentClass.Parent
+		currentClass = currentClass.parent
 	}
+}
+
+// Get the superclass (skipping any mixin proxies)
+func (m *MethodContainer) Methods() MethodMap {
+	return m.methods
 }
 
 // Search for a method with the given name in
 // this container and its ancestors.
 func (m *MethodContainer) LookupMethod(name Symbol) Method {
-	if method, ok := m.Methods[name]; ok {
+	if method, ok := m.methods[name]; ok {
 		return method
 	}
 
-	for currentClass := range m.Parent.Parents() {
-		if method, ok := currentClass.Methods[name]; ok {
+	for currentClass := range m.parent.Parents() {
+		if method, ok := currentClass.methods[name]; ok {
 			return method
 		}
 	}
@@ -35,7 +54,7 @@ func (m *MethodContainer) LookupMethod(name Symbol) Method {
 
 // Attaches the given method under the given name.
 func (m *MethodContainer) AttachMethod(name Symbol, method Method) {
-	m.Methods[name] = method
+	m.methods[name] = method
 }
 
 // Define an alternative name for an existing method.

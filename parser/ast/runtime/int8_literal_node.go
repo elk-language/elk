@@ -8,7 +8,7 @@ import (
 )
 
 func initInt8LiteralNode() {
-	c := &value.Int8LiteralNodeClass.MethodContainer
+	c := value.Int8LiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -90,7 +90,7 @@ func initInt8LiteralNode() {
 		},
 	)
 
-	c = &value.Int8Class.MethodContainer
+	c = value.Int8Class
 	vm.Def(
 		c,
 		"to_ast_node",

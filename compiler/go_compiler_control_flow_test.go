@@ -1747,6 +1747,7 @@ func main() { // loc: <main>
 // 		"await in a synchronous context": {
 // 			input: "await timeout(2.seconds)",
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.GET_CONST8), 0,
@@ -1775,6 +1776,7 @@ func main() { // loc: <main>
 // 				end
 // 			`,
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.LOAD_VALUE_0),
@@ -1790,6 +1792,7 @@ func main() { // loc: <main>
 // 				},
 // 				[]value.Value{
 // 					value.Ref(vm.NewBytecodeFunctionNoParams(
+// 						nil,
 // 						methodDefinitionsSymbol,
 // 						[]byte{
 // 							byte(bytecode.GET_CONST8), 0,
@@ -1809,6 +1812,7 @@ func main() { // loc: <main>
 // 						[]value.Value{
 // 							value.ToSymbol("Std::Kernel").ToValue(),
 // 							value.Ref(vm.NewBytecodeFunction(
+// 								nil,
 // 								value.ToSymbol("foo"),
 // 								[]byte{
 // 									byte(bytecode.GET_LOCAL_1),
@@ -1849,6 +1853,7 @@ func main() { // loc: <main>
 // 				end
 // 			`,
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.LOAD_VALUE_0),
@@ -1864,6 +1869,7 @@ func main() { // loc: <main>
 // 				},
 // 				[]value.Value{
 // 					value.Ref(vm.NewBytecodeFunctionNoParams(
+// 						nil,
 // 						methodDefinitionsSymbol,
 // 						[]byte{
 // 							byte(bytecode.GET_CONST8), 0,
@@ -1883,6 +1889,7 @@ func main() { // loc: <main>
 // 						[]value.Value{
 // 							value.ToSymbol("Std::Kernel").ToValue(),
 // 							value.Ref(vm.NewBytecodeFunction(
+// 								nil,
 // 								value.ToSymbol("foo"),
 // 								[]byte{
 // 									byte(bytecode.GET_LOCAL_1),
@@ -1929,6 +1936,7 @@ func main() { // loc: <main>
 // 		"iterate": {
 // 			input: `println(i) for i in [1, 2, 3]`,
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1968,6 +1976,7 @@ func main() { // loc: <main>
 // 		"with a pattern": {
 // 			input: `println(a + b) for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]`,
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.PREP_LOCALS8), 3,
@@ -11675,7 +11684,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (value.KernelModule).SingletonClass() // Std::Kernel
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})
@@ -11854,6 +11863,7 @@ lbl3:
 // 		"with a value": {
 // 			input: `throw unchecked :foo`,
 // 			want: vm.NewBytecodeFunctionNoParams(
+// 				nil,
 // 				mainSymbol,
 // 				[]byte{
 // 					byte(bytecode.LOAD_VALUE_0),

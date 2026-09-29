@@ -8,7 +8,7 @@ import (
 )
 
 func initGenericTypeDefinitionNode() {
-	c := &value.GenericTypeDefinitionNodeClass.MethodContainer
+	c := value.GenericTypeDefinitionNodeClass
 	vm.Def(
 		c,
 		"#init",

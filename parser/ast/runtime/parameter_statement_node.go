@@ -8,7 +8,7 @@ import (
 )
 
 func initParameterStatementNode() {
-	c := &value.ParameterStatementNodeClass.MethodContainer
+	c := value.ParameterStatementNodeClass
 	vm.Def(
 		c,
 		"#init",

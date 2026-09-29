@@ -9,7 +9,7 @@ import (
 )
 
 func initAttrDeclarationNode() {
-	c := &value.AttrDeclarationNodeClass.MethodContainer
+	c := value.AttrDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

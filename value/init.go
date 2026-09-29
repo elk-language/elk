@@ -2,37 +2,48 @@ package value
 
 // Initialize the class hierarchy etc
 func initBootstrap() {
+	NamespaceClass = &Class{
+		ConstructorFunc: UndefinedConstructor,
+		ConstantContainer: ConstantContainer{
+			constants: make(SymbolMap),
+		},
+		MethodContainer: MethodContainer{
+			methods: make(MethodMap),
+		},
+	}
 	ClassClass = &Class{
 		ConstructorFunc: ClassConstructor,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Methods: make(MethodMap),
+			methods: make(MethodMap),
+			parent:  NamespaceClass,
 		},
 	}
 	ValueClass = &Class{
 		metaClass:       ClassClass,
 		ConstructorFunc: ObjectConstructor,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Methods: make(MethodMap),
+			methods: make(MethodMap),
 		},
 	}
 	ObjectClass = &Class{
 		metaClass: ClassClass,
 		MethodContainer: MethodContainer{
-			Methods: make(MethodMap),
-			Parent:  ValueClass,
+			methods: make(MethodMap),
+			parent:  ValueClass,
 		},
 		ConstructorFunc: ObjectConstructor,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 	}
-	ClassClass.Parent = ObjectClass
+	NamespaceClass.parent = ObjectClass
+	NamespaceClass.metaClass = ClassClass
 	ClassClass.metaClass = ClassClass
 
 	ModuleClass = NewClassWithOptions(ClassWithConstructor(ModuleConstructor))
@@ -44,6 +55,9 @@ func initBootstrap() {
 
 	RootModule.AddConstantString("Std", Ref(StdModule))
 	RegisterNativeModule("Std", "value.StdModule")
+
+	StdModule.AddConstantString("Namespace", Ref(NamespaceClass))
+	RegisterNativeClass("Std::Namespace", "value.NamespaceClass")
 
 	StdModule.AddConstantString("Class", Ref(ClassClass))
 	RegisterNativeClass("Std::Class", "value.ClassClass")

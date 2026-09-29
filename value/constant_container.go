@@ -5,17 +5,25 @@ import "fmt"
 // Struct for embedding, contains fields
 // shared by Module, Mixin, Class, Struct
 type ConstantContainer struct {
-	Name      string
-	Constants SymbolMap
+	name      string
+	constants SymbolMap
+}
+
+func (m *ConstantContainer) Name() string {
+	return m.name
+}
+
+func (m *ConstantContainer) Constants() SymbolMap {
+	return m.constants
 }
 
 // Return a human readable name.
 func (m *ConstantContainer) PrintableName() string {
-	if m.Name == "" {
+	if m.name == "" {
 		return "<anonymous>"
 	}
 
-	return m.Name
+	return m.name
 }
 
 // Set the constant with the specified name
@@ -25,22 +33,22 @@ func (m *ConstantContainer) AddConstantString(name string, val Value) {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
 		case *Module:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		case *Class:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		case *Interface:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		}
 	}
 
-	m.Constants.SetString(name, val)
-	RootModule.Constants.Set(ToSymbol(fullName), val)
+	m.constants.SetString(name, val)
+	RootModule.constants.Set(ToSymbol(fullName), val)
 }
 
 // Set the constant with the specified name
@@ -50,28 +58,28 @@ func (m *ConstantContainer) AddConstant(name Symbol, val Value) {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
 		case *Module:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		case *Class:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		case *Interface:
-			if v.Name == "" {
-				v.Name = fullName
+			if v.name == "" {
+				v.name = fullName
 			}
 		}
 	}
 
-	m.Constants.Set(name, val)
-	RootModule.Constants.Set(ToSymbol(fullName), val)
+	m.constants.Set(name, val)
+	RootModule.constants.Set(ToSymbol(fullName), val)
 }
 
 func (m *ConstantContainer) fullConstantName(name string) string {
-	if m.Name == "Root" {
+	if m.name == "Root" {
 		return name
 	}
 
-	return fmt.Sprintf("%s::%s", m.Name, name)
+	return fmt.Sprintf("%s::%s", m.name, name)
 }

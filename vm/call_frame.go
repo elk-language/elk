@@ -104,7 +104,7 @@ func (c *CallFrame) ipIndex() int {
 // Std::CallFrame
 func initCallFrame() {
 	// Instance methods
-	c := &value.CallFrameClass.MethodContainer
+	c := value.CallFrameClass
 	Def(
 		c,
 		"to_string",

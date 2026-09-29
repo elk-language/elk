@@ -9,7 +9,7 @@ import (
 
 func initInstanceValueDeclarationNode() {
 
-	c := &value.InstanceValueDeclarationNodeClass.MethodContainer
+	c := value.InstanceValueDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -9,7 +9,7 @@ import (
 )
 
 func initRangeLiteralNode() {
-	c := &value.RangeLiteralNodeClass.MethodContainer
+	c := value.RangeLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

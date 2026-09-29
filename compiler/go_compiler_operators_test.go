@@ -2189,11 +2189,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2320,11 +2320,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2451,11 +2451,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt32())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2582,11 +2582,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt16())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2713,11 +2713,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt8())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2844,11 +2844,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -2975,11 +2975,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt32())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3106,11 +3106,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt16())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3237,11 +3237,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3368,11 +3368,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3499,11 +3499,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsChar())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3630,11 +3630,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3761,11 +3761,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -3892,11 +3892,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4023,11 +4023,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt32())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4154,11 +4154,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt16())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4285,11 +4285,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt8())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4416,11 +4416,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4547,11 +4547,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt32())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4678,11 +4678,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt16())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4809,11 +4809,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -4940,11 +4940,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5071,11 +5071,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsChar())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5202,11 +5202,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5333,11 +5333,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5464,11 +5464,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5595,11 +5595,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5733,11 +5733,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -5864,11 +5864,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6002,11 +6002,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6133,11 +6133,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6264,11 +6264,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6395,11 +6395,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6526,11 +6526,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6664,11 +6664,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6795,11 +6795,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -6933,11 +6933,11 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsInt64())
 		return result, err
 	}, vm.DefWithParameters(1))
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method1(thread, args[0])
 		return result, err
 	})
@@ -7058,7 +7058,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})
@@ -7179,7 +7179,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})
@@ -7300,7 +7300,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})

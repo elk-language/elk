@@ -8,7 +8,7 @@ import (
 )
 
 func initGenericConstructorCallNode() {
-	c := &value.GenericConstructorCallNodeClass.MethodContainer
+	c := value.GenericConstructorCallNodeClass
 	vm.Def(
 		c,
 		"#init",

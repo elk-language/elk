@@ -8,7 +8,7 @@ import (
 )
 
 func initNotTypeNode() {
-	c := &value.NotTypeNodeClass.MethodContainer
+	c := value.NotTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

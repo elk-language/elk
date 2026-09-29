@@ -8,7 +8,7 @@ import (
 )
 
 func initSymbolHashSetLiteralNode() {
-	c := &value.SymbolHashSetLiteralNodeClass.MethodContainer
+	c := value.SymbolHashSetLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initDeferExpressionNode() {
-	c := &value.DeferExpressionNodeClass.MethodContainer
+	c := value.DeferExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

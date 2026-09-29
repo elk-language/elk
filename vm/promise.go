@@ -217,7 +217,7 @@ func (p *Promise) enqueueContinuations(queue chan *Promise) {
 
 func initPromise() {
 	// Singleton methods
-	c := &value.PromiseClass.SingletonClass().MethodContainer
+	c := value.PromiseClass.SingletonClass()
 	Def(
 		c,
 		"resolved",
@@ -266,7 +266,7 @@ func initPromise() {
 	)
 
 	// Instance methods
-	c = &value.PromiseClass.MethodContainer
+	c = value.PromiseClass
 	Def(
 		c,
 		"is_resolved",

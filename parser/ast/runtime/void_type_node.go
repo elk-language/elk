@@ -8,7 +8,7 @@ import (
 )
 
 func initVoidTypeNode() {
-	c := &value.VoidTypeNodeClass.MethodContainer
+	c := value.VoidTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

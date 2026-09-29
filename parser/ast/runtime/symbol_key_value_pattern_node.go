@@ -8,7 +8,7 @@ import (
 )
 
 func initSymbolKeyValuePatternNode() {
-	c := &value.SymbolKeyValuePatternNodeClass.MethodContainer
+	c := value.SymbolKeyValuePatternNodeClass
 	vm.Def(
 		c,
 		"#init",

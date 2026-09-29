@@ -8,7 +8,7 @@ import (
 )
 
 func initConstantAsNode() {
-	c := &value.ConstantAsNodeClass.MethodContainer
+	c := value.ConstantAsNodeClass
 	vm.Def(
 		c,
 		"#init",

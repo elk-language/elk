@@ -8,7 +8,7 @@ import (
 )
 
 func initRecordPatternNode() {
-	c := &value.RecordPatternNodeClass.MethodContainer
+	c := value.RecordPatternNodeClass
 	vm.Def(
 		c,
 		"#init",

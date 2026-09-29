@@ -8,7 +8,7 @@ import (
 )
 
 func initNilLiteralNode() {
-	c := &value.NilLiteralNodeClass.MethodContainer
+	c := value.NilLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -59,7 +59,7 @@ func initNilLiteralNode() {
 		},
 	)
 
-	c = &value.NilClass.MethodContainer
+	c = value.NilClass
 	vm.Def(
 		c,
 		"to_ast_node",

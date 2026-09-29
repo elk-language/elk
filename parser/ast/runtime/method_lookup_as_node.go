@@ -8,7 +8,7 @@ import (
 )
 
 func initMethodLookupAsNode() {
-	c := &value.MethodLookupAsNodeClass.MethodContainer
+	c := value.MethodLookupAsNodeClass
 	vm.Def(
 		c,
 		"#init",

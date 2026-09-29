@@ -8,7 +8,7 @@ import (
 )
 
 func initGenericConstantNode() {
-	c := &value.GenericConstantNodeClass.MethodContainer
+	c := value.GenericConstantNodeClass
 	vm.Def(
 		c,
 		"#init",

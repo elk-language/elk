@@ -9,7 +9,7 @@ import (
 )
 
 func initUninterpolatedRegexLiteralNode() {
-	c := &value.UninterpolatedRegexLiteralNodeClass.MethodContainer
+	c := value.UninterpolatedRegexLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -153,7 +153,7 @@ func initUninterpolatedRegexLiteralNode() {
 		},
 	)
 
-	c = &value.RegexClass.MethodContainer
+	c = value.RegexClass
 	vm.Def(
 		c,
 		"to_ast_node",

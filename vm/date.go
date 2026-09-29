@@ -7,7 +7,7 @@ import (
 // Std::Date
 func initDate() {
 	// Singleton methods
-	c := &value.DateClass.SingletonClass().MethodContainer
+	c := value.DateClass.SingletonClass()
 	Def(
 		c,
 		"now",
@@ -38,7 +38,7 @@ func initDate() {
 	)
 
 	// Instance methods
-	c = &value.DateClass.MethodContainer
+	c = value.DateClass
 	Def(
 		c,
 		"#init",

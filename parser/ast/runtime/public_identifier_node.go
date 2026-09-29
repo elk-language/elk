@@ -8,7 +8,7 @@ import (
 )
 
 func initPublicIdentifierNode() {
-	c := &value.PublicIdentifierNodeClass.MethodContainer
+	c := value.PublicIdentifierNodeClass
 	vm.Def(
 		c,
 		"#init",

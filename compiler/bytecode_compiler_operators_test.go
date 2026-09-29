@@ -15,6 +15,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"is a": {
 			input: "3 <: ::Std::Int",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
@@ -37,6 +38,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"instance of": {
 			input: "3 <<: ::Std::Int",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
@@ -59,6 +61,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"resolve static add": {
 			input: "1i8 + 5i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT8), 6,
@@ -74,6 +77,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"add int": {
 			input: "a := 1; a + 5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -94,6 +98,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"add float": {
 			input: "a := 1.2; a + 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -117,6 +122,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"add builtin": {
 			input: "a := 1i8; a + 5i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -146,6 +152,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var add *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -166,6 +173,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -185,6 +193,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -204,6 +213,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&add, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::+"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
@@ -231,6 +241,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT32_8), 0x79,
@@ -246,6 +257,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"subtract int": {
 			input: "a := 1; a - 5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -266,6 +278,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"subtract float": {
 			input: "a := 1.2; a - 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -289,6 +302,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"subtract builtin": {
 			input: "a := 151i32; a - 25i32 - 5i32",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -322,6 +336,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var sub *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -342,6 +357,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -361,6 +377,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -380,6 +397,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&sub, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::-"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
@@ -407,6 +425,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"resolve static multiply": {
 			input: "45.5 * 2.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -424,6 +443,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"multiply int": {
 			input: "a := 1; a * 5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -444,6 +464,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"multiply float": {
 			input: "a := 1.2; a * 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -467,6 +488,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"multiply builtin": {
 			input: "a := 45i8; a * 2i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -496,6 +518,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var mul *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -516,6 +539,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -535,6 +559,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -554,6 +579,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&mul, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::*"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
@@ -581,6 +607,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"resolve static divide": {
 			input: "45.5 / .5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -598,6 +625,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"divide int": {
 			input: "a := 1; a / 5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -618,6 +646,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"divide float": {
 			input: "a := 45.5; a / .5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -641,6 +670,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"divide builtin": {
 			input: "a := 1i8; a / 5i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -670,6 +700,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var div *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -690,6 +721,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -709,6 +741,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -728,6 +761,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&div, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::/"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
@@ -755,6 +789,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"resolve static exponentiate": {
 			input: "-2 ** 2",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0xFC,
@@ -770,6 +805,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"exponentiate int": {
 			input: "a := -2; a ** 2",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -790,6 +826,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"exponentiate float": {
 			input: "a := 1.2; a + 5.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -813,6 +850,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 		"exponentiate builtin": {
 			input: "a := 1i8; a ** 5i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -842,6 +880,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var pow *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -862,6 +901,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -881,6 +921,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -900,6 +941,7 @@ func TestBytecodeBinaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&pow, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::**"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
@@ -937,6 +979,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"resolve static negate": {
 			input: "-5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0xfb,
@@ -952,6 +995,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"negate int": {
 			input: "a := 5; -a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -971,6 +1015,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"negate float": {
 			input: "a := 5.2; -a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -992,6 +1037,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"negate builtin": {
 			input: "a := 5i8; -a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1020,6 +1066,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var neg *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -1039,6 +1086,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1058,6 +1106,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1077,6 +1126,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&neg, vm.NewBytecodeFunctionNoParams(
+									nil,
 									value.ToSymbol("Foo::-@"),
 									[]byte{
 										byte(bytecode.SELF),
@@ -1102,6 +1152,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"resolve static bitwise not": {
 			input: "~10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0xf5,
@@ -1117,6 +1168,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"resolve static logical not": {
 			input: "!10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1132,6 +1184,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"logical not": {
 			input: "a := 10; !a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1151,6 +1204,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"bitwise not": {
 			input: "a := 10; ~a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1171,6 +1225,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"resolve static plus": {
 			input: "+5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_5),
@@ -1186,6 +1241,7 @@ func TestBytecodeUnaryExpressions(t *testing.T) {
 		"unary plus": {
 			input: "a := 10; +a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1216,6 +1272,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"increment": {
 			input: "a := 1; a++",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1237,6 +1294,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"decrement": {
 			input: "a := 1; a--",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1258,6 +1316,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"add": {
 			input: "a := 1; a += 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1280,6 +1339,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"subtract": {
 			input: "a := 1; a -= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1302,6 +1362,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"multiply": {
 			input: "a := 1; a *= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1324,6 +1385,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"divide": {
 			input: "a := 1; a /= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1346,6 +1408,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"exponentiate": {
 			input: "a := 1; a **= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1368,6 +1431,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"modulo": {
 			input: "a := 1; a %= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1390,6 +1454,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"bitwise AND": {
 			input: "a := 1; a &= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1412,6 +1477,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"bitwise OR": {
 			input: "a := 1; a |= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1434,6 +1500,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"bitwise XOR": {
 			input: "a := 1; a ^= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1456,6 +1523,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"left bitshift": {
 			input: "a := 1; a <<= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1478,6 +1546,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"left logical bitshift": {
 			input: "a := 1u64; a <<<= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1500,6 +1569,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"right bitshift": {
 			input: "a := 1; a >>= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1522,6 +1592,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"right logical bitshift": {
 			input: "a := 1u64; a >>>= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1544,6 +1615,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"logic OR": {
 			input: "var a: Int? = 1; a ||= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1567,6 +1639,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"logic AND": {
 			input: "var a: Int? = 1; a &&= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1590,6 +1663,7 @@ func TestBytecodeComplexAssignmentLocals(t *testing.T) {
 		"nil coalesce": {
 			input: "var a: Int? = 1; a ??= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1631,6 +1705,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1652,6 +1727,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1675,6 +1751,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1696,6 +1773,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1717,6 +1795,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -1737,6 +1816,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
@@ -1769,6 +1849,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1790,6 +1871,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1813,6 +1895,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1834,6 +1917,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1855,6 +1939,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -1875,6 +1960,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
@@ -1907,6 +1993,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1928,6 +2015,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1951,6 +2039,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1972,6 +2061,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1993,6 +2083,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2013,6 +2104,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2044,6 +2136,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2065,6 +2158,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2088,6 +2182,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2109,6 +2204,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2130,6 +2226,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2150,6 +2247,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2181,6 +2279,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2202,6 +2301,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2225,6 +2325,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2246,6 +2347,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2267,6 +2369,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2287,6 +2390,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2318,6 +2422,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2339,6 +2444,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2362,6 +2468,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2383,6 +2490,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2404,6 +2512,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2424,6 +2533,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2455,6 +2565,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2476,6 +2587,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2499,6 +2611,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2520,6 +2633,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2541,6 +2655,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2561,6 +2676,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2592,6 +2708,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2613,6 +2730,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2636,6 +2754,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2657,6 +2776,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2678,6 +2798,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2698,6 +2819,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2729,6 +2851,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2750,6 +2873,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2773,6 +2897,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2794,6 +2919,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2815,6 +2941,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2835,6 +2962,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2866,6 +2994,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2887,6 +3016,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2910,6 +3040,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2931,6 +3062,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2952,6 +3084,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -2972,6 +3105,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3003,6 +3137,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3024,6 +3159,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3047,6 +3183,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3068,6 +3205,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3089,6 +3227,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -3109,6 +3248,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3140,6 +3280,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3161,6 +3302,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3184,6 +3326,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3205,6 +3348,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3226,6 +3370,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -3246,6 +3391,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3277,6 +3423,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3298,6 +3445,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3321,6 +3469,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3342,6 +3491,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3363,6 +3513,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -3383,6 +3534,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3414,6 +3566,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3435,6 +3588,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3458,6 +3612,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3479,6 +3634,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3500,6 +3656,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -3520,6 +3677,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3551,6 +3709,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3572,6 +3731,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3595,6 +3755,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3616,6 +3777,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3637,6 +3799,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("Foo.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -3657,6 +3820,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							)),
 							value.ToSymbol("#init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3687,6 +3851,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3708,6 +3873,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3731,6 +3897,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3752,6 +3919,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3770,6 +3938,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3801,6 +3970,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3822,6 +3992,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3845,6 +4016,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3866,6 +4038,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3884,6 +4057,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3915,6 +4089,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3936,6 +4111,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3959,6 +4135,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3980,6 +4157,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3998,6 +4176,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -4034,6 +4213,7 @@ func TestBytecodeBitwiseAnd(t *testing.T) {
 		"resolve static AND": {
 			input: "23 & 10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_2),
@@ -4049,6 +4229,7 @@ func TestBytecodeBitwiseAnd(t *testing.T) {
 		"resolve static nested AND": {
 			input: "23 & 15 & 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 6,
@@ -4064,6 +4245,7 @@ func TestBytecodeBitwiseAnd(t *testing.T) {
 		"compile runtime AND": {
 			input: "a := 23; a & 15 & 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4097,6 +4279,7 @@ func TestBytecodeBitwiseAndNot(t *testing.T) {
 		"resolve static AND NOT": {
 			input: "23 &~ 10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x15,
@@ -4112,6 +4295,7 @@ func TestBytecodeBitwiseAndNot(t *testing.T) {
 		"resolve static nested AND NOT": {
 			input: "23 &~ 15 &~ 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x10,
@@ -4127,6 +4311,7 @@ func TestBytecodeBitwiseAndNot(t *testing.T) {
 		"compile runtime AND NOT": {
 			input: "a := 23; a &~ 15 &~ 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4160,6 +4345,7 @@ func TestBytecodeBitwiseOr(t *testing.T) {
 		"resolve static OR": {
 			input: "23 | 10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x1F,
@@ -4175,6 +4361,7 @@ func TestBytecodeBitwiseOr(t *testing.T) {
 		"resolve static nested OR": {
 			input: "23 | 15 | 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x3F,
@@ -4190,6 +4377,7 @@ func TestBytecodeBitwiseOr(t *testing.T) {
 		"compile runtime OR": {
 			input: "a := 23; a | 15 | 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4223,6 +4411,7 @@ func TestBytecodeBitwiseXor(t *testing.T) {
 		"resolve static XOR": {
 			input: "23 ^ 10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x1D,
@@ -4238,6 +4427,7 @@ func TestBytecodeBitwiseXor(t *testing.T) {
 		"resolve static nested XOR": {
 			input: "23 ^ 15 ^ 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 0x36,
@@ -4253,6 +4443,7 @@ func TestBytecodeBitwiseXor(t *testing.T) {
 		"compile runtime XOR": {
 			input: "a := 23; a ^ 15 ^ 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4286,6 +4477,7 @@ func TestBytecodeModulo(t *testing.T) {
 		"resolve static modulo": {
 			input: "23 % 10",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_3),
@@ -4301,6 +4493,7 @@ func TestBytecodeModulo(t *testing.T) {
 		"resolve static nested modulo": {
 			input: "24 % 15 % 2",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.INT_1),
@@ -4316,6 +4509,7 @@ func TestBytecodeModulo(t *testing.T) {
 		"compile runtime modulo": {
 			input: "a := 24; a % 15 % 46",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,

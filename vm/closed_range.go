@@ -10,7 +10,7 @@ import (
 // ::Std::ClosedRange
 func initClosedRange() {
 	// Instance methods
-	c := &value.ClosedRangeClass.MethodContainer
+	c := value.ClosedRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initClosedRange() {
 // ::Std::ClosedRange::Iterator
 func initClosedRangeIterator() {
 	// Instance methods
-	c := &value.ClosedRangeIteratorClass.MethodContainer
+	c := value.ClosedRangeIteratorClass
 	Def(
 		c,
 		"next",

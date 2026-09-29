@@ -10,7 +10,7 @@ import (
 // ::Std::LeftOpenRange
 func initLeftOpenRange() {
 	// Instance methods
-	c := &value.LeftOpenRangeClass.MethodContainer
+	c := value.LeftOpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initLeftOpenRange() {
 // ::Std::LeftOpenRange::Iterator
 func initLeftOpenRangeIterator() {
 	// Instance methods
-	c := &value.LeftOpenRangeIteratorClass.MethodContainer
+	c := value.LeftOpenRangeIteratorClass
 	Def(
 		c,
 		"next",

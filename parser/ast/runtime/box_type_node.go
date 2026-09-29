@@ -8,7 +8,7 @@ import (
 )
 
 func initBoxTypeNode() {
-	c := &value.BoxTypeNodeClass.MethodContainer
+	c := value.BoxTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

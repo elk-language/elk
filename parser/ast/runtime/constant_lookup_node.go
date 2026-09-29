@@ -8,7 +8,7 @@ import (
 )
 
 func initConstantLookupNode() {
-	c := &value.ConstantLookupNodeClass.MethodContainer
+	c := value.ConstantLookupNodeClass
 	vm.Def(
 		c,
 		"#init",

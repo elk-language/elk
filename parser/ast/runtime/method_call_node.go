@@ -9,7 +9,7 @@ import (
 )
 
 func initMethodCallNode() {
-	c := &value.MethodCallNodeClass.MethodContainer
+	c := value.MethodCallNodeClass
 	vm.Def(
 		c,
 		"#init",

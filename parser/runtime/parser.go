@@ -9,7 +9,7 @@ import (
 // Std::Elk::Parser
 func initParser() {
 	// Singleton methods
-	c := &value.ElkParserClass.SingletonClass().MethodContainer
+	c := value.ElkParserClass.SingletonClass()
 	vm.Def(
 		c,
 		"parse",

@@ -10,7 +10,7 @@ import (
 )
 
 func initPrivateConstantNode() {
-	c := &value.PrivateConstantNodeClass.MethodContainer
+	c := value.PrivateConstantNodeClass
 	vm.Def(
 		c,
 		"#init",

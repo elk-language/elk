@@ -8,7 +8,7 @@ import (
 )
 
 func initHexHashSetLiteralNode() {
-	c := &value.HexHashSetLiteralNodeClass.MethodContainer
+	c := value.HexHashSetLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

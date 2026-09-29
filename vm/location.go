@@ -8,7 +8,7 @@ import (
 // Std::FS::Location
 func initLocation() {
 	// Instance methods
-	c := &value.SpanClass.MethodContainer
+	c := value.SpanClass
 
 	Def(
 		c,

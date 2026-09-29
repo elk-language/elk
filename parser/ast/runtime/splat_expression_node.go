@@ -8,7 +8,7 @@ import (
 )
 
 func initSplatExpressionNode() {
-	c := &value.SplatExpressionNodeClass.MethodContainer
+	c := value.SplatExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initGenericReceiverlessMethodCallNode() {
-	c := &value.GenericReceiverlessMethodCallNodeClass.MethodContainer
+	c := value.GenericReceiverlessMethodCallNodeClass
 	vm.Def(
 		c,
 		"#init",

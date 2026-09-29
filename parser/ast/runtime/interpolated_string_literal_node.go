@@ -8,7 +8,7 @@ import (
 )
 
 func initInterpolatedStringLiteralNode() {
-	c := &value.InterpolatedStringLiteralNodeClass.MethodContainer
+	c := value.InterpolatedStringLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",

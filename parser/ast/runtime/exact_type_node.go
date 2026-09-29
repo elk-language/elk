@@ -8,7 +8,7 @@ import (
 )
 
 func initExactTypeNode() {
-	c := &value.ExactTypeNodeClass.MethodContainer
+	c := value.ExactTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

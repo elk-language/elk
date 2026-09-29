@@ -10,7 +10,7 @@ import (
 
 // ::Std::Debug
 func initDebug() {
-	c := &value.DebugModule.SingletonClass().MethodContainer
+	c := value.DebugModule.SingletonClass()
 	Def(
 		c,
 		"start_cpu_profile",

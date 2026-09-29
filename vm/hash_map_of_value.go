@@ -55,7 +55,7 @@ func (h *HashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 			}
 
 			if originalVersion != h.version {
-				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name).ToValue())
+				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue())
 				return
 			}
 
@@ -357,7 +357,7 @@ func (*HashMapOfValueIterator) InstanceVariables() *value.InstanceVariables {
 
 func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 	if h.version != h.HashMap.version {
-		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name).ToValue()
+		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 
 	for {

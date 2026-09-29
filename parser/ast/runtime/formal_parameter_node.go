@@ -8,7 +8,7 @@ import (
 )
 
 func initFormalParameterNode() {
-	c := &value.FormalParameterNodeClass.MethodContainer
+	c := value.FormalParameterNodeClass
 	vm.Def(
 		c,
 		"#init",

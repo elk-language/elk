@@ -9,7 +9,7 @@ import (
 )
 
 func initUnaryTypeNode() {
-	c := &value.UnaryTypeNodeClass.MethodContainer
+	c := value.UnaryTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

@@ -8,7 +8,7 @@ import (
 )
 
 func initSelectCaseNode() {
-	c := &value.SelectCaseNodeClass.MethodContainer
+	c := value.SelectCaseNodeClass
 	vm.Def(
 		c,
 		"#init",

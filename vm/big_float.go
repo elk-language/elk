@@ -6,7 +6,7 @@ import (
 
 func initBigFloat() {
 	// Instance methods
-	c := &value.BigFloatClass.MethodContainer
+	c := value.BigFloatClass
 	Def(
 		c,
 		"set_precision",

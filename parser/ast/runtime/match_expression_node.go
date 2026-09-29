@@ -8,7 +8,7 @@ import (
 )
 
 func initMatchExpressionNode() {
-	c := &value.MatchExpressionNodeClass.MethodContainer
+	c := value.MatchExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

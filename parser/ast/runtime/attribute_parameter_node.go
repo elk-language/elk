@@ -8,7 +8,7 @@ import (
 )
 
 func initAttributeParameterNode() {
-	c := &value.AttributeParameterNodeClass.MethodContainer
+	c := value.AttributeParameterNodeClass
 	vm.Def(
 		c,
 		"#init",

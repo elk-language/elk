@@ -8,7 +8,7 @@ import (
 )
 
 func initConstructorCallNode() {
-	c := &value.ConstructorCallNodeClass.MethodContainer
+	c := value.ConstructorCallNodeClass
 	vm.Def(
 		c,
 		"#init",

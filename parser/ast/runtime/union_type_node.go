@@ -8,7 +8,7 @@ import (
 )
 
 func initUnionTypeNode() {
-	c := &value.UnionTypeNodeClass.MethodContainer
+	c := value.UnionTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

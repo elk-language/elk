@@ -8,7 +8,7 @@ import (
 )
 
 func initNilSafeSubscriptExpressionNode() {
-	c := &value.NilSafeSubscriptExpressionNodeClass.MethodContainer
+	c := value.NilSafeSubscriptExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

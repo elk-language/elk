@@ -13,7 +13,7 @@ import (
 // Std::Value
 func initValue() {
 	// Instance methods
-	c := &value.ValueClass.MethodContainer
+	c := value.ValueClass
 	Def(
 		c,
 		"inspect",

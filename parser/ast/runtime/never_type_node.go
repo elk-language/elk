@@ -8,7 +8,7 @@ import (
 )
 
 func initNeverTypeNode() {
-	c := &value.NeverTypeNodeClass.MethodContainer
+	c := value.NeverTypeNodeClass
 	vm.Def(
 		c,
 		"#init",

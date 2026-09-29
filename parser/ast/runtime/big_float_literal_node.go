@@ -8,7 +8,7 @@ import (
 )
 
 func initBigFloatLiteralNode() {
-	c := &value.BigFloatLiteralNodeClass.MethodContainer
+	c := value.BigFloatLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -73,7 +73,7 @@ func initBigFloatLiteralNode() {
 		},
 	)
 
-	c = &value.BigFloatClass.MethodContainer
+	c = value.BigFloatClass
 	vm.Def(
 		c,
 		"to_ast_node",

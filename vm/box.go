@@ -7,7 +7,7 @@ import (
 // Std::Box
 func initBox() {
 	// Instance methods
-	c := &value.BoxClass.MethodContainer
+	c := value.BoxClass
 	Def(
 		c,
 		"#init",

@@ -9,7 +9,7 @@ import (
 )
 
 func initPostfixExpressionNode() {
-	c := &value.PostfixExpressionNodeClass.MethodContainer
+	c := value.PostfixExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",

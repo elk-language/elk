@@ -6,7 +6,7 @@ import (
 )
 
 func initInstanceVariableNode() {
-	c := &value.InstanceVariableNodeMixin.MethodContainer
+	c := value.InstanceVariableNodeMixin
 	vm.Def(
 		c,
 		"to_ast_ivar_node",
