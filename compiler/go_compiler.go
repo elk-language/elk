@@ -16004,6 +16004,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				c.checker.Std(symbol.C_UInt64),
 				value.FetchGoType("value.UInt64"),
 			)
+		case value.Float64:
+			return newGoValue(
+				fmt.Sprintf("value.Float64(%g)", v),
+				c.checker.Std(symbol.C_Float64),
+				value.FetchGoType("value.Float64"),
+			)
 		case *value.BigInt:
 			return newGoValue(
 				c.emitBigInt(string(v.ToString())),
@@ -16025,6 +16031,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 			return c.emitCachedRange(value.Ref(v), typ)
 		case *value.Regex:
 			return c.emitCachedRegex(v, typ)
+		case ast.Node:
+			return newGoValue(
+				c.astNodeToGoSource(v),
+				types.Any{},
+				value.FetchGoType("ast.Node"),
+			)
 		default:
 			panic(fmt.Sprintf("cannot convert elk value to Go source: %T, %s", val, val.Inspect()))
 		}
