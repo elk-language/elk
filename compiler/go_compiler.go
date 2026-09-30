@@ -15822,6 +15822,53 @@ func (c *GoCompiler) ivarIndicesToGoSource(ivars *ivar.IvarIndices) string {
 	return buff.String()
 }
 
+func (c *GoCompiler) objectToGoSource(obj *value.Object) *goValue {
+	class := obj.DirectClass()
+	if class == nil {
+		panic(fmt.Sprintf("cannot convert object to Go source: %s", obj.Inspect()))
+	}
+
+	classExpr := c.classExpr(class)
+	ivars := obj.InstanceVariables()
+
+	if len(*ivars) == 0 {
+		return newGoValue(
+			fmt.Sprintf("value.NewObject(value.ObjectWithClass(%s))", classExpr),
+			types.Any{},
+			value.FetchGoType("*value.Object"),
+		)
+	}
+
+	var buff strings.Builder
+	var dependencies []*goValue
+	fmt.Fprintf(&buff, "value.NewObject(value.ObjectWithClass(%s), value.ObjectWithInstanceVariables([]value.Value{", classExpr)
+	for i, ivar := range *ivars {
+		ivarVal := c.valueToGoSource(ivar, types.Any{}, true)
+		fmt.Fprintf(&buff, "%d: %s, ", i, ivarVal.value)
+		dependencies = append(dependencies, ivarVal)
+	}
+	buff.WriteString("}))")
+
+	return newGoValueWithDependencies(
+		buff.String(),
+		types.Any{},
+		value.FetchGoType("*value.Object"),
+		dependencies...,
+	)
+}
+
+func (c *GoCompiler) classExpr(class *value.Class) string {
+	if class.IsSingleton() {
+		name := class.Name()
+		if len(name) > 0 && name[0] == '&' {
+			name = name[1:]
+		}
+		return fmt.Sprintf("value.GetSingletonClass(%s)", c.emitSymbol(name))
+	}
+
+	return fmt.Sprintf("value.GetClass(%s)", c.emitSymbol(class.Name()))
+}
+
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
@@ -15963,6 +16010,14 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				c.checker.Std(symbol.C_Int),
 				value.FetchGoType("*value.BigInt"),
 			)
+		case *value.BigFloat:
+			return newGoValue(
+				c.emitBigFloat(string(v.ToString())),
+				c.checker.Std(symbol.C_BigFloat),
+				value.FetchGoType("*value.BigFloat"),
+			)
+		case *value.Object:
+			return c.objectToGoSource(v)
 		case *value.BeginlessClosedRange, *value.BeginlessOpenRange,
 			*value.EndlessClosedRange, *value.EndlessOpenRange,
 			*value.ClosedRange, *value.OpenRange,
@@ -15976,6 +16031,12 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 	}
 
 	switch val.ValueFlag() {
+	case value.UNDEFINED_FLAG:
+		return newGoValue(
+			"value.Undefined",
+			types.Untyped{},
+			goValueType,
+		)
 	case value.BOOL_FLAG:
 		if val.AsBool() {
 			return newGoValue(
