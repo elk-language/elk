@@ -661,7 +661,7 @@ func TestBytecodeForInExpression(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
@@ -1503,7 +1503,7 @@ func TestBytecodeModifierForIn(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue()}), value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue()})}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in for in loop")),
 					value.ToSymbol("Std::Kernel").ToValue(),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),

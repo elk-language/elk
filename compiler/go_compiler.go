@@ -1728,9 +1728,8 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		c.emit(")\n")
 	case *vm.BytecodeFunction:
-		c.emit("vm.DefBytecode(class, %q, ", name.String())
-		c.compileBytecodeMethodBody(body, method)
-		c.emit(")\n")
+		nativeMethod := c.compileBytecodeMethodBody(body, method)
+		c.emit("vm.DefBytecode(class, %q, %s)\n", name.String(), nativeMethod.goIdent())
 	default:
 		panic(fmt.Sprintf("invalid method body type: %T", body))
 	}
@@ -1739,10 +1738,15 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	method.Body = nil
 }
 
-func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) {
+func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) *nativeMethod {
 	nativeMethod := c.registerElkMethodName(method.NamespacedName(), true)
 	bodySource := c.bytecodeToGoSource(body)
 	c.emitPackage("var %s = %s\n", nativeMethod.goIdent(), bodySource)
+	return nativeMethod
+}
+
+func (c *GoCompiler) registerBytecodeImport() {
+	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
 }
 
 func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
@@ -1750,22 +1754,18 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 
 	fmt.Fprintf(&buff, "vm.NewBytecodeFunctionWithOptions(\n")
 	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithInstructions([]byte{\n")
-	for _, byt := range body.Instructions {
-		fmt.Fprintf(&buff, "%x,", byt)
+	c.registerBytecodeImport()
+
+	for opcode, operands := range body.AllInstructions() {
+		fmt.Fprintf(&buff, "byte(bytecode.%s), ", opcode.String())
+		for _, operand := range operands {
+			fmt.Fprintf(&buff, "0x%02x, ", operand)
+		}
+		fmt.Fprintln(&buff)
 	}
-	fmt.Fprintf(&buff, "}),\n")
+	fmt.Fprintf(&buff, "\n}),\n")
 
-	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLocation(position.NewLocation(\n")
-
-	fmt.Fprintf(&buff, "%s,\n", body.Location.FilePath)
-	fmt.Fprintf(&buff, "position.NewSpan(\n")
-
-	fmt.Fprintf(&buff, "position.New(%d, %d, %d),\n", body.Location.StartPos.ByteOffset, body.Location.StartPos.Line, body.Location.StartPos.Column)
-	fmt.Fprintf(&buff, "position.New(%d, %d, %d),\n", body.Location.EndPos.ByteOffset, body.Location.EndPos.Line, body.Location.EndPos.Column)
-
-	fmt.Fprintf(&buff, "),\n") // end span
-
-	fmt.Fprintf(&buff, ")),\n") // end location
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLocation(%s),\n", c.locationToGoSource(body.Location))
 
 	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
 	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
@@ -1773,7 +1773,7 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
 
 	if len(body.CatchEntries) > 0 {
-		c.emitPackage("vm.BytecodeFunctionWithCatchEntriesVar(\n")
+		fmt.Fprintf(&buff, "vm.BytecodeFunctionWithCatchEntriesVar(\n")
 		for _, entry := range body.CatchEntries {
 			fmt.Fprintf(&buff, "vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
 		}
@@ -1781,7 +1781,7 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 	}
 
 	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
-	c.emitPackage("vm.BytecodeFunctionWithLineInfoListVar(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLineInfoListVar(\n")
 	for _, info := range body.LineInfoList {
 		fmt.Fprintf(&buff, "bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
 	}
@@ -1797,7 +1797,7 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 		fmt.Fprintf(&buff, "),\n") // end values
 	}
 
-	fmt.Fprintf(&buff, "}\n") // end struct
+	fmt.Fprintf(&buff, ")\n") // end constructor
 
 	return buff.String()
 }
@@ -2474,6 +2474,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileAsExpressionNode(node, valueIsIgnored)
 	case *ast.MustExpressionNode:
 		return c.compileMustExpressionNode(node, valueIsIgnored)
+	case *ast.AwaitExpressionNode:
+		return c.compileAwaitExpressionNode(node)
 	case *ast.DoExpressionNode:
 		return c.compileDoExpressionNode(node, valueIsIgnored)
 	case *ast.ThrowExpressionNode:
@@ -4591,6 +4593,25 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 	c.leaveScope()
 
 	return result
+}
+
+func (c *GoCompiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) *goValue {
+	val := c.convertValueToNarrowerType(c.compileExpression(node.Value, false))
+
+	resultType := c.typeOf(node)
+	resultGoType := c.elkTypeToGoType(resultType, false)
+	resultVar := c.defineTmpGoLocal(resultGoType)
+	resultVal := newGoValueWithLocal(resultVar, resultType)
+
+	stackTraceVar := c.defineTmpGoLocal(value.FetchGoType("*value.StackTrace"))
+	stackTraceVal := newGoValueWithLocal(stackTraceVar, c.checker.Std(symbol.C_StackTrace))
+
+	c.registerUnoptimisableErr()
+	c.emitSetCallFrameLineNumber(node.Location())
+	c.emit("%s, %s, err = (%s).AwaitSync()\n", resultVar.name, stackTraceVar.name, val.fetchValue())
+	c.emitErrorPropagationPrependStackTrace(stackTraceVal)
+
+	return resultVal
 }
 
 func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, valueIsIgnored bool) *goValue {
@@ -7265,7 +7286,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
-			"%s, err = thread.CallBytecodeMethod(%s, %s) // receiver: %s, name: %s\n",
+			"%s, err = thread.CallBytecodeMethod(%s, %s...) // receiver: %s, name: %s\n",
 			tmpName,
 			goMethod.goIdent(),
 			callArgsVar.name,
@@ -8206,11 +8227,20 @@ func (c *GoCompiler) wrapValueInTmpGoLocalIfNotIgnored(val *goValue, valueIsIgno
 	return c.wrapValueInTmpGoLocal(val)
 }
 
-func (c *GoCompiler) emitErrorPropagation() {
+func (c *GoCompiler) emitErrorPropagationPrependStackTrace(stackTrace *goValue) {
 	c.emit("if err.IsNotUndefined() {\n")
 	errVal := newGoValue("err", types.Any{}, goValueType)
-	c.emitThrow(errVal)
+	c.emitThrowPrependStackTrace(errVal, stackTrace)
 	c.emit("}\n")
+}
+
+func (c *GoCompiler) emitErrorPropagation() {
+	c.emitErrorPropagationPrependStackTrace(nil)
+}
+
+func (c *GoCompiler) emitThrowPrependStackTrace(val *goValue, stackTrace *goValue) {
+	c.emitCaptureStackTracePrepend(stackTrace)
+	c.emitRethrow(val)
 }
 
 func (c *GoCompiler) emitThrow(val *goValue) {
@@ -8251,7 +8281,15 @@ func (c *GoCompiler) emitRethrow(val *goValue) {
 }
 
 func (c *GoCompiler) emitCaptureStackTrace() {
-	c.emit("thread.CaptureStackTrace()\n")
+	c.emitCaptureStackTracePrepend(nil)
+}
+
+func (c *GoCompiler) emitCaptureStackTracePrepend(stackTrace *goValue) {
+	if stackTrace == nil {
+		c.emit("thread.CaptureStackTrace()\n")
+	} else {
+		c.emit("thread.CaptureStackTracePrepend(%s)\n", stackTrace.fetchValue())
+	}
 }
 
 func (c *GoCompiler) emitCallCache() string {
@@ -15920,7 +15958,9 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				classNameSym := c.emitSymbol(className)
 				fmt.Fprintf(&buff, "value.GetSingletonClass(%s)", classNameSym)
 			} else {
-				fmt.Fprintf(&buff, "value.GetClass(%s)", v.Name())
+				className := v.Name()
+				classNameSym := c.emitSymbol(className)
+				fmt.Fprintf(&buff, "value.GetClass(%s)", classNameSym)
 			}
 			return newGoValue(
 				buff.String(),
@@ -16540,6 +16580,13 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 			fmt.Sprintf("(%s).AsUInt8()", v.value),
 			elkType,
 			value.FetchGoType("value.UInt8"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Promise)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(*vm.Promise)", v.value),
+			elkType,
+			value.FetchGoType("*vm.Promise"),
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayList)) {

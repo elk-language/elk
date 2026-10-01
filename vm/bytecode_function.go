@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"math"
 	"os"
 	"slices"
@@ -477,6 +478,144 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 	return nil
 }
 
+// AllInstructions yields each opcode and its operand bytes.
+// Operand slices share memory with the function's instructions.
+// AllInstructions panics when an instruction is truncated or its opcode is unknown.
+func (f *BytecodeFunction) AllInstructions() iter.Seq2[bytecode.OpCode, []byte] {
+	return func(yield func(bytecode.OpCode, []byte) bool) {
+		for offset := 0; offset < len(f.Instructions); {
+			opcode, operands, next, err := f.readInstruction(offset)
+			if err != nil {
+				panic(err)
+			}
+			if !yield(opcode, operands) {
+				return
+			}
+			offset = next
+		}
+	}
+}
+
+func (f *BytecodeFunction) readInstruction(offset int) (bytecode.OpCode, []byte, int, error) {
+	opcodeByte := f.Instructions[offset]
+	opcode := bytecode.OpCode(opcodeByte)
+	operandBytes, err := f.operandByteCount(offset, opcode)
+	if err != nil {
+		return 0, nil, 0, err
+	}
+
+	end := offset + 1 + operandBytes
+	if end > len(f.Instructions) {
+		return opcode, nil, 0, errors.New("not enough bytes")
+	}
+
+	return opcode, f.Instructions[offset+1 : end : end], end, nil
+}
+
+func (f *BytecodeFunction) operandByteCount(offset int, opcode bytecode.OpCode) (int, error) {
+	switch opcode {
+	case bytecode.RETURN, bytecode.BREAKPOINT, bytecode.ADD, bytecode.SUBTRACT,
+		bytecode.MULTIPLY, bytecode.DIVIDE, bytecode.EXPONENTIATE, bytecode.SELECT, bytecode.CHECK_ABORT,
+		bytecode.EXEC_DEFER, bytecode.NEGATE, bytecode.NOT, bytecode.BITWISE_NOT,
+		bytecode.TRUE, bytecode.FALSE, bytecode.NIL, bytecode.POP,
+		bytecode.RBITSHIFT, bytecode.LBITSHIFT, bytecode.NOOP,
+		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
+		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
+		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
+		bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL, bytecode.SELF, bytecode.INIT_NAMESPACE, bytecode.DEF_METHOD,
+		bytecode.UNDEFINED, bytecode.INCLUDE, bytecode.GET_SINGLETON, bytecode.GET_CLASS, bytecode.COMPARE, bytecode.DOC_COMMENT,
+		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.RETURN_FIRST_ARG,
+		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
+		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
+		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
+		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
+		bytecode.THROW, bytecode.RETHROW, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
+		bytecode.MUST, bytecode.AS, bytecode.SET_SUPERCLASS, bytecode.DEF_CONST, bytecode.EXEC,
+		bytecode.INT_M1, bytecode.INT_0, bytecode.INT_1, bytecode.INT_2, bytecode.INT_3, bytecode.INT_4, bytecode.INT_5,
+		bytecode.FLOAT_0, bytecode.FLOAT_1, bytecode.FLOAT_2,
+		bytecode.LESS_EQUAL_INT, bytecode.ADD_INT, bytecode.SUBTRACT_INT,
+		bytecode.GET_LOCAL_1, bytecode.GET_LOCAL_2, bytecode.GET_LOCAL_3, bytecode.GET_LOCAL_4,
+		bytecode.SET_LOCAL_1, bytecode.SET_LOCAL_2, bytecode.SET_LOCAL_3, bytecode.SET_LOCAL_4,
+		bytecode.GET_UPVALUE_0, bytecode.GET_UPVALUE_1,
+		bytecode.SET_UPVALUE_0, bytecode.SET_UPVALUE_1,
+		bytecode.POP_2, bytecode.POP_2_SKIP_ONE, bytecode.DUP_2,
+		bytecode.ADD_FLOAT, bytecode.SUBTRACT_FLOAT, bytecode.MULTIPLY_INT, bytecode.MULTIPLY_FLOAT,
+		bytecode.DIVIDE_INT, bytecode.DIVIDE_FLOAT, bytecode.EXPONENTIATE_INT, bytecode.NEGATE_INT, bytecode.NEGATE_FLOAT,
+		bytecode.RBITSHIFT_INT, bytecode.LBITSHIFT_INT, bytecode.BITWISE_AND_INT, bytecode.BITWISE_OR_INT,
+		bytecode.BITWISE_XOR_INT, bytecode.MODULO_INT, bytecode.MODULO_FLOAT, bytecode.EQUAL_INT, bytecode.EQUAL_FLOAT,
+		bytecode.GREATER_INT, bytecode.GREATER_FLOAT, bytecode.GREATER_EQUAL_I, bytecode.GREATER_EQUAL_F,
+		bytecode.LESS_INT, bytecode.LESS_FLOAT, bytecode.LESS_EQUAL_FLOAT, bytecode.NOT_EQUAL_INT, bytecode.NOT_EQUAL_FLOAT,
+		bytecode.INCREMENT_INT, bytecode.DECREMENT_INT, bytecode.CLOSE_UPVALUES_TO_1, bytecode.CLOSE_UPVALUES_TO_2, bytecode.CLOSE_UPVALUES_TO_3,
+		bytecode.GENERATOR, bytecode.YIELD, bytecode.STOP_ITERATION, bytecode.GO, bytecode.DUP_SECOND,
+		bytecode.PROMISE, bytecode.AWAIT, bytecode.AWAIT_RESULT, bytecode.AWAIT_SYNC, bytecode.DEF_IVARS,
+		bytecode.GET_IVAR_0, bytecode.GET_IVAR_1, bytecode.GET_IVAR_2, bytecode.SET_IVAR_0, bytecode.SET_IVAR_1, bytecode.SET_IVAR_2,
+		bytecode.LOAD_VALUE_0, bytecode.LOAD_VALUE_1, bytecode.LOAD_VALUE_2, bytecode.LOAD_VALUE_3:
+		return 0, nil
+	case bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
+		bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
+		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.NEW_SYMBOL8,
+		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUES_TO8,
+		bytecode.INSTANTIATE8, bytecode.LOAD_UINT64_8,
+		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
+		bytecode.LOAD_UINT8, bytecode.GET_IVAR8, bytecode.SET_IVAR8,
+		bytecode.LOAD_INT_8, bytecode.LOAD_INT64_8,
+		bytecode.LOAD_INT32_8, bytecode.LOAD_INT16_8, bytecode.LOAD_INT8,
+		bytecode.LOAD_CHAR_8, bytecode.DEF_NAMESPACE, bytecode.NEW_RANGE,
+		bytecode.LOAD_VALUE8, bytecode.CALL_METHOD8, bytecode.CALL_METHOD_TCO8,
+		bytecode.CALL_METHOD_BC8, bytecode.CALL_METHOD_NT8,
+		bytecode.CALL8, bytecode.GET_CONST8, bytecode.NEXT8,
+		bytecode.SET_UPVALUE8:
+		return 1, nil
+	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
+		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNP, bytecode.FOR_IN_BUILTIN,
+		bytecode.FOR_IN, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUES_TO16,
+		bytecode.INSTANTIATE16, bytecode.NEW_ARRAY_TUPLE16, bytecode.NEW_ARRAY_LIST16, bytecode.NEW_STRING16,
+		bytecode.NEW_HASH_MAP16, bytecode.NEW_HASH_RECORD16, bytecode.NEW_SYMBOL16,
+		bytecode.NEW_HASH_SET16, bytecode.JUMP_IF_IEQ, bytecode.JUMP_UNLESS_IEQ, bytecode.JUMP_UNLESS_IGE,
+		bytecode.JUMP_UNLESS_IGT, bytecode.JUMP_UNLESS_ILT, bytecode.JUMP_UNLESS_ILE, bytecode.JUMP_UNLESS_NIL,
+		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
+		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
+		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16,
+		bytecode.LOAD_INT_16, bytecode.BOX_LOCAL8, bytecode.NEW_REGEX8,
+		bytecode.LOAD_VALUE16, bytecode.CALL_METHOD16, bytecode.CALL_METHOD_TCO16,
+		bytecode.CALL_METHOD_BC16, bytecode.CALL_METHOD_NT16,
+		bytecode.GET_IVAR_NAME16, bytecode.SET_IVAR_NAME16,
+		bytecode.CALL16, bytecode.GET_CONST16, bytecode.NEXT16,
+		bytecode.SET_UPVALUE16:
+		return 2, nil
+	case bytecode.BOX_LOCAL16, bytecode.NEW_REGEX16:
+		return 3, nil
+	case bytecode.CLOSURE, bytecode.CLOSED_CLOSURE:
+		return f.closureOperandByteCount(offset)
+	default:
+		return 0, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", opcode, opcode, offset, offset)
+	}
+}
+
+func (f *BytecodeFunction) closureOperandByteCount(offset int) (int, error) {
+	i := offset + 1
+	for {
+		if i >= len(f.Instructions) {
+			return i - (offset + 1), nil
+		}
+		flagsByte := f.Instructions[i]
+		if flagsByte == ClosureTerminatorFlag {
+			return i + 1 - (offset + 1), nil
+		}
+
+		flags := bitfield.BitField8FromInt(flagsByte)
+		width := 2
+		if flags.HasFlag(UpvalueLongIndexFlag) {
+			width = 3
+		}
+		if i+width > len(f.Instructions) {
+			return 0, errors.New("not enough bytes")
+		}
+		i += width
+	}
+}
+
 func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
 	opcodeByte := f.Instructions[offset]
@@ -505,7 +644,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.GET_LOCAL_1, bytecode.GET_LOCAL_2, bytecode.GET_LOCAL_3, bytecode.GET_LOCAL_4,
 		bytecode.SET_LOCAL_1, bytecode.SET_LOCAL_2, bytecode.SET_LOCAL_3, bytecode.SET_LOCAL_4,
 		bytecode.GET_UPVALUE_0, bytecode.GET_UPVALUE_1,
-		bytecode.SET_UPVALUE_0, bytecode.SET_UPVALUE_1, bytecode.SET_UPVALUE8, bytecode.SET_UPVALUE16,
+		bytecode.SET_UPVALUE_0, bytecode.SET_UPVALUE_1,
 		bytecode.POP_2, bytecode.POP_2_SKIP_ONE, bytecode.DUP_2,
 		bytecode.ADD_FLOAT, bytecode.SUBTRACT_FLOAT, bytecode.MULTIPLY_INT, bytecode.MULTIPLY_FLOAT,
 		bytecode.DIVIDE_INT, bytecode.DIVIDE_FLOAT, bytecode.EXPONENTIATE_INT, bytecode.NEGATE_INT, bytecode.NEGATE_FLOAT,
@@ -524,7 +663,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.NEW_HASH_SET8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUES_TO8,
 		bytecode.INSTANTIATE8, bytecode.LOAD_UINT64_8,
 		bytecode.LOAD_UINT32_8, bytecode.LOAD_UINT16_8,
-		bytecode.LOAD_UINT8, bytecode.GET_IVAR8, bytecode.SET_IVAR8:
+		bytecode.LOAD_UINT8, bytecode.GET_IVAR8, bytecode.SET_IVAR8, bytecode.SET_UPVALUE8:
 		return f.disassembleUnsignedNumericOperands(output, 1, 1, offset)
 	case bytecode.BOX_LOCAL8:
 		return f.disassembleUnsignedNumericOperands(output, 2, 1, offset)
@@ -543,7 +682,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.JUMP_IF_NP, bytecode.JUMP_UNLESS_NP, bytecode.JUMP_IF_NIL_NP, bytecode.JUMP_UNLESS_NNP,
 		bytecode.JUMP_IF_EQ, bytecode.JUMP_UNLESS_EQ, bytecode.JUMP_UNLESS_GE,
 		bytecode.JUMP_UNLESS_GT, bytecode.JUMP_UNLESS_LT, bytecode.JUMP_UNLESS_LE, bytecode.JUMP_UNLESS_UNDEF,
-		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16, bytecode.SET_UPVALUE16:
 		return f.disassembleUnsignedNumericOperands(output, 1, 2, offset)
 	case bytecode.BOX_LOCAL16:
 		return f.disassembleUnsignedUnevenNumericOperands(output, offset, 2, 1)
@@ -661,7 +800,7 @@ func (f *BytecodeFunction) disassembleUnsignedUnevenNumericOperands(output io.Wr
 	f.printOpCode(output, opcode)
 
 	currentOffset := offset + 1
-	for operandBytes := range operands {
+	for _, operandBytes := range operands {
 		readFunc := readFuncForUnsignedBytes(operandBytes)
 		a := readFunc(f.Instructions[currentOffset:])
 		currentOffset += operandBytes

@@ -2152,8 +2152,8 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashSetOfValueWithElements(nil, (value.SmallInt(5)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(-4)).ToValue())),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "contains"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -2216,8 +2216,8 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashSetOfValueWithElements(nil, (value.SmallInt(5)).ToValue(), (value.SmallInt(1)).ToValue(), (value.SmallInt(-4)).ToValue())),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "contains"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -2419,8 +2419,8 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashSetOfValueWithElements(nil, (value.SmallInt(38)).ToValue(), (value.SmallInt(255)).ToValue())),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "contains"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -2484,8 +2484,8 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(vm.MustNewHashSetOfValueWithElements(nil, (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())),
 					value.Ref(value.SetMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "contains"), 1)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.HashSetClass, "contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -3393,7 +3393,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.NativeArrayTuple[value.String]{value.String("foo"), value.String("bar")}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.Ref(value.String("foo")),
 					value.Ref(value.String("bar")),
 					value.Ref(value.String("a")),
@@ -3465,7 +3465,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.NativeArrayTuple[value.Symbol]{value.ToSymbol("foo"), value.ToSymbol("bar")}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.ToSymbol("foo").ToValue(),
 					value.ToSymbol("bar").ToValue(),
 					value.Ref(value.String("a")),
@@ -3537,7 +3537,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(255)).ToValue(), (value.SmallInt(38)).ToValue()}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -3607,7 +3607,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(3)).ToValue(), (value.SmallInt(2)).ToValue()}),
 					value.Ref(value.TupleMixin),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "length"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayTupleClass, "length"), 0)),
 					value.Ref(value.String("a")),
 				},
 			),

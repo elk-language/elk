@@ -36,10 +36,28 @@ func (c *GoCompiler) spanToGoSource(span *position.Span) string {
 	)
 }
 
+func (c *GoCompiler) registerPositionImport() {
+	c.registerGoImport("github.com/elk-language/elk/position", "")
+}
+
+func (c *GoCompiler) registerTokenImport() {
+	c.registerGoImport("github.com/elk-language/elk/token", "")
+}
+
+func (c *GoCompiler) registerBitfieldImport() {
+	c.registerGoImport("github.com/elk-language/elk/bitfield", "")
+}
+
+func (c *GoCompiler) registerAstImport() {
+	c.registerGoImport("github.com/elk-language/elk/parser/ast", "")
+}
+
 func (c *GoCompiler) locationToGoSource(loc *position.Location) string {
 	if loc == nil || loc.Span == nil {
 		return "nil"
 	}
+
+	c.registerPositionImport()
 	return fmt.Sprintf(
 		"position.NewLocation(%q, %s)",
 		loc.FilePath,
@@ -52,6 +70,7 @@ func (c *GoCompiler) tokenToGoSource(tok *token.Token) string {
 		return "nil"
 	}
 
+	c.registerTokenImport()
 	loc := c.locationToGoSource(tok.Location())
 	if tok.Value == "" {
 		return fmt.Sprintf("token.New(%s, token.%s)", loc, tok.Type.String())
@@ -60,10 +79,12 @@ func (c *GoCompiler) tokenToGoSource(tok *token.Token) string {
 }
 
 func (c *GoCompiler) bitField8ToGoSource(b bitfield.BitField8) string {
+	c.registerBitfieldImport()
 	return fmt.Sprintf("bitfield.BitField8FromInt[byte](%d)", b.Byte())
 }
 
 func (c *GoCompiler) bitFlag8ToGoSource(b bitfield.BitFlag8) string {
+	c.registerBitfieldImport()
 	return fmt.Sprintf("bitfield.BitFlag8(%d)", b)
 }
 
@@ -105,6 +126,8 @@ func (c *GoCompiler) astNodeToGoSource(node ast.Node) string {
 	if isNilNode(node) {
 		return "nil"
 	}
+
+	c.registerAstImport()
 
 	switch n := node.(type) {
 	case *ast.AliasDeclarationEntry:

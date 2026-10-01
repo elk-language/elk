@@ -4583,8 +4583,12 @@ func GetClass(name Symbol) *Class {
 	return GetConstant(name).AsReference().(*Class)
 }
 
+func GetNamespace(name Symbol) Namespace {
+	return GetConstant(name).AsReference().(Namespace)
+}
+
 func GetSingletonClass(name Symbol) *Class {
-	return GetClass(name).SingletonClass()
+	return GetConstant(name).SingletonClass()
 }
 
 // Resize the given args slice.

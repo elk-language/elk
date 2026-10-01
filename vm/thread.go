@@ -4049,6 +4049,17 @@ func (vm *Thread) CaptureStackTrace() *value.StackTrace {
 	return vm.errStackTrace
 }
 
+// Create a new stack trace and save it in the VM
+func (vm *Thread) CaptureStackTracePrepend(st *value.StackTrace) *value.StackTrace {
+	if vm.state == ErrorState {
+		return vm.errStackTrace
+	}
+
+	vm.state = ErrorState
+	vm.errStackTrace = vm.BuildStackTracePrepend(st)
+	return vm.errStackTrace
+}
+
 func (vm *Thread) populateMissingParametersInSlice(args []value.Value, paramCount, argumentCount int) []value.Value {
 	// populate missing optional arguments with undefined
 	missingParams := paramCount - argumentCount

@@ -2,6 +2,7 @@ package value
 
 // Represents an Elk namespace for constants.
 type Namespace interface {
+	ValueInterface
 	Name() string
 	Constants() SymbolMap
 	AddConstantString(name string, val Value)

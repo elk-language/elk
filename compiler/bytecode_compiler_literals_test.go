@@ -243,9 +243,9 @@ func TestBytecodeStringLiteral(t *testing.T) {
 				[]value.Value{
 					value.Float(15.2).ToValue(),
 					value.Ref(value.String("foo: ")),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "inspect"), 0)),
 					value.Ref(value.String(", bar: ")),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ArrayListClass, "inspect"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.FloatClass, "inspect"), 0)),
 				},
 			),
 		},
@@ -1170,7 +1170,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				[]value.Value{
 					value.Ref(&value.ArrayTupleOfValue{(value.SmallInt(1)).ToValue(), value.Ref(value.String("foo")), value.Nil, value.Float(5.6).ToValue(), value.Nil, (value.SmallInt(5)).ToValue()}),
 					value.ToSymbol("Std::String").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "name"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ClassClass, "name"), 0)),
 				},
 			),
 		},
@@ -1392,7 +1392,7 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Std::String").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "name"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ClassClass, "name"), 0)),
 					value.Ref(&value.NativeArrayTuple[value.Symbol]{value.ToSymbol("foo")}),
 				},
 			),

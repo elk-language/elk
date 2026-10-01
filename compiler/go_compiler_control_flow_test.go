@@ -1742,194 +1742,388 @@ func main() { // loc: <main>
 	}
 }
 
-// func TestBytecodeAwaitExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"await in a synchronous context": {
-// 			input: "await timeout(2.seconds)",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.AWAIT_SYNC),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 				},
-// 			),
-// 		},
-// 		"await in an asynchronous context": {
-// 			input: `
-// 				async def foo
-// 					await timeout(2.seconds)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(56, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(4, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(56, 4, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.PROMISE),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.CALL_METHOD8), 0,
-// 									byte(bytecode.UNDEFINED),
-// 									byte(bytecode.CALL_SELF8), 1,
-// 									byte(bytecode.AWAIT),
-// 									byte(bytecode.AWAIT_RESULT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(55, 4, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 2),
-// 									bytecode.NewLineInfo(4, 1),
-// 									bytecode.NewLineInfo(3, 8),
-// 									bytecode.NewLineInfo(4, 1),
-// 								},
-// 								1,
-// 								1,
-// 								[]value.Value{
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"await_sync in an asynchronous context": {
-// 			input: `
-// 				async def foo
-// 					await_sync timeout(2.seconds)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(61, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(4, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(61, 4, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.PROMISE),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.CALL_METHOD8), 0,
-// 									byte(bytecode.UNDEFINED),
-// 									byte(bytecode.CALL_SELF8), 1,
-// 									byte(bytecode.AWAIT_SYNC),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(60, 4, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 2),
-// 									bytecode.NewLineInfo(4, 1),
-// 									bytecode.NewLineInfo(3, 7),
-// 									bytecode.NewLineInfo(4, 1),
-// 								},
-// 								1,
-// 								1,
-// 								[]value.Value{
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoAwaitExpression(t *testing.T) {
+	tests := goTestTable{
+		"await in a synchronous context": {
+			input: "await timeout(2.seconds)",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("seconds")
+var fn_method0 vm.NativeFunction // Std::Int.:seconds
+var sym3 = value.ToSymbol("timeout")
+var fn_method1 vm.NativeFunction // Std::Kernel::timeout
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.SmallInt(2)).ToValue()
+	t1, err = fn_method0(thread, t2) // receiver: Std::Int, name: seconds
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 4)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = t1
+	t2[2] = value.Undefined
+	t3, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: timeout
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t1, t4, err = ((t3).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"await in an asynchronous context": {
+			input: `
+				async def foo
+					await timeout(2.seconds)
+					println "foo"
+				end
+
+				foo().await
+				println "end"
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym5 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("<main>")
+var sym7 = value.ToSymbol("foo")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+
+var sym0 = value.ToSymbol("Std::Int")
+var sym1 = value.ToSymbol("seconds")
+var sym2 = value.ToSymbol("Std::Kernel")
+var sym3 = value.ToSymbol("timeout")
+var sym4 = value.ToSymbol("println@1")
+var fn_method0 = vm.NewBytecodeFunctionWithOptions(
+	vm.BytecodeFunctionWithInstructions([]byte{
+		byte(bytecode.GET_LOCAL_1),
+		byte(bytecode.PROMISE),
+		byte(bytecode.RETURN),
+		byte(bytecode.SELF),
+		byte(bytecode.INT_2),
+		byte(bytecode.CALL_METHOD_NT8), 0x00,
+		byte(bytecode.UNDEFINED),
+		byte(bytecode.CALL_METHOD_NT8), 0x01,
+		byte(bytecode.AWAIT),
+		byte(bytecode.AWAIT_RESULT),
+		byte(bytecode.POP),
+		byte(bytecode.SELF),
+		byte(bytecode.LOAD_VALUE_2),
+		byte(bytecode.CALL_METHOD_NT8), 0x03,
+		byte(bytecode.RETURN),
+	}),
+	vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(74, 5, 7)))),
+	vm.BytecodeFunctionWithUpvalueCount(0),
+	vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+	vm.BytecodeFunctionWithParameters(1),
+	vm.BytecodeFunctionWithOptionalParameters(1),
+	vm.BytecodeFunctionWithLineInfoListVar(
+		bytecode.NewLineInfo(2, 2),
+		bytecode.NewLineInfo(5, 1),
+		bytecode.NewLineInfo(3, 10),
+		bytecode.NewLineInfo(4, 4),
+		bytecode.NewLineInfo(5, 1),
+	),
+	vm.BytecodeFunctionWithValuesVar(
+		(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+		(value.String("foo")).ToValue(),
+		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+	),
+)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym5, sym6, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = value.Undefined
+	callFrame.SetNativeLineNumber(7)
+	t1, err = thread.CallBytecodeMethod(fn_method0, t2...) // receiver: Std::Kernel, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t3, t4, err = ((t1).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = (value.String("end")).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+		},
+		"await_sync in an asynchronous context": {
+			input: `
+				async def foo
+					await_sync timeout(2.seconds)
+					println "foo"
+				end
+
+				foo().await
+				println "end"
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym5 = value.ToSymbol("main")
+var sym6 = value.ToSymbol("<main>")
+var sym7 = value.ToSymbol("foo")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+
+var sym0 = value.ToSymbol("Std::Int")
+var sym1 = value.ToSymbol("seconds")
+var sym2 = value.ToSymbol("Std::Kernel")
+var sym3 = value.ToSymbol("timeout")
+var sym4 = value.ToSymbol("println@1")
+var fn_method0 = vm.NewBytecodeFunctionWithOptions(
+	vm.BytecodeFunctionWithInstructions([]byte{
+		byte(bytecode.GET_LOCAL_1),
+		byte(bytecode.PROMISE),
+		byte(bytecode.RETURN),
+		byte(bytecode.SELF),
+		byte(bytecode.INT_2),
+		byte(bytecode.CALL_METHOD_NT8), 0x00,
+		byte(bytecode.UNDEFINED),
+		byte(bytecode.CALL_METHOD_NT8), 0x01,
+		byte(bytecode.AWAIT_SYNC),
+		byte(bytecode.POP),
+		byte(bytecode.SELF),
+		byte(bytecode.LOAD_VALUE_2),
+		byte(bytecode.CALL_METHOD_NT8), 0x03,
+		byte(bytecode.RETURN),
+	}),
+	vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(79, 5, 7)))),
+	vm.BytecodeFunctionWithUpvalueCount(0),
+	vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+	vm.BytecodeFunctionWithParameters(1),
+	vm.BytecodeFunctionWithOptionalParameters(1),
+	vm.BytecodeFunctionWithLineInfoListVar(
+		bytecode.NewLineInfo(2, 2),
+		bytecode.NewLineInfo(5, 1),
+		bytecode.NewLineInfo(3, 9),
+		bytecode.NewLineInfo(4, 4),
+		bytecode.NewLineInfo(5, 1),
+	),
+	vm.BytecodeFunctionWithValuesVar(
+		(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+		(value.String("foo")).ToValue(),
+		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+	),
+)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym5, sym6, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = value.Undefined
+	callFrame.SetNativeLineNumber(7)
+	t1, err = thread.CallBytecodeMethod(fn_method0, t2...) // receiver: Std::Kernel, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t3, t4, err = ((t1).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = (value.String("end")).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeModifierForIn(t *testing.T) {
 // 	tests := bytecodeTestTable{
