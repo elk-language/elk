@@ -1728,7 +1728,8 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		c.emit(")\n")
 	case *vm.BytecodeFunction:
-		nativeMethod := c.compileBytecodeMethodBody(body, method)
+		nativeMethod, goSource := c.compileBytecodeMethodBody(body, method)
+		c.emit("%s = %s\n", nativeMethod.goIdent(), goSource)
 		c.emit("vm.DefBytecode(class, %q, %s)\n", name.String(), nativeMethod.goIdent())
 	default:
 		panic(fmt.Sprintf("invalid method body type: %T", body))
@@ -1738,11 +1739,11 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	method.Body = nil
 }
 
-func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) *nativeMethod {
+func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) (*nativeMethod, string) {
 	nativeMethod := c.registerElkMethodName(method.NamespacedName(), true)
 	bodySource := c.bytecodeToGoSource(body)
-	c.emitPackage("var %s = %s\n", nativeMethod.goIdent(), bodySource)
-	return nativeMethod
+	c.emitPackage("var %s *vm.BytecodeFunction // method: %s, loc: %s\n", nativeMethod.goIdent(), types.Inspect(method), body.Location.String())
+	return nativeMethod, bodySource
 }
 
 func (c *GoCompiler) registerBytecodeImport() {
@@ -1797,7 +1798,7 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 		fmt.Fprintf(&buff, "),\n") // end values
 	}
 
-	fmt.Fprintf(&buff, ")\n") // end constructor
+	fmt.Fprintf(&buff, ")") // end constructor
 
 	return buff.String()
 }

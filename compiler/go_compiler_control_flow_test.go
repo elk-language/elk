@@ -1864,43 +1864,7 @@ var sym1 = value.ToSymbol("seconds")
 var sym2 = value.ToSymbol("Std::Kernel")
 var sym3 = value.ToSymbol("timeout")
 var sym4 = value.ToSymbol("println@1")
-var fn_method0 = vm.NewBytecodeFunctionWithOptions(
-	vm.BytecodeFunctionWithInstructions([]byte{
-		byte(bytecode.GET_LOCAL_1),
-		byte(bytecode.PROMISE),
-		byte(bytecode.RETURN),
-		byte(bytecode.SELF),
-		byte(bytecode.INT_2),
-		byte(bytecode.CALL_METHOD_NT8), 0x00,
-		byte(bytecode.UNDEFINED),
-		byte(bytecode.CALL_METHOD_NT8), 0x01,
-		byte(bytecode.AWAIT),
-		byte(bytecode.AWAIT_RESULT),
-		byte(bytecode.POP),
-		byte(bytecode.SELF),
-		byte(bytecode.LOAD_VALUE_2),
-		byte(bytecode.CALL_METHOD_NT8), 0x03,
-		byte(bytecode.RETURN),
-	}),
-	vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(74, 5, 7)))),
-	vm.BytecodeFunctionWithUpvalueCount(0),
-	vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
-	vm.BytecodeFunctionWithParameters(1),
-	vm.BytecodeFunctionWithOptionalParameters(1),
-	vm.BytecodeFunctionWithLineInfoListVar(
-		bytecode.NewLineInfo(2, 2),
-		bytecode.NewLineInfo(5, 1),
-		bytecode.NewLineInfo(3, 10),
-		bytecode.NewLineInfo(4, 4),
-		bytecode.NewLineInfo(5, 1),
-	),
-	vm.BytecodeFunctionWithValuesVar(
-		(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
-		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
-		(value.String("foo")).ToValue(),
-		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
-	),
-)
+var fn_method0 *vm.BytecodeFunction // method: Std::Kernel::foo, loc: <main>:2:5
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1968,6 +1932,43 @@ func methodDefinitions() {
 	_ = class
 
 	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.PROMISE),
+			byte(bytecode.RETURN),
+			byte(bytecode.SELF),
+			byte(bytecode.INT_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x00,
+			byte(bytecode.UNDEFINED),
+			byte(bytecode.CALL_METHOD_NT8), 0x01,
+			byte(bytecode.AWAIT),
+			byte(bytecode.AWAIT_RESULT),
+			byte(bytecode.POP),
+			byte(bytecode.SELF),
+			byte(bytecode.LOAD_VALUE_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x03,
+			byte(bytecode.RETURN),
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(74, 5, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(1),
+		vm.BytecodeFunctionWithOptionalParameters(1),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 2),
+			bytecode.NewLineInfo(5, 1),
+			bytecode.NewLineInfo(3, 10),
+			bytecode.NewLineInfo(4, 4),
+			bytecode.NewLineInfo(5, 1),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+			(value.String("foo")).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+		),
+	)
 	vm.DefBytecode(class, "foo", fn_method0)
 }
 `,
@@ -2009,42 +2010,7 @@ var sym1 = value.ToSymbol("seconds")
 var sym2 = value.ToSymbol("Std::Kernel")
 var sym3 = value.ToSymbol("timeout")
 var sym4 = value.ToSymbol("println@1")
-var fn_method0 = vm.NewBytecodeFunctionWithOptions(
-	vm.BytecodeFunctionWithInstructions([]byte{
-		byte(bytecode.GET_LOCAL_1),
-		byte(bytecode.PROMISE),
-		byte(bytecode.RETURN),
-		byte(bytecode.SELF),
-		byte(bytecode.INT_2),
-		byte(bytecode.CALL_METHOD_NT8), 0x00,
-		byte(bytecode.UNDEFINED),
-		byte(bytecode.CALL_METHOD_NT8), 0x01,
-		byte(bytecode.AWAIT_SYNC),
-		byte(bytecode.POP),
-		byte(bytecode.SELF),
-		byte(bytecode.LOAD_VALUE_2),
-		byte(bytecode.CALL_METHOD_NT8), 0x03,
-		byte(bytecode.RETURN),
-	}),
-	vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(79, 5, 7)))),
-	vm.BytecodeFunctionWithUpvalueCount(0),
-	vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
-	vm.BytecodeFunctionWithParameters(1),
-	vm.BytecodeFunctionWithOptionalParameters(1),
-	vm.BytecodeFunctionWithLineInfoListVar(
-		bytecode.NewLineInfo(2, 2),
-		bytecode.NewLineInfo(5, 1),
-		bytecode.NewLineInfo(3, 9),
-		bytecode.NewLineInfo(4, 4),
-		bytecode.NewLineInfo(5, 1),
-	),
-	vm.BytecodeFunctionWithValuesVar(
-		(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
-		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
-		(value.String("foo")).ToValue(),
-		(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
-	),
-)
+var fn_method0 *vm.BytecodeFunction // method: Std::Kernel::foo, loc: <main>:2:5
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2112,6 +2078,42 @@ func methodDefinitions() {
 	_ = class
 
 	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.PROMISE),
+			byte(bytecode.RETURN),
+			byte(bytecode.SELF),
+			byte(bytecode.INT_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x00,
+			byte(bytecode.UNDEFINED),
+			byte(bytecode.CALL_METHOD_NT8), 0x01,
+			byte(bytecode.AWAIT_SYNC),
+			byte(bytecode.POP),
+			byte(bytecode.SELF),
+			byte(bytecode.LOAD_VALUE_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x03,
+			byte(bytecode.RETURN),
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(79, 5, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(1),
+		vm.BytecodeFunctionWithOptionalParameters(1),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 2),
+			bytecode.NewLineInfo(5, 1),
+			bytecode.NewLineInfo(3, 9),
+			bytecode.NewLineInfo(4, 4),
+			bytecode.NewLineInfo(5, 1),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+			(value.String("foo")).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+		),
+	)
 	vm.DefBytecode(class, "foo", fn_method0)
 }
 `,
