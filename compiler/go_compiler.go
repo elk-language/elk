@@ -1091,24 +1091,6 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 				}
 			}
 
-			// TODO: implement async and generators
-
-			// paramCount := len(parameters)
-			// if c.isGenerator {
-			// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
-			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-			// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
-			// } else if c.isAsync {
-			// 	poolVar := c.defineLocal("_pool", location)
-			// 	paramCount++
-			// 	c.predefinedLocals++
-			// 	c.bytecode.IncrementOptionalParameterCount()
-
-			// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
-			// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
-			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-			// }
-
 			c.emitAddCallFrame(loc)
 			return c.compileStatements(body, false)
 		},
@@ -1124,9 +1106,6 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("\n}\n")
-
-	// TODO: implement generators
-	// c.emitFinalReturn(location, nil)
 }
 
 func (c *GoCompiler) optimiseNativeCalls() bool {
@@ -1386,13 +1365,6 @@ func (c *GoCompiler) compileAllFinally() {
 
 func (c *GoCompiler) emitReturn(val string) {
 	c.compileAllFinally()
-
-	// TODO: implement generators
-	// if c.isGenerator {
-	// 	c.emitYield(location, value)
-	// 	c.emit(location.EndPos.Line, bytecode.STOP_ITERATION)
-	// 	return
-	// }
 
 	if c.goName == "main" {
 		c.emit("return\n")
