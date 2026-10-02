@@ -758,6 +758,7 @@ type GoCompiler struct {
 	isAsync               bool
 	unhygienic            bool
 	hasDefer              bool
+	optimisedNativeCalls  bool
 }
 
 func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *GlobalData, output io.Writer) *GoCompiler {
@@ -1109,6 +1110,10 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 }
 
 func (c *GoCompiler) optimiseNativeCalls() bool {
+	if c.optimisedNativeCalls {
+		return true
+	}
+
 	for _, nativeCall := range c.nativeCallsToOptimise {
 		if !nativeCall.method.optimiseNativeCalls() {
 			return false
@@ -1120,6 +1125,7 @@ func (c *GoCompiler) optimiseNativeCalls() bool {
 	newBuff.Write(originalBytes[:c.callFrameStartOffset])
 	newBuff.Write(originalBytes[c.callFrameEndOffset:])
 	c.packageBuff = &newBuff
+	c.optimisedNativeCalls = true
 	return true
 }
 
@@ -1591,6 +1597,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	}
 
 	if method.Base != nil {
+		c.registerElkMethodAliasName(method.Base.NamespacedName(), method.NamespacedName())
 		// handle aliases
 		method = method.Base
 
@@ -1614,7 +1621,6 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			c.emit("class.AttachMethod(%s, aliasClass.Methods()[%s])\n", newNameSymbol, oldNameSymbol)
 
 			method.SetCompiled(true)
-			method.Body = nil
 			return
 		}
 	}
@@ -1648,7 +1654,6 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			c.emit("vm.DefineSetter(class, %s, %d)\n", ivarNameSymbol, index)
 
 			method.SetCompiled(true)
-			method.Body = nil
 			return
 		}
 
@@ -1677,7 +1682,6 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		c.emit("vm.DefineGetter(class, %s, %d)\n", nameSymbol, index)
 
 		method.SetCompiled(true)
-		method.Body = nil
 		return
 	}
 
@@ -1688,7 +1692,6 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		c.emit("vm.Def(class, %q, ", name.String())
 		c.emitBytes(methodCompiler.buff.Bytes())
-		methodCompiler.buff.Reset()
 
 		c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
 		methodCompiler.packageBuff.Reset()
@@ -1708,7 +1711,6 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 	}
 
 	method.SetCompiled(true)
-	method.Body = nil
 }
 
 func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) (*nativeMethod, string) {
@@ -4814,7 +4816,19 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 			)
 		case *ast.ModifierForInNode:
 			finalizeStaticElements()
-			// TODO: compile for in
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
 
@@ -5175,8 +5189,20 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5401,8 +5427,20 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileHashSetAppendExpr(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5668,8 +5706,32 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5963,8 +6025,32 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 				true,
 			)
 		case *ast.ModifierForInNode:
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
 
@@ -6874,6 +6960,25 @@ func (c *GoCompiler) registerElkMethodName(methodName string, isBytecode bool) *
 			method,
 		)
 	}
+
+	c.globalData.native.methodCache.Unlock()
+
+	return method
+}
+
+func (c *GoCompiler) registerElkMethodAliasName(baseMethodName, aliasMethodName string) *nativeMethod {
+	c.globalData.native.methodCache.Lock()
+
+	var method *nativeMethod
+	baseEntry, ok := c.globalData.native.methodCache.GetUnsafe(baseMethodName)
+	if !ok {
+		return nil
+	}
+
+	c.globalData.native.methodCache.SetUnsafe(
+		aliasMethodName,
+		baseEntry,
+	)
 
 	c.globalData.native.methodCache.Unlock()
 
