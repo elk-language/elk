@@ -1320,763 +1320,1072 @@ func methodDefinitions() {
 	}
 }
 
-// func TestBytecodeDefClass(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"class with a relative name without a body": {
-// 			input: "class Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(13, 1, 14)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 12),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"named class inside of a method": {
-// 			input: `
-// 				def foo
-// 				  class ::Bar; end
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(19, 3, 7), P(34, 3, 22)), "class definitions cannot appear in this context"),
-// 			},
-// 		},
-// 		"class with an absolute parent": {
-// 			input: `
-// 				class Bar; end
-// 				class Foo < ::Bar; end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 3, 27)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(3, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(46, 3, 27)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 20),
-// 							bytecode.NewLineInfo(3, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"class with an absolute nested parent": {
-// 			input: `
-// 				module Baz
-// 					class Bar; end
-// 				end
-// 				class Foo < Baz::Bar; end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(73, 5, 30)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_3),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 4,
-// 							byte(bytecode.GET_CONST8), 5,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.GET_CONST8), 4,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(73, 5, 30)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 25),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Baz").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Baz::Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"class with an absolute name without a body": {
-// 			input: "class ::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(15, 1, 16)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						namespaceDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(15, 1, 16)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 12),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"class with an absolute nested name without a body": {
-// 			input: "class ::Std::Int::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(25, 1, 26)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						namespaceDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(25, 1, 26)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 12),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Int").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Int::Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"class with a body": {
-// 			input: `
-// 				class Foo
-// 					a := 1
-// 					a + 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(45, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(5, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						namespaceDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(45, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<class: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.PREP_LOCALS8), 1,
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.SET_LOCAL_1),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_2),
-// 							byte(bytecode.ADD_INT),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(44, 5, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(4, 3),
-// 							bytecode.NewLineInfo(5, 3),
-// 						},
-// 						nil,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested classes": {
-// 			input: `
-// 				class Foo
-// 					class Bar
-// 						a := 1
-// 						a + 2
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(71, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						namespaceDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.GET_CONST8), 4,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(71, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 20),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 							value.ToSymbol("Foo::Bar").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<class: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.INIT_NAMESPACE),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(70, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(7, 3),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Foo::Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-// 								nil,
-// 								value.ToSymbol("<class: Foo::Bar>"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_1),
-// 									byte(bytecode.SET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.NIL),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(20, 3, 6), P(62, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 3),
-// 									bytecode.NewLineInfo(6, 3),
-// 								},
-// 								nil,
-// 							)),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoDefClass(t *testing.T) {
+	tests := goTestTable{
+		"class with a relative name without a body": {
+			input: "class Foo; end",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// func TestBytecodeDefModule(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"module with a relative name without a body": {
-// 			input: "module Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(14, 1, 15)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(14, 1, 15)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"named module inside of a method": {
-// 			input: `
-// 				def foo
-// 					module Bar; end
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
-// 			},
-// 		},
-// 		"class with an absolute name without a body": {
-// 			input: "module ::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(16, 1, 17)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(16, 1, 17)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"class with an absolute nested name without a body": {
-// 			input: "module ::Std::Int::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(26, 1, 27)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(26, 1, 27)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Int").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"module with a body": {
-// 			input: `
-// 				module Foo
-// 					a := 1
-// 					a + 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(46, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(5, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(46, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 5),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<module: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.PREP_LOCALS8), 1,
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.SET_LOCAL_1),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_2),
-// 							byte(bytecode.ADD_INT),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(45, 5, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(4, 3),
-// 							bytecode.NewLineInfo(5, 3),
-// 						},
-// 						nil,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested modules": {
-// 			input: `
-// 				module Foo
-// 					module Bar
-// 						a := 1
-// 						a + 2
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(73, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(73, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<module: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.INIT_NAMESPACE),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(72, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(7, 3),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Foo::Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-// 								nil,
-// 								value.ToSymbol("<module: Foo::Bar>"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_1),
-// 									byte(bytecode.SET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.NIL),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(21, 3, 6), P(64, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 3),
-// 									bytecode.NewLineInfo(6, 3),
-// 								},
-// 								nil,
-// 							)),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"named class inside of a method": {
+			input: `
+				def foo
+				  class ::Bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(19, 3, 7), P(34, 3, 22)), "class definitions cannot appear in this context"),
+			},
+		},
+		"class with an absolute parent": {
+			input: `
+				class Bar; end
+				class Foo < ::Bar; end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Class // Foo
+var sym1 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const1
+	superclass = const0
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"class with an absolute nested parent": {
+			input: `
+				module Baz
+					class Bar; end
+				end
+				class Foo < Baz::Bar; end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Baz
+var sym0 = value.ToSymbol("Baz")
+var const1 *value.Class // Baz::Bar
+var sym1 = value.ToSymbol("Bar")
+var const2 *value.Class // Foo
+var sym2 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const2 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const2)
+	value.AddConstant(parentNamespace, sym2, namespace)
+
+	class = const1
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const2
+	superclass = const1
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"class with an absolute name without a body": {
+			input: "class ::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"class with an absolute nested name without a body": {
+			input: "class ::Std::Int::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Std::Int::Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.IntClass).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+`,
+		},
+		"class with a body": {
+			input: `
+				class Foo
+					a := 1
+					a += 2
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym3 = value.ToSymbol("<class: Foo>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = (const0).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+		"nested classes": {
+			input: `
+				class Foo
+					class Bar
+						a := 1
+						a += 2
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+var const1 *value.Class // Foo::Bar
+var sym1 = value.ToSymbol("Bar")
+
+var sym4 = value.ToSymbol("<class: Foo>")
+
+var sym5 = value.ToSymbol("<class: Foo::Bar>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const1
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	self = (const0).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym4, sym3, 2)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr1(thread)
+}
+
+func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Bar, loc: <main>:3:6
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = (const1).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym5, sym3, 3)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoDefModule(t *testing.T) {
+	tests := goTestTable{
+		"module with a relative name without a body": {
+			input: "module Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"named module inside of a method": {
+			input: `
+				def foo
+					module Bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
+			},
+		},
+		"module with an absolute name without a body": {
+			input: "module ::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"module with an absolute nested name without a body": {
+			input: "module ::Std::Int::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Std::Int::Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.IntClass).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"module with a body": {
+			input: `
+				module Foo
+					a := 1
+					a += 2
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym3 = value.ToSymbol("<module: Foo>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = value.Ref((const0).SingletonClass())
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+		"nested modules": {
+			input: `
+				module Foo
+					module Bar
+						a := 1
+						a += 2
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Module // Foo
+var sym0 = value.ToSymbol("Foo")
+var const1 *value.Module // Foo::Bar
+var sym1 = value.ToSymbol("Bar")
+
+var sym4 = value.ToSymbol("<module: Foo>")
+
+var sym5 = value.ToSymbol("<module: Foo::Bar>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewModule()
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	self = value.Ref((const0).SingletonClass())
+	callFrame = thread.AddNativeCallFrame(sym4, sym3, 2)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr1(thread)
+}
+
+func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Bar, loc: <main>:3:6
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = value.Ref((const1).SingletonClass())
+	callFrame = thread.AddNativeCallFrame(sym5, sym3, 3)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeDefMethod(t *testing.T) {
 // 	tests := bytecodeTestTable{

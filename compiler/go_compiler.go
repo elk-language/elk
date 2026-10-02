@@ -981,7 +981,7 @@ func (c *GoCompiler) registerGoLocalWithComment(name string, goType *value.GoTyp
 
 func (c *GoCompiler) compileGlobalEnv() {
 	env := c.checker.Env()
-	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
+	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), "Root")
 
 	c.registerGoLocal("parentNamespace", goValueType)
 	c.registerGoLocal("namespace", goValueType)
@@ -1778,7 +1778,7 @@ func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
 	return buff.String()
 }
 
-func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol) {
+func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol, fullName string) {
 	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
@@ -1816,14 +1816,14 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 		}
 
 		c.globalData.native.constantCache.SetUnsafe(
-			constName.String(),
+			fullName,
 			&nativeConstant{
 				ident:   goIdent,
 				elkType: elkType,
 				goType:  goType,
 			},
 		)
-		c.emitPackage("var %s %s // %s\n", goIdent, goType, constName.String())
+		c.emitPackage("var %s %s // %s\n", goIdent, goType, fullName)
 		constNameSymbol := c.emitSymbol(constName.String())
 		c.emit("value.AddConstant(parentNamespace, %s, namespace)\n\n", constNameSymbol)
 		namespace.SetDefined(true)
@@ -1833,20 +1833,20 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name))
+		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), subtype.FullName)
 	}
 }
 
-func (c *GoCompiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol) {
+func (c *GoCompiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, fullName string) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.compileModuleDefinition(parentNamespace, t, constName)
+		c.compileModuleDefinition(parentNamespace, t, constName, fullName)
 	case *types.Class:
-		c.compileClassDefinition(parentNamespace, t, constName)
+		c.compileClassDefinition(parentNamespace, t, constName, fullName)
 	case *types.Mixin:
-		c.compileMixinDefinition(parentNamespace, t, constName)
+		c.compileMixinDefinition(parentNamespace, t, constName, fullName)
 	case *types.Interface:
-		c.compileInterfaceDefinition(parentNamespace, t, constName)
+		c.compileInterfaceDefinition(parentNamespace, t, constName, fullName)
 	}
 }
 
@@ -1914,20 +1914,20 @@ func (c *GoCompiler) typeOf(node ast.Node) types.Type {
 	return node.Type(c.checker.Env())
 }
 
-func (c *GoCompiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, module, constName)
+func (c *GoCompiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, module, constName, fullName)
 }
 
-func (c *GoCompiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, class, constName)
+func (c *GoCompiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, class, constName, fullName)
 }
 
-func (c *GoCompiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, mixin, constName)
+func (c *GoCompiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, mixin, constName, fullName)
 }
 
-func (c *GoCompiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, iface, constName)
+func (c *GoCompiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, iface, constName, fullName)
 }
 
 func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *goValue {

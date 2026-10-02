@@ -8641,19 +8641,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym5 = value.ToSymbol("main")
-var sym6 = value.ToSymbol("<main>")
+var sym3 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("<main>")
 
 var const0 *value.Module // Foo
 var sym0 = value.ToSymbol("Foo")
-var const1 *value.Module // Bar
+var const1 *value.Module // Foo::Bar
 var sym1 = value.ToSymbol("Bar")
-var sym2 = value.ToSymbol("Foo::Bar")
-var const2 value.Value  // Foo::Bar
-var const3 *value.Class // Baz
-var sym3 = value.ToSymbol("Baz")
-var sym4 = value.ToSymbol("Foo::Bar::Baz")
-var const4 *value.Class // Foo::Bar::Baz
+var const2 *value.Class // Foo::Bar::Baz
+var sym2 = value.ToSymbol("Baz")
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8679,12 +8675,9 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 
 	initGlobalEnv()
-	const2 = value.GetConstant(sym2)
-	const4 = (*value.Class)((value.GetConstant(sym4)).Pointer())
-
-	callFrame = thread.AddNativeCallFrame(sym5, sym6, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = const4.CreateInstance()
+	l0 = const2.CreateInstance()
 }
 
 func initGlobalEnv() {
@@ -8709,12 +8702,12 @@ func initGlobalEnv() {
 	namespace = value.Ref(const1)
 	value.AddConstant(parentNamespace, sym1, namespace)
 
-	parentNamespace = const2
-	const3 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
-	namespace = value.Ref(const3)
-	value.AddConstant(parentNamespace, sym3, namespace)
+	parentNamespace = (const1).ToValue()
+	const2 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const2)
+	value.AddConstant(parentNamespace, sym2, namespace)
 
-	class = const4
+	class = const2
 	superclass = value.ObjectClass
 	class.SetSuperclass(superclass)
 }

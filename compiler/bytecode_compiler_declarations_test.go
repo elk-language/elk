@@ -1736,7 +1736,7 @@ func TestBytecodeDefModule(t *testing.T) {
 				diagnostic.NewFailure(L(P(18, 3, 6), P(32, 3, 20)), "module definitions cannot appear in this context"),
 			},
 		},
-		"class with an absolute name without a body": {
+		"module with an absolute name without a body": {
 			input: "module ::Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				nil,
@@ -1775,7 +1775,7 @@ func TestBytecodeDefModule(t *testing.T) {
 				},
 			),
 		},
-		"class with an absolute nested name without a body": {
+		"module with an absolute nested name without a body": {
 			input: "module ::Std::Int::Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				nil,
