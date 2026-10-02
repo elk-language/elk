@@ -1596,6 +1596,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
+	origMethod := method
 	if method.Base != nil {
 		c.registerElkMethodAliasName(method.Base.NamespacedName(), method.NamespacedName())
 		// handle aliases
@@ -1620,7 +1621,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			newNameSymbol := c.emitSymbol(name.String())
 			c.emit("class.AttachMethod(%s, aliasClass.Methods()[%s])\n", newNameSymbol, oldNameSymbol)
 
-			method.SetCompiled(true)
+			origMethod.SetCompiled(true)
 			return
 		}
 	}
@@ -1653,7 +1654,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			ivarNameSymbol := c.emitSymbol(ivarName.String())
 			c.emit("vm.DefineSetter(class, %s, %d)\n", ivarNameSymbol, index)
 
-			method.SetCompiled(true)
+			origMethod.SetCompiled(true)
 			return
 		}
 
@@ -1681,7 +1682,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		nameSymbol := c.emitSymbol(name.String())
 		c.emit("vm.DefineGetter(class, %s, %d)\n", nameSymbol, index)
 
-		method.SetCompiled(true)
+		origMethod.SetCompiled(true)
 		return
 	}
 
@@ -1710,7 +1711,7 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		panic(fmt.Sprintf("invalid method body type: %T", body))
 	}
 
-	method.SetCompiled(true)
+	origMethod.SetCompiled(true)
 }
 
 func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) (*nativeMethod, string) {

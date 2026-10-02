@@ -784,6 +784,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		return
 	}
 
+	origMethod := method
 	if method.Base != nil {
 		// handle aliases
 		method = method.Base
@@ -807,7 +808,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 			c.emitValue(value.Ref(nativeMethod), location)
 			c.emitValue(name.ToValue(), location)
 			c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
-			method.SetCompiled(true)
+			origMethod.SetCompiled(true)
 			return
 		}
 	}
@@ -839,7 +840,7 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 			}
 			c.emitSmallInt(value.SmallInt(index), location)
 			c.emit(location.StartPos.Line, bytecode.DEF_SETTER)
-			method.SetCompiled(true)
+			origMethod.SetCompiled(true)
 			return
 		}
 
@@ -866,14 +867,14 @@ func (c *BytecodeCompiler) compileMethodDefinition(name value.Symbol, method *ty
 		}
 		c.emitSmallInt(value.SmallInt(index), location)
 		c.emit(location.StartPos.Line, bytecode.DEF_GETTER)
-		method.SetCompiled(true)
+		origMethod.SetCompiled(true)
 		return
 	}
 
 	c.emitValue(method.Body.(value.Method).ToValue(), location)
 	c.emitValue(name.ToValue(), location)
 	c.emit(location.StartPos.Line, bytecode.DEF_METHOD)
-	method.SetCompiled(true)
+	origMethod.SetCompiled(true)
 }
 
 func (c *BytecodeCompiler) compileMethodsWithinNamespace(namespace types.Namespace, location *position.Location) {

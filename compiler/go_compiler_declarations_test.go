@@ -1121,138 +1121,196 @@ func methodDefinitions() {
 }
 `,
 		},
-		// "define three aliases": {
-		// 	input: `
-		// 		class Foo
-		// 			def bar; end
-		// 			def delete; end
-		// 			def plus; end
-		// 			alias foo bar, remove delete, add plus
-		// 		end
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		nil,
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.EXEC),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.EXEC),
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(124, 7, 8)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 6),
-		// 			bytecode.NewLineInfo(7, 2),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 				nil,
-		// 				namespaceDefinitionsSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.GET_CONST8), 0,
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.DEF_NAMESPACE), 1,
-		// 					byte(bytecode.GET_CONST8), 1,
-		// 					byte(bytecode.GET_CONST8), 2,
-		// 					byte(bytecode.SET_SUPERCLASS),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(124, 7, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 10),
-		// 					bytecode.NewLineInfo(7, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.ToSymbol("Root").ToValue(),
-		// 					value.ToSymbol("Foo").ToValue(),
-		// 					value.ToSymbol("Std::Object").ToValue(),
-		// 				},
-		// 			)),
-		// 			value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 				nil,
-		// 				methodDefinitionsSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.GET_CONST8), 0,
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.DEF_METHOD),
-		// 					byte(bytecode.LOAD_VALUE_3),
-		// 					byte(bytecode.LOAD_VALUE8), 4,
-		// 					byte(bytecode.DEF_METHOD),
-		// 					byte(bytecode.LOAD_VALUE8), 5,
-		// 					byte(bytecode.LOAD_VALUE8), 6,
-		// 					byte(bytecode.DEF_METHOD),
-		// 					byte(bytecode.LOAD_VALUE_3),
-		// 					byte(bytecode.LOAD_VALUE8), 7,
-		// 					byte(bytecode.DEF_METHOD),
-		// 					byte(bytecode.LOAD_VALUE8), 5,
-		// 					byte(bytecode.LOAD_VALUE8), 8,
-		// 					byte(bytecode.DEF_METHOD),
-		// 					byte(bytecode.POP),
-		// 					byte(bytecode.NIL),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(124, 7, 8)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 24),
-		// 					bytecode.NewLineInfo(7, 2),
-		// 				},
-		// 				[]value.Value{
-		// 					value.ToSymbol("Foo").ToValue(),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						nil,
-		// 						value.ToSymbol("Foo.:plus"),
-		// 						[]byte{
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(59, 5, 6), P(71, 5, 18)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(5, 2),
-		// 						},
-		// 						nil,
-		// 					)),
-		// 					value.ToSymbol("add").ToValue(),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						nil,
-		// 						value.ToSymbol("Foo.:bar"),
-		// 						[]byte{
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(20, 3, 6), P(31, 3, 17)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(3, 2),
-		// 						},
-		// 						nil,
-		// 					)),
-		// 					value.ToSymbol("bar").ToValue(),
-		// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-		// 						nil,
-		// 						value.ToSymbol("Foo.:delete"),
-		// 						[]byte{
-		// 							byte(bytecode.NIL),
-		// 							byte(bytecode.RETURN),
-		// 						},
-		// 						L(P(38, 4, 6), P(52, 4, 20)),
-		// 						bytecode.LineInfoList{
-		// 							bytecode.NewLineInfo(4, 2),
-		// 						},
-		// 						nil,
-		// 					)),
-		// 					value.ToSymbol("delete").ToValue(),
-		// 					value.ToSymbol("foo").ToValue(),
-		// 					value.ToSymbol("remove").ToValue(),
-		// 				},
-		// 			)),
-		// 		},
-		// 	),
-		// },
+		"define three aliases": {
+			input: `
+				class Foo
+					def bar; end
+					def delete; end
+					def plus; end
+					alias foo bar, remove delete, add plus
+				end
+				f := Foo()
+				f.bar
+				f.foo
+				f.delete
+				f.remove
+				f.plus
+				f.add
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym5 = value.ToSymbol("main")
+var sym7 = value.ToSymbol("bar")
+var sym8 = value.ToSymbol("foo")
+var sym9 = value.ToSymbol("delete")
+var sym10 = value.ToSymbol("remove")
+var sym11 = value.ToSymbol("plus")
+var sym12 = value.ToSymbol("add")
+
+var const0 *value.Class // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym4 = value.ToSymbol("Foo.:plus")
+
+func fn_method2(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:plus, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	return value.Nil, value.Undefined
+
+}
+
+var sym1 = value.ToSymbol("Foo.:bar")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:bar, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	return value.Nil, value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Foo.:delete")
+
+func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:delete, loc: <main>:4:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	return value.Nil, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var f: Foo
+	_ = l0
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym5, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = const0.CreateInstance()
+	_, err = fn_method0(thread, l0) // receiver: Foo, name: bar
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method0(thread, l0) // receiver: Foo, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, l0) // receiver: Foo, name: delete
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method1(thread, l0) // receiver: Foo, name: remove
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method2(thread, l0) // receiver: Foo, name: plus
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	_, err = fn_method2(thread, l0) // receiver: Foo, name: add
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Foo
+	vm.Def(class, "add", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method2(thread, args[0])
+		return result, err
+	})
+	vm.Def(class, "bar", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(class, "delete", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0])
+		return result, err
+	})
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+	vm.Def(class, "plus", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method2(thread, args[0])
+		return result, err
+	})
+	vm.Def(class, "remove", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {

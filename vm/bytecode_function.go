@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -96,7 +97,15 @@ func (b *BytecodeFunction) ToValue() value.Value {
 }
 
 func (b *BytecodeFunction) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s, namespace: %s}", b.name.Inspect(), b.Location.String(), b.namespace.Inspect())
+	var buff bytes.Buffer
+
+	fmt.Fprintf(&buff, "Method{name: %s, type: :bytecode, location: %s", b.name.Inspect(), b.Location.String())
+	if b.namespace != nil {
+		fmt.Fprintf(&buff, ", namespace: %s", b.namespace.Inspect())
+	}
+	buff.WriteString("}")
+
+	return buff.String()
 }
 
 func (b *BytecodeFunction) Error() string {
