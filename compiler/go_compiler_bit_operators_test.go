@@ -8215,6 +8215,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).LeftBitshiftVal(l0)
 	if err.IsNotUndefined() {
@@ -8344,6 +8346,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).LeftBitshiftVal(l0)
 	if err.IsNotUndefined() {
@@ -9778,6 +9782,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Int64
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = value.StrictIntLeftBitshift(value.Int64(23), l0)
 	if err.IsNotUndefined() {
@@ -9903,6 +9909,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Int64
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = value.StrictIntLeftBitshift(value.Int64(23), l0)
 	if err.IsNotUndefined() {
@@ -13053,6 +13061,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).RightBitshiftVal(l0)
 	if err.IsNotUndefined() {
@@ -13182,6 +13192,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).RightBitshiftVal(l0)
 	if err.IsNotUndefined() {
@@ -14384,6 +14396,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Int64
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = value.StrictIntLogicalRightBitshift(value.Int64(23), l0, value.LogicalRightShift64)
 	if err.IsNotUndefined() {
@@ -14509,6 +14523,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Int64
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = value.StrictIntLogicalRightBitshift(value.Int64(23), l0, value.LogicalRightShift64)
 	if err.IsNotUndefined() {

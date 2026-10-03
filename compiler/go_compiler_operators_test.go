@@ -5658,6 +5658,8 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
+	defer thread.PopNativeCallFrame()
 	t1, err = value.DivideInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -5927,6 +5929,8 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
+	defer thread.PopNativeCallFrame()
 	t1, err = value.ModuloInts(value.GetInstanceVariable(self, 0), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6589,6 +6593,8 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
+	defer thread.PopNativeCallFrame()
 	t1, err = value.StrictIntLeftBitshift((value.GetInstanceVariable(self, 0)).AsUInt64(), (value.SmallInt(3)).ToValue())
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
@@ -6858,6 +6864,8 @@ func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t2 value.Value
 	_ = t2
 
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 6)
+	defer thread.PopNativeCallFrame()
 	t1, err = value.StrictIntLogicalRightBitshift((value.GetInstanceVariable(self, 0)).AsInt64(), (value.SmallInt(3)).ToValue(), value.LogicalRightShift64)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()

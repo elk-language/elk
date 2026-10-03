@@ -2516,6 +2516,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).ModuloInt(l0)
 	if err.IsNotUndefined() {
@@ -2641,6 +2643,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).ModuloVal(l0)
 	if err.IsNotUndefined() {
@@ -5302,6 +5306,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).DivideInt(l0)
 	if err.IsNotUndefined() {
@@ -5427,6 +5433,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).DivideVal(l0)
 	if err.IsNotUndefined() {
@@ -8045,6 +8053,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).AddVal(l0)
 	if err.IsNotUndefined() {
@@ -10663,6 +10673,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).SubtractVal(l0)
 	if err.IsNotUndefined() {
@@ -13281,6 +13293,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).MultiplyVal(l0)
 	if err.IsNotUndefined() {
@@ -15899,6 +15913,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
+	defer thread.PopNativeCallFrame()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = (value.SmallInt(5)).ExponentiateVal(l0)
 	if err.IsNotUndefined() {

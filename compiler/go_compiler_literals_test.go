@@ -326,8 +326,6 @@ func main() { // loc: <main>
 				_ = callFrame
 
 				lc1_0 = args[0]
-				callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
-				defer thread.PopNativeCallFrame()
 				if value.Bool(value.LessThanInts(lc1_0, (value.SmallInt(3)).ToValue())) {
 					return (value.SmallInt(1)).ToValue(), value.Undefined
 				}

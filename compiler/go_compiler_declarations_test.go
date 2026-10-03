@@ -2495,6 +2495,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t2 []value.Value
 	_ = t2
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 2)
+	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = self
 	t2[1] = value.AddInts(l0, (value.SmallInt(2)).ToValue())
@@ -2582,6 +2584,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	var t1 []value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 2)
+	defer thread.PopNativeCallFrame()
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = self
 	t1[1] = value.AddInts(l0, (value.SmallInt(2)).ToValue())
@@ -3247,6 +3251,8 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, arg_l1 valu
 	} else {
 		l2 = arg_l2
 	}
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 2)
+	defer thread.PopNativeCallFrame()
 	l3 = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(4)
 	t1, err = value.AddInt(l0, (l1).ToValue())

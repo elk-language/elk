@@ -11766,6 +11766,8 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 []value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 2)
+	defer thread.PopNativeCallFrame()
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = self
 	t1[1] = (value.String("foo")).ToValue()
