@@ -1061,15 +1061,16 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 
 				localName := local.goIdent()
 				if p.Initialiser != nil {
-					fmt.Fprintf(&funcBuffer, ", arg_%s value.Value", localName)
+					argName := fmt.Sprintf("arg_%s", localName)
+					fmt.Fprintf(&funcBuffer, ", %s value.Value", argName)
 
-					c.emit("if (%s).IsUndefined() {\n", localName)
+					c.emit("if (%s).IsUndefined() {\n", argName)
 					val := c.compileExpression(p.Initialiser, false)
 					c.emitAssignGoLocal(local.goLocal, val)
 					c.emit("} else {\n")
 
 					argVal := newGoValue(
-						localName,
+						argName,
 						typ,
 						goValueType,
 					)

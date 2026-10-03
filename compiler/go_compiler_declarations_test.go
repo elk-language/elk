@@ -2387,1253 +2387,1307 @@ func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Bar, loc: <main>:3:6
 	}
 }
 
-// func TestBytecodeDefMethod(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"define method in top level": {
-// 			input: `
-// 				def foo then :bar
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(22, 2, 22)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(22, 2, 22)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(2, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo"),
-// 								[]byte{
-// 									byte(bytecode.LOAD_VALUE_0),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(21, 2, 21)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 2),
-// 								},
-// 								[]value.Value{
-// 									value.ToSymbol("bar").ToValue(),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define a setter": {
-// 			input: `
-// 				def foo=(a: Int)
-// 					println(a + 2)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(49, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(4, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(49, 4, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo="),
-// 								[]byte{
-// 									byte(bytecode.SELF),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.CALL_METHOD_NT8), 0,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_FIRST_ARG),
-// 								},
-// 								L(P(5, 2, 5), P(48, 4, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(3, 6),
-// 									bytecode.NewLineInfo(4, 2),
-// 								},
-// 								1,
-// 								0,
-// 								[]value.Value{
-// 									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo=").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define a setter with return": {
-// 			input: `
-// 				def foo=(a: Int)
-// 					println(a + 2)
-// 					return "siema"
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(69, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(69, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo="),
-// 								[]byte{
-// 									byte(bytecode.SELF),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.CALL_METHOD_NT8), 0,
-// 									byte(bytecode.POP),
-// 									byte(bytecode.LOAD_VALUE_1),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_FIRST_ARG),
-// 								},
-// 								L(P(5, 2, 5), P(68, 5, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(3, 7),
-// 									bytecode.NewLineInfo(4, 3),
-// 								},
-// 								1,
-// 								0,
-// 								[]value.Value{
-// 									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "println@1"), 1)),
-// 									value.Ref(value.String("siema")),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo=").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(54, 4, 13), P(60, 4, 19)), "values returned in void context will be ignored"),
-// 			},
-// 		},
-// 		"define generator": {
-// 			input: `
-// 				def *foo(a: Int, b: Int = 2): Int ! String
-// 					yield a + b
-// 					throw "lol"
-// 					return 10
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(104, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(6, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(104, 6, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(6, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionWithCatchEntries(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.SET_LOCAL_2),
-// 									byte(bytecode.GENERATOR),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.YIELD),
-// 									byte(bytecode.LOAD_VALUE_0),
-// 									byte(bytecode.THROW),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.LOAD_INT_8), 10,
-// 									byte(bytecode.YIELD),
-// 									byte(bytecode.STOP_ITERATION),
-// 									byte(bytecode.YIELD),
-// 									byte(bytecode.STOP_ITERATION),
-// 									byte(bytecode.LOOP), 0, 4,
-// 								},
-// 								L(P(5, 2, 5), P(103, 6, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 7),
-// 									bytecode.NewLineInfo(6, 1),
-// 									bytecode.NewLineInfo(3, 4),
-// 									bytecode.NewLineInfo(4, 3),
-// 									bytecode.NewLineInfo(5, 4),
-// 									bytecode.NewLineInfo(6, 2),
-// 									bytecode.NewLineInfo(2, 3),
-// 								},
-// 								2,
-// 								1,
-// 								[]value.Value{
-// 									value.Ref(value.String("lol")),
-// 								},
-// 								[]*vm.CatchEntry{
-// 									{From: -1, To: -1, JumpAddress: 8},
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
-// 			},
-// 		},
-// 		"define an async method": {
-// 			input: `
-// 				async def foo(a: Int, b: Int = 2): Int ! String
-// 					await timeout(5.seconds)
-// 					return a + b
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(108, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(108, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.SET_LOCAL_2),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.PROMISE),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.SELF),
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.CALL_METHOD_NT8), 0,
-// 									byte(bytecode.UNDEFINED),
-// 									byte(bytecode.CALL_METHOD_NT8), 1,
-// 									byte(bytecode.AWAIT),
-// 									byte(bytecode.AWAIT_RESULT),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(107, 5, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 8),
-// 									bytecode.NewLineInfo(5, 1),
-// 									bytecode.NewLineInfo(3, 10),
-// 									bytecode.NewLineInfo(4, 4),
-// 								},
-// 								3,
-// 								2,
-// 								[]value.Value{
-// 									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "seconds"), 0)),
-// 									value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "timeout"), 2)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with required parameters in top level": {
-// 			input: `
-// 				def foo(a: Int, b: Int)
-// 					c := 5
-// 					a + b + c
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(63, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(63, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(62, 5, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(3, 4),
-// 									bytecode.NewLineInfo(4, 5),
-// 									bytecode.NewLineInfo(5, 1),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with ivar parameters": {
-// 			input: `
-// 				class Bar
-// 					init(@a: Int, @b: Int); end
+func TestGoDefMethod(t *testing.T) {
+	tests := goTestTable{
+		"define method in top level": {
+			input: `
+				def foo then :bar
+			`,
+			want: `package main
 
-// 					def foo(@a, @b)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(115, 9, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 					bytecode.NewLineInfo(9, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(115, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<ivarIndices>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_IVARS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(115, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 4),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(&value.IvarIndices{
-// 								symbol.ToSymbol("b"): 1,
-// 								symbol.ToSymbol("a"): 0,
-// 							}),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.LOAD_VALUE_3),
-// 							byte(bytecode.LOAD_VALUE8), 4,
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(115, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar.:#init"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_0),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_1),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.NIL),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_SELF),
-// 								},
-// 								L(P(20, 3, 6), P(46, 3, 32)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(3, 11),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("#init").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar.:foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_0),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_1),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(54, 5, 6), P(106, 8, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(5, 10),
-// 									bytecode.NewLineInfo(6, 2),
-// 									bytecode.NewLineInfo(7, 5),
-// 									bytecode.NewLineInfo(8, 1),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with default ivar parameters": {
-// 			input: `
-// 				class Bar
-// 					var @a: Int?
-// 					var @b: Int?
-// 					def foo(@a: Int = 5, @b: Int = 21)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(136, 9, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 9),
-// 					bytecode.NewLineInfo(9, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(136, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<ivarIndices>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_IVARS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(136, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 4),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(&value.IvarIndices{
-// 								symbol.ToSymbol("a"): 0,
-// 								symbol.ToSymbol("b"): 1,
-// 							}),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(136, 9, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 6),
-// 							bytecode.NewLineInfo(9, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar.:foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_0),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
-// 									byte(bytecode.LOAD_INT_8), 21,
-// 									byte(bytecode.SET_LOCAL_2),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.DUP),
-// 									byte(bytecode.SET_IVAR_1),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(56, 5, 6), P(127, 8, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(5, 23),
-// 									bytecode.NewLineInfo(6, 2),
-// 									bytecode.NewLineInfo(7, 5),
-// 									bytecode.NewLineInfo(8, 1),
-// 								},
-// 								2,
-// 								2,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with optional parameters in top level": {
-// 			input: `
-// 				def foo(a: Int, b: Float = 5.2, c: Int = 10)
-// 					d := 5
-// 					a + b + c + d
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(88, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(88, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Std::Kernel::foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 2,
-// 									byte(bytecode.LOAD_VALUE_0),
-// 									byte(bytecode.SET_LOCAL_2),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
-// 									byte(bytecode.LOAD_INT_8), 10,
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_4),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_FLOAT),
-// 									byte(bytecode.GET_LOCAL_4),
-// 									byte(bytecode.ADD_FLOAT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(87, 5, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 15),
-// 									bytecode.NewLineInfo(3, 2),
-// 									bytecode.NewLineInfo(4, 7),
-// 									bytecode.NewLineInfo(5, 1),
-// 								},
-// 								3,
-// 								2,
-// 								[]value.Value{
-// 									value.Float(5.2).ToValue(),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with required parameters in a class": {
-// 			input: `
-// 				class Bar
-// 					def foo(a: Int, b: Int)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(89, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(89, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(89, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 6),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar.:foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(20, 3, 6), P(80, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 5),
-// 									bytecode.NewLineInfo(6, 1),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"define method with required parameters in a module": {
-// 			input: `
-// 				module Bar
-// 					def foo(a: Int, b: Int)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(90, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 0,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(90, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 5),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(90, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar::foo"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(21, 3, 6), P(81, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 5),
-// 									bytecode.NewLineInfo(6, 1),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
 
-// func TestBytecodeDefInit(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"define init in top level": {
-// 			input: `
-// 				init then :bar
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init definitions cannot appear outside of classes"),
-// 			},
-// 		},
-// 		"define init in a module": {
-// 			input: `
-// 				module Foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "init definitions cannot appear outside of classes"),
-// 			},
-// 		},
-// 		"define init in a mixin": {
-// 			input: `
-// 				mixin Foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(20, 3, 6), P(33, 3, 19)), "init definitions cannot appear outside of classes"),
-// 			},
-// 		},
-// 		"define init in an interface": {
-// 			input: `
-// 				interface Foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
-// 				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
-// 			},
-// 		},
-// 		"define init in a method": {
-// 			input: `
-// 				def foo
-// 					init then :bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "method definitions cannot appear in this context"),
-// 			},
-// 		},
-// 		"define init in init": {
-// 			input: `
-// 				class Foo
-// 				  init
-// 					  init then :bar
-// 				  end
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "method definitions cannot appear in this context"),
-// 			},
-// 		},
-// 		"define with required parameters in a class": {
-// 			input: `
-// 				class Bar
-// 					init(a: Int, b: Int)
-// 						c := 5
-// 						a + b + c
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(86, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 6),
-// 					bytecode.NewLineInfo(7, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(86, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<methodDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(86, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 6),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								nil,
-// 								value.ToSymbol("Bar.:#init"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_5),
-// 									byte(bytecode.SET_LOCAL_3),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.GET_LOCAL_3),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.RETURN_SELF),
-// 								},
-// 								L(P(20, 3, 6), P(77, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 5),
-// 									bytecode.NewLineInfo(6, 2),
-// 								},
-// 								2,
-// 								0,
-// 								nil,
-// 							)),
-// 							value.ToSymbol("#init").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func init() { elk.InitNative() }
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+var sym3 = value.ToSymbol("main")
+
+var sym0 = value.ToSymbol("Std::Kernel::foo")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("bar")
+
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	return (sym2).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return result, err
+	})
+}
+`,
+		},
+		"define a setter": {
+			input: `
+				def foo=(a: Int)
+					println(a + 2)
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var sym0 = value.ToSymbol("Std::Kernel::foo=")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo=, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = self
+	t2[1] = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+		},
+		"define a setter with return": {
+			input: `
+				def foo=(a: Int)
+					println(a + 2)
+					return "siema"
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var sym0 = value.ToSymbol("Std::Kernel::foo=")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("println@1")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo=, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = self
+	t1[1] = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+	callFrame.SetNativeLineNumber(3)
+	_, err = fn_method1(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return l0, value.Undefined
+	return l0, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo=", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1])
+		return result, err
+	}, vm.DefWithParameters(1))
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(54, 4, 13), P(60, 4, 19)), "values returned in void context will be ignored"),
+			},
+		},
+		"define generator": {
+			input: `
+				def *foo(a: Int, b: Int = 2): Int ! String
+					yield a + b
+					throw "lol"
+					return 10
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+var fn_method0 *vm.BytecodeFunction // method: Std::Kernel::foo, loc: <main>:2:5
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_2),
+			byte(bytecode.JUMP_UNLESS_UNDEF), 0x00, 0x02,
+			byte(bytecode.INT_2),
+			byte(bytecode.SET_LOCAL_2),
+			byte(bytecode.GENERATOR),
+			byte(bytecode.RETURN),
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.GET_LOCAL_2),
+			byte(bytecode.ADD_INT),
+			byte(bytecode.YIELD),
+			byte(bytecode.LOAD_VALUE_0),
+			byte(bytecode.THROW),
+			byte(bytecode.POP),
+			byte(bytecode.LOAD_INT_8), 0x0a,
+			byte(bytecode.YIELD),
+			byte(bytecode.STOP_ITERATION),
+			byte(bytecode.YIELD),
+			byte(bytecode.STOP_ITERATION),
+			byte(bytecode.LOOP), 0x00, 0x04,
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(103, 6, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(2),
+		vm.BytecodeFunctionWithOptionalParameters(1),
+		vm.BytecodeFunctionWithCatchEntriesVar(
+			vm.NewCatchEntry(-1, -1, 8, false),
+		),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 7),
+			bytecode.NewLineInfo(6, 1),
+			bytecode.NewLineInfo(3, 4),
+			bytecode.NewLineInfo(4, 3),
+			bytecode.NewLineInfo(5, 4),
+			bytecode.NewLineInfo(6, 2),
+			bytecode.NewLineInfo(2, 3),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(value.String("lol")).ToValue(),
+		),
+	)
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewWarning(L(P(87, 5, 6), P(95, 5, 14)), "unreachable code"),
+			},
+		},
+		"define an async method": {
+			input: `
+				async def foo(a: Int, b: Int = 2): Int ! String
+					await timeout(5.seconds)
+					return a + b
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym4 = value.ToSymbol("main")
+var sym5 = value.ToSymbol("<main>")
+
+var sym0 = value.ToSymbol("Std::Int")
+var sym1 = value.ToSymbol("seconds")
+var sym2 = value.ToSymbol("Std::Kernel")
+var sym3 = value.ToSymbol("timeout")
+var fn_method0 *vm.BytecodeFunction // method: Std::Kernel::foo, loc: <main>:2:5
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym5, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_2),
+			byte(bytecode.JUMP_UNLESS_UNDEF), 0x00, 0x02,
+			byte(bytecode.INT_2),
+			byte(bytecode.SET_LOCAL_2),
+			byte(bytecode.GET_LOCAL_3),
+			byte(bytecode.PROMISE),
+			byte(bytecode.RETURN),
+			byte(bytecode.SELF),
+			byte(bytecode.INT_5),
+			byte(bytecode.CALL_METHOD_NT8), 0x00,
+			byte(bytecode.UNDEFINED),
+			byte(bytecode.CALL_METHOD_NT8), 0x01,
+			byte(bytecode.AWAIT),
+			byte(bytecode.AWAIT_RESULT),
+			byte(bytecode.POP),
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.GET_LOCAL_2),
+			byte(bytecode.ADD_INT),
+			byte(bytecode.RETURN),
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(107, 5, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(3),
+		vm.BytecodeFunctionWithOptionalParameters(2),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 8),
+			bytecode.NewLineInfo(5, 1),
+			bytecode.NewLineInfo(3, 10),
+			bytecode.NewLineInfo(4, 4),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+		),
+	)
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+		},
+		"define method with required parameters in top level": {
+			input: `
+				def foo(a: Int, b: Int)
+					c := 5
+					a + b + c
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+
+var sym0 = value.ToSymbol("Std::Kernel::foo")
+var sym1 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	l2 = (value.SmallInt(5)).ToValue()
+	return value.AddInts(value.AddInts(l0, l1), l2), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"define method with ivar parameters": {
+			input: `
+				class Bar
+					init(@a: Int, @b: Int); end
+
+					def foo(@a, @b)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym4 = value.ToSymbol("main")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#init, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	value.SetInstanceVariable(self, 0, l0)
+	value.SetInstanceVariable(self, 1, l1)
+	return self, value.Undefined
+
+}
+
+var sym3 = value.ToSymbol("Bar.:foo")
+
+func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:foo, loc: <main>:5:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	value.SetInstanceVariable(self, 0, l0)
+	value.SetInstanceVariable(self, 1, l1)
+	l2 = (value.SmallInt(5)).ToValue()
+	return value.AddInts(value.AddInts(l0, l1), l2), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0, symbol.ToSymbol("b"): 1}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Bar
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method1(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"define method with default ivar parameters": {
+			input: `
+				class Bar
+					var @a: Int?
+					var @b: Int?
+					def foo(@a: Int = 5, @b: Int = 21)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar.:foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, arg_l0 value.Value, arg_l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:foo, loc: <main>:5:6
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var l1 value.Value // var b: Std::Int
+	_ = l1
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	if (arg_l0).IsUndefined() {
+		l0 = (value.SmallInt(5)).ToValue()
+	} else {
+		l0 = arg_l0
+	}
+	value.SetInstanceVariable(self, 0, l0)
+	if (arg_l1).IsUndefined() {
+		l1 = (value.SmallInt(21)).ToValue()
+	} else {
+		l1 = arg_l1
+	}
+	value.SetInstanceVariable(self, 1, l1)
+	l2 = (value.SmallInt(5)).ToValue()
+	return value.AddInts(value.AddInts(l0, l1), l2), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("a"): 0, symbol.ToSymbol("b"): 1}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Bar
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"define method with optional parameters in top level": {
+			input: `
+				def foo(a: Int, b: Float = 5.2, c: Int = 10)
+					d := 5
+					a + b + c + d
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+
+var sym0 = value.ToSymbol("Std::Kernel::foo")
+var sym1 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, arg_l1 value.Value, arg_l2 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
+	var l1 value.Float // var b: Std::Float
+	_ = l1
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l3 value.Value // var d: Std::Int
+	_ = l3
+	var t1 value.Value
+	_ = t1
+
+	if (arg_l1).IsUndefined() {
+		l1 = value.Float(5.2)
+	} else {
+		l1 = (arg_l1).AsFloat()
+	}
+	if (arg_l2).IsUndefined() {
+		l2 = (value.SmallInt(10)).ToValue()
+	} else {
+		l2 = arg_l2
+	}
+	l3 = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = value.AddInt(l0, (l1).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return ((((t1).AsFloat()).AddInt(l2)).AddInt(l3)).ToValue(), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2], args[3])
+		return result, err
+	}, vm.DefWithParameters(3))
+}
+`,
+		},
+		"define method with required parameters in a class": {
+			input: `
+				class Bar
+					def foo(a: Int, b: Int)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar.:foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	l2 = (value.SmallInt(5)).ToValue()
+	return value.AddInts(value.AddInts(l0, l1), l2), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Bar
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+		"define method with required parameters in a module": {
+			input: `
+				module Bar
+					def foo(a: Int, b: Int)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var const0 *value.Module // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar::foo")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar::foo, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	l2 = (value.SmallInt(5)).ToValue()
+	return value.AddInts(value.AddInts(l0, l1), l2), value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (const0).SingletonClass() // Bar
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoDefInit(t *testing.T) {
+	tests := goTestTable{
+		"define init in top level": {
+			input: `
+				init then :bar
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(5, 2, 5), P(18, 2, 18)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in a module": {
+			input: `
+				module Foo
+					init then :bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(21, 3, 6), P(34, 3, 19)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in a mixin": {
+			input: `
+				mixin Foo
+					init then :bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(20, 3, 6), P(33, 3, 19)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define init in an interface": {
+			input: `
+				interface Foo
+					init then :bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
+			},
+		},
+		"define init in a method": {
+			input: `
+				def foo
+					init then :bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "method definitions cannot appear in this context"),
+			},
+		},
+		"define init in init": {
+			input: `
+				class Foo
+				  init
+					  init then :bar
+				  end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(33, 4, 8), P(46, 4, 21)), "method definitions cannot appear in this context"),
+			},
+		},
+		"define with required parameters in a class": {
+			input: `
+				class Bar
+					init(a: Int, b: Int)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+
+var const0 *value.Class // Bar
+var sym0 = value.ToSymbol("Bar")
+
+var sym1 = value.ToSymbol("Bar.:#init")
+var sym2 = value.ToSymbol("<main>")
+
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#init, loc: <main>:3:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l2 value.Value // var c: Std::Int
+	_ = l2
+
+	l2 = (value.SmallInt(5)).ToValue()
+	return self, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	methodDefinitions()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Bar
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0], args[1], args[2])
+		return result, err
+	}, vm.DefWithParameters(2))
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
 
 // func TestBytecodeDefMixin(t *testing.T) {
 // 	tests := bytecodeTestTable{
