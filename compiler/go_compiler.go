@@ -758,6 +758,7 @@ type GoCompiler struct {
 	isAsync               bool
 	unhygienic            bool
 	hasDefer              bool
+	unoptimisableError    bool
 	optimisedNativeCalls  bool
 }
 
@@ -1111,7 +1112,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 }
 
 func (c *GoCompiler) optimiseNativeCalls() bool {
-	if c.optimisedNativeCalls {
+	if c.optimisedNativeCalls || c.unoptimisableError {
 		return true
 	}
 
@@ -1121,11 +1122,23 @@ func (c *GoCompiler) optimiseNativeCalls() bool {
 		}
 	}
 
-	originalBytes := c.packageBuff.Bytes()
+	var originalBytes []byte
+	if c.mode == closureGoCompilerMode {
+		originalBytes = c.buff.Bytes()
+	} else {
+		originalBytes = c.packageBuff.Bytes()
+	}
+
 	var newBuff bytes.Buffer
 	newBuff.Write(originalBytes[:c.callFrameStartOffset])
 	newBuff.Write(originalBytes[c.callFrameEndOffset:])
-	c.packageBuff = &newBuff
+
+	if c.mode == closureGoCompilerMode {
+		c.buff = &newBuff
+	} else {
+		c.packageBuff = &newBuff
+	}
+
 	c.optimisedNativeCalls = true
 	return true
 }
@@ -1146,6 +1159,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
 	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
+	closureCompiler.optimiseNativeCalls()
 
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 	c.emitBytes(closureCompiler.buff.Bytes())
@@ -1306,6 +1320,9 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 	c.registerGoImport("github.com/elk-language/elk/position", "")
 
 	c.compileLocalsTo(&funcBuffer)
+
+	c.callFrameStartOffset += funcBuffer.Len()
+	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
 
 	hasUpvalues := c.hasUpvalues()
@@ -1314,10 +1331,16 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 		fmt.Fprintf(&scopeBuffer, "{\n")
 		c.compileClosedUpvaluesTo(&scopeBuffer)
 		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+
+		c.callFrameStartOffset += scopeBuffer.Len()
+		c.callFrameEndOffset += scopeBuffer.Len()
 		c.emitPrependBytes(scopeBuffer.Bytes())
 	} else {
 		var scopeBuffer bytes.Buffer
 		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+
+		c.callFrameStartOffset += scopeBuffer.Len()
+		c.callFrameEndOffset += scopeBuffer.Len()
 		c.emitPrependBytes(scopeBuffer.Bytes())
 	}
 
@@ -7153,6 +7176,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 				returnType,
 			)
 		default:
+			optimisedValue := c.compileOptimizedNativeMethodCallFromType(receiverType, returnType, args, name, loc, valueIsIgnored)
+			if optimisedValue != nil {
+				return optimisedValue
+			}
+
 			callCache := c.emitCallCache()
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
 			callArgsVar := c.defineCallArgs(len(args))
@@ -8413,6 +8441,8 @@ func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
 }
 
 func (c *GoCompiler) markUnoptimisableError() {
+	c.unoptimisableError = true
+
 	if c.goMethod == nil {
 		return
 	}
