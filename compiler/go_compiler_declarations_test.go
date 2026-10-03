@@ -3689,550 +3689,760 @@ func methodDefinitions() {
 	}
 }
 
-// func TestBytecodeDefMixin(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"mixin with a relative name without a body": {
-// 			input: "mixin Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(13, 1, 14)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(13, 1, 14)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"mixin with an absolute name without a body": {
-// 			input: "mixin ::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(15, 1, 16)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(15, 1, 16)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"named mixin inside of a method": {
-// 			input: `
-// 				def foo
-// 					mixin Bar; end
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
-// 			},
-// 		},
-// 		"mixin with an absolute nested name without a body": {
-// 			input: "mixin ::Std::Int::Foo; end",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(25, 1, 26)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 5),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(25, 1, 26)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Int").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"mixin with a body": {
-// 			input: `
-// 				mixin Foo
-// 					a := 1
-// 					a + 2
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(45, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(5, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(45, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 5),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<mixin: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.PREP_LOCALS8), 1,
-// 							byte(bytecode.INT_1),
-// 							byte(bytecode.SET_LOCAL_1),
-// 							byte(bytecode.GET_LOCAL_1),
-// 							byte(bytecode.INT_2),
-// 							byte(bytecode.ADD_INT),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(44, 5, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(4, 3),
-// 							bytecode.NewLineInfo(5, 3),
-// 						},
-// 						nil,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"nested mixins": {
-// 			input: `
-// 				mixin Foo
-// 					mixin Bar
-// 						a := 1
-// 						a + 2
-// 					end
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.LOAD_VALUE_2),
-// 					byte(bytecode.INIT_NAMESPACE),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(71, 7, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(2, 4),
-// 					bytecode.NewLineInfo(7, 1),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						namespaceDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(71, 7, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 10),
-// 							bytecode.NewLineInfo(7, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 						},
-// 					)),
-// 					value.ToSymbol("Foo").ToValue(),
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<mixin: Foo>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.INIT_NAMESPACE),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(5, 2, 5), P(70, 7, 7)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(3, 4),
-// 							bytecode.NewLineInfo(7, 3),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Foo::Bar").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunctionNoParams(
-// 								nil,
-// 								value.ToSymbol("<mixin: Foo::Bar>"),
-// 								[]byte{
-// 									byte(bytecode.PREP_LOCALS8), 1,
-// 									byte(bytecode.INT_1),
-// 									byte(bytecode.SET_LOCAL_1),
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.ADD_INT),
-// 									byte(bytecode.POP),
-// 									byte(bytecode.NIL),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(20, 3, 6), P(62, 6, 8)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(4, 4),
-// 									bytecode.NewLineInfo(5, 3),
-// 									bytecode.NewLineInfo(6, 3),
-// 								},
-// 								nil,
-// 							)),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
+func TestGoDefMixin(t *testing.T) {
+	tests := goTestTable{
+		"mixin with a relative name without a body": {
+			input: "mixin Foo; end",
+			want: `package main
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-// func TestBytecodeInclude(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"include a global constant in a class": {
-// 			input: `
-// 				mixin Bar; end
-// 				class Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(60, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(60, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 20),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"include a global constant in a mixin": {
-// 			input: `
-// 				mixin Bar; end
-// 				mixin Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(60, 5, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(5, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(60, 5, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 15),
-// 							bytecode.NewLineInfo(5, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"include two constants in a class": {
-// 			input: `
-// 				mixin Bar; end
-// 				mixin Baz; end
-// 				class Foo
-// 					include ::Bar, ::Baz
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(86, 6, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(6, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						nil,
-// 						value.ToSymbol("<namespaceDefinitions>"),
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_NAMESPACE), 2,
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.LOAD_VALUE_3),
-// 							byte(bytecode.DEF_NAMESPACE), 1,
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.GET_CONST8), 4,
-// 							byte(bytecode.SET_SUPERCLASS),
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.GET_CONST8), 1,
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.GET_CONST8), 3,
-// 							byte(bytecode.GET_CONST8), 2,
-// 							byte(bytecode.INCLUDE),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(86, 6, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 30),
-// 							bytecode.NewLineInfo(6, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Root").ToValue(),
-// 							value.ToSymbol("Bar").ToValue(),
-// 							value.ToSymbol("Baz").ToValue(),
-// 							value.ToSymbol("Foo").ToValue(),
-// 							value.ToSymbol("Std::Object").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"include in top level": {
-// 			input: `
-// 				mixin Bar; end
-// 				include ::Bar
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(24, 3, 5), P(36, 3, 17)),
-// 					"cannot include mixins in this context",
-// 				),
-// 			},
-// 		},
-// 		"include in a module": {
-// 			input: `
-// 				mixin Bar; end
-// 				module Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(40, 4, 6), P(52, 4, 18)),
-// 					"cannot include mixins in this context",
-// 				),
-// 			},
-// 		},
-// 		"include in an interface": {
-// 			input: `
-// 				mixin Bar; end
-// 				interface Foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(43, 4, 6), P(55, 4, 18)),
-// 					"cannot include mixins in this context",
-// 				),
-// 			},
-// 		},
-// 		"include in a method": {
-// 			input: `
-// 				mixin Bar; end
-// 				def foo
-// 					include ::Bar
-// 				end
-// 			`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(
-// 					L(P(37, 4, 6), P(49, 4, 18)),
-// 					"cannot include mixins in this context",
-// 				),
-// 			},
-// 		},
-// 	}
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"mixin with an absolute name without a body": {
+			input: "mixin ::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"named mixin inside of a method": {
+			input: `
+				def foo
+					mixin Bar; end
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(18, 3, 6), P(31, 3, 19)), "mixin definitions cannot appear in this context"),
+			},
+		},
+		"mixin with an absolute nested name without a body": {
+			input: "mixin ::Std::Int::Foo; end",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Std::Int::Foo
+var sym0 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.IntClass).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+`,
+		},
+		"mixin with a body": {
+			input: `
+				mixin Foo
+					a := 1
+					a += 2
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("main")
+var sym2 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Foo
+var sym0 = value.ToSymbol("Foo")
+
+var sym3 = value.ToSymbol("<mixin: Foo>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = (const0).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+		"nested mixins": {
+			input: `
+				mixin Foo
+					mixin Bar
+						a := 1
+						a += 2
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Foo
+var sym0 = value.ToSymbol("Foo")
+var const1 *value.Mixin // Foo::Bar
+var sym1 = value.ToSymbol("Bar")
+
+var sym4 = value.ToSymbol("<mixin: Foo>")
+
+var sym5 = value.ToSymbol("<mixin: Foo::Bar>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	self = (const0).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym4, sym3, 2)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr1(thread)
+}
+
+func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Bar, loc: <main>:3:6
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+
+	self = (const1).ToValue()
+	callFrame = thread.AddNativeCallFrame(sym5, sym3, 3)
+	defer thread.PopNativeCallFrame()
+	l0 = (value.SmallInt(1)).ToValue()
+	l0 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoInclude(t *testing.T) {
+	tests := goTestTable{
+		"include a global constant in a class": {
+			input: `
+				mixin Bar; end
+				class Foo
+					include ::Bar
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Class // Foo
+var sym1 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const1
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const1
+	mixin = const0
+	class.IncludeMixin(mixin)
+}
+`,
+		},
+		"include a global constant in a mixin": {
+			input: `
+				mixin Bar; end
+				mixin Foo
+					include ::Bar
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Mixin // Foo
+var sym1 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	class = const1
+	mixin = const0
+	class.IncludeMixin(mixin)
+}
+`,
+		},
+		"include two constants in a class": {
+			input: `
+				mixin Bar; end
+				mixin Baz; end
+				class Foo
+					include ::Bar, ::Baz
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym3 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("<main>")
+
+var const0 *value.Mixin // Bar
+var sym0 = value.ToSymbol("Bar")
+var const1 *value.Mixin // Baz
+var sym1 = value.ToSymbol("Baz")
+var const2 *value.Class // Foo
+var sym2 = value.ToSymbol("Foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const1 = value.NewMixin()
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+	parentNamespace = (value.RootModule).ToValue()
+	const2 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const2)
+	value.AddConstant(parentNamespace, sym2, namespace)
+
+	class = const2
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+	class = const2
+	mixin = const0
+	class.IncludeMixin(mixin)
+	class = const2
+	mixin = const1
+	class.IncludeMixin(mixin)
+}
+`,
+		},
+		"include in top level": {
+			input: `
+				mixin Bar; end
+				include ::Bar
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(24, 3, 5), P(36, 3, 17)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in a module": {
+			input: `
+				mixin Bar; end
+				module Foo
+					include ::Bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(40, 4, 6), P(52, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in an interface": {
+			input: `
+				mixin Bar; end
+				interface Foo
+					include ::Bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(43, 4, 6), P(55, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+		"include in a method": {
+			input: `
+				mixin Bar; end
+				def foo
+					include ::Bar
+				end
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(
+					L(P(37, 4, 6), P(49, 4, 18)),
+					"cannot include mixins in this context",
+				),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
