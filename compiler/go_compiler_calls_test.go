@@ -11246,7 +11246,7 @@ func main() { // loc: <main>
 			thread.Panic(err)
 		}
 		l2 = t6
-lbl1:
+	lbl1:
 		if !(t7) {
 			thread.CaptureStackTrace()
 			thread.Panic((value.NewPatternNotMatchedInForInLoopError()).ToValue())
@@ -11259,8 +11259,8 @@ lbl1:
 	}
 	_, err = fn_method0(thread, (const0).ToValue(), (t5).ToValue()) // receiver: Foo, name: foo
 	if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		thread.CaptureStackTrace()
+		thread.Panic(err)
 	}
 }
 
@@ -11417,7 +11417,7 @@ func main() { // loc: <main>
 			thread.Panic(err)
 		}
 		l2 = t2
-lbl1:
+	lbl1:
 		if !(t3) {
 			thread.CaptureStackTrace()
 			thread.Panic((value.NewPatternNotMatchedInForInLoopError()).ToValue())
