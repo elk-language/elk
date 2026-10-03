@@ -5559,7 +5559,8 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	var tmp *goLocal
 
 	var keyType, valType types.Type
-	var goKeyType, goValType *value.GoType
+	goKeyType := goValueType
+	goValType := goValueType
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
@@ -5910,7 +5911,8 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	var tmp *goLocal
 
 	var keyType, valType types.Type
-	var goKeyType, goValType *value.GoType
+	goKeyType := goValueType
+	goValType := goValueType
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
