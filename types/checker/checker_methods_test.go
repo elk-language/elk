@@ -2451,6 +2451,33 @@ func TestMethodCalls(t *testing.T) {
 				end
 			`,
 		},
+		"infer receiver in binary operator": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color.red
+				color == .blue
+			`,
+		},
 		"cannot infer without context": {
 			input: `
 				class Color

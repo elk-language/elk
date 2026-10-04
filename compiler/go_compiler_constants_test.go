@@ -442,6 +442,213 @@ func methodDefinitions() {
 }
 `,
 		},
+		"infer namespace in binary operator": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				baz := Color::RED
+				baz == .::BLUE
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym1 = value.ToSymbol("#init")
+var cc_main_1 = &vm.CallCache{}
+var sym2 = value.ToSymbol("RED")
+var const1 value.Value // constant: Color::RED, loc: <main>:3:6
+var cc_main_2 = &vm.CallCache{}
+var sym3 = value.ToSymbol("GREEN")
+var const2 value.Value // constant: Color::GREEN, loc: <main>:4:6
+var cc_main_3 = &vm.CallCache{}
+var sym4 = value.ToSymbol("BLUE")
+var const3 value.Value // constant: Color::BLUE, loc: <main>:5:6
+var sym10 = value.ToSymbol("main")
+var sym12 = value.ToSymbol("==")
+var fn_method4 vm.NativeFunction // Std::Value.:==
+
+var const0 *value.Class // Color
+var sym0 = value.ToSymbol("Color")
+
+var sym5 = value.ToSymbol("Color.:#init")
+var sym6 = value.ToSymbol("<main>")
+
+func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	value.SetInstanceVariable(self, 2, (l0).ToValue())
+	value.SetInstanceVariable(self, 1, (l1).ToValue())
+	value.SetInstanceVariable(self, 0, (l2).ToValue())
+	return self, value.Undefined
+
+}
+
+var sym7 = value.ToSymbol("blue")
+var sym8 = value.ToSymbol("green")
+var sym9 = value.ToSymbol("red")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var namespace value.Value
+	_ = namespace
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var baz: Color
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	ivarIndices(thread)
+
+	namespace = (const0).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 5)
+	t2[0] = const0.CreateInstance()
+	t2[1] = (value.UInt8(255)).ToValue()
+	t2[2] = (value.UInt8(0)).ToValue()
+	t2[3] = (value.UInt8(0)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = thread.CallMethodByNameWithCache(sym1, &cc_main_1, t2...) // receiver: %self, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	value.AddConstant(namespace, sym2, t1)
+	const1 = t1
+
+	namespace = (const0).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 5)
+	t2[0] = const0.CreateInstance()
+	t2[1] = (value.UInt8(0)).ToValue()
+	t2[2] = (value.UInt8(255)).ToValue()
+	t2[3] = (value.UInt8(0)).ToValue()
+	callFrame.SetNativeLineNumber(4)
+	t1, err = thread.CallMethodByNameWithCache(sym1, &cc_main_2, t2...) // receiver: %self, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	value.AddConstant(namespace, sym3, t1)
+	const2 = t1
+
+	namespace = (const0).ToValue()
+	t2 = value.ResizeNativeArgs(t2, 5)
+	t2[0] = const0.CreateInstance()
+	t2[1] = (value.UInt8(0)).ToValue()
+	t2[2] = (value.UInt8(0)).ToValue()
+	t2[3] = (value.UInt8(255)).ToValue()
+	callFrame.SetNativeLineNumber(5)
+	t1, err = thread.CallMethodByNameWithCache(sym1, &cc_main_3, t2...) // receiver: %self, name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	value.AddConstant(namespace, sym4, t1)
+	const3 = t1
+
+	methodDefinitions()
+	fn_method4 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym12))
+
+	callFrame = thread.AddNativeCallFrame(sym10, sym6, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = const1
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = l0
+	t2[1] = const3
+	callFrame.SetNativeLineNumber(14)
+	_, err = fn_method4(thread, t2) // receiver: Color, name: ==
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewClassWithOptions(value.ClassWithSuperclass(nil))
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	class = const0
+	superclass = value.ObjectClass
+	class.SetSuperclass(superclass)
+}
+func ivarIndices(thread *vm.Thread) {
+	var class *value.Class
+	_ = class
+
+	class = const0
+	class.IvarIndices = value.IvarIndices{symbol.ToSymbol("blue"): 0, symbol.ToSymbol("green"): 1, symbol.ToSymbol("red"): 2}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = const0 // Color
+	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		return result, err
+	}, vm.DefWithParameters(3))
+	vm.DefineGetter(class, sym7, 0)
+	vm.DefineGetter(class, sym8, 1)
+	vm.DefineGetter(class, sym9, 2)
+}
+`,
+		},
 		"infer namespace in switch pattern": {
 			input: `
 				class Color

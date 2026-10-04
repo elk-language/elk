@@ -93,6 +93,42 @@ func TestConstantAccess(t *testing.T) {
 				end
 			`,
 		},
+		"infer namespace in binary operator": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color::RED
+				color == .::BLUE
+			`,
+		},
+		"cannot infer without context": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				.::RED
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(277, 13, 5), P(282, 13, 10)), "namespace is impossible to infer"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
