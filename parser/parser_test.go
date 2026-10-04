@@ -420,7 +420,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned"),
 			},
 		},
 		"constants are not valid declaration targets": {
@@ -460,7 +460,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned"),
 			},
 		},
 		"private constants are not valid declaration targets": {

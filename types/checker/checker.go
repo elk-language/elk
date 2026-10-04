@@ -1277,6 +1277,8 @@ func (c *Checker) checkExpressionWithTypeArgs(node ast.ExpressionNode, typ types
 
 func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
 	switch n := node.(type) {
+	case *ast.ConstantLookupNode:
+		return c.checkConstantLookupNode(n, typ)
 	case *ast.AttributeAccessNode:
 		return c.checkAttributeAccessNode(n, typ, tailPosition)
 	case *ast.MethodCallNode:
@@ -1551,7 +1553,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		c.checkPrivateConstantNode(n)
 		return n
 	case *ast.ConstantLookupNode:
-		return c.checkConstantLookupNode(n)
+		return c.checkConstantLookupNode(n, nil)
 	case *ast.ModuleDeclarationNode:
 		c.checkExpressionsWithinModule(n)
 		return n
@@ -5609,7 +5611,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		method = c.GetMethod(class, symbol.S_init, nil)
 	}
 
-	node.Method = method
+	origMethod := method
 	if method == nil {
 		method = types.NewMethod(
 			"",
@@ -5630,17 +5632,24 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		node.Location(),
 	)
 
-	node.PositionalArguments = typedPositionalArguments
-	node.NamedArguments = nil
+	classNode := ast.NewPublicConstantNode(position.ZeroLocation, class.Name())
+	classNode.SetType(class.Singleton())
+	newNode := ast.NewConstructorCallNode(
+		node.Location(),
+		classNode,
+		typedPositionalArguments,
+		nil,
+	)
+	newNode.Method = origMethod
 	if isSingleton {
-		node.SetType(types.NewInstanceOf(types.Self{}))
+		newNode.SetType(types.NewInstanceOf(types.Self{}))
 	} else {
-		node.SetType(types.Self{})
+		newNode.SetType(types.Self{})
 	}
 	if !method.IsPure() {
-		c.addImpureErrorIfInPureContext(node.Location())
+		c.addImpureErrorIfInPureContext(newNode.Location())
 	}
-	return node
+	return newNode
 }
 
 func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCallNode) ast.ExpressionNode {

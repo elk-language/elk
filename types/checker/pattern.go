@@ -336,13 +336,13 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType types.Type) (ast.PatternNode, types.Type) {
 	switch node.Op.Type {
 	case token.STRICT_EQUAL:
-		node.Right = c.checkExpression(node.Right)
+		node.Right = c.checkExpressionWithType(node.Right, matchedType, false)
 		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Location())
 		node.SetType(rightType)
 		return node, types.Never{}
 	case token.EQUAL_EQUAL:
-		node.Right = c.checkExpression(node.Right)
+		node.Right = c.checkExpressionWithType(node.Right, matchedType, false)
 		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Location())
 		node.SetType(rightType)
@@ -351,7 +351,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 		}
 		return node, types.Never{}
 	case token.NOT_EQUAL, token.STRICT_NOT_EQUAL:
-		node.Right = c.checkExpression(node.Right)
+		node.Right = c.checkExpressionWithType(node.Right, matchedType, false)
 		rightType := c.TypeOf(node.Right)
 		c.checkCanMatch(matchedType, rightType, node.Right.Location())
 		node.SetType(matchedType)
@@ -373,7 +373,7 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 		node.SetType(matchedType)
 		return node, types.Never{}
 	case token.LAX_EQUAL, token.LAX_NOT_EQUAL:
-		node.Right = c.checkExpression(node.Right)
+		node.Right = c.checkExpressionWithType(node.Right, matchedType, false)
 		node.SetType(matchedType)
 		return node, types.Never{}
 	case token.LESS:
@@ -428,7 +428,7 @@ func (c *Checker) checkMustPatternNode(node *ast.MustPatternNode, matchedType ty
 }
 
 func (c *Checker) checkRelationalPattern(node *ast.UnaryExpressionNode, matchedType types.Type, operator symbol.Symbol) (*ast.UnaryExpressionNode, types.Type) {
-	node.Right = c.checkExpression(node.Right)
+	node.Right = c.checkExpressionWithType(node.Right, matchedType, false)
 	rightType := c.ToNonLiteral(c.TypeOf(node.Right), false)
 	if !c.checkCanMatch(matchedType, rightType, node.Right.Location()) {
 		node.SetType(types.Untyped{})
@@ -458,7 +458,7 @@ func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) (a
 }
 
 func (c *Checker) checkConstantLookupPattern(node *ast.ConstantLookupNode, typ types.Type) (ast.PatternNode, types.Type) {
-	n := c.checkConstantLookupNode(node)
+	n := c.checkConstantLookupNode(node, typ)
 	constType := c.typeOfGuardVoid(n)
 
 	c.checkCanMatch(typ, constType, node.Location())

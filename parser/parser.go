@@ -868,7 +868,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		}
 	} else if ast.IsConstant(left) {
 		p.errorMessageLocation(
-			"constants cannot be assigned, maybe you meant to declare it with `:=`",
+			"constants cannot be assigned",
 			left.Location(),
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
@@ -2267,7 +2267,17 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 // strictConstantLookup = constant | "::" publicConstant | strictConstantLookup "::" publicConstant
 func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 	var left ast.ComplexConstantNode
-	if tok, ok := p.matchOk(token.COLON_COLON); ok {
+	if tok, ok := p.matchOk(token.DOT_COLON_COLON); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Location().Join(right.Location()),
+			ast.InferredExpressionNode{},
+			right,
+		)
+	} else if tok, ok := p.matchOk(token.COLON_COLON); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
 		}
@@ -7081,7 +7091,7 @@ func (p *Parser) literalPattern() ast.PatternNode {
 
 func (p *Parser) innerLiteralPattern() ast.LiteralPatternNode {
 	switch p.lookahead.Type {
-	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.COLON_COLON:
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.COLON_COLON, token.DOT_COLON_COLON:
 		return p.strictConstantLookup()
 	case token.UNQUOTE:
 		return p.unquotePatternExpression()

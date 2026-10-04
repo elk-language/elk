@@ -1327,8 +1327,6 @@ func (c *BytecodeCompiler) compileNode(node ast.Node, valueIsIgnored bool) expre
 		return c.compileNilSafeSubscriptExpressionNode(node)
 	case *ast.AttributeAccessNode:
 		c.compileAttributeAccessNode(node)
-	case *ast.NewExpressionNode:
-		c.compileNewExpressionNode(node)
 	case *ast.ConstructorCallNode:
 		c.compileConstructorCallNode(node)
 	case *ast.GenericConstructorCallNode:
@@ -4794,16 +4792,6 @@ func (c *BytecodeCompiler) compileConstructorCallNode(node *ast.ConstructorCallN
 	c.compileConstructorCall(
 		func() {
 			c.compileNodeWithResult(node.ClassNode)
-		},
-		node.PositionalArguments,
-		node.Location(),
-	)
-}
-
-func (c *BytecodeCompiler) compileNewExpressionNode(node *ast.NewExpressionNode) {
-	c.compileConstructorCall(
-		func() {
-			c.emit(node.Location().StartPos.Line, bytecode.SELF)
 		},
 		node.PositionalArguments,
 		node.Location(),

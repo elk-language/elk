@@ -2322,8 +2322,6 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileVariableDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
 		return c.compileValueDeclarationNode(node)
-	case *ast.NewExpressionNode:
-		return c.compileNewExpressionNode(node, valueIsIgnored)
 	case *ast.ConstructorCallNode:
 		return c.compileConstructorCallNode(node, valueIsIgnored)
 	case *ast.GenericConstructorCallNode:
@@ -6830,21 +6828,6 @@ func (c *GoCompiler) compileGenericConstructorCallNode(node *ast.GenericConstruc
 	return c.compileConstructorCall(
 		node.Method,
 		class,
-		node.PositionalArguments,
-		c.typeOf(node),
-		node.Location(),
-		valueIsIgnored,
-	)
-}
-
-func (c *GoCompiler) compileNewExpressionNode(node *ast.NewExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileConstructorCall(
-		node.Method,
-		newGoValue(
-			"self",
-			c.checker.SelfType(),
-			goValueType,
-		),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
