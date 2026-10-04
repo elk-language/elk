@@ -1281,6 +1281,8 @@ func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Typ
 	}
 
 	switch n := node.(type) {
+	case *ast.NewExpressionNode:
+		return c.checkNewExpressionNode(n, typ)
 	case *ast.ConstantLookupNode:
 		return c.checkConstantLookupNode(n, typ)
 	case *ast.AttributeAccessNode:
@@ -1590,7 +1592,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.GoExpressionNode:
 		return c.checkGoExpressionNode(n)
 	case *ast.NewExpressionNode:
-		return c.checkNewExpressionNode(n)
+		return c.checkNewExpressionNode(n, nil)
 	case *ast.ConstructorCallNode:
 		return c.checkConstructorCallNode(n)
 	case *ast.GenericConstructorCallNode:
@@ -5560,9 +5562,14 @@ func (c *Checker) checkTypeArguments(typ types.Type, typeArgs []ast.TypeNode, ty
 	return types.NewTypeArguments(typeArgumentMap, typeArgumentOrder), true
 }
 
-func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.ExpressionNode {
+func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode, inferredType types.Type) ast.ExpressionNode {
+	if newNode := c.inferNew(node, inferredType); newNode != nil {
+		return c.checkConstructorCallNode(newNode)
+	}
+
 	var class *types.Class
 	var isSingleton bool
+
 	switch t := c.selfType.(type) {
 	case *types.Class:
 		class = t
@@ -5952,6 +5959,40 @@ func (c *Checker) inferReceiver(currentReceiver ast.ExpressionNode, typ types.Ty
 	c.addFailure(
 		fmt.Sprintf(
 			"receiver is impossible to infer for type `%s`",
+			types.Inspect(typ),
+		),
+		loc,
+	)
+	return nil
+}
+
+func (c *Checker) inferNew(node *ast.NewExpressionNode, typ types.Type) *ast.ConstructorCallNode {
+	if typ == nil {
+		return nil
+	}
+
+	loc := node.Location()
+	switch typ := typ.(type) {
+	case *types.Class:
+		classNode := ast.NewPublicConstantNode(loc, typ.Name())
+		classNode.SetType(typ)
+		return ast.NewConstructorCallNode(
+			loc,
+			classNode,
+			node.PositionalArguments,
+			node.NamedArguments,
+		)
+	case *types.NamespacePlaceholder:
+		if typ.IsResolved() {
+			return c.inferNew(node, typ.Namespace)
+		}
+	case *types.Generic:
+		return c.inferNew(node, typ.Namespace)
+	}
+
+	c.addFailure(
+		fmt.Sprintf(
+			"class is impossible to infer for type `%s`",
 			types.Inspect(typ),
 		),
 		loc,
@@ -7155,7 +7196,12 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
-		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+		if l.SkipTypechecking() {
+			leftContainerType = c.TypeOf(l)
+			leftContainerName = l.Value
+		} else {
+			leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+		}
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
 	case nil:

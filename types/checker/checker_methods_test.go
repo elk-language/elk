@@ -3771,6 +3771,23 @@ func TestInitDefinition(t *testing.T) {
 
 func TestConstructorCall(t *testing.T) {
 	tests := testTable{
+		"infer class in local assignment": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color::RED
+				color = new(89u8, 12u8, 202u8)
+			`,
+		},
 		"instantiate a class without a constructor": {
 			input: `
 				class Foo; end

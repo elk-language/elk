@@ -282,6 +282,9 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (types.Type, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
+		if constant.SkipTypechecking() {
+			return c.TypeOf(constant), constant.Value
+		}
 		return c.resolveType(constant.Value, constant.Location())
 	case *ast.PrivateConstantNode:
 		return c.resolveType(constant.Value, constant.Location())
@@ -331,7 +334,12 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.
 			return nil, ""
 		}
 	case *ast.PublicConstantNode:
-		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
+		if l.SkipTypechecking() {
+			leftContainerType = c.TypeOf(l)
+			leftContainerName = l.Value
+		} else {
+			leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
+		}
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Location())
 	case nil:
