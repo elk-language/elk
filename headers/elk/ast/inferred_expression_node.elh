@@ -1,0 +1,9 @@
+module Std::Elk::AST
+  ##[
+    An AST node that represents an expression (like the receiver in `.foo()`)
+    that is absent and will be inferred.
+  ]##
+  sealed primitive class InferredExpressionNode
+    include ExpressionNode
+  end
+end

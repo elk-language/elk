@@ -1178,6 +1178,22 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
+		"can be inferred": {
+			input: ".::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(5, 1, 6))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(5, 1, 6))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(5, 1, 6))),
+							ast.InferredExpressionNode{},
+							ast.NewPublicConstantNode(L(S(P(3, 1, 4), P(5, 1, 6))), "Bar"),
+						),
+					),
+				},
+			),
+		},
 		"can be a unary operator": {
 			input: "::Bar",
 			want: ast.NewProgramNode(

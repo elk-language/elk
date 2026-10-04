@@ -520,6 +520,63 @@ func (n *NodeBase) Error() string {
 	return n.Inspect()
 }
 
+// Base AST node without a location.
+type AbsentNodeBase struct{}
+
+func (AbsentNodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
+	return types.Void{}
+}
+
+func (AbsentNodeBase) SetType(types.Type) {}
+
+func (AbsentNodeBase) SkipTypechecking() bool {
+	return false
+}
+
+func (AbsentNodeBase) Span() *position.Span {
+	return nil
+}
+
+func (AbsentNodeBase) SetSpan(span *position.Span) {}
+
+func (n AbsentNodeBase) Location() *position.Location {
+	return nil
+}
+
+func (n AbsentNodeBase) SetLocation(loc *position.Location) {}
+
+func (n AbsentNodeBase) Class() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) DirectClass() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) SingletonClass() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) InstanceVariables() *value.InstanceVariables {
+	return nil
+}
+
+func (n AbsentNodeBase) Copy() value.Reference {
+	return n
+}
+
+func (n AbsentNodeBase) ToValue() value.Value {
+	return value.Ref(n)
+}
+
+func (n AbsentNodeBase) Inspect() string {
+	return fmt.Sprintf("Std::Node{}")
+}
+
+func (n AbsentNodeBase) Error() string {
+	return n.Inspect()
+}
+
 // Check whether the node can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {

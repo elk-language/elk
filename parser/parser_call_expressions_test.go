@@ -1147,6 +1147,25 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have an inferred receiver": {
+			input: ".foo()",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(5, 1, 6))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(5, 1, 6))),
+						ast.NewMethodCallNode(
+							L(S(P(0, 1, 1), P(5, 1, 6))),
+							ast.InferredExpressionNode{},
+							T(L(S(P(0, 1, 1), P(0, 1, 1))), token.DOT),
+							ast.NewPublicIdentifierNode(L(S(P(1, 1, 2), P(3, 1, 4))), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can omit the receiver and have an empty argument list": {
 			input: "foo()",
 			want: ast.NewProgramNode(

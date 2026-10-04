@@ -9,7 +9,7 @@ import (
 func TestOperator(t *testing.T) {
 	tests := testTable{
 		"should be recognised": {
-			input: ".    ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ !~ => : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=> &! |! <<< <<<= >>> >>>= ?. ++ -- &~ +@ -@ ..< <.. <.< ::=",
+			input: ".    ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ !~ => : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=> &! |! <<< <<<= >>> >>>= ?. ++ -- &~ +@ -@ ..< <.. <.< ::= .::",
 			want: []*token.Token{
 				T(L(S(P(0, 1, 1), P(0, 1, 1))), token.DOT),
 				T(L(S(P(5, 1, 6), P(7, 1, 8))), token.CLOSED_RANGE_OP),
@@ -34,7 +34,7 @@ func TestOperator(t *testing.T) {
 				T(L(S(P(59, 1, 60), P(60, 1, 61))), token.THICK_ARROW),
 				T(L(S(P(62, 1, 63), P(62, 1, 63))), token.COLON),
 				T(L(S(P(64, 1, 65), P(65, 1, 66))), token.COLON_EQUAL),
-				T(L(S(P(67, 1, 68), P(68, 1, 69))), token.SCOPE_RES_OP),
+				T(L(S(P(67, 1, 68), P(68, 1, 69))), token.COLON_COLON),
 				T(L(S(P(70, 1, 71), P(71, 1, 72))), token.REVERSE_ISA_OP),
 				T(L(S(P(73, 1, 74), P(75, 1, 76))), token.REVERSE_INSTANCE_OF_OP),
 				T(L(S(P(77, 1, 78), P(77, 1, 78))), token.TILDE),
@@ -84,6 +84,7 @@ func TestOperator(t *testing.T) {
 				T(L(S(P(216, 1, 217), P(218, 1, 219))), token.LEFT_OPEN_RANGE_OP),
 				T(L(S(P(220, 1, 221), P(222, 1, 223))), token.OPEN_RANGE_OP),
 				T(L(S(P(224, 1, 225), P(226, 1, 227))), token.COLON_COLON_EQUAL),
+				T(L(S(P(228, 1, 229), P(230, 1, 231))), token.DOT_COLON_COLON),
 			},
 		},
 	}

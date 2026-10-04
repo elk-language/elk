@@ -1864,6 +1864,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			return l.token(token.COMMA)
 		case '.':
 			if l.matchChar(':') {
+				if l.matchChar(':') {
+					return l.token(token.DOT_COLON_COLON)
+				}
 				return l.token(token.DOT_COLON)
 			}
 			if l.acceptChar('.') {
@@ -2024,7 +2027,7 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				if l.matchChar('[') {
 					return l.token(token.COLON_COLON_LBRACKET)
 				}
-				return l.token(token.SCOPE_RES_OP)
+				return l.token(token.COLON_COLON)
 			}
 			if l.matchChar('=') {
 				return l.token(token.COLON_EQUAL)

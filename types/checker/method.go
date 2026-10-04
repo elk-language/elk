@@ -1676,7 +1676,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			})
 			continue
 		}
-		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+		typedPosArg := c.checkExpressionWithType(posArg, param.Type, false)
 		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
@@ -1795,7 +1795,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			typedPosArg := c.checkExpressionWithType(posArg, param.Type, false)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
@@ -1863,7 +1863,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type, false)
 			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
 			if inferredParamType == nil {
@@ -1928,7 +1928,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			switch namedArg := namedArgI.(type) {
 			case *ast.NamedCallArgumentNode:
-				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type, false)
 				posArgType := c.TypeOf(typedNamedArgValue)
 				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
 				if inferredParamType == nil {
@@ -2090,7 +2090,7 @@ func (c *Checker) checkRestArgument(node ast.ExpressionNode, typ types.Type) ast
 	case *ast.SplatExpressionNode:
 		return c.checkCollectionSplatExpression(n)
 	default:
-		return c.checkExpressionWithType(node, typ)
+		return c.checkExpressionWithType(node, typ, false)
 	}
 }
 

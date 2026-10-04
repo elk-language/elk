@@ -1266,21 +1266,27 @@ func (c *Checker) checkExpressionWithTypeArgs(node ast.ExpressionNode, typ types
 	case *ast.ClosureLiteralNode:
 		switch t := typ.(type) {
 		case *types.NamedType:
-			return c.checkExpressionWithType(node, t.Type)
+			return c.checkExpressionWithType(node, t.Type, false)
 		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t, typeArgsMap)
 		}
 	}
 
-	return c.checkExpressionWithType(node, typ)
+	return c.checkExpressionWithType(node, typ, false)
 }
 
-func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type) ast.ExpressionNode {
+func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
 	switch n := node.(type) {
+	case *ast.AttributeAccessNode:
+		return c.checkAttributeAccessNode(n, typ, tailPosition)
+	case *ast.MethodCallNode:
+		return c.checkMethodCallNode(n, typ, tailPosition)
+	case *ast.GenericMethodCallNode:
+		return c.checkGenericMethodCallNode(n, typ, tailPosition)
 	case *ast.ClosureLiteralNode:
 		switch t := typ.(type) {
 		case *types.NamedType:
-			return c.checkExpressionWithType(node, t.Type)
+			return c.checkExpressionWithType(node, t.Type, tailPosition)
 		case *types.Callable:
 			return c.checkClosureLiteralNodeWithType(n, t, nil)
 		}
@@ -1568,9 +1574,9 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.GenericReceiverlessMethodCallNode:
 		return c.checkGenericReceiverlessMethodCallNode(n, tailPosition)
 	case *ast.MethodCallNode:
-		return c.checkMethodCallNode(n, tailPosition)
+		return c.checkMethodCallNode(n, nil, tailPosition)
 	case *ast.GenericMethodCallNode:
-		return c.checkGenericMethodCallNode(n, tailPosition)
+		return c.checkGenericMethodCallNode(n, nil, tailPosition)
 	case *ast.CallNode:
 		return c.checkCallNode(n)
 	case *ast.ClosureLiteralNode:
@@ -1584,7 +1590,7 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 	case *ast.GenericConstructorCallNode:
 		return c.checkGenericConstructorCallNode(n)
 	case *ast.AttributeAccessNode:
-		return c.checkAttributeAccessNode(n)
+		return c.checkAttributeAccessNode(n, nil, tailPosition)
 	case *ast.NilSafeSubscriptExpressionNode:
 		return c.checkNilSafeSubscriptExpressionNode(n)
 	case *ast.SubscriptExpressionNode:
@@ -5901,10 +5907,59 @@ func (c *Checker) checkCallNode(node *ast.CallNode) ast.ExpressionNode {
 	return newNode
 }
 
-func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition bool) ast.ExpressionNode {
-	var typ types.Type
+func (c *Checker) inferReceiver(currentReceiver ast.ExpressionNode, typ types.Type, loc *position.Location) ast.ExpressionNode {
+	if !ast.IsInferredExpressionNode(currentReceiver) {
+		return nil
+	}
+
+	if typ == nil {
+		c.addFailure("receiver is impossible to infer", loc)
+		return nil
+	}
+
+	switch typ := typ.(type) {
+	case *types.Module:
+		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver.SetType(typ)
+		return newReceiver
+	case *types.Class:
+		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver.SetType(typ.Singleton())
+		return newReceiver
+	case *types.Mixin:
+		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver.SetType(typ.Singleton())
+		return newReceiver
+	case *types.Interface:
+		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver.SetType(typ.Singleton())
+		return newReceiver
+	case *types.NamespacePlaceholder:
+		if typ.IsResolved() {
+			return c.inferReceiver(currentReceiver, typ.Namespace, loc)
+		}
+	case *types.Generic:
+		return c.inferReceiver(currentReceiver, typ.Namespace, loc)
+	}
+
+	c.addFailure(
+		fmt.Sprintf(
+			"receiver is impossible to infer for type `%s`",
+			types.Inspect(typ),
+		),
+		loc,
+	)
+	return nil
+}
+
+func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
+	if receiver := c.inferReceiver(node.Receiver, typ, node.Location()); receiver != nil {
+		node.Receiver = receiver
+	}
+
+	var returnType types.Type
 	var methodName symbol.Symbol
-	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	methodName, node.Receiver, node.PositionalArguments, returnType = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		symbol.ToSymbol(c.identifierToName(node.MethodName)),
@@ -5920,14 +5975,18 @@ func (c *Checker) checkMethodCallNode(node *ast.MethodCallNode, tailPosition boo
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
 	}
-	node.SetType(typ)
+	node.SetType(returnType)
 	return node
 }
 
-func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, tailPosition bool) ast.ExpressionNode {
-	var typ types.Type
+func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
+	if receiver := c.inferReceiver(node.Receiver, typ, node.Location()); receiver != nil {
+		node.Receiver = receiver
+	}
+
+	var returnType types.Type
 	var methodName symbol.Symbol
-	methodName, node.Receiver, node.PositionalArguments, typ = c.checkSimpleMethodCall(
+	methodName, node.Receiver, node.PositionalArguments, returnType = c.checkSimpleMethodCall(
 		node.Receiver,
 		node.Op.Type,
 		symbol.ToSymbol(c.identifierToName(node.MethodName)),
@@ -5943,7 +6002,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ta
 	if len(c.catchScopes) < 1 {
 		node.TailCall = tailPosition
 	}
-	node.SetType(typ)
+	node.SetType(returnType)
 	return node
 }
 
@@ -6066,7 +6125,7 @@ func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.Expressi
 	return node
 }
 
-func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.ExpressionNode {
+func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
 	var newNode ast.ExpressionNode = ast.NewMethodCallNode(
 		node.Location(),
 		node.Receiver,
@@ -6075,7 +6134,7 @@ func (c *Checker) checkAttributeAccessNode(node *ast.AttributeAccessNode) ast.Ex
 		nil,
 		nil,
 	)
-	return c.checkExpression(newNode)
+	return c.checkExpressionWithType(newNode, typ, tailPosition)
 }
 
 func (c *Checker) checkLogicalOperatorAssignmentExpression(node *ast.AssignmentExpressionNode, operator token.Type) ast.ExpressionNode {
@@ -6292,7 +6351,7 @@ func (c *Checker) checkInstanceVariableAssignment(name string, node *ast.Assignm
 		return node
 	}
 
-	node.Right = c.checkExpressionWithType(node.Right, ivar.Type)
+	node.Right = c.checkExpressionWithType(node.Right, ivar.Type, false)
 	assignedType := c.typeOfGuardVoid(node.Right)
 	c.checkCanAssignInstanceVariable(name, assignedType, ivar, node.Right.Location())
 	c.registerInitialisedInstanceVariable(symbol.ToSymbol(name))
@@ -6337,7 +6396,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 		}
 	}
 
-	node.Right = c.checkExpressionWithType(node.Right, variable.typ)
+	node.Right = c.checkExpressionWithType(node.Right, variable.typ, false)
 	assignedType := c.typeOfGuardVoid(node.Right)
 
 	currentVar := variable
@@ -8241,7 +8300,7 @@ func (c *Checker) checkLocalDeclaration(
 		}
 	}
 
-	init := c.checkExpressionWithType(initialiser, declaredType)
+	init := c.checkExpressionWithType(initialiser, declaredType, false)
 	actualType := c.typeOfGuardVoid(init)
 	if !earlierInitialisation {
 		c.addLocal(name, local)

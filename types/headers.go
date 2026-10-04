@@ -222,6 +222,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.TryDefineClass("Represents an enhance expression eg. `implement Enumerable[V]`", false, true, true, false, false, symbol.ToSymbol("ImplementExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an import statement eg. `import \"./foo/bar.elk\"`", false, true, true, false, false, symbol.ToSymbol("ImportStatementNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an include expression eg. `include Enumerable[V]`", false, true, true, false, false, symbol.ToSymbol("IncludeExpressionNode"), objectClass, env)
+				namespace.TryDefineClass("An AST node that represents an expression (like the receiver in `.foo()`)\nthat is absent and will be inferred.", false, true, true, false, false, symbol.ToSymbol("InferredExpressionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an inferred object pattern eg. `@{foo: 5, bar: a, c}`", false, true, true, false, false, symbol.ToSymbol("InferredObjectPatternNode"), objectClass, env)
 				namespace.TryDefineClass("Represents a constructor definition eg. `init then 'hello world'`", false, true, true, false, false, symbol.ToSymbol("InitDefinitionNode"), objectClass, env)
 				namespace.TryDefineClass("Represents an instance method lookup expression eg. `Foo.:bar`", false, true, true, false, false, symbol.ToSymbol("InstanceMethodLookupNode"), objectClass, env)
@@ -3675,6 +3676,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
+
+						// Define constants
+
+						// Define instance variables
+					}
+					{
+						namespace := namespace.MustSubtypeString("InferredExpressionNode").(*Class)
+
+						namespace.Name() // noop - avoid unused variable error
+
+						// Include mixins and implement interfaces
+						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
+
+						// Define methods
 
 						// Define constants
 
