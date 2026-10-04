@@ -2269,6 +2269,8 @@ func (c *Checker) checkBinaryOpMethodCall(
 		return newNode
 	}
 
+	node.Left = receiver
+	node.Right = args[0]
 	node.SetType(returnType)
 	return node
 }

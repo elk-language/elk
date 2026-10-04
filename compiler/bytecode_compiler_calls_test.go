@@ -4430,9 +4430,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					L(P(0, 1, 1), P(438, 26, 15)),
 					bytecode.LineInfoList{
 						bytecode.NewLineInfo(1, 9),
-						bytecode.NewLineInfo(26, 2),
-						bytecode.NewLineInfo(0, 2),
-						bytecode.NewLineInfo(26, 5),
+						bytecode.NewLineInfo(26, 9),
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -4572,8 +4570,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(173, 12, 8), P(229, 14, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(13, 8),
+										bytecode.NewLineInfo(13, 10),
 										bytecode.NewLineInfo(14, 1),
 									},
 									[]value.Value{
@@ -4593,8 +4590,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(106, 8, 8), P(163, 10, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(9, 8),
+										bytecode.NewLineInfo(9, 10),
 										bytecode.NewLineInfo(10, 1),
 									},
 									[]value.Value{
@@ -4614,8 +4610,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(41, 4, 8), P(96, 6, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(5, 8),
+										bytecode.NewLineInfo(5, 10),
 										bytecode.NewLineInfo(6, 1),
 									},
 									[]value.Value{
@@ -4709,8 +4704,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 					L(P(0, 1, 1), P(392, 23, 29)),
 					bytecode.LineInfoList{
 						bytecode.NewLineInfo(1, 11),
-						bytecode.NewLineInfo(0, 2),
-						bytecode.NewLineInfo(23, 5),
+						bytecode.NewLineInfo(23, 7),
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
@@ -4844,8 +4838,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(173, 12, 8), P(229, 14, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(13, 8),
+										bytecode.NewLineInfo(13, 10),
 										bytecode.NewLineInfo(14, 1),
 									},
 									[]value.Value{
@@ -4865,8 +4858,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(106, 8, 8), P(163, 10, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(9, 8),
+										bytecode.NewLineInfo(9, 10),
 										bytecode.NewLineInfo(10, 1),
 									},
 									[]value.Value{
@@ -4886,8 +4878,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(41, 4, 8), P(96, 6, 10)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(5, 8),
+										bytecode.NewLineInfo(5, 10),
 										bytecode.NewLineInfo(6, 1),
 									},
 									[]value.Value{
@@ -4971,9 +4962,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 						bytecode.NewLineInfo(1, 11),
 						bytecode.NewLineInfo(23, 5),
 						bytecode.NewLineInfo(24, 1),
-						bytecode.NewLineInfo(25, 1),
-						bytecode.NewLineInfo(0, 2),
-						bytecode.NewLineInfo(25, 7),
+						bytecode.NewLineInfo(25, 10),
 						bytecode.NewLineInfo(26, 9),
 						bytecode.NewLineInfo(24, 1),
 						bytecode.NewLineInfo(27, 2),
@@ -5110,8 +5099,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(164, 12, 7), P(218, 14, 9)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(13, 8),
+										bytecode.NewLineInfo(13, 10),
 										bytecode.NewLineInfo(14, 1),
 									},
 									[]value.Value{
@@ -5131,8 +5119,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(100, 8, 7), P(155, 10, 9)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(9, 8),
+										bytecode.NewLineInfo(9, 10),
 										bytecode.NewLineInfo(10, 1),
 									},
 									[]value.Value{
@@ -5152,8 +5139,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									},
 									L(P(38, 4, 7), P(91, 6, 9)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(0, 2),
-										bytecode.NewLineInfo(5, 8),
+										bytecode.NewLineInfo(5, 10),
 										bytecode.NewLineInfo(6, 1),
 									},
 									[]value.Value{

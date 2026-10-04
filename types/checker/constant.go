@@ -317,11 +317,19 @@ func (c *Checker) normaliseConstantType(typ types.Type, name string) (types.Type
 	return typ, name
 }
 
-func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *position.Location) (types.Type, string) {
+func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.Type, location *position.Location) (types.Type, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
 	switch l := node.Left.(type) {
+	case ast.InferredExpressionNode:
+		name, namespace := c.inferConstantLookupNamespace(node.Left, typ, location)
+		if namespace != nil {
+			leftContainerName = name
+			leftContainerType = namespace
+		} else {
+			return nil, ""
+		}
 	case *ast.PublicConstantNode:
 		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
 	case *ast.PrivateConstantNode:
@@ -329,7 +337,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookup(l, location)
+		leftContainerType, leftContainerName = c.resolveConstantLookup(l, typ, location)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
@@ -474,39 +482,27 @@ func (c *Checker) addToConstantCache(name symbol.Symbol) {
 	}
 }
 
-func (c *Checker) inferConstantLookupNamespace(currentNamespace ast.ExpressionNode, typ types.Type, loc *position.Location) ast.ExpressionNode {
-	if !ast.IsInferredExpressionNode(currentNamespace) {
-		return nil
-	}
-
+func (c *Checker) inferConstantLookupNamespace(currentNamespace ast.ExpressionNode, typ types.Type, loc *position.Location) (string, types.Namespace) {
 	if typ == nil {
 		c.addFailure("namespace is impossible to infer", loc)
-		return nil
+		return "", nil
 	}
 
 	switch typ := typ.(type) {
 	case *types.Module:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
-		newReceiver.SetType(typ)
-		return newReceiver
+		return typ.Name(), typ
 	case *types.Class:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
-		newReceiver.SetType(typ)
-		return newReceiver
+		return typ.Name(), typ.Singleton()
 	case *types.Mixin:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
-		newReceiver.SetType(typ)
-		return newReceiver
+		return typ.Name(), typ.Singleton()
 	case *types.Interface:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
-		newReceiver.SetType(typ)
-		return newReceiver
+		return typ.Name(), typ.Singleton()
 	case *types.NamespacePlaceholder:
 		if typ.IsResolved() {
-			return c.inferReceiver(currentNamespace, typ.Namespace, loc)
+			return c.inferConstantLookupNamespace(currentNamespace, typ.Namespace, loc)
 		}
 	case *types.Generic:
-		return c.inferReceiver(currentNamespace, typ.Namespace, loc)
+		return c.inferConstantLookupNamespace(currentNamespace, typ.Namespace, loc)
 	}
 
 	c.addFailure(
@@ -516,15 +512,11 @@ func (c *Checker) inferConstantLookupNamespace(currentNamespace ast.ExpressionNo
 		),
 		loc,
 	)
-	return nil
+	return "", nil
 }
 
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferredType types.Type) *ast.PublicConstantNode {
-	if namespace := c.inferConstantLookupNamespace(node.Left, inferredType, node.Location()); namespace != nil {
-		node.Left = namespace
-	}
-
-	typ, name := c.normaliseConstantType(c.resolveConstantLookup(node, node.Location()))
+	typ, name := c.normaliseConstantType(c.resolveConstantLookup(node, inferredType, node.Location()))
 
 	if typ == nil {
 		typ = types.Untyped{}

@@ -1276,6 +1276,10 @@ func (c *Checker) checkExpressionWithTypeArgs(node ast.ExpressionNode, typ types
 }
 
 func (c *Checker) checkExpressionWithType(node ast.ExpressionNode, typ types.Type, tailPosition bool) ast.ExpressionNode {
+	if node.SkipTypechecking() {
+		return node
+	}
+
 	switch n := node.(type) {
 	case *ast.ConstantLookupNode:
 		return c.checkConstantLookupNode(n, typ)
@@ -2018,13 +2022,28 @@ func (c *Checker) checkDeferExpressionNode(node *ast.DeferExpressionNode) *ast.D
 	return node
 }
 
+func (c *Checker) checkBinaryOperator(
+	node *ast.BinaryExpressionNode,
+	methodName symbol.Symbol,
+) ast.ExpressionNode {
+	node.Left = c.checkExpression(node.Left)
+	leftType := c.ToNonLiteral(c.TypeOf(node.Left), true)
+	node.Right = c.checkExpressionWithType(node.Right, leftType, false)
+
+	return c.checkBinaryOpMethodCall(
+		node,
+		methodName,
+	)
+}
+
 func (c *Checker) checkArithmeticBinaryOperator(
 	node *ast.BinaryExpressionNode,
 	methodName symbol.Symbol,
 ) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
 	leftType := c.ToNonLiteral(c.TypeOf(node.Left), true)
+
+	node.Right = c.checkExpressionWithType(node.Right, leftType, false)
 	leftClassType, leftIsClass := leftType.(*types.Class)
 
 	rightType := c.ToNonLiteral(c.TypeOf(node.Right), true)
@@ -4509,32 +4528,7 @@ func (c *Checker) checkBinaryExpression(node *ast.BinaryExpressionNode) ast.Expr
 		token.AND_TILDE, token.OR, token.XOR,
 		token.GREATER, token.GREATER_EQUAL,
 		token.LESS, token.LESS_EQUAL, token.SPACESHIP_OP:
-		originalMethodName := symbol.ToSymbol(node.Op.FetchValue())
-		methodName, left, args, typ := c.checkSimpleMethodCall(
-			node.Left,
-			token.DOT,
-			originalMethodName,
-			nil,
-			[]ast.ExpressionNode{node.Right},
-			nil,
-			node.Location(),
-		)
-		if methodName != originalMethodName {
-			newNode := ast.NewMethodCallNode(
-				node.Location(),
-				left,
-				token.New(node.Location(), token.DOT),
-				ast.NewPublicIdentifierNode(node.Op.Location(), methodName.String()),
-				args,
-				nil,
-			)
-			newNode.SetType(typ)
-			return newNode
-		}
-
-		node.Left = left
-		node.Right = args[0]
-		node.SetType(typ)
+		return c.checkBinaryOperator(node, symbol.ToSymbol(node.Op.FetchValue()))
 	default:
 		node.Left = c.checkExpression(node.Left)
 		node.Right = c.checkExpression(node.Right)
@@ -4592,8 +4586,9 @@ func (c *Checker) checkPipeExpression(node *ast.BinaryExpressionNode) ast.Expres
 func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 	node.SetType(c.StdBool())
 	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
 	leftType := c.typeOfGuardVoid(node.Left)
+
+	node.Right = c.checkExpressionWithType(node.Right, c.ToNonLiteral(leftType, true), false)
 	rightType := c.typeOfGuardVoid(node.Right)
 
 	if !c.TypesIntersect(leftType, rightType) {
@@ -4611,9 +4606,11 @@ func (c *Checker) checkStrictEqual(node *ast.BinaryExpressionNode) {
 
 func (c *Checker) checkEqual(node *ast.BinaryExpressionNode) {
 	node.SetType(c.StdBool())
+
 	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
 	leftType := c.typeOfGuardVoid(node.Left)
+
+	node.Right = c.checkExpressionWithType(node.Right, c.ToNonLiteral(leftType, true), false)
 	rightType := c.typeOfGuardVoid(node.Right)
 
 	if !c.TypesIntersect(leftType, rightType) {
@@ -4632,8 +4629,9 @@ func (c *Checker) checkEqual(node *ast.BinaryExpressionNode) {
 func (c *Checker) checkLaxEqual(node *ast.BinaryExpressionNode) {
 	node.SetType(c.StdBool())
 	node.Left = c.checkExpression(node.Left)
-	node.Right = c.checkExpression(node.Right)
-	c.typeOfGuardVoid(node.Left)
+	leftType := c.typeOfGuardVoid(node.Left)
+
+	node.Right = c.checkExpressionWithType(node.Right, c.ToNonLiteral(leftType, true), false)
 	c.typeOfGuardVoid(node.Right)
 }
 
@@ -5632,7 +5630,7 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode) ast.Expres
 		node.Location(),
 	)
 
-	classNode := ast.NewPublicConstantNode(position.ZeroLocation, class.Name())
+	classNode := ast.NewPublicConstantNode(node.Location(), class.Name())
 	classNode.SetType(class.Singleton())
 	newNode := ast.NewConstructorCallNode(
 		node.Location(),
@@ -5928,19 +5926,19 @@ func (c *Checker) inferReceiver(currentReceiver ast.ExpressionNode, typ types.Ty
 
 	switch typ := typ.(type) {
 	case *types.Module:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver := ast.NewPublicConstantNode(loc, typ.Name())
 		newReceiver.SetType(typ)
 		return newReceiver
 	case *types.Class:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver := ast.NewPublicConstantNode(loc, typ.Name())
 		newReceiver.SetType(typ.Singleton())
 		return newReceiver
 	case *types.Mixin:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver := ast.NewPublicConstantNode(loc, typ.Name())
 		newReceiver.SetType(typ.Singleton())
 		return newReceiver
 	case *types.Interface:
-		newReceiver := ast.NewPublicConstantNode(position.ZeroLocation, typ.Name())
+		newReceiver := ast.NewPublicConstantNode(loc, typ.Name())
 		newReceiver.SetType(typ.Singleton())
 		return newReceiver
 	case *types.NamespacePlaceholder:
