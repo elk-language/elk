@@ -5296,6 +5296,16 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 			return c.getReceiverlessMethodReceiver(methodName, method, method.DefinedUnder, false, loc)
 		case *types.NamespacePlaceholder:
 			receiver = ast.NewPublicConstantNode(loc, under.Name())
+			if under.IsResolved() {
+				singleton := under.Namespace.Singleton()
+				if singleton != nil {
+					receiver.SetType(singleton)
+				} else {
+					receiver.SetType(under.Namespace)
+				}
+				return receiver
+			}
+
 			receiver.SetType(under)
 		case nil:
 			// from self

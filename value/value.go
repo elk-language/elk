@@ -1544,7 +1544,7 @@ func As(val Value, class *Class) Value {
 		TypeErrorClass,
 		"failed type cast, `%s` is not an instance of `%s`",
 		val.Inspect(),
-		class.Name,
+		class.Name(),
 	).ToValue()
 }
 

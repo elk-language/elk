@@ -328,7 +328,7 @@ func initAssertions(testModule *value.Module) {
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s` or its parents",
 					gotInspect.AsString().String(),
-					argClass.Name,
+					argClass.Name(),
 				)
 			} else {
 				message = args[3].AsString().String()
@@ -364,7 +364,7 @@ func initAssertions(testModule *value.Module) {
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s`",
 					gotInspect.AsString().String(),
-					argClass.Name,
+					argClass.Name(),
 				)
 			} else {
 				message = args[3].AsString().String()

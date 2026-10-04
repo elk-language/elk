@@ -288,13 +288,13 @@ func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLoc
 		c.pushMethodScope(makeUsingMethodScope(t))
 	case *types.Mixin:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.Class:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.Interface:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.NamespacePlaceholder:
 		c.pushConstScope(makeUsingConstantScope(t))
 		c.pushMethodScope(makeUsingMethodScope(t))
