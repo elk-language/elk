@@ -8442,7 +8442,7 @@ var sym0 = value.ToSymbol("Color")
 var sym5 = value.ToSymbol("Color.:#init")
 var sym6 = value.ToSymbol("<main>")
 
-func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -8541,7 +8541,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym10, sym6, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = const1
-	t1, err = fn_method3(thread, const0.CreateInstance(), value.UInt8(89), value.UInt8(12), value.UInt8(202)) // receiver: Color, name: #init
+	t1, err = fn_method0(thread, const0.CreateInstance(), value.UInt8(89), value.UInt8(12), value.UInt8(202)) // receiver: Color, name: #init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -8584,7 +8584,7 @@ func methodDefinitions() {
 
 	class = const0 // Color
 	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
 	vm.DefineGetter(class, sym7, 0)
@@ -9692,7 +9692,7 @@ var sym0 = value.ToSymbol("Color")
 
 var sym6 = value.ToSymbol("Color.:#init")
 
-func fn_method6(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
+func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -9794,10 +9794,10 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 
 var sym7 = value.ToSymbol("Std::Kernel::baz")
 var sym8 = value.ToSymbol("inspect")
-var fn_method8 vm.NativeFunction // Std::Value.:inspect
+var fn_method5 vm.NativeFunction // Std::Value.:inspect
 var sym9 = value.ToSymbol("println@1")
-var fn_method9 vm.NativeFunction // Std::Kernel::println@1
-func fn_method7(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::baz, loc: <main>:23:5
+var fn_method6 vm.NativeFunction // Std::Kernel::println@1
+func fn_method4(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::baz, loc: <main>:23:5
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var t1 value.Value
@@ -9812,7 +9812,7 @@ func fn_method7(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = l0
 	callFrame.SetNativeLineNumber(24)
-	t1, err = fn_method8(thread, t2) // receiver: Color, name: inspect
+	t1, err = fn_method5(thread, t2) // receiver: Color, name: inspect
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		return result, err
@@ -9820,7 +9820,7 @@ func fn_method7(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 	t2 = value.ResizeNativeArgs(t2, 3)
 	t2[0] = self
 	t2[1] = (value.String("col: ") + (t1).AsString()).ToValue()
-	t3, err = fn_method9(thread, t2) // receiver: Std::Kernel, name: println@1
+	t3, err = fn_method6(thread, t2) // receiver: Std::Kernel, name: println@1
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		return result, err
@@ -9859,8 +9859,8 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	fn_method8 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym8))
-	fn_method9 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym9))
+	fn_method5 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym8))
+	fn_method6 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym9))
 
 	callFrame = thread.AddNativeCallFrame(sym13, sym2, 1)
 	defer thread.PopNativeCallFrame()
@@ -9869,7 +9869,7 @@ func main() { // loc: <main>
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	_, err = fn_method7(thread, (value.KernelModule).ToValue(), t1) // receiver: Std::Kernel, name: baz
+	_, err = fn_method4(thread, (value.KernelModule).ToValue(), t1) // receiver: Std::Kernel, name: baz
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -9911,7 +9911,7 @@ func methodDefinitions() {
 
 	class = const0 // Color
 	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method6(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
 	vm.DefineGetter(class, sym10, 0)
@@ -9932,7 +9932,7 @@ func methodDefinitions() {
 	})
 	class = (value.KernelModule).SingletonClass() // Std::Kernel
 	vm.Def(class, "baz", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method7(thread, args[0], args[1])
+		result, err := fn_method4(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
 }
@@ -9985,7 +9985,7 @@ var sym0 = value.ToSymbol("Color")
 
 var sym6 = value.ToSymbol("Color.:#init")
 
-func fn_method6(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
+func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -10162,7 +10162,7 @@ func methodDefinitions() {
 
 	class = const0 // Color
 	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method6(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
 	vm.DefineGetter(class, sym7, 0)
@@ -10227,14 +10227,14 @@ func init() { elk.InitNative() }
 
 var sym10 = value.ToSymbol("main")
 var sym13 = value.ToSymbol("==")
-var fn_method7 vm.NativeFunction // Std::Value.:==
+var fn_method4 vm.NativeFunction // Std::Value.:==
 
 var const0 *value.Class // Color
 var sym0 = value.ToSymbol("Color")
 
 var sym6 = value.ToSymbol("Color.:#init")
 
-func fn_method6(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
+func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -10368,7 +10368,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	fn_method7 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym13))
+	fn_method4 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym13))
 
 	callFrame = thread.AddNativeCallFrame(sym10, sym2, 1)
 	defer thread.PopNativeCallFrame()
@@ -10387,7 +10387,7 @@ func main() { // loc: <main>
 	t2[0] = l0
 	t2[1] = t1
 	callFrame.SetNativeLineNumber(24)
-	_, err = fn_method7(thread, t2) // receiver: Color, name: ==
+	_, err = fn_method4(thread, t2) // receiver: Color, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -10429,7 +10429,7 @@ func methodDefinitions() {
 
 	class = const0 // Color
 	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method6(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
 	vm.DefineGetter(class, sym7, 0)
@@ -10497,16 +10497,16 @@ func init() { elk.InitNative() }
 
 var sym10 = value.ToSymbol("main")
 var sym13 = value.ToSymbol("==")
-var fn_method7 vm.NativeFunction // Std::Value.:==
+var fn_method4 vm.NativeFunction // Std::Value.:==
 var sym14 = value.ToSymbol("println@1")
-var fn_method8 vm.NativeFunction // Std::Kernel::println@1
+var fn_method5 vm.NativeFunction // Std::Kernel::println@1
 
 var const0 *value.Class // Color
 var sym0 = value.ToSymbol("Color")
 
 var sym6 = value.ToSymbol("Color.:#init")
 
-func fn_method6(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
+func fn_method3(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:20:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -10642,8 +10642,8 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	fn_method7 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym13))
-	fn_method8 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym14))
+	fn_method4 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym13))
+	fn_method5 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym14))
 
 	callFrame = thread.AddNativeCallFrame(sym10, sym2, 1)
 	defer thread.PopNativeCallFrame()
@@ -10662,7 +10662,7 @@ func main() { // loc: <main>
 	t3[0] = l0
 	t3[1] = t1
 	callFrame.SetNativeLineNumber(25)
-	t2, err = fn_method7(thread, t3) // receiver: Color, name: ==
+	t2, err = fn_method4(thread, t3) // receiver: Color, name: ==
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -10672,7 +10672,7 @@ func main() { // loc: <main>
 		t3[0] = (value.KernelModule).ToValue()
 		t3[1] = (value.String("green")).ToValue()
 		callFrame.SetNativeLineNumber(26)
-		_, err = fn_method8(thread, t3) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method5(thread, t3) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
@@ -10717,7 +10717,7 @@ func methodDefinitions() {
 
 	class = const0 // Color
 	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-		result, err := fn_method6(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
+		result, err := fn_method3(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
 	vm.DefineGetter(class, sym7, 0)

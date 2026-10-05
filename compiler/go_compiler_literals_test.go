@@ -3869,37 +3869,66 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: for in loops
-		// 		"with static elements and for in loops": {
-		// 			input: `
-		// 				%[1.8, i * 2.0 for i in [1.0, 2.0, 3.0]]
-		// 			`,
-		// 			want: `package main
+		"with static elements and for in loops": {
+			input: `
+				%[1.8, i * 2.0 for i in [1.0, 2.0, 3.0]]
+			`,
+			want: `package main
 
-		// import "github.com/elk-language/elk/value"
-		// import "github.com/elk-language/elk/vm"
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
 
-		// import "github.com/elk-language/elk/value/symbol"
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
 
-		// var _ = symbol.C_Value
-		// var _ = vm.New
-		// var _ = value.Truthy
+func init() { elk.InitNative() }
 
-		// func init() { elk.InitNative() }
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
 
-		// func main() { // loc: <main>
-		// 	thread := vm.New()
-		// 	_ = thread
-		// 	var t1 *value.NativeArrayTuple[value.Float]
-		// 	_ = t1
-		// 	var self value.Value
-		// 	_ = self
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
 
-		// 	self = value.Ref(value.GlobalObject)
-		// 	t1 = value.NewNativeArrayTupleWithElements[value.Float](0, value.Float(1.800000))
-		// }
-		// `,
-		// 		},
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *value.NativeArrayTuple[value.Float]
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l0 value.Value // var i: Std::Float
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = value.NewNativeArrayTupleWithElementsAndTotalCapacity[value.Float](2, value.Float(1.8))
+	for t2, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.Float](0, value.Float(1), value.Float(2), value.Float(3))).ToValue()) {
+		l0 = t2
+		t1.Append(((l0).AsFloat()).MultiplyFloat(value.Float(2)))
+	}
+}
+`,
+		},
 		"with dynamic elements and if modifiers": {
 			input: `
 				var a: Object? = nil
@@ -6084,57 +6113,133 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: for in
-		// 		"with static elements and for in loops": {
-		// 			input: `
-		// 				b := [1, i * 2 for i in [1, 2, 3], %[:foo]]
-		// 			`,
-		// 			want: `
-		// `,
-		// 		},
 
-		// TODO: Constructor
-		// "with dynamic elements and if modifiers": {
-		// 	input: `
-		// 		var a: Int? = nil
-		// 		[Object(), 5 if a, [:foo]]
-		// 	`,
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		nil,
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.NIL),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.UNDEFINED),
-		// 			byte(bytecode.GET_CONST8), 0,
-		// 			byte(bytecode.INSTANTIATE8), 0,
-		// 			byte(bytecode.NEW_ARRAY_LIST8), 1,
-		// 			byte(bytecode.GET_LOCAL_1),
-		// 			byte(bytecode.JUMP_UNLESS), 0, 5,
-		// 			byte(bytecode.INT_5),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.JUMP), 0, 0,
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.APPEND),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(53, 3, 31)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 			bytecode.NewLineInfo(2, 2),
-		// 			bytecode.NewLineInfo(3, 21),
-		// 		},
-		// 		[]value.Value{
-		// 			value.ToSymbol("Std::Object").ToValue(),
-		// 			value.Ref(&value.ArrayList{
-		// 				value.ToSymbol("foo").ToValue(),
-		// 			}),
-		// 		},
-		// 	),
-		// },
+		"with static elements and for in loops": {
+			input: `
+				b := [1, i * 2 for i in [1, 2, 3], %[:foo]]
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+var arrtuple0 = value.NewNativeArrayTupleWithElements[value.Symbol](0, sym2)
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.ArrayList // var b: Std::ArrayList[Std::Int | Std::ArrayTuple[Std::Symbol]]
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, (value.SmallInt(1)).ToValue())
+	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		l1 = t2
+		t1.Append(value.MultiplyInts(l1, (value.SmallInt(2)).ToValue()))
+	}
+	t1.Append((arrtuple0).ToValue())
+	l0 = t1
+}
+`,
+		},
+
+		"with dynamic elements and if modifiers": {
+			input: `
+				var a: Int? = nil
+				[Object(), 5 if a, [:foo]]
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int?
+	_ = l0
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = value.Nil
+	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, value.ObjectClass.CreateInstance())
+	if value.Truthy(l0) {
+		t1.Append((value.SmallInt(5)).ToValue())
+	}
+	t1.Append((value.NewNativeArrayListWithElements[value.Symbol](0, sym2)).ToValue())
+}
+`,
+		},
 
 		"with dynamic and keyed elements": {
 			input: `
@@ -7417,14 +7522,83 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: For in loops
-		// 		"with static elements and for in loops": {
-		// 			input: `
-		// 				a := ^[1, i * 2 for i in [1, 2, 3], 2]
-		// 			`,
-		// 			want: `
-		// `,
-		// 		},
+		"with static elements and for in loops": {
+			input: `
+				a := ^[1, i * 2 for i in [1, 2, 3], 2]
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 vm.HashSet // var a: Std::HashSet[Std::Int]
+	_ = l0
+	var t1 *vm.HashSetOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var l1 value.Value // var i: Std::Int
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = vm.NewHashSetOfValueWithCapacityAndElements(thread, 3+0, (value.SmallInt(1)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		l1 = t2
+		_, err = t1.AppendVal(thread, value.MultiplyInts(l1, (value.SmallInt(2)).ToValue()))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	_, err = t1.AppendVal(thread, (value.SmallInt(2)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+}
+`,
+		},
 
 		"with dynamic elements and if modifiers": {
 			input: `
@@ -7770,57 +7944,77 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: for in loops
-		// 		"with static elements and for loops": {
-		// 			input: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				nil,
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.PREP_LOCALS8), 2,
-		// 					byte(bytecode.UNDEFINED),
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.NEW_HASH_MAP8), 0,
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.COPY),
-		// 					byte(bytecode.GET_ITERATOR),
-		// 					byte(bytecode.SET_LOCAL_1),
-		// 					byte(bytecode.GET_LOCAL_1),
-		// 					byte(bytecode.FOR_IN_BUILTIN), 0, 9,
-		// 					byte(bytecode.SET_LOCAL_2),
-		// 					byte(bytecode.GET_LOCAL_2),
-		// 					byte(bytecode.GET_LOCAL_2),
-		// 					byte(bytecode.INT_2),
-		// 					byte(bytecode.EXPONENTIATE_INT),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.LOOP), 0, 13,
-		// 					byte(bytecode.INT_2),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(55, 1, 56)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 27),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.MustNewHashMapWithCapacityAndElements(
-		// 						nil,
-		// 						3,
-		// 						value.Pair{
-		// 							Key:   value.SmallInt(1).ToValue(),
-		// 							Value: value.Ref(value.String("foo")),
-		// 						},
-		// 					)),
-		// 					value.Ref(&value.ArrayList{
-		// 						value.SmallInt(1).ToValue(),
-		// 						value.SmallInt(2).ToValue(),
-		// 						value.SmallInt(3).ToValue(),
-		// 					}),
-		// 					value.Float(5.6).ToValue(),
-		// 				},
-		// 			),
-		// 		},
+		"with static elements and for loops": {
+			input: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *vm.HashMapOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1, err = vm.NewHashMapOfValueWithCapacityAndElements(thread, 3+0, value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		l0 = t2
+		err = t1.SetVal(thread, l0, value.ExponentiateInts(l0, (value.SmallInt(2)).ToValue()))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	err = t1.SetVal(thread, (value.SmallInt(2)).ToValue(), (value.Float(5.6)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
 		"with static elements and static capacity": {
 			input: `a := { 1 => 'foo', foo: 5, "bar" => 5.6 }:10`,
 			want: `package main
@@ -8823,56 +9017,77 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: for in loops
-		// 		"with static elements and for loops": {
-		// 			input: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
-		// 			want: vm.NewBytecodeFunctionNoParams(
-		// 				nil,
-		// 				mainSymbol,
-		// 				[]byte{
-		// 					byte(bytecode.PREP_LOCALS8), 2,
-		// 					byte(bytecode.LOAD_VALUE_0),
-		// 					byte(bytecode.NEW_HASH_RECORD8), 0,
-		// 					byte(bytecode.LOAD_VALUE_1),
-		// 					byte(bytecode.COPY),
-		// 					byte(bytecode.GET_ITERATOR),
-		// 					byte(bytecode.SET_LOCAL_1),
-		// 					byte(bytecode.GET_LOCAL_1),
-		// 					byte(bytecode.FOR_IN_BUILTIN), 0, 9,
-		// 					byte(bytecode.SET_LOCAL_2),
-		// 					byte(bytecode.GET_LOCAL_2),
-		// 					byte(bytecode.GET_LOCAL_2),
-		// 					byte(bytecode.INT_2),
-		// 					byte(bytecode.EXPONENTIATE_INT),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.LOOP), 0, 13,
-		// 					byte(bytecode.INT_2),
-		// 					byte(bytecode.LOAD_VALUE_2),
-		// 					byte(bytecode.MAP_SET),
-		// 					byte(bytecode.RETURN),
-		// 				},
-		// 				L(P(0, 1, 1), P(56, 1, 57)),
-		// 				bytecode.LineInfoList{
-		// 					bytecode.NewLineInfo(1, 26),
-		// 				},
-		// 				[]value.Value{
-		// 					value.Ref(vm.MustNewHashRecordWithCapacityAndElements(
-		// 						nil,
-		// 						3,
-		// 						value.Pair{
-		// 							Key:   value.SmallInt(1).ToValue(),
-		// 							Value: value.Ref(value.String("foo")),
-		// 						},
-		// 					)),
-		// 					value.Ref(&value.ArrayList{
-		// 						value.SmallInt(1).ToValue(),
-		// 						value.SmallInt(2).ToValue(),
-		// 						value.SmallInt(3).ToValue(),
-		// 					}),
-		// 					value.Float(5.6).ToValue(),
-		// 				},
-		// 			),
-		// 		},
+		"with static elements and for loops": {
+			input: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *vm.HashRecordOfValue
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Value
+	_ = t2
+	var l0 value.Value // var i: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1, err = vm.NewHashRecordOfValueWithElements(thread, value.MakePairOfValue((value.SmallInt(1)).ToValue(), (value.String("foo")).ToValue()))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		l0 = t2
+		err = t1.SetVal(thread, l0, value.ExponentiateInts(l0, (value.SmallInt(2)).ToValue()))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+	err = t1.SetVal(thread, (value.SmallInt(2)).ToValue(), (value.Float(5.6)).ToValue())
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
 		"nested static": {
 			input: "a := %{ 'foo' => 9, 1 => %{ 'bar' => [7.2] } }",
 			want: `package main

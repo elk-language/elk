@@ -2304,6 +2304,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		*ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return nilGoValue
+	case *ast.MacroBoundaryNode:
+		return c.compileMacroBoundaryNode(node, valueIsIgnored)
 	case *ast.TypeofExpressionNode:
 		return c.compileExpression(node.Value, valueIsIgnored)
 	case *ast.ExtendWhereBlockExpressionNode:
@@ -2474,6 +2476,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileMustExpressionNode(node, valueIsIgnored)
 	case *ast.AwaitExpressionNode:
 		return c.compileAwaitExpressionNode(node)
+	case *ast.QuoteExpressionNode:
+		return c.compileQuoteExpressionNode(node)
+	case *ast.UnquoteNode:
+		return c.compileUnquoteNode(node, valueIsIgnored)
 	case *ast.DoExpressionNode:
 		return c.compileDoExpressionNode(node, valueIsIgnored)
 	case *ast.ThrowExpressionNode:
@@ -4146,6 +4152,18 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 	return nilGoValue
 }
 
+func (c *GoCompiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode, valueIsIgnored bool) *goValue {
+	return c.compileDo(
+		func() *goValue {
+			return c.compileStatements(node.Body, valueIsIgnored)
+		},
+		nil,
+		nativeFinallyBody{},
+		c.typeOf(node),
+		valueIsIgnored,
+	)
+}
+
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
 	return c.compileDo(
 		func() *goValue {
@@ -4156,6 +4174,116 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 		c.typeOf(node),
 		valueIsIgnored,
 	)
+}
+
+func (c *GoCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) *goValue {
+	location := node.Location()
+
+	var newNode ast.ExpressionNode
+	if expr := node.SingleExpression(); expr != nil {
+		newNode = expr
+	} else {
+		newNode = ast.NewDoExpressionNode(location, node.Body, nil, nil)
+	}
+
+	var unquoteCount int
+	var unquoteVals []*goValue
+	ast.Traverse(
+		node,
+		func(node, parent ast.Node) ast.TraverseOption {
+			switch node := node.(type) {
+			case *ast.UnquoteNode:
+				unquoteCount++
+				unquoteVals = append(unquoteVals, c.compileExpression(node, false))
+				return ast.TraverseSkip
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	var nodeSliceTmp *goLocal
+	if unquoteCount > 0 {
+		nodeSliceTmp = c.defineTmpGoLocal(value.FetchGoType("[]ast.Node"))
+		c.emit("%s = nil\n", nodeSliceTmp.name)
+
+		c.emit("%[1]s = append(\n%[1]s,\n", nodeSliceTmp.name)
+		for _, unquoteVal := range unquoteVals {
+			c.emit("%s,\n", c.convertValueToNarrowerType(unquoteVal).fetchValue())
+		}
+		c.emit(")\n")
+	}
+
+	nodeVal := c.astNodeToGoSourceVal(newNode)
+
+	resultTmp := c.defineTmpGoLocal(value.FetchGoType("ast.Node"))
+	if unquoteCount > 0 {
+		c.emit(
+			"%s = ast.Splice(%s, nil, &%s)\n",
+			resultTmp.name,
+			nodeVal.fetchValue(),
+			nodeSliceTmp.name,
+		)
+	} else {
+		c.emit(
+			"%s = ast.DeepCopy(%s)\n",
+			resultTmp.name,
+			nodeVal.fetchValue(),
+		)
+	}
+
+	return newGoValueWithLocal(resultTmp, c.AstNodeType())
+}
+
+func (c *GoCompiler) compileUnquoteNode(node *ast.UnquoteNode, valueIsIgnored bool) *goValue {
+	exprType := c.typeOf(node.Expression)
+
+	var methodNameSym string
+	var methodName string
+	switch node.Kind {
+	case ast.UNQUOTE_EXPRESSION_KIND:
+		methodName = "to_ast_expr_node"
+		methodNameSym = "symbol.L_to_ast_expr_node"
+	case ast.UNQUOTE_CONSTANT_KIND:
+		methodName = "to_ast_const_node"
+		methodNameSym = "symbol.L_to_ast_const_node"
+	case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+		methodName = "to_ast_complex_const_node"
+		methodNameSym = "symbol.L_to_ast_complex_const_node"
+	case ast.UNQUOTE_PATTERN_KIND:
+		methodName = "to_ast_pattern_node"
+		methodNameSym = "symbol.L_to_ast_pattern_node"
+	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+		methodName = "to_ast_pattern_expr_node"
+		methodNameSym = "symbol.L_to_ast_pattern_expr_node"
+	case ast.UNQUOTE_TYPE_KIND:
+		methodName = "to_ast_type_node"
+		methodNameSym = "symbol.L_to_ast_type_node"
+	case ast.UNQUOTE_IDENTIFIER_KIND:
+		methodName = "to_ast_ident_node"
+		methodNameSym = "symbol.L_to_ast_ident_node"
+	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+		methodName = "to_ast_ivar_node"
+		methodNameSym = "symbol.L_to_ast_ivar_node"
+	default:
+		panic(fmt.Sprintf("invalid unquote kind %d", node.Kind))
+	}
+
+	expr := c.compileExpression(node.Expression, false)
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		exprType,
+		c.AstNodeType(),
+		methodNameSym,
+		methodName,
+		[]*goValue{expr},
+		node.Expression.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) AstNodeType() types.Type {
+	return types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node)
 }
 
 const deferFnsVarName = "deferFns"
@@ -4946,7 +5074,12 @@ func (c *GoCompiler) compileCollectionAppendExpr(tmp *goLocal, expr ast.Expressi
 }
 
 func (c *GoCompiler) compileCollectionAppend(tmp *goLocal, val *goValue) {
-	c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
+	switch tmp.goType.Name {
+	case "*value.NativeArrayList", "*value.NativeArrayTuple":
+		c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToNarrowerType(val).fetchValue())
+	default:
+		c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
+	}
 }
 
 func (c *GoCompiler) compileHashSetAppendExpr(tmp *goLocal, expr ast.ExpressionNode) {
@@ -7016,7 +7149,9 @@ func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
-	c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
+	if !method.IsAttribute() {
+		c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
+	}
 }
 
 func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -16825,6 +16960,13 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 				value.FetchGoType("vm.Closure"),
 			)
 		}
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.Node)", v.value),
+			elkType,
+			value.FetchGoType("ast.Node"),
+		)
 	}
 
 	return v

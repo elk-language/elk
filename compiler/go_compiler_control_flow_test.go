@@ -10858,6 +10858,71 @@ func main() { // loc: <main>
 	}
 }
 
+func TestGoThrow(t *testing.T) {
+	tests := goTestTable{
+		"with a value": {
+			input: `throw unchecked :foo`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("foo")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	thread.CaptureStackTrace()
+	thread.Panic((sym2).ToValue())
+}
+`,
+		},
+		"without a value": {
+			input: `throw`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
 func TestGoCatch(t *testing.T) {
 	tests := goTestTable{
 		"simple catch": {
@@ -12055,39 +12120,3 @@ lbl3:
 		})
 	}
 }
-
-// func TestBytecodeThrow(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"with a value": {
-// 			input: `throw unchecked :foo`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				nil,
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.THROW),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(19, 1, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("foo").ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"without a value": {
-// 			input: `throw`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
-// 			},
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }

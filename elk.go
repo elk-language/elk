@@ -72,7 +72,7 @@ func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagno
 	goCompiler.Flush()
 	result, err := format.Source(buffer.Bytes())
 	if err != nil {
-		targetFile.Write(result)
+		targetFile.Write(buffer.Bytes())
 		return "", fmt.Errorf("cannot format target go file: %s, %w", targetPath, err)
 	}
 

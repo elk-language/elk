@@ -435,6 +435,10 @@ func PathToNestedSubtype(path []symbol.Symbol, namespace Namespace) Type {
 	return currentType
 }
 
+func GetType(namespace Namespace, path ...symbol.Symbol) Type {
+	return PathToNestedSubtype(path, namespace)
+}
+
 func NameToNamespace(fullSubtypePath string, env *GlobalEnvironment) Namespace {
 	return NameToType(fullSubtypePath, env).(Namespace)
 }

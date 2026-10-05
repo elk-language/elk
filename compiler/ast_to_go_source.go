@@ -9,6 +9,9 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func (c *GoCompiler) positionToGoSource(pos *position.Position) string {
@@ -120,6 +123,16 @@ func astSliceToGoSource[T ast.Node](c *GoCompiler, typeName string, nodes []T) s
 	}
 	buff.WriteString("}")
 	return buff.String()
+}
+
+func (c *GoCompiler) astNodeToGoSourceVal(node ast.Node) *goValue {
+	source := c.astNodeToGoSource(node)
+
+	return newGoValue(
+		source,
+		types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node),
+		value.FetchGoType("ast.Node"),
+	)
 }
 
 func (c *GoCompiler) astNodeToGoSource(node ast.Node) string {
