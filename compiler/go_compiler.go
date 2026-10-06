@@ -4186,14 +4186,12 @@ func (c *GoCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) *
 		newNode = ast.NewDoExpressionNode(location, node.Body, nil, nil)
 	}
 
-	var unquoteCount int
 	var unquoteVals []*goValue
 	ast.Traverse(
 		node,
 		func(node, parent ast.Node) ast.TraverseOption {
 			switch node := node.(type) {
 			case *ast.UnquoteNode:
-				unquoteCount++
 				unquoteVals = append(unquoteVals, c.compileExpression(node, false))
 				return ast.TraverseSkip
 			}
@@ -4203,36 +4201,20 @@ func (c *GoCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) *
 		nil,
 	)
 
-	var nodeSliceTmp *goLocal
-	if unquoteCount > 0 {
-		nodeSliceTmp = c.defineTmpGoLocal(value.FetchGoType("[]ast.Node"))
-		c.emit("%s = nil\n", nodeSliceTmp.name)
-
-		c.emit("%[1]s = append(\n%[1]s,\n", nodeSliceTmp.name)
-		for _, unquoteVal := range unquoteVals {
-			c.emit("%s,\n", c.convertValueToNarrowerType(unquoteVal).fetchValue())
-		}
-		c.emit(")\n")
-	}
-
-	nodeVal := c.astNodeToGoSourceVal(newNode)
-
 	resultTmp := c.defineTmpGoLocal(value.FetchGoType("ast.Node"))
-	if unquoteCount > 0 {
-		c.emit(
-			"%s = ast.Splice(%s, nil, &%s)\n",
-			resultTmp.name,
-			nodeVal.fetchValue(),
-			nodeSliceTmp.name,
-		)
+	var nodeVal *goValue
+	if len(unquoteVals) > 0 {
+		spliceInfo := newGoAstSpliceInfo(unquoteVals)
+		nodeVal = c.astNodeToGoSource(newNode, spliceInfo)
 	} else {
-		c.emit(
-			"%s = ast.DeepCopy(%s)\n",
-			resultTmp.name,
-			nodeVal.fetchValue(),
-		)
+		nodeVal = c.astNodeToGoSource(newNode, nil)
 	}
 
+	c.emit(
+		"%s = %s\n",
+		resultTmp.name,
+		nodeVal.fetchValue(),
+	)
 	return newGoValueWithLocal(resultTmp, c.AstNodeType())
 }
 
@@ -4241,29 +4223,38 @@ func (c *GoCompiler) compileUnquoteNode(node *ast.UnquoteNode, valueIsIgnored bo
 
 	var methodNameSym string
 	var methodName string
+	var nodeType types.Type
 	switch node.Kind {
 	case ast.UNQUOTE_EXPRESSION_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ExpressionNode)
 		methodName = "to_ast_expr_node"
 		methodNameSym = "symbol.L_to_ast_expr_node"
 	case ast.UNQUOTE_CONSTANT_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ConstantNode)
 		methodName = "to_ast_const_node"
 		methodNameSym = "symbol.L_to_ast_const_node"
 	case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ComplexConstantNode)
 		methodName = "to_ast_complex_const_node"
 		methodNameSym = "symbol.L_to_ast_complex_const_node"
 	case ast.UNQUOTE_PATTERN_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_PatternNode)
 		methodName = "to_ast_pattern_node"
 		methodNameSym = "symbol.L_to_ast_pattern_node"
 	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_LiteralPatternNode)
 		methodName = "to_ast_pattern_expr_node"
 		methodNameSym = "symbol.L_to_ast_pattern_expr_node"
 	case ast.UNQUOTE_TYPE_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_TypeNode)
 		methodName = "to_ast_type_node"
 		methodNameSym = "symbol.L_to_ast_type_node"
 	case ast.UNQUOTE_IDENTIFIER_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_IdentifierNode)
 		methodName = "to_ast_ident_node"
 		methodNameSym = "symbol.L_to_ast_ident_node"
 	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_InstanceVariableNode)
 		methodName = "to_ast_ivar_node"
 		methodNameSym = "symbol.L_to_ast_ivar_node"
 	default:
@@ -4271,9 +4262,13 @@ func (c *GoCompiler) compileUnquoteNode(node *ast.UnquoteNode, valueIsIgnored bo
 	}
 
 	expr := c.compileExpression(node.Expression, false)
+	if c.checker.IsSubtype(expr.elkType, nodeType) {
+		return expr
+	}
+
 	return c.compileMethodCallWithLiteralArgValuesAndName(
 		exprType,
-		c.AstNodeType(),
+		nodeType,
 		methodNameSym,
 		methodName,
 		[]*goValue{expr},
@@ -16302,11 +16297,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		case *value.Regex:
 			return c.emitCachedRegex(v, typ)
 		case ast.Node:
-			return newGoValue(
-				c.astNodeToGoSource(v),
-				types.Any{},
-				value.FetchGoType("ast.Node"),
-			)
+			return c.astNodeToGoSource(v, nil)
 		default:
 			panic(fmt.Sprintf("cannot convert elk value to Go source: %T, %s", val, val.Inspect()))
 		}
@@ -16960,6 +16951,62 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 				value.FetchGoType("vm.Closure"),
 			)
 		}
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_IdentifierNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.IdentifierNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.IdentifierNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_LiteralPatternNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.LiteralPatternNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.LiteralPatternNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_InstanceVariableNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.InstanceVariableNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.InstanceVariableNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ExpressionNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ExpressionNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ExpressionNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ConstantNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ConstantNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ConstantNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ComplexConstantNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ComplexConstantNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ComplexConstantNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_PatternNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.PatternNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.PatternNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_TypeNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.TypeNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.TypeNode"),
+		)
 	}
 	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node)) {
 		return v.newNarrower(

@@ -9,9 +9,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
-	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/value/symbol"
 )
 
 func (c *GoCompiler) positionToGoSource(pos *position.Position) string {
@@ -108,7 +106,7 @@ func isNilNode(node ast.Node) bool {
 	}
 }
 
-func astSliceToGoSource[T ast.Node](c *GoCompiler, typeName string, nodes []T) string {
+func astSliceToGoSource[T ast.Node](c *GoCompiler, typeName string, nodes []T, spliceInfo *goAstSpliceInfo) string {
 	if len(nodes) == 0 {
 		return "nil"
 	}
@@ -119,1244 +117,2067 @@ func astSliceToGoSource[T ast.Node](c *GoCompiler, typeName string, nodes []T) s
 		if i > 0 {
 			buff.WriteString(", ")
 		}
-		buff.WriteString(c.astNodeToGoSource(node))
+		buff.WriteString(c.astNodeToGoSource(node, spliceInfo).value)
 	}
 	buff.WriteString("}")
 	return buff.String()
 }
 
-func (c *GoCompiler) astNodeToGoSourceVal(node ast.Node) *goValue {
-	source := c.astNodeToGoSource(node)
-
-	return newGoValue(
-		source,
-		types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node),
-		value.FetchGoType("ast.Node"),
-	)
+type goAstSpliceInfo struct {
+	values []*goValue
+	cursor int
 }
 
-func (c *GoCompiler) astNodeToGoSource(node ast.Node) string {
+func (s *goAstSpliceInfo) currentValue() *goValue {
+	value := s.values[s.cursor]
+	s.cursor++
+	return value
+}
+
+func newGoAstSpliceInfo(values []*goValue) *goAstSpliceInfo {
+	return &goAstSpliceInfo{
+		values: values,
+	}
+}
+
+func (c *GoCompiler) astNodeToGoSource(node ast.Node, spliceInfo *goAstSpliceInfo) *goValue {
 	if isNilNode(node) {
-		return "nil"
+		return newGoValue(
+			"nil",
+			c.AstNodeType(),
+			value.FetchGoType("ast.Node"),
+		)
 	}
 
 	c.registerAstImport()
 
 	switch n := node.(type) {
 	case *ast.AliasDeclarationEntry:
-		return fmt.Sprintf("ast.NewAliasDeclarationEntry(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.NewName),
-			c.astNodeToGoSource(n.OldName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAliasDeclarationEntry(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.NewName, spliceInfo).value,
+				c.astNodeToGoSource(n.OldName, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AliasDeclarationEntry"),
 		)
 	case *ast.AliasDeclarationNode:
-		return fmt.Sprintf("ast.NewAliasDeclarationNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]*ast.AliasDeclarationEntry", n.Entries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAliasDeclarationNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]*ast.AliasDeclarationEntry", n.Entries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AliasDeclarationNode"),
 		)
 	case *ast.AnyTypeNode:
-		return fmt.Sprintf("ast.NewAnyTypeNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAnyTypeNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AnyTypeNode"),
 		)
 	case *ast.ArrayListLiteralNode:
-		return fmt.Sprintf("ast.NewArrayListLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewArrayListLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ArrayListLiteralNode"),
 		)
 	case *ast.ArrayTupleLiteralNode:
-		return fmt.Sprintf("ast.NewArrayTupleLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewArrayTupleLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ArrayTupleLiteralNode"),
 		)
 	case *ast.AsExpressionNode:
-		return fmt.Sprintf("ast.NewAsExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
-			c.astNodeToGoSource(n.RuntimeType),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAsExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+				c.astNodeToGoSource(n.RuntimeType, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AsExpressionNode"),
 		)
 	case *ast.AsPatternNode:
-		return fmt.Sprintf("ast.NewAsPatternNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.Name),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAsPatternNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AsPatternNode"),
 		)
 	case *ast.AssignmentExpressionNode:
-		return fmt.Sprintf("ast.NewAssignmentExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAssignmentExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AssignmentExpressionNode"),
 		)
 	case *ast.AttrDeclarationNode:
-		return fmt.Sprintf("ast.NewAttrDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAttrDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AttrDeclarationNode"),
 		)
 	case *ast.AttributeAccessNode:
-		return fmt.Sprintf("ast.NewAttributeAccessNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.AttributeName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAttributeAccessNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.AttributeName, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AttributeAccessNode"),
 		)
 	case *ast.AttributeParameterNode:
-		return fmt.Sprintf("ast.NewAttributeParameterNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAttributeParameterNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AttributeParameterNode"),
 		)
 	case *ast.AwaitExpressionNode:
-		return fmt.Sprintf("ast.NewAwaitExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
-			fmt.Sprintf("%t", n.Sync),
+		return newGoValue(
+			fmt.Sprintf("ast.NewAwaitExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+				fmt.Sprintf("%t", n.Sync),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.AwaitExpressionNode"),
 		)
 	case *ast.BigFloatLiteralNode:
-		return fmt.Sprintf("ast.NewBigFloatLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBigFloatLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BigFloatLiteralNode"),
 		)
 	case *ast.BinArrayListLiteralNode:
-		return fmt.Sprintf("ast.NewBinArrayListLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinArrayListLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinArrayListLiteralNode"),
 		)
 	case *ast.BinArrayTupleLiteralNode:
-		return fmt.Sprintf("ast.NewBinArrayTupleLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinArrayTupleLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinArrayTupleLiteralNode"),
 		)
 	case *ast.BinHashSetLiteralNode:
-		return fmt.Sprintf("ast.NewBinHashSetLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinHashSetLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinHashSetLiteralNode"),
 		)
 	case *ast.BinaryExpressionNode:
-		return fmt.Sprintf("ast.NewBinaryExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinaryExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinaryExpressionNode"),
 		)
 	case *ast.BinaryPatternNode:
-		return fmt.Sprintf("ast.NewBinaryPatternNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinaryPatternNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinaryPatternNode"),
 		)
 	case *ast.BinaryTypeNode:
-		return fmt.Sprintf("ast.NewBinaryTypeNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBinaryTypeNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BinaryTypeNode"),
 		)
 	case *ast.BoolLiteralNode:
-		return fmt.Sprintf("ast.NewBoolLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBoolLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BoolLiteralNode"),
 		)
 	case *ast.BoxOfExpressionNode:
-		return fmt.Sprintf("ast.NewBoxOfExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBoxOfExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BoxOfExpressionNode"),
 		)
 	case *ast.BoxTypeNode:
-		return fmt.Sprintf("ast.NewBoxTypeNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
-			fmt.Sprintf("%t", n.Immutable),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBoxTypeNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				fmt.Sprintf("%t", n.Immutable),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BoxTypeNode"),
 		)
 	case *ast.BreakExpressionNode:
-		return fmt.Sprintf("ast.NewBreakExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Label),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBreakExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Label, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BreakExpressionNode"),
 		)
 	case *ast.BreakpointNode:
-		return fmt.Sprintf("ast.NewBreakpointNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewBreakpointNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.BreakpointNode"),
 		)
 	case *ast.CallNode:
-		return fmt.Sprintf("ast.NewCallNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			fmt.Sprintf("%t", n.NilSafe),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewCallNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				fmt.Sprintf("%t", n.NilSafe),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.CallNode"),
 		)
 	case *ast.CallableTypeNode:
-		return fmt.Sprintf("ast.NewCallableTypeNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ReturnType),
-			c.astNodeToGoSource(n.ThrowType),
-			fmt.Sprintf("%t", n.IsClosure),
-			fmt.Sprintf("%t", n.IsPure),
+		return newGoValue(
+			fmt.Sprintf("ast.NewCallableTypeNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ReturnType, spliceInfo).value,
+				c.astNodeToGoSource(n.ThrowType, spliceInfo).value,
+				fmt.Sprintf("%t", n.IsClosure),
+				fmt.Sprintf("%t", n.IsPure),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.CallableTypeNode"),
 		)
 	case *ast.CatchNode:
-		return fmt.Sprintf("ast.NewCatchNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.StackTraceVar),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewCatchNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.StackTraceVar, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.CatchNode"),
 		)
 	case *ast.CharLiteralNode:
-		return fmt.Sprintf("ast.NewCharLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewCharLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.CharLiteralNode"),
 		)
 	case *ast.ClassDeclarationNode:
-		return fmt.Sprintf("ast.NewClassDeclarationNode(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			fmt.Sprintf("%t", n.Abstract),
-			fmt.Sprintf("%t", n.Sealed),
-			fmt.Sprintf("%t", n.Primitive),
-			fmt.Sprintf("%t", n.NoInit),
-			fmt.Sprintf("%t", n.Immutable),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			c.astNodeToGoSource(n.Superclass),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewClassDeclarationNode(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				fmt.Sprintf("%t", n.Abstract),
+				fmt.Sprintf("%t", n.Sealed),
+				fmt.Sprintf("%t", n.Primitive),
+				fmt.Sprintf("%t", n.NoInit),
+				fmt.Sprintf("%t", n.Immutable),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				c.astNodeToGoSource(n.Superclass, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ClassDeclarationNode"),
 		)
 	case *ast.ClosureLiteralNode:
-		return fmt.Sprintf("ast.NewClosureLiteralNode(%s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ReturnType),
-			c.astNodeToGoSource(n.ThrowType),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
-			fmt.Sprintf("%t", n.Lambda),
-			fmt.Sprintf("%t", n.Pure),
+		return newGoValue(
+			fmt.Sprintf("ast.NewClosureLiteralNode(%s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ReturnType, spliceInfo).value,
+				c.astNodeToGoSource(n.ThrowType, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+				fmt.Sprintf("%t", n.Lambda),
+				fmt.Sprintf("%t", n.Pure),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ClosureLiteralNode"),
 		)
 	case *ast.ConstantAsNode:
-		return fmt.Sprintf("ast.NewConstantAsNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Constant),
-			fmt.Sprintf("%q", n.AsName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewConstantAsNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				fmt.Sprintf("%q", n.AsName),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ConstantAsNode"),
 		)
 	case *ast.ConstantDeclarationNode:
-		return fmt.Sprintf("ast.NewConstantDeclarationNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Constant),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewConstantDeclarationNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ConstantDeclarationNode"),
 		)
 	case *ast.ConstantLookupNode:
-		return fmt.Sprintf("ast.NewConstantLookupNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewConstantLookupNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ConstantLookupNode"),
 		)
 	case *ast.ConstructorCallNode:
-		return fmt.Sprintf("ast.NewConstructorCallNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.ClassNode),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewConstructorCallNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.ClassNode, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ConstructorCallNode"),
 		)
 	case *ast.ContinueExpressionNode:
-		return fmt.Sprintf("ast.NewContinueExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Label),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewContinueExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Label, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ContinueExpressionNode"),
 		)
 	case *ast.DeferExpressionNode:
-		return fmt.Sprintf("ast.NewDeferExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewDeferExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.DeferExpressionNode"),
 		)
 	case *ast.DoExpressionNode:
-		return fmt.Sprintf("ast.NewDoExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
-			astSliceToGoSource(c, "[]*ast.CatchNode", n.Catches),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Finally),
+		return newGoValue(
+			fmt.Sprintf("ast.NewDoExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+				astSliceToGoSource(c, "[]*ast.CatchNode", n.Catches, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Finally, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.DoExpressionNode"),
 		)
 	case *ast.DoubleQuotedStringLiteralNode:
-		return fmt.Sprintf("ast.NewDoubleQuotedStringLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewDoubleQuotedStringLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.DoubleQuotedStringLiteralNode"),
 		)
 	case *ast.DoubleSplatExpressionNode:
-		return fmt.Sprintf("ast.NewDoubleSplatExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewDoubleSplatExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.DoubleSplatExpressionNode"),
 		)
 	case *ast.EmptyStatementNode:
-		return fmt.Sprintf("ast.NewEmptyStatementNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewEmptyStatementNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.EmptyStatementNode"),
 		)
 	case *ast.ExactTypeNode:
-		return fmt.Sprintf("ast.NewExactTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewExactTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ExactTypeNode"),
 		)
 	case *ast.ExpressionStatementNode:
-		return fmt.Sprintf("ast.NewExpressionStatementNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewExpressionStatementNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ExpressionStatementNode"),
 		)
 	case *ast.ExtendWhereBlockExpressionNode:
-		return fmt.Sprintf("ast.NewExtendWhereBlockExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.Where),
+		return newGoValue(
+			fmt.Sprintf("ast.NewExtendWhereBlockExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.Where, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ExtendWhereBlockExpressionNode"),
 		)
 	case *ast.FalseLiteralNode:
-		return fmt.Sprintf("ast.NewFalseLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewFalseLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.FalseLiteralNode"),
 		)
 	case *ast.Float32LiteralNode:
-		return fmt.Sprintf("ast.NewFloat32LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewFloat32LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Float32LiteralNode"),
 		)
 	case *ast.Float64LiteralNode:
-		return fmt.Sprintf("ast.NewFloat64LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewFloat64LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Float64LiteralNode"),
 		)
 	case *ast.FloatLiteralNode:
-		return fmt.Sprintf("ast.NewFloatLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewFloatLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.FloatLiteralNode"),
 		)
 	case *ast.ForInExpressionNode:
-		return fmt.Sprintf("ast.NewForInExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.InExpression),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewForInExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.InExpression, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ForInExpressionNode"),
 		)
 	case *ast.FormalParameterNode:
-		return fmt.Sprintf("ast.NewFormalParameterNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
-			c.astEnum("ParameterKind", int(n.Kind)),
+		return newGoValue(
+			fmt.Sprintf("ast.NewFormalParameterNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+				c.astEnum("ParameterKind", int(n.Kind)),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.FormalParameterNode"),
 		)
 	case *ast.GenericConstantNode:
-		return fmt.Sprintf("ast.NewGenericConstantNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGenericConstantNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GenericConstantNode"),
 		)
 	case *ast.GenericConstructorCallNode:
-		return fmt.Sprintf("ast.NewGenericConstructorCallNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.ClassNode),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGenericConstructorCallNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.ClassNode, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GenericConstructorCallNode"),
 		)
 	case *ast.GenericMethodCallNode:
-		return fmt.Sprintf("ast.NewGenericMethodCallNode(%s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.MethodName),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGenericMethodCallNode(%s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.MethodName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GenericMethodCallNode"),
 		)
 	case *ast.GenericReceiverlessMethodCallNode:
-		return fmt.Sprintf("ast.NewGenericReceiverlessMethodCallNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.MethodName),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGenericReceiverlessMethodCallNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.MethodName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeNode", n.TypeArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GenericReceiverlessMethodCallNode"),
 		)
 	case *ast.GenericTypeDefinitionNode:
-		return fmt.Sprintf("ast.NewGenericTypeDefinitionNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGenericTypeDefinitionNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GenericTypeDefinitionNode"),
 		)
 	case *ast.GetterDeclarationNode:
-		return fmt.Sprintf("ast.NewGetterDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGetterDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GetterDeclarationNode"),
 		)
 	case *ast.GoExpressionNode:
-		return fmt.Sprintf("ast.NewGoExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewGoExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.GoExpressionNode"),
 		)
 	case *ast.HashMapLiteralNode:
-		return fmt.Sprintf("ast.NewHashMapLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHashMapLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HashMapLiteralNode"),
 		)
 	case *ast.HashRecordLiteralNode:
-		return fmt.Sprintf("ast.NewHashRecordLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHashRecordLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HashRecordLiteralNode"),
 		)
 	case *ast.HashSetLiteralNode:
-		return fmt.Sprintf("ast.NewHashSetLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHashSetLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HashSetLiteralNode"),
 		)
 	case *ast.HexArrayListLiteralNode:
-		return fmt.Sprintf("ast.NewHexArrayListLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHexArrayListLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HexArrayListLiteralNode"),
 		)
 	case *ast.HexArrayTupleLiteralNode:
-		return fmt.Sprintf("ast.NewHexArrayTupleLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHexArrayTupleLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HexArrayTupleLiteralNode"),
 		)
 	case *ast.HexHashSetLiteralNode:
-		return fmt.Sprintf("ast.NewHexHashSetLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewHexHashSetLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.IntCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.HexHashSetLiteralNode"),
 		)
 	case *ast.IfExpressionNode:
-		return fmt.Sprintf("ast.NewIfExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Condition),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewIfExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.IfExpressionNode"),
 		)
 	case *ast.ImplementExpressionNode:
-		return fmt.Sprintf("ast.NewImplementExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ComplexConstantNode", n.Constants),
+		return newGoValue(
+			fmt.Sprintf("ast.NewImplementExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ComplexConstantNode", n.Constants, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ImplementExpressionNode"),
 		)
 	case *ast.ImportStatementNode:
-		return fmt.Sprintf("ast.NewImportStatementNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Path),
+		return newGoValue(
+			fmt.Sprintf("ast.NewImportStatementNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Path, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ImportStatementNode"),
 		)
 	case *ast.IncludeExpressionNode:
-		return fmt.Sprintf("ast.NewIncludeExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ComplexConstantNode", n.Constants),
+		return newGoValue(
+			fmt.Sprintf("ast.NewIncludeExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ComplexConstantNode", n.Constants, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.IncludeExpressionNode"),
 		)
 	case *ast.InferredObjectPatternNode:
-		return fmt.Sprintf("ast.NewInferredObjectPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Attributes),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInferredObjectPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Attributes, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InferredObjectPatternNode"),
 		)
 	case *ast.InitDefinitionNode:
-		return fmt.Sprintf("ast.NewInitDefinitionNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ThrowType),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInitDefinitionNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ThrowType, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InitDefinitionNode"),
 		)
 	case *ast.InstanceMethodLookupNode:
-		return fmt.Sprintf("ast.NewInstanceMethodLookupNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.Name),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInstanceMethodLookupNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InstanceMethodLookupNode"),
 		)
 	case *ast.InstanceOfTypeNode:
-		return fmt.Sprintf("ast.NewInstanceOfTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInstanceOfTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InstanceOfTypeNode"),
 		)
 	case *ast.InstanceValueDeclarationNode:
-		return fmt.Sprintf("ast.NewInstanceValueDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInstanceValueDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InstanceValueDeclarationNode"),
 		)
 	case *ast.InstanceVariableDeclarationNode:
-		return fmt.Sprintf("ast.NewInstanceVariableDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInstanceVariableDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InstanceVariableDeclarationNode"),
 		)
 	case *ast.Int16LiteralNode:
-		return fmt.Sprintf("ast.NewInt16LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInt16LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Int16LiteralNode"),
 		)
 	case *ast.Int32LiteralNode:
-		return fmt.Sprintf("ast.NewInt32LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInt32LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Int32LiteralNode"),
 		)
 	case *ast.Int64LiteralNode:
-		return fmt.Sprintf("ast.NewInt64LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInt64LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Int64LiteralNode"),
 		)
 	case *ast.Int8LiteralNode:
-		return fmt.Sprintf("ast.NewInt8LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInt8LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.Int8LiteralNode"),
 		)
 	case *ast.IntLiteralNode:
-		return fmt.Sprintf("ast.NewIntLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewIntLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.IntLiteralNode"),
 		)
 	case *ast.InterfaceDeclarationNode:
-		return fmt.Sprintf("ast.NewInterfaceDeclarationNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInterfaceDeclarationNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InterfaceDeclarationNode"),
 		)
 	case *ast.InterpolatedRegexLiteralNode:
-		return fmt.Sprintf("ast.NewInterpolatedRegexLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.RegexLiteralContentNode", n.Content),
-			c.bitField8ToGoSource(n.Flags),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInterpolatedRegexLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.RegexLiteralContentNode", n.Content, spliceInfo),
+				c.bitField8ToGoSource(n.Flags),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InterpolatedRegexLiteralNode"),
 		)
 	case *ast.InterpolatedStringLiteralNode:
-		return fmt.Sprintf("ast.NewInterpolatedStringLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StringLiteralContentNode", n.Content),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInterpolatedStringLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StringLiteralContentNode", n.Content, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InterpolatedStringLiteralNode"),
 		)
 	case *ast.InterpolatedSymbolLiteralNode:
-		return fmt.Sprintf("ast.NewInterpolatedSymbolLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Content),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInterpolatedSymbolLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Content, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InterpolatedSymbolLiteralNode"),
 		)
 	case *ast.IntersectionTypeNode:
-		return fmt.Sprintf("ast.NewIntersectionTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewIntersectionTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.TypeNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.IntersectionTypeNode"),
 		)
 	case *ast.InvalidNode:
-		return fmt.Sprintf("ast.NewInvalidNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Token),
+		return newGoValue(
+			fmt.Sprintf("ast.NewInvalidNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Token),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.InvalidNode"),
 		)
 	case *ast.KeyValueExpressionNode:
-		return fmt.Sprintf("ast.NewKeyValueExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Key),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewKeyValueExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.KeyValueExpressionNode"),
 		)
 	case *ast.KeyValuePatternNode:
-		return fmt.Sprintf("ast.NewKeyValuePatternNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Key),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewKeyValuePatternNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.KeyValuePatternNode"),
 		)
 	case *ast.LabeledExpressionNode:
-		return fmt.Sprintf("ast.NewLabeledExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Label),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewLabeledExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Label),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.LabeledExpressionNode"),
 		)
 	case *ast.ListPatternNode:
-		return fmt.Sprintf("ast.NewListPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewListPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ListPatternNode"),
 		)
 	case *ast.LogicalExpressionNode:
-		return fmt.Sprintf("ast.NewLogicalExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewLogicalExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.LogicalExpressionNode"),
 		)
 	case *ast.LoopExpressionNode:
-		return fmt.Sprintf("ast.NewLoopExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewLoopExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.LoopExpressionNode"),
 		)
 	case *ast.MacroBoundaryNode:
-		return fmt.Sprintf("ast.NewMacroBoundaryNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
-			fmt.Sprintf("%q", n.Name),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMacroBoundaryNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+				fmt.Sprintf("%q", n.Name),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MacroBoundaryNode"),
 		)
 	case *ast.MacroCallNode:
-		return fmt.Sprintf("ast.NewMacroCallNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("MacroKind", int(n.Kind)),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.MacroName),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMacroCallNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astEnum("MacroKind", int(n.Kind)),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.MacroName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MacroCallNode"),
 		)
 	case *ast.MacroDefinitionNode:
-		return fmt.Sprintf("ast.NewMacroDefinitionNode(%s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			fmt.Sprintf("%t", n.IsSealed()),
-			c.astNodeToGoSource(n.Name),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ReturnType),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMacroDefinitionNode(%s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				fmt.Sprintf("%t", n.IsSealed()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ReturnType, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MacroDefinitionNode"),
 		)
 	case *ast.MacroNameNode:
-		return fmt.Sprintf("ast.NewMacroNameNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMacroNameNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MacroNameNode"),
 		)
 	case *ast.MapPatternNode:
-		return fmt.Sprintf("ast.NewMapPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMapPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MapPatternNode"),
 		)
 	case *ast.MatchExpressionNode:
-		return fmt.Sprintf("ast.NewMatchExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
-			c.astNodeToGoSource(n.Pattern),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMatchExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MatchExpressionNode"),
 		)
 	case *ast.MethodCallNode:
-		return fmt.Sprintf("ast.NewMethodCallNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.MethodName),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodCallNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.MethodName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodCallNode"),
 		)
 	case *ast.MethodDefinitionNode:
-		return fmt.Sprintf("ast.NewMethodDefinitionNode(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
-			c.astNodeToGoSource(n.Name),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ReturnType),
-			c.astNodeToGoSource(n.ThrowType),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodDefinitionNode(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.bitFlag8ToGoSource(n.Flags.ToBitFlag()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ReturnType, spliceInfo).value,
+				c.astNodeToGoSource(n.ThrowType, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodDefinitionNode"),
 		)
 	case *ast.MethodLookupAsNode:
-		return fmt.Sprintf("ast.NewMethodLookupAsNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.MethodLookup),
-			c.astNodeToGoSource(n.AsName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodLookupAsNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.MethodLookup, spliceInfo).value,
+				c.astNodeToGoSource(n.AsName, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodLookupAsNode"),
 		)
 	case *ast.MethodLookupNode:
-		return fmt.Sprintf("ast.NewMethodLookupNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.Name),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodLookupNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodLookupNode"),
 		)
 	case *ast.MethodParameterNode:
-		return fmt.Sprintf("ast.NewMethodParameterNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			fmt.Sprintf("%t", n.SetInstanceVariable),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
-			c.astEnum("ParameterKind", int(n.Kind)),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodParameterNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				fmt.Sprintf("%t", n.SetInstanceVariable),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+				c.astEnum("ParameterKind", int(n.Kind)),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodParameterNode"),
 		)
 	case *ast.MethodSignatureDefinitionNode:
-		return fmt.Sprintf("ast.NewMethodSignatureDefinitionNode(%s, %s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Name),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters),
-			c.astNodeToGoSource(n.ReturnType),
-			c.astNodeToGoSource(n.ThrowType),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMethodSignatureDefinitionNode(%s, %s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Parameters, spliceInfo),
+				c.astNodeToGoSource(n.ReturnType, spliceInfo).value,
+				c.astNodeToGoSource(n.ThrowType, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MethodSignatureDefinitionNode"),
 		)
 	case *ast.MixinDeclarationNode:
-		return fmt.Sprintf("ast.NewMixinDeclarationNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			fmt.Sprintf("%t", n.Abstract),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMixinDeclarationNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				fmt.Sprintf("%t", n.Abstract),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MixinDeclarationNode"),
 		)
 	case *ast.ModifierForInNode:
-		return fmt.Sprintf("ast.NewModifierForInNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.ThenExpression),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.InExpression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewModifierForInNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.ThenExpression, spliceInfo).value,
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.InExpression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ModifierForInNode"),
 		)
 	case *ast.ModifierIfElseNode:
-		return fmt.Sprintf("ast.NewModifierIfElseNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.ThenExpression),
-			c.astNodeToGoSource(n.Condition),
-			c.astNodeToGoSource(n.ElseExpression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewModifierIfElseNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.ThenExpression, spliceInfo).value,
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				c.astNodeToGoSource(n.ElseExpression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ModifierIfElseNode"),
 		)
 	case *ast.ModifierNode:
-		return fmt.Sprintf("ast.NewModifierNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Modifier),
-			c.astNodeToGoSource(n.Left),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewModifierNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Modifier),
+				c.astNodeToGoSource(n.Left, spliceInfo).value,
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ModifierNode"),
 		)
 	case *ast.ModuleDeclarationNode:
-		return fmt.Sprintf("ast.NewModuleDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewModuleDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ModuleDeclarationNode"),
 		)
 	case *ast.MustExpressionNode:
-		return fmt.Sprintf("ast.NewMustExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMustExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MustExpressionNode"),
 		)
 	case *ast.MustPatternNode:
-		return fmt.Sprintf("ast.NewMustPatternNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewMustPatternNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.MustPatternNode"),
 		)
 	case *ast.NamedCallArgumentNode:
-		return fmt.Sprintf("ast.NewNamedCallArgumentNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNamedCallArgumentNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NamedCallArgumentNode"),
 		)
 	case *ast.NeverTypeNode:
-		return fmt.Sprintf("ast.NewNeverTypeNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNeverTypeNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NeverTypeNode"),
 		)
 	case *ast.NewExpressionNode:
-		return fmt.Sprintf("ast.NewNewExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNewExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NewExpressionNode"),
 		)
 	case *ast.NilLiteralNode:
-		return fmt.Sprintf("ast.NewNilLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNilLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NilLiteralNode"),
 		)
 	case *ast.NilSafeSubscriptExpressionNode:
-		return fmt.Sprintf("ast.NewNilSafeSubscriptExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.Key),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNilSafeSubscriptExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NilSafeSubscriptExpressionNode"),
 		)
 	case *ast.NilablePatternNode:
-		return fmt.Sprintf("ast.NewNilablePatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNilablePatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NilablePatternNode"),
 		)
 	case *ast.NilableTypeNode:
-		return fmt.Sprintf("ast.NewNilableTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNilableTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NilableTypeNode"),
 		)
 	case *ast.NotTypeNode:
-		return fmt.Sprintf("ast.NewNotTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNotTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NotTypeNode"),
 		)
 	case *ast.NumericForExpressionNode:
-		return fmt.Sprintf("ast.NewNumericForExpressionNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Initialiser),
-			c.astNodeToGoSource(n.Condition),
-			c.astNodeToGoSource(n.Increment),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewNumericForExpressionNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				c.astNodeToGoSource(n.Increment, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.NumericForExpressionNode"),
 		)
 	case *ast.ObjectPatternNode:
-		return fmt.Sprintf("ast.NewObjectPatternNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.ObjectType),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Attributes),
+		return newGoValue(
+			fmt.Sprintf("ast.NewObjectPatternNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.ObjectType, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Attributes, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ObjectPatternNode"),
 		)
 	case *ast.ParameterStatementNode:
-		return fmt.Sprintf("ast.NewParameterStatementNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Parameter),
+		return newGoValue(
+			fmt.Sprintf("ast.NewParameterStatementNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Parameter, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ParameterStatementNode"),
 		)
 	case *ast.PatternExpressionNode:
-		return fmt.Sprintf("ast.NewPatternExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.PatternNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPatternExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.PatternNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PatternExpressionNode"),
 		)
 	case *ast.PatternStatementNode:
-		return fmt.Sprintf("ast.NewPatternStatementNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPatternStatementNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PatternStatementNode"),
 		)
 	case *ast.PostfixExpressionNode:
-		return fmt.Sprintf("ast.NewPostfixExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPostfixExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PostfixExpressionNode"),
 		)
 	case *ast.PrivateConstantNode:
-		return fmt.Sprintf("ast.NewPrivateConstantNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPrivateConstantNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PrivateConstantNode"),
 		)
 	case *ast.PrivateIdentifierNode:
-		return fmt.Sprintf("ast.NewPrivateIdentifierNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPrivateIdentifierNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PrivateIdentifierNode"),
 		)
 	case *ast.ProgramNode:
-		return fmt.Sprintf("ast.NewProgramNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewProgramNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ProgramNode"),
 		)
 	case *ast.PublicConstantAsNode:
-		return fmt.Sprintf("ast.NewPublicConstantAsNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Target),
-			fmt.Sprintf("%q", n.AsName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPublicConstantAsNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Target, spliceInfo).value,
+				fmt.Sprintf("%q", n.AsName),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PublicConstantAsNode"),
 		)
 	case *ast.PublicConstantNode:
-		return fmt.Sprintf("ast.NewPublicConstantNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPublicConstantNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PublicConstantNode"),
 		)
 	case *ast.PublicIdentifierNode:
-		return fmt.Sprintf("ast.NewPublicIdentifierNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPublicIdentifierNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PublicIdentifierNode"),
 		)
 	case *ast.PublicInstanceVariableNode:
-		return fmt.Sprintf("ast.NewPublicInstanceVariableNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewPublicInstanceVariableNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.PublicInstanceVariableNode"),
 		)
 	case *ast.QuoteExpressionNode:
-		return fmt.Sprintf("ast.NewQuoteExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("QuoteKind", int(n.Kind)),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewQuoteExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astEnum("QuoteKind", int(n.Kind)),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.QuoteExpressionNode"),
 		)
 	case *ast.RangeLiteralNode:
-		return fmt.Sprintf("ast.NewRangeLiteralNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Start),
-			c.astNodeToGoSource(n.End),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRangeLiteralNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Start, spliceInfo).value,
+				c.astNodeToGoSource(n.End, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RangeLiteralNode"),
 		)
 	case *ast.RawCharLiteralNode:
-		return fmt.Sprintf("ast.NewRawCharLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRawCharLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RawCharLiteralNode"),
 		)
 	case *ast.RawStringLiteralNode:
-		return fmt.Sprintf("ast.NewRawStringLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRawStringLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RawStringLiteralNode"),
 		)
 	case *ast.ReceiverlessMacroCallNode:
-		return fmt.Sprintf("ast.NewReceiverlessMacroCallNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("MacroKind", int(n.Kind)),
-			c.astNodeToGoSource(n.MacroName),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewReceiverlessMacroCallNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astEnum("MacroKind", int(n.Kind)),
+				c.astNodeToGoSource(n.MacroName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ReceiverlessMacroCallNode"),
 		)
 	case *ast.ReceiverlessMethodCallNode:
-		return fmt.Sprintf("ast.NewReceiverlessMethodCallNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.MethodName),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewReceiverlessMethodCallNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.MethodName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ReceiverlessMethodCallNode"),
 		)
 	case *ast.RecordPatternNode:
-		return fmt.Sprintf("ast.NewRecordPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRecordPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RecordPatternNode"),
 		)
 	case *ast.RegexInterpolationNode:
-		return fmt.Sprintf("ast.NewRegexInterpolationNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRegexInterpolationNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RegexInterpolationNode"),
 		)
 	case *ast.RegexLiteralContentSectionNode:
-		return fmt.Sprintf("ast.NewRegexLiteralContentSectionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRegexLiteralContentSectionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RegexLiteralContentSectionNode"),
 		)
 	case *ast.RestPatternNode:
-		return fmt.Sprintf("ast.NewRestPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Identifier),
+		return newGoValue(
+			fmt.Sprintf("ast.NewRestPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Identifier, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.RestPatternNode"),
 		)
 	case *ast.ReturnExpressionNode:
-		return fmt.Sprintf("ast.NewReturnExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewReturnExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ReturnExpressionNode"),
 		)
 	case *ast.ScopedMacroCallNode:
-		return fmt.Sprintf("ast.NewScopedMacroCallNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("MacroKind", int(n.Kind)),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.MacroName),
-			astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments),
-			astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments),
+		return newGoValue(
+			fmt.Sprintf("ast.NewScopedMacroCallNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astEnum("MacroKind", int(n.Kind)),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.MacroName, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.ExpressionNode", n.PositionalArguments, spliceInfo),
+				astSliceToGoSource(c, "[]ast.NamedArgumentNode", n.NamedArguments, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ScopedMacroCallNode"),
 		)
 	case *ast.SelectCaseNode:
-		return fmt.Sprintf("ast.NewSelectCaseNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSelectCaseNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SelectCaseNode"),
 		)
 	case *ast.SelectExpressionNode:
-		return fmt.Sprintf("ast.NewSelectExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]*ast.SelectCaseNode", n.Cases),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSelectExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]*ast.SelectCaseNode", n.Cases, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SelectExpressionNode"),
 		)
 	case *ast.SelfLiteralNode:
-		return fmt.Sprintf("ast.NewSelfLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSelfLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SelfLiteralNode"),
 		)
 	case *ast.SetPatternNode:
-		return fmt.Sprintf("ast.NewSetPatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSetPatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SetPatternNode"),
 		)
 	case *ast.SetterDeclarationNode:
-		return fmt.Sprintf("ast.NewSetterDeclarationNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSetterDeclarationNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				astSliceToGoSource(c, "[]ast.ParameterNode", n.Entries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SetterDeclarationNode"),
 		)
 	case *ast.SignatureParameterNode:
-		return fmt.Sprintf("ast.NewSignatureParameterNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
-			fmt.Sprintf("%t", n.Optional),
-			c.astEnum("ParameterKind", int(n.Kind)),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSignatureParameterNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				fmt.Sprintf("%t", n.Optional),
+				c.astEnum("ParameterKind", int(n.Kind)),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SignatureParameterNode"),
 		)
 	case *ast.SimpleSymbolLiteralNode:
-		return fmt.Sprintf("ast.NewSimpleSymbolLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Content),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSimpleSymbolLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Content),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SimpleSymbolLiteralNode"),
 		)
 	case *ast.SingletonBlockExpressionNode:
-		return fmt.Sprintf("ast.NewSingletonBlockExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSingletonBlockExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SingletonBlockExpressionNode"),
 		)
 	case *ast.SingletonTypeNode:
-		return fmt.Sprintf("ast.NewSingletonTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSingletonTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SingletonTypeNode"),
 		)
 	case *ast.SplatExpressionNode:
-		return fmt.Sprintf("ast.NewSplatExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSplatExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SplatExpressionNode"),
 		)
 	case *ast.StringInspectInterpolationNode:
-		return fmt.Sprintf("ast.NewStringInspectInterpolationNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewStringInspectInterpolationNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.StringInspectInterpolationNode"),
 		)
 	case *ast.StringInterpolationNode:
-		return fmt.Sprintf("ast.NewStringInterpolationNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Expression),
+		return newGoValue(
+			fmt.Sprintf("ast.NewStringInterpolationNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Expression, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.StringInterpolationNode"),
 		)
 	case *ast.StringLiteralContentSectionNode:
-		return fmt.Sprintf("ast.NewStringLiteralContentSectionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewStringLiteralContentSectionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.StringLiteralContentSectionNode"),
 		)
 	case *ast.StructDeclarationNode:
-		return fmt.Sprintf("ast.NewStructDeclarationNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			fmt.Sprintf("%t", n.Immutable),
-			c.astNodeToGoSource(n.Constant),
-			astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters),
-			astSliceToGoSource(c, "[]ast.StructBodyStatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewStructDeclarationNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				fmt.Sprintf("%t", n.Immutable),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.TypeParameterNode", n.TypeParameters, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StructBodyStatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.StructDeclarationNode"),
 		)
 	case *ast.SubscriptExpressionNode:
-		return fmt.Sprintf("ast.NewSubscriptExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Receiver),
-			c.astNodeToGoSource(n.Key),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSubscriptExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Receiver, spliceInfo).value,
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SubscriptExpressionNode"),
 		)
 	case *ast.SwitchCaseNode:
-		return fmt.Sprintf("ast.NewSwitchCaseNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.Body),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSwitchCaseNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.Body, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SwitchCaseNode"),
 		)
 	case *ast.SwitchExpressionNode:
-		return fmt.Sprintf("ast.NewSwitchExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
-			astSliceToGoSource(c, "[]*ast.SwitchCaseNode", n.Cases),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSwitchExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+				astSliceToGoSource(c, "[]*ast.SwitchCaseNode", n.Cases, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SwitchExpressionNode"),
 		)
 	case *ast.SymbolArrayListLiteralNode:
-		return fmt.Sprintf("ast.NewSymbolArrayListLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSymbolArrayListLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SymbolArrayListLiteralNode"),
 		)
 	case *ast.SymbolArrayTupleLiteralNode:
-		return fmt.Sprintf("ast.NewSymbolArrayTupleLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSymbolArrayTupleLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SymbolArrayTupleLiteralNode"),
 		)
 	case *ast.SymbolHashSetLiteralNode:
-		return fmt.Sprintf("ast.NewSymbolHashSetLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSymbolHashSetLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.SymbolCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SymbolHashSetLiteralNode"),
 		)
 	case *ast.SymbolKeyValueExpressionNode:
-		return fmt.Sprintf("ast.NewSymbolKeyValueExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Key),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSymbolKeyValueExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SymbolKeyValueExpressionNode"),
 		)
 	case *ast.SymbolKeyValuePatternNode:
-		return fmt.Sprintf("ast.NewSymbolKeyValuePatternNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Key),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewSymbolKeyValuePatternNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Key, spliceInfo).value,
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.SymbolKeyValuePatternNode"),
 		)
 	case *ast.ThrowExpressionNode:
-		return fmt.Sprintf("ast.NewThrowExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%t", n.Unchecked),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewThrowExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%t", n.Unchecked),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ThrowExpressionNode"),
 		)
 	case *ast.TrueLiteralNode:
-		return fmt.Sprintf("ast.NewTrueLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTrueLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TrueLiteralNode"),
 		)
 	case *ast.TryExpressionNode:
-		return fmt.Sprintf("ast.NewTryExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTryExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TryExpressionNode"),
 		)
 	case *ast.TuplePatternNode:
-		return fmt.Sprintf("ast.NewTuplePatternNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.PatternNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTuplePatternNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.PatternNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TuplePatternNode"),
 		)
 	case *ast.TypeDefinitionNode:
-		return fmt.Sprintf("ast.NewTypeDefinitionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Constant),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTypeDefinitionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Constant, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TypeDefinitionNode"),
 		)
 	case *ast.TypeExpressionNode:
-		return fmt.Sprintf("ast.NewTypeExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTypeExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TypeExpressionNode"),
 		)
 	case *ast.TypeStatementNode:
-		return fmt.Sprintf("ast.NewTypeStatementNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTypeStatementNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TypeStatementNode"),
 		)
 	case *ast.TypeofExpressionNode:
-		return fmt.Sprintf("ast.NewTypeofExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewTypeofExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.TypeofExpressionNode"),
 		)
 	case *ast.UInt16LiteralNode:
-		return fmt.Sprintf("ast.NewUInt16LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUInt16LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UInt16LiteralNode"),
 		)
 	case *ast.UInt32LiteralNode:
-		return fmt.Sprintf("ast.NewUInt32LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUInt32LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UInt32LiteralNode"),
 		)
 	case *ast.UInt64LiteralNode:
-		return fmt.Sprintf("ast.NewUInt64LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUInt64LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UInt64LiteralNode"),
 		)
 	case *ast.UInt8LiteralNode:
-		return fmt.Sprintf("ast.NewUInt8LiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUInt8LiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UInt8LiteralNode"),
 		)
 	case *ast.UIntLiteralNode:
-		return fmt.Sprintf("ast.NewUIntLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUIntLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Value),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UIntLiteralNode"),
 		)
 	case *ast.UnaryExpressionNode:
-		return fmt.Sprintf("ast.NewUnaryExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.Right),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnaryExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.Right, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnaryExpressionNode"),
 		)
 	case *ast.UnaryTypeNode:
-		return fmt.Sprintf("ast.NewUnaryTypeNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.tokenToGoSource(n.Op),
-			c.astNodeToGoSource(n.TypeNode),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnaryTypeNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.tokenToGoSource(n.Op),
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnaryTypeNode"),
 		)
 	case *ast.UndefinedLiteralNode:
-		return fmt.Sprintf("ast.NewUndefinedLiteralNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUndefinedLiteralNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UndefinedLiteralNode"),
 		)
 	case *ast.UnhygienicNode:
-		return fmt.Sprintf("ast.NewUnhygienicNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Node),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnhygienicNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Node, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnhygienicNode"),
 		)
 	case *ast.UninterpolatedRegexLiteralNode:
-		return fmt.Sprintf("ast.NewUninterpolatedRegexLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.Content),
-			c.bitField8ToGoSource(n.Flags),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUninterpolatedRegexLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.Content),
+				c.bitField8ToGoSource(n.Flags),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UninterpolatedRegexLiteralNode"),
 		)
 	case *ast.UnionTypeNode:
-		return fmt.Sprintf("ast.NewUnionTypeNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.TypeNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnionTypeNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.TypeNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnionTypeNode"),
 		)
 	case *ast.UnlessExpressionNode:
-		return fmt.Sprintf("ast.NewUnlessExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Condition),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnlessExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnlessExpressionNode"),
 		)
 	case *ast.UnquoteForInExpressionNode:
-		return fmt.Sprintf("ast.NewUnquoteForInExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.InExpression),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnquoteForInExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.InExpression, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnquoteForInExpressionNode"),
 		)
 	case *ast.UnquoteIfExpressionNode:
-		return fmt.Sprintf("ast.NewUnquoteIfExpressionNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Condition),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUnquoteIfExpressionNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ElseBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UnquoteIfExpressionNode"),
 		)
 	case *ast.UnquoteNode:
-		return fmt.Sprintf("ast.NewUnquoteNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("UnquoteKind", int(n.Kind)),
-			c.astNodeToGoSource(n.Expression),
-		)
+		if spliceInfo == nil {
+			return newGoValue(
+				fmt.Sprintf("ast.NewUnquoteNode(%s, %s, %s)",
+					c.locationToGoSource(n.Location()),
+					c.astEnum("UnquoteKind", int(n.Kind)),
+					c.astNodeToGoSource(n.Expression, spliceInfo).value,
+				),
+				node.MacroType(c.checker.Env()),
+				value.FetchGoType("*ast.UnquoteNode"),
+			)
+		}
+
+		return c.convertValueToNarrowerType(spliceInfo.currentValue())
 	case *ast.UntilExpressionNode:
-		return fmt.Sprintf("ast.NewUntilExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Condition),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUntilExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UntilExpressionNode"),
 		)
 	case *ast.UsingAllEntryNode:
-		return fmt.Sprintf("ast.NewUsingAllEntryNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Namespace),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUsingAllEntryNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Namespace, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UsingAllEntryNode"),
 		)
 	case *ast.UsingEntryWithSubentriesNode:
-		return fmt.Sprintf("ast.NewUsingEntryWithSubentriesNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Namespace),
-			astSliceToGoSource(c, "[]ast.UsingSubentryNode", n.Subentries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUsingEntryWithSubentriesNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Namespace, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.UsingSubentryNode", n.Subentries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UsingEntryWithSubentriesNode"),
 		)
 	case *ast.UsingExpressionNode:
-		return fmt.Sprintf("ast.NewUsingExpressionNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.UsingEntryNode", n.Entries),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUsingExpressionNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.UsingEntryNode", n.Entries, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UsingExpressionNode"),
 		)
 	case *ast.UsingSubentryAsNode:
-		return fmt.Sprintf("ast.NewUsingSubentryAsNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Target),
-			c.astNodeToGoSource(n.AsName),
+		return newGoValue(
+			fmt.Sprintf("ast.NewUsingSubentryAsNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Target, spliceInfo).value,
+				c.astNodeToGoSource(n.AsName, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.UsingSubentryAsNode"),
 		)
 	case *ast.ValueDeclarationNode:
-		return fmt.Sprintf("ast.NewValueDeclarationNode(%s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewValueDeclarationNode(%s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ValueDeclarationNode"),
 		)
 	case *ast.ValuePatternDeclarationNode:
-		return fmt.Sprintf("ast.NewValuePatternDeclarationNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewValuePatternDeclarationNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.ValuePatternDeclarationNode"),
 		)
 	case *ast.VariableDeclarationNode:
-		return fmt.Sprintf("ast.NewVariableDeclarationNode(%s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%q", n.DocComment()),
-			c.astNodeToGoSource(n.Name),
-			c.astNodeToGoSource(n.TypeNode),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewVariableDeclarationNode(%s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%q", n.DocComment()),
+				c.astNodeToGoSource(n.Name, spliceInfo).value,
+				c.astNodeToGoSource(n.TypeNode, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.VariableDeclarationNode"),
 		)
 	case *ast.VariablePatternDeclarationNode:
-		return fmt.Sprintf("ast.NewVariablePatternDeclarationNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Pattern),
-			c.astNodeToGoSource(n.Initialiser),
+		return newGoValue(
+			fmt.Sprintf("ast.NewVariablePatternDeclarationNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Pattern, spliceInfo).value,
+				c.astNodeToGoSource(n.Initialiser, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.VariablePatternDeclarationNode"),
 		)
 	case *ast.VariantTypeParameterNode:
-		return fmt.Sprintf("ast.NewVariantTypeParameterNode(%s, %s, %s, %s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astEnum("Variance", int(n.Variance)),
-			fmt.Sprintf("%q", n.Name),
-			c.astNodeToGoSource(n.LowerBound),
-			c.astNodeToGoSource(n.UpperBound),
-			c.astNodeToGoSource(n.Default),
+		return newGoValue(
+			fmt.Sprintf("ast.NewVariantTypeParameterNode(%s, %s, %s, %s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astEnum("Variance", int(n.Variance)),
+				fmt.Sprintf("%q", n.Name),
+				c.astNodeToGoSource(n.LowerBound, spliceInfo).value,
+				c.astNodeToGoSource(n.UpperBound, spliceInfo).value,
+				c.astNodeToGoSource(n.Default, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.VariantTypeParameterNode"),
 		)
 	case *ast.VoidTypeNode:
-		return fmt.Sprintf("ast.NewVoidTypeNode(%s)",
-			c.locationToGoSource(n.Location()),
+		return newGoValue(
+			fmt.Sprintf("ast.NewVoidTypeNode(%s)",
+				c.locationToGoSource(n.Location()),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.VoidTypeNode"),
 		)
 	case *ast.WhileExpressionNode:
-		return fmt.Sprintf("ast.NewWhileExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			c.astNodeToGoSource(n.Condition),
-			astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody),
+		return newGoValue(
+			fmt.Sprintf("ast.NewWhileExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				c.astNodeToGoSource(n.Condition, spliceInfo).value,
+				astSliceToGoSource(c, "[]ast.StatementNode", n.ThenBody, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.WhileExpressionNode"),
 		)
 	case *ast.WordArrayListLiteralNode:
-		return fmt.Sprintf("ast.NewWordArrayListLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewWordArrayListLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.WordArrayListLiteralNode"),
 		)
 	case *ast.WordArrayTupleLiteralNode:
-		return fmt.Sprintf("ast.NewWordArrayTupleLiteralNode(%s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements),
+		return newGoValue(
+			fmt.Sprintf("ast.NewWordArrayTupleLiteralNode(%s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements, spliceInfo),
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.WordArrayTupleLiteralNode"),
 		)
 	case *ast.WordHashSetLiteralNode:
-		return fmt.Sprintf("ast.NewWordHashSetLiteralNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements),
-			c.astNodeToGoSource(n.Capacity),
+		return newGoValue(
+			fmt.Sprintf("ast.NewWordHashSetLiteralNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				astSliceToGoSource(c, "[]ast.WordCollectionContentNode", n.Elements, spliceInfo),
+				c.astNodeToGoSource(n.Capacity, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.WordHashSetLiteralNode"),
 		)
 	case *ast.YieldExpressionNode:
-		return fmt.Sprintf("ast.NewYieldExpressionNode(%s, %s, %s)",
-			c.locationToGoSource(n.Location()),
-			fmt.Sprintf("%t", n.Forward),
-			c.astNodeToGoSource(n.Value),
+		return newGoValue(
+			fmt.Sprintf("ast.NewYieldExpressionNode(%s, %s, %s)",
+				c.locationToGoSource(n.Location()),
+				fmt.Sprintf("%t", n.Forward),
+				c.astNodeToGoSource(n.Value, spliceInfo).value,
+			),
+			node.MacroType(c.checker.Env()),
+			value.FetchGoType("*ast.YieldExpressionNode"),
 		)
 	default:
 		panic(fmt.Sprintf("invalid ast node when converting to Go source: %T", node))
