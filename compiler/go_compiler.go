@@ -1190,6 +1190,11 @@ func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *
 	return nilGoValue
 }
 
+func (c *GoCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode, valueIsIgnored bool) *goValue {
+	// TODO: transpile select
+	return nilGoValue
+}
+
 func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) *goValue {
 	endLabel := c.registerGoLabel()
 	c.enterDefaultScope()
@@ -2542,6 +2547,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		)
 	case *ast.ClosureLiteralNode:
 		return c.compileClosureLiteralNode(node, valueIsIgnored)
+	case *ast.SelectExpressionNode:
+		return c.compileSelectExpressionNode(node, valueIsIgnored)
 	case *ast.SwitchExpressionNode:
 		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.MatchExpressionNode:
