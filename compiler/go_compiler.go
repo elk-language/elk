@@ -2322,6 +2322,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileInterfaceDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
 		return c.compileVariableDeclarationNode(node)
+	case *ast.VariablePatternDeclarationNode:
+		return c.compileVariablePatternDeclarationNode(node)
+	case *ast.ValuePatternDeclarationNode:
+		return c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
 		return c.compileValueDeclarationNode(node)
 	case *ast.ConstructorCallNode:
@@ -6807,6 +6811,40 @@ func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *go
 	)
 }
 
+func (c *GoCompiler) compileVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *goValue {
+	_, initVal := c.wrapValueInTmpGoLocal(c.compileExpression(node.Initialiser, false))
+	patternResult := c.compilePattern(node.Pattern, initVal)
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	return initVal
+}
+
+func (c *GoCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *goValue {
+	_, initVal := c.wrapValueInTmpGoLocal(c.compileExpression(node.Initialiser, false))
+	patternResult := c.compilePattern(node.Pattern, initVal)
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	return initVal
+}
+
 func (c *GoCompiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) *goValue {
 	initialised := node.Initialiser != nil
 
@@ -6907,6 +6945,9 @@ func (c *GoCompiler) compileReturnExpressionNode(node *ast.ReturnExpressionNode)
 func (c *GoCompiler) methodReturnValue(val *goValue) string {
 	if c.method == nil {
 		return c.convertValueToWiderType(val).fetchValue()
+	}
+	if types.IsNever(val.elkType) {
+		return "result"
 	}
 
 	goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)

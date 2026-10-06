@@ -4197,62 +4197,107 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "declare with a pattern": {
-		// 	input: "var [1, a] = [1, 2]",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		nil,
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 33,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.EQUAL_INT),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_0),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_1),
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_1),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_IF), 0, 2,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.THROW),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(18, 1, 19)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 49),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
-		// 			value.Ref(value.ListMixin),
-		// 			value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-		// 			value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in variable declaration")),
-		// 		},
-		// 	),
-		// },
+		"declare with a pattern": {
+			input: "var [1, a] = [1, 2]",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("length")
+var fn_method0 vm.NativeFunction // Std::ArrayList.:length
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.Bool
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var t4 []value.Value
+	_ = t4
+	var err value.Value
+	_ = err
+	var t5 value.SmallInt
+	_ = t5
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ArrayListClass).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
+	t2 = value.True
+	if !(value.Bool(value.IsA((t1).ToValue(), value.ListMixin))) {
+		t2 = value.False
+		goto lbl1
+	}
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = (t1).ToValue()
+	t3, err = fn_method0(thread, t4) // receiver: Std::ArrayList, name: length
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
+		t2 = value.False
+		goto lbl1
+	}
+	t3, err = (t1).Get(int(value.SmallInt(0)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+		t2 = value.False
+		goto lbl1
+	}
+	t3, err = (t1).Get(int(value.SmallInt(1)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t3
+lbl1:
+	if !(t2) {
+		thread.CaptureStackTrace()
+		thread.Panic((value.NewPatternNotMatchedInVariableDeclarationError()).ToValue())
+	}
+}
+`,
+		},
 
 		"read undeclared": {
 			input: "a",
@@ -5499,62 +5544,107 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// "declare with a pattern": {
-		// 	input: "val [1, a] = [1, 2]",
-		// 	want: vm.NewBytecodeFunctionNoParams(
-		// 		nil,
-		// 		mainSymbol,
-		// 		[]byte{
-		// 			byte(bytecode.PREP_LOCALS8), 1,
-		// 			byte(bytecode.LOAD_VALUE_0),
-		// 			byte(bytecode.COPY),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.LOAD_VALUE_1),
-		// 			byte(bytecode.IS_A),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 33,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.CALL_METHOD8), 2,
-		// 			byte(bytecode.INT_2),
-		// 			byte(bytecode.EQUAL_INT),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_0),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_1),
-		// 			byte(bytecode.EQUAL),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.INT_1),
-		// 			byte(bytecode.SUBSCRIPT),
-		// 			byte(bytecode.DUP),
-		// 			byte(bytecode.SET_LOCAL_1),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.POP_SKIP_ONE),
-		// 			byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-		// 			byte(bytecode.POP),
-		// 			byte(bytecode.TRUE),
-		// 			byte(bytecode.JUMP_IF), 0, 2,
-		// 			byte(bytecode.LOAD_VALUE_3),
-		// 			byte(bytecode.THROW),
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		L(P(0, 1, 1), P(18, 1, 19)),
-		// 		bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 49),
-		// 		},
-		// 		[]value.Value{
-		// 			value.Ref(&value.ArrayListOfValue{value.SmallInt(1).ToValue(), value.SmallInt(2).ToValue()}),
-		// 			value.Ref(value.ListMixin),
-		// 			value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-		// 			value.Ref(value.NewError(value.PatternNotMatchedErrorClass, "assigned value does not match the pattern defined in value declaration")),
-		// 		},
-		// 	),
-		// },
+		"declare with a pattern": {
+			input: "val [1, a] = [1, 2]",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("length")
+var fn_method0 vm.NativeFunction // Std::ArrayList.:length
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 *value.ArrayListOfValue
+	_ = t1
+	var t2 value.Bool
+	_ = t2
+	var t3 value.Value
+	_ = t3
+	var t4 []value.Value
+	_ = t4
+	var err value.Value
+	_ = err
+	var t5 value.SmallInt
+	_ = t5
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ArrayListClass).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
+	t2 = value.True
+	if !(value.Bool(value.IsA((t1).ToValue(), value.ListMixin))) {
+		t2 = value.False
+		goto lbl1
+	}
+	t4 = value.ResizeNativeArgs(t4, 2)
+	t4[0] = (t1).ToValue()
+	t3, err = fn_method0(thread, t4) // receiver: Std::ArrayList, name: length
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t5 = value.SmallInt((t3).AsInt())
+	if t5 != 2 {
+		t2 = value.False
+		goto lbl1
+	}
+	t3, err = (t1).Get(int(value.SmallInt(0)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	if !(value.Bool(value.EqualInts(t3, (value.SmallInt(1)).ToValue()))) {
+		t2 = value.False
+		goto lbl1
+	}
+	t3, err = (t1).Get(int(value.SmallInt(1)))
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t3
+lbl1:
+	if !(t2) {
+		thread.CaptureStackTrace()
+		thread.Panic((value.NewPatternNotMatchedInVariableDeclarationError()).ToValue())
+	}
+}
+`,
+		},
 		"assign uninitialised": {
 			input: `
 				val a: String
