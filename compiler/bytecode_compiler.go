@@ -1959,7 +1959,7 @@ func (c *BytecodeCompiler) compileDo(body func(), catches []*ast.CatchNode, fina
 func (c *BytecodeCompiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode) {
 	location := node.Location()
 
-	c.enterScope("", defaultBytecodeScopeType)
+	c.enterScope("", macroBoundaryBytecodeScopeType)
 	c.compileStatementsWithResult(node.Body, location)
 	c.leaveScope(location.EndPos.Line)
 }

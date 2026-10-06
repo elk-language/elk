@@ -2306,6 +2306,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return nilGoValue
 	case *ast.MacroBoundaryNode:
 		return c.compileMacroBoundaryNode(node, valueIsIgnored)
+	case *ast.UnhygienicNode:
+		return c.compileUnhygienicExpressionNode(node, valueIsIgnored)
 	case *ast.TypeofExpressionNode:
 		return c.compileExpression(node.Value, valueIsIgnored)
 	case *ast.ExtendWhereBlockExpressionNode:
@@ -2396,6 +2398,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileCharLiteralNode(node)
 	case *ast.SimpleSymbolLiteralNode:
 		return c.compileSimpleSymbolLiteralNode(node)
+	case *ast.TryExpressionNode:
+		return c.compileExpression(node.Value, valueIsIgnored)
 	case *ast.NilLiteralNode:
 		return nilGoValue
 	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
@@ -2407,11 +2411,14 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 			goValueType,
 		)
 	case *ast.BreakpointNode:
-		c.addFailure(
-			"breakpoint is not available in native mode",
-			node.Location(),
+		c.emitThrow(
+			newGoValue(
+				"value.NewError(value.NotImplementedError, \"breakpoint is not supported in native mode.\")",
+				c.checker.Std(symbol.C_Error),
+				value.FetchGoType("*value.Object"),
+			),
 		)
-		return nilGoValue
+		return neverGoValue
 	case *ast.TrueLiteralNode:
 		return newGoValue("value.True", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.FalseLiteralNode:
@@ -4156,16 +4163,22 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 	return nilGoValue
 }
 
+func (c *GoCompiler) compileUnhygienicExpressionNode(node *ast.UnhygienicNode, valueIsIgnored bool) *goValue {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	val := c.compileExpression(node.Node.(ast.ExpressionNode), valueIsIgnored)
+
+	c.unhygienic = prevUnhygienic
+	return val
+}
+
 func (c *GoCompiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode, valueIsIgnored bool) *goValue {
-	return c.compileDo(
-		func() *goValue {
-			return c.compileStatements(node.Body, valueIsIgnored)
-		},
-		nil,
-		nativeFinallyBody{},
-		c.typeOf(node),
-		valueIsIgnored,
-	)
+	c.enterScope(macroBoundaryNativeElkScopeType)
+	val := c.compileStatements(node.Body, valueIsIgnored)
+	c.leaveScope()
+
+	return val
 }
 
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
@@ -6967,14 +6980,12 @@ func (c *GoCompiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) *
 }
 
 func (c *GoCompiler) compileCallNode(node *ast.CallNode, valueIsIgnored bool) *goValue {
-	receiver := c.compileExpression(node.Receiver, false)
-
-	return c.compileMethodCallWithArgNodes(
-		receiver,
-		receiver.elkType,
-		c.typeOf(node),
+	return c.compileMethodCall(
+		node.Receiver,
+		node.OpType(),
 		"call",
 		node.PositionalArguments,
+		c.typeOf(node),
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -7029,8 +7040,8 @@ func (c *GoCompiler) compileConstructorCall(method *types.Method, class *goValue
 func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgnored bool) *goValue {
 	return c.compileMethodCall(
 		node.Receiver,
-		node.Op,
-		node.MethodName,
+		node.Op.Type,
+		identifierToName(node.MethodName),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
@@ -7041,8 +7052,8 @@ func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgno
 func (c *GoCompiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode, valueIsIgnored bool) *goValue {
 	return c.compileMethodCall(
 		node.Receiver,
-		node.Op,
-		node.MethodName,
+		node.Op.Type,
+		identifierToName(node.MethodName),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
@@ -7050,10 +7061,8 @@ func (c *GoCompiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNod
 	)
 }
 
-func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
-	name := identifierToName(nameNode)
-
-	switch op.Type {
+func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op token.Type, name string, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
+	switch op {
 	case token.QUESTION_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
@@ -7061,7 +7070,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(receiverVal).fetchValue())
 		c.emit("%s = value.Nil\n", resultVar.name)
 		c.emit("} else {\n")
-		callResult := c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		callResult := c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, callResult)
 		c.emit("}\n")
 
@@ -7073,7 +7082,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(receiverVal).fetchValue())
 		c.emit("%s = value.Nil\n", resultVar.name)
 		c.emit("} else {\n")
-		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, receiverVal)
 		c.emit("}\n")
 
@@ -7082,19 +7091,19 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
 
-		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, receiverVal)
 
 		return newGoValueWithLocal(resultVar, typ)
 	case token.DOT:
 		receiverVal := c.compileExpression(receiver, false)
-		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType types.Type, name string, op *token.Token, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType types.Type, name string, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
 	return c.compileMethodCallWithArgNodes(receiver, receiverType, typ, name, args, location, valueIsIgnored)
 }
 

@@ -1048,6 +1048,13 @@ func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseO
 	return leave(n, parent)
 }
 
+func (n *CallNode) OpType() token.Type {
+	if n.NilSafe {
+		return token.QUESTION_DOT
+	}
+	return token.DOT
+}
+
 func (n *CallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CallNode)
 	if !ok {
