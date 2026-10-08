@@ -37,11 +37,11 @@ func (ch NativeWriteChannel[V]) NativeChannelAny() any {
 	return (chan<- V)(ch)
 }
 
-func (ch NativeWriteChannel[V]) TransformFromValue(v Value) any {
+func (ch NativeWriteChannel[V]) TransformFromValueToAny(v Value) any {
 	panic("not a transformer channel")
 }
 
-func (ch NativeWriteChannel[V]) TransformToValue(v any) Value {
+func (ch NativeWriteChannel[V]) TransformAnyToValue(v any) Value {
 	panic("not a transformer channel")
 }
 

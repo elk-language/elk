@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -1190,8 +1191,362 @@ func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *
 	return nilGoValue
 }
 
-func (c *GoCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode, valueIsIgnored bool) *goValue {
-	// TODO: transpile select
+type goSelectCase struct {
+	expression   ast.ExpressionNode
+	direction    reflect.SelectDir
+	channelValue *goValue
+	pushedValue  *goValue
+	body         []ast.StatementNode
+}
+
+func newGoSelectCase(expr ast.ExpressionNode, body []ast.StatementNode, dir reflect.SelectDir, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		expression:   expr,
+		body:         body,
+		direction:    dir,
+		channelValue: chanVal,
+		pushedValue:  pushedVal,
+	}
+}
+
+func newGoSelectReceiveCase(expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		expression:   expr,
+		body:         body,
+		direction:    reflect.SelectRecv,
+		channelValue: chanVal,
+	}
+}
+
+func newGoSelectDefaultCase(body []ast.StatementNode) *goSelectCase {
+	return &goSelectCase{
+		body:      body,
+		direction: reflect.SelectDefault,
+	}
+}
+
+func newGoSelectSendCase(expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		expression:   expr,
+		body:         body,
+		direction:    reflect.SelectSend,
+		channelValue: chanVal,
+		pushedValue:  pushedVal,
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseValues(expr ast.ExpressionNode, body []ast.StatementNode) *goSelectCase {
+	switch expr := expr.(type) {
+	case nil:
+		return newGoSelectDefaultCase(body)
+	case *ast.UnaryExpressionNode:
+		if expr.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid unary op in select case: %s", expr.Op.String()))
+		}
+
+		return newGoSelectReceiveCase(
+			expr,
+			body,
+			c.wrapValueInTmpGoLocalVal(
+				c.convertValueToAnyChannel(
+					c.compileExpression(expr.Right, false),
+				),
+			),
+		)
+	case *ast.AssignmentExpressionNode:
+		switch expr.Op.Type {
+		case token.EQUAL_OP, token.COLON_EQUAL, token.COLON_COLON_EQUAL:
+		default:
+			panic(fmt.Sprintf("invalid select case assignment operator: %s", expr.Op.Type.String()))
+		}
+		result := c.compileSelectCaseValues(expr.Right, body)
+		result.expression = expr
+		return result
+	case *ast.VariableDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		return c.compileSelectCaseValues(expr.Initialiser, body)
+	case *ast.ValueDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.VariablePatternDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.ValuePatternDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.BinaryExpressionNode:
+		if expr.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid binary op in select case: %s", expr.Op.String()))
+		}
+		return newGoSelectSendCase(
+			expr,
+			body,
+			c.wrapValueInTmpGoLocalVal(
+				c.convertValueToAnyChannel(
+					c.compileExpression(expr.Left, false),
+				),
+			),
+			c.compileExpression(expr.Right, false),
+		)
+	default:
+		panic(fmt.Sprintf("invalid select case expression: %T", expr))
+	}
+}
+
+func (c *GoCompiler) convertValueToAnyChannel(val *goValue) *goValue {
+	narrowVal := c.convertValueToNarrowerType(val)
+	switch narrowVal.goType.Name {
+	case "value.Channel", "value.AnyChannel", "value.ReadChannel", "value.WriteChannel",
+		"*value.ChannelOfValue", "*value.ReadChannelOfValue", "*value.WriteChannelOfValue",
+		"*value.NativeChannel", "*value.NativeReadChannel", "*vm.NativeWriteChannel",
+		"*value.NativeTransformerChannel", "*value.NativeTransformerReadChannel", "*value.NativeTransformerWriteChannel":
+		return narrowVal
+	default:
+		wider := c.convertValueToWiderType(val)
+		return wider.newGoValue(
+			fmt.Sprintf("(%s).AsReference().(value.AnyChannel)", wider.value),
+			wider.elkType,
+			value.FetchGoType("value.AnyChannel"),
+		)
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseStruct(caseValue *goSelectCase) {
+	switch caseValue.direction {
+	case reflect.SelectRecv:
+		c.emit("{\n")
+		c.emit("  Chan: reflect.ValueOf(%s),\n", caseValue.channelValue.value)
+		c.emit("	Dir:  reflect.SelectRecv,\n")
+		c.emit("},\n")
+	case reflect.SelectSend:
+		c.emit("{\n")
+		c.emit("  Chan: reflect.ValueOf(%s),\n", caseValue.channelValue.value)
+		c.emit("  Send: reflect.ValueOf(%s),\n", caseValue.pushedValue.fetchValue())
+		c.emit("	Dir:  reflect.SelectSend,\n")
+		c.emit("},\n")
+	case reflect.SelectDefault:
+		c.emit("{\n")
+		c.emit("	Dir:  reflect.SelectDefault,\n")
+		c.emit("},\n")
+	default:
+		panic(fmt.Sprintf("invalid select case direction: %d\n", caseValue.direction))
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseBody(caseValue *goSelectCase, i int, receivedValTmp, channelIsOpenTmp *goLocal) {
+	switch expr := caseValue.expression.(type) {
+	case nil:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	case *ast.UnaryExpressionNode:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	case *ast.AssignmentExpressionNode:
+		c.compileSelectCaseAssignmentBody(expr, caseValue, i, receivedValTmp, channelIsOpenTmp)
+	case *ast.VariablePatternDeclarationNode:
+		c.compileSelectCaseLocalPatternDeclarationBody(expr.Pattern, expr.Initialiser, caseValue, i, receivedValTmp, channelIsOpenTmp)
+	case *ast.ValuePatternDeclarationNode:
+		c.compileSelectCaseLocalPatternDeclarationBody(expr.Pattern, expr.Initialiser, caseValue, i, receivedValTmp, channelIsOpenTmp)
+	case *ast.VariableDeclarationNode:
+		c.compileSelectCaseLocalDeclarationBody(expr.Name, expr.Initialiser, caseValue, i, receivedValTmp, channelIsOpenTmp)
+	case *ast.ValueDeclarationNode:
+		c.compileSelectCaseLocalDeclarationBody(expr.Name, expr.Initialiser, caseValue, i, receivedValTmp, channelIsOpenTmp)
+	case *ast.BinaryExpressionNode:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	default:
+		panic(fmt.Sprintf("invalid select case direction: %d\n", caseValue.direction))
+	}
+}
+
+func (c *GoCompiler) compileSimpleSelectCaseBody(caseValue *goSelectCase, i int) {
+	c.emit("%d:\n", i)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) emitChannelPopValueHandler(localName string, elkType types.Type, receivedValTmp, channelIsOpenTmp *goLocal) {
+	c.emit("if !%s {\n", channelIsOpenTmp.name)
+	c.emitSetLocal(
+		localName,
+		newGoValue(
+			"value.MakeErrResult(value.ChannelClosedPopError.ToValue())",
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+	c.emit("} else {\n")
+	c.emitSetLocal(
+		localName,
+		newGoValue(
+			fmt.Sprintf("value.MakeOkResult(%s.Interface().(value.Value))", receivedValTmp.name),
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+	c.emit("}\n")
+}
+
+func (c *GoCompiler) emitChannelPopResultValueHandler(elkType types.Type, receivedValTmp, channelIsOpenTmp *goLocal) *goValue {
+	resultTmp := c.defineTmpGoLocal(value.FetchGoType("value.Result"))
+
+	c.emit("if !%s {\n", channelIsOpenTmp.name)
+	c.emitAssignGoLocal(
+		resultTmp,
+		newGoValue(
+			"value.MakeErrResult(value.ChannelClosedPopError.ToValue())",
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+	c.emit("} else {\n")
+	c.emitAssignGoLocal(
+		resultTmp,
+		newGoValue(
+			fmt.Sprintf("value.MakeOkResult(%s.Interface().(value.Value))", receivedValTmp.name),
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+	c.emit("}\n")
+
+	return newGoValueWithLocal(
+		resultTmp,
+		elkType,
+	)
+}
+
+func (c *GoCompiler) compileSelectCaseAssignmentBody(node *ast.AssignmentExpressionNode, caseValue *goSelectCase, i int, receivedValTmp, channelIsOpenTmp *goLocal) {
+	c.emit("%d:\n", i)
+
+	name := identifierToName(node.Left.(ast.IdentifierNode))
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+	case token.COLON_EQUAL:
+		typ := c.typeOf(node.Left)
+		goType := c.elkTypeToGoType(typ, false)
+		c.defineLocal(
+			name,
+			typ,
+			goType,
+			node.Left.Location(),
+		)
+	case token.COLON_COLON_EQUAL:
+		typ := c.typeOf(node.Left)
+		goType := c.elkTypeToGoType(typ, false)
+		c.defineLocal(
+			name,
+			typ,
+			goType,
+			node.Left.Location(),
+		)
+	default:
+		panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))
+	}
+
+	c.emitChannelPopValueHandler(name, c.typeOf(node.Left), receivedValTmp, channelIsOpenTmp)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectCaseLocalPatternDeclarationBody(pattern ast.PatternNode, initNode ast.ExpressionNode, caseValue *goSelectCase, i int, receivedValTmp, channelIsOpenTmp *goLocal) {
+	c.emit("%d:\n", i)
+
+	unary := initNode.(*ast.UnaryExpressionNode)
+
+	val := c.emitChannelPopResultValueHandler(
+		c.typeOf(unary),
+		receivedValTmp,
+		channelIsOpenTmp,
+	)
+	patternResult := c.compilePattern(pattern, val)
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectCaseLocalDeclarationBody(localName ast.IdentifierNode, initNode ast.ExpressionNode, caseValue *goSelectCase, i int, receivedValTmp, channelIsOpenTmp *goLocal) {
+	c.emit("%d:\n", i)
+
+	unary := initNode.(*ast.UnaryExpressionNode)
+	name := identifierToName(localName.(ast.IdentifierNode))
+	typ := c.typeOf(unary)
+	goType := c.elkTypeToGoType(typ, false)
+	c.defineLocal(
+		name,
+		typ,
+		goType,
+		localName.Location(),
+	)
+
+	c.emitChannelPopValueHandler(name, typ, receivedValTmp, channelIsOpenTmp)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode) *goValue {
+	caseValues := make([]*goSelectCase, 0, len(node.Cases)+1)
+	for _, selectCase := range node.Cases {
+		caseValue := c.compileSelectCaseValues(selectCase.Expression, selectCase.Body)
+		caseValues = append(caseValues, caseValue)
+	}
+	if len(node.ElseBody) > 0 {
+		caseValue := c.compileSelectCaseValues(nil, node.ElseBody)
+		caseValues = append(caseValues, caseValue)
+	}
+
+	chosenCaseIndexTmp := c.defineTmpGoLocal(value.FetchGoType("int"))
+	receivedValTmp := c.defineTmpGoLocal(value.FetchGoType("reflect.Value"))
+	channelIsOpenTmp := c.defineTmpGoLocal(value.FetchGoType("bool"))
+	c.emit(
+		"%s, %s, %s := reflect.Select([]reflect.SelectCase{\n",
+		chosenCaseIndexTmp.name,
+		receivedValTmp.name,
+		channelIsOpenTmp.name,
+	)
+
+	c.emit("{\n")
+	c.emit("  Chan: reflect.ValueOf(thread.Aborter.Context().Done()),\n")
+	c.emit("	Dir:  reflect.SelectRecv,\n")
+	c.emit("},\n")
+	for _, caseValue := range caseValues {
+		c.compileSelectCaseStruct(caseValue)
+	}
+	c.emit("})\n")
+
+	c.emit("if %s == 0 {\n", chosenCaseIndexTmp.name)
+	c.emitThrow(
+		newGoValue(
+			"value.ExecutionAbortedError",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	c.emit("switch %s {\n", chosenCaseIndexTmp.name)
+	for i, selectCase := range caseValues {
+		c.compileSelectCaseBody(selectCase, i+1, receivedValTmp, channelIsOpenTmp)
+	}
+	c.emit("}\n")
+
 	return nilGoValue
 }
 
@@ -2548,7 +2903,7 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 	case *ast.ClosureLiteralNode:
 		return c.compileClosureLiteralNode(node, valueIsIgnored)
 	case *ast.SelectExpressionNode:
-		return c.compileSelectExpressionNode(node, valueIsIgnored)
+		return c.compileSelectExpressionNode(node)
 	case *ast.SwitchExpressionNode:
 		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.MatchExpressionNode:
@@ -8498,6 +8853,11 @@ func (c *GoCompiler) wrapValueInTmpGoLocal(val *goValue) (*goLocal, *goValue) {
 	tmp := c.defineTmpGoLocalForValue(val)
 	tmpVal := newGoValueWithLocal(tmp, val.elkType)
 	return tmp, tmpVal
+}
+
+func (c *GoCompiler) wrapValueInTmpGoLocalVal(val *goValue) *goValue {
+	_, result := c.wrapValueInTmpGoLocal(val)
+	return result
 }
 
 func (c *GoCompiler) wrapValueInTmpGoLocalIfNotIgnored(val *goValue, valueIsIgnored bool) (*goLocal, *goValue) {

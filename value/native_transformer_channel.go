@@ -49,11 +49,11 @@ func (ch *NativeTransformerChannel[V]) NativeChannelAny() any {
 	return ch.ch
 }
 
-func (ch *NativeTransformerChannel[V]) TransformToValue(v any) Value {
+func (ch *NativeTransformerChannel[V]) TransformAnyToValue(v any) Value {
 	return ch.getTransformer(v.(V))
 }
 
-func (ch *NativeTransformerChannel[V]) TransformFromValue(v Value) any {
+func (ch *NativeTransformerChannel[V]) TransformFromValueToAny(v Value) any {
 	return ch.setTransformer(v)
 }
 

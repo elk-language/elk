@@ -3589,9 +3589,13 @@ func (vm *Thread) opSelect() value.Value {
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectSend:
 			val := vm.popGet()
-			send = reflect.ValueOf(val)
-
 			ch := vm.popGet().AsReference().(value.AnyChannel)
+
+			if ch.IsTransformerChannel() {
+				send = reflect.ValueOf(ch.TransformFromValueToAny(val))
+			} else {
+				send = reflect.ValueOf(val)
+			}
 			channels[i] = ch
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectDefault:
@@ -3635,7 +3639,7 @@ func (vm *Thread) opSelect() value.Value {
 
 	if chosenChannel != nil && chosenChannel.IsTransformerChannel() {
 		result := value.MakeOkResult(
-			chosenChannel.TransformToValue(
+			chosenChannel.TransformAnyToValue(
 				val.Interface(),
 			),
 		)
@@ -3645,7 +3649,7 @@ func (vm *Thread) opSelect() value.Value {
 	}
 
 	switch chosenChannel.(type) {
-	case *value.ChannelOfValue:
+	case *value.ChannelOfValue, *value.ReadChannelOfValue, *value.WriteChannelOfValue:
 		result := value.MakeOkResult(
 			val.Interface().(value.Value),
 		)
