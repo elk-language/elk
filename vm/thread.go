@@ -3610,12 +3610,14 @@ func (vm *Thread) opSelect() value.Value {
 		}
 	}
 
-	chosenCaseIndex, val, channelOpen := reflect.Select(reflectSelectCases)
-	if chosenCaseIndex == 0 {
-		return value.ExecutionAbortedError.ToValue()
+	selectResult := DoSelect(reflectSelectCases)
+	if selectResult.Err.IsNotUndefined() {
+		return selectResult.Err
 	}
 
-	chosenCaseIndex--
+	chosenCaseIndex := selectResult.ChosenCaseIndex
+	channelOpen := selectResult.ChannelIsOpen
+	val := selectResult.ReflectValue
 	chosenCase := selectData.Cases[chosenCaseIndex]
 	chosenChannel := channels[chosenCaseIndex]
 
