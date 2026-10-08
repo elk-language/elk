@@ -14,8 +14,29 @@ type SelectResult struct {
 	ChannelIsOpen   bool
 }
 
-func (r *SelectResult) Value() value.Value {
-	return r.ReflectValue.Interface().(value.Value)
+func (r *SelectResult) Value(channel value.AnyChannel) value.Value {
+	if channel.IsTransformerChannel() {
+		return channel.TransformAnyToValue(r.AnyValue())
+	}
+
+	switch channel.(type) {
+	case *value.ChannelOfValue, *value.ReadChannelOfValue, *value.WriteChannelOfValue:
+		return r.AnyValue().(value.Value)
+	default:
+		return r.AnyValue().(value.ValueInterface).ToValue()
+	}
+}
+
+func (r *SelectResult) AnyValue() any {
+	return r.ReflectValue.Interface()
+}
+
+func (r *SelectResult) Result(channel value.AnyChannel) value.Result {
+	if !r.ChannelIsOpen {
+		return value.MakeErrResult(value.ChannelClosedPopError.ToValue())
+	}
+
+	return value.MakeOkResult(r.Value(channel))
 }
 
 func DoSelect(cases []reflect.SelectCase) *SelectResult {

@@ -9,6 +9,14 @@ var ChannelClosedPopError *Object
 var ChannelClosedPushError *Object
 var ChannelClosedCloseError *Object
 
+func NormaliseSentValueToChannel(channel AnyChannel, val Value) any {
+	if !channel.IsTransformerChannel() {
+		return val
+	}
+
+	return channel.TransformFromValueToAny(val)
+}
+
 type AnyChannel interface {
 	ValueInterface
 	Length() int
