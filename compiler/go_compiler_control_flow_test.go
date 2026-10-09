@@ -6,6 +6,611 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
+func TestGoSelectExpression(t *testing.T) {
+	tests := goTestTable{
+		"multiple channel reads": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::Channel.:#init
+var sym3 = value.ToSymbol("inspect")
+var fn_method1 vm.NativeFunction // Std::Value.:inspect
+var sym4 = value.ToSymbol("println@1")
+var fn_method2 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l1 value.Value // var ch2: Std::Channel[Std::Int]
+	_ = l1
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 value.AnyChannel
+	_ = t4
+	var t5 *vm.SelectResult
+	_ = t5
+	var l2 value.Value // var v: void
+	_ = l2
+	var l3 value.Value // var v: void
+	_ = l3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = (l1).AsReference().(value.AnyChannel)
+	t5 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t4.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+	})
+	if t5.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t5.Err)
+	}
+	switch t5.ChosenCaseIndex {
+	case 0:
+		l2 = (t5.Result(t3)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l2
+		callFrame.SetNativeLineNumber(7)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 1:
+		l3 = (t5.Result(t4)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l3
+		callFrame.SetNativeLineNumber(9)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch2: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"channel read pattern": {
+			input: `
+				ch1 := Channel::[Int](5)
+
+				select
+				case var @{value} = <<ch1
+					println("ch1: #{value}")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::Channel.:#init
+var sym3 = value.ToSymbol("value")
+var fn_method1 vm.NativeFunction // Std::Result.:value
+var cc_main_1 = &vm.CallCache{}
+var sym4 = value.ToSymbol("println@1")
+var fn_method2 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 *vm.SelectResult
+	_ = t4
+	var t5 value.Result
+	_ = t5
+	var t6 value.Bool
+	_ = t6
+	var l1 value.Value // var value: Std::Int?
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ResultClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+	})
+	if t4.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t4.Err)
+	}
+	switch t4.ChosenCaseIndex {
+	case 0:
+		t5 = t4.Result(t3)
+		t6 = value.True
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = (t5).ToValue()
+		callFrame.SetNativeLineNumber(5)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: value
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = t1
+		if !(t6) {
+			thread.CaptureStackTrace()
+			thread.Panic((value.NewPatternNotMatchedInVariableDeclarationError()).ToValue())
+		}
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l1
+		callFrame.SetNativeLineNumber(6)
+		t1, err = thread.CallMethodByNameWithCache(value.S(symbol.L_inspect), &cc_main_1, t2...) // receiver: Std::Int?, name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"channel send": {
+			input: `
+				ch := Channel::[Int](5)
+
+				select
+				case ch << 5
+					println("sent")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::Channel.:#init
+var sym3 = value.ToSymbol("println@1")
+var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 *vm.SelectResult
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Send: reflect.ValueOf(value.NormaliseSentValueToChannel(t3, (value.SmallInt(5)).ToValue())),
+			Dir:  reflect.SelectSend,
+		},
+	})
+	if t4.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t4.Err)
+	}
+	switch t4.ChosenCaseIndex {
+	case 0:
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("sent")).ToValue()
+		callFrame.SetNativeLineNumber(6)
+		_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"a_few_cases_and_else": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				else
+					println("no match")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::Channel.:#init
+var sym3 = value.ToSymbol("inspect")
+var fn_method1 vm.NativeFunction // Std::Value.:inspect
+var sym4 = value.ToSymbol("println@1")
+var fn_method2 vm.NativeFunction // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l1 value.Value // var ch2: Std::Channel[Std::Int]
+	_ = l1
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 value.AnyChannel
+	_ = t4
+	var t5 *vm.SelectResult
+	_ = t5
+	var l2 value.Value // var v: void
+	_ = l2
+	var l3 value.Value // var v: void
+	_ = l3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = (l1).AsReference().(value.AnyChannel)
+	t5 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t4.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Dir: reflect.SelectDefault,
+		},
+	})
+	if t5.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t5.Err)
+	}
+	switch t5.ChosenCaseIndex {
+	case 0:
+		l2 = (t5.Result(t3)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l2
+		callFrame.SetNativeLineNumber(7)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 1:
+		l3 = (t5.Result(t4)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l3
+		callFrame.SetNativeLineNumber(9)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch2: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 2:
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("no match")).ToValue()
+		callFrame.SetNativeLineNumber(11)
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
 func TestGoGoExpression(t *testing.T) {
 	tests := goTestTable{
 		"with a single expression": {

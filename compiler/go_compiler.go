@@ -1196,16 +1196,22 @@ type goSelectCase struct {
 	direction    reflect.SelectDir
 	channelValue *goValue
 	pushedValue  *goValue
+	scope        *nativeElkScope
 	body         []ast.StatementNode
 }
 
 func (c *goSelectCase) markFree() {
-	c.channelValue.markFree()
-	c.pushedValue.markFree()
+	if c.channelValue != nil {
+		c.channelValue.markFree()
+	}
+	if c.pushedValue != nil {
+		c.pushedValue.markFree()
+	}
 }
 
-func newGoSelectCase(expr ast.ExpressionNode, body []ast.StatementNode, dir reflect.SelectDir, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+func newGoSelectCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, dir reflect.SelectDir, chanVal *goValue, pushedVal *goValue) *goSelectCase {
 	return &goSelectCase{
+		scope:        scope,
 		expression:   expr,
 		body:         body,
 		direction:    dir,
@@ -1214,8 +1220,9 @@ func newGoSelectCase(expr ast.ExpressionNode, body []ast.StatementNode, dir refl
 	}
 }
 
-func newGoSelectReceiveCase(expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue) *goSelectCase {
+func newGoSelectReceiveCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue) *goSelectCase {
 	return &goSelectCase{
+		scope:        scope,
 		expression:   expr,
 		body:         body,
 		direction:    reflect.SelectRecv,
@@ -1223,15 +1230,17 @@ func newGoSelectReceiveCase(expr ast.ExpressionNode, body []ast.StatementNode, c
 	}
 }
 
-func newGoSelectDefaultCase(body []ast.StatementNode) *goSelectCase {
+func newGoSelectDefaultCase(scope *nativeElkScope, body []ast.StatementNode) *goSelectCase {
 	return &goSelectCase{
+		scope:     scope,
 		body:      body,
 		direction: reflect.SelectDefault,
 	}
 }
 
-func newGoSelectSendCase(expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+func newGoSelectSendCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue, pushedVal *goValue) *goSelectCase {
 	return &goSelectCase{
+		scope:        scope,
 		expression:   expr,
 		body:         body,
 		direction:    reflect.SelectSend,
@@ -1243,13 +1252,17 @@ func newGoSelectSendCase(expr ast.ExpressionNode, body []ast.StatementNode, chan
 func (c *GoCompiler) compileSelectCaseValues(expr ast.ExpressionNode, body []ast.StatementNode) *goSelectCase {
 	switch expr := expr.(type) {
 	case nil:
-		return newGoSelectDefaultCase(body)
+		return newGoSelectDefaultCase(nil, body)
 	case *ast.UnaryExpressionNode:
 		if expr.Op.Type != token.LBITSHIFT {
 			panic(fmt.Sprintf("invalid unary op in select case: %s", expr.Op.String()))
 		}
 
+		scope := c.enterScope(defaultNativeElkScopeType)
+		defer c.leaveScope()
+
 		return newGoSelectReceiveCase(
+			scope,
 			expr,
 			body,
 			c.wrapValueInTmpGoLocalVal(
@@ -1297,7 +1310,11 @@ func (c *GoCompiler) compileSelectCaseValues(expr ast.ExpressionNode, body []ast
 		if expr.Op.Type != token.LBITSHIFT {
 			panic(fmt.Sprintf("invalid binary op in select case: %s", expr.Op.String()))
 		}
+		scope := c.enterScope(defaultNativeElkScopeType)
+		defer c.leaveScope()
+
 		return newGoSelectSendCase(
+			scope,
 			expr,
 			body,
 			c.wrapValueInTmpGoLocalVal(
@@ -1355,6 +1372,11 @@ func (c *GoCompiler) compileSelectCaseStruct(caseValue *goSelectCase) {
 }
 
 func (c *GoCompiler) compileSelectCaseBody(caseValue *goSelectCase, i int, selectResultTmp *goLocal) {
+	if caseValue.scope != nil {
+		c.addScope(caseValue.scope)
+		defer c.leaveScope()
+	}
+
 	switch expr := caseValue.expression.(type) {
 	case nil:
 		c.compileSimpleSelectCaseBody(caseValue, i)
@@ -1486,6 +1508,9 @@ func (c *GoCompiler) compileSelectCaseLocalDeclarationBody(localName ast.Identif
 }
 
 func (c *GoCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode) *goValue {
+	c.enterScope(defaultNativeElkScopeType)
+	defer c.leaveScope()
+
 	caseValues := make([]*goSelectCase, 0, len(node.Cases)+1)
 	for _, selectCase := range node.Cases {
 		caseValue := c.compileSelectCaseValues(selectCase.Expression, selectCase.Body)
@@ -18290,6 +18315,14 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 		value.FetchGoType("value.PairOfValue"),
 		k, v,
 	)
+}
+
+func (c *GoCompiler) currentScope() *nativeElkScope {
+	return c.scopes[len(c.scopes)-1]
+}
+
+func (c *GoCompiler) addScope(scope *nativeElkScope) {
+	c.scopes = append(c.scopes, scope)
 }
 
 func (c *GoCompiler) enterScope(typ nativeElkScopeType) *nativeElkScope {
