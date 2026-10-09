@@ -12,10 +12,16 @@ import (
 )
 
 func Init() {
-	ext.Register("std/test", runtimeInit, typecheckerInit)
+	ext.Register(
+		"std/test",
+		"github.com/elk-language/elk/ext/std/test",
+		"RuntimeInit",
+		RuntimeInit,
+		typecheckerInit,
+	)
 }
 
-func runtimeInit() {
+func RuntimeInit() {
 	testModule := initTest()
 	initAssertions(testModule)
 }

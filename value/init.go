@@ -180,7 +180,3 @@ func InitGlobalEnvironment() {
 	initDateTimeSpan()
 	initTimezone()
 }
-
-func init() {
-	InitGlobalEnvironment()
-}

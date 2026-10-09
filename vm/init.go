@@ -4,10 +4,6 @@ import (
 	_ "github.com/elk-language/elk/value"
 )
 
-func init() {
-	InitGlobalEnvironment()
-}
-
 func InitGlobalEnvironment() {
 	initError()
 	initIterator()

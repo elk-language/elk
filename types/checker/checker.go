@@ -261,6 +261,10 @@ func (c *Checker) SetHeader(val bool) {
 	}
 }
 
+func (c *Checker) HasNativeGoCompiler() bool {
+	return c.flags.HasFlag(GoCompilerFlag)
+}
+
 func (c *Checker) IsIncremental() bool {
 	return c.flags.HasFlag(incrementalFlag)
 }
@@ -566,6 +570,9 @@ func (c *Checker) initExtensions() {
 		extension.Init(c)
 	}
 	c.runtimeEnv.Init = false
+}
+
+func (c *Checker) resetExtensions() {
 	c.extensions = concurrent.NewSlice[*ext.Extension]()
 }
 
@@ -706,8 +713,10 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	} else {
 		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}
-	mainCompiler.InitMainCompiler()
+	mainCompiler.InitMainCompiler(c.extensions.Slice)
 	c.compiler = mainCompiler.InitGlobalEnv()
+
+	c.resetExtensions()
 }
 
 // Assign instance variable indices to classes and modules

@@ -216,7 +216,3 @@ func InitGlobalEnvironment() {
 	initYieldExpressionNode()
 	initMacroNameNode()
 }
-
-func init() {
-	InitGlobalEnvironment()
-}

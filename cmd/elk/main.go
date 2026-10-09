@@ -22,6 +22,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	elk.InitGlobalEnvironment()
+}
+
 // Main entry point to the interpreter.
 func main() {
 	// Every subcommand terminates the process itself when the Elk program

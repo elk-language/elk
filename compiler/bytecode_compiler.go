@@ -13,6 +13,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/env"
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -66,7 +67,7 @@ func (c *BytecodeCompiler) InitGlobalEnv() Compiler {
 	return envCompiler
 }
 
-func (c *BytecodeCompiler) InitMainCompiler() {}
+func (c *BytecodeCompiler) InitMainCompiler(extensions []*ext.Extension) {}
 
 func (c *BytecodeCompiler) FinishGlobalEnvCompiler() {
 	if len(c.bytecode.Instructions) > 0 {

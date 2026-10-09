@@ -16,6 +16,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -493,7 +494,7 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 	return compiler
 }
 
-func (c *GoCompiler) InitMainCompiler() {
+func (c *GoCompiler) InitMainCompiler(extensions []*ext.Extension) {
 	c.registerGoPackageClause("main")
 
 	c.registerGoImport("github.com/elk-language/elk", "")
@@ -505,7 +506,19 @@ func (c *GoCompiler) InitMainCompiler() {
 	c.emitPackage("var _ = symbol.C_Value\n")
 	c.emitPackage("var _ = vm.New\n")
 	c.emitPackage("var _ = value.Truthy\n\n")
-	c.emitPackage("func init() { elk.InitNative() }\n\n")
+
+	if len(extensions) == 0 {
+		c.emitPackage("func init() { elk.InitNative() }\n\n")
+	} else {
+		c.emitPackage("func init() {\n")
+		c.emitPackage("  elk.InitNative()\n")
+		for i, extension := range extensions {
+			importIdent := fmt.Sprintf("ext%d", i)
+			c.registerGoImport(extension.GoPackagePath, importIdent)
+			c.emitPackage("  %s.%s()\n", importIdent, extension.RuntimeInitFuncName)
+		}
+		c.emitPackage("}\n\n")
+	}
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
@@ -2005,6 +2018,8 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			case *value.Module:
 				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Module))
 				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.fetchValue())
+			case nil:
+				return
 			default:
 				panic(fmt.Sprintf("invalid namespace %T", namespace))
 			}

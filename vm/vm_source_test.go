@@ -20,6 +20,7 @@ import (
 )
 
 func init() {
+	elk.InitGlobalEnvironment()
 	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
 }
 

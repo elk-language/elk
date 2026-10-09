@@ -28,6 +28,8 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+var GlobalEnvironmentInitialised bool
+
 func InitGlobalEnvironment() {
 	value.InitGlobalEnvironment()
 	vm.InitGlobalEnvironment()
@@ -36,10 +38,12 @@ func InitGlobalEnvironment() {
 	lexerRuntime.InitGlobalEnvironment()
 	parserRuntime.InitGlobalEnvironment()
 	typesRuntime.InitGlobalEnvironment()
+	GlobalEnvironmentInitialised = true
 }
 
 func InitNative() {
 	info.CurrentMode = info.NativeMode
+	InitGlobalEnvironment()
 }
 
 func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagnostics diagnostic.DiagnosticList) (binPath string, err error) {
