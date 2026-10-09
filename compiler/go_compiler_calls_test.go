@@ -8393,6 +8393,75 @@ func methodDefinitions() {
 
 func TestGoInstantiate(t *testing.T) {
 	tests := goTestTable{
+		"create a box": {
+			input: `
+				b := Box(3)
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("#init")
+var fn_method0 vm.NativeFunction // Std::ImmutableBox.:#init
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Box // var b: Std::Box[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ImmutableBoxClass).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.BoxClass.CreateInstance()
+	t2[1] = (value.SmallInt(3)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Box[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = (t1).AsReference().(value.Box)
+}
+`,
+		},
 		"infer class in local assignment": {
 			input: `
 				class Color

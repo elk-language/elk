@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"math/rand/v2"
+	"os"
 	"sync"
 	"time"
 
@@ -22,6 +23,16 @@ const (
 	TEST_SUCCESS
 )
 
+// Runs the tests.
+// Exits the program with code 1 if the tests failed
+func MustRun() {
+	report := Run()
+	if report == nil || report.Status() != TEST_SUCCESS {
+		os.Exit(1)
+	}
+}
+
+// Runs the tests and returns the report.
 func Run() *SuiteReport {
 	v := vm.New()
 	events := make(chan *ReportEvent, 50)

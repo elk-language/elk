@@ -88,8 +88,8 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfie
 }
 
 // Check the types of an Elk file and generate Go source
-func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag), output, threadPool, false)
+func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag|flags.ToBitFlag()), output, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -132,6 +132,7 @@ const (
 
 const (
 	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	TestFlag                                  // the checked code is test code
 	GoCompilerFlag
 	AdditionalAbortChecksFlag   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
 	BuiltinImportsProcessedFlag // indicates that builtin imports do not need to be processed
@@ -327,6 +328,10 @@ func (c *Checker) SetAdditionalAbortChecks(val bool) {
 
 func (c *Checker) HasMeasureTime() bool {
 	return c.flags.HasFlag(MeasureTimeFlag)
+}
+
+func (c *Checker) IsTest() bool {
+	return c.flags.HasFlag(TestFlag)
 }
 
 func (c *Checker) SetMeasureTime(val bool) {
@@ -709,7 +714,7 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	if parent != nil {
 		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks(), c.HasMeasureTime())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
-		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime())
+		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime(), c.IsTest())
 	} else {
 		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}

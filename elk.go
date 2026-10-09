@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/format"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -22,6 +21,7 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 	diagnosticRuntime "github.com/elk-language/elk/position/diagnostic/runtime"
 	_ "github.com/elk-language/elk/repl/breakpoint"
+	"github.com/elk-language/elk/sh"
 	"github.com/elk-language/elk/types/checker"
 	typesRuntime "github.com/elk-language/elk/types/runtime"
 	"github.com/elk-language/elk/value"
@@ -111,18 +111,18 @@ func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagno
 		}
 		goWorkFile.Write(goWorkBuff.Bytes())
 	} else {
-		err = silentSh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
+		err = sh.SilentSh("go", "-C", outPath, "get", fmt.Sprintf("github.com/elk-language/elk@%s", info.Version))
 		if err != nil {
 			return "", err
 		}
 	}
 
-	err = silentSh("go", "-C", outPath, "mod", "tidy")
+	err = sh.SilentSh("go", "-C", outPath, "mod", "tidy")
 	if err != nil {
 		return "", err
 	}
 
-	err = silentSh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
+	err = sh.SilentSh("go", "-C", outPath, "build", "-tags", "native", "-ldflags", fmt.Sprintf("-X 'github.com/elk-language/elk/info.Version=%s'", info.Version))
 	if err != nil {
 		return "", err
 	}
@@ -141,7 +141,7 @@ func CompileRunSource(sourceName, source string) (err error) {
 
 // Run the given executable, connecting it to the standard streams.
 func RunBinary(binPath string) error {
-	return sh(binPath)
+	return sh.Sh(binPath)
 }
 
 func CompileSource(sourceName, source string) (binPath string, err error) {
@@ -161,7 +161,7 @@ func CompileSource(sourceName, source string) (binPath string, err error) {
 	)
 }
 
-func CompileFile(fileName string) (binPath string, err error) {
+func CompileFile(fileName string, flags bitfield.BitField16) (binPath string, err error) {
 	absFileName, err := filepath.Abs(fileName)
 	if err != nil {
 		return "", fmt.Errorf("could not find file `%s`", fileName)
@@ -172,52 +172,12 @@ func CompileFile(fileName string) (binPath string, err error) {
 	}
 
 	var buffer bytes.Buffer
-	goCompiler, diagnostics := checker.CheckFileNative(fileName, nil, &buffer, nil)
+	goCompiler, diagnostics := checker.CheckFileNative(fileName, nil, flags, &buffer, nil)
 	return compileResult(
 		&buffer,
 		goCompiler,
 		diagnostics,
 	)
-}
-
-func sh(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err == nil {
-		return nil
-	}
-
-	var cmdBuff strings.Builder
-	cmdBuff.WriteString(name)
-	for _, arg := range args {
-		cmdBuff.WriteByte(' ')
-		cmdBuff.WriteString(arg)
-	}
-	return fmt.Errorf("error executing command: `%s`, %w", cmdBuff.String(), err)
-}
-
-func silentSh(name string, args ...string) error {
-	var cmdStdout strings.Builder
-	var cmdStderr strings.Builder
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = &cmdStdout
-	cmd.Stderr = &cmdStderr
-	err := cmd.Run()
-	if err == nil {
-		return nil
-	}
-
-	fmt.Println(cmdStdout.String())
-	fmt.Println(cmdStderr.String())
-	var cmdBuff strings.Builder
-	cmdBuff.WriteString(name)
-	for _, arg := range args {
-		cmdBuff.WriteByte(' ')
-		cmdBuff.WriteString(arg)
-	}
-	return fmt.Errorf("error executing command: `%s`, %w", cmdBuff.String(), err)
 }
 
 // Interpret the given file.

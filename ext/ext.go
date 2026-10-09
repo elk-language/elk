@@ -26,7 +26,7 @@ func (e *Extension) Init(checker types.Checker) {
 		return
 	}
 
-	if e.RuntimeInit != nil && !checker.HasNativeGoCompiler() {
+	if e.RuntimeInit != nil {
 		e.RuntimeInit()
 	}
 	if e.TypecheckerInit != nil {

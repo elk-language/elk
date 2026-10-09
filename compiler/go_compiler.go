@@ -475,10 +475,11 @@ func newGoImportEntry(path, name string) *goImportEntry {
 	}
 }
 
-func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool) *GoCompiler {
+func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool, test bool) *GoCompiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
+	compiler.test = test
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -490,6 +491,7 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
+	compiler.test = c.test
 	compiler.Errors = errors
 	return compiler
 }
@@ -497,10 +499,15 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 func (c *GoCompiler) InitMainCompiler(extensions []*ext.Extension) {
 	c.registerGoPackageClause("main")
 
+	c.registerGoImport("github.com/elk-language/elk/ini", "_")
 	c.registerGoImport("github.com/elk-language/elk", "")
 	c.registerGoImport("github.com/elk-language/elk/value", "")
 	c.registerGoImport("github.com/elk-language/elk/vm", "")
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
+
+	if c.test {
+		c.registerGoImport("github.com/elk-language/elk/ext/std/test", "test")
+	}
 
 	// noops to stop Go from complaining about unused imports
 	c.emitPackage("var _ = symbol.C_Value\n")
@@ -513,9 +520,8 @@ func (c *GoCompiler) InitMainCompiler(extensions []*ext.Extension) {
 		c.emitPackage("func init() {\n")
 		c.emitPackage("  elk.InitNative()\n")
 		for i, extension := range extensions {
-			importIdent := fmt.Sprintf("ext%d", i)
-			c.registerGoImport(extension.GoPackagePath, importIdent)
-			c.emitPackage("  %s.%s()\n", importIdent, extension.RuntimeInitFuncName)
+			imp := c.registerGoImport(extension.GoPackagePath, fmt.Sprintf("ext%d", i))
+			c.emitPackage("  %s.%s()\n", imp.name, extension.RuntimeInitFuncName)
 		}
 		c.emitPackage("}\n\n")
 	}
@@ -768,6 +774,7 @@ type GoCompiler struct {
 	currentLineNumber     int
 	closureLevel          int // nesting level of the closure
 	measureTime           bool
+	test                  bool
 	isGenerator           bool
 	isAsync               bool
 	unhygienic            bool
@@ -1168,11 +1175,11 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureType := c.typeOf(node).(*types.Callable)
+	closureType := typ.(*types.Callable)
 	closureCompiler.hasDefer = closureType.Body.HasDefer()
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
-	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
+	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, closureType, closureType.Body.ReturnType, node.Lambda, tmp, node.Location())
 	closureCompiler.optimiseNativeCalls()
 
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
@@ -1624,7 +1631,7 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	closureCompiler.hasDefer = node.HasDefer
 
 	closureTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
-	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, true, closureTmp, node.Location())
+	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, typ, true, closureTmp, node.Location())
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 	c.emitBytes(closureCompiler.buff.Bytes())
 
@@ -1644,23 +1651,23 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	)
 }
 
-func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, lambda bool, result *goLocal, loc *position.Location) {
+func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, closureType types.Type, returnType types.Type, lambda bool, result *goLocal, loc *position.Location) {
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(typ), loc.String())
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(closureType), loc.String())
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
 	val := c.compileWithDefer(
 		func() *goValue {
-			for i, param := range parameters {
-				p := param.(*ast.FormalParameterNode)
+			for i, paramNode := range parameters {
+				p := paramNode.(*ast.FormalParameterNode)
 				pSpan := p.Location()
 
 				pName := identifierToName(p.Name)
-				paramType := c.typeOf(p).(*types.Parameter)
-				typ := paramType.Type
-				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
+				param := c.typeOf(p).(*types.Parameter)
+				paramType := param.Type
+				local := c.defineLocal(pName, paramType, c.elkTypeToGoType(paramType, false), pSpan)
 				if local == nil {
 					return errGoValue
 				}
@@ -1668,7 +1675,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 				if p.Initialiser != nil {
 					argVal := newGoValue(
 						fmt.Sprintf("args[%d]", i),
-						typ,
+						paramType,
 						goValueType,
 					)
 					c.emit("if (%s).IsUndefined() {\n", argVal.value)
@@ -1682,7 +1689,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 				} else {
 					argVal := newGoValue(
 						fmt.Sprintf("args[%d]", i),
-						typ,
+						paramType,
 						goValueType,
 					)
 					c.emitAssignGoLocal(local.goLocal, argVal)
@@ -1692,7 +1699,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 			c.emitAddCallFrame(loc)
 			return c.compileStatements(body, false)
 		},
-		typ,
+		returnType,
 		false,
 	)
 
@@ -2018,10 +2025,15 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			case *value.Module:
 				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Module))
 				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.fetchValue())
-			case nil:
-				return
 			default:
-				panic(fmt.Sprintf("invalid namespace %T", namespace))
+				panic(
+					fmt.Sprintf(
+						"invalid runtime namespace: %T, for method: %s, under namespace: %s",
+						namespace,
+						method.InspectSignature(false),
+						types.Inspect(method.DefinedUnder),
+					),
+				)
 			}
 
 			oldNameSymbol := c.emitSymbol(method.Name.String())
@@ -2305,16 +2317,18 @@ func (c *GoCompiler) registerGoPackageClause(name string) {
 }
 
 // Emit import level code
-func (c *GoCompiler) registerGoImport(path, name string) {
+func (c *GoCompiler) registerGoImport(path, name string) *goImportEntry {
 	imports := c.globalData.native.goImports
 	imports.Lock()
 	defer imports.Unlock()
 
-	if _, ok := imports.GetUnsafe(path); ok {
-		return
+	if entry, ok := imports.GetUnsafe(path); ok {
+		return entry
 	}
 
-	imports.SetUnsafe(path, newGoImportEntry(path, name))
+	entry := newGoImportEntry(path, name)
+	imports.SetUnsafe(path, entry)
+	return entry
 }
 
 func (c *GoCompiler) typeOf(node ast.Node) types.Type {
@@ -2576,13 +2590,17 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
-		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
-		fmt.Fprintf(&funcBuffer, "\ndefer func() {\n")
-		fmt.Fprintf(&funcBuffer, "switch r := recover().(type) {\n")
-		fmt.Fprintf(&funcBuffer, "case value.Value: thread.Exit(r)\n")
-		fmt.Fprintf(&funcBuffer, "case nil:\n")
-		fmt.Fprintf(&funcBuffer, "default: panic(r)\n")
-		fmt.Fprintf(&funcBuffer, "}\n")
+		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
+		fmt.Fprintf(&funcBuffer, "_ = thread\n\n")
+		fmt.Fprintf(&funcBuffer, "defer func() {\n")
+		fmt.Fprintf(&funcBuffer, "  switch r := recover().(type) {\n")
+		fmt.Fprintf(&funcBuffer, "  case value.Value: thread.Exit(r)\n")
+		fmt.Fprintf(&funcBuffer, "  case nil:\n")
+		if c.test {
+			fmt.Fprintf(&funcBuffer, "    test.MustRun()\n")
+		}
+		fmt.Fprintf(&funcBuffer, "  default: panic(r)\n")
+		fmt.Fprintf(&funcBuffer, "  }\n")
 		fmt.Fprintf(&funcBuffer, "}()\n\n")
 
 		if c.measureTime {
@@ -2590,6 +2608,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 			fmt.Fprintf(&funcBuffer, "\nstartTime := value.TimeNow()\n")
 			fmt.Fprintf(&funcBuffer, "defer func() { fmt.Printf(\"?: %%s\\n\", value.TimeSince(startTime).String()) }()\n\n")
 		}
+
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}
@@ -7520,7 +7539,8 @@ func (c *GoCompiler) registerElkMethodName(methodName string, isBytecode bool) *
 	c.globalData.native.methodCache.Lock()
 
 	var method *nativeMethod
-	if entry, ok := c.globalData.native.methodCache.GetUnsafe(methodName); ok {
+	entry, ok := c.globalData.native.methodCache.GetUnsafe(methodName)
+	if ok {
 		method = entry
 	} else {
 		goName := fmt.Sprintf("fn_method%d", c.globalData.native.methodCache.Len())
@@ -7579,7 +7599,7 @@ func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
-	if !method.IsAttribute() {
+	if !method.IsAttribute() && !method.IsNative() {
 		c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
 	}
 }
@@ -17283,6 +17303,20 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 			fmt.Sprintf("(%s).AsReference().(vm.HashSet)", v.value),
 			elkType,
 			value.FetchGoType("vm.HashSet"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Box)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(value.Box)", v.value),
+			elkType,
+			value.FetchGoType("value.Box"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ImmutableBox)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(value.ImmutableBox)", v.value),
+			elkType,
+			value.FetchGoType("value.ImmutableBox"),
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessClosedRange)) {

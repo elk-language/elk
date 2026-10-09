@@ -12712,6 +12712,182 @@ func methodDefinitions() {
 
 func TestGoDefer(t *testing.T) {
 	tests := goTestTable{
+		"defer in closure": {
+			input: `
+				fn := ->
+					puts "1. open file"
+					defer puts "2. close file"
+
+					puts "3. open TCP socket"
+					defer puts "4. close TCP socket"
+
+					throw "unexpected error"
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")
+var sym1 = value.ToSymbol("<main>")
+var sym2 = value.ToSymbol("<closure>")
+var sym3 = value.ToSymbol("puts@1")
+var fn_method0 vm.NativeFunction // Std::Kernel::puts@1
+var sym4 = value.ToSymbol("<defer>")
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 vm.Closure // var fn: %||: never ! "unexpected error"
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %||: never ! "unexpected error", loc: <main>:2:11
+			var deferFns []func(*vm.Thread) value.Value
+			_ = deferFns
+			var err value.Value
+			_ = err
+			var callFrame *vm.CallFrame
+			_ = callFrame
+			var t1 []value.Value
+			_ = t1
+			var t2 func(*vm.Thread) value.Value
+			_ = t2
+			var t3 value.Value
+			_ = t3
+			var t4 value.Value
+			_ = t4
+
+			callFrame = thread.AddNativeCallFrame(sym2, sym1, 2)
+			defer thread.PopNativeCallFrame()
+			t1 = value.ResizeNativeArgs(t1, 3)
+			t1[0] = (value.KernelModule).ToValue()
+			t1[1] = (value.String("1. open file")).ToValue()
+			callFrame.SetNativeLineNumber(3)
+			_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				goto lbl1
+			}
+			t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:4:6
+				var callFrame *vm.CallFrame
+				_ = callFrame
+				var t1 []value.Value
+				_ = t1
+				var err value.Value
+				_ = err
+
+				callFrame = thread.AddNativeCallFrame(sym4, sym1, 4)
+				defer thread.PopNativeCallFrame()
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = (value.String("2. close file")).ToValue()
+				_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return err
+				}
+				return value.Undefined
+			}
+			deferFns = append(deferFns, t2)
+			t1 = value.ResizeNativeArgs(t1, 3)
+			t1[0] = (value.KernelModule).ToValue()
+			t1[1] = (value.String("3. open TCP socket")).ToValue()
+			callFrame.SetNativeLineNumber(6)
+			_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				goto lbl1
+			}
+			t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:7:6
+				var callFrame *vm.CallFrame
+				_ = callFrame
+				var t1 []value.Value
+				_ = t1
+				var err value.Value
+				_ = err
+
+				callFrame = thread.AddNativeCallFrame(sym4, sym1, 7)
+				defer thread.PopNativeCallFrame()
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = (value.String("4. close TCP socket")).ToValue()
+				_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return err
+				}
+				return value.Undefined
+			}
+			deferFns = append(deferFns, t2)
+			thread.CaptureStackTrace()
+			err = (value.String("unexpected error")).ToValue()
+			goto lbl1
+			t3 = value.Nil
+			for i := len(deferFns) - 1; i >= 0; i-- {
+				fn := deferFns[i]
+				err = fn(thread)
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+			}
+			goto lbl3
+		lbl1:
+			t4 = err
+			for i := len(deferFns) - 1; i >= 0; i-- {
+				fn := deferFns[i]
+				err = fn(thread)
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+			}
+			return value.Undefined, t4
+		lbl3:
+			return t3, value.Undefined
+		},
+		0,
+		position.NewLocation("<main>", position.NewSpan(position.New(11, 2, 11), position.New(11, 2, 11))),
+	)
+	l0 = t1
+}
+`,
+		},
 		"multiple defer": {
 			input: `
 				puts "1. open file"

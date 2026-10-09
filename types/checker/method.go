@@ -222,6 +222,7 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	}
 
 	alias := aliasedMethod.CreateAlias(newName)
+	alias.SetNative(c.IsHeader())
 	namespace.SetMethod(newName, alias)
 }
 
