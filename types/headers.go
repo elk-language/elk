@@ -706,6 +706,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered, mutable collection\nof unique elements.", true, symbol.ToSymbol("Set"), env)
 			namespace.Name() // noop - avoid unused variable error
 		}
+		namespace.TryDefineClass("Represents the number of bytes.", false, true, true, true, false, symbol.ToSymbol("Size"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, false, symbol.ToSymbol("StackTrace"), objectClass, env)
 			namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("Iterator"), objectClass, env)
@@ -9664,6 +9665,26 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new Set that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("map"), []*TypeParameter{NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(symbol.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("call"), nil, []*Parameter{NewParameter(symbol.ToSymbol("element"), NameToType("Std::Set::Val", env), NormalParameterKind, false)}, NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT))
 				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Set::Val", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("|"), []*TypeParameter{NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(symbol.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Set::Val", env), NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT)), INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("Size").(*Class)
+
+				namespace.Name() // noop - avoid unused variable error
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("+"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("+@"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("-@"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of kilobytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_kilobytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the amount of full kilobytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("kilobytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D\".", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
 

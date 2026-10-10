@@ -60,7 +60,7 @@ func (s Size) Terabytes() Value {
 	return ToElkInt(int64(s / Terabyte))
 }
 
-func (s Size) InPetabyte() Float {
+func (s Size) InPetabytes() Float {
 	return Float(s) / Float(Petabyte)
 }
 
@@ -105,25 +105,56 @@ func (s Size) String() string {
 	var buff strings.Builder
 
 	if s == 0 {
-		return "0.kilobytes"
+		return "0.bytes"
 	}
 
 	petabytes := s / Petabyte
 	if petabytes != 0 {
-		fmt.Fprintf(&buff, "%d", petabytes)
+		fmt.Fprintf(&buff, "%d.petabytes", petabytes)
+	}
+
+	terabytes := (s % Petabyte) / Terabyte
+	if terabytes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%d.terabytes", terabytes)
+	}
+
+	gigabytes := (s % Terabyte) / Gigabyte
+	if gigabytes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%d.gigabytes", gigabytes)
+	}
+
+	megabytes := (s % Gigabyte) / Megabyte
+	if megabytes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%d.megabytes", megabytes)
+	}
+
+	kilobytes := (s % Megabyte) / Kilobyte
+	if kilobytes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%d.kilobytes", kilobytes)
+	}
+
+	bytes := (s % Kilobyte) / Byte
+	if bytes != 0 {
+		if buff.Len() != 0 {
+			buff.WriteByte(' ')
+		}
+		fmt.Fprintf(&buff, "%d.bytes", bytes)
 	}
 
 	return buff.String()
 }
-
-// const (
-// 	Byte     Size = 1
-// 	Kilobyte      = 1024 * Byte
-// 	Megabyte      = 1024 * Kilobyte
-// 	Gigabyte      = 1024 * Megabyte
-// 	Terabyte      = 1024 * Gigabyte
-// 	Petabyte      = 1024 * Terabyte
-// )
 
 func (s Size) Copy() Reference {
 	return s
