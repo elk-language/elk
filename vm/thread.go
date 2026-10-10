@@ -400,6 +400,9 @@ func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **CallCache, a
 	self := args[0]
 	class := self.DirectClass()
 	method := LookupMethodInCache(class, name, cc)
+	if method == nil {
+		panic(fmt.Sprintf("tried to call an invalid method: %#v, name: %s, class: %s, receiver: %s", method, name.String(), class.Name(), self.Inspect()))
+	}
 	return vm.CallMethod(method, args...)
 }
 

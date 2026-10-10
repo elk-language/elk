@@ -1338,6 +1338,17 @@ func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Baz, loc: <main>:4:6
 
 func TestGoDefConstant(t *testing.T) {
 	tests := goTestTable{
+		// TODO: to be fixed
+		"define constant that call a singleton method": {
+			input: `
+				module Foo
+					def lol: Int then 3
+
+					const LOL: Int = lol()
+				end
+`,
+			want: ``,
+		},
 		"relative path Foo": {
 			input: "const Foo = 3",
 			want: `package main

@@ -90,6 +90,7 @@ func compileResult(buffer *bytes.Buffer, goCompiler *compiler.GoCompiler, diagno
 
 	goVersion := strings.TrimPrefix(runtime.Version(), "go")
 	fmt.Fprintf(&goModBuff, "go %s\n\n", goVersion)
+	fmt.Fprint(&goModBuff, "replace github.com/elk-language/elk => ../\n\n")
 
 	goModPath := path.Join(outPath, "go.mod")
 	goModFile, err := os.Create(goModPath)

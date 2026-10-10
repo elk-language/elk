@@ -40,7 +40,7 @@ func initValue() {
 		},
 		DefWithParameters(1),
 	)
-	Alias(c, "===", "==")
+	Alias(c, "=~", "==")
 	Def(
 		c,
 		"copy",
