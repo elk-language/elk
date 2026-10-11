@@ -7,7 +7,7 @@ import (
 
 type Size int64
 
-var _ ValueInterface = Size(5)
+var _ ValueInterface = Size(1)
 
 const (
 	Byte     Size = 1
@@ -97,6 +97,10 @@ func (s Size) Error() string {
 	return s.Inspect()
 }
 
+func (s Size) Copy() Reference {
+	return s
+}
+
 func (s Size) ToString() String {
 	return String(s.String())
 }
@@ -156,6 +160,37 @@ func (s Size) String() string {
 	return buff.String()
 }
 
-func (s Size) Copy() Reference {
-	return s
+func (s Size) Equal(other Value) bool {
+	o, ok := other.AsSizeOk()
+	if !ok {
+		return false
+	}
+
+	return s == o
+}
+
+func (s Size) Cmp(other Size) int {
+	if s > other {
+		return 1
+	}
+	if s < other {
+		return -1
+	}
+	return 0
+}
+
+func (s Size) GreaterThan(other Size) bool {
+	return s > other
+}
+
+func (s Size) GreaterThanEqual(other Size) bool {
+	return s >= other
+}
+
+func (s Size) LessThan(other Size) bool {
+	return s < other
+}
+
+func (s Size) LessThanEqual(other Size) bool {
+	return s <= other
 }

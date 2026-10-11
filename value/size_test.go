@@ -93,8 +93,8 @@ func TestSize_InKilobytes(t *testing.T) {
 			want: value.Float(1099511627776),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(70403120701444),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.Float(2.2033266278720625e+12),
 		},
 	}
 
@@ -140,8 +140,8 @@ func TestSize_InMegabytes(t *testing.T) {
 			want: value.Float(1073741824),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(6.87530475600039e+10),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.Float(2.151686160031311e+09),
 		},
 	}
 
@@ -187,8 +187,8 @@ func TestSize_InGigabytes(t *testing.T) {
 			want: value.Float(1048576),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(6.714164800781631e+07),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.Float(2.101256015655577e+06),
 		},
 	}
 
@@ -234,8 +234,8 @@ func TestSize_InTerabytes(t *testing.T) {
 			want: value.Float(1024),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(65568.01563263312),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.Float(2052.0078277886496),
 		},
 	}
 
@@ -281,8 +281,8 @@ func TestSize_InPetabytes(t *testing.T) {
 			want: value.Float(1),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(64.03126526624328),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.Float(2.003913894324853),
 		},
 	}
 
@@ -328,8 +328,8 @@ func TestSize_Bytes(t *testing.T) {
 			want: value.ToElkInt(1125899906842624),
 		},
 		"handles complex values": {
-			s:    2*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.ToElkInt(72092795598278658),
+			s:    64*value.Byte + 32*value.Kilobyte + 16*value.Megabyte + 8*value.Gigabyte + 4*value.Terabyte + 2*value.Petabyte,
+			want: value.ToElkInt(2256206466940992),
 		},
 	}
 

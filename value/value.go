@@ -1071,6 +1071,17 @@ func (v Value) AsSize() Size {
 	}
 }
 
+func (v Value) AsSizeOk() (Size, bool) {
+	if v.IsReference() {
+		t, ok := v.AsReference().(Size)
+		return t, ok
+	} else if v.IsInlineSize() {
+		return v.AsInlineSize(), true
+	}
+
+	return 0, false
+}
+
 func (v Value) IsInlineDateSpan() bool {
 	return v.flag == DATE_SPAN_FLAG
 }
