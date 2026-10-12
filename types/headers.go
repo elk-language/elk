@@ -1213,6 +1213,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Stores the given value in the `Box`.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("set"), nil, []*Parameter{NewParameter(symbol.ToSymbol("v"), NameToType("Std::Box::Val", env), NormalParameterKind, false)}, NameToType("Std::Box::Val", env), Never{})
 				namespace.DefineMethod("Returns `self`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_box"), nil, nil, NewGeneric(NameToType("Std::Box", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 				namespace.DefineMethod("Convert this `Box` to an `ImmutableBox`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_immutable_box"), nil, nil, NewGeneric(NameToType("Std::ImmutableBox", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Box::Val", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})

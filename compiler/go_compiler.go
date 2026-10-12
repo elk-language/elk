@@ -230,22 +230,28 @@ func (s nativeElkScopes) first() *nativeElkScope {
 
 type nativeLoopInfo struct {
 	elkLabel                      string
-	goLabel                       *goLabel
+	loopGoLabel                   *goLabel
+	continueGoLabel               *goLabel
 	resultVar                     *goLocal
 	returnsValueFromLastIteration bool
 }
 
-func newNativeLoopInfo(elkLabel string, goLabel *goLabel, resultVar *goLocal, returnsValueFromLastIteration bool) *nativeLoopInfo {
+func newNativeLoopInfo(elkLabel string, loopGoLabel *goLabel, continueGoLabel *goLabel, resultVar *goLocal, returnsValueFromLastIteration bool) *nativeLoopInfo {
 	return &nativeLoopInfo{
 		elkLabel:                      elkLabel,
-		goLabel:                       goLabel,
+		loopGoLabel:                   loopGoLabel,
+		continueGoLabel:               continueGoLabel,
 		resultVar:                     resultVar,
 		returnsValueFromLastIteration: returnsValueFromLastIteration,
 	}
 }
 
-func (l *nativeLoopInfo) markLabelUsed() {
-	l.goLabel.used = true
+func (l *nativeLoopInfo) markLoopLabelUsed() {
+	l.loopGoLabel.used = true
+}
+
+func (l *nativeLoopInfo) markContinueLabelUsed() {
+	l.continueGoLabel.used = true
 }
 
 type nativeFinallyData struct {
@@ -351,16 +357,30 @@ func (p goValuePair) markFree() {
 }
 
 type goValue struct {
-	value   string
-	goType  *value.GoType
-	elkType types.Type
-	locals  []*goLocal // temporary variables used in this expression
-	narrow  *goValue   // pointer to a version of this value with a narrower type, only present if the value is of type `value.Value`
-	wide    *goValue   // pointer to a version of this value that is wider with type `value.Value`, only available if the value was narrowed from `value.Value`
+	value      string
+	goType     *value.GoType
+	elkType    types.Type
+	locals     []*goLocal // temporary variables used in this expression
+	narrow     *goValue   // pointer to a version of this value with a narrower type, only present if the value is of type `value.Value`
+	wide       *goValue   // pointer to a version of this value that is wider with type `value.Value`, only available if the value was narrowed from `value.Value`
+	manualFree bool
 }
 
 func (v *goValue) isLocal() bool {
-	return len(v.locals) == 1 && v.locals[0].name == v.value
+	if len(v.locals) != 1 {
+		return false
+	}
+
+	local := v.locals[0]
+	return local.name == v.value
+}
+
+func (v *goValue) enableManualFree() {
+	v.manualFree = true
+}
+
+func (v *goValue) disableManualFree() {
+	v.manualFree = false
 }
 
 // Mark any temporary variables used in this expression as free
@@ -378,7 +398,9 @@ func (v *goValue) markFree() {
 // If the value will be used again or you're using it to create
 // the expression of another `*goValue` use `value` property instead.
 func (v *goValue) fetchValue() string {
-	v.markFree()
+	if !v.manualFree {
+		v.markFree()
+	}
 	return v.value
 }
 
@@ -395,11 +417,12 @@ func (v *goValue) newGoValue(value string, typ types.Type, goType *value.GoType)
 // Create a new narrower go value while inheriting locals of this one
 func (v *goValue) newNarrower(value string, typ types.Type, goType *value.GoType) *goValue {
 	narrow := &goValue{
-		wide:    v,
-		value:   value,
-		elkType: typ,
-		goType:  goType,
-		locals:  v.locals,
+		wide:       v,
+		value:      value,
+		elkType:    typ,
+		goType:     goType,
+		locals:     v.locals,
+		manualFree: v.manualFree,
 	}
 	v.narrow = narrow
 	return narrow
@@ -408,11 +431,12 @@ func (v *goValue) newNarrower(value string, typ types.Type, goType *value.GoType
 // Create a new wider go value while inheriting locals of this one
 func (v *goValue) newWider(value string, typ types.Type, goType *value.GoType) *goValue {
 	wide := &goValue{
-		narrow:  v,
-		value:   value,
-		elkType: typ,
-		goType:  goType,
-		locals:  v.locals,
+		narrow:     v,
+		value:      value,
+		elkType:    typ,
+		goType:     goType,
+		locals:     v.locals,
+		manualFree: v.manualFree,
 	}
 	v.wide = wide
 	return wide
@@ -452,12 +476,24 @@ func newGoValueWithLocals(v string, typ types.Type, goType *value.GoType, locals
 }
 
 // Create a new go value based on a Go local.
-func newGoValueWithLocal(local *goLocal, typ types.Type) *goValue {
+func newGoValueWithLocal(local *goLocal, typ types.Type, manualFree bool) *goValue {
 	return &goValue{
-		value:   local.name,
-		elkType: typ,
-		goType:  local.goType,
-		locals:  []*goLocal{local},
+		value:      local.name,
+		elkType:    typ,
+		goType:     local.goType,
+		locals:     []*goLocal{local},
+		manualFree: manualFree,
+	}
+}
+
+// Create a new go value based on a Go local but detached from it.
+// If this value is marked as free, the local won't change its state.
+func newGoValueWithDetachedLocal(local *goLocal, typ types.Type, manualFree bool) *goValue {
+	return &goValue{
+		value:      local.name,
+		elkType:    typ,
+		goType:     local.goType,
+		manualFree: manualFree,
 	}
 }
 
@@ -922,10 +958,17 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 	p.children.Append(c)
 }
 
-func (c *GoCompiler) addLoopInfo(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeLoopInfo {
+func (c *GoCompiler) addLoopInfo(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool, hasContinueLabel bool) *nativeLoopInfo {
+	goLoopLabel := newGoLabel(fmt.Sprintf("loop%d", c.loopCounter), false)
+
+	var continueGoLabel *goLabel
+	if hasContinueLabel {
+		continueGoLabel = newGoLabel(fmt.Sprintf("cnt%d", c.loopCounter), false)
+	}
 	info := newNativeLoopInfo(
 		elkLabel,
-		newGoLabel(fmt.Sprintf("loop%d", c.loopCounter), false),
+		goLoopLabel,
+		continueGoLabel,
 		resultVar,
 		returnsValFromLastIteration,
 	)
@@ -1229,6 +1272,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -1490,6 +1534,7 @@ func (c *GoCompiler) emitChannelPopResultValueHandler(elkType types.Type, caseVa
 	return newGoValueWithLocal(
 		resultTmp,
 		elkType,
+		false,
 	)
 }
 
@@ -1535,6 +1580,7 @@ func (c *GoCompiler) compileSelectCaseLocalPatternDeclarationBody(pattern ast.Pa
 		caseValue,
 		selectResultTmp,
 	)
+	val.enableManualFree()
 	patternResult := c.compilePattern(pattern, val)
 	val.markFree()
 
@@ -1625,14 +1671,21 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 	c.enterDefaultScope()
 	typ := c.typeOf(node)
 	_, resultVar := c.defineTmpGoLocalIfNotIgnored(c.elkTypeToGoType(typ, false), valueIsIgnored)
-	_, val := c.wrapValueInTmpGoLocal(c.compileExpression(node.Value, false))
+	val := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Value, false))
+	defer val.markFree()
 
 	for _, caseNode := range node.Cases {
 		c.enterDefaultScope()
 
 		patternResult := c.compilePattern(caseNode.Pattern, val)
 
-		if patternResult.value != "value.True" {
+		if patternResult.value == "value.True" {
+			caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
+			if !valueIsIgnored {
+				c.emitAssignGoLocal(resultVar, caseResult)
+			}
+			c.emitGoto(endLabel)
+		} else {
 			c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
 			caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
 			if !valueIsIgnored {
@@ -1644,7 +1697,6 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 
 		c.leaveScope()
 	}
-	val.markFree()
 
 	elseResult := c.compileStatements(node.ElseBody, valueIsIgnored)
 	if !valueIsIgnored {
@@ -1654,13 +1706,13 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 	c.leaveScope()
 	c.emitGoLabel(endLabel)
 	if !valueIsIgnored {
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	}
 	return nilGoValue
 }
 
 func (c *GoCompiler) compileMatchExpressionNode(node *ast.MatchExpressionNode) *goValue {
-	val := c.compileExpression(node.Expression, false)
+	val := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Expression, false))
 	defer val.markFree()
 
 	return c.compilePattern(node.Pattern, val)
@@ -1693,6 +1745,7 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	return newGoValueWithLocal(
 		threadTmp,
 		typ,
+		false,
 	)
 }
 
@@ -1838,7 +1891,7 @@ func (c *GoCompiler) emitReturn(val string) {
 	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
 		firstArg := c.goLocals.Get("l0")
-		result := newGoValueWithLocal(firstArg, c.method.ReturnType)
+		result := newGoValueWithLocal(firstArg, c.method.ReturnType, false)
 		val = c.methodReturnValue(result)
 		c.emit("return %s, value.Undefined\n", val)
 	case initMethodGoCompilerMode:
@@ -1911,6 +1964,7 @@ func (c *GoCompiler) emitGetBoxOfInstanceVariableByName(name value.Symbol, typ t
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -1950,6 +2004,7 @@ func (c *GoCompiler) emitGetInstanceVariableByName(name value.Symbol, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -3057,7 +3112,7 @@ func (c *GoCompiler) compileRelationalPatternNode(pattern ast.Node, val *goValue
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emit("}\n")
 
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileLiteralPatternNode(pattern ast.PatternNode, val *goValue, op token.Type) *goValue {
@@ -3086,7 +3141,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, left func() *goValue, r
 		leftVal := left()
 		c.emitAssignGoLocal(tmp, leftVal)
 
-		result := newGoValueWithLocal(tmp, types.Bool{})
+		result := newGoValueWithLocal(tmp, types.Bool{}, false)
 		c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
@@ -3098,7 +3153,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, left func() *goValue, r
 		leftVal := left()
 		c.emitAssignGoLocal(tmp, leftVal)
 
-		result := newGoValueWithLocal(tmp, types.Bool{})
+		result := newGoValueWithLocal(tmp, types.Bool{}, false)
 		c.emit("if %s {\n", c.convertValueToBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
@@ -3336,16 +3391,18 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 		case *ast.SymbolKeyValuePatternNode:
 			keyName := identifierToName(e.Key)
 			keyNameSymbol := c.emitSymbolValue(keyName)
-			elementValue := c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false)
-
+			elementValue := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false),
+			)
 			patternResult := c.compilePattern(e.Value, elementValue)
 			elementValue.markFree()
 
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.KeyValuePatternNode:
 			keyVal := c.compileExpression(e.Key, false)
-			elementValue := c.compileSubscript(val, keyVal, c.typeOf(e), loc, false)
-
+			elementValue := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(val, keyVal, c.typeOf(e), loc, false),
+			)
 			patternResult := c.compilePattern(e.Value, elementValue)
 			elementValue.markFree()
 
@@ -3363,7 +3420,7 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) newSmallIntValue(number int) *goValue {
@@ -3451,6 +3508,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		false,
 	)
 	lengthVar, lengthVal := c.wrapValueInTmpGoLocal(c.convertValueToSmallInt(lengthVal))
+	defer lengthVar.markFree()
 
 	if elementBeforeRestCount == -1 {
 		c.emit("if %s != %d {\n", lengthVar.name, len(elementNodes))
@@ -3471,12 +3529,14 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	}
 	for i, elementNode := range elementsBeforeRest {
 		loc := elementNode.Location()
-		elementVal := c.compileSubscript(
-			val,
-			c.newSmallIntValue(i),
-			elementType,
-			loc,
-			false,
+		elementVal := c.wrapValueInTmpGoLocalVal(
+			c.compileSubscript(
+				val,
+				c.newSmallIntValue(i),
+				elementType,
+				loc,
+				false,
+			),
 		)
 		patternResult := c.compilePattern(elementNode, elementVal)
 		elementVal.markFree()
@@ -3486,7 +3546,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 
 	if elementBeforeRestCount != -1 {
 		iteratorVar := c.defineTmpGoLocal(value.FetchGoType("value.SmallInt"))
-		iteratorVal := newGoValueWithLocal(iteratorVar, c.checker.StdInt())
+		iteratorVal := newGoValueWithLocal(iteratorVar, c.checker.StdInt(), true)
 
 		if restVariableName != "" {
 			// adjust the length variable
@@ -3523,17 +3583,17 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			}
 		}
 
-		lengthVar.markFree()
-
 		elementsAfterRest := elementNodes[elementBeforeRestCount+1:]
 		for _, elementNode := range elementsAfterRest {
 			loc := elementNode.Location()
-			elementVal := c.compileSubscript(
-				val,
-				iteratorVal,
-				elementType,
-				loc,
-				false,
+			elementVal := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(
+					val,
+					iteratorVal,
+					elementType,
+					loc,
+					false,
+				),
 			)
 			patternResult := c.compilePattern(elementNode, elementVal)
 			elementVal.markFree()
@@ -3548,7 +3608,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) emitPatternUnmatchedJump(endLabel *goLabel, resultVar *goLocal, patternResult *goValue) {
@@ -3645,7 +3705,7 @@ subPatternLoop:
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileIdentifierMapPatternElement(val *goValue, name string, typ types.Type, loc *position.Location) {
@@ -3698,7 +3758,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 			methodName := identifierToName(e.Key)
 			methodNameSym := c.emitSymbol(methodName)
 
-			attrVal := c.compileMethodCallWithLiteralArgValuesAndName(
+			callVal := c.compileMethodCallWithLiteralArgValuesAndName(
 				val.elkType,
 				c.typeOf(e),
 				methodNameSym,
@@ -3709,9 +3769,11 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 				loc,
 				false,
 			)
+			attrVal := c.wrapValueInTmpGoLocalVal(callVal)
 
 			patternResult := c.compilePattern(e.Value, attrVal)
 			attrVal.markFree()
+			callVal.markFree()
 
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.PublicIdentifierNode:
@@ -3727,7 +3789,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileIdentifierObjectPatternAttribute(name string, returnType types.Type, val *goValue, loc *position.Location) {
@@ -3863,20 +3925,20 @@ func (c *GoCompiler) compileForIn(
 	} else {
 		goType := c.elkTypeToGoType(typ, false)
 		resultVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(resultVar, typ)
+		result = newGoValueWithLocal(resultVar, typ, false)
 
 		if c.checker.IsSubtype(types.Nil{}, typ) {
 			c.emit("%s = value.Nil\n", resultVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, resultVar, false)
+	scope := c.enterLoopScope(label, resultVar, false, false)
 
 	inVal := c.compileExpression(inExpression, false)
 	inExpressionType := c.typeOf(inExpression)
 	nextType, _ := c.checker.GetIteratorElementType(inExpressionType)
 	loopTmpVar := c.defineTmpGoLocal(goValueType)
-	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType)
+	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType, true)
 	c.registerUnoptimisableErr()
 
 	prevBuff := c.switchNewBuffer()
@@ -3902,7 +3964,7 @@ func (c *GoCompiler) compileForIn(
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -3956,7 +4018,7 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 
 	startType := c.typeOf(inRange.Start)
 	paramLocal := c.defineLocal(paramName, startType, c.elkTypeToGoType(startType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 
 	var op token.Type
 	switch inRange.Op.Type {
@@ -4067,8 +4129,9 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 
 	elementType := rangeType.TypeArguments.Get(0).Type
 	paramLocal := c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 	_, rangeVal := c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
+	defer rangeVal.markFree()
 
 	init := func() {
 		var initVal *goValue
@@ -4126,6 +4189,7 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 			false,
 		),
 	)
+	defer endVal.markFree()
 
 	var cond func() *goValue
 	if cmpOp != token.ZERO_VALUE {
@@ -4170,7 +4234,7 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 		paramType = goValueType
 		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
 	}
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 
 	init := func() {
 		var initVal *goValue
@@ -4222,7 +4286,7 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 func (c *GoCompiler) compileForInIntAsNumericFor(label string, inInt ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	paramType := goValueType
 	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 
 	init := func() {
 		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.C_Int), paramType)
@@ -4399,7 +4463,7 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 		return neverGoValue
 	}
 
-	loopInfo.markLabelUsed()
+	loopInfo.markLoopLabelUsed()
 
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
@@ -4409,7 +4473,7 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 		c.compileFinallyFromCatchInfo(catchInfo)
 	}
 
-	c.emit("break %s\n", loopInfo.goLabel.name)
+	c.emit("break %s\n", loopInfo.loopGoLabel.name)
 	return neverGoValue
 }
 
@@ -4461,8 +4525,6 @@ func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionN
 		return neverGoValue
 	}
 
-	loopInfo.markLabelUsed()
-
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
 	}
@@ -4471,7 +4533,13 @@ func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionN
 		c.compileFinallyFromCatchInfo(catchInfo)
 	}
 
-	c.emit("continue %s\n", loopInfo.goLabel.name)
+	if loopInfo.continueGoLabel != nil {
+		loopInfo.markContinueLabelUsed()
+		c.emit("goto %s\n", loopInfo.continueGoLabel.name)
+	} else {
+		loopInfo.markLoopLabelUsed()
+		c.emit("continue %s\n", loopInfo.loopGoLabel.name)
+	}
 	return neverGoValue
 }
 
@@ -4549,14 +4617,14 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	} else {
 		goType := c.elkTypeToGoType(typ, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, typ)
+		result = newGoValueWithLocal(tmpVar, typ, false)
 
 		if c.checker.IsSubtype(types.Nil{}, typ) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
 
 	// loop initialiser eg. `i := 0`
 	if init != nil {
@@ -4582,6 +4650,7 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 		c.emitAssignGoLocal(tmpVar, thenVal)
 	}
 
+	c.emitGoLabel(scope.loopInfo.continueGoLabel)
 	if increment != nil {
 		// increment step eg. `i += 1`
 		increment()
@@ -4591,7 +4660,7 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4612,14 +4681,14 @@ func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType
 	} else {
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, false)
+	scope := c.enterLoopScope(label, tmpVar, false, false)
 
 	prevBuff := c.switchNewBuffer()
 	c.emit("for {\n")
@@ -4627,7 +4696,7 @@ func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4730,7 +4799,7 @@ func (c *GoCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) *
 		resultTmp.name,
 		nodeVal.fetchValue(),
 	)
-	return newGoValueWithLocal(resultTmp, c.AstNodeType())
+	return newGoValueWithLocal(resultTmp, c.AstNodeType(), false)
 }
 
 func (c *GoCompiler) compileUnquoteNode(node *ast.UnquoteNode, valueIsIgnored bool) *goValue {
@@ -4854,7 +4923,7 @@ func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, f
 		resultVal = nilGoValue
 	} else if catchLabel.used {
 		resultVar = c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
-		resultVal = newGoValueWithLocal(resultVar, typ)
+		resultVal = newGoValueWithLocal(resultVar, typ, false)
 		c.emitAssignGoLocal(resultVar, thenVal)
 	} else {
 		resultVal = thenVal
@@ -4878,7 +4947,7 @@ func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, f
 		c.emitGoLabel(catchLabel)
 
 		errVar := c.defineTmpGoLocal(goValueType)
-		errVal := newGoValueWithLocal(errVar, types.Any{})
+		errVal := newGoValueWithLocal(errVar, types.Any{}, true)
 		c.emit("%s = err\n", errVar.name)
 
 		for _, catchNode := range catches {
@@ -5015,18 +5084,31 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
+
+	var doneTmp *goLocal
+	if conditionIsStaticFalsy {
+		doneTmp = c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		defer doneTmp.markFree()
+		c.emitAssignGoLocal(doneTmp, falseGoValue)
+	}
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
+	if conditionIsStaticFalsy {
+		c.emit("if %s {\n", doneTmp.name)
+		c.emit("  break\n")
+		c.emit("}\n")
+		c.emitAssignGoLocal(doneTmp, trueGoValue)
+	}
 
 	// loop body
 	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
@@ -5034,10 +5116,8 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 		c.emitAssignGoLocal(tmpVar, then)
 	}
 
-	if conditionIsStaticFalsy {
-		// after loop
-		c.emit("break\n")
-	} else {
+	c.emitGoLabel(scope.loopInfo.continueGoLabel)
+	if !conditionIsStaticFalsy {
 		// loop condition eg. `i < 5`
 		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
 		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
@@ -5047,7 +5127,7 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -5059,7 +5139,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	body := node.Left
 	condition := node.Right
 
-	var conditionIsStaticFalsy bool
+	var conditionIsStaticTruthy bool
 
 	if result := resolve(condition, c.checker); result.IsNotUndefined() {
 		if value.Falsy(result) {
@@ -5068,7 +5148,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		}
 
 		// the loop will only iterate once
-		conditionIsStaticFalsy = true
+		conditionIsStaticTruthy = true
 	}
 
 	var result *goValue
@@ -5080,18 +5160,30 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
+
+	var doneTmp *goLocal
+	if conditionIsStaticTruthy {
+		doneTmp = c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		c.emitAssignGoLocal(doneTmp, falseGoValue)
+	}
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
+	if conditionIsStaticTruthy {
+		c.emit("if %s {\n", doneTmp.name)
+		c.emit("  break\n")
+		c.emit("}\n")
+		c.emitAssignGoLocal(doneTmp, trueGoValue)
+	}
 
 	// loop body
 	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
@@ -5099,10 +5191,8 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		c.emitAssignGoLocal(tmpVar, then)
 	}
 
-	if conditionIsStaticFalsy {
-		// after loop
-		c.emit("break\n")
-	} else {
+	c.emitGoLabel(scope.loopInfo.continueGoLabel)
+	if !conditionIsStaticTruthy {
 		// loop condition eg. `i < 5`
 		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
 		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
@@ -5112,7 +5202,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -5141,14 +5231,14 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, false)
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
@@ -5168,7 +5258,7 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -5197,14 +5287,14 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, false)
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
@@ -5224,7 +5314,7 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -5238,10 +5328,10 @@ func (c *GoCompiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) *
 	resultType := c.typeOf(node)
 	resultGoType := c.elkTypeToGoType(resultType, false)
 	resultVar := c.defineTmpGoLocal(resultGoType)
-	resultVal := newGoValueWithLocal(resultVar, resultType)
+	resultVal := newGoValueWithLocal(resultVar, resultType, false)
 
 	stackTraceVar := c.defineTmpGoLocal(value.FetchGoType("*value.StackTrace"))
-	stackTraceVal := newGoValueWithLocal(stackTraceVar, c.checker.Std(symbol.C_StackTrace))
+	stackTraceVal := newGoValueWithLocal(stackTraceVar, c.checker.Std(symbol.C_StackTrace), false)
 
 	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(node.Location())
@@ -5261,13 +5351,13 @@ func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, val
 		result = val
 	} else {
 		tmpVar := c.defineTmpGoLocal(val.goType)
-		result = newGoValueWithLocal(tmpVar, c.typeOf(node))
+		result = newGoValueWithLocal(tmpVar, c.typeOf(node), false)
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
 	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(node.Location())
-	c.emit("err = value.Must(%s)\n", c.convertValueToWiderType(result).fetchValue())
+	c.emit("err = value.Must(%s)\n", c.convertValueToWiderType(result).value)
 	c.emitErrorPropagation()
 
 	return result
@@ -5287,7 +5377,7 @@ func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIs
 		result = val
 	} else {
 		tmpVar := c.defineTmpGoLocal(val.goType)
-		result = newGoValueWithLocal(tmpVar, val.elkType)
+		result = newGoValueWithLocal(tmpVar, val.elkType, false)
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
@@ -5295,9 +5385,9 @@ func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIs
 	c.emitSetCallFrameLineNumber(node.Location())
 	switch narrowClass.goType.Name {
 	case "*value.Class", "*value.Mixin":
-		c.emit("err = value.As(%s, %s)\n", c.convertValueToWiderType(result).fetchValue(), narrowClass.fetchValue())
+		c.emit("err = value.As(%s, %s)\n", c.convertValueToWiderType(result).value, narrowClass.value)
 	default:
-		c.emit("err = value.AsUnsafe(%s, %s)\n", c.convertValueToWiderType(result).fetchValue(), c.convertValueToWiderType(class).fetchValue())
+		c.emit("err = value.AsUnsafe(%s, %s)\n", c.convertValueToWiderType(result).value, c.convertValueToWiderType(class).value)
 	}
 	c.emitErrorPropagation()
 
@@ -5545,6 +5635,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -5933,6 +6024,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -6176,6 +6268,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -6538,6 +6631,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -6850,6 +6944,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -7000,6 +7095,7 @@ func (c *GoCompiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedR
 	return newGoValueWithLocal(
 		resultVar,
 		elkType,
+		false,
 	)
 }
 
@@ -7324,9 +7420,8 @@ func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *go
 }
 
 func (c *GoCompiler) compileVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *goValue {
-	_, initVal := c.wrapValueInTmpGoLocal(c.compileExpression(node.Initialiser, false))
+	initVal := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Initialiser, false))
 	patternResult := c.compilePattern(node.Pattern, initVal)
-	initVal.markFree()
 
 	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 	c.emitThrow(
@@ -7338,13 +7433,13 @@ func (c *GoCompiler) compileVariablePatternDeclarationNode(node *ast.VariablePat
 	)
 	c.emit("}\n")
 
+	initVal.disableManualFree()
 	return initVal
 }
 
 func (c *GoCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *goValue {
-	_, initVal := c.wrapValueInTmpGoLocal(c.compileExpression(node.Initialiser, false))
+	initVal := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Initialiser, false))
 	patternResult := c.compilePattern(node.Pattern, initVal)
-	initVal.markFree()
 
 	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
 	c.emitThrow(
@@ -7356,6 +7451,7 @@ func (c *GoCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDe
 	)
 	c.emit("}\n")
 
+	initVal.disableManualFree()
 	return initVal
 }
 
@@ -7575,7 +7671,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op token.Typ
 		c.emitAssignGoLocal(resultVar, callResult)
 		c.emit("}\n")
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.QUESTION_DOT_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
@@ -7587,7 +7683,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op token.Typ
 		c.emitAssignGoLocal(resultVar, receiverVal)
 		c.emit("}\n")
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.DOT_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
@@ -7595,7 +7691,7 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op token.Typ
 		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, receiverVal)
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
@@ -7740,6 +7836,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		case "value.Box", "*value.BoxOfValue":
 			_, arg := c.wrapValueInTmpGoLocalIfNotIgnored(c.convertValueToWiderType(args[1]), valueIsIgnored)
 			c.emit("(%s).SetValue(%s)\n", narrowReceiver.fetchValue(), arg.value)
+			arg.disableManualFree()
 			if valueIsIgnored {
 				arg.fetchValue()
 				return nilGoValue
@@ -7749,6 +7846,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		case "*value.NativeBox", "*value.ImmutableNativeBox":
 			_, arg := c.wrapValueInTmpGoLocalIfNotIgnored(c.convertValueToNarrowerType(args[1]), valueIsIgnored)
 			c.emit("(%s).Set(%s)\n", narrowReceiver.fetchValue(), arg.value)
+			arg.disableManualFree()
 			if valueIsIgnored {
 				arg.fetchValue()
 				return nilGoValue
@@ -7760,7 +7858,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		switch narrowReceiver.goType.Name {
 		case "*vm.BytecodeClosure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -7768,15 +7866,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallBytecodeClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -7786,10 +7894,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		case "*vm.NativeClosure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -7797,15 +7906,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallNativeClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -7815,10 +7934,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		case "vm.Closure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -7826,15 +7946,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -7844,6 +7974,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		default:
 			optimisedValue := c.compileOptimizedNativeMethodCallFromType(receiverType, returnType, args, name, loc, valueIsIgnored)
@@ -7879,6 +8010,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		}
 	}
@@ -8062,7 +8194,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	goMethod.unlock()
 
 	if goMethod.isBytecode {
-		callArgsVar := c.defineCallArgs(len(args))
+		callArgsVar := c.defineCallArgs(len(args) + 1)
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 		}
@@ -8081,7 +8213,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 
 		c.emitErrorPropagation()
 	} else if goMethod.hasArgsSlice() {
-		callArgsVar := c.defineCallArgs(len(args))
+		callArgsVar := c.defineCallArgs(len(args) + 1)
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 		}
@@ -8165,6 +8297,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	return newGoValueWithLocal(
 		tmp,
 		returnType,
+		false,
 	)
 }
 
@@ -8179,8 +8312,12 @@ func (c *GoCompiler) defineTmpGoLocalIfNotIgnored(goType *value.GoType, valueIsI
 }
 
 func (c *GoCompiler) defineCallArgs(argsLen int) *goLocal {
+	if argsLen == 0 {
+		return nil
+	}
+
 	callArgsVar := c.defineTmpGoLocal(value.FetchGoType("[]value.Value"))
-	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, argsLen+1)
+	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, argsLen)
 	return callArgsVar
 }
 
@@ -8199,7 +8336,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 
 	callCache := c.emitCallCache()
 	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-	callArgsVar := c.defineCallArgs(len(args))
+	callArgsVar := c.defineCallArgs(len(args) + 1)
 
 	for i, posArg := range args {
 		c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -8226,6 +8363,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 	return newGoValueWithLocal(
 		tmp,
 		returnType,
+		false,
 	)
 }
 
@@ -8358,7 +8496,7 @@ func (c *GoCompiler) compileInstanceVariableAssignment(node *ast.AssignmentExpre
 
 		tmp := c.defineTmpGoLocal(goValueType)
 		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(expr).value)
-		val := newGoValueWithLocal(tmp, expr.elkType)
+		val := newGoValueWithLocal(tmp, expr.elkType, false)
 		c.emitSetInstanceVariable(ivarSymbol, val)
 		return val
 	default:
@@ -8463,6 +8601,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*value.NativeArrayList":
@@ -8478,6 +8617,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*vm.NativeKeyHashMap":
@@ -8490,6 +8630,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*vm.NativeHashMap":
@@ -8502,6 +8643,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	}
@@ -8518,6 +8660,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 
@@ -8531,6 +8674,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		return newGoValueWithLocal(
 			tmp,
 			val.elkType,
+			false,
 		)
 	}
 
@@ -8545,6 +8689,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		return newGoValueWithLocal(
 			tmp,
 			val.elkType,
+			false,
 		)
 	}
 
@@ -8604,6 +8749,7 @@ func (c *GoCompiler) emitSetLocal(name string, val *goValue) *goValue {
 	return newGoValueWithLocal(
 		variable.goLocal,
 		variable.elkType,
+		false,
 	)
 }
 
@@ -8775,6 +8921,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 	return newGoValueWithLocal(
 		ifResultVar,
 		typ,
+		false,
 	)
 }
 
@@ -8783,6 +8930,7 @@ func (c *GoCompiler) compileLocalVariableAccess(name string, elkType types.Type)
 		return newGoValueWithLocal(
 			local.goLocal,
 			elkType,
+			true,
 		)
 	}
 
@@ -8790,6 +8938,7 @@ func (c *GoCompiler) compileLocalVariableAccess(name string, elkType types.Type)
 		return newGoValueWithLocal(
 			upvalue.goLocal,
 			elkType,
+			true,
 		)
 	}
 
@@ -8998,11 +9147,11 @@ func (c *GoCompiler) defineTmpGoLocalForValue(val *goValue) *goLocal {
 func (c *GoCompiler) wrapValueInTmpGoLocal(val *goValue) (*goLocal, *goValue) {
 	// is already a go local
 	if val.isLocal() {
-		return val.locals[0], val
+		return val.locals[0], newGoValueWithDetachedLocal(val.locals[0], val.elkType, true)
 	}
 
 	tmp := c.defineTmpGoLocalForValue(val)
-	tmpVal := newGoValueWithLocal(tmp, val.elkType)
+	tmpVal := newGoValueWithLocal(tmp, val.elkType, true)
 	return tmp, tmpVal
 }
 
@@ -9181,7 +9330,7 @@ func (c *GoCompiler) compileLogicalAnd(node *ast.LogicalExpressionNode, valueIsI
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if %s {\n", c.convertValueToBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -9205,7 +9354,7 @@ func (c *GoCompiler) compileLogicalOr(node *ast.LogicalExpressionNode, valueIsIg
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -9229,7 +9378,7 @@ func (c *GoCompiler) compileNilCoalescing(node *ast.LogicalExpressionNode, value
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -9279,9 +9428,11 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 
 		receiver := c.compileExpression(n.Receiver, false)
 		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
+		defer receiverTmpVal.markFree()
 
 		key := c.compileExpression(n.Key, false)
 		_, keyTmpVal := c.wrapValueInTmpGoLocal(key)
+		defer keyTmpVal.markFree()
 
 		val := c.compileSubscript(receiverTmpVal, keyTmpVal, typ, loc, valueIsIgnored)
 
@@ -9315,12 +9466,13 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 
 		// set instance variable
 		c.emitSetInstanceVariable(ivarSymbol, resultTmpVal)
-		resultTmpVal.markFree()
+		resultTmpVal.disableManualFree()
 		return resultTmpVal
 	case *ast.AttributeAccessNode:
 		name := identifierToName(n.AttributeName)
 		receiver := c.compileExpression(n.Receiver, false)
 		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
+		defer receiverTmpVal.markFree()
 
 		// get value
 		val := c.compileAttributeAccess(
@@ -9366,6 +9518,7 @@ func (c *GoCompiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubs
 	loc := node.Location()
 	typ := c.typeOf(node)
 	_, receiver := c.wrapValueInTmpGoLocal(c.compileExpression(node.Receiver, false))
+	defer receiver.markFree()
 
 	return c.compileIf(
 		isNilConditionType,
@@ -9412,6 +9565,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 	case "*value.NativeArrayList", "*value.NativeArrayTuple":
@@ -9425,6 +9579,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 	case "*vm.NativeKeyHashMap", "vm.NativeKeyHashRecord":
@@ -9464,6 +9619,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -9476,6 +9632,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -9489,6 +9646,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10648,6 +10806,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10670,6 +10829,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10722,6 +10882,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_Int),
+		false,
 	)
 }
 
@@ -10776,6 +10937,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_Int),
+		false,
 	)
 }
 
@@ -10940,6 +11102,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -10952,6 +11115,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10973,6 +11137,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11003,6 +11168,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -11014,6 +11180,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -11051,6 +11218,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11071,6 +11239,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11087,6 +11256,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -11098,6 +11268,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -11135,6 +11306,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11155,6 +11327,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11222,6 +11395,7 @@ func (c *GoCompiler) compileDivideFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11289,6 +11463,7 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11322,6 +11497,7 @@ func (c *GoCompiler) compileDivideInt64(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11335,6 +11511,7 @@ func (c *GoCompiler) compileDivideInt32(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11348,6 +11525,7 @@ func (c *GoCompiler) compileDivideInt16(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11361,6 +11539,7 @@ func (c *GoCompiler) compileDivideInt8(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11374,6 +11553,7 @@ func (c *GoCompiler) compileDivideUInt64(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11387,6 +11567,7 @@ func (c *GoCompiler) compileDivideUInt32(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11400,6 +11581,7 @@ func (c *GoCompiler) compileDivideUInt16(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11413,6 +11595,7 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11426,6 +11609,7 @@ func (c *GoCompiler) compileDivideUInt(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -11488,6 +11672,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11510,6 +11695,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11587,6 +11773,7 @@ func (c *GoCompiler) compileExponentiateBigInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11645,6 +11832,7 @@ func (c *GoCompiler) compileExponentiateSmallInt(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11703,6 +11891,7 @@ func (c *GoCompiler) compileExponentiateFloat(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11761,6 +11950,7 @@ func (c *GoCompiler) compileExponentiateBigFloat(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11927,6 +12117,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11944,6 +12135,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12003,6 +12195,7 @@ func (c *GoCompiler) compileBitwiseAndSmallInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12048,6 +12241,7 @@ func (c *GoCompiler) compileBitwiseAndBigInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12093,6 +12287,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12110,6 +12305,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12169,6 +12365,7 @@ func (c *GoCompiler) compileBitwiseAndNotSmallInt(left, right *goValue, typ type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12214,6 +12411,7 @@ func (c *GoCompiler) compileBitwiseAndNotBigInt(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12259,6 +12457,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12276,6 +12475,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12335,6 +12535,7 @@ func (c *GoCompiler) compileBitwiseOrSmallInt(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12380,6 +12581,7 @@ func (c *GoCompiler) compileBitwiseOrBigInt(left, right *goValue, typ types.Type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12425,6 +12627,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12442,6 +12645,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12501,6 +12705,7 @@ func (c *GoCompiler) compileBitwiseXorSmallInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12546,6 +12751,7 @@ func (c *GoCompiler) compileBitwiseXorBigInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12600,6 +12806,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12617,6 +12824,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12672,6 +12880,7 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12740,6 +12949,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12757,6 +12967,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12812,6 +13023,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, 
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12935,6 +13147,7 @@ func (c *GoCompiler) compileLeftBitshiftSmallInt(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13044,6 +13257,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13153,6 +13367,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13182,6 +13397,7 @@ func (c *GoCompiler) compileLeftBitshiftInt64(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13211,6 +13427,7 @@ func (c *GoCompiler) compileLeftBitshiftInt32(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13240,6 +13457,7 @@ func (c *GoCompiler) compileLeftBitshiftInt16(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13269,6 +13487,7 @@ func (c *GoCompiler) compileLeftBitshiftInt8(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13298,6 +13517,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt64(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13327,6 +13547,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt32(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13356,6 +13577,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt16(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13385,6 +13607,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt8(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13414,6 +13637,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13523,6 +13747,7 @@ func (c *GoCompiler) compileRightBitshiftBigInt(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13536,6 +13761,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt64(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13549,6 +13775,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt32(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13562,6 +13789,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt16(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13575,6 +13803,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt8(left, right *goValue, typ t
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13600,6 +13829,7 @@ func (c *GoCompiler) compileRightBitshiftInt64(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13625,6 +13855,7 @@ func (c *GoCompiler) compileRightBitshiftInt32(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13650,6 +13881,7 @@ func (c *GoCompiler) compileRightBitshiftInt16(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13675,6 +13907,7 @@ func (c *GoCompiler) compileRightBitshiftInt8(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13700,6 +13933,7 @@ func (c *GoCompiler) compileRightBitshiftUInt64(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13725,6 +13959,7 @@ func (c *GoCompiler) compileRightBitshiftUInt32(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13750,6 +13985,7 @@ func (c *GoCompiler) compileRightBitshiftUInt16(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13775,6 +14011,7 @@ func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13800,6 +14037,7 @@ func (c *GoCompiler) compileRightBitshiftUInt(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13866,6 +14104,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13883,6 +14122,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13960,6 +14200,7 @@ func (c *GoCompiler) compileMultiplyBigInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14023,6 +14264,7 @@ func (c *GoCompiler) compileMultiplySmallInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14086,6 +14328,7 @@ func (c *GoCompiler) compileMultiplyFloat(left, right *goValue, typ types.Type, 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14149,6 +14392,7 @@ func (c *GoCompiler) compileMultiplyBigFloat(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14169,6 +14413,7 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14181,6 +14426,7 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14201,6 +14447,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14213,6 +14460,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14418,6 +14666,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14435,6 +14684,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14508,6 +14758,7 @@ func (c *GoCompiler) compileSubtractBigInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14567,6 +14818,7 @@ func (c *GoCompiler) compileSubtractSmallInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14626,6 +14878,7 @@ func (c *GoCompiler) compileSubtractFloat(left, right *goValue, typ types.Type, 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14685,6 +14938,7 @@ func (c *GoCompiler) compileSubtractBigFloat(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15607,6 +15861,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -15619,6 +15874,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15636,6 +15892,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15709,6 +15966,7 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15768,6 +16026,7 @@ func (c *GoCompiler) compileModuloBigFloat(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15788,6 +16047,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -15799,6 +16059,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -15827,6 +16088,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15840,6 +16102,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15860,6 +16123,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -15885,6 +16149,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15899,6 +16164,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15912,6 +16178,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15929,6 +16196,7 @@ func (c *GoCompiler) compileModuloInt64(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15946,6 +16214,7 @@ func (c *GoCompiler) compileModuloInt32(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15963,6 +16232,7 @@ func (c *GoCompiler) compileModuloInt16(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15980,6 +16250,7 @@ func (c *GoCompiler) compileModuloInt8(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15997,6 +16268,7 @@ func (c *GoCompiler) compileModuloUInt64(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16014,6 +16286,7 @@ func (c *GoCompiler) compileModuloUInt(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16031,6 +16304,7 @@ func (c *GoCompiler) compileModuloUInt32(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16048,6 +16322,7 @@ func (c *GoCompiler) compileModuloUInt16(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16065,6 +16340,7 @@ func (c *GoCompiler) compileModuloUInt8(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16159,6 +16435,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -16176,6 +16453,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -16249,6 +16527,7 @@ func (c *GoCompiler) compileAddBigInt(left, right *goValue, typ types.Type, loc 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -16308,6 +16587,7 @@ func (c *GoCompiler) compileAddSmallInt(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -16367,6 +16647,7 @@ func (c *GoCompiler) compileAddFloat(left, right *goValue, typ types.Type, loc *
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -16426,6 +16707,7 @@ func (c *GoCompiler) compileAddBigFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -16461,6 +16743,7 @@ func (c *GoCompiler) compileAddString(left, right *goValue, loc *position.Locati
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -16496,6 +16779,7 @@ func (c *GoCompiler) compileAddChar(left, right *goValue, loc *position.Location
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_String),
+		false,
 	)
 }
 
@@ -18493,9 +18777,9 @@ func (c *GoCompiler) enterDefaultScope() *nativeElkScope {
 	return c.enterScope(defaultNativeElkScopeType)
 }
 
-func (c *GoCompiler) enterLoopScope(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeElkScope {
+func (c *GoCompiler) enterLoopScope(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool, hasContinueLabel bool) *nativeElkScope {
 	scope := c.enterScope(loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(elkLabel, resultVar, returnsValFromLastIteration)
+	loopInfo := c.addLoopInfo(elkLabel, resultVar, returnsValFromLastIteration, hasContinueLabel)
 	scope.loopInfo = loopInfo
 	c.loopCounter++
 	return scope

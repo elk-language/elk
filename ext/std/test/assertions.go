@@ -216,9 +216,11 @@ func initAssertions(testModule *value.Module) {
 			var buff strings.Builder
 			v.Stdout = &buff
 
-			v.CallCallable(callable)
-
+			_, err = v.CallCallable(callable)
 			v.Stdout = prevStdout
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 
 			got := value.String(buff.String())
 			if expected != got {

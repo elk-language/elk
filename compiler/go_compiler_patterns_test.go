@@ -6,6 +6,21 @@ import (
 
 func TestGoSwitch(t *testing.T) {
 	tests := goTestTable{
+		// TODO: fix
+		"identifier pattern": {
+			input: `
+				a := 5
+				result :=
+					switch a
+					case 0 then :a
+					case n then n + 2
+					case 10 then :c
+					case 15 then :d
+					end
+			`,
+			want: `
+`,
+		},
 		"with a few literal cases": {
 			input: `
 			  var a: any = 0
@@ -1966,10 +1981,10 @@ lbl1:
 		},
 		"literal negative float32": {
 			input: `
-	  var a: any = 0
-		b := switch a
-		case -5.8f32 then "a"
-		end
+			var a: any = 0
+			b := switch a
+			case -5.8f32 then "a"
+			end
 			`,
 			want: `package main
 

@@ -150,18 +150,22 @@ func (c *Case) Run(v *vm.Thread, events chan<- *ReportEvent, ctx context.Context
 	}
 
 	if isDone(ctx) {
+		caseReport.UpdateStatus(TEST_INTERRUPTED)
+		caseReport.duration = time.Since(startTime)
+		events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 		return nil
 	}
 	callCaseClosure(v, caseReport, startTime, c.Fn, ErrCase)
 
 	c.runAfterEach(startTime, caseReport, v)
 
-	if isDone(ctx) {
-		return nil
-	}
 	caseReport.UpdateStatus(TEST_SUCCESS)
 	caseReport.duration = time.Since(startTime)
 	events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
+
+	if isDone(ctx) {
+		return nil
+	}
 	return caseReport
 }
 

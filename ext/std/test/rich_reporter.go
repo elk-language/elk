@@ -107,6 +107,8 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				printCmd = r.reportFailure(msg.SuiteReport, "ERR")
 			case TEST_FAILED:
 				printCmd = r.reportFailure(msg.SuiteReport, "FAIL")
+			case TEST_INTERRUPTED:
+				printCmd = r.reportFailure(msg.SuiteReport, "INTR")
 			}
 
 			if msg.SuiteReport.Suite == RootSuite {
@@ -116,6 +118,9 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			return r, tea.Sequence(printCmd, setPercentCmd, waitForEvent(r.events))
+		// case REPORT_START_CASE:
+		// 	printCmd := tea.Printf("start test: %s\n", msg.CaseReport.Case.FullName())
+		// 	return r, tea.Batch(waitForEvent(r.events), printCmd)
 		case REPORT_FINISH_CASE:
 			r.finishedCaseCount++
 
@@ -127,6 +132,10 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				r.errorCounter++
 			case TEST_FAILED:
 				printCmd = r.reportFailure(msg.CaseReport, "FAIL")
+				r.setFailed()
+				r.failedCounter++
+			case TEST_INTERRUPTED:
+				printCmd = r.reportFailure(msg.CaseReport, "INTR")
 				r.setFailed()
 				r.failedCounter++
 			case TEST_SKIPPED:
