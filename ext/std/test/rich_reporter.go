@@ -177,7 +177,7 @@ func waitForEvent(ch <-chan *ReportEvent) tea.Cmd {
 	return func() tea.Msg {
 		d, ok := <-ch
 		if !ok {
-			return tea.QuitMsg{}
+			return nil
 		}
 		return d
 	}
