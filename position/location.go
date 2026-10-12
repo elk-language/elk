@@ -65,6 +65,17 @@ type Location struct {
 var DefaultLocation = NewLocation("<main>", DefaultSpan)
 var ZeroLocation = NewLocation("", ZeroSpan)
 
+// Create a new location from the start position of this location.
+func (l *Location) NewLocationFromStart() *Location {
+	return &Location{
+		Span: NewSpan(
+			l.StartPos,
+			l.StartPos,
+		),
+		FilePath: l.FilePath,
+	}
+}
+
 // Create a new location with a given position.
 func NewLocation(filename string, span *Span) *Location {
 	return &Location{

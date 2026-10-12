@@ -330,7 +330,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		case *types.Generic:
 			return c._canIntersect(a, narrowB.Namespace)
 		default:
-			return false
+			return c.isSubtype(a, b, nil)
 		}
 	case *types.Mixin:
 		switch narrowB := b.(type) {
@@ -341,7 +341,7 @@ func (c *Checker) _canIntersect(a types.Type, b types.Type) bool {
 		case *types.Generic:
 			return c._canIntersect(a, narrowB.Namespace)
 		default:
-			return false
+			return c.isSubtype(a, b, nil)
 		}
 	case *types.NamedType:
 		return c._canIntersect(a.Type, b)

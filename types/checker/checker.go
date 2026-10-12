@@ -131,8 +131,9 @@ const (
 )
 
 const (
-	HeaderFlag bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
-	TestFlag                                  // the checked code is test code
+	HeaderFlag    bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	TestSuiteFlag                                // the checked code is part of a test suite
+	TestFileFlag                                 // the checked code is a test file
 	GoCompilerFlag
 	AdditionalAbortChecksFlag   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
 	BuiltinImportsProcessedFlag // indicates that builtin imports do not need to be processed
@@ -222,6 +223,10 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 	}
 	if globalEnv == nil {
 		globalEnv = NewGlobalEnvironment()
+	}
+
+	if strings.HasSuffix(filename, ".test") {
+		c.flags.SetFlag(TestFileFlag)
 	}
 
 	if macro {
@@ -330,8 +335,12 @@ func (c *Checker) HasMeasureTime() bool {
 	return c.flags.HasFlag(MeasureTimeFlag)
 }
 
-func (c *Checker) IsTest() bool {
-	return c.flags.HasFlag(TestFlag)
+func (c *Checker) InTestSuite() bool {
+	return c.flags.HasFlag(TestSuiteFlag)
+}
+
+func (c *Checker) InTestFile() bool {
+	return c.flags.HasFlag(TestFileFlag)
 }
 
 func (c *Checker) SetMeasureTime(val bool) {
@@ -589,6 +598,11 @@ func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup)
 	builtinPaths := c.resolveImportPath("builtin/**/*.elk", "", node.Location())
 	node.ImportPaths = append(node.ImportPaths, builtinPaths...)
 	c.checkImportPaths(builtinPaths, wg, node.Location(), true)
+	if c.InTestSuite() {
+		testPaths := c.resolveImportPath("std/test", "", node.Location())
+		node.ImportPaths = append(node.ImportPaths, testPaths...)
+		c.checkImportPaths(testPaths, wg, node.Location(), true)
+	}
 	c.SetBuiltinImportsProcessed(true)
 }
 
@@ -714,7 +728,7 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	if parent != nil {
 		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks(), c.HasMeasureTime())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
-		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime(), c.IsTest())
+		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime(), c.InTestSuite())
 	} else {
 		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
 	}
@@ -901,12 +915,65 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	c.setHasDefer(prevHasDefer)
 }
 
-func (c *Checker) checkImportsForFile(fileName string, ast *ast.ProgramNode, wg *sync.WaitGroup) {
-	c.ASTCache.Set(fileName, ast)
+func (c *Checker) checkImportsForFile(fileName string, program *ast.ProgramNode, wg *sync.WaitGroup) {
+	c.ASTCache.Set(fileName, program)
 
-	imports := c.hoistImports(ast.Body, fileName)
+	// Add using Std::Test::* and using Std::Test::Assertions::*
+	if strings.HasSuffix(fileName, ".test") {
+		loc := program.Location().NewLocationFromStart()
+		program.Body = append(
+			[]ast.StatementNode{
+				ast.NewExpressionStatementNode(
+					loc,
+					ast.NewUsingExpressionNode(
+						loc,
+						[]ast.UsingEntryNode{
+							ast.NewUsingAllEntryNode(
+								loc,
+								ast.NewConstantLookupNode(
+									loc,
+									ast.NewPublicConstantNode(
+										loc,
+										"Std",
+									),
+									ast.NewPublicConstantNode(
+										loc,
+										"Test",
+									),
+								),
+							),
+							ast.NewUsingAllEntryNode(
+								loc,
+								ast.NewConstantLookupNode(
+									loc,
+									ast.NewConstantLookupNode(
+										loc,
+										ast.NewPublicConstantNode(
+											loc,
+											"Std",
+										),
+										ast.NewPublicConstantNode(
+											loc,
+											"Test",
+										),
+									),
+									ast.NewPublicConstantNode(
+										loc,
+										"Assertions",
+									),
+								),
+							),
+						},
+					),
+				),
+			},
+			program.Body...,
+		)
+	}
+
+	imports := c.hoistImports(program.Body, fileName)
 	for _, importStmt := range imports {
-		ast.ImportPaths = append(ast.ImportPaths, importStmt.FsPaths...)
+		program.ImportPaths = append(program.ImportPaths, importStmt.FsPaths...)
 		for _, importPath := range importStmt.FsPaths {
 			c.checkImportPath(importPath, wg, importStmt.Location(), false)
 		}
@@ -945,7 +1012,7 @@ func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *po
 			return
 		}
 
-		ast.IsBuiltin = true
+		ast.IsBuiltin = builtin
 		c.checkImportsForFile(importPath, ast, wg)
 	})
 }
@@ -8422,7 +8489,9 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 		c.pushConditionalLocalEnv(true)
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
-		c.narrowToType(node.Value, patternType)
+		narrowType := c.narrowToType(node.Value, patternType)
+		caseNode.SetType(narrowType)
+
 		caseType, _ := c.checkStatements(caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
 		c.popLocalEnv()

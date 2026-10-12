@@ -47,35 +47,37 @@ func (a assumption) toNilable() assumption {
 	}
 }
 
-func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) {
+func (c *Checker) narrowToType(node ast.ExpressionNode, typ types.Type) types.Type {
 	switch n := node.(type) {
 	case *ast.PublicIdentifierNode:
-		c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
+		return c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
 	case *ast.PrivateIdentifierNode:
-		c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
+		return c.narrowLocalToType(n.Value, c.TypeOf(n), typ)
 	case *ast.VariableDeclarationNode:
-		c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
+		return c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
 	case *ast.ValueDeclarationNode:
-		c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
+		return c.narrowLocalToType(c.identifierToName(n.Name), c.TypeOf(n), typ)
 	case *ast.AssignmentExpressionNode:
-		c.narrowAssignmentToType(n, typ)
+		return c.narrowAssignmentToType(n, typ)
+	default:
+		return typ
 	}
 }
 
-func (c *Checker) narrowAssignmentToType(node *ast.AssignmentExpressionNode, typ types.Type) {
+func (c *Checker) narrowAssignmentToType(node *ast.AssignmentExpressionNode, typ types.Type) types.Type {
 	switch node.Op.Type {
 	case token.EQUAL_OP, token.COLON_EQUAL:
 		nodeType := c.TypeOf(node)
 		switch l := node.Left.(type) {
 		case *ast.PublicIdentifierNode:
-			c.narrowLocalToType(l.Value, nodeType, typ)
+			return c.narrowLocalToType(l.Value, nodeType, typ)
 		case *ast.PrivateIdentifierNode:
-			c.narrowLocalToType(l.Value, nodeType, typ)
+			return c.narrowLocalToType(l.Value, nodeType, typ)
 		}
-		return
+		return typ
 	}
 
-	c.narrowToType(node.Left, typ)
+	return c.narrowToType(node.Left, typ)
 }
 
 func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) types.Type {

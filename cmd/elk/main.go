@@ -153,7 +153,7 @@ func runFile(fileName string) {
 		os.Exit(1)
 	}
 
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16{}, nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag), nil)
 	if diagnostics != nil {
 		fmt.Println()
 
@@ -244,6 +244,6 @@ func runTestFile(fileName string) {
 }
 
 func compileTestFile(fileName string) {
-	binPath := compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestFlag))
+	binPath := compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
 	sh.Sh(binPath)
 }

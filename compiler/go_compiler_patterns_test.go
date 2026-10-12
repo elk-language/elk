@@ -21,6 +21,20 @@ func TestGoSwitch(t *testing.T) {
 			want: `
 `,
 		},
+		"list rest pattern": {
+			input: `
+			b :=
+				switch a
+				case < 9 then :a
+				case [1, 6, 10] then :b
+				case [< 2, 6, > 5, 2] then :c
+				case [1, *a, > 15] then a
+				case 15 then :e
+				end
+			`,
+			want: `
+`,
+		},
 		"with a few literal cases": {
 			input: `
 			  var a: any = 0

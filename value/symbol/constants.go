@@ -94,6 +94,7 @@ var (
 	C_InstanceVariableNode  = ToSymbol("InstanceVariableNode")
 	C_AST                   = ToSymbol("AST")
 	C_Test                  = ToSymbol("Test")
+	C_Assertions            = ToSymbol("Assertions")
 	C_Time                  = ToSymbol("Time")
 	C_Date                  = ToSymbol("Date")
 	C_DateTime              = ToSymbol("DateTime")

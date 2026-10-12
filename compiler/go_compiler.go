@@ -1676,7 +1676,6 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 
 	for _, caseNode := range node.Cases {
 		c.enterDefaultScope()
-
 		patternResult := c.compilePattern(caseNode.Pattern, val)
 
 		if patternResult.value == "value.True" {
@@ -3468,13 +3467,13 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			c.checker.Std(symbol.C_ArrayList).(types.Namespace),
 			elementType,
 		)
-		restArrayListVar := c.arrayListToGoSource(
+		restArrayListVal := c.arrayListToGoSource(
 			value.NewArrayListOfValue(0),
 			restVarType,
 		)
 
-		restListVar = c.defineLocal(restVariableName, restVarType, restArrayListVar.goType, loc)
-		c.emitAssignGoLocal(restListVar.goLocal, restArrayListVar)
+		restListVar = c.defineLocal(restVariableName, restVarType, restArrayListVal.goType, loc)
+		c.emitAssignGoLocal(restListVar.goLocal, restArrayListVal)
 	}
 
 	var mixin string
@@ -14397,10 +14396,6 @@ func (c *GoCompiler) compileMultiplyBigFloat(left, right *goValue, typ types.Typ
 }
 
 func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
 	narrowRight := c.convertValueToNarrowerType(right)
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
@@ -14431,10 +14426,6 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 }
 
 func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
 	narrowRight := c.convertValueToNarrowerType(right)
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":

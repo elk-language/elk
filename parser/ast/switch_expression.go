@@ -191,16 +191,16 @@ func (n *SwitchExpressionNode) Error() string {
 
 // Represents a `case` node eg. `case 3 then println("eureka!")`
 type SwitchCaseNode struct {
-	NodeBase
+	TypedNodeBase
 	Pattern PatternNode
 	Body    []StatementNode
 }
 
 func (n *SwitchCaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
-		Body:     SpliceSlice(n.Body, loc, args, unquote),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 
@@ -312,8 +312,8 @@ func (n *SwitchCaseNode) Error() string {
 // Create a new switch `case` node
 func NewSwitchCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *SwitchCaseNode {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: loc},
-		Pattern:  pattern,
-		Body:     body,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Pattern:       pattern,
+		Body:          body,
 	}
 }
