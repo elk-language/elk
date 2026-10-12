@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 )
 
@@ -145,6 +146,10 @@ func (s *Spinner) Write(p []byte) (int, error) {
 }
 
 func (s *Spinner) Run(fn func(SpinnerCaptureData) error) error {
+	if color.NoColor {
+		return fn(SpinnerCaptureData{})
+	}
+
 	capture, err := s.Capture()
 	if err != nil {
 		return err

@@ -244,6 +244,11 @@ func runTestFile(fileName string) {
 }
 
 func compileTestFile(fileName string) {
-	binPath := compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
+	var binPath string
+	spinner := repl.NewSpinner(os.Stdout, "compiling")
+	spinner.Run(func(repl.SpinnerCaptureData) error {
+		binPath = compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
+		return nil
+	})
 	sh.Sh(binPath)
 }
