@@ -36,7 +36,7 @@ func MustRun() {
 // Runs the tests and returns the report.
 func Run() *SuiteReport {
 	v := vm.New()
-	events := make(chan *ReportEvent, 50)
+	events := make(chan *ReportEvent, 200)
 
 	var reporter Reporter
 	if color.NoColor {

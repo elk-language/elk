@@ -117,7 +117,7 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				setPercentCmd = r.progress.SetPercent(r.Percent())
 			}
 
-			return r, tea.Sequence(printCmd, setPercentCmd, waitForEvent(r.events))
+			return r, tea.Batch(tea.Sequence(printCmd, setPercentCmd), waitForEvent(r.events))
 		// case REPORT_START_CASE:
 		// 	printCmd := tea.Printf("start test: %s\n", msg.CaseReport.Case.FullName())
 		// 	return r, tea.Batch(waitForEvent(r.events), printCmd)
@@ -177,7 +177,7 @@ func waitForEvent(ch <-chan *ReportEvent) tea.Cmd {
 	return func() tea.Msg {
 		d, ok := <-ch
 		if !ok {
-			return tea.Quit
+			return tea.QuitMsg{}
 		}
 		return d
 	}
