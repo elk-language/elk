@@ -16,6 +16,7 @@ func TestGoQuote(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -55,7 +56,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = ast.NewBinaryExpressionNode(position.NewLocation("<main>", position.NewSpan(position.New(16, 3, 6), position.New(20, 3, 10))), token.New(position.NewLocation("<main>", position.NewSpan(position.New(18, 3, 8), position.New(18, 3, 8))), token.PLUS), ast.NewIntLiteralNode(position.NewLocation("<main>", position.NewSpan(position.New(16, 3, 6), position.New(16, 3, 6))), "1"), ast.NewIntLiteralNode(position.NewLocation("<main>", position.NewSpan(position.New(20, 3, 10), position.New(20, 3, 10))), "2"))
 }
@@ -72,6 +73,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -121,7 +123,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(5)).ToValue()
@@ -145,6 +147,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -194,7 +197,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(5)).ToValue()
@@ -219,6 +222,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -268,7 +272,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -292,6 +296,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -341,7 +346,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -365,6 +370,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -414,7 +420,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -439,6 +445,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -487,7 +494,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(1)).ToValue()
@@ -511,6 +518,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -559,7 +567,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(1)).ToValue()
@@ -584,6 +592,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -636,7 +645,7 @@ func main() { // loc: <main>
 
 	fn_method0 = vm.MethodToFunc((const0).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 4)
 	t2[0] = const0.CreateInstance()
@@ -662,6 +671,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -714,7 +724,7 @@ func main() { // loc: <main>
 
 	fn_method0 = vm.MethodToFunc((const0).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 4)
 	t2[0] = const0.CreateInstance()
@@ -740,6 +750,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -792,7 +803,7 @@ func main() { // loc: <main>
 
 	fn_method0 = vm.MethodToFunc((const0).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 4)
 	t2[0] = const0.CreateInstance()
@@ -819,6 +830,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -868,7 +880,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -892,6 +904,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -941,7 +954,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -965,6 +978,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -1014,7 +1028,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -1039,6 +1053,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
@@ -1088,7 +1103,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.SymbolClass).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (sym2).ToValue()
@@ -1133,6 +1148,7 @@ func TestGoMacroExpansion(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1169,7 +1185,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(110)).ToValue()
 }
@@ -1197,6 +1213,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1238,7 +1255,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 
 	initGlobalEnv()
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(110)).ToValue()
 }
@@ -1282,6 +1299,7 @@ func initGlobalEnv() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1318,7 +1336,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(110)).ToValue()
 }
@@ -1346,6 +1364,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1359,7 +1378,7 @@ func init() { elk.InitNative() }
 
 var sym4 = value.ToSymbol("main")
 var sym6 = value.ToSymbol("#init")
-var fn_method1 vm.NativeFunction // BoxString.:value
+var cc_main_1 = &vm.CallCache{}
 
 var const0 *value.Class // BoxString
 var sym0 = value.ToSymbol("BoxString")
@@ -1412,9 +1431,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	fn_method1 = vm.MethodToFunc((const0).LookupMethod(sym3))
-
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 	t1, err = fn_method0(thread, const0.CreateInstance(), (value.String("foo")).ToValue()) // receiver: BoxString, name: #init
 	if err.IsNotUndefined() {
@@ -1425,7 +1442,7 @@ func main() { // loc: <main>
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = l0
 	callFrame.SetNativeLineNumber(16)
-	_, err = fn_method1(thread, t2) // receiver: BoxString, name: value
+	_, err = thread.CallMethodByNameWithCache(sym3, &cc_main_1, t2...) // receiver: BoxString, name: value
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1501,6 +1518,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1563,7 +1581,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = const0.CreateInstance()
 	t1, err = fn_method0(thread, l0) // receiver: Foo, name: bar

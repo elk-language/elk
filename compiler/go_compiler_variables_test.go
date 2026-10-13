@@ -45,6 +45,7 @@ func TestGoInstanceVariables(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -86,7 +87,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -126,6 +127,7 @@ func ivarIndices(thread *vm.Thread) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -165,7 +167,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 
 	initGlobalEnv()
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -194,6 +196,7 @@ func initGlobalEnv() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -235,7 +238,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -283,6 +286,7 @@ func ivarIndices(thread *vm.Thread) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -354,7 +358,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -417,6 +421,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -474,7 +479,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -535,6 +540,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -594,7 +600,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -667,6 +673,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -726,7 +733,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -799,6 +806,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -858,7 +866,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -925,6 +933,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -984,7 +993,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -1033,6 +1042,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1090,7 +1100,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -1148,6 +1158,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1205,7 +1216,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -1268,6 +1279,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1325,7 +1337,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -1384,6 +1396,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1441,7 +1454,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -1497,6 +1510,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1540,7 +1554,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -1581,7 +1595,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = callFrame
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	value.SetInstanceVariable(self, 0, (value.SmallInt(2)).ToValue())
 }
@@ -1601,6 +1615,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1644,7 +1659,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -1681,7 +1696,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = callFrame
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	value.SetInstanceVariable(self, 0, (value.SmallInt(2)).ToValue())
 }
@@ -1701,6 +1716,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1744,7 +1760,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -1786,7 +1802,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = t1
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	t1 = (value.SmallInt(2)).ToValue()
 	value.SetInstanceVariable(self, 0, t1)
@@ -1806,6 +1822,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1849,7 +1866,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -1887,7 +1904,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = callFrame
 
 	self = value.Ref((const0).SingletonClass())
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	value.SetInstanceVariable(self, 0, (value.SmallInt(2)).ToValue())
 }
@@ -1908,6 +1925,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1961,7 +1979,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2022,6 +2040,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2079,7 +2098,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2140,6 +2159,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2201,7 +2221,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2263,6 +2283,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2318,7 +2339,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2392,6 +2413,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2447,7 +2469,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2514,6 +2536,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2540,7 +2563,7 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err valu
 	var t1 *value.BoxOfValue
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 5)
 	defer thread.PopNativeCallFrame()
 	t1, err = value.GetBoxOfInstanceVariableByName(self, sym3)
 	if err.IsNotUndefined() {
@@ -2574,7 +2597,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2623,6 +2646,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2676,7 +2700,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2738,6 +2762,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2793,7 +2818,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -2867,6 +2892,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2893,8 +2919,10 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	_ = callFrame
 	var t1 value.Value
 	_ = t1
+	var t2 value.Value
+	_ = t2
 
-	callFrame = thread.AddNativeCallFrame(sym2, sym3, 9)
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 9)
 	defer thread.PopNativeCallFrame()
 	t1 = value.GetInstanceVariable(self, 0)
 	callFrame.SetNativeLineNumber(10)
@@ -2903,13 +2931,13 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 		thread.CaptureStackTrace()
 		return result, err
 	}
-	t1 = value.GetInstanceVariable(self, 1)
-	err = value.Must(t1)
+	t2 = value.GetInstanceVariable(self, 1)
+	err = value.Must(t2)
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		return result, err
 	}
-	return value.AddInts(t1, t1), value.Undefined
+	return value.AddInts(t1, t2), value.Undefined
 
 }
 
@@ -2939,7 +2967,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3013,6 +3041,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3068,7 +3097,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym3, 1)
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3135,6 +3164,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3161,7 +3191,7 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 	var t1 value.Value
 	_ = t1
 
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 5)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 5)
 	defer thread.PopNativeCallFrame()
 	t1, err = value.GetInstanceVariableByName(self, sym3)
 	if err.IsNotUndefined() {
@@ -3195,7 +3225,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym4, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3244,6 +3274,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3297,7 +3328,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3356,6 +3387,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3409,7 +3441,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3472,6 +3504,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3525,7 +3558,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3584,6 +3617,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3637,7 +3671,7 @@ func main() { // loc: <main>
 	ivarIndices(thread)
 
 	methodDefinitions()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 1)
 	defer thread.PopNativeCallFrame()
 }
 
@@ -3693,6 +3727,7 @@ func methodDefinitions() {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3736,7 +3771,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -3779,7 +3814,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = l0
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	l0 = value.GetInstanceVariable(self, 0)
 }
@@ -3799,6 +3834,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3842,7 +3878,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -3881,7 +3917,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = l0
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	l0 = value.GetInstanceVariable(self, 0)
 }
@@ -3901,6 +3937,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3944,7 +3981,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -3984,7 +4021,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = l0
 
 	self = (const0).ToValue()
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	l0 = value.GetInstanceVariable(self, 0)
 }
@@ -4002,6 +4039,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4045,7 +4083,7 @@ func main() { // loc: <main>
 	initGlobalEnv()
 
 	ivarIndices(thread)
-	callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
+	callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
 	defer thread.PopNativeCallFrame()
 	fn_ns_expr0(thread)
 }
@@ -4085,7 +4123,7 @@ func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
 	_ = l0
 
 	self = value.Ref((const0).SingletonClass())
-	callFrame = thread.AddNativeCallFrame(sym3, sym2, 2)
+	callFrame = thread.AddNativeCallFrame(sym2, sym3, 2)
 	defer thread.PopNativeCallFrame()
 	l0 = value.GetInstanceVariable(self, 0)
 }
@@ -4108,6 +4146,7 @@ func TestGoLocalVariables(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4144,7 +4183,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 }
 `,
@@ -4155,6 +4194,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4191,7 +4231,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(3)).ToValue()
 }
@@ -4203,6 +4243,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4247,6 +4288,8 @@ func main() { // loc: <main>
 	_ = err
 	var t5 value.SmallInt
 	_ = t5
+	var t6 value.Value
+	_ = t6
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
@@ -4255,7 +4298,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.ArrayListClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
 	t2 = value.True
@@ -4284,12 +4327,12 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl1
 	}
-	t3, err = (t1).Get(int(value.SmallInt(1)))
+	t6, err = (t1).Get(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l0 = t3
+	l0 = t6
 lbl1:
 	if !(t2) {
 		thread.CaptureStackTrace()
@@ -4323,6 +4366,7 @@ lbl1:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4359,7 +4403,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 }
@@ -4374,6 +4418,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4410,7 +4455,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l0 = value.String("bar")
@@ -4426,6 +4471,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4462,7 +4508,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l0 = l0.ConcatString(value.String("bar"))
@@ -4488,6 +4534,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4526,7 +4573,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
@@ -4542,6 +4589,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4580,7 +4628,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = (*value.BoxOfValue)(&l0)
@@ -4597,6 +4645,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4638,7 +4687,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = (*value.BoxOfValue)(&l0)
@@ -4656,6 +4705,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4699,7 +4749,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = (*value.BoxOfValue)(&l0)
@@ -4718,6 +4768,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4756,7 +4807,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.5)
 	l1 = value.NewNativeBox(&l0)
@@ -4773,6 +4824,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4814,7 +4866,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.5)
 	l1 = value.NewNativeBox(&l0)
@@ -4832,6 +4884,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4875,7 +4928,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.5)
 	l1 = value.NewNativeBox(&l0)
@@ -4896,6 +4949,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4934,7 +4988,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.AddInts(l0, (value.SmallInt(2)).ToValue())
@@ -4953,6 +5007,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4993,7 +5048,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l2 = (value.SmallInt(10)).ToValue()
@@ -5021,6 +5076,7 @@ func TestGoUpvalue(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5059,7 +5115,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = (*value.BoxOfValue)(&l0)
@@ -5075,6 +5131,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5113,7 +5170,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(5)
 	l1 = value.NewImmutableNativeBox(&l0)
@@ -5129,6 +5186,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5167,7 +5225,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.2)
 	l1 = value.NewNativeBox(&l0)
@@ -5183,6 +5241,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5221,7 +5280,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.5)
 	l1 = value.NewImmutableNativeBox(&l0)
@@ -5237,6 +5296,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -5283,7 +5343,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	t1 = vm.NewNativeClosure(
@@ -5297,7 +5357,7 @@ func main() { // loc: <main>
 			var err value.Value
 			_ = err
 
-			callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+			callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
 			defer thread.PopNativeCallFrame()
 			t2 = value.ResizeNativeArgs(t2, 3)
 			t2[0] = (value.KernelModule).ToValue()
@@ -5338,6 +5398,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -5396,7 +5457,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(2)).ToValue()
 	l1 = (value.SmallInt(10)).ToValue()
@@ -5452,6 +5513,7 @@ func TestGoLocalValues(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5488,7 +5550,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 }
 `,
@@ -5502,6 +5564,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5538,7 +5601,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(3)
 }
@@ -5550,6 +5613,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5594,6 +5658,8 @@ func main() { // loc: <main>
 	_ = err
 	var t5 value.SmallInt
 	_ = t5
+	var t6 value.Value
+	_ = t6
 	var l0 value.Value // var a: Std::Int
 	_ = l0
 	var self value.Value
@@ -5602,7 +5668,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.ArrayListClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
 	t2 = value.True
@@ -5631,12 +5697,12 @@ func main() { // loc: <main>
 		t2 = value.False
 		goto lbl1
 	}
-	t3, err = (t1).Get(int(value.SmallInt(1)))
+	t6, err = (t1).Get(int(value.SmallInt(1)))
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	l0 = t3
+	l0 = t6
 lbl1:
 	if !(t2) {
 		thread.CaptureStackTrace()
@@ -5654,6 +5720,7 @@ lbl1:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5690,7 +5757,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 }
@@ -5728,6 +5795,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5766,7 +5834,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(5)
 	l1 = (l0).AddSmallInt(value.SmallInt(2))
@@ -5784,6 +5852,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5822,7 +5891,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(5)
 	l1 = (l0).AddSmallInt(value.SmallInt(2))
@@ -5841,6 +5910,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5881,7 +5951,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(5)
 	l2 = value.SmallInt(10)

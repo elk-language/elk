@@ -16,6 +16,7 @@ func TestGoAs(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -54,7 +55,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(1)).ToValue()
 	callFrame.SetNativeLineNumber(3)
@@ -75,6 +76,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -117,7 +119,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(1)).ToValue()
 	t1 = l0
@@ -152,6 +154,7 @@ func TestGoMust(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -190,7 +193,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	callFrame.SetNativeLineNumber(3)
@@ -211,6 +214,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -253,7 +257,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	t1 = l0
@@ -287,6 +291,7 @@ func TestGoInstanceOf(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -325,7 +330,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.Bool(value.InstanceOf(l0, value.IntClass))
@@ -352,6 +357,7 @@ func TestGoReverseInstanceOf(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -390,7 +396,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.Bool(value.InstanceOf(l0, value.IntClass))
@@ -417,6 +423,7 @@ func TestGoIsA(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -455,7 +462,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.Bool(value.IsA(l0, value.IntClass))
@@ -471,6 +478,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -509,7 +517,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (vm.NewNativeHashMapFromMap(map[value.String]value.String{value.String("foo"): value.String("bar")})).ToValue()
 	l1 = value.Bool(value.IsA(l0, value.MapMixin))
@@ -536,6 +544,7 @@ func TestGoReverseIsA(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -574,7 +583,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.Bool(value.IsA(l0, value.IntClass))
@@ -590,6 +599,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -628,7 +638,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (vm.NewNativeHashMapFromMap(map[value.String]value.String{value.String("foo"): value.String("bar")})).ToValue()
 	l1 = value.Bool(value.IsA(l0, value.MapMixin))
