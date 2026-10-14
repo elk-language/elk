@@ -132,16 +132,11 @@ func (m *nativeMethod) goIdent() string {
 type nativeConstant struct {
 	fullName  string
 	name      symbol.Symbol
-	ident     string
 	elkType   types.Type
-	goType    *value.GoType
+	goLocal   *goLocal
 	init      string
 	node      *ast.ConstantDeclarationNode
 	namespace types.Namespace
-}
-
-func (m *nativeConstant) goIdent() string {
-	return m.ident
 }
 
 type nativeValue struct {
@@ -648,15 +643,21 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
 	elkType := c.typeOf(node)
 	goType := c.elkTypeToGoType(elkType, false)
+	if node.Initialiser.IsStatic() {
+		val := resolve(node.Initialiser, c.checker)
+		if val.IsSmallInt() {
+			goType = value.FetchGoType("value.SmallInt")
+		}
+	}
 	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
+	goLocal := newGoLocal(goIdent, goType, "")
 	c.globalData.native.constantCache.SetUnsafe(
 		fullConstName,
 		&nativeConstant{
 			fullName:  fullConstName,
 			name:      constName,
-			ident:     goIdent,
 			elkType:   elkType,
-			goType:    goType,
+			goLocal:   goLocal,
 			node:      node,
 			namespace: namespace,
 		},
@@ -667,8 +668,7 @@ func (c *GoCompiler) compileConstantInit(nativeConst *nativeConstant) {
 	namespace := nativeConst.namespace
 	node := nativeConst.node
 	constName := nativeConst.name
-	goIdent := nativeConst.ident
-	goType := nativeConst.goType
+	goLocal := nativeConst.goLocal
 	fullConstName := nativeConst.fullName
 
 	c.registerGoLocal("namespace", goValueType)
@@ -689,15 +689,14 @@ func (c *GoCompiler) compileConstantInit(nativeConst *nativeConstant) {
 	)
 
 	constNameSymbol := c.emitSymbol(constName.String())
-	c.emitPackage("var %s %s // constant: %s, loc: %s\n", goIdent, goType, fullConstName, node.Location().String())
-	c.emit("%s = %s\n", goIdent, init.fetchValue())
+	c.emitPackage("var %s %s // const %s: %s, loc: %s\n", goLocal.name, goLocal.goType, fullConstName, types.Inspect(nativeConst.elkType), node.Location().String())
+	c.emitAssignGoLocal(goLocal, init)
 
-	newGoValue(goIdent, init.elkType, init.goType)
 	c.emit(
 		"value.AddConstant(namespace, %s, %s)\n",
 		constNameSymbol,
 		c.convertValueToWiderType(
-			newGoValue(goIdent, init.elkType, init.goType),
+			newGoValue(goLocal.name, init.elkType, init.goType),
 		).fetchValue(),
 	)
 }
@@ -2332,13 +2331,13 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("%s = value.NewInterface()\n", goIdent)
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		}
+		goLocal := newGoLocal(goIdent, goType, "")
 
 		c.globalData.native.constantCache.SetUnsafe(
 			fullName,
 			&nativeConstant{
-				ident:   goIdent,
+				goLocal: goLocal,
 				elkType: elkType,
-				goType:  goType,
 			},
 		)
 		c.emitPackage("var %s %s // %s\n", goIdent, goType, fullName)
@@ -2465,14 +2464,15 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	fullNameString := fullName.String()
 	if constant, ok := c.globalData.native.constantCache.GetUnsafe(fullNameString); ok {
 		return newGoValue(
-			constant.goIdent(),
+			constant.goLocal.name,
 			elkType,
-			constant.goType,
+			constant.goLocal.goType,
 		)
 	}
 
 	val := c.convertValueToNarrowerType(c.emitDynamicGetConst(fullName, elkType))
 	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
+	goLocal := newGoLocal(goIdent, val.goType, "")
 	c.emitPackage("var %s %s // %s\n", goIdent, val.goType, fullNameString)
 	if fullNameString == "" {
 		panic("empty const name")
@@ -2480,9 +2480,8 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	c.globalData.native.constantCache.SetUnsafe(
 		fullNameString,
 		&nativeConstant{
-			ident:   goIdent,
+			goLocal: goLocal,
 			elkType: elkType,
-			goType:  val.goType,
 			init:    val.fetchValue(),
 		},
 	)
@@ -2674,7 +2673,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 			}
 
 			initConstPresent = true
-			fmt.Fprintf(&prependBuff, "%s = %s\n", nativeConst.goIdent(), nativeConst.init)
+			fmt.Fprintf(&prependBuff, "%s = %s\n", nativeConst.goLocal.name, nativeConst.init)
 		}
 		if initConstPresent {
 			fmt.Fprintln(&prependBuff)
@@ -9057,7 +9056,7 @@ func (c *GoCompiler) emitSymbol(val string) string {
 	}
 	c.globalData.native.symbolCache.SetUnsafe(val, symbol)
 	ident := symbol.goIdent()
-	c.emitPackage("var %s = value.ToSymbol(%q)\n", ident, val)
+	c.emitPackage("var %s = value.ToSymbol(%q) // %s\n", ident, val, val)
 	return ident
 }
 

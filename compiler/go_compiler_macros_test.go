@@ -31,8 +31,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -88,10 +88,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_ast_expr_node")
-var fn_method0 vm.NativeFunction // Std::Int.:to_ast_expr_node
+var sym0 = value.ToSymbol("main")             // main
+var sym1 = value.ToSymbol("<main>")           // <main>
+var sym2 = value.ToSymbol("to_ast_expr_node") // to_ast_expr_node
+var fn_method0 vm.NativeFunction              // Std::Int.:to_ast_expr_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -162,10 +162,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_ast_expr_node")
-var fn_method0 vm.NativeFunction // Std::Int.:to_ast_expr_node
+var sym0 = value.ToSymbol("main")             // main
+var sym1 = value.ToSymbol("<main>")           // <main>
+var sym2 = value.ToSymbol("to_ast_expr_node") // to_ast_expr_node
+var fn_method0 vm.NativeFunction              // Std::Int.:to_ast_expr_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -236,11 +236,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var sym3 = value.ToSymbol("to_ast_ident_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_ident_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("foo")               // foo
+var sym3 = value.ToSymbol("to_ast_ident_node") // to_ast_ident_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_ident_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -310,11 +310,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var sym3 = value.ToSymbol("to_ast_ident_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_ident_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("foo")               // foo
+var sym3 = value.ToSymbol("to_ast_ident_node") // to_ast_ident_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_ident_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -384,11 +384,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var sym3 = value.ToSymbol("to_ast_ident_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_ident_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("foo")               // foo
+var sym3 = value.ToSymbol("to_ast_ident_node") // to_ast_ident_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_ident_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -459,10 +459,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_ast_pattern_expr_node")
-var fn_method0 vm.NativeFunction // Std::Int.:to_ast_pattern_expr_node
+var sym0 = value.ToSymbol("main")                     // main
+var sym1 = value.ToSymbol("<main>")                   // <main>
+var sym2 = value.ToSymbol("to_ast_pattern_expr_node") // to_ast_pattern_expr_node
+var fn_method0 vm.NativeFunction                      // Std::Int.:to_ast_pattern_expr_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -532,10 +532,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_ast_pattern_expr_node")
-var fn_method0 vm.NativeFunction // Std::Int.:to_ast_pattern_expr_node
+var sym0 = value.ToSymbol("main")                     // main
+var sym1 = value.ToSymbol("<main>")                   // <main>
+var sym2 = value.ToSymbol("to_ast_pattern_expr_node") // to_ast_pattern_expr_node
+var fn_method0 vm.NativeFunction                      // Std::Int.:to_ast_pattern_expr_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -606,12 +606,12 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode")
-var const0 *value.Class // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")
-var fn_method0 vm.NativeFunction // Std::Elk::AST::ListPatternNode.:#init
+var sym0 = value.ToSymbol("main")                           // main
+var sym1 = value.ToSymbol("<main>")                         // <main>
+var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
+var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
+var sym3 = value.ToSymbol("#init")                          // #init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -685,12 +685,12 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode")
-var const0 *value.Class // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")
-var fn_method0 vm.NativeFunction // Std::Elk::AST::ListPatternNode.:#init
+var sym0 = value.ToSymbol("main")                           // main
+var sym1 = value.ToSymbol("<main>")                         // <main>
+var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
+var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
+var sym3 = value.ToSymbol("#init")                          // #init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -764,12 +764,12 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode")
-var const0 *value.Class // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")
-var fn_method0 vm.NativeFunction // Std::Elk::AST::ListPatternNode.:#init
+var sym0 = value.ToSymbol("main")                           // main
+var sym1 = value.ToSymbol("<main>")                         // <main>
+var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
+var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
+var sym3 = value.ToSymbol("#init")                          // #init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -844,11 +844,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Bar")
-var sym3 = value.ToSymbol("to_ast_const_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_const_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("Bar")               // Bar
+var sym3 = value.ToSymbol("to_ast_const_node") // to_ast_const_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_const_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -918,11 +918,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Bar")
-var sym3 = value.ToSymbol("to_ast_const_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_const_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("Bar")               // Bar
+var sym3 = value.ToSymbol("to_ast_const_node") // to_ast_const_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_const_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -992,11 +992,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("Bar")
-var sym3 = value.ToSymbol("to_ast_const_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_const_node
+var sym0 = value.ToSymbol("main")              // main
+var sym1 = value.ToSymbol("<main>")            // <main>
+var sym2 = value.ToSymbol("Bar")               // Bar
+var sym3 = value.ToSymbol("to_ast_const_node") // to_ast_const_node
+var fn_method0 vm.NativeFunction               // Std::Symbol.:to_ast_const_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1067,11 +1067,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var sym3 = value.ToSymbol("to_ast_ivar_node")
-var fn_method0 vm.NativeFunction // Std::Symbol.:to_ast_ivar_node
+var sym0 = value.ToSymbol("main")             // main
+var sym1 = value.ToSymbol("<main>")           // <main>
+var sym2 = value.ToSymbol("foo")              // foo
+var sym3 = value.ToSymbol("to_ast_ivar_node") // to_ast_ivar_node
+var fn_method0 vm.NativeFunction              // Std::Symbol.:to_ast_ivar_node
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1160,8 +1160,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1225,11 +1225,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Module // Math
-var sym0 = value.ToSymbol("Math")
+var const0 *value.Module          // Math
+var sym0 = value.ToSymbol("Math") // Math
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1311,8 +1311,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1376,16 +1376,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
-var sym6 = value.ToSymbol("#init")
+var sym4 = value.ToSymbol("main")  // main
+var sym6 = value.ToSymbol("#init") // #init
 var cc_main_1 = &vm.CallCache{}
 
-var const0 *value.Class // BoxString
-var sym0 = value.ToSymbol("BoxString")
+var const0 *value.Class                // BoxString
+var sym0 = value.ToSymbol("BoxString") // BoxString
 
-var sym1 = value.ToSymbol("BoxString.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("BoxString.:#init") // BoxString.:#init
+var sym2 = value.ToSymbol("<main>")           // <main>
 func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: BoxString.:#init, loc: <main>:13:5
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1395,7 +1394,7 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result val
 
 }
 
-var sym3 = value.ToSymbol("value")
+var sym3 = value.ToSymbol("value") // value
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1530,15 +1529,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
-var sym5 = value.ToSymbol("bar")
+var sym3 = value.ToSymbol("main") // main
+var sym5 = value.ToSymbol("bar")  // bar
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:bar")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo.:bar") // Foo.:bar
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:bar, loc: <main>:16:6
 	var callFrame *vm.CallFrame
 	_ = callFrame

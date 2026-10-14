@@ -57,11 +57,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -139,11 +139,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -208,11 +208,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -298,14 +298,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo.:#init") // Foo.:#init
+var sym2 = value.ToSymbol("<main>")     // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:4:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -318,8 +317,7 @@ func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err va
 
 }
 
-var sym3 = value.ToSymbol("Foo.:incr_foo")
-
+var sym3 = value.ToSymbol("Foo.:incr_foo") // Foo.:incr_foo
 func fn_method1(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:incr_foo, loc: <main>:8:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -433,14 +431,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -552,16 +549,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Class          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:7:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -685,16 +681,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Class          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -818,16 +813,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -945,15 +939,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-var sym3 = value.ToSymbol("foo")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
+var sym3 = value.ToSymbol("foo")      // foo
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1054,14 +1047,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1170,14 +1162,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1291,14 +1282,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1408,14 +1398,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Interface // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Interface      // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1522,13 +1511,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<class: Foo>")
+var sym3 = value.ToSymbol("<class: Foo>") // <class: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1627,13 +1616,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<mixin: Foo>")
+var sym3 = value.ToSymbol("<mixin: Foo>") // <mixin: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1728,13 +1717,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Interface // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Interface      // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<interface: Foo>")
+var sym3 = value.ToSymbol("<interface: Foo>") // <interface: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1834,13 +1823,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<module: Foo>")
+var sym3 = value.ToSymbol("<module: Foo>") // <module: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1937,14 +1926,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2052,15 +2040,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-var sym3 = value.ToSymbol("get")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
+var sym3 = value.ToSymbol("get")      // get
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2171,15 +2158,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-var sym3 = value.ToSymbol("set")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
+var sym3 = value.ToSymbol("set")      // set
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2295,16 +2281,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Class          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:7:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2425,16 +2410,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2548,15 +2532,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-var sym3 = value.ToSymbol("foo")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
+var sym3 = value.ToSymbol("foo")      // foo
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Box, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2658,14 +2641,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2774,16 +2756,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Class          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:7:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -2904,16 +2885,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Class          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3053,16 +3033,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Bar
-var sym0 = value.ToSymbol("Bar")
-var const1 *value.Class // Foo
-var sym1 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Bar
+var sym0 = value.ToSymbol("Bar") // Bar
+var const1 *value.Class          // Foo
+var sym1 = value.ToSymbol("Foo") // Foo
 
-var sym2 = value.ToSymbol("Foo.:foo")
-var sym3 = value.ToSymbol("<main>")
-
+var sym2 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym3 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:9:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3176,15 +3155,14 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:foo")
-var sym2 = value.ToSymbol("<main>")
-var sym3 = value.ToSymbol("foo")
-
+var sym1 = value.ToSymbol("Foo.:foo") // Foo.:foo
+var sym2 = value.ToSymbol("<main>")   // <main>
+var sym3 = value.ToSymbol("foo")      // foo
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3286,14 +3264,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:5:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3399,14 +3376,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3516,14 +3492,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3629,14 +3604,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
+var sym3 = value.ToSymbol("main") // main
 
-var const0 *value.Interface // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Interface      // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::foo")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::foo") // Foo::foo
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::foo, loc: <main>:6:7
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -3739,13 +3713,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Class // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Class          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<class: Foo>")
+var sym3 = value.ToSymbol("<class: Foo>") // <class: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3846,13 +3820,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Mixin // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Mixin          // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<mixin: Foo>")
+var sym3 = value.ToSymbol("<mixin: Foo>") // <mixin: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3949,13 +3923,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Interface // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Interface      // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<interface: Foo>")
+var sym3 = value.ToSymbol("<interface: Foo>") // <interface: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4051,13 +4025,13 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym3 = value.ToSymbol("<module: Foo>")
+var sym3 = value.ToSymbol("<module: Foo>") // <module: Foo>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4158,8 +4132,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4206,8 +4180,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4255,10 +4229,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("length")
-var fn_method0 vm.NativeFunction // Std::ArrayList.:length
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("length") // length
+var fn_method0 vm.NativeFunction    // Std::ArrayList.:length
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4378,8 +4352,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4430,8 +4404,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4483,8 +4457,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4546,8 +4520,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4601,8 +4575,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4657,9 +4631,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("get")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("get")    // get
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4717,9 +4691,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("set")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("set")    // set
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4780,8 +4754,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4836,9 +4810,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("get")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("get")    // get
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4896,9 +4870,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("set")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("set")    // set
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4961,8 +4935,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5019,8 +4993,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5088,8 +5062,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5143,8 +5117,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5198,8 +5172,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5253,8 +5227,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5309,11 +5283,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("<closure>")
-var sym3 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5411,9 +5385,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("<closure>")
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5525,8 +5499,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5576,8 +5550,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5625,10 +5599,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("length")
-var fn_method0 vm.NativeFunction // Std::ArrayList.:length
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("length") // length
+var fn_method0 vm.NativeFunction    // Std::ArrayList.:length
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5732,8 +5706,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5807,8 +5781,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5864,8 +5838,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5922,8 +5896,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()

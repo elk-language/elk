@@ -40,25 +40,24 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym9 = value.ToSymbol("main")
-var sym11 = value.ToSymbol("baz")
-var sym12 = value.ToSymbol("#init")
+var sym9 = value.ToSymbol("main")   // main
+var sym11 = value.ToSymbol("baz")   // baz
+var sym12 = value.ToSymbol("#init") // #init
 var cc_main_1 = &vm.CallCache{}
-var sym13 = value.ToSymbol("RED")
-var const1 value.Value // constant: Color::RED, loc: <main>:3:6
+var sym13 = value.ToSymbol("RED") // RED
+var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
 var cc_main_2 = &vm.CallCache{}
-var sym14 = value.ToSymbol("GREEN")
-var const2 value.Value // constant: Color::GREEN, loc: <main>:4:6
+var sym14 = value.ToSymbol("GREEN") // GREEN
+var const2 value.Value              // const Color::GREEN: Color, loc: <main>:4:6
 var cc_main_3 = &vm.CallCache{}
-var sym15 = value.ToSymbol("BLUE")
-var const3 value.Value // constant: Color::BLUE, loc: <main>:5:6
+var sym15 = value.ToSymbol("BLUE") // BLUE
+var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 
-var const0 *value.Class // Color
-var sym0 = value.ToSymbol("Color")
+var const0 *value.Class            // Color
+var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
+var sym2 = value.ToSymbol("<main>")       // <main>
 func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -70,14 +69,14 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UI
 
 }
 
-var sym6 = value.ToSymbol("blue")
-var sym7 = value.ToSymbol("green")
-var sym8 = value.ToSymbol("red")
-var sym3 = value.ToSymbol("Std::Kernel::baz")
-var sym4 = value.ToSymbol("inspect")
-var fn_method2 vm.NativeFunction // Std::Value.:inspect
-var sym5 = value.ToSymbol("println@1")
-var fn_method3 vm.NativeFunction // Std::Kernel::println@1
+var sym6 = value.ToSymbol("blue")             // blue
+var sym7 = value.ToSymbol("green")            // green
+var sym8 = value.ToSymbol("red")              // red
+var sym3 = value.ToSymbol("Std::Kernel::baz") // Std::Kernel::baz
+var sym4 = value.ToSymbol("inspect")          // inspect
+var fn_method2 vm.NativeFunction              // Std::Value.:inspect
+var sym5 = value.ToSymbol("println@1")        // println@1
+var fn_method3 vm.NativeFunction              // Std::Kernel::println@1
 func fn_method1(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::baz, loc: <main>:13:5
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -284,24 +283,23 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym6 = value.ToSymbol("main")
-var sym8 = value.ToSymbol("#init")
+var sym6 = value.ToSymbol("main")  // main
+var sym8 = value.ToSymbol("#init") // #init
 var cc_main_1 = &vm.CallCache{}
-var sym9 = value.ToSymbol("RED")
-var const1 value.Value // constant: Color::RED, loc: <main>:3:6
+var sym9 = value.ToSymbol("RED") // RED
+var const1 value.Value           // const Color::RED: Color, loc: <main>:3:6
 var cc_main_2 = &vm.CallCache{}
-var sym10 = value.ToSymbol("GREEN")
-var const2 value.Value // constant: Color::GREEN, loc: <main>:4:6
+var sym10 = value.ToSymbol("GREEN") // GREEN
+var const2 value.Value              // const Color::GREEN: Color, loc: <main>:4:6
 var cc_main_3 = &vm.CallCache{}
-var sym11 = value.ToSymbol("BLUE")
-var const3 value.Value // constant: Color::BLUE, loc: <main>:5:6
+var sym11 = value.ToSymbol("BLUE") // BLUE
+var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 
-var const0 *value.Class // Color
-var sym0 = value.ToSymbol("Color")
+var const0 *value.Class            // Color
+var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
+var sym2 = value.ToSymbol("<main>")       // <main>
 func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -313,9 +311,9 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UI
 
 }
 
-var sym3 = value.ToSymbol("blue")
-var sym4 = value.ToSymbol("green")
-var sym5 = value.ToSymbol("red")
+var sym3 = value.ToSymbol("blue")  // blue
+var sym4 = value.ToSymbol("green") // green
+var sym5 = value.ToSymbol("red")   // red
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -483,26 +481,25 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym6 = value.ToSymbol("main")
-var sym8 = value.ToSymbol("==")
-var fn_method1 vm.NativeFunction // Std::Value.:==
-var sym9 = value.ToSymbol("#init")
+var sym6 = value.ToSymbol("main")  // main
+var sym8 = value.ToSymbol("==")    // ==
+var fn_method1 vm.NativeFunction   // Std::Value.:==
+var sym9 = value.ToSymbol("#init") // #init
 var cc_main_1 = &vm.CallCache{}
-var sym10 = value.ToSymbol("RED")
-var const1 value.Value // constant: Color::RED, loc: <main>:3:6
+var sym10 = value.ToSymbol("RED") // RED
+var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
 var cc_main_2 = &vm.CallCache{}
-var sym11 = value.ToSymbol("GREEN")
-var const2 value.Value // constant: Color::GREEN, loc: <main>:4:6
+var sym11 = value.ToSymbol("GREEN") // GREEN
+var const2 value.Value              // const Color::GREEN: Color, loc: <main>:4:6
 var cc_main_3 = &vm.CallCache{}
-var sym12 = value.ToSymbol("BLUE")
-var const3 value.Value // constant: Color::BLUE, loc: <main>:5:6
+var sym12 = value.ToSymbol("BLUE") // BLUE
+var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 
-var const0 *value.Class // Color
-var sym0 = value.ToSymbol("Color")
+var const0 *value.Class            // Color
+var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
+var sym2 = value.ToSymbol("<main>")       // <main>
 func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -514,9 +511,9 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UI
 
 }
 
-var sym3 = value.ToSymbol("blue")
-var sym4 = value.ToSymbol("green")
-var sym5 = value.ToSymbol("red")
+var sym3 = value.ToSymbol("blue")  // blue
+var sym4 = value.ToSymbol("green") // green
+var sym5 = value.ToSymbol("red")   // red
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -697,28 +694,27 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym6 = value.ToSymbol("main")
-var sym8 = value.ToSymbol("==")
-var fn_method1 vm.NativeFunction // Std::Value.:==
-var sym9 = value.ToSymbol("println@1")
-var fn_method2 vm.NativeFunction // Std::Kernel::println@1
-var sym10 = value.ToSymbol("#init")
+var sym6 = value.ToSymbol("main")      // main
+var sym8 = value.ToSymbol("==")        // ==
+var fn_method1 vm.NativeFunction       // Std::Value.:==
+var sym9 = value.ToSymbol("println@1") // println@1
+var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
+var sym10 = value.ToSymbol("#init")    // #init
 var cc_main_1 = &vm.CallCache{}
-var sym11 = value.ToSymbol("RED")
-var const1 value.Value // constant: Color::RED, loc: <main>:3:6
+var sym11 = value.ToSymbol("RED") // RED
+var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
 var cc_main_2 = &vm.CallCache{}
-var sym12 = value.ToSymbol("GREEN")
-var const2 value.Value // constant: Color::GREEN, loc: <main>:4:6
+var sym12 = value.ToSymbol("GREEN") // GREEN
+var const2 value.Value              // const Color::GREEN: Color, loc: <main>:4:6
 var cc_main_3 = &vm.CallCache{}
-var sym13 = value.ToSymbol("BLUE")
-var const3 value.Value // constant: Color::BLUE, loc: <main>:5:6
+var sym13 = value.ToSymbol("BLUE") // BLUE
+var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 
-var const0 *value.Class // Color
-var sym0 = value.ToSymbol("Color")
+var const0 *value.Class            // Color
+var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
+var sym2 = value.ToSymbol("<main>")       // <main>
 func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -730,9 +726,9 @@ func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UI
 
 }
 
-var sym3 = value.ToSymbol("blue")
-var sym4 = value.ToSymbol("green")
-var sym5 = value.ToSymbol("red")
+var sym3 = value.ToSymbol("blue")  // blue
+var sym4 = value.ToSymbol("green") // green
+var sym5 = value.ToSymbol("red")   // red
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -910,8 +906,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -962,11 +958,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym1 = value.ToSymbol("main")
-var sym2 = value.ToSymbol("<main>")
+var sym1 = value.ToSymbol("main")   // main
+var sym2 = value.ToSymbol("<main>") // <main>
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1035,8 +1031,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1066,104 +1062,103 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: fix
-// 		"custom absolute nested path ::Std::Float::INF": {
-// 			input: `
-// 				module Foo
-// 					module Bar
-// 						const BAZ = 5
-// 					end
-// 				end
-// 				a := ::Foo::Bar::BAZ
-// 			`,
-// 			want: `package main
-// 
-// import (
-// 	"github.com/elk-language/elk"
-// 	_ "github.com/elk-language/elk/ini"
-// 	"github.com/elk-language/elk/value"
-// 	"github.com/elk-language/elk/value/symbol"
-// 	"github.com/elk-language/elk/vm"
-// )
-// 
-// var _ = symbol.C_Value
-// var _ = vm.New
-// var _ = value.Truthy
-// 
-// func init() { elk.InitNative() }
-// 
-// var sym2 = value.ToSymbol("main")
-// var sym3 = value.ToSymbol("<main>")
-// var sym6 = value.ToSymbol("BAZ")
-// var const2 value.Value // constant: Foo::Bar::BAZ, loc: <main>:4:7
-// 
-// var const0 *value.Module // Foo
-// var sym0 = value.ToSymbol("Foo")
-// var const1 *value.Module // Foo::Bar
-// var sym1 = value.ToSymbol("Bar")
-// 
-// func main() { // loc: <main>
-// 	thread := vm.New()
-// 	_ = thread
-// 
-// 	defer func() {
-// 		switch r := recover().(type) {
-// 		case value.Value:
-// 			thread.Exit(r)
-// 		case nil:
-// 		default:
-// 			panic(r)
-// 		}
-// 	}()
-// 
-// 	var callFrame *vm.CallFrame
-// 	_ = callFrame
-// 	var l0 value.Value // var a: Std::Int
-// 	_ = l0
-// 	var namespace value.Value
-// 	_ = namespace
-// 	var self value.Value
-// 	_ = self
-// 
-// 	self = value.Ref(value.GlobalObject)
-// 
-// 	initGlobalEnv()
-// 
-// 	namespace = (const1).ToValue()
-// 	self = namespace
-// 	const2 = value.SmallInt(5)
-// 	value.AddConstant(namespace, sym6, (const2).ToValue())
-// 
-// 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
-// 	defer thread.PopNativeCallFrame()
-// 	l0 = const2
-// }
-// 
-// func initGlobalEnv() {
-// 	var parentNamespace value.Value
-// 	_ = parentNamespace
-// 	var namespace value.Value
-// 	_ = namespace
-// 	var class *value.Class
-// 	_ = class
-// 	var superclass *value.Class
-// 	_ = superclass
-// 	var mixin *value.Mixin
-// 	_ = mixin
-// 
-// 	parentNamespace = (value.RootModule).ToValue()
-// 	const0 = value.NewModule()
-// 	namespace = value.Ref(const0)
-// 	value.AddConstant(parentNamespace, sym0, namespace)
-// 
-// 	parentNamespace = (const0).ToValue()
-// 	const1 = value.NewModule()
-// 	namespace = value.Ref(const1)
-// 	value.AddConstant(parentNamespace, sym1, namespace)
-// 
-// }
-// `,
-// 		},
+		"custom absolute nested path ::Std::Float::INF": {
+			input: `
+				module Foo
+					module Bar
+						const BAZ = 5
+					end
+				end
+				a := ::Foo::Bar::BAZ
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")   // main
+var sym3 = value.ToSymbol("<main>") // <main>
+var sym6 = value.ToSymbol("BAZ")    // BAZ
+var const2 value.SmallInt           // const Foo::Bar::BAZ: 5, loc: <main>:4:7
+
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
+var const1 *value.Module         // Foo::Bar
+var sym1 = value.ToSymbol("Bar") // Bar
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var a: Std::Int
+	_ = l0
+	var namespace value.Value
+	_ = namespace
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+
+	namespace = (const1).ToValue()
+	self = namespace
+	const2 = value.SmallInt(5)
+	value.AddConstant(namespace, sym6, (const2).ToValue())
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	l0 = (const2).ToValue()
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewModule()
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+}
+`,
+		},
 		"relative path from using": {
 			input: `
 				using Std::Float::INF as I
@@ -1185,8 +1180,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1216,145 +1211,144 @@ func main() { // loc: <main>
 }
 `,
 		},
-		// TODO: fix
-// 		"relative path": {
-// 			input: `
-// 				module Foo
-// 					const BAR = 3
-// 					module Baz
-// 						println BAR
-// 					end
-// 				end
-// 			`,
-// 			want: `package main
-// 
-// import (
-// 	"github.com/elk-language/elk"
-// 	_ "github.com/elk-language/elk/ini"
-// 	"github.com/elk-language/elk/value"
-// 	"github.com/elk-language/elk/value/symbol"
-// 	"github.com/elk-language/elk/vm"
-// )
-// 
-// var _ = symbol.C_Value
-// var _ = vm.New
-// var _ = value.Truthy
-// 
-// func init() { elk.InitNative() }
-// 
-// var sym2 = value.ToSymbol("main")
-// var sym3 = value.ToSymbol("<main>")
-// var sym7 = value.ToSymbol("BAR")
-// var const2 value.Value // constant: Foo::BAR, loc: <main>:3:6
-// 
-// var const0 *value.Module // Foo
-// var sym0 = value.ToSymbol("Foo")
-// var const1 *value.Module // Foo::Baz
-// var sym1 = value.ToSymbol("Baz")
-// 
-// var sym4 = value.ToSymbol("<module: Foo>")
-// 
-// var sym5 = value.ToSymbol("<module: Foo::Baz>")
-// var sym6 = value.ToSymbol("println@1")
-// var fn_method0 vm.NativeFunction // Std::Kernel::println@1
-// 
-// func main() { // loc: <main>
-// 	thread := vm.New()
-// 	_ = thread
-// 
-// 	defer func() {
-// 		switch r := recover().(type) {
-// 		case value.Value:
-// 			thread.Exit(r)
-// 		case nil:
-// 		default:
-// 			panic(r)
-// 		}
-// 	}()
-// 
-// 	var callFrame *vm.CallFrame
-// 	_ = callFrame
-// 	var namespace value.Value
-// 	_ = namespace
-// 	var self value.Value
-// 	_ = self
-// 
-// 	self = value.Ref(value.GlobalObject)
-// 
-// 	initGlobalEnv()
-// 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym6))
-// 
-// 	namespace = (const0).ToValue()
-// 	self = namespace
-// 	const2 = value.SmallInt(3)
-// 	value.AddConstant(namespace, sym7, (const2).ToValue())
-// 
-// 	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
-// 	defer thread.PopNativeCallFrame()
-// 	fn_ns_expr0(thread)
-// }
-// 
-// func initGlobalEnv() {
-// 	var parentNamespace value.Value
-// 	_ = parentNamespace
-// 	var namespace value.Value
-// 	_ = namespace
-// 	var class *value.Class
-// 	_ = class
-// 	var superclass *value.Class
-// 	_ = superclass
-// 	var mixin *value.Mixin
-// 	_ = mixin
-// 
-// 	parentNamespace = (value.RootModule).ToValue()
-// 	const0 = value.NewModule()
-// 	namespace = value.Ref(const0)
-// 	value.AddConstant(parentNamespace, sym0, namespace)
-// 
-// 	parentNamespace = (const0).ToValue()
-// 	const1 = value.NewModule()
-// 	namespace = value.Ref(const1)
-// 	value.AddConstant(parentNamespace, sym1, namespace)
-// 
-// }
-// 
-// func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
-// 	var self value.Value
-// 	_ = self
-// 	var callFrame *vm.CallFrame
-// 	_ = callFrame
-// 
-// 	self = value.Ref((const0).SingletonClass())
-// 	callFrame = thread.AddNativeCallFrame(sym3, sym4, 2)
-// 	defer thread.PopNativeCallFrame()
-// 	fn_ns_expr1(thread)
-// }
-// 
-// func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Baz, loc: <main>:4:6
-// 	var self value.Value
-// 	_ = self
-// 	var callFrame *vm.CallFrame
-// 	_ = callFrame
-// 	var t1 []value.Value
-// 	_ = t1
-// 	var err value.Value
-// 	_ = err
-// 
-// 	self = value.Ref((const1).SingletonClass())
-// 	callFrame = thread.AddNativeCallFrame(sym3, sym5, 4)
-// 	defer thread.PopNativeCallFrame()
-// 	t1 = value.ResizeNativeArgs(t1, 3)
-// 	t1[0] = (value.KernelModule).ToValue()
-// 	t1[1] = const2
-// 	callFrame.SetNativeLineNumber(5)
-// 	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
-// 	if err.IsNotUndefined() {
-// 		thread.CaptureStackTrace()
-// 		thread.Panic(err)
-// 	}
-// }
-// `,
-// 		},
+		"relative path": {
+			input: `
+				module Foo
+					const BAR = 3
+					module Baz
+						println BAR
+					end
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym2 = value.ToSymbol("main")   // main
+var sym3 = value.ToSymbol("<main>") // <main>
+var sym7 = value.ToSymbol("BAR")    // BAR
+var const2 value.SmallInt           // const Foo::BAR: 3, loc: <main>:3:6
+
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
+var const1 *value.Module         // Foo::Baz
+var sym1 = value.ToSymbol("Baz") // Baz
+
+var sym4 = value.ToSymbol("<module: Foo>") // <module: Foo>
+
+var sym5 = value.ToSymbol("<module: Foo::Baz>") // <module: Foo::Baz>
+var sym6 = value.ToSymbol("println@1")          // println@1
+var fn_method0 vm.NativeFunction                // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var namespace value.Value
+	_ = namespace
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	initGlobalEnv()
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym6))
+
+	namespace = (const0).ToValue()
+	self = namespace
+	const2 = value.SmallInt(3)
+	value.AddConstant(namespace, sym7, (const2).ToValue())
+
+	callFrame = thread.AddNativeCallFrame(sym3, sym2, 1)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr0(thread)
+}
+
+func initGlobalEnv() {
+	var parentNamespace value.Value
+	_ = parentNamespace
+	var namespace value.Value
+	_ = namespace
+	var class *value.Class
+	_ = class
+	var superclass *value.Class
+	_ = superclass
+	var mixin *value.Mixin
+	_ = mixin
+
+	parentNamespace = (value.RootModule).ToValue()
+	const0 = value.NewModule()
+	namespace = value.Ref(const0)
+	value.AddConstant(parentNamespace, sym0, namespace)
+
+	parentNamespace = (const0).ToValue()
+	const1 = value.NewModule()
+	namespace = value.Ref(const1)
+	value.AddConstant(parentNamespace, sym1, namespace)
+
+}
+
+func fn_ns_expr0(thread *vm.Thread) { // namespace: Foo, loc: <main>:2:5
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+
+	self = value.Ref((const0).SingletonClass())
+	callFrame = thread.AddNativeCallFrame(sym3, sym4, 2)
+	defer thread.PopNativeCallFrame()
+	fn_ns_expr1(thread)
+}
+
+func fn_ns_expr1(thread *vm.Thread) { // namespace: Foo::Baz, loc: <main>:4:6
+	var self value.Value
+	_ = self
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 []value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+
+	self = value.Ref((const1).SingletonClass())
+	callFrame = thread.AddNativeCallFrame(sym3, sym5, 4)
+	defer thread.PopNativeCallFrame()
+	t1 = value.ResizeNativeArgs(t1, 3)
+	t1[0] = (value.KernelModule).ToValue()
+	t1[1] = (const2).ToValue()
+	callFrame.SetNativeLineNumber(5)
+	_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -1366,7 +1360,6 @@ func main() { // loc: <main>
 
 func TestGoDefConstant(t *testing.T) {
 	tests := goTestTable{
-		// TODO: to be fixed
 		"define constant that call a singleton method": {
 			input: `
 				module Foo
@@ -1391,18 +1384,17 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym3 = value.ToSymbol("main")
-var sym5 = value.ToSymbol("lol")
+var sym3 = value.ToSymbol("main") // main
+var sym5 = value.ToSymbol("lol")  // lol
 var cc_main_1 = &vm.CallCache{}
-var sym6 = value.ToSymbol("LOL")
-var const1 value.Value // constant: Foo::LOL, loc: <main>:5:6
+var sym6 = value.ToSymbol("LOL") // LOL
+var const1 value.Value           // const Foo::LOL: Std::Int, loc: <main>:5:6
 
-var const0 *value.Module // Foo
-var sym0 = value.ToSymbol("Foo")
+var const0 *value.Module         // Foo
+var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo::lol")
-var sym2 = value.ToSymbol("<main>")
-
+var sym1 = value.ToSymbol("Foo::lol") // Foo::lol
+var sym2 = value.ToSymbol("<main>")   // <main>
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo::lol, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
@@ -1492,63 +1484,62 @@ func methodDefinitions() {
 }
 `,
 		},
-		// TODO: fix
-// 		"relative path Foo": {
-// 			input: "const Foo = 3",
-// 			want: `package main
-// 
-// import (
-// 	"github.com/elk-language/elk"
-// 	_ "github.com/elk-language/elk/ini"
-// 	"github.com/elk-language/elk/value"
-// 	"github.com/elk-language/elk/value/symbol"
-// 	"github.com/elk-language/elk/vm"
-// )
-// 
-// var _ = symbol.C_Value
-// var _ = vm.New
-// var _ = value.Truthy
-// 
-// func init() { elk.InitNative() }
-// 
-// var sym0 = value.ToSymbol("main")
-// var sym1 = value.ToSymbol("<main>")
-// var sym2 = value.ToSymbol("Foo")
-// var const0 value.Value // constant: Foo, loc: <main>:1:1
-// 
-// func main() { // loc: <main>
-// 	thread := vm.New()
-// 	_ = thread
-// 
-// 	defer func() {
-// 		switch r := recover().(type) {
-// 		case value.Value:
-// 			thread.Exit(r)
-// 		case nil:
-// 		default:
-// 			panic(r)
-// 		}
-// 	}()
-// 
-// 	var callFrame *vm.CallFrame
-// 	_ = callFrame
-// 	var namespace value.Value
-// 	_ = namespace
-// 	var self value.Value
-// 	_ = self
-// 
-// 	self = value.Ref(value.GlobalObject)
-// 
-// 	namespace = (value.RootModule).ToValue()
-// 	self = namespace
-// 	const0 = value.SmallInt(3)
-// 	value.AddConstant(namespace, sym2, (const0).ToValue())
-// 
-// 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
-// 	defer thread.PopNativeCallFrame()
-// }
-// `,
-// 		},
+		"relative path Foo": {
+			input: "const Foo = 3",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("Foo")    // Foo
+var const0 value.SmallInt           // const Foo: 3, loc: <main>:1:1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var namespace value.Value
+	_ = namespace
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	namespace = (value.RootModule).ToValue()
+	self = namespace
+	const0 = value.SmallInt(3)
+	value.AddConstant(namespace, sym2, (const0).ToValue())
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+}
+`,
+		},
 	}
 
 	for name, tc := range tests {
