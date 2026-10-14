@@ -70,6 +70,16 @@ func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 		n.Value.Equal(value.Ref(o.Value))
 }
 
+func (n *NamedCallArgumentNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
+	if !ok {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *NamedCallArgumentNode) String() string {
 	var buff strings.Builder
 

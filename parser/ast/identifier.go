@@ -73,6 +73,15 @@ func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *PublicIdentifierNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 var IdentifierRegexp = regexp.MustCompile(`^\p{Ll}[\p{L}\p{N}_]*$`)
 var PrefixedIdentifierRegexp = regexp.MustCompile(`^[\p{L}\p{N}_]+$`)
 
@@ -167,6 +176,15 @@ func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PrivateIdentifierNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PrivateIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *PrivateIdentifierNode) String() string {

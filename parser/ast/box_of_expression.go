@@ -53,6 +53,15 @@ func (n *BoxOfExpressionNode) Equal(other value.Value) bool {
 		n.Expression.Equal(value.Ref(o.Expression))
 }
 
+func (n *BoxOfExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BoxOfExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 // String returns the string representation of this node.
 func (n *BoxOfExpressionNode) String() string {
 	var buff strings.Builder

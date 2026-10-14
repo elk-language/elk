@@ -15,5 +15,7 @@ module Std::Elk::AST
     pure def namespace: UsingEntryNode; end
     pure def subentries: ArrayTuple[UsingSubentryNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

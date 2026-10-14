@@ -87,6 +87,31 @@ func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *GenericTypeDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) ||
+		!n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) ||
+		n.DocComment() != o.DocComment() {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // String returns a string representation of the GenericTypeDefinitionNode.
 func (n *GenericTypeDefinitionNode) String() string {
 	var buff strings.Builder
@@ -232,6 +257,17 @@ func (n *TypeDefinitionNode) Equal(other value.Value) bool {
 		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
 		n.comment == o.comment &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *TypeDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Constant.LaxEqual(value.Ref(o.Constant)) &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) &&
+		n.comment == o.comment
 }
 
 func (n *TypeDefinitionNode) String() string {

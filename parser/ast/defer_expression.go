@@ -60,6 +60,15 @@ func (n *DeferExpressionNode) Equal(other value.Value) bool {
 		n.Expression.Equal(value.Ref(o.Expression))
 }
 
+func (n *DeferExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DeferExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 func (n *DeferExpressionNode) String() string {
 	var buff strings.Builder
 

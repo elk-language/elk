@@ -11,5 +11,7 @@ module Std::Elk::AST
     pure def constant: ComplexConstantNode; end
     pure def as_name: String; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

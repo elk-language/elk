@@ -52,6 +52,15 @@ func (n *RestPatternNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *RestPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RestPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Identifier.LaxEqual(value.Ref(o.Identifier))
+}
+
 func (n *RestPatternNode) String() string {
 	var buff strings.Builder
 

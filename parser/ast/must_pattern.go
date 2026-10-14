@@ -44,6 +44,15 @@ func (n *MustPatternNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *MustPatternNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*MustPatternNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 func (n *MustPatternNode) String() string {
 	return "must"
 }

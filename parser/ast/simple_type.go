@@ -43,6 +43,15 @@ func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *BoolLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*BoolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 func (n *BoolLiteralNode) String() string {
 	return "bool"
 }
@@ -116,6 +125,14 @@ func (n *VoidTypeNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *VoidTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*VoidTypeNode)
+	if !ok {
+		return false
+	}
+	return true
+}
+
 func (n *VoidTypeNode) String() string {
 	return "void"
 }
@@ -183,6 +200,14 @@ func (n *NeverTypeNode) Equal(other value.Value) bool {
 		return false
 	}
 	return n.loc.Equal(o.loc)
+}
+
+func (n *NeverTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*NeverTypeNode)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (n *NeverTypeNode) String() string {
@@ -256,6 +281,14 @@ func (n *AnyTypeNode) Equal(other value.Value) bool {
 		return false
 	}
 	return n.loc.Equal(o.loc)
+}
+
+func (n *AnyTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*AnyTypeNode)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (n *AnyTypeNode) String() string {

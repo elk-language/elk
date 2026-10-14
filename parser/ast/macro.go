@@ -117,6 +117,40 @@ func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 		n.sealed == o.sealed
 }
 
+func (n *MacroDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.sealed == o.sealed
+}
+
 // Return a string representation of this method definition.
 func (n *MacroDefinitionNode) String() string {
 	var buff strings.Builder
@@ -336,6 +370,34 @@ func (n *ScopedMacroCallNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.MacroName.Equal(value.Ref(o.MacroName))
+}
+
+func (n *ScopedMacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ScopedMacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.MacroName.LaxEqual(value.Ref(o.MacroName))
 }
 
 func (n *ScopedMacroCallNode) String() string {
@@ -564,6 +626,34 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 		n.MacroName.Equal(value.Ref(o.MacroName))
 }
 
+func (n *MacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.MacroName.LaxEqual(value.Ref(o.MacroName))
+}
+
 func (n *MacroCallNode) String() string {
 	var buff strings.Builder
 
@@ -773,6 +863,34 @@ func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ReceiverlessMacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReceiverlessMacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if n.MacroName != o.MacroName ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}

@@ -91,6 +91,15 @@ func (n *UnquoteNode) Equal(other value.Value) bool {
 		n.Expression.Equal(value.Ref(o.Expression))
 }
 
+func (n *UnquoteNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 // Return a string representation of the node.
 func (n *UnquoteNode) String() string {
 	var buff strings.Builder

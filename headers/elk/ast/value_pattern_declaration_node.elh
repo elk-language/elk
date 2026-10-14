@@ -14,5 +14,7 @@ module Std::Elk::AST
     pure def pattern_node: PatternNode; end
     pure def initialiser: ExpressionNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

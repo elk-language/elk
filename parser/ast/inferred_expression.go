@@ -41,6 +41,11 @@ func (n InferredExpressionNode) Equal(other value.Value) bool {
 	return ok
 }
 
+func (n InferredExpressionNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(InferredExpressionNode)
+	return ok
+}
+
 func (n InferredExpressionNode) String() string {
 	return "InferredExpressionNode{}"
 }

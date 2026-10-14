@@ -2244,6 +2244,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("new_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("old_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("new_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("old_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -2262,6 +2264,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::AliasDeclarationEntry", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::AliasDeclarationEntry", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -2279,6 +2283,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -2295,6 +2301,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -2313,6 +2321,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -2330,6 +2340,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("runtime_type"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("runtime_type"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -2348,6 +2360,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -2366,6 +2380,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -2385,6 +2401,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
@@ -2406,6 +2424,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("attribute_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("attribute_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -2424,6 +2444,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_named_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_normal"), nil, nil, Bool{}, Never{})
@@ -2447,6 +2469,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("sync"), NameToType("Std::Bool", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("sync"), nil, nil, NameToType("Std::Bool", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -2466,6 +2490,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_bigfloat"), nil, nil, NameToType("Std::BigFloat", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -2499,6 +2525,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -2517,6 +2545,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -2534,6 +2564,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -2552,6 +2584,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -2571,6 +2605,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -2590,6 +2626,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -2609,6 +2647,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -2625,6 +2665,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -2642,6 +2684,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("is_immutable"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_immutable"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
@@ -2660,6 +2704,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("label"), NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("value"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("label"), nil, nil, NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
@@ -2678,6 +2724,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -2694,6 +2742,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("nil_safe"), Bool{}, NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("nil_safe"), nil, nil, Bool{}, Never{})
@@ -2714,6 +2764,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("return_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("throw_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_closure"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_pure"), Bool{}, DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_closure"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_pure"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -2734,6 +2786,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("stack_trace_var"), NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -2754,6 +2808,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_char"), nil, nil, NameToType("Std::Char", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
@@ -2772,6 +2828,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_abstract"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_sealed"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_primitive"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_no_init"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_immutable"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("superclass"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, Bool{}, Never{})
@@ -2798,6 +2856,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("return_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("throw_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_lambda"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_pure"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_lambda"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_pure"), nil, nil, Bool{}, Never{})
@@ -2853,6 +2913,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -2871,6 +2933,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
@@ -2894,6 +2958,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("left"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
@@ -2959,6 +3025,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("class_node"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("class_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -2978,6 +3046,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("label"), NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("value"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("label"), nil, nil, NewNilable(NameToType("Std::Elk::AST::IdentifierNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
@@ -2996,6 +3066,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3013,6 +3085,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("catches"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CatchNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("finally_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("catches"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::CatchNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("finally_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3035,6 +3109,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
@@ -3053,6 +3129,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
@@ -3071,6 +3149,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -3087,6 +3167,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -3135,6 +3217,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3152,6 +3236,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("where_params"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("where_params"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3171,6 +3257,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -3188,6 +3276,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_float32"), nil, nil, NameToType("Std::Float32", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3222,6 +3312,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_float64"), nil, nil, NameToType("Std::Float64", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3256,6 +3348,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_float"), nil, nil, NameToType("Std::Float", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3289,6 +3383,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -3308,6 +3404,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("Whether it's a named rest parameter eg `**foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_named_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the parameter is normal\n(not a positional rest parameter, not a named rest parameter).\n\neg. `foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_normal"), nil, nil, Bool{}, Never{})
@@ -3335,6 +3433,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3353,6 +3453,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("class_node"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("class_node"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3373,6 +3475,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("method_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("method_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3395,6 +3499,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("method_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("method_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -3415,6 +3521,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3435,6 +3543,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("flags"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
@@ -3456,6 +3566,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3473,6 +3585,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3491,6 +3605,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3508,6 +3624,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3526,6 +3644,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3544,6 +3664,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3561,6 +3683,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::IntCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3624,6 +3748,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -3643,6 +3769,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3660,6 +3788,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("path"), NameToType("Std::Elk::AST::StringLiteralNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("path"), nil, nil, NameToType("Std::Elk::AST::StringLiteralNode", env), Never{})
 
@@ -3677,6 +3807,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constants"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constants"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ComplexConstantNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3693,6 +3825,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 						IncludeMixin(namespace, NameToType("Std::Elk::AST::ExpressionNode", env).(*Mixin))
 
 						// Define methods
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 
 						// Define constants
 
@@ -3708,6 +3842,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("attributes"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("attributes"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -3725,6 +3861,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("throw_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("flags"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
@@ -3749,6 +3887,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -3767,6 +3907,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -3784,6 +3926,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::InstanceVariableNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::InstanceVariableNode", env), Never{})
@@ -3803,6 +3947,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::InstanceVariableNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::InstanceVariableNode", env), Never{})
@@ -3854,6 +4000,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::Int16LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_int16"), nil, nil, NameToType("Std::Int16", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3888,6 +4036,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::Int32LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_int32"), nil, nil, NameToType("Std::Int32", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3922,6 +4072,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::Int64LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_int64"), nil, nil, NameToType("Std::Int64", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -3956,6 +4108,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::Int8LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_int8"), nil, nil, NameToType("Std::Int8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4005,6 +4159,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::IntLiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_int"), nil, nil, NameToType("Std::Int", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4038,6 +4194,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4059,6 +4217,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("content"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::RegexLiteralContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("flags"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("content"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::RegexLiteralContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("Flags of the regex literal.\n\nThey're defined as constants\nunder the `RegexLiteralNode` namespace:\n\n- `CASE_INSENSITIVE_FLAG`\n- `MULTILINE_FLAG`\n- `DOT_ALL_FLAG`\n- `UNGREEDY_FLAG`\n- `EXTENDED_FLAG`\n- `ASCII_FLAG`\n\nExample usage:\n\n```\nusing Elk::AST::RegexLiteralNode::*\n\n# check if a flag is set\nnode.flags & MULTILINE_FLAG != 0\n\n# combine flags\nnode.flags = UNGREEDY_FLAG | MULTILINE_FLAG\n```", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("Whether the regex has the `a` flag.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_ascii"), nil, nil, Bool{}, Never{})
@@ -4085,6 +4245,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("content"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StringLiteralContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("content"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StringLiteralContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -4104,6 +4266,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("content"), NameToType("Std::Elk::AST::InterpolatedStringLiteralNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("content"), nil, nil, NameToType("Std::Elk::AST::InterpolatedStringLiteralNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -4121,6 +4285,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -4158,6 +4324,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("token"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_named_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_normal"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
@@ -4180,6 +4348,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -4198,6 +4368,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::LiteralPatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::LiteralPatternNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -4216,6 +4388,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("label"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("label"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -4234,6 +4408,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -4282,6 +4458,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -4301,6 +4479,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 
@@ -4319,6 +4499,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("name"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4339,6 +4521,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("macro_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("macro_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -4360,6 +4544,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("return_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_sealed"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("Whether the method is sealed eg. `sealed def foo; end`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_sealed"), nil, nil, Bool{}, Never{})
@@ -4383,6 +4569,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4401,6 +4589,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -4418,6 +4608,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -4436,6 +4628,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("method_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("method_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -4457,6 +4651,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("return_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("throw_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("flags"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
@@ -4494,6 +4690,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("method_lookup"), NameToType("Std::Elk::AST::MethodLookupNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("as_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("as_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("method_lookup"), nil, nil, NameToType("Std::Elk::AST::MethodLookupNode", env), Never{})
@@ -4513,6 +4711,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -4531,6 +4731,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("set_instance_variable"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("Whether it's a named rest parameter eg `**foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_named_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the parameter is normal\n(not a positional rest parameter, not a named rest parameter).\n\neg. `foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_normal"), nil, nil, Bool{}, Never{})
@@ -4556,6 +4758,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("return_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("throw_type"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -4578,6 +4782,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("is_abstract"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4599,6 +4805,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -4618,6 +4826,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("then_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("else_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("else_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -4637,6 +4847,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("modifier"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("left"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("left"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("modifier"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -4656,6 +4868,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
@@ -4675,6 +4889,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
@@ -4692,6 +4908,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -4722,6 +4940,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -4740,6 +4960,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -4756,6 +4978,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("positional_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -4777,6 +5001,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -4793,6 +5019,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -4811,6 +5039,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
@@ -4828,6 +5058,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -4892,6 +5124,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -4909,6 +5143,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("condition"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("increment"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("increment"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
@@ -4929,6 +5165,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("object_type"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("attributes"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("attributes"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("object_type"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
@@ -4968,6 +5206,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("parameter"), NameToType("Std::Elk::AST::ParameterNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("parameter"), nil, nil, NameToType("Std::Elk::AST::ParameterNode", env), Never{})
 
@@ -4985,6 +5225,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
@@ -5033,6 +5275,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
 
@@ -5050,6 +5294,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -5072,6 +5318,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateConstantNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5106,6 +5354,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::PrivateIdentifierNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5139,6 +5389,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5157,6 +5409,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("target"), NameToType("Std::Elk::AST::PublicConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("as_name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("as_name"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::PublicConstantNode", env), Never{})
@@ -5180,6 +5434,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5200,6 +5456,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5219,6 +5477,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_symbol"), nil, nil, NameToType("Std::Symbol", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5237,6 +5497,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5258,6 +5520,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("start"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("end_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("end"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
@@ -5278,6 +5542,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Char", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_char"), nil, nil, NameToType("Std::Char", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Char", env), Never{})
@@ -5300,6 +5566,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
@@ -5319,6 +5587,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("macro_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("macro_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -5339,6 +5609,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("method_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("method_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("named_arguments"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -5358,6 +5630,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5376,6 +5650,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5408,6 +5684,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
@@ -5445,6 +5723,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("identifier"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("identifier"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5462,6 +5742,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 
@@ -5481,6 +5763,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("macro_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("positional_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ExpressionNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("named_arguments"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::NamedArgumentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("macro_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -5501,6 +5785,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression_node"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression_node"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5520,6 +5806,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -5536,6 +5824,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5553,6 +5843,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::ParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5571,6 +5863,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_optional"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("Whether it's a named rest parameter eg `**foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_named_rest"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the parameter is normal\n(not a positional rest parameter, not a named rest parameter).\n\neg. `foo: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_normal"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the parameter is optional.\neg. `foo?: String`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_optional"), nil, nil, Bool{}, Never{})
@@ -5611,6 +5905,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("content"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("content"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_ast_ident_node"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -5630,6 +5926,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5647,6 +5945,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -5664,6 +5964,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
@@ -5696,6 +5998,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5714,6 +6018,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5746,6 +6052,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
 
@@ -5791,6 +6099,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_parameters"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeParameterNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StructBodyStatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_immutable"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StructBodyStatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
@@ -5812,6 +6122,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("receiver"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("receiver"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -5829,6 +6141,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -5847,6 +6161,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("cases"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("cases"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SwitchCaseNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5866,6 +6182,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5884,6 +6202,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -5915,6 +6235,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::SymbolCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -5933,6 +6255,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -5951,6 +6275,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("key"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("key"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -5983,6 +6309,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("is_unchecked"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_unchecked"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
@@ -6002,6 +6330,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -6018,6 +6348,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
@@ -6035,6 +6367,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::PatternNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -6052,6 +6386,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("constant"), NameToType("Std::Elk::AST::ComplexConstantNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("constant"), nil, nil, NameToType("Std::Elk::AST::ComplexConstantNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6071,6 +6407,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -6135,6 +6473,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
 
@@ -6152,6 +6492,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 
@@ -6170,6 +6512,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UInt16LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_uint16"), nil, nil, NameToType("Std::UInt16", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -6204,6 +6548,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UInt32LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_uint32"), nil, nil, NameToType("Std::UInt32", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -6238,6 +6584,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UInt64LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -6272,6 +6620,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UInt8LiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_uint8"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -6306,6 +6656,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, NameToType("Std::Elk::AST::UIntLiteralNode::FormatError", env))
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_uint64"), nil, nil, NameToType("Std::UInt64", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NameToType("Std::String", env), Never{})
@@ -6339,6 +6691,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("right"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("right"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
@@ -6357,6 +6711,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("op"), NameToType("Std::Elk::Token", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NameToType("Std::Elk::AST::TypeNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("op"), nil, nil, NameToType("Std::Elk::Token", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("type_node"), nil, nil, NameToType("Std::Elk::AST::TypeNode", env), Never{})
@@ -6375,6 +6731,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -6392,6 +6750,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("node"), nil, nil, NameToType("Std::Elk::AST::Node", env), Never{})
 
@@ -6410,6 +6770,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("content"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("flags"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("content"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("Flags of the regex literal.\n\nThey're defined as constants\nunder the `RegexLiteralNode` namespace:\n\n- `CASE_INSENSITIVE_FLAG`\n- `MULTILINE_FLAG`\n- `DOT_ALL_FLAG`\n- `UNGREEDY_FLAG`\n- `EXTENDED_FLAG`\n- `ASCII_FLAG`\n\nExample usage:\n\n```\nusing Elk::AST::RegexLiteralNode::*\n\n# check if a flag is set\nnode.flags & MULTILINE_FLAG != 0\n\n# combine flags\nnode.flags = UNGREEDY_FLAG | MULTILINE_FLAG\n```", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("flags"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("Whether the regex has the `a` flag.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_ascii"), nil, nil, Bool{}, Never{})
@@ -6434,6 +6796,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::TypeNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -6451,6 +6815,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6470,6 +6836,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("in_expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -6489,6 +6857,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("else_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("else_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6511,6 +6881,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("expression"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("kind"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("expression"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kind"), nil, nil, NameToType("Std::UInt8", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6537,6 +6909,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -6556,6 +6930,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("namespace"), NameToType("Std::Elk::AST::UsingEntryNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("namespace"), nil, nil, NameToType("Std::Elk::AST::UsingEntryNode", env), Never{})
 
@@ -6588,6 +6964,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("namespace"), NameToType("Std::Elk::AST::UsingEntryNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("subentries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingSubentryNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("namespace"), nil, nil, NameToType("Std::Elk::AST::UsingEntryNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("subentries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingSubentryNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -6606,6 +6984,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("entries"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("entries"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::UsingEntryNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -6624,6 +7004,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("target"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("as_name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("as_name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("target"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -6656,6 +7038,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("name"), nil, nil, NameToType("Std::Elk::AST::IdentifierNode", env), Never{})
@@ -6675,6 +7059,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -6693,6 +7079,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::Elk::AST::IdentifierNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("type_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("doc_comment"), NameToType("Std::String", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("doc_comment"), nil, nil, NameToType("Std::String", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6713,6 +7101,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("pattern_node"), NameToType("Std::Elk::AST::PatternNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("initialiser"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("initialiser"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("pattern_node"), nil, nil, NameToType("Std::Elk::AST::PatternNode", env), Never{})
@@ -6731,6 +7121,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("name"), NameToType("Std::String", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("lower_bound"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("upper_bound"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("default_node"), NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("variance"), NameToType("Std::UInt8", env), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("default_node"), nil, nil, NewNilable(NameToType("Std::Elk::AST::TypeNode", env)), Never{})
 						namespace.DefineMethod("Whether the type parameter is contravariant\neg. `-V` in `class Foo[-V]; end`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_contravariant"), nil, nil, Bool{}, Never{})
 						namespace.DefineMethod("Whether the type parameter is covariant\neg. `+V` in `class Foo[+V]; end`", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_covariant"), nil, nil, Bool{}, Never{})
@@ -6755,6 +7147,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
 						// Define constants
@@ -6771,6 +7165,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("condition"), NameToType("Std::Elk::AST::ExpressionNode", env), NormalParameterKind, false), NewParameter(symbol.ToSymbol("then_body"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("condition"), nil, nil, NameToType("Std::Elk::AST::ExpressionNode", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("then_body"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::StatementNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
@@ -6789,6 +7185,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6807,6 +7205,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 
@@ -6838,6 +7238,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("elements"), NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("capacity"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("elements"), nil, nil, NewGeneric(NameToType("Std::ArrayTuple", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NameToType("Std::Elk::AST::WordCollectionContentNode", env), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
@@ -6856,6 +7258,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 						// Define methods
 						method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("forward"), Bool{}, DefaultValueParameterKind, false), NewParameter(symbol.ToSymbol("location"), NameToType("Std::FS::Location", env), DefaultValueParameterKind, false)}, Void{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
+						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("=~"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), Any{}, NormalParameterKind, false)}, Bool{}, Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("forward"), nil, nil, NameToType("Std::Bool", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("location"), nil, nil, NameToType("Std::FS::Location", env), Never{})
 						namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("value"), nil, nil, NewNilable(NameToType("Std::Elk::AST::ExpressionNode", env)), Never{})

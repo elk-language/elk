@@ -52,6 +52,15 @@ func (n *InvalidNode) Equal(other value.Value) bool {
 		n.Token.Equal(o.Token)
 }
 
+func (n *InvalidNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InvalidNode)
+	if !ok {
+		return false
+	}
+
+	return n.Token.LaxEqual(o.Token)
+}
+
 func (n *InvalidNode) String() string {
 	return "<invalid>"
 }

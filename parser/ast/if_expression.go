@@ -102,6 +102,36 @@ func (n *IfExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *IfExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IfExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		len(n.ElseBody) != len(o.ElseBody) {
+		return false
+	}
+
+	for i, element := range n.ThenBody {
+		if !element.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	for i, element := range n.ElseBody {
+		if !element.LaxEqual(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *IfExpressionNode) String() string {
 	var buff strings.Builder

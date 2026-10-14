@@ -85,6 +85,32 @@ func (n *NewExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *NewExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NewExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *NewExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -291,6 +317,43 @@ func (n *GenericConstructorCallNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *GenericConstructorCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.LaxEqual(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // String returns a string representation of the GenericConstructorCallNode.
@@ -518,6 +581,36 @@ func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *ConstructorCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.LaxEqual(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *ConstructorCallNode) String() string {
 	var buff strings.Builder
@@ -719,6 +812,16 @@ func (n *AttributeAccessNode) Equal(other value.Value) bool {
 		n.AttributeName.Equal(value.Ref(o.AttributeName))
 }
 
+func (n *AttributeAccessNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeAccessNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.AttributeName.LaxEqual(value.Ref(o.AttributeName))
+}
+
 func (n *AttributeAccessNode) String() string {
 	var buff strings.Builder
 
@@ -801,6 +904,16 @@ func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
+}
+
+func (n *SubscriptExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SubscriptExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Key.LaxEqual(value.Ref(o.Key))
 }
 
 func (n *SubscriptExpressionNode) String() string {
@@ -925,6 +1038,16 @@ func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
+}
+
+func (n *NilSafeSubscriptExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilSafeSubscriptExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Key.LaxEqual(value.Ref(o.Key))
 }
 
 func (n *NilSafeSubscriptExpressionNode) String() string {
@@ -1087,6 +1210,40 @@ func (n *CallNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *CallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallNode)
+	if !ok {
+		return false
+	}
+
+	if n.NilSafe != o.NilSafe {
+		return false
+	}
+
+	if !n.Receiver.LaxEqual(value.Ref(o.Receiver)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *CallNode) String() string {
@@ -1322,6 +1479,45 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GenericMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) ||
+		!n.Receiver.LaxEqual(value.Ref(o.Receiver)) ||
+		!n.Op.LaxEqual(o.Op) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}
@@ -1579,6 +1775,34 @@ func (n *MethodCallNode) Equal(other value.Value) bool {
 		n.MethodName.Equal(value.Ref(o.MethodName))
 }
 
+func (n *MethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Op.LaxEqual(o.Op) &&
+		n.MethodName.LaxEqual(value.Ref(o.MethodName))
+}
+
 func (n *MethodCallNode) String() string {
 	var buff strings.Builder
 
@@ -1794,6 +2018,33 @@ func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *ReceiverlessMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *ReceiverlessMethodCallNode) String() string {
 	var buff strings.Builder
 
@@ -2001,6 +2252,43 @@ func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GenericReceiverlessMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericReceiverlessMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}

@@ -110,6 +110,39 @@ func (n *CallableTypeNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) && n.IsClosure == o.IsClosure && n.IsPure == o.IsPure
 }
 
+func (n *CallableTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallableTypeNode)
+	if !ok {
+		return false
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	return n.IsClosure == o.IsClosure && n.IsPure == o.IsPure
+}
+
 // Return a string representation of the node.
 func (n *CallableTypeNode) String() string {
 	var buff strings.Builder

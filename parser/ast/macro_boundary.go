@@ -66,6 +66,25 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) && n.Name == o.Name
 }
 
+func (n *MacroBoundaryNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroBoundaryNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.Name == o.Name
+}
+
 // Return a string representation of the node.
 func (n *MacroBoundaryNode) String() string {
 	var buff strings.Builder

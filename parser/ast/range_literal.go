@@ -94,6 +94,17 @@ func (n *RangeLiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *RangeLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RangeLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Start.LaxEqual(value.Ref(o.Start)) &&
+		n.End.LaxEqual(value.Ref(o.End)) &&
+		n.Op.LaxEqual(o.Op)
+}
+
 func (n *RangeLiteralNode) String() string {
 	var buff strings.Builder
 

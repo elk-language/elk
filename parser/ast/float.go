@@ -46,6 +46,15 @@ func (n *FloatLiteralNode) Equal(other value.Value) bool {
 		n.Value == o.Value
 }
 
+func (n *FloatLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*FloatLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *FloatLiteralNode) String() string {
 	return n.Value
 }
@@ -122,6 +131,15 @@ func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
+}
+
+func (n *BigFloatLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BigFloatLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *BigFloatLiteralNode) String() string {
@@ -202,6 +220,15 @@ func (n *Float64LiteralNode) Equal(other value.Value) bool {
 		n.Value == o.Value
 }
 
+func (n *Float64LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Float64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *Float64LiteralNode) String() string {
 	return fmt.Sprintf("%sf64", n.Value)
 }
@@ -278,6 +305,15 @@ func (n *Float32LiteralNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Value == o.Value
+}
+
+func (n *Float32LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Float32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Float32LiteralNode) String() string {

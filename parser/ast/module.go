@@ -93,6 +93,33 @@ func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *ModuleDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *ModuleDeclarationNode) String() string {
 	var buff strings.Builder
 

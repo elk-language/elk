@@ -63,6 +63,17 @@ func (n *ModifierNode) Equal(other value.Value) bool {
 		n.Right.Equal(value.Ref(o.Right))
 }
 
+func (n *ModifierNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Modifier.LaxEqual(o.Modifier) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
+}
+
 func (n *ModifierNode) String() string {
 	var buff strings.Builder
 
@@ -197,6 +208,17 @@ func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 		n.ElseExpression.Equal(value.Ref(o.ElseExpression))
 }
 
+func (n *ModifierIfElseNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
+	if !ok {
+		return false
+	}
+
+	return n.ThenExpression.LaxEqual(value.Ref(o.ThenExpression)) &&
+		n.Condition.LaxEqual(value.Ref(o.Condition)) &&
+		n.ElseExpression.LaxEqual(value.Ref(o.ElseExpression))
+}
+
 func (n *ModifierIfElseNode) String() string {
 	var buff strings.Builder
 
@@ -328,6 +350,17 @@ func (n *ModifierForInNode) Equal(other value.Value) bool {
 		n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.InExpression.Equal(value.Ref(o.InExpression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *ModifierForInNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModifierForInNode)
+	if !ok {
+		return false
+	}
+
+	return n.ThenExpression.LaxEqual(value.Ref(o.ThenExpression)) &&
+		n.Pattern.LaxEqual(value.Ref(o.Pattern)) &&
+		n.InExpression.LaxEqual(value.Ref(o.InExpression))
 }
 
 func (n *ModifierForInNode) String() string {

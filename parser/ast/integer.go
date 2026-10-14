@@ -46,6 +46,15 @@ func (n *IntLiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *IntLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *IntLiteralNode) String() string {
 	return n.Value
 }
@@ -121,6 +130,15 @@ func (n *Int64LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *Int64LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Int64LiteralNode) String() string {
@@ -201,6 +219,15 @@ func (n *UIntLiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *UIntLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UIntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *UIntLiteralNode) String() string {
 	return fmt.Sprintf("%su", n.Value)
 }
@@ -277,6 +304,15 @@ func (n *UInt64LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt64LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt64LiteralNode) String() string {
@@ -357,6 +393,15 @@ func (n *Int32LiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *Int32LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *Int32LiteralNode) String() string {
 	return fmt.Sprintf("%si32", n.Value)
 }
@@ -429,6 +474,15 @@ func (n *UInt32LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt32LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt32LiteralNode) String() string {
@@ -509,6 +563,15 @@ func (n *Int16LiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *Int16LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *Int16LiteralNode) String() string {
 	return fmt.Sprintf("%si16", n.Value)
 }
@@ -585,6 +648,15 @@ func (n *UInt16LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt16LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt16LiteralNode) String() string {
@@ -665,6 +737,15 @@ func (n *Int8LiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *Int8LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *Int8LiteralNode) String() string {
 	return fmt.Sprintf("%si8", n.Value)
 }
@@ -741,6 +822,15 @@ func (n *UInt8LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt8LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt8LiteralNode) String() string {

@@ -90,6 +90,15 @@ func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *UsingAllEntryNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
+	if !ok {
+		return false
+	}
+
+	return n.Namespace.LaxEqual(value.Ref(o.Namespace))
+}
+
 func (n *UsingAllEntryNode) String() string {
 	var buff strings.Builder
 
@@ -194,6 +203,26 @@ func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
 
 	for i, subentry := range n.Subentries {
 		if !subentry.Equal(value.Ref(o.Subentries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UsingEntryWithSubentriesNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingEntryWithSubentriesNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Subentries) != len(o.Subentries) ||
+		!n.Namespace.LaxEqual(value.Ref(o.Namespace)) {
+		return false
+	}
+
+	for i, subentry := range n.Subentries {
+		if !subentry.LaxEqual(value.Ref(o.Subentries[i])) {
 			return false
 		}
 	}
@@ -328,6 +357,25 @@ func (n *UsingExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *UsingExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *UsingExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -453,6 +501,16 @@ func (n *UsingSubentryAsNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *UsingSubentryAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingSubentryAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.LaxEqual(value.Ref(o.Target)) &&
+		n.AsName.LaxEqual(value.Ref(o.AsName))
+}
+
 func (n *UsingSubentryAsNode) String() string {
 	return fmt.Sprintf("%s as %s", n.Target.String(), n.AsName.String())
 }
@@ -538,6 +596,15 @@ func (n *MacroNameNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *MacroNameNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroNameNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *MacroNameNode) String() string {

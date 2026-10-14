@@ -54,6 +54,15 @@ func (n *TryExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *TryExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *TryExpressionNode) String() string {
 	var buff strings.Builder
 

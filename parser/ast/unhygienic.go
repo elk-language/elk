@@ -55,6 +55,19 @@ func (n *UnhygienicNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) && n.Node.Equal(value.Ref(o.Node))
 }
 
+func (n *UnhygienicNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnhygienicNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Node.LaxEqual(value.Ref(o.Node)) {
+		return false
+	}
+
+	return n.Node.LaxEqual(value.Ref(o.Node))
+}
+
 // Return a string representation of the node.
 func (n *UnhygienicNode) String() string {
 	return n.Node.String()

@@ -14,5 +14,7 @@ module Std::Elk::AST
     pure def positional_arguments: ArrayTuple[ExpressionNode]; end
     pure def named_arguments: ArrayTuple[NamedArgumentNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

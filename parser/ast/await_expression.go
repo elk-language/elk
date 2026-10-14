@@ -77,6 +77,26 @@ func (n *AwaitExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *AwaitExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AwaitExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Sync != o.Sync {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *AwaitExpressionNode) String() string {
 	var buff strings.Builder
 

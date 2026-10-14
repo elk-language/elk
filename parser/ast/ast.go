@@ -311,6 +311,8 @@ type Node interface {
 	SetType(types.Type)
 	SkipTypechecking() bool
 	Equal(value.Value) bool
+	// Equal ignoring source locations.
+	LaxEqual(value.Value) bool
 	String() string
 	// Return the type of the AST node object
 	// for use in macros

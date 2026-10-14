@@ -57,6 +57,16 @@ func (n *ConstantAsNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *ConstantAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstantAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.AsName == o.AsName &&
+		n.Constant.LaxEqual(value.Ref(o.Constant))
+}
+
 // Return a string representation of the node.
 func (n *ConstantAsNode) String() string {
 	var buff strings.Builder

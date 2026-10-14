@@ -68,6 +68,15 @@ func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 		e.Expression.Equal(value.Ref(o.Expression))
 }
 
+func (e *ExpressionStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
+	if !ok {
+		return false
+	}
+
+	return e.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 // Return a string representation of the node.
 func (e *ExpressionStatementNode) String() string {
 	return e.Expression.String()
@@ -156,6 +165,15 @@ func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *EmptyStatementNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*EmptyStatementNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *EmptyStatementNode) String() string {
 	return ""
@@ -234,6 +252,15 @@ func (n *ImportStatementNode) Equal(other value.Value) bool {
 	}
 
 	return n.Path.Equal(value.Ref(o.Path)) && n.loc.Equal(o.loc)
+}
+
+func (n *ImportStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ImportStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Path.LaxEqual(value.Ref(o.Path))
 }
 
 // Return a string representation of the node.
@@ -318,6 +345,15 @@ func (n *ParameterStatementNode) Equal(other value.Value) bool {
 
 	return n.Parameter.Equal(value.Ref(o.Parameter)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *ParameterStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ParameterStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Parameter.LaxEqual(value.Ref(o.Parameter))
 }
 
 // Return a string representation of the node.
@@ -416,6 +452,15 @@ func (n *TypeStatementNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *TypeStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 // Return a string representation of the node.
 func (n *TypeStatementNode) String() string {
 	return n.TypeNode.String()
@@ -502,6 +547,15 @@ func (n *PatternStatementNode) Equal(other value.Value) bool {
 
 	return n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PatternStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PatternStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern))
 }
 
 // Return a string representation of the node.

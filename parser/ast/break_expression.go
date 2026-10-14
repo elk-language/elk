@@ -84,6 +84,29 @@ func (n *BreakExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *BreakExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BreakExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Label == o.Label {
+	} else if n.Label == nil || o.Label == nil {
+		return false
+	} else if !n.Label.LaxEqual(value.Ref(o.Label)) {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *BreakExpressionNode) String() string {
 	var buff strings.Builder
 

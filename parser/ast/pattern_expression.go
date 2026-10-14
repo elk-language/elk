@@ -52,6 +52,15 @@ func (n *PatternExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *PatternExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PatternExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.PatternNode.LaxEqual(value.Ref(o.PatternNode))
+}
+
 func (n *PatternExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -55,6 +55,16 @@ func (n *LabeledExpressionNode) Equal(other value.Value) bool {
 		n.Expression.Equal(value.Ref(o.Expression))
 }
 
+func (n *LabeledExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LabeledExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Label == o.Label &&
+		n.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 func (n *LabeledExpressionNode) String() string {
 	var buff strings.Builder
 

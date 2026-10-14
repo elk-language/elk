@@ -53,6 +53,15 @@ func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
+func (n *InstanceOfTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 // String returns the string representation of this node.
 func (n *InstanceOfTypeNode) String() string {
 	var buff strings.Builder

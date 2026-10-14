@@ -154,6 +154,17 @@ func initGenericMethodCallNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.GenericMethodCallNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)

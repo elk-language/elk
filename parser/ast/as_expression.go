@@ -70,6 +70,16 @@ func (n *AsExpressionNode) Equal(other value.Value) bool {
 		n.RuntimeType.Equal(value.Ref(o.RuntimeType))
 }
 
+func (n *AsExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AsExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value)) &&
+		n.RuntimeType.LaxEqual(value.Ref(o.RuntimeType))
+}
+
 func (n *AsExpressionNode) String() string {
 	var buff strings.Builder
 

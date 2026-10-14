@@ -125,6 +125,46 @@ func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *NumericForExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	if n.Condition == o.Condition {
+	} else if n.Condition == nil || o.Condition == nil {
+		return false
+	} else if !n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	if n.Increment == o.Increment {
+	} else if n.Increment == nil || o.Increment == nil {
+		return false
+	} else if !n.Increment.LaxEqual(value.Ref(o.Increment)) {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *NumericForExpressionNode) String() string {
 	var buff strings.Builder
 

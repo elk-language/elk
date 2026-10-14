@@ -5,5 +5,7 @@ module Std::Elk::AST
   ]##
   sealed primitive class InferredExpressionNode
     include ExpressionNode
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

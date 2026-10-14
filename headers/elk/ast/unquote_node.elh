@@ -58,5 +58,7 @@ module Std::Elk::AST
     pure def location: FS::Location; end
 
     pure def value: String; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

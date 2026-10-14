@@ -63,6 +63,16 @@ func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 		n.Value.Equal(value.Ref(o.Value))
 }
 
+func (n *KeyValueExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(value.Ref(o.Key)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *KeyValueExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -170,6 +180,16 @@ func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *SymbolKeyValueExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key != o.Key &&
+		n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *SymbolKeyValueExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -274,6 +294,16 @@ func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *SymbolKeyValuePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(o.Key.ToValue()) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *SymbolKeyValuePatternNode) String() string {
 	var buff strings.Builder
 
@@ -376,6 +406,16 @@ func (n *KeyValuePatternNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Key.Equal(value.Ref(o.Key)) &&
 		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *KeyValuePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(value.Ref(o.Key)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *KeyValuePatternNode) String() string {

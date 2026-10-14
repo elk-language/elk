@@ -64,6 +64,25 @@ func (n *ImplementExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *ImplementExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ImplementExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Constants) != len(o.Constants) {
+		return false
+	}
+
+	for i, constant := range n.Constants {
+		if !constant.LaxEqual(value.Ref(o.Constants[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *ImplementExpressionNode) String() string {
 	var buff strings.Builder

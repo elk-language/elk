@@ -95,6 +95,33 @@ func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *SwitchExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Cases) != len(o.Cases) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	for i, c := range n.Cases {
+		if !c.LaxEqual(value.Ref(o.Cases[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.LaxEqual(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *SwitchExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -250,6 +277,29 @@ func (n *SwitchCaseNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *SwitchCaseNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchCaseNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *SwitchCaseNode) String() string {

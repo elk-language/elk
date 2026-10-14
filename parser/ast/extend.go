@@ -83,6 +83,32 @@ func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *ExtendWhereBlockExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExtendWhereBlockExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) ||
+		len(n.Where) != len(o.Where) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Where {
+		if !param.LaxEqual(value.Ref(o.Where[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *ExtendWhereBlockExpressionNode) String() string {
 	var buff strings.Builder

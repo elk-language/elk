@@ -63,6 +63,25 @@ func (n *InferredObjectPatternNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *InferredObjectPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ObjectPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Attributes) != len(o.Attributes) {
+		return false
+	}
+
+	for i, attr := range n.Attributes {
+		if !attr.LaxEqual(value.Ref(o.Attributes[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *InferredObjectPatternNode) String() string {
 	var buff strings.Builder
 

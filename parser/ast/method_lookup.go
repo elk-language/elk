@@ -59,6 +59,16 @@ func (n *InstanceMethodLookupNode) Equal(other value.Value) bool {
 		n.Name.Equal(value.Ref(o.Name))
 }
 
+func (n *InstanceMethodLookupNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceMethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
+}
+
 func (n *InstanceMethodLookupNode) String() string {
 	var buff strings.Builder
 
@@ -175,6 +185,16 @@ func (n *MethodLookupNode) Equal(other value.Value) bool {
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Name.Equal(value.Ref(o.Name))
+}
+
+func (n *MethodLookupNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
 }
 
 func (n *MethodLookupNode) String() string {
@@ -295,6 +315,16 @@ func (n *MethodLookupAsNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.MethodLookup.Equal(value.Ref(o.MethodLookup)) &&
 		n.AsName.Equal(value.Ref(o.AsName))
+}
+
+func (n *MethodLookupAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.MethodLookup.LaxEqual(value.Ref(o.MethodLookup)) &&
+		n.AsName.LaxEqual(value.Ref(o.AsName))
 }
 
 // Return a string representation of this method lookup as node.

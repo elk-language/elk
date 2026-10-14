@@ -10,5 +10,7 @@ module Std::Elk::AST
     pure def in_expression: ExpressionNode; end
     pure def then_body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

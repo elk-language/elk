@@ -52,6 +52,15 @@ func (n *MustExpressionNode) Equal(other value.Value) bool {
 		n.Value.Equal(value.Ref(o.Value))
 }
 
+func (n *MustExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MustExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 func (n *MustExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -20,5 +20,7 @@ module Std::Elk::AST
     pure def stack_trace_var: IdentifierNode?; end
     pure def body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

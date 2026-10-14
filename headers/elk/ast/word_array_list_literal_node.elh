@@ -14,5 +14,7 @@ module Std::Elk::AST
     pure def elements: ArrayTuple[WordCollectionContentNode]; end
     pure def capacity: ExpressionNode?; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

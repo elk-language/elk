@@ -8,5 +8,7 @@ module Std::Elk::AST
     init(constants: ArrayTuple[ComplexConstantNode], location: FS::Location = loop; end); end
     pure def constants: ArrayTuple[ComplexConstantNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

@@ -111,6 +111,39 @@ func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *InterfaceDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterfaceDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.comment == o.comment
+}
+
 func (n *InterfaceDeclarationNode) String() string {
 	var buff strings.Builder
 	buff.WriteString("interface")

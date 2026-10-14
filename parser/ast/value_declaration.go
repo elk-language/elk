@@ -98,6 +98,33 @@ func (n *ValueDeclarationNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *ValueDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ValueDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *ValueDeclarationNode) String() string {
 	var buff strings.Builder
 

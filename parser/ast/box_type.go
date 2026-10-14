@@ -56,6 +56,16 @@ func (n *BoxTypeNode) Equal(other value.Value) bool {
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
+func (n *BoxTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BoxTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Immutable == o.Immutable &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 // String returns the string representation of this node.
 func (n *BoxTypeNode) String() string {
 	var buff strings.Builder

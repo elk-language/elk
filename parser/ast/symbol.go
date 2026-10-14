@@ -59,6 +59,15 @@ func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *SimpleSymbolLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content == o.Content
+}
+
 func (n *SimpleSymbolLiteralNode) String() string {
 	return symbol.InspectSymbol(n.Content)
 }
@@ -139,6 +148,15 @@ func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {
 
 	return n.Content.Equal(value.Ref(o.Content)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *InterpolatedSymbolLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content.LaxEqual(value.Ref(o.Content))
 }
 
 func (n *InterpolatedSymbolLiteralNode) String() string {

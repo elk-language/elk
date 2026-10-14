@@ -52,6 +52,15 @@ func (n *SingletonTypeNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *SingletonTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SingletonTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 func (n *SingletonTypeNode) String() string {
 	var buff strings.Builder
 

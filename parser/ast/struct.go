@@ -113,6 +113,35 @@ func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *StructDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StructDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) ||
+		n.comment != o.comment ||
+		n.Immutable != o.Immutable ||
+		len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, typeParam := range n.TypeParameters {
+		if !typeParam.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, bodyStmt := range n.Body {
+		if !bodyStmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *StructDeclarationNode) String() string {
 	var buff strings.Builder
 

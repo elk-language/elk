@@ -166,6 +166,54 @@ func (n *MethodDefinitionNode) Equal(other value.Value) bool {
 		n.Name.Equal(value.Ref(o.Name))
 }
 
+func (n *MethodDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, tp := range n.TypeParameters {
+		if !tp.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return n.Flags == o.Flags &&
+		n.Name.LaxEqual(value.Ref(o.Name))
+}
+
 // Return a string representation of this method definition.
 func (n *MethodDefinitionNode) String() string {
 	var buff strings.Builder
@@ -583,6 +631,43 @@ func (n *InitDefinitionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *InitDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InitDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment || n.Flags != o.Flags {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *InitDefinitionNode) String() string {
 	var buff strings.Builder
@@ -834,6 +919,51 @@ func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *MethodSignatureDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodSignatureDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Parameters) != len(o.Parameters) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *MethodSignatureDefinitionNode) String() string {
 	var buff strings.Builder
 
@@ -1062,6 +1192,20 @@ func (n *AliasDeclarationEntry) Equal(other value.Value) bool {
 		n.OldName.Equal(value.Ref(o.OldName))
 }
 
+func (n *AliasDeclarationEntry) LaxEqual(other value.Value) bool {
+	if !other.IsReference() {
+		return false
+	}
+
+	o, ok := other.AsReference().(*AliasDeclarationEntry)
+	if !ok {
+		return false
+	}
+
+	return n.NewName.LaxEqual(value.Ref(o.NewName)) &&
+		n.OldName.LaxEqual(value.Ref(o.OldName))
+}
+
 func (n *AliasDeclarationEntry) String() string {
 	var buff strings.Builder
 
@@ -1149,6 +1293,25 @@ func (n *AliasDeclarationNode) Equal(other value.Value) bool {
 
 	for i, entry := range n.Entries {
 		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *AliasDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AliasDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
 			return false
 		}
 	}
@@ -1266,6 +1429,29 @@ func (n *GetterDeclarationNode) Equal(other value.Value) bool {
 
 	for i, entry := range n.Entries {
 		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GetterDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GetterDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment || n.Flags != o.Flags {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
 			return false
 		}
 	}
@@ -1427,6 +1613,25 @@ func (n *SetterDeclarationNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.comment == o.comment
+}
+
+func (n *SetterDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SetterDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return n.comment == o.comment
 }
 
 func (n *SetterDeclarationNode) String() string {
@@ -1623,6 +1828,29 @@ func (n *AttrDeclarationNode) Equal(other value.Value) bool {
 
 	for i, entry := range n.Entries {
 		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *AttrDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttrDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.DocComment() != o.DocComment() || n.Flags != o.Flags {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
 			return false
 		}
 	}

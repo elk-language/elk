@@ -9,5 +9,7 @@ module Std::Elk::AST
     init(namespace: UsingEntryNode, location: FS::Location = loop; end); end
     pure def namespace: UsingEntryNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

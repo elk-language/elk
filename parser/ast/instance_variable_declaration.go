@@ -81,6 +81,27 @@ func (n *InstanceVariableDeclarationNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *InstanceVariableDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceVariableDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		!n.Name.LaxEqual(value.Ref(o.Name)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *InstanceVariableDeclarationNode) String() string {
 	var buff strings.Builder
 
@@ -219,6 +240,27 @@ func (n *InstanceValueDeclarationNode) Equal(other value.Value) bool {
 	} else if n.TypeNode == nil || o.TypeNode == nil {
 		return false
 	} else if !n.TypeNode.Equal(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *InstanceValueDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceValueDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		!n.Name.LaxEqual(value.Ref(o.Name)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
 		return false
 	}
 
