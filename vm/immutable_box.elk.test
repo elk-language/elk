@@ -1,17 +1,14 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "ImmutableBox", ->
-	context "init", ->
-		should "create a new box", ->
+describe "ImmutableBox" ->
+	context "init" ->
+		should "create a new box" ->
 			b := ImmutableBox(3)
 			assert! b <<: ImmutableBox
 			assert! b.get == 3
 		end
 	end
 
-	context "get", ->
-		should "return the stored value", ->
+	context "get" ->
+		should "return the stored value" ->
 			b := ImmutableBox(3)
 			assert! b.get == 3
 
@@ -20,8 +17,8 @@ describe "ImmutableBox", ->
 		end
 	end
 
-	context "to_immutable_box", ->
-		should "return self", ->
+	context "to_immutable_box" ->
+		should "return self" ->
 			b := ImmutableBox(3)
 			c := b.to_immutable_box
 			assert! c === b
@@ -29,8 +26,8 @@ describe "ImmutableBox", ->
 		end
 	end
 
-	context "address", ->
-		should "return the raw address as UInt", ->
+	context "address" ->
+		should "return the raw address as UInt" ->
 			b := ImmutableBox(3)
 			addr := b.address
 			assert! addr <<: UInt

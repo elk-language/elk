@@ -1,10 +1,7 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "Date", ->
-	context "singleton", ->
-		context "now", ->
-			should "return current date", ->
+describe "Date" ->
+	context "singleton" ->
+		context "now" ->
+			should "return current date" ->
 				d := Date.now
 				assert! d <<: Date
 				assert! d.year >= 0
@@ -13,8 +10,8 @@ describe "Date", ->
 			end
 		end
 
-		context "parse", ->
-			should "parse the default format", ->
+		context "parse" ->
+			should "parse the default format" ->
 				d := Date.parse("2025-12-23")
 				assert! d <<: Date
 				assert! d.to_string == "2025-12-23"
@@ -23,7 +20,7 @@ describe "Date", ->
 				assert! d.day == 23
 			end
 
-			should "parse a custom format", ->
+			should "parse a custom format" ->
 				d := Date.parse("23.12.2025", "%d.%m.%Y")
 				assert! d <<: Date
 				assert! d.to_string == "2025-12-23"
@@ -32,9 +29,9 @@ describe "Date", ->
 				assert! d.day == 23
 			end
 
-			context "iso year", ->
-				context "zero padded", ->
-					should "parse repeated year", ->
+			context "iso year" ->
+				context "zero padded" ->
+					should "parse repeated year" ->
 						d := Date.parse("2025 10 2024 2", "%G %V %G %u")
 						assert! d <<: Date
 						assert! d.to_string == "2024-03-12"
@@ -43,7 +40,7 @@ describe "Date", ->
 						assert! d.day == 12
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%G")
 						assert! d <<: Date
 						assert! d.to_string == "2024-12-30"
@@ -52,7 +49,7 @@ describe "Date", ->
 						assert! d.day == 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%G")
 						assert! d <<: Date
 						assert! d.to_string == "0007-01-01"
@@ -61,7 +58,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%G")
 						assert! d <<: Date
 						assert! d.to_string == "0507-01-03"
@@ -70,21 +67,21 @@ describe "Date", ->
 						assert! d.day == 3
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%G") match FormatError(message: 'date format string `"%G"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%G") match FormatError(message: 'date format string `"%G"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%G") match FormatError(message: 'date format string `"%G"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%-G")
 						assert! d <<: Date
 						assert! d.to_string == "2024-12-30"
@@ -93,7 +90,7 @@ describe "Date", ->
 						assert! d.day == 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-G")
 						assert! d <<: Date
 						assert! d.to_string == "0007-01-01"
@@ -102,7 +99,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%-G")
 						assert! d <<: Date
 						assert! d.to_string == "0507-01-03"
@@ -111,21 +108,21 @@ describe "Date", ->
 						assert! d.day == 3
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-G") match FormatError(message: 'date format string `"%-G"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-G") match FormatError(message: 'date format string `"%-G"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-G") match FormatError(message: 'date format string `"%-G"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%_G")
 						assert! d <<: Date
 						assert! d.to_string == "2024-12-30"
@@ -134,7 +131,7 @@ describe "Date", ->
 						assert! d.day == 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_G")
 						assert! d <<: Date
 						assert! d.to_string == "0007-01-01"
@@ -143,7 +140,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%_G")
 						assert! d <<: Date
 						assert! d.to_string == "0507-01-03"
@@ -152,7 +149,7 @@ describe "Date", ->
 						assert! d.day == 3
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 507", "%_G")
 						assert! d <<: Date
 						assert! d.to_string == "0507-01-03"
@@ -161,19 +158,19 @@ describe "Date", ->
 						assert! d.day == 3
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_G") match FormatError(message: 'date format string `"%_G"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_G") match FormatError(message: 'date format string `"%_G"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "year", ->
-				context "zero padded", ->
-					should "parse repeated year", ->
+			context "year" ->
+				context "zero padded" ->
+					should "parse repeated year" ->
 						d := Date.parse("2025 10 2024 2", "%Y %m %Y %d")
 						assert! d <<: Date
 						assert! d.to_string == "2024-10-02"
@@ -182,7 +179,7 @@ describe "Date", ->
 						assert! d.day == 2
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%Y")
 						assert! d <<: Date
 						now := Date.now
@@ -194,7 +191,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%Y")
 						assert! d <<: Date
 						now := Date.now
@@ -206,7 +203,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%Y")
 						assert! d <<: Date
 						now := Date.now
@@ -218,21 +215,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%Y") match FormatError(message: 'date format string `"%Y"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%Y") match FormatError(message: 'date format string `"%Y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%Y") match FormatError(message: 'date format string `"%Y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%-Y")
 						assert! d <<: Date
 						now := Date.now
@@ -244,7 +241,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-Y")
 						assert! d <<: Date
 						now := Date.now
@@ -256,7 +253,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%-Y")
 						assert! d <<: Date
 						now := Date.now
@@ -268,21 +265,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-Y") match FormatError(message: 'date format string `"%-Y"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-Y") match FormatError(message: 'date format string `"%-Y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-Y") match FormatError(message: 'date format string `"%-Y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("2025", "%_Y")
 						assert! d <<: Date
 						now := Date.now
@@ -294,7 +291,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_Y")
 						assert! d <<: Date
 						now := Date.now
@@ -306,7 +303,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("0507", "%_Y")
 						assert! d <<: Date
 						now := Date.now
@@ -318,7 +315,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 507", "%_Y")
 						assert! d <<: Date
 						now := Date.now
@@ -330,19 +327,19 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_Y") match FormatError(message: 'date format string `"%_Y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_Y") match FormatError(message: 'date format string `"%_Y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "century", ->
-				context "zero padded", ->
-					should "parse repeated century", ->
+			context "century" ->
+				context "zero padded" ->
+					should "parse repeated century" ->
 						d := Date.parse("20 10 21 35", "%C %m %C %y")
 						assert! d <<: Date
 						now := Date.now
@@ -354,7 +351,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("20", "%C")
 						assert! d <<: Date
 						now := Date.now
@@ -366,7 +363,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%C")
 						assert! d <<: Date
 						now := Date.now
@@ -378,7 +375,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%C")
 						assert! d <<: Date
 						now := Date.now
@@ -390,21 +387,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%C") match FormatError(message: 'date format string `"%C"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%C") match FormatError(message: 'date format string `"%C"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%C") match FormatError(message: 'date format string `"%C"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("25", "%-C")
 						assert! d <<: Date
 						now := Date.now
@@ -416,7 +413,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-C")
 						assert! d <<: Date
 						now := Date.now
@@ -428,7 +425,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%-C")
 						assert! d <<: Date
 						now := Date.now
@@ -440,21 +437,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-C") match FormatError(message: 'date format string `"%-C"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-C") match FormatError(message: 'date format string `"%-C"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-C") match FormatError(message: 'date format string `"%-C"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("99", "%_C")
 						assert! d <<: Date
 						now := Date.now
@@ -466,7 +463,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_C")
 						assert! d <<: Date
 						now := Date.now
@@ -478,7 +475,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%_C")
 						assert! d <<: Date
 						now := Date.now
@@ -490,7 +487,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 5", "%_C")
 						assert! d <<: Date
 						now := Date.now
@@ -502,19 +499,19 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_C") match FormatError(message: 'date format string `"%_C"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_C") match FormatError(message: 'date format string `"%_C"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "year last two", ->
-				context "zero padded", ->
-					should "parse repeated year", ->
+			context "year last two" ->
+				context "zero padded" ->
+					should "parse repeated year" ->
 						d := Date.parse("20 10 21 15", "%y %m %y %d")
 						assert! d <<: Date
 						assert! d.to_string == "2021-10-15"
@@ -523,7 +520,7 @@ describe "Date", ->
 						assert! d.day == 15
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("20", "%y")
 						assert! d <<: Date
 						now := Date.now
@@ -536,7 +533,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%y")
 						assert! d <<: Date
 						now := Date.now
@@ -549,7 +546,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%y")
 						assert! d <<: Date
 						now := Date.now
@@ -562,21 +559,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%y") match FormatError(message: 'date format string `"%y"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%y") match FormatError(message: 'date format string `"%y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%y") match FormatError(message: 'date format string `"%y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("25", "%-y")
 						assert! d <<: Date
 						now := Date.now
@@ -589,7 +586,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-y")
 						assert! d <<: Date
 						now := Date.now
@@ -602,7 +599,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%-y")
 						assert! d <<: Date
 						now := Date.now
@@ -615,21 +612,21 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-y") match FormatError(message: 'date format string `"%-y"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-y") match FormatError(message: 'date format string `"%-y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-y") match FormatError(message: 'date format string `"%-y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("99", "%_y")
 						assert! d <<: Date
 						now := Date.now
@@ -642,7 +639,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_y")
 						assert! d <<: Date
 						now := Date.now
@@ -655,7 +652,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%_y")
 						assert! d <<: Date
 						now := Date.now
@@ -668,7 +665,7 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 5", "%_y")
 						assert! d <<: Date
 						now := Date.now
@@ -681,19 +678,19 @@ describe "Date", ->
 						assert! d.day == now.day
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_y") match FormatError(message: 'date format string `"%_y"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_y") match FormatError(message: 'date format string `"%_y"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "month", ->
-				context "zero padded", ->
-					should "parse repeated month", ->
+			context "month" ->
+				context "zero padded" ->
+					should "parse repeated month" ->
 						d := Date.parse("10 10 9", "%m %d %m")
 						assert! d <<: Date
 						now := Date.now
@@ -705,7 +702,7 @@ describe "Date", ->
 						assert! d.day == 10
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%m")
 						assert! d <<: Date
 						now := Date.now
@@ -717,7 +714,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%m")
 						assert! d <<: Date
 						now := Date.now
@@ -729,7 +726,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%m")
 						assert! d <<: Date
 						now := Date.now
@@ -741,29 +738,29 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "raise format error when > 12", ->
+					should "raise format error when > 12" ->
 						assert_throws! Date.parse("13", "%m") match FormatError(message: "value for date month out of range: 13")
 					end
 
-					should "raise format error when < 1", ->
+					should "raise format error when < 1" ->
 						assert_throws! Date.parse("0", "%m") match FormatError(message: "value for date month out of range: 0")
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%m") match FormatError(message: 'date format string `"%m"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%m") match FormatError(message: 'date format string `"%m"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%m") match FormatError(message: 'date format string `"%m"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("11", "%-m")
 						assert! d <<: Date
 						now := Date.now
@@ -775,7 +772,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-m")
 						assert! d <<: Date
 						now := Date.now
@@ -787,7 +784,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%-m")
 						assert! d <<: Date
 						now := Date.now
@@ -799,21 +796,21 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-m") match FormatError(message: 'date format string `"%-m"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-m") match FormatError(message: 'date format string `"%-m"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-m") match FormatError(message: 'date format string `"%-m"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("11", "%_m")
 						assert! d <<: Date
 						now := Date.now
@@ -825,7 +822,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_m")
 						assert! d <<: Date
 						now := Date.now
@@ -837,7 +834,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%_m")
 						assert! d <<: Date
 						now := Date.now
@@ -849,7 +846,7 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 5", "%_m")
 						assert! d <<: Date
 						now := Date.now
@@ -861,18 +858,18 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_m") match FormatError(message: 'date format string `"%_m"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_m") match FormatError(message: 'date format string `"%_m"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "month full name", ->
-				should "parse repeated month", ->
+			context "month full name" ->
+				should "parse repeated month" ->
 					d := Date.parse("February 10 March", "%B %d %B")
 					assert! d <<: Date
 					now := Date.now
@@ -884,7 +881,7 @@ describe "Date", ->
 					assert! d.day == 10
 				end
 
-				should "parse uppercase", ->
+				should "parse uppercase" ->
 					d := Date.parse("DECEMBER", "%B")
 					assert! d <<: Date
 					now := Date.now
@@ -896,7 +893,7 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "parse lowercase", ->
+				should "parse lowercase" ->
 					d := Date.parse("november", "%B")
 					assert! d <<: Date
 					now := Date.now
@@ -908,7 +905,7 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "parse mixed case", ->
+				should "parse mixed case" ->
 					d := Date.parse("AUguST", "%B")
 					assert! d <<: Date
 					now := Date.now
@@ -920,17 +917,17 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "raise format error for invalid month name", ->
+				should "raise format error for invalid month name" ->
 					assert_throws! Date.parse("Buja", "%B") match FormatError(message: "invalid date month name: buja")
 				end
 
-				should "raise format error for no text", ->
+				should "raise format error for no text" ->
 					assert_throws! Date.parse("", "%B") match FormatError(message: 'invalid date month name: ')
 				end
 			end
 
-			context "month abbreviated name", ->
-				should "parse repeated month", ->
+			context "month abbreviated name" ->
+				should "parse repeated month" ->
 					d := Date.parse("Feb 10 Mar", "%b %d %b")
 					assert! d <<: Date
 					now := Date.now
@@ -942,7 +939,7 @@ describe "Date", ->
 					assert! d.day == 10
 				end
 
-				should "parse uppercase", ->
+				should "parse uppercase" ->
 					d := Date.parse("DEC", "%b")
 					assert! d <<: Date
 					now := Date.now
@@ -954,7 +951,7 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "parse lowercase", ->
+				should "parse lowercase" ->
 					d := Date.parse("nov", "%b")
 					assert! d <<: Date
 					now := Date.now
@@ -966,7 +963,7 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "parse mixed case", ->
+				should "parse mixed case" ->
 					d := Date.parse("AuG", "%b")
 					assert! d <<: Date
 					now := Date.now
@@ -978,18 +975,18 @@ describe "Date", ->
 					assert! d.day == 1
 				end
 
-				should "raise format error for invalid month name", ->
+				should "raise format error for invalid month name" ->
 					assert_throws! Date.parse("Buj", "%b") match FormatError(message: "invalid date abbreviated month name: buj")
 				end
 
-				should "raise format error for no text", ->
+				should "raise format error for no text" ->
 					assert_throws! Date.parse("", "%b") match FormatError(message: 'invalid date abbreviated month name: ')
 				end
 			end
 
-			context "day of month", ->
-				context "zero padded", ->
-					should "parse repeated day", ->
+			context "day of month" ->
+				context "zero padded" ->
+					should "parse repeated day" ->
 						d := Date.parse("21 9 13", "%d %m %d")
 						assert! d <<: Date
 						now := Date.now
@@ -1001,7 +998,7 @@ describe "Date", ->
 						assert! d.day == 13
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%d")
 						assert! d <<: Date
 						now := Date.now
@@ -1013,7 +1010,7 @@ describe "Date", ->
 						assert! d.day == 12
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%d")
 						assert! d <<: Date
 						now := Date.now
@@ -1025,7 +1022,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%d")
 						assert! d <<: Date
 						now := Date.now
@@ -1037,21 +1034,21 @@ describe "Date", ->
 						assert! d.day == 5
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%d") match FormatError(message: 'date format string `"%d"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%d") match FormatError(message: 'date format string `"%d"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%d") match FormatError(message: 'date format string `"%d"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("11", "%-d")
 						assert! d <<: Date
 						now := Date.now
@@ -1063,7 +1060,7 @@ describe "Date", ->
 						assert! d.day == 11
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-d")
 						assert! d <<: Date
 						now := Date.now
@@ -1075,7 +1072,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%-d")
 						assert! d <<: Date
 						now := Date.now
@@ -1087,21 +1084,21 @@ describe "Date", ->
 						assert! d.day == 5
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-d") match FormatError(message: 'date format string `"%-d"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-d") match FormatError(message: 'date format string `"%-d"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-d") match FormatError(message: 'date format string `"%-d"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("11", "%_d")
 						assert! d <<: Date
 						now := Date.now
@@ -1113,7 +1110,7 @@ describe "Date", ->
 						assert! d.day == 11
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_d")
 						assert! d <<: Date
 						now := Date.now
@@ -1125,7 +1122,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("05", "%_d")
 						assert! d <<: Date
 						now := Date.now
@@ -1137,7 +1134,7 @@ describe "Date", ->
 						assert! d.day == 5
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 5", "%_d")
 						assert! d <<: Date
 						now := Date.now
@@ -1149,19 +1146,19 @@ describe "Date", ->
 						assert! d.day == 5
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_d") match FormatError(message: 'date format string `"%_d"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_d") match FormatError(message: 'date format string `"%_d"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "day of year", ->
-				context "zero padded", ->
-					should "parse repeated day", ->
+			context "day of year" ->
+				context "zero padded" ->
+					should "parse repeated day" ->
 						d := Date.parse("220 12 48", "%j %y %j")
 						assert! d <<: Date
 
@@ -1172,7 +1169,7 @@ describe "Date", ->
 						assert! d.day == 17
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("365", "%j")
 						assert! d <<: Date
 						now := Date.now
@@ -1184,7 +1181,7 @@ describe "Date", ->
 						assert! d.day >= 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%j")
 						assert! d <<: Date
 						now := Date.now
@@ -1196,7 +1193,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("07", "%j")
 						assert! d <<: Date
 						now := Date.now
@@ -1208,25 +1205,25 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "raise format error when > 366", ->
+					should "raise format error when > 366" ->
 						assert_throws! Date.parse("367", "%j") match FormatError(message: "value for date day of year out of range: 367")
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%j") match FormatError(message: 'date format string `"%j"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%j") match FormatError(message: 'date format string `"%j"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%j") match FormatError(message: 'date format string `"%j"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("365", "%-j")
 						assert! d <<: Date
 						now := Date.now
@@ -1238,7 +1235,7 @@ describe "Date", ->
 						assert! d.day >= 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%-j")
 						assert! d <<: Date
 						now := Date.now
@@ -1250,7 +1247,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("22", "%-j")
 						assert! d <<: Date
 						now := Date.now
@@ -1262,21 +1259,21 @@ describe "Date", ->
 						assert! d.day == 22
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-j") match FormatError(message: 'date format string `"%-j"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-j") match FormatError(message: 'date format string `"%-j"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-j") match FormatError(message: 'date format string `"%-j"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("365", "%_j")
 						assert! d <<: Date
 						now := Date.now
@@ -1288,7 +1285,7 @@ describe "Date", ->
 						assert! d.day >= 30
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("7", "%_j")
 						assert! d <<: Date
 						now := Date.now
@@ -1300,7 +1297,7 @@ describe "Date", ->
 						assert! d.day == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("015", "%_j")
 						assert! d <<: Date
 						now := Date.now
@@ -1312,7 +1309,7 @@ describe "Date", ->
 						assert! d.day == 15
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 5", "%_j")
 						assert! d <<: Date
 						now := Date.now
@@ -1324,18 +1321,18 @@ describe "Date", ->
 						assert! d.day == 5
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_j") match FormatError(message: 'date format string `"%_j"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_j") match FormatError(message: 'date format string `"%_j"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "day of week name", ->
-				should "parse repeated day of week", ->
+			context "day of week name" ->
+				should "parse repeated day of week" ->
 					d := Date.parse("Tuesday 10 Monday", "%A %d %A")
 					assert! d <<: Date
 					now := Date.now
@@ -1347,7 +1344,7 @@ describe "Date", ->
 					assert! d.day == 10
 				end
 
-				should "parse with week", ->
+				should "parse with week" ->
 					d := Date.parse("15 35 FRIDAY", "%y %W %A")
 					assert! d <<: Date
 					now := Date.now
@@ -1360,7 +1357,7 @@ describe "Date", ->
 					assert! d.weekday_name == "Friday"
 				end
 
-				should "parse uppercase", ->
+				should "parse uppercase" ->
 					d := Date.parse("FRIDAY", "%A")
 					assert! d <<: Date
 					now := Date.now
@@ -1372,7 +1369,7 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "parse lowercase", ->
+				should "parse lowercase" ->
 					d := Date.parse("thursday", "%A")
 					assert! d <<: Date
 					now := Date.now
@@ -1384,7 +1381,7 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "parse mixed case", ->
+				should "parse mixed case" ->
 					d := Date.parse("WEDneSdAy", "%A")
 					assert! d <<: Date
 					now := Date.now
@@ -1396,17 +1393,17 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "raise format error for invalid day name", ->
+				should "raise format error for invalid day name" ->
 					assert_throws! Date.parse("Buja", "%A") match FormatError(message: "invalid date day of week name: buja")
 				end
 
-				should "raise format error for no text", ->
+				should "raise format error for no text" ->
 					assert_throws! Date.parse("", "%A") match FormatError(message: "invalid date day of week name: ")
 				end
 			end
 
-			context "day of week abbreviated name", ->
-				should "parse repeated month", ->
+			context "day of week abbreviated name" ->
+				should "parse repeated month" ->
 					d := Date.parse("Tue 10 Mon", "%a %d %a")
 					assert! d <<: Date
 					now := Date.now
@@ -1418,7 +1415,7 @@ describe "Date", ->
 					assert! d.day == 10
 				end
 
-				should "parse with week", ->
+				should "parse with week" ->
 					d := Date.parse("15 35 FRI", "%y %W %a")
 					assert! d <<: Date
 					now := Date.now
@@ -1431,7 +1428,7 @@ describe "Date", ->
 					assert! d.weekday_name == "Friday"
 				end
 
-				should "parse uppercase", ->
+				should "parse uppercase" ->
 					d := Date.parse("FRI", "%a")
 					assert! d <<: Date
 					now := Date.now
@@ -1443,7 +1440,7 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "parse lowercase", ->
+				should "parse lowercase" ->
 					d := Date.parse("thu", "%a")
 					assert! d <<: Date
 					now := Date.now
@@ -1455,7 +1452,7 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "parse mixed case", ->
+				should "parse mixed case" ->
 					d := Date.parse("WeD", "%a")
 					assert! d <<: Date
 					now := Date.now
@@ -1467,17 +1464,17 @@ describe "Date", ->
 					assert! d.day == now.day
 				end
 
-				should "raise format error for invalid day name", ->
+				should "raise format error for invalid day name" ->
 					assert_throws! Date.parse("Buj", "%a") match FormatError(message: "invalid date abbreviated day of week name: buj")
 				end
 
-				should "raise format error for no text", ->
+				should "raise format error for no text" ->
 					assert_throws! Date.parse("", "%a") match FormatError(message: "invalid date abbreviated day of week name: ")
 				end
 			end
 
-			context "day of week number", ->
-				should "parse repeated day", ->
+			context "day of week number" ->
+				should "parse repeated day" ->
 					d := Date.parse("4 15 5 2", "%u %y %W %u")
 					assert! d <<: Date
 
@@ -1489,7 +1486,7 @@ describe "Date", ->
 					assert! d.weekday_name == "Tuesday"
 				end
 
-				should "parse with week", ->
+				should "parse with week" ->
 					d := Date.parse("15 35 5", "%y %W %u")
 					assert! d <<: Date
 					now := Date.now
@@ -1502,25 +1499,25 @@ describe "Date", ->
 					assert! d.weekday_name == "Friday"
 				end
 
-				should "raise format error when > 7", ->
+				should "raise format error when > 7" ->
 					assert_throws! Date.parse("8", "%u") match FormatError(message: "value for date day of week number out of range: 8")
 				end
 
-				should "raise format error when < 1", ->
+				should "raise format error when < 1" ->
 					assert_throws! Date.parse("0", "%u") match FormatError(message: "value for date day of week number out of range: 0")
 				end
 
-				should "raise format error for no digits", ->
+				should "raise format error for no digits" ->
 					assert_throws! Date.parse("", "%u") match FormatError(message: 'date format string `"%u"` is incompatible with parsed input `""`')
 				end
 
-				should "raise format error for text", ->
+				should "raise format error for text" ->
 					assert_throws! Date.parse("foo", "%u") match FormatError(message: 'date format string `"%u"` is incompatible with parsed input `"foo"`')
 				end
 			end
 
-			context "day of week number alt", ->
-				should "parse repeated day", ->
+			context "day of week number alt" ->
+				should "parse repeated day" ->
 					d := Date.parse("4 15 5 0", "%w %y %W %w")
 					assert! d <<: Date
 
@@ -1532,7 +1529,7 @@ describe "Date", ->
 					assert! d.weekday_name == "Sunday"
 				end
 
-				should "parse with week", ->
+				should "parse with week" ->
 					d := Date.parse("15 35 5", "%y %W %w")
 					assert! d <<: Date
 					now := Date.now
@@ -1545,22 +1542,22 @@ describe "Date", ->
 					assert! d.weekday_name == "Friday"
 				end
 
-				should "raise format error when > 6", ->
+				should "raise format error when > 6" ->
 					assert_throws! Date.parse("7", "%w") match FormatError(message: "value for date alt day of week number out of range: 7")
 				end
 
-				should "raise format error for no digits", ->
+				should "raise format error for no digits" ->
 					assert_throws! Date.parse("", "%w") match FormatError(message: 'date format string `"%w"` is incompatible with parsed input `""`')
 				end
 
-				should "raise format error for text", ->
+				should "raise format error for text" ->
 					assert_throws! Date.parse("foo", "%w") match FormatError(message: 'date format string `"%w"` is incompatible with parsed input `"foo"`')
 				end
 			end
 
-			context "iso week", ->
-				context "zero padded", ->
-					should "parse repeated week", ->
+			context "iso week" ->
+				context "zero padded" ->
+					should "parse repeated week" ->
 						d := Date.parse("26 22 11", "%V %y %V")
 						assert! d <<: Date
 
@@ -1571,7 +1568,7 @@ describe "Date", ->
 						assert! d.day == 20
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%V")
 						assert! d <<: Date
 						now := Date.now
@@ -1583,7 +1580,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%V")
 						assert! d <<: Date
 						now := Date.now
@@ -1595,7 +1592,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%V")
 						assert! d <<: Date
 						now := Date.now
@@ -1607,29 +1604,29 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error when > 53", ->
+					should "raise format error when > 53" ->
 						assert_throws! Date.parse("54", "%V") match FormatError(message: "value for ISO week out of range: 54")
 					end
 
-					should "raise format error when < 1", ->
+					should "raise format error when < 1" ->
 						assert_throws! Date.parse("0", "%V") match FormatError(message: "value for ISO week out of range: 0")
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%V") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%V") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%V") match FormatError(message: 'date format string `"%V"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%-V")
 						assert! d <<: Date
 						now := Date.now
@@ -1641,7 +1638,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%-V")
 						assert! d <<: Date
 						now := Date.now
@@ -1653,7 +1650,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%-V")
 						assert! d <<: Date
 						now := Date.now
@@ -1665,21 +1662,21 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-V") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-V") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-V") match FormatError(message: 'date format string `"%-V"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%_V")
 						assert! d <<: Date
 						now := Date.now
@@ -1691,7 +1688,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%_V")
 						assert! d <<: Date
 						now := Date.now
@@ -1703,7 +1700,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%_V")
 						assert! d <<: Date
 						now := Date.now
@@ -1715,7 +1712,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 2", "%_V")
 						assert! d <<: Date
 						now := Date.now
@@ -1727,19 +1724,19 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_V") match FormatError(message: 'date format string `"%_V"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_V") match FormatError(message: 'date format string `"%_V"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "week", ->
-				context "zero padded", ->
-					should "parse repeated week", ->
+			context "week" ->
+				context "zero padded" ->
+					should "parse repeated week" ->
 						d := Date.parse("26 22 11", "%W %y %W")
 						assert! d <<: Date
 
@@ -1751,7 +1748,7 @@ describe "Date", ->
 						assert! d.weekday_name == "Monday"
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%W")
 						assert! d <<: Date
 						now := Date.now
@@ -1763,7 +1760,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%W")
 						assert! d <<: Date
 						now := Date.now
@@ -1775,7 +1772,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%W")
 						assert! d <<: Date
 						now := Date.now
@@ -1787,7 +1784,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse zero", ->
+					should "parse zero" ->
 						d := Date.parse("0", "%W")
 						assert! d <<: Date
 						now := Date.now
@@ -1799,24 +1796,24 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "raise format error when > 53", ->
+					should "raise format error when > 53" ->
 						assert_throws! Date.parse("54", "%W") match FormatError(message: "value for week out of range: 54")
 					end
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%W") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%W") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%W") match FormatError(message: 'date format string `"%W"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%-W")
 						assert! d <<: Date
 						now := Date.now
@@ -1828,7 +1825,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%-W")
 						assert! d <<: Date
 						now := Date.now
@@ -1840,7 +1837,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%-W")
 						assert! d <<: Date
 						now := Date.now
@@ -1852,21 +1849,21 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-W") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-W") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-W") match FormatError(message: 'date format string `"%-W"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%_W")
 						assert! d <<: Date
 						now := Date.now
@@ -1878,7 +1875,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%_W")
 						assert! d <<: Date
 						now := Date.now
@@ -1890,7 +1887,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%_W")
 						assert! d <<: Date
 						now := Date.now
@@ -1902,7 +1899,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 2", "%_W")
 						assert! d <<: Date
 						now := Date.now
@@ -1914,19 +1911,19 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_W") match FormatError(message: 'date format string `"%_W"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_W") match FormatError(message: 'date format string `"%_W"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "week alt", ->
-				context "zero padded", ->
-					should "parse repeated week", ->
+			context "week alt" ->
+				context "zero padded" ->
+					should "parse repeated week" ->
 						d := Date.parse("26 22 11", "%U %y %U")
 						assert! d <<: Date
 
@@ -1938,7 +1935,7 @@ describe "Date", ->
 						assert! d.weekday_name == "Sunday"
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%U")
 						assert! d <<: Date
 						now := Date.now
@@ -1950,7 +1947,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%U")
 						assert! d <<: Date
 						now := Date.now
@@ -1962,7 +1959,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%U")
 						assert! d <<: Date
 						now := Date.now
@@ -1974,7 +1971,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse zero", ->
+					should "parse zero" ->
 						d := Date.parse("0", "%U")
 						assert! d <<: Date
 						now := Date.now
@@ -1986,24 +1983,24 @@ describe "Date", ->
 						assert! d.day == 1
 					end
 
-					should "raise format error when > 53", ->
+					should "raise format error when > 53" ->
 						assert_throws! Date.parse("54", "%U") match FormatError(message: "value for week out of range: 54")
 					end
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%U") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%U") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%U") match FormatError(message: 'date format string `"%U"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%-U")
 						assert! d <<: Date
 						now := Date.now
@@ -2015,7 +2012,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%-U")
 						assert! d <<: Date
 						now := Date.now
@@ -2027,7 +2024,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%-U")
 						assert! d <<: Date
 						now := Date.now
@@ -2039,21 +2036,21 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Date.parse(" 7", "%-U") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%-U") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%-U") match FormatError(message: 'date format string `"%-U"` is incompatible with parsed input `"foo"`')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						d := Date.parse("12", "%_U")
 						assert! d <<: Date
 						now := Date.now
@@ -2065,7 +2062,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						d := Date.parse("2", "%_U")
 						assert! d <<: Date
 						now := Date.now
@@ -2077,7 +2074,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						d := Date.parse("02", "%_U")
 						assert! d <<: Date
 						now := Date.now
@@ -2089,7 +2086,7 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						d := Date.parse(" 2", "%_U")
 						assert! d <<: Date
 						now := Date.now
@@ -2101,18 +2098,18 @@ describe "Date", ->
 						assert! d.day >= 1
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Date.parse("", "%_U") match FormatError(message: 'date format string `"%_U"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Date.parse("foo", "%_U") match FormatError(message: 'date format string `"%_U"` is incompatible with parsed input `"foo"`')
 					end
 				end
 			end
 
-			context "date", ->
-				should "parse", ->
+			context "date" ->
+				should "parse" ->
 					d := Date.parse("12/20/02", "%D")
 					assert! d <<: Date
 					now := Date.now
@@ -2124,13 +2121,13 @@ describe "Date", ->
 					assert! d.day == 20
 				end
 
-				should "raise format error when incompatible string", ->
+				should "raise format error when incompatible string" ->
 					assert_throws! Date.parse("54-02-1992", "%D") match FormatError(message: "value for date month out of range: 54")
 				end
 			end
 
-			context "iso date", ->
-				should "parse", ->
+			context "iso date" ->
+				should "parse" ->
 					d := Date.parse("2002-10-17", "%F")
 					assert! d <<: Date
 					now := Date.now
@@ -2142,360 +2139,360 @@ describe "Date", ->
 					assert! d.day == 17
 				end
 
-				should "raise format error when incompatible string", ->
+				should "raise format error when incompatible string" ->
 					assert_throws! Date.parse("12-02-1992", "%F") match FormatError(message: "date format string `\"%F\"` is incompatible with parsed input `\"12-02-1992\"`")
 				end
 			end
 		end
 	end
 
-	context "strftime", ->
-		context "full iso year", ->
-			should "build all digits", ->
+	context "strftime" ->
+		context "full iso year" ->
+			should "build all digits" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%G") == "2022"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(8)
 				assert! d.strftime("%G") == "0008"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(8)
 				assert! d.strftime("%-G") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(8)
 				assert! d.strftime("%_G") == "   8"
 			end
 		end
 
-		context "full year", ->
-			should "build all digits", ->
+		context "full year" ->
+			should "build all digits" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%Y") == "2023"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(8)
 				assert! d.strftime("%Y") == "0008"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(8)
 				assert! d.strftime("%-Y") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(8)
 				assert! d.strftime("%_Y") == "   8"
 			end
 		end
 
-		context "century", ->
-			should "build all digits", ->
+		context "century" ->
+			should "build all digits" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%C") == "20"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(800)
 				assert! d.strftime("%C") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(800)
 				assert! d.strftime("%-C") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(800)
 				assert! d.strftime("%_C") == " 8"
 			end
 		end
 
-		context "iso year last two", ->
-			should "build all digits", ->
+		context "iso year last two" ->
+			should "build all digits" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%g") == "22"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(8)
 				assert! d.strftime("%g") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(8)
 				assert! d.strftime("%-g") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(8)
 				assert! d.strftime("%_g") == " 8"
 			end
 		end
 
-		context "year last two", ->
-			should "build one digit with zero padding", ->
+		context "year last two" ->
+			should "build one digit with zero padding" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%y") == "23"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(8)
 				assert! d.strftime("%y") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(8)
 				assert! d.strftime("%-y") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(8)
 				assert! d.strftime("%_y") == " 8"
 			end
 		end
 
-		context "month", ->
-			should "build all digits", ->
+		context "month" ->
+			should "build all digits" ->
 				d := Date(2023, 11, 1)
 				assert! d.strftime("%m") == "11"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 8)
 				assert! d.strftime("%m") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 8)
 				assert! d.strftime("%-m") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 8)
 				assert! d.strftime("%_m") == " 8"
 			end
 		end
 
-		context "month full name", ->
-			should "build november", ->
+		context "month full name" ->
+			should "build november" ->
 				d := Date(2023, 11, 1)
 				assert! d.strftime("%B") == "November"
 			end
 
-			should "build uppercase", ->
+			should "build uppercase" ->
 				d := Date(2023, 3, 1)
 				assert! d.strftime("%^B") == "MARCH"
 			end
 		end
 
-		context "month abbreviated name", ->
-			should "build november", ->
+		context "month abbreviated name" ->
+			should "build november" ->
 				d := Date(2023, 11, 1)
 				assert! d.strftime("%b") == "Nov"
 			end
 
-			should "build uppercase", ->
+			should "build uppercase" ->
 				d := Date(2023, 3, 1)
 				assert! d.strftime("%^b") == "MAR"
 			end
 		end
 
-		context "day", ->
-			should "build all digits", ->
+		context "day" ->
+			should "build all digits" ->
 				d := Date(2023, 11, 15)
 				assert! d.strftime("%d") == "15"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 10, 8)
 				assert! d.strftime("%d") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 10, 8)
 				assert! d.strftime("%-d") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 10, 8)
 				assert! d.strftime("%_d") == " 8"
 			end
 		end
 
-		context "day of year", ->
-			should "build all digits", ->
+		context "day of year" ->
+			should "build all digits" ->
 				d := Date(2023, 11, 15)
 				assert! d.strftime("%j") == "319"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%j") == "008"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%-j") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%_j") == "  8"
 			end
 		end
 
-		context "day of week full name", ->
-			should "build monday", ->
+		context "day of week full name" ->
+			should "build monday" ->
 				d := Date(2025, 11, 24)
 				assert! d.strftime("%A") == "Monday"
 			end
 
-			should "build uppercase", ->
+			should "build uppercase" ->
 				d := Date(2025, 11, 27)
 				assert! d.strftime("%^A") == "THURSDAY"
 			end
 		end
 
-		context "day of week abbreviated name", ->
-			should "build monday", ->
+		context "day of week abbreviated name" ->
+			should "build monday" ->
 				d := Date(2025, 11, 24)
 				assert! d.strftime("%a") == "Mon"
 			end
 
-			should "build uppercase", ->
+			should "build uppercase" ->
 				d := Date(2025, 11, 27)
 				assert! d.strftime("%^a") == "THU"
 			end
 		end
 
-		context "day of week number", ->
-			should "build 7 for sunday", ->
+		context "day of week number" ->
+			should "build 7 for sunday" ->
 				d := Date(2025, 11, 23)
 				assert! d.strftime("%u") == "7"
 			end
 
-			should "build 4 for thursday", ->
+			should "build 4 for thursday" ->
 				d := Date(2025, 11, 27)
 				assert! d.strftime("%u") == "4"
 			end
 		end
 
-		context "day of week number alt", ->
-			should "build 0 for sunday", ->
+		context "day of week number alt" ->
+			should "build 0 for sunday" ->
 				d := Date(2025, 11, 23)
 				assert! d.strftime("%w") == "0"
 			end
 
-			should "build 4 for thursday", ->
+			should "build 4 for thursday" ->
 				d := Date(2025, 11, 27)
 				assert! d.strftime("%w") == "4"
 			end
 		end
 
-		context "iso week", ->
-			should "build for previous year", ->
+		context "iso week" ->
+			should "build for previous year" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%V %G") == "52 2022"
 			end
 
-			should "build all digits", ->
+			should "build all digits" ->
 				d := Date(2023, 11, 15)
 				assert! d.strftime("%V") == "46"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%V") == "02"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%-V") == "2"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%_V") == " 2"
 			end
 		end
 
-		context "year week", ->
-			should "always build for current year", ->
+		context "year week" ->
+			should "always build for current year" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%W %Y") == "00 2023"
 			end
 
-			should "build all digits", ->
+			should "build all digits" ->
 				d := Date(2023, 11, 15)
 				assert! d.strftime("%W") == "46"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%W") == "01"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%-W") == "1"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%_W") == " 1"
 			end
 		end
 
-		context "year week alt", ->
-			should "always build for current year", ->
+		context "year week alt" ->
+			should "always build for current year" ->
 				d := Date(2023, 1, 1)
 				assert! d.strftime("%U %Y") == "01 2023"
 			end
 
-			should "build all digits", ->
+			should "build all digits" ->
 				d := Date(2023, 11, 15)
 				assert! d.strftime("%U") == "46"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%U") == "01"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%-U") == "1"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				d := Date(2025, 1, 8)
 				assert! d.strftime("%_U") == " 1"
 			end
 		end
 
-		context "date", ->
-			should "build", ->
+		context "date" ->
+			should "build" ->
 				d := Date(2023, 2, 3)
 				assert! d.strftime("%D") == "02/03/23"
 			end
 		end
 
-		context "ISO8601 date", ->
-			should "build", ->
+		context "ISO8601 date" ->
+			should "build" ->
 				d := Date(2023, 2, 3)
 				assert! d.strftime("%F") == "2023-02-03"
 			end
 		end
 	end
 
-	context "+", ->
-		should "add a date span", ->
+	context "+" ->
+		should "add a date span" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2504,7 +2501,7 @@ describe "Date", ->
 			assert! d + 1.year == Date(year: 2000, month: 2, day: 20)
 		end
 
-		should "add a time span", ->
+		should "add a time span" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2513,7 +2510,7 @@ describe "Date", ->
 			assert! d + 1.hour == DateTime(year: 1999, month: 2, day: 20, hour: 1)
 		end
 
-		should "add a datetime span", ->
+		should "add a datetime span" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2523,8 +2520,8 @@ describe "Date", ->
 		end
 	end
 
-	context "-", ->
-		should "return a positive Date when other is a datespan", ->
+	context "-" ->
+		should "return a positive Date when other is a datespan" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2533,7 +2530,7 @@ describe "Date", ->
 			assert! d - 1.year == Date(year: 1998, month: 2, day: 20)
 		end
 
-		should "return a positive span when other is a Date", ->
+		should "return a positive span when other is a Date" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2542,7 +2539,7 @@ describe "Date", ->
 			assert! d - Date(year: 1990) == 9.year + 1.months + 19.days
 		end
 
-		should "return a negative datetime span when other is a DateTime", ->
+		should "return a negative datetime span when other is a DateTime" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2552,9 +2549,9 @@ describe "Date", ->
 		end
 	end
 
-	context "diff", ->
-		context "date", ->
-			should "return a positive span", ->
+	context "diff" ->
+		context "date" ->
+			should "return a positive span" ->
 				d := Date(
 					year: 1999,
 					month: 2,
@@ -2563,7 +2560,7 @@ describe "Date", ->
 				assert! d.diff(Date(year: 1990)) == 9.year + 1.months + 19.days
 			end
 
-			should "return a negative span", ->
+			should "return a negative span" ->
 				d := Date(
 					year: 1999,
 					month: 2,
@@ -2573,8 +2570,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime", ->
-			should "return a positive datetime span", ->
+		context "datetime" ->
+			should "return a positive datetime span" ->
 				d := Date(
 					year: 1999,
 					month: 2,
@@ -2583,7 +2580,7 @@ describe "Date", ->
 				assert! d.diff(DateTime(year: 1990)) == DateTime::Span(years: 9, months: 1, days: 19)
 			end
 
-			should "return a negative datetime span", ->
+			should "return a negative datetime span" ->
 				d := Date(
 					year: 1999,
 					month: 2,
@@ -2594,8 +2591,8 @@ describe "Date", ->
 		end
 	end
 
-	context "to_string", ->
-		should "render all components", ->
+	context "to_string" ->
+		should "render all components" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2605,8 +2602,8 @@ describe "Date", ->
 		end
 	end
 
-	context "to_date", ->
-		should "return self", ->
+	context "to_date" ->
+		should "return self" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2616,8 +2613,8 @@ describe "Date", ->
 		end
 	end
 
-	context "to_datetime", ->
-		should "build a datetime with zero time", ->
+	context "to_datetime" ->
+		should "build a datetime with zero time" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2633,8 +2630,8 @@ describe "Date", ->
 		end
 	end
 
-	context "to_date_span", ->
-		should "return an equivalent span", ->
+	context "to_date_span" ->
+		should "return an equivalent span" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2646,8 +2643,8 @@ describe "Date", ->
 		end
 	end
 
-	context "century", ->
-		should "return a positive century", ->
+	context "century" ->
+		should "return a positive century" ->
 			d := Date(
 				year: 1999,
 				month: 2,
@@ -2656,7 +2653,7 @@ describe "Date", ->
 			assert! d.century == 19
 		end
 
-		should "return a negative century", ->
+		should "return a negative century" ->
 			d := Date(
 				year: -209,
 				month: 2,
@@ -2666,8 +2663,8 @@ describe "Date", ->
 		end
 	end
 
-	context "millenium", ->
-		should "return a positive millenium", ->
+	context "millenium" ->
+		should "return a positive millenium" ->
 			d := Date(
 				year: 2013,
 				month: 2,
@@ -2676,7 +2673,7 @@ describe "Date", ->
 			assert! d.millenium == 2
 		end
 
-		should "return a negative millenium", ->
+		should "return a negative millenium" ->
 			d := Date(
 				year: -5010,
 				month: 2,
@@ -2686,8 +2683,8 @@ describe "Date", ->
 		end
 	end
 
-	context "year", ->
-		should "return a year", ->
+	context "year" ->
+		should "return a year" ->
 			d := Date(
 				year: 2013,
 				month: 2,
@@ -2697,8 +2694,8 @@ describe "Date", ->
 		end
 	end
 
-	context "year_last_two", ->
-		should "return the last two digits of year", ->
+	context "year_last_two" ->
+		should "return the last two digits of year" ->
 			d := Date(
 				year: 2013,
 				month: 2,
@@ -2708,8 +2705,8 @@ describe "Date", ->
 		end
 	end
 
-	context "month", ->
-		should "return the month", ->
+	context "month" ->
+		should "return the month" ->
 			d := Date(
 				year: 2013,
 				month: 2,
@@ -2719,8 +2716,8 @@ describe "Date", ->
 		end
 	end
 
-	context "day", ->
-		should "return the day", ->
+	context "day" ->
+		should "return the day" ->
 			d := Date(
 				year: 2013,
 				month: 2,
@@ -2730,8 +2727,8 @@ describe "Date", ->
 		end
 	end
 
-	context "iso_year", ->
-		should "return the previous year", ->
+	context "iso_year" ->
+		should "return the previous year" ->
 			d := Date(
 				year: 2023,
 				month: 1,
@@ -2740,7 +2737,7 @@ describe "Date", ->
 			assert! d.iso_year == 2022
 		end
 
-		should "return the current year", ->
+		should "return the current year" ->
 			d := Date(
 				year: 2026,
 				month: 1,
@@ -2750,8 +2747,8 @@ describe "Date", ->
 		end
 	end
 
-	context "iso_year_last_two", ->
-		should "return the previous year", ->
+	context "iso_year_last_two" ->
+		should "return the previous year" ->
 			d := Date(
 				year: 2023,
 				month: 1,
@@ -2760,7 +2757,7 @@ describe "Date", ->
 			assert! d.iso_year_last_two == 22
 		end
 
-		should "return the current year", ->
+		should "return the current year" ->
 			d := Date(
 				year: 2026,
 				month: 1,
@@ -2770,8 +2767,8 @@ describe "Date", ->
 		end
 	end
 
-	context "week_from_monday", ->
-		should "return 0 for first partial week", ->
+	context "week_from_monday" ->
+		should "return 0 for first partial week" ->
 			d := Date(
 				year: 2025,
 				month: 1,
@@ -2780,7 +2777,7 @@ describe "Date", ->
 			assert! d.week_from_monday == 0
 		end
 
-		should "return a valid calculated week", ->
+		should "return a valid calculated week" ->
 			d := Date(
 				year: 2025,
 				month: 4,
@@ -2790,8 +2787,8 @@ describe "Date", ->
 		end
 	end
 
-	context "week_from_sunday", ->
-		should "return 0 for first partial week", ->
+	context "week_from_sunday" ->
+		should "return 0 for first partial week" ->
 			d := Date(
 				year: 2025,
 				month: 1,
@@ -2800,7 +2797,7 @@ describe "Date", ->
 			assert! d.week_from_sunday == 0
 		end
 
-		should "return a valid calculated week", ->
+		should "return a valid calculated week" ->
 			d := Date(
 				year: 2025,
 				month: 4,
@@ -2810,8 +2807,8 @@ describe "Date", ->
 		end
 	end
 
-	context "iso_week", ->
-		should "return 52 for first week of gregorian year", ->
+	context "iso_week" ->
+		should "return 52 for first week of gregorian year" ->
 			d := Date(
 				year: 2023,
 				month: 1,
@@ -2821,7 +2818,7 @@ describe "Date", ->
 			assert! d.iso_week == 52
 		end
 
-		should "return a valid calculated week", ->
+		should "return a valid calculated week" ->
 			d := Date(
 				year: 2025,
 				month: 4,
@@ -2831,8 +2828,8 @@ describe "Date", ->
 		end
 	end
 
-	context "year_day", ->
-		should "return 1 for first day", ->
+	context "year_day" ->
+		should "return 1 for first day" ->
 			d := Date(
 				year: 2023,
 				month: 1,
@@ -2841,7 +2838,7 @@ describe "Date", ->
 			assert! d.year_day == 1
 		end
 
-		should "return a valid calculated day", ->
+		should "return a valid calculated day" ->
 			d := Date(
 				year: 2025,
 				month: 4,
@@ -2851,8 +2848,8 @@ describe "Date", ->
 		end
 	end
 
-	context "iso_year_day", ->
-		should "return 1 for first day", ->
+	context "iso_year_day" ->
+		should "return 1 for first day" ->
 			d := Date(
 				year: 2023,
 				month: 1,
@@ -2862,7 +2859,7 @@ describe "Date", ->
 			assert! d.iso_year_day == 363
 		end
 
-		should "return a valid calculated day", ->
+		should "return a valid calculated day" ->
 			d := Date(
 				year: 2025,
 				month: 4,
@@ -2873,8 +2870,8 @@ describe "Date", ->
 		end
 	end
 
-	context "weekday_name", ->
-		should "return the weekday name", ->
+	context "weekday_name" ->
+		should "return the weekday name" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2884,8 +2881,8 @@ describe "Date", ->
 		end
 	end
 
-	context "abbreviated_weekday_name", ->
-		should "return the weekday name", ->
+	context "abbreviated_weekday_name" ->
+		should "return the weekday name" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2895,8 +2892,8 @@ describe "Date", ->
 		end
 	end
 
-	context "weekday_from_monday", ->
-		should "return 7 for sunday", ->
+	context "weekday_from_monday" ->
+		should "return 7 for sunday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2905,7 +2902,7 @@ describe "Date", ->
 			assert! d.weekday_from_monday == 7
 		end
 
-		should "return the weekday number", ->
+		should "return the weekday number" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2915,8 +2912,8 @@ describe "Date", ->
 		end
 	end
 
-	context "weekday_from_sunday", ->
-		should "return 0 for sunday", ->
+	context "weekday_from_sunday" ->
+		should "return 0 for sunday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2925,7 +2922,7 @@ describe "Date", ->
 			assert! d.weekday_from_sunday == 0
 		end
 
-		should "return the weekday number", ->
+		should "return the weekday number" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2935,8 +2932,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_monday", ->
-		should "return true for monday", ->
+	context "is_monday" ->
+		should "return true for monday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2945,7 +2942,7 @@ describe "Date", ->
 			assert! d.is_monday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2955,8 +2952,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_tuesday", ->
-		should "return true for tuesday", ->
+	context "is_tuesday" ->
+		should "return true for tuesday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2965,7 +2962,7 @@ describe "Date", ->
 			assert! d.is_tuesday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2975,8 +2972,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_wednesday", ->
-		should "return true for wednesday", ->
+	context "is_wednesday" ->
+		should "return true for wednesday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2985,7 +2982,7 @@ describe "Date", ->
 			assert! d.is_wednesday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -2995,8 +2992,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_thursday", ->
-		should "return true for thursday", ->
+	context "is_thursday" ->
+		should "return true for thursday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3005,7 +3002,7 @@ describe "Date", ->
 			assert! d.is_thursday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3015,8 +3012,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_friday", ->
-		should "return true for friday", ->
+	context "is_friday" ->
+		should "return true for friday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3025,7 +3022,7 @@ describe "Date", ->
 			assert! d.is_friday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3035,8 +3032,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_saturday", ->
-		should "return true for saturday", ->
+	context "is_saturday" ->
+		should "return true for saturday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3045,7 +3042,7 @@ describe "Date", ->
 			assert! d.is_saturday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3055,8 +3052,8 @@ describe "Date", ->
 		end
 	end
 
-	context "is_sunday", ->
-		should "return true for sunday", ->
+	context "is_sunday" ->
+		should "return true for sunday" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3065,7 +3062,7 @@ describe "Date", ->
 			assert! d.is_sunday == true
 		end
 
-		should "return false for other days", ->
+		should "return false for other days" ->
 			d := Date(
 				year: 2025,
 				month: 11,
@@ -3075,9 +3072,9 @@ describe "Date", ->
 		end
 	end
 
-	context "<=>", ->
-		context "date argument", ->
-			should "return 1 for greater", ->
+	context "<=>" ->
+		context "date argument" ->
+			should "return 1 for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3086,7 +3083,7 @@ describe "Date", ->
 				assert! d <=> Date(2025, 10, 15) == 1
 			end
 
-			should "return 0 for equal", ->
+			should "return 0 for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3095,7 +3092,7 @@ describe "Date", ->
 				assert! d <=> Date(2025, 11, 10) == 0
 			end
 
-			should "return -1 for less", ->
+			should "return -1 for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3105,8 +3102,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime argument", ->
-			should "return 1 for greater", ->
+		context "datetime argument" ->
+			should "return 1 for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3115,7 +3112,7 @@ describe "Date", ->
 				assert! d <=> DateTime(2025, 10, 15) == 1
 			end
 
-			should "return 0 for equal", ->
+			should "return 0 for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3124,7 +3121,7 @@ describe "Date", ->
 				assert! d <=> DateTime(2025, 11, 10) == 0
 			end
 
-			should "return -1 for less", ->
+			should "return -1 for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3135,9 +3132,9 @@ describe "Date", ->
 		end
 	end
 
-	context ">=", ->
-		context "date argument", ->
-			should "return true for greater", ->
+	context ">=" ->
+		context "date argument" ->
+			should "return true for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3146,7 +3143,7 @@ describe "Date", ->
 				assert! d >= Date(2025, 10, 15) == true
 			end
 
-			should "return true for equal", ->
+			should "return true for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3155,7 +3152,7 @@ describe "Date", ->
 				assert! d >= Date(2025, 11, 10) == true
 			end
 
-			should "return false for less", ->
+			should "return false for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3165,8 +3162,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime argument", ->
-			should "return true for greater", ->
+		context "datetime argument" ->
+			should "return true for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3175,7 +3172,7 @@ describe "Date", ->
 				assert! d >= DateTime(2025, 10, 15) == true
 			end
 
-			should "return true for equal", ->
+			should "return true for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3184,7 +3181,7 @@ describe "Date", ->
 				assert! d >= DateTime(2025, 11, 10) == true
 			end
 
-			should "return false for less", ->
+			should "return false for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3195,9 +3192,9 @@ describe "Date", ->
 		end
 	end
 
-	context ">", ->
-		context "date argument", ->
-			should "return true for greater", ->
+	context ">" ->
+		context "date argument" ->
+			should "return true for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3206,7 +3203,7 @@ describe "Date", ->
 				assert! d > Date(2025, 10, 15) == true
 			end
 
-			should "return false for equal", ->
+			should "return false for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3215,7 +3212,7 @@ describe "Date", ->
 				assert! d > Date(2025, 11, 10) == false
 			end
 
-			should "return false for less", ->
+			should "return false for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3225,8 +3222,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime argument", ->
-			should "return true for greater", ->
+		context "datetime argument" ->
+			should "return true for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3235,7 +3232,7 @@ describe "Date", ->
 				assert! d > DateTime(2025, 10, 15) == true
 			end
 
-			should "return false for equal", ->
+			should "return false for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3244,7 +3241,7 @@ describe "Date", ->
 				assert! d > DateTime(2025, 11, 10) == false
 			end
 
-			should "return false for less", ->
+			should "return false for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3255,9 +3252,9 @@ describe "Date", ->
 		end
 	end
 
-	context "<=", ->
-		context "date argument", ->
-			should "return false for greater", ->
+	context "<=" ->
+		context "date argument" ->
+			should "return false for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3266,7 +3263,7 @@ describe "Date", ->
 				assert! d <= Date(2025, 10, 15) == false
 			end
 
-			should "return true for equal", ->
+			should "return true for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3275,7 +3272,7 @@ describe "Date", ->
 				assert! d <= Date(2025, 11, 10) == true
 			end
 
-			should "return true for less", ->
+			should "return true for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3285,8 +3282,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime argument", ->
-			should "return false for greater", ->
+		context "datetime argument" ->
+			should "return false for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3295,7 +3292,7 @@ describe "Date", ->
 				assert! d <= DateTime(2025, 10, 15) == false
 			end
 
-			should "return true for equal", ->
+			should "return true for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3304,7 +3301,7 @@ describe "Date", ->
 				assert! d <= DateTime(2025, 11, 10) == true
 			end
 
-			should "return true for less", ->
+			should "return true for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3315,9 +3312,9 @@ describe "Date", ->
 		end
 	end
 
-	context "<", ->
-		context "date argument", ->
-			should "return false for greater", ->
+	context "<" ->
+		context "date argument" ->
+			should "return false for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3326,7 +3323,7 @@ describe "Date", ->
 				assert! d < Date(2025, 10, 15) == false
 			end
 
-			should "return false for equal", ->
+			should "return false for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3335,7 +3332,7 @@ describe "Date", ->
 				assert! d < Date(2025, 11, 10) == false
 			end
 
-			should "return true for less", ->
+			should "return true for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3345,8 +3342,8 @@ describe "Date", ->
 			end
 		end
 
-		context "datetime argument", ->
-			should "return false for greater", ->
+		context "datetime argument" ->
+			should "return false for greater" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3355,7 +3352,7 @@ describe "Date", ->
 				assert! d < DateTime(2025, 10, 15) == false
 			end
 
-			should "return false for equal", ->
+			should "return false for equal" ->
 				d := Date(
 					year: 2025,
 					month: 11,
@@ -3364,7 +3361,7 @@ describe "Date", ->
 				assert! d < DateTime(2025, 11, 10) == false
 			end
 
-			should "return true for less", ->
+			should "return true for less" ->
 				d := Date(
 					year: 2025,
 					month: 11,

@@ -2566,6 +2566,7 @@ func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 
 	val := value.RootModule.Constants().Get(symbol)
 	if val.IsUndefined() {
+		vm.bytecode.DisassembleStdout()
 		return value.Ref(value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String()))
 	}
 

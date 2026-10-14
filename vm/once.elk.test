@@ -1,10 +1,7 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "Once", ->
-	context "singleton", ->
-		context "fn", ->
-			should "call function only once", ->
+describe "Once" ->
+	context "singleton" ->
+		context "fn" ->
+			should "call function only once" ->
 				a := 0
 				fn := Sync::Once.fn ->
 					a++
@@ -21,8 +18,8 @@ describe "Once", ->
 			end
 		end
 
-		context "memo", ->
-			should "return the same calculated value", ->
+		context "memo" ->
+			should "return the same calculated value" ->
 				a := 0
 				fn := Sync::Once.memo() ->
 					a++
@@ -41,7 +38,7 @@ describe "Once", ->
 				assert! a == 1
 			end
 
-			should "throw the same error", ->
+			should "throw the same error" ->
 				a := 0
 				fn := Sync::Once.memo() ->
 					a++
@@ -61,9 +58,9 @@ describe "Once", ->
 
 	end
 
-	context "instance", ->
-		context "call", ->
-			should "call only one closure", ->
+	context "instance" ->
+		context "call" ->
+			should "call only one closure" ->
 				once := Sync::Once()
 				a := 0
 

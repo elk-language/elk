@@ -1,12 +1,11 @@
-using Std::Test::Assertions::*
-using Std::Test::*
+
 using Std::Sync::WaitGroup
 using Std::Sync::WaitGroup::spawn!
 
-describe "Aborter", ->
-	context "singleton", ->
-		context "closed", ->
-			should "create a closed aborter", ->
+describe "Aborter" ->
+	context "singleton" ->
+		context "closed" ->
+			should "create a closed aborter" ->
 				aborter := Aborter.closed
 				assert! aborter.is_closed == true
 				assert! aborter.is_closable == true
@@ -14,8 +13,8 @@ describe "Aborter", ->
 			end
 		end
 
-		context "timeout", ->
-			should "create an aborter that gets closed after 10 milliseconds", ->
+		context "timeout" ->
+			should "create an aborter that gets closed after 10 milliseconds" ->
 				aborter := Aborter.timeout(100.milliseconds)
 				start := Time.now
 
@@ -26,7 +25,7 @@ describe "Aborter", ->
 		end
 	end
 
-	context "instance", ->
+	context "instance" ->
 	end
 
 end

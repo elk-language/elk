@@ -28,13 +28,23 @@ func initToken() {
 		"#init",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			typ := args[1].MustUInt16()
-			loc := (*value.Location)(args[2].Pointer())
-			val := args[3].SafeAsReference().(value.String)
+
+			var val string
+			if args[2].IsNotUndefined() {
+				val = args[2].AsReference().(value.String).String()
+			}
+
+			var loc *position.Location
+			if args[3].IsUndefined() {
+				loc = position.ZeroLocation
+			} else {
+				loc = (*position.Location)(args[3].Pointer())
+			}
 
 			self := token.NewWithValue(
-				(*position.Location)(loc),
+				loc,
 				token.Type(typ),
-				string(val),
+				val,
 			)
 			return value.Ref((*value.Token)(self)), value.Undefined
 		},
@@ -47,6 +57,16 @@ func initToken() {
 			self := (*token.Token)(args[0].Pointer())
 			other := (*token.Token)(args[1].Pointer())
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"=~",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := (*token.Token)(args[0].Pointer())
+			other := (*token.Token)(args[1].Pointer())
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		DefWithParameters(1),
 	)

@@ -1,12 +1,11 @@
-using Std::Test::Assertions::*
-using Std::Test::*
+
 using Std::Sync::WaitGroup
 using Std::Sync::WaitGroup::spawn!
 
-describe "ReadChannel", ->
+describe "ReadChannel" ->
 
-	context "select", ->
-		should "trigger the case for available buffered channel", ->
+	context "select" ->
+		should "trigger the case for available buffered channel" ->
 			ch1 := Channel::[Int](5)
 			rch1 := ch1.readonly
 
@@ -26,7 +25,7 @@ describe "ReadChannel", ->
 			assert! result == 12
 		end
 
-		should "wait and trigger the read case for available channel", ->
+		should "wait and trigger the read case for available channel" ->
 			ch1 := Channel::[Int](5)
 			rch1 := ch1.readonly
 
@@ -58,7 +57,7 @@ describe "ReadChannel", ->
 			assert! result == 6
 		end
 
-		should "trigger default case", ->
+		should "trigger default case" ->
 			ch1 := Channel::[Int](5)
 			rch1 := ch1.readonly
 
@@ -92,7 +91,7 @@ describe "ReadChannel", ->
 			assert! result == -420
 		end
 
-		should "trigger send case when no reader is available", ->
+		should "trigger send case when no reader is available" ->
 			ch1 := Channel::[Int]()
 			rch1 := ch1.readonly
 
@@ -127,34 +126,34 @@ describe "ReadChannel", ->
 
 	end
 
-	context "capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			rch := ch.readonly
 			assert! rch.capacity == 0
 		end
 
-		should "return non-zero for buffered channel", ->
+		should "return non-zero for buffered channel" ->
 			ch := Channel::[Float](10)
 			rch := ch.readonly
 			assert! rch.capacity == 10
 		end
 	end
 
-	context "length", ->
-		should "return 0 for non-buffered channel", ->
+	context "length" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			rch := ch.readonly
 			assert! rch.length == 0
 		end
 
-		should "return zero for buffered channel with no elements", ->
+		should "return zero for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			rch := ch.readonly
 			assert! rch.length == 0
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			rch := ch.readonly
 
@@ -168,21 +167,21 @@ describe "ReadChannel", ->
 		end
 	end
 
-	context "left_capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "left_capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			rch := ch.readonly
 			assert! rch.left_capacity == 0
 		end
 
-		should "return capacity for buffered channel with no elements", ->
+		should "return capacity for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			rch := ch.readonly
 			assert! rch.capacity == 10
 			assert! rch.left_capacity == 10
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			rch := ch.readonly
 
@@ -196,8 +195,8 @@ describe "ReadChannel", ->
 		end
 	end
 
-	context "==", ->
-		should "return true for the same channel object", ->
+	context "==" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			rch := ch.readonly
 
@@ -205,7 +204,7 @@ describe "ReadChannel", ->
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			rch1 := ch1.readonly
 
@@ -217,8 +216,8 @@ describe "ReadChannel", ->
 		end
 	end
 
-	context "=~", ->
-		should "return true for the same channel object", ->
+	context "=~" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			rch := ch.readonly
 
@@ -226,7 +225,7 @@ describe "ReadChannel", ->
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			rch1 := ch1.readonly
 
@@ -238,8 +237,8 @@ describe "ReadChannel", ->
 		end
 	end
 
-	context "pop", ->
-		should "should pop from a buffered channel without blocking", ->
+	context "pop" ->
+		should "should pop from a buffered channel without blocking" ->
 			ch := Channel::[Float](2)
 			rch := ch.readonly
 			ch << 2.5
@@ -248,7 +247,7 @@ describe "ReadChannel", ->
 			assert! result.unwrap == 2.5
 		end
 
-		should "should throw when popping from a closed channel", ->
+		should "should throw when popping from a closed channel" ->
 			ch := Channel::[Float](2)
 			rch := ch.readonly
 
@@ -258,8 +257,8 @@ describe "ReadChannel", ->
 		end
 	end
 
-	context "iter", ->
-		should "should return a read view of channel", ->
+	context "iter" ->
+		should "should return a read view of channel" ->
 			ch := Channel::[Float](3)
 			ch << 5.5
 			ch << 2.25

@@ -12,8 +12,8 @@ module ::Std::Test
 
     Example:
 
-      describe "Calculator", ->
-        test "adds two numbers", ->
+      describe "Calculator" ->
+        test "adds two numbers" ->
           # ...
         end
       end
@@ -26,7 +26,7 @@ module ::Std::Test
 
     Example:
 
-      test "adds two numbers", ->
+      test "adds two numbers" ->
         calc := Calculator()
         assert! calc.add(2, 2) == 4
       end
@@ -37,7 +37,7 @@ module ::Std::Test
     Creates a test case with the given name prefixed with "it".
 
     Example:
-      it "adds two numbers correctly", ->
+      it "adds two numbers correctly" ->
         calc := Calculator()
         assert! calc.add(2, 2) == 4
       end
@@ -49,7 +49,7 @@ module ::Std::Test
 
     Example:
 
-      should "add two numbers correctly", ->
+      should "add two numbers correctly" ->
         calc := Calculator()
         assert! calc.add(2, 2) == 4
       end

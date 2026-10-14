@@ -1,9 +1,58 @@
-using Std::Test::Assertions::*
-using Std::Test::*
+using Std::Elk::AST::*
+using Std::Elk::Token
+using MacroTest::{fib!, rec_fib!}
 
-describe "Macro", ->
-	context "eval_node", ->
-		should "evaluate and return the result", ->
+module MacroTest
+	def divide(x: Int, y: Int): Result[Int, String]
+		if y == 0
+			Result.err("division by zero")
+		else
+			Result.ok(x / y)
+		end
+	end
+
+	macro fib(i: IntLiteralNode)
+		calc_fib := |n: Int|: Int ->
+			return 1 if n < 3
+
+			calc_fib(n - 2) + calc_fib(n - 1)
+		end
+
+		calc_fib(i.to_int).to_ast_node
+	end
+
+	macro rec_fib(i: IntLiteralNode)
+		int := i.to_int
+		return try IntLiteralNode('1') if int < 3
+
+		quote
+			fib!(!{int - 1}) + fib!(!{int - 2})
+		end
+	end
+
+	macro box(name: ConstantNode, typ: TypeExpressionNode)
+		quote
+			class !{name}
+				attr value: !{typ.type_node}
+				init(@value: !{typ.type_node}); end
+			end
+		end
+	end
+
+	// TODO
+	// box!(BoxString, type String?)
+	/*class BoxString
+		macro bang(this: ExpressionNode)
+			quote
+				"#{unquote(this)}!"
+			end
+		end
+	end*/ 
+end
+
+describe "Macro" ->
+	context "eval_node" ->
+		should "evaluate and return the result" ->
 			result := Macro.eval_node(
 				quote
 					"foo".length
@@ -12,7 +61,7 @@ describe "Macro", ->
 			assert! result == 3
 		end
 
-		should "throw a typechecker error", ->
+		should "throw a typechecker error" ->
 			assert_throws!(
 				Macro.eval_node(
 					quote
@@ -22,7 +71,7 @@ describe "Macro", ->
 			)
 		end
 
-		should "throw a runtime error", ->
+		should "throw a runtime error" ->
 			assert_throws!(
 				Macro.eval_node(
 					quote
@@ -33,23 +82,119 @@ describe "Macro", ->
 		end
 	end
 
-	context "compile_if!", ->
-	  context "if", ->
-			should "return then node if truthy condition", ->
+	context "quote" ->
+		should "build without unqoute" ->
+			result := quote
+				1 + 2
+			end
+
+			expected := BinaryExpressionNode(
+				Token(Token::PLUS),
+				IntLiteralNode("1"),
+				IntLiteralNode("2"),
+			)
+			assert! result =~ expected
+		end
+
+		should "build with unquote expression" ->
+			a := 5
+			result := quote
+				1 + unquote(a)
+			end
+
+			expected := BinaryExpressionNode(
+				Token(Token::PLUS),
+				IntLiteralNode("1"),
+				IntLiteralNode("5"),
+			)
+			assert! result =~ expected
+		end
+
+		should "build with several unquote items" ->
+			a := :foo
+			b := 5
+			c := 2.5
+			result := quote
+				unquote_ident(a) := 1 + !{b} - !{c}
+			end
+
+			expected := AssignmentExpressionNode(
+				Token(Token::COLON_EQUAL),
+				PublicIdentifierNode("foo"),
+				BinaryExpressionNode(
+					Token(Token::MINUS),
+					BinaryExpressionNode(
+						Token(Token::PLUS),
+						IntLiteralNode("1"),
+						IntLiteralNode("5"),
+					),
+					FloatLiteralNode("2.5"),
+				),
+			)
+			assert! result =~ expected
+		end
+	end
+
+	context "expansion" ->
+		context "result" ->
+			should "expand ok" ->
+				got :=
+					switch MacroTest.divide(10, 2)
+					case Result::ok!
+						"ok: #value"
+					case Result::err!
+						"err: #err"
+					end
+
+				assert! got == "ok: 5"
+			end
+
+			should "expand err" ->
+				got :=
+					switch MacroTest.divide(10, 0)
+					case Result::ok!
+						"ok: #value"
+					case Result::err!
+						"err: #err"
+					end
+
+				assert! got == 'err: "division by zero"'
+			end
+
+			should "expand compile-time fibonacci" ->
+				got := fib!(10) * 2
+				assert! got == 110
+			end
+
+			should "expand recursive compile-time fibonacci" ->
+				got := rec_fib!(10) * 2
+				assert! got == 110
+			end
+
+			should "expand a scoped macro" ->
+				got := MacroTest::rec_fib!(10) * 2
+				assert! got == 110
+			end
+		end
+	end
+
+	context "compile_if!" ->
+	  context "if" ->
+			should "return then node if truthy condition" ->
 				result := Macro::compile_if!(if DateTime.now.year > 2000
 					"foo"
 				end)
 				assert! result == "foo"
 			end
 
-			should "return nil if falsy condition and no else node", ->
+			should "return nil if falsy condition and no else node" ->
 				result := Macro::compile_if!(if DateTime.now.year < 2000
 					"foo"
 				end)
 				assert! result == nil
 			end
 
-			should "return else node if falsy condition", ->
+			should "return else node if falsy condition" ->
 				result := Macro::compile_if!(if DateTime.now.year < 2000
 					"foo"
 				else
@@ -60,22 +205,22 @@ describe "Macro", ->
 			end
 		end
 
-	  context "unless", ->
-			should "return nil if truthy condition and no else node", ->
+	  context "unless" ->
+			should "return nil if truthy condition and no else node" ->
 				result := Macro::compile_if!(unless DateTime.now.year > 2000
 					"foo"
 				end)
 				assert! result == nil
 			end
 
-			should "return then node if falsy condition", ->
+			should "return then node if falsy condition" ->
 				result := Macro::compile_if!(unless DateTime.now.year < 2000
 					"foo"
 				end)
 				assert! result == "foo"
 			end
 
-			should "return else node if truthy condition", ->
+			should "return else node if truthy condition" ->
 				result := Macro::compile_if!(unless DateTime.now.year > 2000
 					"foo"
 				else
