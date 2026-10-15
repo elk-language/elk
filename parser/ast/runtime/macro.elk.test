@@ -1,6 +1,6 @@
 using Std::Elk::AST::*
 using Std::Elk::Token
-using MacroTest::{fib!, rec_fib!}
+using MacroTest::*
 
 module MacroTest
 	def divide(x: Int, y: Int): Result[Int, String]
@@ -39,15 +39,16 @@ module MacroTest
 		end
 	end
 
-	// TODO
-	// box!(BoxString, type String?)
-	/*class BoxString
+	box!(BoxString, type String?)
+
+	box!(BoxInt, type Int)
+	class BoxInt
 		macro bang(this: ExpressionNode)
 			quote
-				"#{unquote(this)}!"
+				"#{unquote(unhygienic(this)).value}!"
 			end
 		end
-	end*/ 
+	end
 end
 
 describe "Macro" ->
@@ -139,7 +140,7 @@ describe "Macro" ->
 		context "result" ->
 			should "expand ok" ->
 				got :=
-					switch MacroTest.divide(10, 2)
+					switch divide(10, 2)
 					case Result::ok!
 						"ok: #value"
 					case Result::err!
@@ -151,7 +152,7 @@ describe "Macro" ->
 
 			should "expand err" ->
 				got :=
-					switch MacroTest.divide(10, 0)
+					switch divide(10, 0)
 					case Result::ok!
 						"ok: #value"
 					case Result::err!
@@ -174,6 +175,20 @@ describe "Macro" ->
 			should "expand a scoped macro" ->
 				got := MacroTest::rec_fib!(10) * 2
 				assert! got == 110
+			end
+
+			should "expand an instance macro" ->
+				b := BoxInt(5)
+				got := b.bang!
+				assert! got == "5!"
+			end
+
+			should "use an expanded class" ->
+				b := BoxString("foo")
+				assert! b.value == "foo"
+
+				b.value = "bar"
+				assert! b.value == "bar"
 			end
 		end
 	end

@@ -412,11 +412,15 @@ func (c *Checker) setInferClosureThrowType(val bool) {
 }
 
 // Used in the REPL to typecheck and compile the input
-func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compiler, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSource(sourceName string, source string, prepend []ast.StatementNode) (compiler.Compiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
+	if len(prepend) > 0 {
+		ast.Body = append(prepend, ast.Body...)
+	}
+	c.ASTCache.Set(sourceName, ast)
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
@@ -450,8 +454,8 @@ func (c *Checker) CheckSource(sourceName string, source string) (compiler.Compil
 }
 
 // Used in the REPL to typecheck and compile the input to bytecode
-func (c *Checker) CheckSourceBytecode(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	cmp, err := c.CheckSource(sourceName, source)
+func (c *Checker) CheckSourceBytecode(sourceName string, source string, prepend []ast.StatementNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	cmp, err := c.CheckSource(sourceName, source, prepend)
 	if cmp == nil {
 		return nil, err
 	}
@@ -460,9 +464,9 @@ func (c *Checker) CheckSourceBytecode(sourceName string, source string) (*vm.Byt
 }
 
 // Used in the REPL to typecheck and compile the input to Go source code
-func (c *Checker) CheckSourceNative(sourceName string, source string, output io.Writer) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSourceNative(sourceName string, source string, output io.Writer, prepend []ast.StatementNode) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	c.output = output
-	cmp, err := c.CheckSource(sourceName, source)
+	cmp, err := c.CheckSource(sourceName, source, prepend)
 	if cmp == nil {
 		return nil, err
 	}
@@ -502,30 +506,39 @@ func (c *Checker) CheckBreakpointNode(sourceName string, node *ast.ProgramNode) 
 func (c *Checker) setRuntimeGlobalEnv(newEnv *types.GlobalEnvironment) {
 	c.runtimeEnv = newEnv
 	c.selfType = newEnv.StdSubtype(symbol.C_Object)
+	c.resetRuntimeScopes()
+}
+
+func (c *Checker) resetRuntimeScopes() {
 	c.constantScopes = []constantScope{
-		makeConstantScope(newEnv.Std()),
-		makeLocalConstantScope(newEnv.Root),
+		makeConstantScope(c.runtimeEnv.Std()),
+		makeLocalConstantScope(c.runtimeEnv.Root),
 	}
+	c.constantScopesCopyCache = nil
 	c.methodScopes = []methodScope{
-		makeLocalMethodScope(newEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.C_Kernel)),
+		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
 	}
+	c.methodScopesCopyCache = nil
 }
 
 func (c *Checker) setMacroGlobalEnv(newEnv *types.GlobalEnvironment) {
 	c.runtimeEnv = newEnv
 	c.selfType = newEnv.StdSubtype(symbol.C_Macro)
+	c.resetMacroScopes()
+}
 
+func (c *Checker) resetMacroScopes() {
 	c.constantScopes = []constantScope{
-		makeConstantScope(newEnv.Std()),
-		makeLocalConstantScope(newEnv.Root),
-		makeUsingConstantScope(newEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)),
+		makeConstantScope(c.runtimeEnv.Std()),
+		makeLocalConstantScope(c.runtimeEnv.Root),
+		makeUsingConstantScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)),
 	}
 	c.constantScopesCopyCache = nil
 
 	c.methodScopes = []methodScope{
-		makeLocalMethodScope(newEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(newEnv.StdSubtypeModule(symbol.C_Kernel)),
+		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
 	}
 	c.methodScopesCopyCache = nil
 }
@@ -801,6 +814,9 @@ func (c *Checker) setIsHeaderForPath(filePath string) {
 	if path.Ext(filePath) == ".elh" {
 		c.SetHeader(true)
 		c.runtimeEnv.Init = true
+	} else {
+		c.SetHeader(false)
+		c.runtimeEnv.Init = false
 	}
 }
 
@@ -833,6 +849,7 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
 	c.runtimeEnv.Init = false
+	c.resetRuntimeScopes()
 
 	node.State = ast.CHECKED_NAMESPACES
 }
@@ -854,6 +871,7 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 		c.hoistMethodDefinitionsInFile(importPath, importedAst)
 	}
 
+	c.resetRuntimeScopes()
 	prevFilename := c.Filename
 	prevIsHeader := c.IsHeader()
 
@@ -898,6 +916,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		c.runtimeEnv.Init = false
 	}
 
+	c.resetRuntimeScopes()
 	prevFilename := c.Filename
 	c.Filename = filename
 	prevHasDefer := c.hasDefer()
@@ -1191,7 +1210,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 		c.popLocalEnv()
 	}
 }
@@ -1228,7 +1247,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 		c.popLocalEnv()
 	}
 }
@@ -1265,7 +1284,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 		c.popLocalEnv()
 	}
 }
@@ -1301,7 +1320,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 		c.popLocalEnv()
 	}
 }
@@ -1337,7 +1356,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 		c.popLocalEnv()
 	}
 }
@@ -9381,7 +9400,7 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 	fn(node.Body)
 
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 	c.mode = prevMode
 }
 
@@ -9432,7 +9451,7 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 	fn(node.Body)
 
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 	c.mode = prevMode
 }
 
@@ -9479,7 +9498,7 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 	fn(node.Body)
 
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 	c.mode = prevMode
 }
 
@@ -9522,8 +9541,41 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 	fn(node.Body)
 
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 	c.mode = prevMode
+}
+
+func (c *Checker) ExtractTopLevelUsingFromFile(fileName string) ([]*ast.UsingExpressionNode, bool) {
+	node, ok := c.ASTCache.Get(fileName)
+	if !ok {
+		return nil, false
+	}
+
+	result := c.ExtractTopLevelUsing(node)
+	return result, true
+}
+
+func (c *Checker) ExtractTopLevelUsing(node *ast.ProgramNode) []*ast.UsingExpressionNode {
+	var result []*ast.UsingExpressionNode
+	for _, statement := range node.Body {
+		c.extractTopLevelUsingInStatement(statement, &result)
+	}
+
+	return result
+}
+
+func (c *Checker) extractTopLevelUsingInStatement(node ast.StatementNode, buff *[]*ast.UsingExpressionNode) {
+	switch node := node.(type) {
+	case *ast.ExpressionStatementNode:
+		c.extractTopLevelUsingInExpression(node.Expression, buff)
+	}
+}
+
+func (c *Checker) extractTopLevelUsingInExpression(node ast.ExpressionNode, buff *[]*ast.UsingExpressionNode) {
+	switch node := node.(type) {
+	case *ast.UsingExpressionNode:
+		*buff = append(*buff, node)
+	}
 }
 
 func (c *Checker) hoistExtendWhereDeclaration(node *ast.ExtendWhereBlockExpressionNode) {
@@ -9572,7 +9624,7 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 	fn(node.Body)
 
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 	c.mode = prevMode
 }
 
@@ -9597,6 +9649,8 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 			expression := stmt.Expression
 
 			switch expr := expression.(type) {
+			case *ast.UsingExpressionNode:
+				c.checkUsingExpressionForNamespaces(expr)
 			case *ast.StructDeclarationNode:
 				stmt.Expression = c.hoistStructDeclaration(expr)
 			case *ast.MacroBoundaryNode:
@@ -9621,8 +9675,6 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 				c.registerNamedTypeCheck(expr)
 			case *ast.GenericTypeDefinitionNode:
 				c.registerGenericNamedTypeCheck(expr)
-			case *ast.UsingExpressionNode:
-				c.checkUsingExpressionForNamespaces(expr)
 			case *ast.ImplementExpressionNode:
 				c.registerImplementExpressionCheck(expr)
 			case *ast.IncludeExpressionNode:
@@ -9694,7 +9746,9 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 	case *ast.UsingEntryWithSubentriesNode:
 		return c.checkUsingEntryWithSubentriesForNamespace(n)
 	case *ast.ConstantAsNode:
+		usingNamespace := c.getUsingBufferNamespace()
 		n.Constant = c.checkUsingConstantLookupEntryNodeForNamespace(n.Constant, n.AsName)
+		n.SetType(usingNamespace)
 		return n
 	case *ast.ConstantLookupNode:
 		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
@@ -9706,6 +9760,9 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 }
 
 func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntryWithSubentriesNode) ast.UsingEntryNode {
+	usingNamespace := c.getUsingBufferNamespace()
+	node.SetType(usingNamespace)
+
 	for _, subentry := range node.Subentries {
 		switch s := subentry.(type) {
 		case *ast.PublicConstantNode:
@@ -9743,6 +9800,8 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 		newConstantSymbol = symbol.ToSymbol(asName)
 	}
 	usingNamespace := c.getUsingBufferNamespace()
+	node.SetType(usingNamespace)
+
 	switch n := constant.(type) {
 	case *types.SingletonClass:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject)
@@ -9786,7 +9845,6 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 
 	container.DefineConstant(originalConstantSymbol, placeholderConstant)
 	usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, placeholderConstant)
-	node.SetType(usingNamespace)
 
 	return node
 }
@@ -9827,13 +9885,25 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 }
 
 func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.UsingAllEntryNode {
-	parentNamespace, typ, fullName, constName := c.resolveConstantInRoot(node.Namespace)
-	node.Namespace = ast.NewPublicConstantNode(node.Namespace.Location(), fullName)
-	namespace := c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Location())
-	if namespace == nil {
-		return node
+	typ := c.TypeOf(node)
+
+	var namespace types.Namespace
+	if typ == nil {
+		parentNamespace, typ, fullName, constName := c.resolveConstantInRoot(node.Namespace)
+		node.Namespace = ast.NewPublicConstantNode(node.Namespace.Location(), fullName)
+		namespace = c.checkSimpleUsingEntry(typ, constName, fullName, parentNamespace, node.Location())
+		if namespace == nil {
+			node.SetType(types.Untyped{})
+			return node
+		}
+		node.SetType(namespace)
+	} else {
+		var ok bool
+		namespace, ok = typ.(types.Namespace)
+		if !ok {
+			return node
+		}
 	}
-	node.SetType(namespace)
 	c.pushConstScope(makeUsingConstantScope(namespace))
 	singleton := namespace.Singleton()
 	if singleton == nil {

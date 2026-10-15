@@ -33,6 +33,7 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 
 	prevFilename := c.Filename
 	prevIsHeader := c.IsHeader()
+	c.resetRuntimeScopes()
 
 	c.Filename = filename
 	c.setIsHeaderForPath(filename)
@@ -53,22 +54,24 @@ func (c *Checker) checkUsingExpressionForMacros(node *ast.UsingExpressionNode) {
 			if !e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.Receiver,
 				c.identifierToName(e.Name),
 				"",
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.MethodLookupAsNode:
 			if !e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.MethodLookup.Receiver,
 				c.identifierToName(e.MethodLookup.Name),
 				c.identifierToName(e.AsName),
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.UsingEntryWithSubentriesNode:
 			c.checkUsingEntryWithSubentriesForMacros(e)
 		}

@@ -151,16 +151,16 @@ func NewUsingAllEntryNode(loc *position.Location, namespace UsingEntryNode) *Usi
 
 // Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
 type UsingEntryWithSubentriesNode struct {
-	NodeBase
+	TypedNodeBase
 	Namespace  UsingEntryNode
 	Subentries []UsingSubentryNode
 }
 
 func (n *UsingEntryWithSubentriesNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Namespace:  n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
-		Subentries: SpliceSlice(n.Subentries, loc, args, unquote),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Namespace:     n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
+		Subentries:    SpliceSlice(n.Subentries, loc, args, unquote),
 	}
 }
 
@@ -255,9 +255,9 @@ func (*UsingEntryWithSubentriesNode) IsStatic() bool {
 // Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
 func NewUsingEntryWithSubentriesNode(loc *position.Location, namespace UsingEntryNode, subentries []UsingSubentryNode) *UsingEntryWithSubentriesNode {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{loc: loc},
-		Namespace:  namespace,
-		Subentries: subentries,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Namespace:     namespace,
+		Subentries:    subentries,
 	}
 }
 

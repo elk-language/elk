@@ -13,16 +13,16 @@ import (
 // Represents a constant with as in using declarations
 // eg. `Foo::Bar as Bar`.
 type ConstantAsNode struct {
-	NodeBase
+	TypedNodeBase
 	Constant ComplexConstantNode
 	AsName   string
 }
 
 func (n *ConstantAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ConstantAsNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Constant: n.Constant.splice(loc, args, unquote).(ComplexConstantNode),
-		AsName:   n.AsName,
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Constant:      n.Constant.splice(loc, args, unquote).(ComplexConstantNode),
+		AsName:        n.AsName,
 	}
 }
 
@@ -116,8 +116,8 @@ func (n *ConstantAsNode) Error() string {
 // Create a new identifier with as eg. `Foo::Bar as Bar`.
 func NewConstantAsNode(loc *position.Location, constant ComplexConstantNode, as string) *ConstantAsNode {
 	return &ConstantAsNode{
-		NodeBase: NodeBase{loc: loc},
-		Constant: constant,
-		AsName:   as,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Constant:      constant,
+		AsName:        as,
 	}
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/types/checker"
@@ -37,6 +38,7 @@ type evaluator struct {
 	inputIndex     int
 	elkTypechecker *checker.Checker
 	goTypechecker  *types.GoTypechecker
+	prepend        []ast.StatementNode
 }
 
 func (e *evaluator) sourceName() string {
@@ -56,6 +58,40 @@ func (e *evaluator) addSource(input string) string {
 	return sourceName
 }
 
+func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
+	if len(e.prepend) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(e.prepend))
+
+	for i, statement := range e.prepend {
+		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
+	}
+
+	return result
+}
+
+func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
+	if len(using) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(using))
+
+	for i, usingElement := range using {
+		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
+		copy.SetType(nil)
+
+		result[i] = ast.NewExpressionStatementNode(
+			copy.Location(),
+			copy,
+		)
+	}
+
+	return result
+}
+
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
@@ -70,7 +106,9 @@ func (e *evaluator) evaluate(input string) {
 	spinner := NewSpinner(os.Stdout, "compiling")
 	spinner.RunWithRestore(
 		func(cd SpinnerCaptureData) error {
-			fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
+			fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.deepCopyPrepend())
+			using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+			e.prepend = e.usingToPrepend(using)
 
 			if dl != nil {
 				fmt.Println()
@@ -183,7 +221,9 @@ func (e *evaluator) disassemble(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
+	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
@@ -294,7 +334,9 @@ func (e *evaluator) typecheck(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	for _, ast := range e.elkTypechecker.ASTCache.Map {
 		if ast.IsBuiltin {
@@ -331,7 +373,9 @@ func (e *evaluator) expand(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()

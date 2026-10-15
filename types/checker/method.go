@@ -125,6 +125,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
+		case *ast.UsingExpressionNode:
+			c.checkUsingExpressionForMethods(expr)
 		case *ast.MacroBoundaryNode:
 			c.hoistMethodDefinitions(expr.Body)
 		case *ast.ConstantDeclarationNode:
@@ -147,8 +149,6 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistSetterDeclaration(expr)
 		case *ast.AttrDeclarationNode:
 			c.hoistAttrDeclaration(expr)
-		case *ast.UsingExpressionNode:
-			c.checkUsingExpressionForMethods(expr)
 		case *ast.ModuleDeclarationNode:
 			c.hoistMethodDefinitionsWithinModule(expr)
 		case *ast.ClassDeclarationNode:
@@ -226,7 +226,7 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	namespace.SetMethod(newName, alias)
 }
 
-func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) {
+func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) types.Namespace {
 	_, constant, fullConstantName, _ := c.resolveConstantInRoot(receiverNode)
 	var namespace types.Namespace
 
@@ -240,7 +240,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 			fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(fullConstantName)),
 			receiverNode.Location(),
 		)
-		return
+		return nil
 	}
 
 	originalMethodSymbol := symbol.ToSymbol(methodName)
@@ -256,7 +256,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 	method := namespace.MethodString(methodName)
 	if method != nil {
 		usingNamespace.SetMethod(newMethodSymbol, method)
-		return
+		return usingNamespace
 	}
 
 	placeholder := types.NewMethodPlaceholder(
@@ -268,6 +268,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 	c.registerMethodPlaceholder(placeholder)
 	namespace.SetMethod(originalMethodSymbol, placeholder)
 	usingNamespace.SetMethod(newMethodSymbol, placeholder)
+	return usingNamespace
 }
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
@@ -283,6 +284,10 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 
 func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLocation bool) {
 	typ := c.TypeOf(entry)
+	c.resolveUsingNamespace(typ, entry.Location(), pushPlaceholderLocation)
+}
+
+func (c *Checker) resolveUsingNamespace(typ types.Type, loc *position.Location, pushPlaceholderLocation bool) {
 	switch t := typ.(type) {
 	case *types.Module:
 		c.pushConstScope(makeUsingConstantScope(t))
@@ -297,10 +302,14 @@ func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLoc
 		c.pushConstScope(makeUsingConstantScope(t))
 		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.NamespacePlaceholder:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
-		if pushPlaceholderLocation {
-			t.Locations.Push(entry.Location())
+		if t.IsResolved() {
+			c.resolveUsingNamespace(t.Namespace, loc, pushPlaceholderLocation)
+		} else {
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
+			if pushPlaceholderLocation {
+				t.Locations.Push(loc)
+			}
 		}
 	case *types.UsingBufferNamespace:
 		if c.enclosingScopeIsAUsingBuffer() {
@@ -329,7 +338,7 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	if ok {
 		c.registerNamespaceWithIvars(class, node.Location())
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -380,7 +389,7 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 	if ok {
 		c.registerNamespaceWithIvars(module, node.Location())
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -401,7 +410,7 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -422,7 +431,7 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -446,7 +455,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 
 	c.registerNamespaceWithIvars(singleton, expr.Location())
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
@@ -463,7 +472,7 @@ func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereB
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -475,22 +484,24 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 			if e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.Receiver,
 				c.identifierToName(e.Name),
 				"",
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.MethodLookupAsNode:
 			if e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.MethodLookup.Receiver,
 				c.identifierToName(e.MethodLookup.Name),
 				c.identifierToName(e.AsName),
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.UsingEntryWithSubentriesNode:
 			c.checkUsingEntryWithSubentriesForMethods(e)
 		}
@@ -498,6 +509,11 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 }
 
 func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWithSubentriesNode) {
+	if !node.SkipTypechecking() {
+		usingNamespace := c.getUsingBufferNamespace()
+		node.SetType(usingNamespace)
+	}
+
 	for _, subentry := range node.Subentries {
 		switch s := subentry.(type) {
 		case *ast.PublicIdentifierNode:

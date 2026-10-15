@@ -264,7 +264,7 @@ func (n *MethodLookupNode) Error() string {
 // Represents a method lookup with as in using declarations
 // eg. `Foo::bar as baz`.
 type MethodLookupAsNode struct {
-	NodeBase
+	TypedNodeBase
 	MethodLookup *MethodLookupNode
 	AsName       IdentifierNode
 }
@@ -276,9 +276,9 @@ func (n *MethodLookupAsNode) IsMacro() bool {
 
 func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		MethodLookup: n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
-		AsName:       n.AsName.splice(loc, args, unquote).(IdentifierNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		MethodLookup:  n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
+		AsName:        n.AsName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -345,9 +345,9 @@ func (*MethodLookupAsNode) IsStatic() bool {
 // Create a new identifier with as eg. `Foo::bar as Bar`.
 func NewMethodLookupAsNode(loc *position.Location, methodLookup *MethodLookupNode, as IdentifierNode) *MethodLookupAsNode {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{loc: loc},
-		MethodLookup: methodLookup,
-		AsName:       as,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		MethodLookup:  methodLookup,
+		AsName:        as,
 	}
 }
 
