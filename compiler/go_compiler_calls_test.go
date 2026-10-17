@@ -12115,10 +12115,14 @@ func main() { // loc: <main>
 	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(1)
 	l0 = value.SmallInt(0)
 	for {
-		if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(3)))) {
-			break
+		{
+			l0 := l0
+
+			if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(3)))) {
+				break
+			}
+			t1.Append((l0).ToValue())
 		}
-		t1.Append((l0).ToValue())
 		l0++
 	}
 	_, err = fn_method0(thread, (const0).ToValue(), (t1).ToValue()) // receiver: Foo, name: foo
@@ -12223,8 +12227,6 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var l1 value.Value // var #e: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -12238,6 +12240,9 @@ func main() { // loc: <main>
 	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())
 	t1 = value.NewArrayTupleOfValueWithElementsAndTotalCapacity(3, (value.SmallInt(5)).ToValue())
 	for t2, err = range vm.Iterate(thread, (l0).ToValue()) {
+		var l1 value.Value // var #e: Std::Int
+		_ = l1
+
 		l1 = t2
 		t1.Append(l1)
 	}
@@ -12582,10 +12587,6 @@ func main() { // loc: <main>
 	_ = t6
 	var t7 value.Bool
 	_ = t7
-	var l1 value.Value // var #key: void
-	_ = l1
-	var l2 value.Value // var #val: void
-	_ = l2
 	var self value.Value
 	_ = self
 
@@ -12636,6 +12637,11 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	for t6, err = range vm.Iterate(thread, (l0).ToValue()) {
+		var l1 value.Value // var #key: void
+		_ = l1
+		var l2 value.Value // var #val: void
+		_ = l2
+
 		t7 = value.True
 		if !(value.Bool(value.IsA(t6, value.PairClass))) {
 			t7 = value.False
@@ -12782,10 +12788,6 @@ func main() { // loc: <main>
 	_ = t3
 	var t4 []value.Value
 	_ = t4
-	var l1 value.Value // var #key: void
-	_ = l1
-	var l2 value.Value // var #val: void
-	_ = l2
 	var self value.Value
 	_ = self
 
@@ -12807,6 +12809,11 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	for t2, err = range vm.Iterate(thread, (l0).ToValue()) {
+		var l1 value.Value // var #key: void
+		_ = l1
+		var l2 value.Value // var #val: void
+		_ = l2
+
 		t3 = value.True
 		if !(value.Bool(value.IsA(t2, value.PairClass))) {
 			t3 = value.False

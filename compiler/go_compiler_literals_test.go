@@ -3981,8 +3981,6 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Float
-	_ = l0
 	var self value.Value
 	_ = self
 
@@ -3991,6 +3989,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	t1 = value.NewNativeArrayTupleWithElementsAndTotalCapacity[value.Float](2, value.Float(1.8))
 	for t2, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.Float](0, value.Float(1), value.Float(2), value.Float(3))).ToValue()) {
+		var l0 value.Value // var i: Std::Float
+		_ = l0
+
 		l0 = t2
 		t1.Append(((l0).AsFloat()).MultiplyFloat(value.Float(2)))
 	}
@@ -6273,8 +6274,6 @@ func main() { // loc: <main>
 	_ = t2
 	var err value.Value
 	_ = err
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -6283,6 +6282,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	t1 = value.NewArrayListOfValueWithElementsAndTotalCapacity(3+0, (value.SmallInt(1)).ToValue())
 	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l1 = t2
 		t1.Append(value.MultiplyInts(l1, (value.SmallInt(2)).ToValue()))
 	}
@@ -7704,8 +7706,6 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -7719,6 +7719,9 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l1 = t2
 		_, err = t1.AppendVal(thread, value.MultiplyInts(l1, (value.SmallInt(2)).ToValue()))
 		if err.IsNotUndefined() {
@@ -8129,8 +8132,6 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var self value.Value
 	_ = self
 
@@ -8143,6 +8144,9 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t2
 		err = t1.SetVal(thread, l0, value.ExponentiateInts(l0, (value.SmallInt(2)).ToValue()))
 		if err.IsNotUndefined() {
@@ -9219,8 +9223,6 @@ func main() { // loc: <main>
 	_ = err
 	var t2 value.Value
 	_ = t2
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var self value.Value
 	_ = self
 
@@ -9233,6 +9235,9 @@ func main() { // loc: <main>
 		thread.Panic(err)
 	}
 	for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t2
 		err = t1.SetVal(thread, l0, value.ExponentiateInts(l0, (value.SmallInt(2)).ToValue()))
 		if err.IsNotUndefined() {

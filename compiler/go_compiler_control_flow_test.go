@@ -959,17 +959,21 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(0)
 	for {
-		if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(20)))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = (l0).ToValue()
-		callFrame.SetNativeLineNumber(3)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l0 := l0
+
+			if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(20)))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = (l0).ToValue()
+			callFrame.SetNativeLineNumber(3)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l0++
 	}
@@ -1041,17 +1045,21 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(20)).ToValue()
 	l1 = value.SmallInt(0).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, l0))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l1
-		callFrame.SetNativeLineNumber(4)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, l0))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l1
+			callFrame.SetNativeLineNumber(4)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l1 = value.IncrementInt(l1)
 	}
@@ -1119,17 +1127,21 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanEqualInts(l0, (value.SmallInt(20)).ToValue()))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l0
-		callFrame.SetNativeLineNumber(3)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l0 := l0
+
+			if !(value.Bool(value.LessThanEqualInts(l0, (value.SmallInt(20)).ToValue()))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l0
+			callFrame.SetNativeLineNumber(3)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l0 = value.IncrementInt(l0)
 	}
@@ -1162,10 +1174,10 @@ func init() { elk.InitNative() }
 var sym0 = value.ToSymbol("main")   // main
 var sym1 = value.ToSymbol("<main>") // <main>
 var range0 = value.NewClosedRange((value.SmallInt(5)).ToValue(), (value.SmallInt(20)).ToValue())
-var sym2 = value.ToSymbol("end")       // end
-var fn_method0 vm.NativeFunction       // Std::ClosedRange.:end
-var sym3 = value.ToSymbol("start")     // start
-var fn_method1 vm.NativeFunction       // Std::ClosedRange.:start
+var sym2 = value.ToSymbol("start")     // start
+var fn_method0 vm.NativeFunction       // Std::ClosedRange.:start
+var sym3 = value.ToSymbol("end")       // end
+var fn_method1 vm.NativeFunction       // Std::ClosedRange.:end
 var sym4 = value.ToSymbol("println@1") // println@1
 var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
 
@@ -1187,14 +1199,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ClosedRange // var r: Std::ClosedRange[Std::Int]
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t1 value.Value
 	_ = t1
 	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
+	var l1 value.Value // var i: Std::Int
+	_ = l1
 	var t3 value.Value
 	_ = t3
 	var self value.Value
@@ -1211,31 +1223,35 @@ func main() { // loc: <main>
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (l0).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: end
+	t1, err = fn_method0(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: start
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t2 = value.ResizeNativeArgs(t2, 2)
-	t2[0] = (l0).ToValue()
-	t3, err = fn_method1(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: start
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	l1 = t3
+	l1 = t1
 	for {
-		if !(value.Bool(value.LessThanEqualInts(l1, t1))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l1
-		callFrame.SetNativeLineNumber(4)
-		t3, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l1 := l1
+
+			t2 = value.ResizeNativeArgs(t2, 2)
+			t2[0] = (l0).ToValue()
+			t1, err = fn_method1(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: end
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+			if !(value.Bool(value.LessThanEqualInts(l1, t1))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l1
+			callFrame.SetNativeLineNumber(4)
+			t3, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l1 = value.IncrementInt(l1)
 	}
@@ -1289,8 +1305,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1302,6 +1316,9 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1375,12 +1392,8 @@ func main() { // loc: <main>
 	_ = t3
 	var t4 value.SmallInt
 	_ = t4
-	var l0 value.Value // var a: Std::Int
-	_ = l0
 	var t5 value.Value
 	_ = t5
-	var l1 value.Value // var b: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -1391,6 +1404,11 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (arrtuple3).ToValue()) {
+		var l0 value.Value // var a: Std::Int
+		_ = l0
+		var l1 value.Value // var b: Std::Int
+		_ = l1
+
 		t2 = value.True
 		if !(value.Bool(value.IsA(t1, value.TupleMixin))) {
 			t2 = value.False
@@ -1487,8 +1505,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1501,6 +1517,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1569,8 +1588,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1583,6 +1600,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1653,8 +1673,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1668,6 +1686,9 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(5)).ToValue()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l1 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1736,8 +1757,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1750,6 +1769,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1817,8 +1839,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1831,6 +1851,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
 			continue loop0
@@ -1896,8 +1919,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1910,6 +1931,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
 			continue loop0
@@ -1977,12 +2001,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -1994,10 +2014,16 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 	loop1:
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				t1 = value.Nil
@@ -2067,12 +2093,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -2085,9 +2107,15 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				break loop0
@@ -2156,12 +2184,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -2173,10 +2197,16 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 	loop1:
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				t1 = value.Nil
@@ -2246,12 +2276,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -2264,9 +2290,15 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				continue loop0
@@ -2896,8 +2928,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -2909,6 +2939,9 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -2977,12 +3010,8 @@ func main() { // loc: <main>
 	_ = t3
 	var t4 value.SmallInt
 	_ = t4
-	var l0 value.Value // var a: Std::Int
-	_ = l0
 	var t5 value.Value
 	_ = t5
-	var l1 value.Value // var b: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -2993,6 +3022,11 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (arrtuple3).ToValue()) {
+		var l0 value.Value // var a: Std::Int
+		_ = l0
+		var l1 value.Value // var b: Std::Int
+		_ = l1
+
 		t2 = value.True
 		if !(value.Bool(value.IsA(t1, value.TupleMixin))) {
 			t2 = value.False
@@ -4775,6 +4809,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -4831,6 +4866,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -4891,6 +4927,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		continue loop0
 	}
@@ -4955,6 +4992,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		continue loop0
 	}
@@ -5014,8 +5052,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -5025,10 +5061,14 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				continue loop1
 			}
@@ -5095,8 +5135,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -5106,9 +5144,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				continue loop0
 			}
@@ -5179,8 +5221,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var self value.Value
 	_ = self
 
@@ -5190,9 +5230,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				continue loop0
@@ -5264,6 +5308,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -5326,6 +5371,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -5384,8 +5430,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -5395,10 +5439,14 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break loop1
 			}
@@ -5461,8 +5509,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -5472,9 +5518,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break loop0
 			}
@@ -5545,8 +5595,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var self value.Value
 	_ = self
 
@@ -5557,9 +5605,13 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -5636,6 +5688,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -6549,6 +6602,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -6600,6 +6654,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -6656,6 +6711,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -6717,6 +6773,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -6776,6 +6833,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			break loop0
@@ -6843,6 +6901,7 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			t1 = value.Nil
@@ -6907,6 +6966,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			break loop0
@@ -6968,12 +7028,19 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				goto cnt1
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						goto cnt1
+					}
+				cnt1:
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-		cnt1:
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -7032,13 +7099,20 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				goto cnt0
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						goto cnt0
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		cnt0:
 		}
-	cnt0:
 	}
 }
 `,
@@ -7096,12 +7170,19 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-	loop1:
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				break loop1
+		{
+			l0 := l0
+
+		loop1:
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						break loop1
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -7161,11 +7242,18 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				break loop0
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						break loop0
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -7225,9 +7313,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
-		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-			break loop0
+		{
+			l0 := l0
+
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+				break loop0
+			}
 		}
 	}
 }
@@ -7284,7 +7376,11 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		{
+			l0 := l0
+
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		}
 	}
 }
 `,
@@ -7340,10 +7436,14 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l0 := l0
+
+			if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
 `,
@@ -7404,11 +7504,15 @@ func main() { // loc: <main>
 	t1 = value.Nil
 	l1 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			t1 = l1
 		}
-		l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
-		t1 = l1
 	}
 	l0 = t1
 }
@@ -7469,10 +7573,14 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 	l1 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, l1)
 		}
-		l0 = value.AddInts(l0, l1)
 		l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -7538,11 +7646,15 @@ func main() { // loc: <main>
 	t1 = value.Nil
 	l2 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l2 := l2
+
+			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, l2)
+			t1 = l0
 		}
-		l0 = value.AddInts(l0, l2)
-		t1 = l0
 		l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
 	}
 	l1 = t1
@@ -7610,6 +7722,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
@@ -7670,6 +7783,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
@@ -7732,6 +7846,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -7802,6 +7917,7 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -7869,6 +7985,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -7939,6 +8056,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -8001,8 +8119,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -8011,9 +8127,13 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				goto cnt1
 			}
@@ -8079,8 +8199,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -8089,9 +8207,13 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				goto cnt0
 			}
@@ -8157,8 +8279,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -8167,10 +8287,14 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop1
 			}
@@ -8235,8 +8359,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -8246,9 +8368,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop0
 			}
@@ -8318,8 +8444,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -8332,10 +8456,14 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -8411,6 +8539,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -8486,6 +8615,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	t1 = value.False
 	for {
+
 		if t1 {
 			break
 		}
@@ -8569,6 +8699,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8634,6 +8765,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8698,6 +8830,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -8768,6 +8901,7 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -8835,6 +8969,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -8900,6 +9035,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -8969,6 +9105,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -9032,8 +9169,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -9042,6 +9177,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -9049,6 +9187,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9110,8 +9249,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -9121,12 +9258,16 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9193,8 +9334,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -9207,6 +9346,9 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -9214,6 +9356,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9279,8 +9422,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -9289,6 +9430,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -9296,6 +9440,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9358,8 +9503,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -9369,12 +9512,16 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9441,8 +9588,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -9455,6 +9600,9 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -9462,6 +9610,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -9528,6 +9677,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -9591,6 +9741,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -9722,6 +9873,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
@@ -9785,6 +9937,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		t1 = l0
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
@@ -9847,6 +10000,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
@@ -9909,6 +10063,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -9979,6 +10134,7 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -10046,6 +10202,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -10115,6 +10272,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -10177,8 +10335,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -10187,9 +10343,13 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				goto cnt1
 			}
@@ -10255,8 +10415,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -10265,9 +10423,13 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				goto cnt0
 			}
@@ -10338,8 +10500,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -10351,10 +10511,14 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				goto cnt0
@@ -10424,8 +10588,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -10434,10 +10596,14 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop1
 			}
@@ -10502,8 +10668,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -10513,9 +10677,13 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop0
 			}
@@ -10585,8 +10753,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -10599,10 +10765,14 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -10678,6 +10848,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -10753,6 +10924,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	t1 = value.False
 	for {
+
 		if t1 {
 			break
 		}
@@ -10836,6 +11008,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -10898,6 +11071,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -10968,6 +11142,7 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -11035,6 +11210,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -11100,6 +11276,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -11169,6 +11346,7 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -11231,8 +11409,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -11241,6 +11417,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -11248,6 +11427,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -11309,8 +11489,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -11320,12 +11498,16 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -11387,8 +11569,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -11397,6 +11577,9 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -11404,6 +11587,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -11465,8 +11649,6 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
@@ -11476,12 +11658,16 @@ func main() { // loc: <main>
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -11548,8 +11734,6 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
@@ -11562,6 +11746,9 @@ func main() { // loc: <main>
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -11569,6 +11756,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -11635,6 +11823,7 @@ func main() { // loc: <main>
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -11698,6 +11887,7 @@ func main() { // loc: <main>
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -12339,6 +12529,7 @@ func main() { // loc: <main>
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}
@@ -12491,6 +12682,7 @@ func main() { // loc: <main>
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}
@@ -12633,6 +12825,7 @@ func main() { // loc: <main>
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}

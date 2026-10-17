@@ -303,6 +303,11 @@ type goLocalTable = ds.OrderedMap[string, *goLocal]
 
 type goScopes []*goLocalTable
 
+// Get the first local variable scope.
+func (s goScopes) first() *goLocalTable {
+	return s[0]
+}
+
 // Get the last local variable scope.
 func (s goScopes) last() *goLocalTable {
 	return s[len(s)-1]
@@ -588,7 +593,7 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func initGlobalEnv() () {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
 
@@ -616,7 +621,7 @@ func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int)
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func methodDefinitions() {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
 }
@@ -641,7 +646,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.Thread) {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
 
@@ -1084,7 +1089,18 @@ func (c *GoCompiler) registerGoLocal(name string, goType *value.GoType) *goLocal
 }
 
 func (c *GoCompiler) registerGoLocalWithComment(name string, goType *value.GoType, comment string) *goLocal {
-	scope := c.goScopes.last()
+	return c.registerGoLocalWithScope(c.goScopes.first(), name, goType, comment)
+}
+
+func (c *GoCompiler) registerCurrentGoLocal(name string, goType *value.GoType) *goLocal {
+	return c.registerCurrentGoLocalWithComment(name, goType, "")
+}
+
+func (c *GoCompiler) registerCurrentGoLocalWithComment(name string, goType *value.GoType, comment string) *goLocal {
+	return c.registerGoLocalWithScope(c.goScopes.last(), name, goType, comment)
+}
+
+func (c *GoCompiler) registerGoLocalWithScope(scope *goLocalTable, name string, goType *value.GoType, comment string) *goLocal {
 	if local, exists := scope.GetOk(name); exists {
 		return local
 	}
@@ -1218,7 +1234,7 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	c.emitReturn(c.methodReturnValue(returnVal))
 
 	fmt.Fprintf(&funcBuffer, ") (result %s, err value.Value) { // method: %s, loc: %s\n", goReturnType, types.Inspect(c.method), loc.String())
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.callFrameStartOffset += funcBuffer.Len()
 	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
@@ -1813,7 +1829,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 
 	c.registerGoImport("github.com/elk-language/elk/position", "")
 
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 
 	c.callFrameStartOffset += funcBuffer.Len()
 	c.callFrameEndOffset += funcBuffer.Len()
@@ -1868,7 +1884,7 @@ func (c *GoCompiler) compileDeferExpressionBody(body ast.ExpressionNode, result 
 
 	c.emitReturn("")
 
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 
 	var scopeBuffer bytes.Buffer
@@ -2760,7 +2776,7 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}
 	c.registerGoLocal("self", goValueType)
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GlobalObject)\n")
 	c.emitPrependBytes(funcBuffer.Bytes())
 
@@ -2791,7 +2807,38 @@ func (c *GoCompiler) compileClosedUpvaluesTo(buff io.Writer) {
 	buff.Write([]byte("\n"))
 }
 
-func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
+func (c *GoCompiler) withGoScope(fn func()) {
+	c.enterGoScope()
+	defer c.leaveGoScope()
+
+	prevBuff := c.switchNewBuffer()
+	fn()
+
+	newBuff := c.switchBuffer(prevBuff)
+	c.compileCurrentLocals()
+	c.emitBytes(newBuff.Bytes())
+}
+
+func (c *GoCompiler) compileCurrentLocalsTo(buff io.Writer) {
+	for _, local := range c.goScopes.last().All() {
+		if local.predefined {
+			continue
+		}
+
+		fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
+		if local.comment != "" {
+			fmt.Fprintf(buff, " // %s", local.comment)
+		}
+		fmt.Fprintf(buff, "\n_ = %s\n", local.name)
+	}
+	buff.Write([]byte("\n"))
+}
+
+func (c *GoCompiler) compileCurrentLocals() {
+	c.compileCurrentLocalsTo(c.buff)
+}
+
+func (c *GoCompiler) compileAllLocalsTo(buff io.Writer) {
 	for _, scope := range c.goScopes {
 		for _, local := range scope.All() {
 			if local.predefined {
@@ -2808,8 +2855,8 @@ func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 	buff.Write([]byte("\n"))
 }
 
-func (c *GoCompiler) compileLocals() {
-	c.compileLocalsTo(c.buff)
+func (c *GoCompiler) compileAllLocals() {
+	c.compileAllLocalsTo(c.buff)
 }
 
 // Entry point to the compilation process
@@ -3959,22 +4006,24 @@ func (c *GoCompiler) compileForIn(
 	prevBuff := c.switchNewBuffer()
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
 
-	patternResult := c.compilePattern(param, loopTmpVal)
-	loopTmpVal.markFree()
+	c.withGoScope(func() {
+		patternResult := c.compilePattern(param, loopTmpVal)
+		loopTmpVal.markFree()
 
-	if patternResult.value != "value.True" {
-		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-		errVal := newGoValue(
-			"value.NewPatternNotMatchedInForInLoopError()",
-			c.checker.Std(symbol.C_Error),
-			value.FetchGoType("*value.Object"),
-		)
-		c.emitThrow(errVal)
-		c.emit("}\n")
-	}
+		if patternResult.value != "value.True" {
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+			errVal := newGoValue(
+				"value.NewPatternNotMatchedInForInLoopError()",
+				c.checker.Std(symbol.C_Error),
+				value.FetchGoType("*value.Object"),
+			)
+			c.emitThrow(errVal)
+			c.emit("}\n")
+		}
 
-	// loop body
-	then()
+		// loop body
+		then()
+	})
 
 	c.emit("}\n")
 
@@ -4032,8 +4081,8 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 	}
 
 	startType := c.typeOf(inRange.Start)
-	paramLocal := c.defineLocal(paramName, startType, c.elkTypeToGoType(startType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
 
 	var op token.Type
 	switch inRange.Op.Type {
@@ -4050,6 +4099,8 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 	}
 
 	init := func() {
+		paramLocal = c.defineLocal(paramName, startType, c.elkTypeToGoType(startType, false), paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 		var initVal *goValue
 
 		switch inRange.Op.Type {
@@ -4143,16 +4194,22 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 	}
 
 	elementType := rangeType.TypeArguments.Get(0).Type
-	paramLocal := c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
-	_, rangeVal := c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
-	defer rangeVal.markFree()
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
+	var rangeVal *goValue
+	defer func() {
+		if rangeVal != nil {
+			rangeVal.markFree()
+		}
+	}()
 
 	init := func() {
-		var initVal *goValue
+		paramLocal = c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+		_, rangeVal = c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
 
 		startSymbol := c.emitSymbol("start")
-		initVal = c.compileMethodCallWithLiteralArgValuesAndName(
+		initVal := c.compileMethodCallWithLiteralArgValuesAndName(
 			rangeType,
 			elementType,
 			startSymbol,
@@ -4190,25 +4247,30 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 		)
 	}
 
-	endSymbol := c.emitSymbol("end")
-	_, endVal := c.wrapValueInTmpGoLocal(
-		c.compileMethodCallWithLiteralArgValuesAndName(
-			rangeType,
-			elementType,
-			endSymbol,
-			"end",
-			[]*goValue{
-				rangeVal,
-			},
-			loc,
-			false,
-		),
-	)
-	defer endVal.markFree()
+	var endVal *goValue
+	defer func() {
+		if endVal != nil {
+			endVal.markFree()
+		}
+	}()
 
 	var cond func() *goValue
 	if cmpOp != token.ZERO_VALUE {
 		cond = func() *goValue {
+			endSymbol := c.emitSymbol("end")
+			_, endVal := c.wrapValueInTmpGoLocal(
+				c.compileMethodCallWithLiteralArgValuesAndName(
+					rangeType,
+					elementType,
+					endSymbol,
+					"end",
+					[]*goValue{
+						rangeVal,
+					},
+					loc,
+					false,
+				),
+			)
 			return c.compileBinaryExpression(
 				paramVal,
 				endVal,
@@ -4242,16 +4304,18 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 
 	var paramLocal *nativeElkLocal
 	var paramType *value.GoType
-	if isSmallInt {
-		paramType = value.FetchGoType("value.SmallInt")
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	} else {
-		paramType = goValueType
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	}
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+	var paramVal *goValue
 
 	init := func() {
+		if isSmallInt {
+			paramType = value.FetchGoType("value.SmallInt")
+			paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		} else {
+			paramType = goValueType
+			paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		}
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+
 		var initVal *goValue
 		if isSmallInt {
 			initVal = newGoValue("value.SmallInt(0)", c.checker.Std(symbol.C_Int), paramType)
@@ -4300,14 +4364,18 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 
 func (c *GoCompiler) compileForInIntAsNumericFor(label string, inInt ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	paramType := goValueType
-	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
 
 	init := func() {
+		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+
 		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.C_Int), paramType)
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
 	increment := func() {
+
 		c.emitAssignGoLocal(
 			paramLocal.goLocal,
 			c.compileIncrement(
@@ -4641,6 +4709,7 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 
 	scope := c.enterLoopScope(label, tmpVar, true, true)
 
+	outerGoScope := c.enterGoScope()
 	// loop initialiser eg. `i := 0`
 	if init != nil {
 		init()
@@ -4650,22 +4719,33 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	if cond != nil {
-		condVal := cond()
-		if condVal != nil {
-			c.emit("if %s { break }\n", c.convertValueToNotBool(condVal).fetchValue())
+	c.emit("{\n")
+	for _, local := range outerGoScope.All() {
+		c.emit("%[1]s := %[1]s\n", local.name)
+	}
+	c.leaveGoScope()
+	c.mergeGoScope(outerGoScope)
+
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		if cond != nil {
+			condVal := cond()
+			if condVal != nil {
+				c.emit("if %s { break }\n", c.convertValueToNotBool(condVal).fetchValue())
+			}
 		}
-	}
 
-	// loop body
-	thenVal := then()
+		// loop body
+		thenVal := then()
 
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, thenVal)
-	}
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, thenVal)
+		}
 
-	c.emitGoLabel(scope.loopInfo.continueGoLabel)
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+	})
+	c.emit("}\n")
+
 	if increment != nil {
 		// increment step eg. `i += 1`
 		increment()
@@ -4707,7 +4787,9 @@ func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType
 
 	prevBuff := c.switchNewBuffer()
 	c.emit("for {\n")
-	c.compileStatements(body, true)
+	c.withGoScope(func() {
+		c.compileStatements(body, true)
+	})
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
@@ -5118,25 +5200,27 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
-	if conditionIsStaticFalsy {
-		c.emit("if %s {\n", doneTmp.name)
-		c.emit("  break\n")
-		c.emit("}\n")
-		c.emitAssignGoLocal(doneTmp, trueGoValue)
-	}
+	c.withGoScope(func() {
+		if conditionIsStaticFalsy {
+			c.emit("if %s {\n", doneTmp.name)
+			c.emit("  break\n")
+			c.emit("}\n")
+			c.emitAssignGoLocal(doneTmp, trueGoValue)
+		}
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
 
-	c.emitGoLabel(scope.loopInfo.continueGoLabel)
-	if !conditionIsStaticFalsy {
-		// loop condition eg. `i < 5`
-		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
-	}
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+		if !conditionIsStaticFalsy {
+			// loop condition eg. `i < 5`
+			cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
+			c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
@@ -5193,25 +5277,27 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
-	if conditionIsStaticTruthy {
-		c.emit("if %s {\n", doneTmp.name)
-		c.emit("  break\n")
-		c.emit("}\n")
-		c.emitAssignGoLocal(doneTmp, trueGoValue)
-	}
+	c.withGoScope(func() {
+		if conditionIsStaticTruthy {
+			c.emit("if %s {\n", doneTmp.name)
+			c.emit("  break\n")
+			c.emit("}\n")
+			c.emitAssignGoLocal(doneTmp, trueGoValue)
+		}
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
 
-	c.emitGoLabel(scope.loopInfo.continueGoLabel)
-	if !conditionIsStaticTruthy {
-		// loop condition eg. `i < 5`
-		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
-	}
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+		if !conditionIsStaticTruthy {
+			// loop condition eg. `i < 5`
+			cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
+			c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
@@ -5259,15 +5345,17 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-	c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
+		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
@@ -5315,15 +5403,17 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-	c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
+		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
@@ -8458,7 +8548,7 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // namespace: %s, loc: %s\n", c.goName, typ.Name(), c.loc.String())
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
@@ -9142,7 +9232,7 @@ func (c *GoCompiler) getTmpIdent() string {
 }
 
 func (c *GoCompiler) defineTmpGoLocal(goType *value.GoType) *goLocal {
-	for _, local := range c.goScopes.last().All() {
+	for _, local := range c.goScopes.first().All() {
 		if !local.elkLocal && local.free && local.goType.Equal(goType) {
 			local.markReserved()
 			return local
@@ -18766,6 +18856,25 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 	)
 }
 
+func (c *GoCompiler) enterGoScope() *goLocalTable {
+	scope := ds.NewOrderedMap[string, *goLocal]()
+	c.goScopes = append(c.goScopes, scope)
+	return scope
+}
+
+func (c *GoCompiler) leaveGoScope() {
+	currentDepth := len(c.goScopes) - 1
+	c.goScopes[currentDepth] = nil
+	c.goScopes = c.goScopes[:currentDepth]
+}
+
+func (c *GoCompiler) mergeGoScope(mergedScope *goLocalTable) {
+	currentScope := c.goScopes.last()
+	for name, local := range mergedScope.All() {
+		currentScope.Set(name, local)
+	}
+}
+
 func (c *GoCompiler) currentScope() *nativeElkScope {
 	return c.scopes[len(c.scopes)-1]
 }
@@ -18898,7 +19007,7 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, e
 		goName = fmt.Sprintf("l%d", c.lastElkLocalIndex)
 	}
 
-	goLocal := c.registerGoLocalWithComment(
+	goLocal := c.registerCurrentGoLocalWithComment(
 		goName,
 		goType,
 		fmt.Sprintf("var %s: %s", name, types.Inspect(elkType)),
