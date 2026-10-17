@@ -299,6 +299,15 @@ func newNativeCatchInfo(goLabel *goLabel, finallyData *nativeFinallyData) *nativ
 
 var goValueType = value.FetchGoType("value.Value")
 
+type goLocalTable = ds.OrderedMap[string, *goLocal]
+
+type goScopes []*goLocalTable
+
+// Get the last local variable scope.
+func (s goScopes) last() *goLocalTable {
+	return s[len(s)-1]
+}
+
 type goLocal struct {
 	name       string
 	goType     *value.GoType
@@ -833,7 +842,7 @@ type GoCompiler struct {
 	loc                   *position.Location
 	mode                  goMode
 	children              concurrent.Slice[*GoCompiler]
-	goLocals              ds.OrderedMap[string, *goLocal]
+	goScopes              goScopes
 	loopInfo              []*nativeLoopInfo
 	catchInfo             []*nativeCatchInfo
 	nativeCallsToOptimise []*nativeCall
@@ -867,7 +876,7 @@ func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Loc
 		buff:              &bytes.Buffer{},
 		Errors:            diagnostic.NewSyncDiagnosticList(),
 		scopes:            nativeElkScopes{newNativeElkScope(defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
-		goLocals:          ds.MakeOrderedMap[string, *goLocal](),
+		goScopes:          []*goLocalTable{ds.NewOrderedMap[string, *goLocal]()},
 		lastElkLocalIndex: -1,
 		globalData:        globalData,
 		checker:           checker,
@@ -1075,11 +1084,12 @@ func (c *GoCompiler) registerGoLocal(name string, goType *value.GoType) *goLocal
 }
 
 func (c *GoCompiler) registerGoLocalWithComment(name string, goType *value.GoType, comment string) *goLocal {
-	if local, exists := c.goLocals.GetOk(name); exists {
+	scope := c.goScopes.last()
+	if local, exists := scope.GetOk(name); exists {
 		return local
 	}
 	local := newGoLocal(name, goType, comment)
-	c.goLocals.Set(name, local)
+	scope.Set(name, local)
 	return local
 }
 
@@ -1888,7 +1898,8 @@ func (c *GoCompiler) emitReturn(val string) {
 	switch c.mode {
 	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
-		firstArg := c.goLocals.Get("l0")
+		scope := c.goScopes.last()
+		firstArg := scope.Get("l0")
 		result := newGoValueWithLocal(firstArg, c.method.ReturnType, false)
 		val = c.methodReturnValue(result)
 		c.emit("return %s, value.Undefined\n", val)
@@ -2757,36 +2768,42 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 }
 
 func (c *GoCompiler) hasUpvalues() bool {
-	for _, local := range c.goLocals.All() {
-		if local.upvalue {
-			return true
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if local.upvalue {
+				return true
+			}
 		}
 	}
 	return false
 }
 
 func (c *GoCompiler) compileClosedUpvaluesTo(buff io.Writer) {
-	for _, local := range c.goLocals.All() {
-		if !local.upvalue {
-			continue
-		}
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if !local.upvalue {
+				continue
+			}
 
-		fmt.Fprintf(buff, "%[1]s := %[1]s // close: %s", local.name, local.comment)
+			fmt.Fprintf(buff, "%[1]s := %[1]s // close: %s", local.name, local.comment)
+		}
 	}
 	buff.Write([]byte("\n"))
 }
 
 func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
-	for _, local := range c.goLocals.All() {
-		if local.predefined {
-			continue
-		}
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if local.predefined {
+				continue
+			}
 
-		fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
-		if local.comment != "" {
-			fmt.Fprintf(buff, " // %s", local.comment)
+			fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
+			if local.comment != "" {
+				fmt.Fprintf(buff, " // %s", local.comment)
+			}
+			fmt.Fprintf(buff, "\n_ = %s\n", local.name)
 		}
-		fmt.Fprintf(buff, "\n_ = %s\n", local.name)
 	}
 	buff.Write([]byte("\n"))
 }
@@ -9125,7 +9142,7 @@ func (c *GoCompiler) getTmpIdent() string {
 }
 
 func (c *GoCompiler) defineTmpGoLocal(goType *value.GoType) *goLocal {
-	for local := range c.goLocals.Values() {
+	for _, local := range c.goScopes.last().All() {
 		if !local.elkLocal && local.free && local.goType.Equal(goType) {
 			local.markReserved()
 			return local
@@ -18860,7 +18877,8 @@ func (c *GoCompiler) registerUpvalue(local *nativeElkLocal) {
 
 	upvalue := local.toUpvalue()
 	varScope.localTable[upvalue.name] = upvalue
-	c.goLocals.Set(upvalue.goLocal.name, upvalue.goLocal)
+	goScope := c.goScopes.last()
+	goScope.Set(upvalue.goLocal.name, upvalue.goLocal)
 }
 
 func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
