@@ -11,7 +11,7 @@ import (
 // Std::Int
 func initInt() {
 	// Instance methods
-	c := &value.IntClass.MethodContainer
+	c := value.IntClass
 	Def(
 		c,
 		"hash",
@@ -992,7 +992,7 @@ func initInt() {
 // ::Std::Int::Iterator
 func initIntIterator() {
 	// Instance methods
-	c := &value.IntIteratorClass.MethodContainer
+	c := value.IntIteratorClass
 	Def(
 		c,
 		"next",

@@ -45,6 +45,15 @@ func (n *CharLiteralNode) Equal(other value.Value) bool {
 	return n.Value == o.Value && n.loc.Equal(o.loc)
 }
 
+func (n *CharLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CharLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *CharLiteralNode) String() string {
 	return value.Char(n.Value).Inspect()
 }
@@ -121,6 +130,15 @@ func (n *RawCharLiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *RawCharLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RawCharLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *RawCharLiteralNode) String() string {

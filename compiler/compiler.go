@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -23,7 +24,7 @@ type Compiler interface {
 	Method() value.Method
 	Parent() Compiler
 	SetParent(Compiler)
-	InitMainCompiler()
+	InitMainCompiler([]*ext.Extension)
 	InitGlobalEnv() Compiler
 	FinishGlobalEnvCompiler()
 	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler

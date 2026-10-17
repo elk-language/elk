@@ -52,6 +52,15 @@ func (n *NilableTypeNode) Equal(other value.Value) bool {
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
 }
 
+func (n *NilableTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilableTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 func (n *NilableTypeNode) String() string {
 	var buff strings.Builder
 

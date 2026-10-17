@@ -99,6 +99,16 @@ func (n *AsPatternNode) Equal(other value.Value) bool {
 		n.Name.Equal(value.Ref(o.Name))
 }
 
+func (n *AsPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AsPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
+}
+
 func (n *AsPatternNode) Error() string {
 	return n.Inspect()
 }

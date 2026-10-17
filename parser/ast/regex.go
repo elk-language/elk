@@ -75,6 +75,16 @@ func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 		n.Flags == o.Flags
 }
 
+func (n *UninterpolatedRegexLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UninterpolatedRegexLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content == o.Content &&
+		n.Flags == o.Flags
+}
+
 func (n *UninterpolatedRegexLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -236,6 +246,15 @@ func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *RegexLiteralContentSectionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RegexLiteralContentSectionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *RegexLiteralContentSectionNode) String() string {
 	return n.Value
 }
@@ -316,6 +335,15 @@ func (n *RegexInterpolationNode) Equal(other value.Value) bool {
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *RegexInterpolationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RegexInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *RegexInterpolationNode) String() string {
@@ -422,6 +450,25 @@ func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) && n.Flags == o.Flags
+}
+
+func (n *InterpolatedRegexLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedRegexLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Content) != len(o.Content) {
+		return false
+	}
+
+	for i, content := range n.Content {
+		if !content.LaxEqual(value.Ref(o.Content[i])) {
+			return false
+		}
+	}
+
+	return n.Flags == o.Flags
 }
 
 func (n *InterpolatedRegexLiteralNode) String() string {

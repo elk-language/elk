@@ -7,7 +7,7 @@ import (
 // Std::Time
 func initTime() {
 	// Class methods
-	c := &value.TimeClass.SingletonClass().MethodContainer
+	c := value.TimeClass.SingletonClass()
 	Def(
 		c,
 		"now",
@@ -38,7 +38,7 @@ func initTime() {
 	)
 
 	// Instance methods
-	c = &value.TimeClass.MethodContainer
+	c = value.TimeClass
 	Def(
 		c,
 		"#init",

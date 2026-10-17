@@ -56,6 +56,16 @@ func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *PostfixExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Expression.LaxEqual(value.Ref(o.Expression))
+}
+
 func (n *PostfixExpressionNode) String() string {
 	var buff strings.Builder
 

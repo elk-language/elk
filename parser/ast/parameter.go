@@ -149,6 +149,33 @@ func (n *FormalParameterNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *FormalParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*FormalParameterNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) || n.Kind != o.Kind {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
 // String returns a string representation of the FormalParameterNode.
 func (f *FormalParameterNode) String() string {
 	var buff strings.Builder
@@ -321,6 +348,31 @@ func (n *MethodParameterNode) Equal(other value.Value) bool {
 		n.Kind == o.Kind
 }
 
+func (n *MethodParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.SetInstanceVariable == o.SetInstanceVariable &&
+		n.Kind == o.Kind
+}
+
 func (n *MethodParameterNode) String() string {
 	var buff strings.Builder
 
@@ -482,6 +534,24 @@ func (n *SignatureParameterNode) Equal(other value.Value) bool {
 		n.Optional == o.Optional &&
 		n.Kind == o.Kind &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SignatureParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SignatureParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.Optional == o.Optional &&
+		n.Kind == o.Kind
 }
 
 func (n *SignatureParameterNode) String() string {
@@ -660,6 +730,33 @@ func (n *AttributeParameterNode) Equal(other value.Value) bool {
 	} else if n.Initialiser == nil || o.Initialiser == nil {
 		return false
 	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AttributeParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
 		return false
 	}
 

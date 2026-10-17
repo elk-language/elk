@@ -13,12 +13,14 @@ type Interface struct {
 	ConstantContainer
 }
 
+var _ Namespace = &Interface{}
+
 // Interface constructor option function
 type InterfaceOption = func(*Interface)
 
 func InterfaceWithName(name string) InterfaceOption {
 	return func(i *Interface) {
-		i.ConstantContainer.Name = name
+		i.ConstantContainer.name = name
 	}
 }
 
@@ -27,7 +29,7 @@ func NewInterface() *Interface {
 	return &Interface{
 		class: InterfaceClass,
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 	}
 }
@@ -49,13 +51,13 @@ func InterfaceConstructor(class *Class) Value {
 }
 
 func (i *Interface) Copy() Reference {
-	newConstants := make(SymbolMap, len(i.Constants))
-	maps.Copy(newConstants, i.Constants)
+	newConstants := make(SymbolMap, len(i.constants))
+	maps.Copy(newConstants, i.constants)
 
 	newInterface := &Interface{
 		ConstantContainer: ConstantContainer{
-			Constants: newConstants,
-			Name:      i.Name,
+			constants: newConstants,
+			name:      i.name,
 		},
 	}
 
@@ -79,7 +81,7 @@ func (i *Interface) SingletonClass() *Class {
 		return i.class
 	}
 
-	singletonClass := NewSingletonClass(i.class, i.Name)
+	singletonClass := NewSingletonClass(i.class, i.name)
 	i.class = singletonClass
 	return singletonClass
 }
@@ -102,7 +104,7 @@ func NewInterfaceComparer(opts *cmp.Options) cmp.Option {
 			return true
 		}
 
-		return x.Name == y.Name &&
+		return x.name == y.name &&
 			cmp.Equal(x.Constants, y.Constants, *opts...)
 	})
 }

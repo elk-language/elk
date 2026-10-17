@@ -7,7 +7,7 @@ import (
 // Std::Module
 func initModule() {
 	// Instance methods
-	c := &value.ModuleClass.MethodContainer
+	c := value.ModuleClass
 	Accessor(c, "doc")
 
 	Def(
@@ -15,7 +15,7 @@ func initModule() {
 		"name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Module)
-			return value.Ref(value.String(self.Name)), value.Undefined
+			return value.Ref(value.String(self.Name())), value.Undefined
 		},
 	)
 }

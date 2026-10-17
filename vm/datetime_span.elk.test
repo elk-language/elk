@@ -1,11 +1,8 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "DateTime::Span", ->
-	context "singleton", ->
-		context "parse", ->
-			context "years", ->
-				should "create a span with int years", ->
+describe "DateTime::Span" ->
+	context "singleton" ->
+		context "parse" ->
+			context "years" ->
+				should "create a span with int years" ->
 					s := DateTime::Span.parse("2Y")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2Y"
@@ -33,7 +30,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float years", ->
+				should "create a span with float years" ->
 					s := DateTime::Span.parse("2.25Y")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2Y 3M"
@@ -62,8 +59,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "months", ->
-				should "create a span with int months", ->
+			context "months" ->
+				should "create a span with int months" ->
 					s := DateTime::Span.parse("2M")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2M"
@@ -91,7 +88,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float months", ->
+				should "create a span with float months" ->
 					s := DateTime::Span.parse("2.25M")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2M 7D 14h 37m 30s"
@@ -120,8 +117,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "days", ->
-				should "create a span with int days", ->
+			context "days" ->
+				should "create a span with int days" ->
 					s := DateTime::Span.parse("2D")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2D"
@@ -149,7 +146,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float days", ->
+				should "create a span with float days" ->
 					s := DateTime::Span.parse("2.25D")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2D 6h"
@@ -178,8 +175,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "hours", ->
-				should "create a span with int hours", ->
+			context "hours" ->
+				should "create a span with int hours" ->
 					s := DateTime::Span.parse("2h")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2h"
@@ -207,7 +204,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float hours", ->
+				should "create a span with float hours" ->
 					s := DateTime::Span.parse("2.25h")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2h 15m"
@@ -236,8 +233,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "minutes", ->
-				should "create a span with int minutes", ->
+			context "minutes" ->
+				should "create a span with int minutes" ->
 					s := DateTime::Span.parse("2m")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2m"
@@ -265,7 +262,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float minutes", ->
+				should "create a span with float minutes" ->
 					s := DateTime::Span.parse("2.25m")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2m 15s"
@@ -294,8 +291,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "seconds", ->
-				should "create a span with int seconds", ->
+			context "seconds" ->
+				should "create a span with int seconds" ->
 					s := DateTime::Span.parse("2s")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2s"
@@ -323,7 +320,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float seconds", ->
+				should "create a span with float seconds" ->
 					s := DateTime::Span.parse("2.25s")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2s 250ms"
@@ -352,8 +349,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "milliseconds", ->
-				should "create a span with int milliseconds", ->
+			context "milliseconds" ->
+				should "create a span with int milliseconds" ->
 					s := DateTime::Span.parse("2ms")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2ms"
@@ -381,7 +378,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float milliseconds", ->
+				should "create a span with float milliseconds" ->
 					s := DateTime::Span.parse("2.25ms")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2ms 250µs"
@@ -410,8 +407,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "microseconds", ->
-				should "create a span with int microseconds", ->
+			context "microseconds" ->
+				should "create a span with int microseconds" ->
 					s := DateTime::Span.parse("2μs")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2µs"
@@ -439,7 +436,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == 0
 				end
 
-				should "create a span with float microseconds", ->
+				should "create a span with float microseconds" ->
 					s := DateTime::Span.parse("2.25µs")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2µs 250ns"
@@ -468,8 +465,8 @@ describe "DateTime::Span", ->
 				end
 			end
 
-			context "nanoseconds", ->
-				should "create a span with int nanoseconds", ->
+			context "nanoseconds" ->
+				should "create a span with int nanoseconds" ->
 					s := DateTime::Span.parse("2ns")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2ns"
@@ -497,7 +494,7 @@ describe "DateTime::Span", ->
 					assert! s.nanoseconds == -98
 				end
 
-				should "create a span with float nanoseconds", ->
+				should "create a span with float nanoseconds" ->
 					s := DateTime::Span.parse("2.25ns")
 					assert! s <<: DateTime::Span
 					assert! s.to_string == "2ns"
@@ -529,8 +526,8 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "init", ->
-		should "create a zero value", ->
+	context "init" ->
+		should "create a zero value" ->
 			s := DateTime::Span()
 			assert! s <<: DateTime::Span
 			assert! s.to_string == "0D"
@@ -540,7 +537,7 @@ describe "DateTime::Span", ->
 			assert! s.nanoseconds == 0
 		end
 
-		should "create with all positional args", ->
+		should "create with all positional args" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s <<: DateTime::Span
 			assert! s.to_string == "10Y 5M 2D 9h 13m 8s 130ms 540µs 931ns"
@@ -555,7 +552,7 @@ describe "DateTime::Span", ->
 			assert! s.nanoseconds == 931
 		end
 
-		should "create with a few positional args", ->
+		should "create with a few positional args" ->
 			s := DateTime::Span(10, 5)
 			assert! s <<: DateTime::Span
 			assert! s.to_string == "10Y 5M"
@@ -571,7 +568,7 @@ describe "DateTime::Span", ->
 		end
 
 
-		should "create with named args", ->
+		should "create with named args" ->
 			s := DateTime::Span(months: 10, years: 5, nanoseconds: 54)
 			assert! s <<: DateTime::Span
 			assert! s.to_string == "5Y 10M 54ns"
@@ -587,8 +584,8 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "unary minus", ->
-		should "negate positive span", ->
+	context "unary minus" ->
+		should "negate positive span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := -s
 			assert! r <<: DateTime::Span
@@ -600,7 +597,7 @@ describe "DateTime::Span", ->
 			assert! r.minutes == -18
 		end
 
-		should "negate negative span", ->
+		should "negate negative span" ->
 			s := DateTime::Span(-10, -2, -9, -3, -18)
 			r := -s
 			assert! s <<: DateTime::Span
@@ -613,8 +610,8 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "unary plus", ->
-		should "not change positive span", ->
+	context "unary plus" ->
+		should "not change positive span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := +s
 			assert! r <<: DateTime::Span
@@ -626,7 +623,7 @@ describe "DateTime::Span", ->
 			assert! r.minutes == 18
 		end
 
-		should "not change negative span", ->
+		should "not change negative span" ->
 			s := DateTime::Span(-10, -2, -9, -3, -18)
 			r := +s
 			assert! r <<: DateTime::Span
@@ -639,9 +636,9 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "+", ->
-		context "duration argument", ->
-			should "add date span", ->
+	context "+" ->
+		context "duration argument" ->
+			should "add date span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = Date::Span(1, 2, 3)
 				r := s + d
@@ -654,7 +651,7 @@ describe "DateTime::Span", ->
 				assert! r.minutes == 18
 			end
 
-			should "add time span", ->
+			should "add time span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = Time::Span(1, 2, 3)
 				r := s + d
@@ -668,7 +665,7 @@ describe "DateTime::Span", ->
 				assert! r.seconds == 3
 			end
 
-			should "add datetime span", ->
+			should "add datetime span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = DateTime::Span(1, 2, 3, 4, 5, 6)
 				r := s + d
@@ -683,7 +680,7 @@ describe "DateTime::Span", ->
 			end
 		end
 
-		should "add date span", ->
+		should "add date span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s + Date::Span(1, 2, 3)
 			assert! r <<: DateTime::Span
@@ -695,7 +692,7 @@ describe "DateTime::Span", ->
 			assert! r.minutes == 18
 		end
 
-		should "add time span", ->
+		should "add time span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s + Time::Span(1, 2, 3)
 			assert! r <<: DateTime::Span
@@ -708,7 +705,7 @@ describe "DateTime::Span", ->
 			assert! r.seconds == 3
 		end
 
-		should "add datetime span", ->
+		should "add datetime span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s + DateTime::Span(1, 2, 3, 4, 5, 6)
 			assert! r <<: DateTime::Span
@@ -722,9 +719,9 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "-", ->
-		context "duration argument", ->
-			should "subtract date span", ->
+	context "-" ->
+		context "duration argument" ->
+			should "subtract date span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = Date::Span(1, 2, 3)
 				r := s - d
@@ -737,7 +734,7 @@ describe "DateTime::Span", ->
 				assert! r.minutes == 18
 			end
 
-			should "subtract time span", ->
+			should "subtract time span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = Time::Span(1, 2, 3)
 				r := s - d
@@ -751,7 +748,7 @@ describe "DateTime::Span", ->
 				assert! r.seconds == 57
 			end
 
-			should "subtract datetime span", ->
+			should "subtract datetime span" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: Duration = DateTime::Span(1, 2, 3, 4, 5, 6)
 				r := s - d
@@ -766,7 +763,7 @@ describe "DateTime::Span", ->
 			end
 		end
 
-		should "subtract date span", ->
+		should "subtract date span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s - Date::Span(1, 2, 3)
 			assert! r <<: DateTime::Span
@@ -778,7 +775,7 @@ describe "DateTime::Span", ->
 			assert! r.minutes == 18
 		end
 
-		should "subtract time span", ->
+		should "subtract time span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s - Time::Span(1, 2, 3)
 			assert! r <<: DateTime::Span
@@ -791,7 +788,7 @@ describe "DateTime::Span", ->
 			assert! r.seconds == 57
 		end
 
-		should "subtract datetime span", ->
+		should "subtract datetime span" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s - DateTime::Span(1, 2, 3, 4, 5, 6)
 			assert! r <<: DateTime::Span
@@ -805,9 +802,9 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "*", ->
-		context "numeric argument", ->
-			should "multiply int", ->
+	context "*" ->
+		context "numeric argument" ->
+			should "multiply int" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2
 				r := s * d
@@ -820,7 +817,7 @@ describe "DateTime::Span", ->
 				assert! r.minutes == 36
 			end
 
-			should "multiply float", ->
+			should "multiply float" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2.5
 				r := s * d
@@ -834,7 +831,7 @@ describe "DateTime::Span", ->
 				assert! r.seconds == 0
 			end
 
-			should "multiply big float", ->
+			should "multiply big float" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2.5bf
 				r := s * d
@@ -849,7 +846,7 @@ describe "DateTime::Span", ->
 			end
 		end
 
-		should "multiply int", ->
+		should "multiply int" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s * 2
 			assert! r <<: DateTime::Span
@@ -861,7 +858,7 @@ describe "DateTime::Span", ->
 			assert! r.minutes == 36
 		end
 
-		should "multiply float", ->
+		should "multiply float" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s * 2.5
 			assert! r <<: DateTime::Span
@@ -874,7 +871,7 @@ describe "DateTime::Span", ->
 			assert! r.seconds == 0
 		end
 
-		should "multiply big float", ->
+		should "multiply big float" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s * 2.5bf
 			assert! r <<: DateTime::Span
@@ -888,9 +885,9 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "/", ->
-		context "numeric argument", ->
-			should "divide int", ->
+	context "/" ->
+		context "numeric argument" ->
+			should "divide int" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2
 				r := s / d
@@ -904,7 +901,7 @@ describe "DateTime::Span", ->
 				assert! r.seconds == 0
 			end
 
-			should "divide float", ->
+			should "divide float" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2.5
 				r := s / d
@@ -918,7 +915,7 @@ describe "DateTime::Span", ->
 				assert! r.seconds == 11
 			end
 
-			should "divide big float", ->
+			should "divide big float" ->
 				s := DateTime::Span(10, 2, 9, 3, 18)
 				var d: CoercibleNumeric = 2.5bf
 				r := s / d
@@ -933,7 +930,7 @@ describe "DateTime::Span", ->
 			end
 		end
 
-		should "divide int", ->
+		should "divide int" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s / 2
 			assert! r <<: DateTime::Span
@@ -946,7 +943,7 @@ describe "DateTime::Span", ->
 			assert! r.seconds == 0
 		end
 
-		should "divide float", ->
+		should "divide float" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s / 2.5
 			assert! r <<: DateTime::Span
@@ -959,7 +956,7 @@ describe "DateTime::Span", ->
 			assert! r.seconds == 11
 		end
 
-		should "divide big float", ->
+		should "divide big float" ->
 			s := DateTime::Span(10, 2, 9, 3, 18)
 			r := s / 2.5bf
 			assert! r <<: DateTime::Span
@@ -973,237 +970,237 @@ describe "DateTime::Span", ->
 		end
 	end
 
-	context "years", ->
-		should "return int years", ->
+	context "years" ->
+		should "return int years" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.years == 10
 		end
 	end
 
-	context "total_years", ->
-		should "return total years", ->
+	context "total_years" ->
+		should "return total years" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_years == 10
 		end
 
-		should "return 0 when no full years", ->
+		should "return 0 when no full years" ->
 			s := DateTime::Span(0, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_years == 0
 		end
 	end
 
-	context "in_years", ->
-		should "calculate float years", ->
+	context "in_years" ->
+		should "calculate float years" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_years == 10.422292606583069
 		end
 	end
 
-	context "months", ->
-		should "return modulo months", ->
+	context "months" ->
+		should "return modulo months" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.months == 5
 		end
 	end
 
-	context "total_months", ->
-		should "return total months", ->
+	context "total_months" ->
+		should "return total months" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_months == 125
 		end
 	end
 
-	context "in_months", ->
-		should "calculate float months", ->
+	context "in_months" ->
+		should "calculate float months" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_months == 125.07832843963075
 		end
 	end
 
-	context "total_weeks", ->
-		should "return total weeks", ->
+	context "total_weeks" ->
+		should "return total weeks" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_weeks == 543
 		end
 	end
 
-	context "in_weeks", ->
-		should "calculate float weeks", ->
+	context "in_weeks" ->
+		should "calculate float weeks" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_weeks == 543.8673745544659
 		end
 	end
 
-	context "days", ->
-		should "return modulo days", ->
+	context "days" ->
+		should "return modulo days" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.days == 2
 		end
 	end
 
-	context "total_days", ->
-		should "return total days", ->
+	context "total_days" ->
+		should "return total days" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_days == 3806
 		end
 	end
 
-	context "in_days", ->
-		should "calculate float days", ->
+	context "in_days" ->
+		should "calculate float days" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_days == 3807.071621881261
 		end
 	end
 
-	context "hours", ->
-		should "return modulo hours", ->
+	context "hours" ->
+		should "return modulo hours" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.hours == 9
 		end
 	end
 
-	context "total_hours", ->
-		should "return total hours", ->
+	context "total_hours" ->
+		should "return total hours" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_hours == 91353
 		end
 	end
 
-	context "in_hours", ->
-		should "calculate float hours", ->
+	context "in_hours" ->
+		should "calculate float hours" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_hours == 91369.71892515026
 		end
 	end
 
-	context "minutes", ->
-		should "return modulo minutes", ->
+	context "minutes" ->
+		should "return modulo minutes" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.minutes == 13
 		end
 	end
 
-	context "total_minutes", ->
-		should "return total minutes", ->
+	context "total_minutes" ->
+		should "return total minutes" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_minutes == 5481193
 		end
 	end
 
-	context "in_minutes", ->
-		should "calculate float minutes", ->
+	context "in_minutes" ->
+		should "calculate float minutes" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_minutes == 5.482183135509015e+06
 		end
 	end
 
-	context "seconds", ->
-		should "return modulo seconds", ->
+	context "seconds" ->
+		should "return modulo seconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.seconds == 8
 		end
 	end
 
-	context "total_seconds", ->
-		should "return total seconds", ->
+	context "total_seconds" ->
+		should "return total seconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_seconds == 328871588
 		end
 	end
 
-	context "in_seconds", ->
-		should "calculate float seconds", ->
+	context "in_seconds" ->
+		should "calculate float seconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_seconds == 3.289309881305409e+08
 		end
 	end
 
-	context "milliseconds", ->
-		should "return modulo milliseconds", ->
+	context "milliseconds" ->
+		should "return modulo milliseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.milliseconds == 130
 		end
 	end
 
-	context "total_milliseconds", ->
-		should "return total milliseconds", ->
+	context "total_milliseconds" ->
+		should "return total milliseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_milliseconds == 328871588130
 		end
 	end
 
-	context "in_milliseconds", ->
-		should "calculate float milliseconds", ->
+	context "in_milliseconds" ->
+		should "calculate float milliseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_milliseconds == 328930988130.0
 		end
 	end
 
-	context "microseconds", ->
-		should "return modulo microseconds", ->
+	context "microseconds" ->
+		should "return modulo microseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.microseconds == 540
 		end
 	end
 
-	context "total_microseconds", ->
-		should "return total microseconds", ->
+	context "total_microseconds" ->
+		should "return total microseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_microseconds == 328871588130540
 		end
 	end
 
-	context "in_microseconds", ->
-		should "calculate float microseconds", ->
+	context "in_microseconds" ->
+		should "calculate float microseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_microseconds == 328930988130540.0
 		end
 	end
 
-	context "nanoseconds", ->
-		should "return modulo nanoseconds", ->
+	context "nanoseconds" ->
+		should "return modulo nanoseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.nanoseconds == 931
 		end
 	end
 
-	context "total_nanoseconds", ->
-		should "return total nanoseconds", ->
+	context "total_nanoseconds" ->
+		should "return total nanoseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.total_nanoseconds == 328871588130540931
 		end
 	end
 
-	context "in_nanoseconds", ->
-		should "calculate float nanoseconds", ->
+	context "in_nanoseconds" ->
+		should "calculate float nanoseconds" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.in_nanoseconds == 328930988130540928.0
 		end
 	end
 
-	context "to_datetime", ->
-		should "convert to a datetime equivalent", ->
+	context "to_datetime" ->
+		should "convert to a datetime equivalent" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.to_datetime == DateTime(10, 6, 3, 9, 13, 8, 130, 540, 931)
 		end
 	end
 
-	context "to_datetime_span", ->
-		should "return self", ->
+	context "to_datetime_span" ->
+		should "return self" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.to_datetime_span == s
 		end
 	end
 
-	context "to_date_span", ->
-		should "return the date span component", ->
+	context "to_date_span" ->
+		should "return the date span component" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.to_date_span == Date::Span(10, 5, 2)
 		end
 	end
 
-	context "to_time_span", ->
-		should "return the time span component", ->
+	context "to_time_span" ->
+		should "return the time span component" ->
 			s := DateTime::Span(10, 5, 2, 9, 13, 8, 130, 540, 931)
 			assert! s.to_time_span == Time::Span(9, 13, 8, 130, 540, 931)
 		end

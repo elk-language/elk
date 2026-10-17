@@ -10,7 +10,7 @@ import (
 // ::Std::EndlessOpenRange
 func initEndlessOpenRange() {
 	// Instance methods
-	c := &value.EndlessOpenRangeClass.MethodContainer
+	c := value.EndlessOpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -119,7 +119,7 @@ func initEndlessOpenRange() {
 // ::Std::EndlessOpenRange::Iterator
 func initEndlessOpenRangeIterator() {
 	// Instance methods
-	c := &value.EndlessOpenRangeIteratorClass.MethodContainer
+	c := value.EndlessOpenRangeIteratorClass
 	Def(
 		c,
 		"next",

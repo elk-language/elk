@@ -7,7 +7,7 @@ import (
 // Std::FS::Path
 func initPath() {
 	// Instance methods
-	c := &value.PathClass.MethodContainer
+	c := value.PathClass
 
 	Def(
 		c,
@@ -179,7 +179,7 @@ func initPath() {
 	)
 
 	// Singleton methods
-	c = &value.PathClass.SingletonClass().MethodContainer
+	c = value.PathClass.SingletonClass()
 
 	Def(
 		c,

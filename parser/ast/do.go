@@ -106,6 +106,39 @@ func (n *DoExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *DoExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) ||
+		len(n.Catches) != len(o.Catches) ||
+		len(n.Finally) != len(o.Finally) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	for i, catch := range n.Catches {
+		if !catch.LaxEqual(value.Ref(o.Catches[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Finally {
+		if !stmt.LaxEqual(value.Ref(o.Finally[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *DoExpressionNode) String() string {
 	var buff strings.Builder
@@ -307,6 +340,36 @@ func (n *CatchNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *CatchNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CatchNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if n.StackTraceVar == o.StackTraceVar {
+	} else if n.StackTraceVar == nil || o.StackTraceVar == nil {
+		return false
+	} else if !n.StackTraceVar.LaxEqual(value.Ref(o.StackTraceVar)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *CatchNode) String() string {

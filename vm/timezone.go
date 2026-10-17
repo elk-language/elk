@@ -7,7 +7,7 @@ import (
 // Std::Timezone
 func initTimezone() {
 	// Class methods
-	c := &value.TimezoneClass.SingletonClass().MethodContainer
+	c := value.TimezoneClass.SingletonClass()
 	Def(
 		c,
 		"get",
@@ -29,7 +29,7 @@ func initTimezone() {
 	)
 
 	// Instance methods
-	c = &value.TimezoneClass.MethodContainer
+	c = value.TimezoneClass
 	Def(
 		c,
 		"name",

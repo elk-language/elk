@@ -25,5 +25,7 @@ module Std::Elk::AST
 
     pure def is_sealed: bool; end
     pure def is_pure: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

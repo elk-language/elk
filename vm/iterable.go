@@ -7,7 +7,7 @@ import (
 // Std::Iterable::FiniteBase
 func initIterableFiniteBase() {
 	// Instance methods
-	c := &value.IterableFiniteBaseMixin.MethodContainer
+	c := value.IterableFiniteBaseMixin
 
 	Def(
 		c,
@@ -704,7 +704,7 @@ func initIterableFiniteBase() {
 // Std::Iterable::Base
 func initIterableBase() {
 	// Instance methods
-	c := &value.IterableBaseMixin.MethodContainer
+	c := value.IterableBaseMixin
 
 	Def(
 		c,

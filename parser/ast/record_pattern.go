@@ -64,6 +64,25 @@ func (n *RecordPatternNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *RecordPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RecordPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *RecordPatternNode) String() string {
 	var buff strings.Builder
 

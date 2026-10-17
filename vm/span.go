@@ -8,7 +8,7 @@ import (
 // Std::String::Span
 func initSpan() {
 	// Instance methods
-	c := &value.SpanClass.MethodContainer
+	c := value.SpanClass
 
 	Def(
 		c,

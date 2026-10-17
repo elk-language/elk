@@ -1,10 +1,7 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "Time", ->
-	context "singleton", ->
-		context "now", ->
-			should "return current time", ->
+describe "Time" ->
+	context "singleton" ->
+		context "now" ->
+			should "return current time" ->
 				t := Time.now
 				assert! t <<: Time
 				assert! t.hour >= 0
@@ -13,8 +10,8 @@ describe "Time", ->
 			end
 		end
 
-		context "parse", ->
-			should "parse the default format", ->
+		context "parse" ->
+			should "parse the default format" ->
 				t := Time.parse("15:43:15.123456789")
 				assert! t <<: Time
 				assert! t.to_string == "15:43:15.123456789"
@@ -24,7 +21,7 @@ describe "Time", ->
 				assert! t.nanoseconds_in_second == 123456789
 			end
 
-			should "parse a custom format", ->
+			should "parse a custom format" ->
 				t := Time.parse("22-15-10:22", "%H-%M-%S:%N")
 				assert! t <<: Time
 				assert! t.to_string == "22:15:10.000000022"
@@ -34,9 +31,9 @@ describe "Time", ->
 				assert! t.nanoseconds_in_second == 22
 			end
 
-			context "hour", ->
-				context "zero padded", ->
-					should "parse repeated hours", ->
+			context "hour" ->
+				context "zero padded" ->
+					should "parse repeated hours" ->
 						t := Time.parse("15 25 9 12", "%H %M %S %H")
 						assert! t <<: Time
 						assert! t.to_string == "12:25:09.000000000"
@@ -45,7 +42,7 @@ describe "Time", ->
 						assert! t.second == 9
 					end
 
-					should "parse two digits", ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%H")
 						assert! t <<: Time
 						assert! t.to_string == "15:00:00.000000000"
@@ -54,7 +51,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -63,7 +60,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -72,25 +69,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%H") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%H") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%H") match FormatError(message: 'time format string `"%H"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("57", "%H") match FormatError(message: 'value for hour out of range: 57')
 					end
 				end
 
-				context "no padding", ->
-					should "parse two digits", ->
+				context "no padding" ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%-H")
 						assert! t <<: Time
 						assert! t.to_string == "15:00:00.000000000"
@@ -99,7 +96,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -108,7 +105,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -117,25 +114,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-H") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-H") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-H") match FormatError(message: 'time format string `"%-H"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("57", "%-H") match FormatError(message: 'value for hour out of range: 57')
 					end
 				end
 
-				context "space padded", ->
-					should "parse two digits", ->
+				context "space padded" ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%_H")
 						assert! t <<: Time
 						assert! t.to_string == "15:00:00.000000000"
@@ -144,7 +141,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -153,7 +150,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -162,7 +159,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_H")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -171,23 +168,23 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_H") match FormatError(message: 'time format string `"%_H"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_H") match FormatError(message: 'time format string `"%_H"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("57", "%_H") match FormatError(message: 'value for hour out of range: 57')
 					end
 				end
 			end
 
-			context "hour 12", ->
-				context "zero padded", ->
-					should "parse repeated hours", ->
+			context "hour 12" ->
+				context "zero padded" ->
+					should "parse repeated hours" ->
 						t := Time.parse("2 25 9 10", "%I %M %S %I")
 						assert! t <<: Time
 						assert! t.to_string == "10:25:09.000000000"
@@ -196,7 +193,7 @@ describe "Time", ->
 						assert! t.second == 9
 					end
 
-					should "parse two digits", ->
+					should "parse two digits" ->
 						t := Time.parse("10", "%I")
 						assert! t <<: Time
 						assert! t.to_string == "10:00:00.000000000"
@@ -205,7 +202,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -214,7 +211,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -223,25 +220,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%I") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%I") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%I") match FormatError(message: 'time format string `"%I"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("13", "%I") match FormatError(message: "value for 12 hour out of range: 13")
 					end
 				end
 
-				context "no padding", ->
-					should "parse two digits", ->
+				context "no padding" ->
+					should "parse two digits" ->
 						t := Time.parse("11", "%-I")
 						assert! t <<: Time
 						assert! t.to_string == "11:00:00.000000000"
@@ -250,7 +247,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -259,7 +256,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -268,25 +265,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-I") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-I") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-I") match FormatError(message: 'time format string `"%-I"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("13", "%-I") match FormatError(message: 'value for 12 hour out of range: 13')
 					end
 				end
 
-				context "space padded", ->
-					should "parse two digits", ->
+				context "space padded" ->
+					should "parse two digits" ->
 						t := Time.parse("9", "%_I")
 						assert! t <<: Time
 						assert! t.to_string == "09:00:00.000000000"
@@ -295,7 +292,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -304,7 +301,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -313,7 +310,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_I")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -322,23 +319,23 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_I") match FormatError(message: 'time format string `"%_I"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_I") match FormatError(message: 'time format string `"%_I"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("14", "%_I") match FormatError(message: 'value for 12 hour out of range: 14')
 					end
 				end
 			end
 
-			context "meridiem", ->
-				context "lowercase", ->
-					should "parse 7 am", ->
+			context "meridiem" ->
+				context "lowercase" ->
+					should "parse 7 am" ->
 						t := Time.parse("7 am", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -347,7 +344,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 AM", ->
+					should "parse 7 AM" ->
 						t := Time.parse("7 AM", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -356,7 +353,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 pm", ->
+					should "parse 7 pm" ->
 						t := Time.parse("7 pm", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "19:00:00.000000000"
@@ -365,7 +362,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 PM", ->
+					should "parse 7 PM" ->
 						t := Time.parse("7 PM", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "19:00:00.000000000"
@@ -374,7 +371,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 12 pm", ->
+					should "parse 12 pm" ->
 						t := Time.parse("12 pm", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "12:00:00.000000000"
@@ -383,7 +380,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 12 am", ->
+					should "parse 12 am" ->
 						t := Time.parse("12 am", "%I %P")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -392,7 +389,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "ignore PM when a 24 hour is present", ->
+					should "ignore PM when a 24 hour is present" ->
 						t := Time.parse("15 pm", "%H %P")
 						assert! t <<: Time
 						assert! t.to_string == "15:00:00.000000000"
@@ -402,8 +399,8 @@ describe "Time", ->
 					end
 				end
 
-				context "uppercase", ->
-					should "parse 7 AM", ->
+				context "uppercase" ->
+					should "parse 7 AM" ->
 						t := Time.parse("7 AM", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -412,7 +409,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 am", ->
+					should "parse 7 am" ->
 						t := Time.parse("7 am", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "07:00:00.000000000"
@@ -421,7 +418,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 PM", ->
+					should "parse 7 PM" ->
 						t := Time.parse("7 PM", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "19:00:00.000000000"
@@ -430,7 +427,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 7 pm", ->
+					should "parse 7 pm" ->
 						t := Time.parse("7 pm", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "19:00:00.000000000"
@@ -439,7 +436,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 12 PM", ->
+					should "parse 12 PM" ->
 						t := Time.parse("12 PM", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "12:00:00.000000000"
@@ -448,7 +445,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse 12 AM", ->
+					should "parse 12 AM" ->
 						t := Time.parse("12 AM", "%I %p")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -457,7 +454,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "ignore PM when a 24 hour is present", ->
+					should "ignore PM when a 24 hour is present" ->
 						t := Time.parse("15 PM", "%H %p")
 						assert! t <<: Time
 						assert! t.to_string == "15:00:00.000000000"
@@ -468,9 +465,9 @@ describe "Time", ->
 				end
 			end
 
-			context "minute", ->
-				context "zero padded", ->
-					should "parse repeated minutes", ->
+			context "minute" ->
+				context "zero padded" ->
+					should "parse repeated minutes" ->
 						t := Time.parse("15 25 9 12", "%H %M %S %M")
 						assert! t <<: Time
 						assert! t.to_string == "15:12:09.000000000"
@@ -479,7 +476,7 @@ describe "Time", ->
 						assert! t.second == 9
 					end
 
-					should "parse two digits", ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%M")
 						assert! t <<: Time
 						assert! t.to_string == "00:15:00.000000000"
@@ -488,7 +485,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -497,7 +494,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -506,25 +503,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%M") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%M") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%M") match FormatError(message: 'time format string `"%M"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("61", "%M") match FormatError(message: 'value for minute out of range: 61')
 					end
 				end
 
-				context "no padding", ->
-					should "parse two digits", ->
+				context "no padding" ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%-M")
 						assert! t <<: Time
 						assert! t.to_string == "00:15:00.000000000"
@@ -533,7 +530,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -542,7 +539,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -551,25 +548,25 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-M") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-M") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-M") match FormatError(message: 'time format string `"%-M"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("78", "%-M") match FormatError(message: 'value for minute out of range: 78')
 					end
 				end
 
-				context "space padded", ->
-					should "parse two digits", ->
+				context "space padded" ->
+					should "parse two digits" ->
 						t := Time.parse("15", "%_M")
 						assert! t <<: Time
 						assert! t.to_string == "00:15:00.000000000"
@@ -578,7 +575,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -587,7 +584,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -596,7 +593,7 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_M")
 						assert! t <<: Time
 						assert! t.to_string == "00:07:00.000000000"
@@ -605,23 +602,23 @@ describe "Time", ->
 						assert! t.second == 0
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_M") match FormatError(message: 'time format string `"%_M"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_M") match FormatError(message: 'time format string `"%_M"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("92", "%_M") match FormatError(message: 'value for minute out of range: 92')
 					end
 				end
 			end
 
-			context "second", ->
-				context "zero padded", ->
-					should "parse repeated seconds", ->
+			context "second" ->
+				context "zero padded" ->
+					should "parse repeated seconds" ->
 						t := Time.parse("15 25 9 12", "%H %M %S %S")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:12.000000000"
@@ -630,7 +627,7 @@ describe "Time", ->
 						assert! t.second == 12
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("52", "%S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:52.000000000"
@@ -639,7 +636,7 @@ describe "Time", ->
 						assert! t.second == 52
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -648,7 +645,7 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -657,25 +654,25 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%S") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%S") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%S") match FormatError(message: 'time format string `"%S"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("61", "%S") match FormatError(message: 'value for second out of range: 61')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("56", "%-S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:56.000000000"
@@ -684,7 +681,7 @@ describe "Time", ->
 						assert! t.second == 56
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -693,7 +690,7 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -702,25 +699,25 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-S") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-S") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-S") match FormatError(message: 'time format string `"%-S"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("78", "%-S") match FormatError(message: 'value for second out of range: 78')
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("52", "%_S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:52.000000000"
@@ -729,7 +726,7 @@ describe "Time", ->
 						assert! t.second == 52
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -738,7 +735,7 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -747,7 +744,7 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_S")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:07.000000000"
@@ -756,23 +753,23 @@ describe "Time", ->
 						assert! t.second == 7
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_S") match FormatError(message: 'time format string `"%_S"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_S") match FormatError(message: 'time format string `"%_S"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("92", "%_S") match FormatError(message: 'value for second out of range: 92')
 					end
 				end
 			end
 
-			context "millisecond", ->
-				context "zero padded", ->
-					should "parse repeated milliseconds", ->
+			context "millisecond" ->
+				context "zero padded" ->
+					should "parse repeated milliseconds" ->
 						t := Time.parse("120 15 25 9 552", "%L %H %M %S %L")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552000000"
@@ -782,7 +779,7 @@ describe "Time", ->
 						assert! t.millisecond == 552
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("152", "%L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.152000000"
@@ -792,7 +789,7 @@ describe "Time", ->
 						assert! t.millisecond == 152
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("5", "%L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.005000000"
@@ -802,7 +799,7 @@ describe "Time", ->
 						assert! t.millisecond == 5
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("075", "%L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.075000000"
@@ -812,25 +809,25 @@ describe "Time", ->
 						assert! t.millisecond == 75
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%L") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%L") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%L") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520", "%L") match FormatError(message: 'time format string `"%L"` is incompatible with parsed input `"1520"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("560", "%-L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.560000000"
@@ -840,7 +837,7 @@ describe "Time", ->
 						assert! t.millisecond == 560
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.007000000"
@@ -850,7 +847,7 @@ describe "Time", ->
 						assert! t.millisecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.007000000"
@@ -860,25 +857,25 @@ describe "Time", ->
 						assert! t.millisecond == 7
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-L") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-L") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-L") match FormatError(message: 'time format string `"%-L"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("7800", "%-L") match FormatError(message: "time format string `\"%-L\"` is incompatible with parsed input `\"7800\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("520", "%_L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.520000000"
@@ -888,7 +885,7 @@ describe "Time", ->
 						assert! t.millisecond == 520
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.007000000"
@@ -898,7 +895,7 @@ describe "Time", ->
 						assert! t.millisecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.007000000"
@@ -908,7 +905,7 @@ describe "Time", ->
 						assert! t.millisecond == 7
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_L")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.007000000"
@@ -918,23 +915,23 @@ describe "Time", ->
 						assert! t.millisecond == 7
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_L") match FormatError(message: 'time format string `"%_L"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_L") match FormatError(message: 'time format string `"%_L"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("9200", "%_L") match FormatError(message: "time format string `\"%_L\"` is incompatible with parsed input `\"9200\"`")
 					end
 				end
 			end
 
-			context "microsecond", ->
-				context "zero padded", ->
-					should "parse repeated microseconds", ->
+			context "microsecond" ->
+				context "zero padded" ->
+					should "parse repeated microseconds" ->
 						t := Time.parse("152420 15 25 9 552992", "%6N %H %M %S %6N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992000"
@@ -945,7 +942,7 @@ describe "Time", ->
 						assert! t.microsecond == 992
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("152420", "%6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.152420000"
@@ -956,7 +953,7 @@ describe "Time", ->
 						assert! t.microsecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -967,7 +964,7 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000075", "%6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000075000"
@@ -978,25 +975,25 @@ describe "Time", ->
 						assert! t.microsecond == 75
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%6N") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%6N") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%6N") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000", "%6N") match FormatError(message: 'time format string `"%6N"` is incompatible with parsed input `"1520000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("152420", "%-6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.152420000"
@@ -1007,7 +1004,7 @@ describe "Time", ->
 						assert! t.microsecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -1018,7 +1015,7 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%-6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -1029,25 +1026,25 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-6N") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-6N") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-6N") match FormatError(message: 'time format string `"%-6N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000", "%-6N") match FormatError(message: "time format string `\"%-6N\"` is incompatible with parsed input `\"1520000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("152420", "%_6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.152420000"
@@ -1058,7 +1055,7 @@ describe "Time", ->
 						assert! t.microsecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -1069,7 +1066,7 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("07", "%_6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -1080,7 +1077,7 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse(" 7", "%_6N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000007000"
@@ -1091,23 +1088,23 @@ describe "Time", ->
 						assert! t.microsecond == 7
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_6N") match FormatError(message: 'time format string `"%_6N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_6N") match FormatError(message: 'time format string `"%_6N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000", "%_6N") match FormatError(message: "time format string `\"%_6N\"` is incompatible with parsed input `\"1520000\"`")
 					end
 				end
 			end
 
-			context "nanosecond", ->
-				context "zero padded", ->
-					should "parse repeated nanoseconds", ->
+			context "nanosecond" ->
+				context "zero padded" ->
+					should "parse repeated nanoseconds" ->
 						t := Time.parse("944152420 15 25 9 552992164", "%N %H %M %S %N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -1119,7 +1116,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420", "%N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1131,7 +1128,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with 9N format", ->
+					should "parse with 9N format" ->
 						t := Time.parse("944152420", "%9N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1143,7 +1140,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000007"
@@ -1155,7 +1152,7 @@ describe "Time", ->
 						assert! t.nanosecond == 7
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000000075", "%N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000075"
@@ -1167,25 +1164,25 @@ describe "Time", ->
 						assert! t.nanosecond == 75
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%N") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%N") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%N") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000", "%N") match FormatError(message: 'time format string `"%N"` is incompatible with parsed input `"1520000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420", "%-N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1197,7 +1194,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with -9N format", ->
+					should "parse with -9N format" ->
 						t := Time.parse("944152420", "%-9N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1209,7 +1206,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000007"
@@ -1221,7 +1218,7 @@ describe "Time", ->
 						assert! t.nanosecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000000075", "%-N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000075"
@@ -1233,25 +1230,25 @@ describe "Time", ->
 						assert! t.nanosecond == 75
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-N") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-N") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-N") match FormatError(message: 'time format string `"%-N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000", "%-N") match FormatError(message: "time format string `\"%-N\"` is incompatible with parsed input `\"1520000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420", "%_N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1263,7 +1260,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with _9N format", ->
+					should "parse with _9N format" ->
 						t := Time.parse("944152420", "%_9N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1275,7 +1272,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000007"
@@ -1287,7 +1284,7 @@ describe "Time", ->
 						assert! t.nanosecond == 7
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000000075", "%_N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000075"
@@ -1299,7 +1296,7 @@ describe "Time", ->
 						assert! t.nanosecond == 75
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("    7", "%_N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000007"
@@ -1311,23 +1308,23 @@ describe "Time", ->
 						assert! t.nanosecond == 7
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_N") match FormatError(message: 'time format string `"%_N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_N") match FormatError(message: 'time format string `"%_N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000", "%_N") match FormatError(message: "time format string `\"%_N\"` is incompatible with parsed input `\"1520000000\"`")
 					end
 				end
 			end
 
-			context "picosecond", ->
-				context "zero padded", ->
-					should "parse repeated picoseconds", ->
+			context "picosecond" ->
+				context "zero padded" ->
+					should "parse repeated picoseconds" ->
 						t := Time.parse("944152420212 15 25 9 552992164888", "%12N %H %M %S %12N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -1339,7 +1336,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212", "%12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1351,7 +1348,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1363,7 +1360,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000152420212", "%12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1375,25 +1372,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%12N") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%12N") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%12N") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000", "%12N") match FormatError(message: 'time format string `"%12N"` is incompatible with parsed input `"1520000000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212", "%-12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1405,7 +1402,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1417,7 +1414,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212", "%-12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1429,25 +1426,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-12N") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-12N") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-12N") match FormatError(message: 'time format string `"%-12N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000", "%-12N") match FormatError(message: "time format string `\"%-12N\"` is incompatible with parsed input `\"1520000000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212", "%_12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1459,7 +1456,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1471,7 +1468,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212", "%_12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1483,7 +1480,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("   152420212", "%_12N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1495,23 +1492,23 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_12N") match FormatError(message: 'time format string `"%_12N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_12N") match FormatError(message: 'time format string `"%_12N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000", "%_12N") match FormatError(message: "time format string `\"%_12N\"` is incompatible with parsed input `\"1520000000000\"`")
 					end
 				end
 			end
 
-			context "femtosecond", ->
-				context "zero padded", ->
-					should "parse repeated femtoseconds", ->
+			context "femtosecond" ->
+				context "zero padded" ->
+					should "parse repeated femtoseconds" ->
 						t := Time.parse("944152420212794 15 25 9 552992164888376", "%15N %H %M %S %15N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -1523,7 +1520,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794", "%15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1535,7 +1532,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1547,7 +1544,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000152420212794", "%15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1559,25 +1556,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%15N") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%15N") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%15N") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000", "%15N") match FormatError(message: 'time format string `"%15N"` is incompatible with parsed input `"1520000000000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794", "%-15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1589,7 +1586,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1601,7 +1598,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794", "%-15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1613,25 +1610,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-15N") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-15N") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-15N") match FormatError(message: 'time format string `"%-15N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000", "%-15N") match FormatError(message: "time format string `\"%-15N\"` is incompatible with parsed input `\"1520000000000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794", "%_15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1643,7 +1640,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1655,7 +1652,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794", "%_15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1667,7 +1664,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("   152420212794", "%_15N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1679,23 +1676,23 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_15N") match FormatError(message: 'time format string `"%_15N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_15N") match FormatError(message: 'time format string `"%_15N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000", "%_15N") match FormatError(message: "time format string `\"%_15N\"` is incompatible with parsed input `\"1520000000000000\"`")
 					end
 				end
 			end
 
-			context "attosecond", ->
-				context "zero padded", ->
-					should "parse repeated attoseconds", ->
+			context "attosecond" ->
+				context "zero padded" ->
+					should "parse repeated attoseconds" ->
 						t := Time.parse("944152420212794111 15 25 9 552992164888376909", "%18N %H %M %S %18N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -1707,7 +1704,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111", "%18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1719,7 +1716,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1731,7 +1728,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000152420212794111", "%18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1743,25 +1740,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%18N") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%18N") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%18N") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000", "%18N") match FormatError(message: 'time format string `"%18N"` is incompatible with parsed input `"1520000000000000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111", "%-18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1773,7 +1770,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1785,7 +1782,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111", "%-18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1797,25 +1794,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-18N") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-18N") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-18N") match FormatError(message: 'time format string `"%-18N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000", "%-18N") match FormatError(message: "time format string `\"%-18N\"` is incompatible with parsed input `\"1520000000000000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse all digits", ->
+				context "space padded" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111", "%_18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1827,7 +1824,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1839,7 +1836,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111", "%_18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1851,7 +1848,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("   152420212794111", "%_18N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1863,23 +1860,23 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_18N") match FormatError(message: 'time format string `"%_18N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_18N") match FormatError(message: 'time format string `"%_18N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000", "%_18N") match FormatError(message: "time format string `\"%_18N\"` is incompatible with parsed input `\"1520000000000000000\"`")
 					end
 				end
 			end
 
-			context "zeptosecond", ->
-				context "zero padded", ->
-					should "parse repeated zeptoseconds", ->
+			context "zeptosecond" ->
+				context "zero padded" ->
+					should "parse repeated zeptoseconds" ->
 						t := Time.parse("944152420212794111327 15 25 9 552992164888376909773", "%21N %H %M %S %21N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -1891,7 +1888,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111327", "%21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1903,7 +1900,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1915,7 +1912,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000152420212794111327", "%21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1927,25 +1924,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%21N") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%21N") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%21N") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000", "%21N") match FormatError(message: 'time format string `"%21N"` is incompatible with parsed input `"1520000000000000000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse two digits", ->
+				context "no padding" ->
+					should "parse two digits" ->
 						t := Time.parse("944152420212794111327", "%-21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -1957,7 +1954,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -1969,7 +1966,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111327", "%-21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -1981,25 +1978,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-21N") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-21N") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-21N") match FormatError(message: 'time format string `"%-21N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000", "%-21N") match FormatError(message: "time format string `\"%-21N\"` is incompatible with parsed input `\"1520000000000000000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse two digits", ->
+				context "space padded" ->
+					should "parse two digits" ->
 						t := Time.parse("944152420212794111327", "%_21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -2011,7 +2008,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -2023,7 +2020,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111327", "%_21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2035,7 +2032,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("   152420212794111327", "%_21N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2047,23 +2044,23 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_21N") match FormatError(message: 'time format string `"%_21N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_21N") match FormatError(message: 'time format string `"%_21N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000", "%_21N") match FormatError(message: "time format string `\"%_21N\"` is incompatible with parsed input `\"1520000000000000000000\"`")
 					end
 				end
 			end
 
-			context "yoctosecond", ->
-				context "zero padded", ->
-					should "parse repeated yoctoseconds", ->
+			context "yoctosecond" ->
+				context "zero padded" ->
+					should "parse repeated yoctoseconds" ->
 						t := Time.parse("944152420212794111327666 15 25 9 552992164888376909773445", "%24N %H %M %S %24N")
 						assert! t <<: Time
 						assert! t.to_string == "15:25:09.552992164"
@@ -2075,7 +2072,7 @@ describe "Time", ->
 						assert! t.nanosecond == 164
 					end
 
-					should "parse all digits", ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111327666", "%24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -2087,7 +2084,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -2099,7 +2096,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zeros", ->
+					should "parse with leading zeros" ->
 						t := Time.parse("000152420212794111327666", "%24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2111,25 +2108,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%24N") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%24N") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%24N") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000000", "%24N") match FormatError(message: 'time format string `"%24N"` is incompatible with parsed input `"1520000000000000000000000"`')
 					end
 				end
 
-				context "no padding", ->
-					should "parse all digits", ->
+				context "no padding" ->
+					should "parse all digits" ->
 						t := Time.parse("944152420212794111327666", "%-24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -2141,7 +2138,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%-24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -2153,7 +2150,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111327666", "%-24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2165,25 +2162,25 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for leading space", ->
+					should "raise format error for leading space" ->
 						assert_throws! Time.parse(" 7", "%-24N") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `" 7"`')
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%-24N") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%-24N") match FormatError(message: 'time format string `"%-24N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000000", "%-24N") match FormatError(message: "time format string `\"%-24N\"` is incompatible with parsed input `\"1520000000000000000000000\"`")
 					end
 				end
 
-				context "space padded", ->
-					should "parse two digits", ->
+				context "space padded" ->
+					should "parse two digits" ->
 						t := Time.parse("944152420212794111327666", "%_24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.944152420"
@@ -2195,7 +2192,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse one digit", ->
+					should "parse one digit" ->
 						t := Time.parse("7", "%_24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000000000"
@@ -2207,7 +2204,7 @@ describe "Time", ->
 						assert! t.nanosecond == 0
 					end
 
-					should "parse with leading zero", ->
+					should "parse with leading zero" ->
 						t := Time.parse("000152420212794111327666", "%_24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2219,7 +2216,7 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "parse with leading space", ->
+					should "parse with leading space" ->
 						t := Time.parse("   152420212794111327666", "%_24N")
 						assert! t <<: Time
 						assert! t.to_string == "00:00:00.000152420"
@@ -2231,22 +2228,22 @@ describe "Time", ->
 						assert! t.nanosecond == 420
 					end
 
-					should "raise format error for no digits", ->
+					should "raise format error for no digits" ->
 						assert_throws! Time.parse("", "%_24N") match FormatError(message: 'time format string `"%_24N"` is incompatible with parsed input `""`')
 					end
 
-					should "raise format error for text", ->
+					should "raise format error for text" ->
 						assert_throws! Time.parse("foo", "%_24N") match FormatError(message: 'time format string `"%_24N"` is incompatible with parsed input `"foo"`')
 					end
 
-					should "raise format error for out of bounds", ->
+					should "raise format error for out of bounds" ->
 						assert_throws! Time.parse("1520000000000000000000000", "%_24N") match FormatError(message: "time format string `\"%_24N\"` is incompatible with parsed input `\"1520000000000000000000000\"`")
 					end
 				end
 			end
 
 			context "time12",  ->
-				should "parse valid input", ->
+				should "parse valid input" ->
 					t := Time.parse("10:34:15 pm", "%r")
 					assert! t <<: Time
 					assert! t.to_string == "22:34:15.000000000"
@@ -2255,17 +2252,17 @@ describe "Time", ->
 					assert! t.second == 15
 				end
 
-				should "throw a format error on wrong separator", ->
+				should "throw a format error on wrong separator" ->
 					assert_throws! Time.parse("10-34:15 pm", "%r") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
 				end
 
-				should "throw a format error on out of range minute", ->
+				should "throw a format error on out of range minute" ->
 					assert_throws! Time.parse("10:90:15 pm", "%r") match FormatError(message: "value for minute out of range: 90")
 				end
 			end
 
 			context "time24",  ->
-				should "parse valid input", ->
+				should "parse valid input" ->
 					t := Time.parse("15:34", "%R")
 					assert! t <<: Time
 					assert! t.to_string == "15:34:00.000000000"
@@ -2274,17 +2271,17 @@ describe "Time", ->
 					assert! t.second == 0
 				end
 
-				should "throw a format error on wrong separator", ->
+				should "throw a format error on wrong separator" ->
 					assert_throws! Time.parse("15-34", "%R") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
 				end
 
-				should "throw a format error on out of range minute", ->
+				should "throw a format error on out of range minute" ->
 					assert_throws! Time.parse("10:90", "%R") match FormatError(message: "value for minute out of range: 90")
 				end
 			end
 
 			context "time24 with seconds",  ->
-				should "parse valid input", ->
+				should "parse valid input" ->
 					t := Time.parse("15:34:15", "%T")
 					assert! t <<: Time
 					assert! t.to_string == "15:34:15.000000000"
@@ -2293,322 +2290,322 @@ describe "Time", ->
 					assert! t.second == 15
 				end
 
-				should "throw a format error on wrong separator", ->
+				should "throw a format error on wrong separator" ->
 					assert_throws! Time.parse("15-34:15", "%T") match FormatError(message: "cannot parse time string, expected `\":\"`, got `\"-\"`")
 				end
 
-				should "throw a format error on out of range minute", ->
+				should "throw a format error on out of range minute" ->
 					assert_throws! Time.parse("15:90:15", "%T") match FormatError(message: "value for minute out of range: 90")
 				end
 			end
 		end
 	end
 
-	context "strftime", ->
-		context "hour", ->
-			should "build one digit with zero padding", ->
+	context "strftime" ->
+		context "hour" ->
+			should "build one digit with zero padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%H") == "08"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%-H") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%_H") == " 8"
 			end
 		end
 
-		context "hour 12", ->
-			should "build AM", ->
+		context "hour 12" ->
+			should "build AM" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%I") == "08"
 			end
 
-			should "build PM", ->
+			should "build PM" ->
 				t := Time(hour: 16)
 				assert! t.strftime("%I") == "04"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(hour: 18)
 				assert! t.strftime("%I") == "06"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%-H") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%_H") == " 8"
 			end
 		end
 
-		context "meridiem", ->
-			should "build one digit PM with zero padding", ->
+		context "meridiem" ->
+			should "build one digit PM with zero padding" ->
 				t := Time(hour: 16)
 				assert! t.strftime("%I %P") == "04 pm"
 			end
 
-			should "build 12 PM", ->
+			should "build 12 PM" ->
 				t := Time(hour: 12)
 				assert! t.strftime("%I %P") == "12 pm"
 			end
 
-			should "build 12 AM", ->
+			should "build 12 AM" ->
 				t := Time(hour: 0)
 				assert! t.strftime("%I %P") == "12 am"
 			end
 
-			should "build lowercase 6 AM", ->
+			should "build lowercase 6 AM" ->
 				t := Time(hour: 6)
 				assert! t.strftime("%I %P") == "06 am"
 			end
 
-			should "build uppercase 6 AM", ->
+			should "build uppercase 6 AM" ->
 				t := Time(hour: 6)
 				assert! t.strftime("%I %^P") == "06 AM"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%-I") == "8"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(hour: 8)
 				assert! t.strftime("%_I") == " 8"
 			end
 		end
 
-		context "minute", ->
-			should "build two digits", ->
+		context "minute" ->
+			should "build two digits" ->
 				t := Time(minute: 28)
 				assert! t.strftime("%M") == "28"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(minute: 9)
 				assert! t.strftime("%M") == "09"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(minute: 9)
 				assert! t.strftime("%-M") == "9"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(minute: 9)
 				assert! t.strftime("%_M") == " 9"
 			end
 		end
 
-		context "second", ->
-			should "build two digits", ->
+		context "second" ->
+			should "build two digits" ->
 				t := Time(second: 28)
 				assert! t.strftime("%S") == "28"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(second: 9)
 				assert! t.strftime("%S") == "09"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(second: 9)
 				assert! t.strftime("%-S") == "9"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(second: 9)
 				assert! t.strftime("%_S") == " 9"
 			end
 		end
 
-		context "millisecond", ->
-			should "build three digits", ->
+		context "millisecond" ->
+			should "build three digits" ->
 				t := Time(millisecond: 282)
 				assert! t.strftime("%L") == "282"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(millisecond: 9)
 				assert! t.strftime("%L") == "009"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(millisecond: 9)
 				assert! t.strftime("%-L") == "9"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(millisecond: 9)
 				assert! t.strftime("%_L") == "  9"
 			end
 		end
 
-		context "microsecond", ->
-			should "build all digits", ->
+		context "microsecond" ->
+			should "build all digits" ->
 				t := Time(microsecond: 282_984)
 				assert! t.strftime("%6N") == "282984"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(microsecond: 9)
 				assert! t.strftime("%6N") == "000009"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(microsecond: 9)
 				assert! t.strftime("%-6N") == "9"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(microsecond: 9)
 				assert! t.strftime("%_6N") == "     9"
 			end
 		end
 
-		context "nanosecond", ->
-			should "build all digits", ->
+		context "nanosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%9N") == "282984777"
 			end
 
-			should "build one digit with zero padding", ->
+			should "build one digit with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%9N") == "000000009"
 			end
 
-			should "build one digit without padding", ->
+			should "build one digit without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-9N") == "9"
 			end
 
-			should "build one digit with space padding", ->
+			should "build one digit with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_9N") == "        9"
 			end
 		end
 
-		context "picosecond", ->
-			should "build all digits", ->
+		context "picosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%12N") == "282984777000"
 			end
 
-			should "build with zero padding", ->
+			should "build with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%12N") == "000000009000"
 			end
 
-			should "build without padding", ->
+			should "build without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-12N") == "9000"
 			end
 
-			should "build with space padding", ->
+			should "build with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_12N") == "        9000"
 			end
 		end
 
-		context "femtosecond", ->
-			should "build all digits", ->
+		context "femtosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%15N") == "282984777000000"
 			end
 
-			should "build with zero padding", ->
+			should "build with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%15N") == "000000009000000"
 			end
 
-			should "build without padding", ->
+			should "build without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-15N") == "9000000"
 			end
 
-			should "build with space padding", ->
+			should "build with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_15N") == "        9000000"
 			end
 		end
 
-		context "attosecond", ->
-			should "build all digits", ->
+		context "attosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%18N") == "282984777000000000"
 			end
 
-			should "build with zero padding", ->
+			should "build with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%18N") == "000000009000000000"
 			end
 
-			should "build without padding", ->
+			should "build without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-18N") == "9000000000"
 			end
 
-			should "build with space padding", ->
+			should "build with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_18N") == "        9000000000"
 			end
 		end
 
-		context "zeptosecond", ->
-			should "build all digits", ->
+		context "zeptosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%21N") == "282984777000000000000"
 			end
 
-			should "build with zero padding", ->
+			should "build with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%21N") == "000000009000000000000"
 			end
 
-			should "build without padding", ->
+			should "build without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-21N") == "9000000000000"
 			end
 
-			should "build with space padding", ->
+			should "build with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_21N") == "        9000000000000"
 			end
 		end
 
-		context "yoctosecond", ->
-			should "build all digits", ->
+		context "yoctosecond" ->
+			should "build all digits" ->
 				t := Time(nanosecond: 282_984_777)
 				assert! t.strftime("%24N") == "282984777000000000000000"
 			end
 
-			should "build with zero padding", ->
+			should "build with zero padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%24N") == "000000009000000000000000"
 			end
 
-			should "build without padding", ->
+			should "build without padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%-24N") == "9000000000000000"
 			end
 
-			should "build with space padding", ->
+			should "build with space padding" ->
 				t := Time(nanosecond: 9)
 				assert! t.strftime("%_24N") == "        9000000000000000"
 			end
 		end
 	end
 
-	context "to_string", ->
-		should "render all components", ->
+	context "to_string" ->
+		should "render all components" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2622,8 +2619,8 @@ describe "Time", ->
 		end
 	end
 
-	context "to_time", ->
-		should "return self", ->
+	context "to_time" ->
+		should "return self" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2636,8 +2633,8 @@ describe "Time", ->
 		end
 	end
 
-	context "to_datetime", ->
-		should "build a datetime with current date", ->
+	context "to_datetime" ->
+		should "build a datetime with current date" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2663,8 +2660,8 @@ describe "Time", ->
 		end
 	end
 
-	context "to_time_span", ->
-		should "return an equivalent span", ->
+	context "to_time_span" ->
+		should "return an equivalent span" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2679,8 +2676,8 @@ describe "Time", ->
 		end
 	end
 
-	context "hour", ->
-		should "return the hour component", ->
+	context "hour" ->
+		should "return the hour component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2693,8 +2690,8 @@ describe "Time", ->
 		end
 	end
 
-	context "hour12", ->
-		should "return unchanged hour under 12", ->
+	context "hour12" ->
+		should "return unchanged hour under 12" ->
 			t := Time(
 				hour: 8,
 				minute: 59,
@@ -2706,7 +2703,7 @@ describe "Time", ->
 			assert! t.hour12 == 8
 		end
 
-		should "return clamped hour over 12", ->
+		should "return clamped hour over 12" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2719,8 +2716,8 @@ describe "Time", ->
 		end
 	end
 
-	context "meridiem", ->
-		should "return PM", ->
+	context "meridiem" ->
+		should "return PM" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2729,7 +2726,7 @@ describe "Time", ->
 			assert! t.meridiem == "PM"
 		end
 
-		should "return AM", ->
+		should "return AM" ->
 			t := Time(
 				hour: 8,
 				minute: 59,
@@ -2738,14 +2735,14 @@ describe "Time", ->
 			assert! t.meridiem == "AM"
 		end
 
-		should "return AM for 24:00", ->
+		should "return AM for 24:00" ->
 			t := Time(
 				hour: 24,
 			)
 			assert! t.meridiem == "AM"
 		end
 
-		should "return PM for 12:00", ->
+		should "return PM for 12:00" ->
 			t := Time(
 				hour: 12,
 			)
@@ -2753,8 +2750,8 @@ describe "Time", ->
 		end
 	end
 
-	context "minute", ->
-		should "return the minute component", ->
+	context "minute" ->
+		should "return the minute component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2767,8 +2764,8 @@ describe "Time", ->
 		end
 	end
 
-	context "second", ->
-		should "return the second component", ->
+	context "second" ->
+		should "return the second component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2781,8 +2778,8 @@ describe "Time", ->
 		end
 	end
 
-	context "millisecond", ->
-		should "return the millisecond component", ->
+	context "millisecond" ->
+		should "return the millisecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2795,8 +2792,8 @@ describe "Time", ->
 		end
 	end
 
-	context "microsecond", ->
-		should "return the microsecond component", ->
+	context "microsecond" ->
+		should "return the microsecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2809,8 +2806,8 @@ describe "Time", ->
 		end
 	end
 
-	context "microseconds_in_second", ->
-		should "return the microsecond component when no milliseconds", ->
+	context "microseconds_in_second" ->
+		should "return the microsecond component when no milliseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2821,7 +2818,7 @@ describe "Time", ->
 			assert! t.microseconds_in_second == 985
 		end
 
-		should "return combined milliseconds and microseconds", ->
+		should "return combined milliseconds and microseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2834,8 +2831,8 @@ describe "Time", ->
 		end
 	end
 
-	context "nanosecond", ->
-		should "return the nanosecond component", ->
+	context "nanosecond" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2848,8 +2845,8 @@ describe "Time", ->
 		end
 	end
 
-	context "nanoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "nanoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2859,7 +2856,7 @@ describe "Time", ->
 			assert! t.nanoseconds_in_second == 500
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2872,8 +2869,8 @@ describe "Time", ->
 		end
 	end
 
-	context "picoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "picoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2883,7 +2880,7 @@ describe "Time", ->
 			assert! t.picoseconds_in_second == 500_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2896,8 +2893,8 @@ describe "Time", ->
 		end
 	end
 
-	context "femtoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "femtoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2907,7 +2904,7 @@ describe "Time", ->
 			assert! t.femtoseconds_in_second == 500_000_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2920,8 +2917,8 @@ describe "Time", ->
 		end
 	end
 
-	context "attoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "attoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2931,7 +2928,7 @@ describe "Time", ->
 			assert! t.attoseconds_in_second == 500_000_000_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2944,8 +2941,8 @@ describe "Time", ->
 		end
 	end
 
-	context "zeptoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "zeptoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2955,7 +2952,7 @@ describe "Time", ->
 			assert! t.zeptoseconds_in_second == 500_000_000_000_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2968,8 +2965,8 @@ describe "Time", ->
 		end
 	end
 
-	context "yoctoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "yoctoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2979,7 +2976,7 @@ describe "Time", ->
 			assert! t.yoctoseconds_in_second == 500_000_000_000_000_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -2992,8 +2989,8 @@ describe "Time", ->
 		end
 	end
 
-	context "yoctoseconds_in_second", ->
-		should "return the nanosecond component", ->
+	context "yoctoseconds_in_second" ->
+		should "return the nanosecond component" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -3003,7 +3000,7 @@ describe "Time", ->
 			assert! t.yoctoseconds_in_second == 500_000_000_000_000_000
 		end
 
-		should "return combined subseconds", ->
+		should "return combined subseconds" ->
 			t := Time(
 				hour: 15,
 				minute: 59,
@@ -3016,8 +3013,8 @@ describe "Time", ->
 		end
 	end
 
-	context "+", ->
-		should "add a span", ->
+	context "+" ->
+		should "add a span" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3026,7 +3023,7 @@ describe "Time", ->
 			assert! t + 1.hour == Time(hour: 16, minute: 30, second: 20)
 		end
 
-		should "add a span with overflow", ->
+		should "add a span with overflow" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3036,8 +3033,8 @@ describe "Time", ->
 		end
 	end
 
-	context "-", ->
-		should "return a positive Time when other is a span", ->
+	context "-" ->
+		should "return a positive Time when other is a span" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3046,7 +3043,7 @@ describe "Time", ->
 			assert! t - 1.hour == Time(hour: 14, minute: 30, second: 20)
 		end
 
-		should "return a positive Time with underflow when other is a span", ->
+		should "return a positive Time with underflow when other is a span" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3055,7 +3052,7 @@ describe "Time", ->
 			assert! t - 20.hour == Time(hour: 19, minute: 30, second: 20)
 		end
 
-		should "return a positive span when other is a Time", ->
+		should "return a positive span when other is a Time" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3064,7 +3061,7 @@ describe "Time", ->
 			assert! t - Time(hour: 14, minute: 30, second: 20) == 1.hour
 		end
 
-		should "return a negative span when other is a Time", ->
+		should "return a negative span when other is a Time" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3074,8 +3071,8 @@ describe "Time", ->
 		end
 	end
 
-	context "diff", ->
-		should "return a positive span", ->
+	context "diff" ->
+		should "return a positive span" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3084,7 +3081,7 @@ describe "Time", ->
 			assert! t.diff(Time(hour: 14, minute: 30, second: 20)) == 1.hour
 		end
 
-		should "return a negative span", ->
+		should "return a negative span" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3094,8 +3091,8 @@ describe "Time", ->
 		end
 	end
 
-	context "<=>", ->
-		should "return 1 when greater", ->
+	context "<=>" ->
+		should "return 1 when greater" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3104,7 +3101,7 @@ describe "Time", ->
 			assert! t <=> Time(hour: 13) == 1
 		end
 
-		should "return 0 when equal", ->
+		should "return 0 when equal" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3113,7 +3110,7 @@ describe "Time", ->
 			assert! t <=> Time(hour: 15, minute: 30, second: 20) == 0
 		end
 
-		should "return -1 when less", ->
+		should "return -1 when less" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3123,8 +3120,8 @@ describe "Time", ->
 		end
 	end
 
-	context ">=", ->
-		should "return true when greater", ->
+	context ">=" ->
+		should "return true when greater" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3133,7 +3130,7 @@ describe "Time", ->
 			assert! t >= Time(hour: 13) == true
 		end
 
-		should "return true when equal", ->
+		should "return true when equal" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3142,7 +3139,7 @@ describe "Time", ->
 			assert! t >= Time(hour: 15, minute: 30, second: 20) == true
 		end
 
-		should "return false when less", ->
+		should "return false when less" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3152,8 +3149,8 @@ describe "Time", ->
 		end
 	end
 
-	context ">", ->
-		should "return true when greater", ->
+	context ">" ->
+		should "return true when greater" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3162,7 +3159,7 @@ describe "Time", ->
 			assert! t > Time(hour: 13) == true
 		end
 
-		should "return false when equal", ->
+		should "return false when equal" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3171,7 +3168,7 @@ describe "Time", ->
 			assert! t > Time(hour: 15, minute: 30, second: 20) == false
 		end
 
-		should "return false when less", ->
+		should "return false when less" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3181,8 +3178,8 @@ describe "Time", ->
 		end
 	end
 
-	context "<=", ->
-		should "return false when greater", ->
+	context "<=" ->
+		should "return false when greater" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3191,7 +3188,7 @@ describe "Time", ->
 			assert! t <= Time(hour: 13) == false
 		end
 
-		should "return true when equal", ->
+		should "return true when equal" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3200,7 +3197,7 @@ describe "Time", ->
 			assert! t <= Time(hour: 15, minute: 30, second: 20) == true
 		end
 
-		should "return true when less", ->
+		should "return true when less" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3210,8 +3207,8 @@ describe "Time", ->
 		end
 	end
 
-	context "<", ->
-		should "return false when greater", ->
+	context "<" ->
+		should "return false when greater" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3220,7 +3217,7 @@ describe "Time", ->
 			assert! t < Time(hour: 13) == false
 		end
 
-		should "return false when equal", ->
+		should "return false when equal" ->
 			t := Time(
 				hour: 15,
 				minute: 30,
@@ -3229,7 +3226,7 @@ describe "Time", ->
 			assert! t < Time(hour: 15, minute: 30, second: 20) == false
 		end
 
-		should "return true when less", ->
+		should "return true when less" ->
 			t := Time(
 				hour: 15,
 				minute: 30,

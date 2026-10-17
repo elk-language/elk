@@ -65,6 +65,17 @@ type Location struct {
 var DefaultLocation = NewLocation("<main>", DefaultSpan)
 var ZeroLocation = NewLocation("", ZeroSpan)
 
+// Create a new location from the start position of this location.
+func (l *Location) NewLocationFromStart() *Location {
+	return &Location{
+		Span: NewSpan(
+			l.StartPos,
+			l.StartPos,
+		),
+		FilePath: l.FilePath,
+	}
+}
+
 // Create a new location with a given position.
 func NewLocation(filename string, span *Span) *Location {
 	return &Location{
@@ -182,7 +193,7 @@ func (l *Location) HumanString(style bool, colorizer colorizer.Colorizer, accent
 // Tries to fetch the source from the provided map (keys are filepaths, values are source strings).
 // If there is no entry for the required filepath it tries to read the file through the OS.
 func (l *Location) HumanStringWithSourceMap(style bool, colorizer colorizer.Colorizer, accentColor *color.Color, sourceMap map[string]string) (string, error) {
-	if sourceMap == nil {
+	if sourceMap == nil || l.FilePath == "" {
 		return l.HumanString(style, colorizer, accentColor)
 	}
 

@@ -66,6 +66,17 @@ func (n *BinaryExpressionNode) Equal(other value.Value) bool {
 		n.Right.Equal(value.Ref(o.Right))
 }
 
+func (n *BinaryExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
+}
+
 func (n *BinaryExpressionNode) String() string {
 	var buff strings.Builder
 

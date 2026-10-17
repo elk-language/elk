@@ -73,6 +73,26 @@ func (n *WhileExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *WhileExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WhileExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Condition.LaxEqual(value.Ref(o.Condition)) ||
+		len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *WhileExpressionNode) String() string {
 	var buff strings.Builder
 

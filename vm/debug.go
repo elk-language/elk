@@ -10,7 +10,7 @@ import (
 
 // ::Std::Debug
 func initDebug() {
-	c := &value.DebugModule.SingletonClass().MethodContainer
+	c := value.DebugModule.SingletonClass()
 	Def(
 		c,
 		"start_cpu_profile",
@@ -76,6 +76,42 @@ func initDebug() {
 		func(v *Thread, args []value.Value) (value.Value, value.Value) {
 			val := args[1].ToInterface()
 			return value.String(fmt.Sprintf("%T", val)).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"inspect_current_bytecode",
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
+			if v.bytecode == nil {
+				return value.Undefined, value.NewError(
+					value.TypeErrorClass,
+					"Cannot inspect bytecode of a native method",
+				).ToValue()
+			}
+
+			v.bytecode.Disassemble(os.Stdout)
+			return value.Nil, value.Undefined
+		},
+	)
+	Def(
+		c,
+		"inspect_bytecode",
+		func(v *Thread, args []value.Value) (value.Value, value.Value) {
+			method := args[1]
+			switch method := method.AsReference().(type) {
+			case *BytecodeFunction:
+				method.Disassemble(v.Stdout)
+			case *BytecodeClosure:
+				method.Bytecode.Disassemble(v.Stdout)
+			default:
+				return value.Undefined, value.NewError(
+					value.TypeErrorClass,
+					"Given method has no bytecode to inspect",
+				).ToValue()
+			}
+
+			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
 	)

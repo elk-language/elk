@@ -109,6 +109,25 @@ func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *QuoteExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*QuoteExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) || n.Kind != o.Kind {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *QuoteExpressionNode) String() string {
 	var buff strings.Builder

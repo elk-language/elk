@@ -56,6 +56,16 @@ func (n *UnaryExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *UnaryExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnaryExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
+}
+
 func (n *UnaryExpressionNode) String() string {
 	var buff strings.Builder
 

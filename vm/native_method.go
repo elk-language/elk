@@ -15,10 +15,10 @@ type NativeFunction func(vm *Thread, args []value.Value) (returnVal, err value.V
 // A native Elk method
 type NativeMethod struct {
 	Function               NativeFunction
+	namespace              *value.Class
 	name                   value.Symbol
 	parameterCount         int
 	optionalParameterCount int
-	typ                    *types.Method
 }
 
 var _ value.Method = &NativeMethod{}
@@ -31,7 +31,8 @@ func NewNativeMethodComparer() cmp.Option {
 	return cmp.Comparer(func(x, y *NativeMethod) bool {
 		return x.name == y.name &&
 			x.optionalParameterCount == y.optionalParameterCount &&
-			x.parameterCount == y.parameterCount
+			x.parameterCount == y.parameterCount &&
+			x.namespace == y.namespace
 	})
 }
 
@@ -39,6 +40,14 @@ func (n *NativeMethod) MethodBody() {}
 
 func (n *NativeMethod) Name() value.Symbol {
 	return n.name
+}
+
+func (n *NativeMethod) Namespace() *value.Class {
+	return n.namespace
+}
+
+func (n *NativeMethod) SetNamespace(namespace *value.Class) {
+	n.namespace = namespace
 }
 
 func (n *NativeMethod) ParameterCount() int {
@@ -70,7 +79,7 @@ func (n *NativeMethod) ToValue() value.Value {
 }
 
 func (n *NativeMethod) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :native}", n.name.Inspect())
+	return fmt.Sprintf("Method{name: %s, type: :native, namespace: %s}", n.name.Inspect(), n.namespace.Inspect())
 }
 
 func (n *NativeMethod) Error() string {
@@ -83,12 +92,14 @@ func (*NativeMethod) InstanceVariables() *value.InstanceVariables {
 
 // Create a new native method.
 func NewNativeMethod(
+	namespace *value.Class,
 	name value.Symbol,
 	params int,
 	optParams int,
 	function NativeFunction,
 ) *NativeMethod {
 	return &NativeMethod{
+		namespace:              namespace,
 		name:                   name,
 		parameterCount:         params,
 		optionalParameterCount: optParams,
@@ -99,19 +110,20 @@ func NewNativeMethod(
 // Define a native method in the given container.
 // Returns an error when the method couldn't be defined.
 func DefineNativeMethod(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	name value.Symbol,
 	params int,
 	optParams int,
 	function NativeFunction,
 ) (err value.Value) {
 	nativeMethod := NewNativeMethod(
+		namespace,
 		name,
 		params,
 		optParams,
 		function,
 	)
-	container.Methods[name] = nativeMethod
+	namespace.AttachMethod(name, nativeMethod)
 	return value.Undefined
 }
 
@@ -146,6 +158,7 @@ func DefMacro(namespace types.Namespace, docComment string, name string, params 
 	)
 
 	macro.Body = NewNativeMethod(
+		nil,
 		value.S(symbolName),
 		len(params),
 		0,
@@ -159,7 +172,7 @@ func DefMacro(namespace types.Namespace, docComment string, name string, params 
 //
 // Panics when the method cannot be defined.
 func Def(
-	container *value.MethodContainer,
+	container *value.Class,
 	name string,
 	function NativeFunction,
 	opts ...DefOption,
@@ -167,15 +180,16 @@ func Def(
 	symbolName := value.ToSymbol(name)
 
 	nativeMethod := &NativeMethod{
-		name:     symbolName,
-		Function: function,
+		namespace: container,
+		name:      symbolName,
+		Function:  function,
 	}
 
 	for _, opt := range opts {
 		opt(nativeMethod)
 	}
 
-	container.Methods[symbolName] = nativeMethod
+	container.AttachMethod(symbolName, nativeMethod)
 }
 
 // Utility method that defines a new bytecode
@@ -183,10 +197,11 @@ func Def(
 //
 // Panics when the method cannot be defined.
 func DefBytecode(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	name string,
 	body *BytecodeFunction,
 ) {
 	symbolName := value.ToSymbol(name)
-	container.Methods[symbolName] = body
+	body.namespace = namespace
+	namespace.AttachMethod(symbolName, body)
 }

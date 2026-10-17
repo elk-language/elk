@@ -7,7 +7,7 @@ import (
 // Std::UInt
 func initUInt() {
 	// Instance methods
-	c := &value.UIntClass.MethodContainer
+	c := value.UIntClass
 	Def(
 		c,
 		"hash",

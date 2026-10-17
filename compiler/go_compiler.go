@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -31,6 +33,8 @@ type GoSourceMethod GoCompiler
 
 var _ value.Method = &GoSourceMethod{}
 
+func (c *GoSourceMethod) Namespace() *value.Class                   { return nil }
+func (c *GoSourceMethod) SetNamespace(namespace *value.Class)       {}
 func (c *GoSourceMethod) MethodBody()                               {}
 func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.goName) }
 func (*GoSourceMethod) Class() *value.Class                         { return nil }
@@ -126,14 +130,13 @@ func (m *nativeMethod) goIdent() string {
 }
 
 type nativeConstant struct {
-	ident   string
-	elkType types.Type
-	goType  *value.GoType
-	init    string
-}
-
-func (m *nativeConstant) goIdent() string {
-	return m.ident
+	fullName  string
+	name      symbol.Symbol
+	elkType   types.Type
+	goLocal   *goLocal
+	init      string
+	node      *ast.ConstantDeclarationNode
+	namespace types.Namespace
 }
 
 type nativeValue struct {
@@ -222,22 +225,28 @@ func (s nativeElkScopes) first() *nativeElkScope {
 
 type nativeLoopInfo struct {
 	elkLabel                      string
-	goLabel                       *goLabel
+	loopGoLabel                   *goLabel
+	continueGoLabel               *goLabel
 	resultVar                     *goLocal
 	returnsValueFromLastIteration bool
 }
 
-func newNativeLoopInfo(elkLabel string, goLabel *goLabel, resultVar *goLocal, returnsValueFromLastIteration bool) *nativeLoopInfo {
+func newNativeLoopInfo(elkLabel string, loopGoLabel *goLabel, continueGoLabel *goLabel, resultVar *goLocal, returnsValueFromLastIteration bool) *nativeLoopInfo {
 	return &nativeLoopInfo{
 		elkLabel:                      elkLabel,
-		goLabel:                       goLabel,
+		loopGoLabel:                   loopGoLabel,
+		continueGoLabel:               continueGoLabel,
 		resultVar:                     resultVar,
 		returnsValueFromLastIteration: returnsValueFromLastIteration,
 	}
 }
 
-func (l *nativeLoopInfo) markLabelUsed() {
-	l.goLabel.used = true
+func (l *nativeLoopInfo) markLoopLabelUsed() {
+	l.loopGoLabel.used = true
+}
+
+func (l *nativeLoopInfo) markContinueLabelUsed() {
+	l.continueGoLabel.used = true
 }
 
 type nativeFinallyData struct {
@@ -289,6 +298,20 @@ func newNativeCatchInfo(goLabel *goLabel, finallyData *nativeFinallyData) *nativ
 }
 
 var goValueType = value.FetchGoType("value.Value")
+
+type goLocalTable = ds.OrderedMap[string, *goLocal]
+
+type goScopes []*goLocalTable
+
+// Get the first local variable scope.
+func (s goScopes) first() *goLocalTable {
+	return s[0]
+}
+
+// Get the last local variable scope.
+func (s goScopes) last() *goLocalTable {
+	return s[len(s)-1]
+}
 
 type goLocal struct {
 	name       string
@@ -343,16 +366,30 @@ func (p goValuePair) markFree() {
 }
 
 type goValue struct {
-	value   string
-	goType  *value.GoType
-	elkType types.Type
-	locals  []*goLocal // temporary variables used in this expression
-	narrow  *goValue   // pointer to a version of this value with a narrower type, only present if the value is of type `value.Value`
-	wide    *goValue   // pointer to a version of this value that is wider with type `value.Value`, only available if the value was narrowed from `value.Value`
+	value      string
+	goType     *value.GoType
+	elkType    types.Type
+	locals     []*goLocal // temporary variables used in this expression
+	narrow     *goValue   // pointer to a version of this value with a narrower type, only present if the value is of type `value.Value`
+	wide       *goValue   // pointer to a version of this value that is wider with type `value.Value`, only available if the value was narrowed from `value.Value`
+	manualFree bool
 }
 
 func (v *goValue) isLocal() bool {
-	return len(v.locals) == 1 && v.locals[0].name == v.value
+	if len(v.locals) != 1 {
+		return false
+	}
+
+	local := v.locals[0]
+	return local.name == v.value
+}
+
+func (v *goValue) enableManualFree() {
+	v.manualFree = true
+}
+
+func (v *goValue) disableManualFree() {
+	v.manualFree = false
 }
 
 // Mark any temporary variables used in this expression as free
@@ -370,7 +407,9 @@ func (v *goValue) markFree() {
 // If the value will be used again or you're using it to create
 // the expression of another `*goValue` use `value` property instead.
 func (v *goValue) fetchValue() string {
-	v.markFree()
+	if !v.manualFree {
+		v.markFree()
+	}
 	return v.value
 }
 
@@ -387,11 +426,12 @@ func (v *goValue) newGoValue(value string, typ types.Type, goType *value.GoType)
 // Create a new narrower go value while inheriting locals of this one
 func (v *goValue) newNarrower(value string, typ types.Type, goType *value.GoType) *goValue {
 	narrow := &goValue{
-		wide:    v,
-		value:   value,
-		elkType: typ,
-		goType:  goType,
-		locals:  v.locals,
+		wide:       v,
+		value:      value,
+		elkType:    typ,
+		goType:     goType,
+		locals:     v.locals,
+		manualFree: v.manualFree,
 	}
 	v.narrow = narrow
 	return narrow
@@ -400,11 +440,12 @@ func (v *goValue) newNarrower(value string, typ types.Type, goType *value.GoType
 // Create a new wider go value while inheriting locals of this one
 func (v *goValue) newWider(value string, typ types.Type, goType *value.GoType) *goValue {
 	wide := &goValue{
-		narrow:  v,
-		value:   value,
-		elkType: typ,
-		goType:  goType,
-		locals:  v.locals,
+		narrow:     v,
+		value:      value,
+		elkType:    typ,
+		goType:     goType,
+		locals:     v.locals,
+		manualFree: v.manualFree,
 	}
 	v.wide = wide
 	return wide
@@ -444,12 +485,24 @@ func newGoValueWithLocals(v string, typ types.Type, goType *value.GoType, locals
 }
 
 // Create a new go value based on a Go local.
-func newGoValueWithLocal(local *goLocal, typ types.Type) *goValue {
+func newGoValueWithLocal(local *goLocal, typ types.Type, manualFree bool) *goValue {
 	return &goValue{
-		value:   local.name,
-		elkType: typ,
-		goType:  local.goType,
-		locals:  []*goLocal{local},
+		value:      local.name,
+		elkType:    typ,
+		goType:     local.goType,
+		locals:     []*goLocal{local},
+		manualFree: manualFree,
+	}
+}
+
+// Create a new go value based on a Go local but detached from it.
+// If this value is marked as free, the local won't change its state.
+func newGoValueWithDetachedLocal(local *goLocal, typ types.Type, manualFree bool) *goValue {
+	return &goValue{
+		value:      local.name,
+		elkType:    typ,
+		goType:     local.goType,
+		manualFree: manualFree,
 	}
 }
 
@@ -471,10 +524,11 @@ func newGoImportEntry(path, name string) *goImportEntry {
 	}
 }
 
-func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool) *GoCompiler {
+func CreateGoCompiler(parent *GoCompiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, measureTime bool, test bool) *GoCompiler {
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
+	compiler.test = test
 	compiler.Errors = errors
 	if parent != nil {
 		compiler.SetParent(parent)
@@ -486,23 +540,40 @@ func (c *GoCompiler) CreateMainCompiler(checker types.Checker, loc *position.Loc
 	name := "main"
 	compiler := NewGoCompiler(name, name, topLevelGoCompilerMode, loc, checker, NewGlobalData(), output)
 	compiler.measureTime = measureTime
+	compiler.test = c.test
 	compiler.Errors = errors
 	return compiler
 }
 
-func (c *GoCompiler) InitMainCompiler() {
+func (c *GoCompiler) InitMainCompiler(extensions []*ext.Extension) {
 	c.registerGoPackageClause("main")
 
+	c.registerGoImport("github.com/elk-language/elk/ini", "_")
 	c.registerGoImport("github.com/elk-language/elk", "")
 	c.registerGoImport("github.com/elk-language/elk/value", "")
 	c.registerGoImport("github.com/elk-language/elk/vm", "")
 	c.registerGoImport("github.com/elk-language/elk/value/symbol", "")
 
+	if c.test {
+		c.registerGoImport("github.com/elk-language/elk/ext/std/test", "test")
+	}
+
 	// noops to stop Go from complaining about unused imports
 	c.emitPackage("var _ = symbol.C_Value\n")
 	c.emitPackage("var _ = vm.New\n")
 	c.emitPackage("var _ = value.Truthy\n\n")
-	c.emitPackage("func init() { elk.InitNative() }\n\n")
+
+	if len(extensions) == 0 {
+		c.emitPackage("func init() { elk.InitNative() }\n\n")
+	} else {
+		c.emitPackage("func init() {\n")
+		c.emitPackage("  elk.InitNative()\n")
+		for i, extension := range extensions {
+			imp := c.registerGoImport(extension.GoPackagePath, fmt.Sprintf("ext%d", i))
+			c.emitPackage("  %s.%s()\n", imp.name, extension.RuntimeInitFuncName)
+		}
+		c.emitPackage("}\n\n")
+	}
 }
 
 func (c *GoCompiler) InitGlobalEnv() Compiler {
@@ -522,7 +593,7 @@ func (c *GoCompiler) FinishGlobalEnvCompiler() {
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func initGlobalEnv() () {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}")
 
@@ -550,7 +621,7 @@ func (c *GoCompiler) CompileMethods(location *position.Location, execOffset int)
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func methodDefinitions() {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
 }
@@ -575,7 +646,7 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func ivarIndices(thread *vm.Thread) {\n")
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("}\n")
 
@@ -583,8 +654,38 @@ func (c *GoCompiler) FinishIvarIndicesCompiler(location *position.Location, exec
 }
 
 func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNode, namespace types.Namespace, constName symbol.Symbol) {
-	c.registerGoLocal("namespace", goValueType)
+	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
+	elkType := c.typeOf(node)
+	goType := c.elkTypeToGoType(elkType, false)
+	if node.Initialiser.IsStatic() {
+		val := resolve(node.Initialiser, c.checker)
+		if val.IsSmallInt() {
+			goType = value.FetchGoType("value.SmallInt")
+		}
+	}
+	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
+	goLocal := newGoLocal(goIdent, goType, "")
+	c.globalData.native.constantCache.SetUnsafe(
+		fullConstName,
+		&nativeConstant{
+			fullName:  fullConstName,
+			name:      constName,
+			elkType:   elkType,
+			goLocal:   goLocal,
+			node:      node,
+			namespace: namespace,
+		},
+	)
+}
 
+func (c *GoCompiler) compileConstantInit(nativeConst *nativeConstant) {
+	namespace := nativeConst.namespace
+	node := nativeConst.node
+	constName := nativeConst.name
+	goLocal := nativeConst.goLocal
+	fullConstName := nativeConst.fullName
+
+	c.registerGoLocal("namespace", goValueType)
 	c.emit("\n")
 	switch n := namespace.(type) {
 	case *types.SingletonClass:
@@ -595,27 +696,23 @@ func (c *GoCompiler) CompileConstantDeclaration(node *ast.ConstantDeclarationNod
 		c.emit("namespace = %s\n", c.convertValueToWiderType(namespaceConst).fetchValue())
 	}
 
+	c.emit("self = namespace\n")
+
 	init := c.convertValueToNarrowerType(
 		c.compileExpression(node.Initialiser, false),
 	)
 
-	fullConstName := c.getFullConstName(namespace.Name(), constName.String())
-	elkType := c.typeOf(node)
-	goType := init.goType
-	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
-	c.globalData.native.constantCache.SetUnsafe(
-		fullConstName,
-		&nativeConstant{
-			ident:   goIdent,
-			elkType: elkType,
-			goType:  goType,
-		},
-	)
-
 	constNameSymbol := c.emitSymbol(constName.String())
-	c.emitPackage("var %s %s // constant: %s, loc: %s\n", goIdent, goType, fullConstName, node.Location().String())
-	c.emit("value.AddConstant(namespace, %s, %s)\n", constNameSymbol, c.convertValueToWiderType(init).fetchValue())
-	c.emit("%s = %s\n", goIdent, init.fetchValue())
+	c.emitPackage("var %s %s // const %s: %s, loc: %s\n", goLocal.name, goLocal.goType, fullConstName, types.Inspect(nativeConst.elkType), node.Location().String())
+	c.emitAssignGoLocal(goLocal, init)
+
+	c.emit(
+		"value.AddConstant(namespace, %s, %s)\n",
+		constNameSymbol,
+		c.convertValueToWiderType(
+			newGoValue(goLocal.name, init.elkType, init.goType),
+		).fetchValue(),
+	)
 }
 
 func (c *GoCompiler) getFullConstName(namespaceName, constName string) string {
@@ -685,6 +782,19 @@ func (c *GoCompiler) CompileBytecodeMethodBody(node *ast.MethodDefinitionNode, n
 	return methodCompiler
 }
 
+type nativeFile struct {
+	fileName string
+	goIdent  string
+	compiled bool
+}
+
+func newNativeFile(fileName string, goIdent string) *nativeFile {
+	return &nativeFile{
+		fileName: fileName,
+		goIdent:  goIdent,
+	}
+}
+
 type nativeGlobalData struct {
 	bigFloatCache        *concurrent.Map[string, *nativeBigFloat]
 	bigIntCache          *concurrent.Map[string, *nativeBigInt]
@@ -693,7 +803,7 @@ type nativeGlobalData struct {
 	methodCache          *concurrent.OrderedMap[string, *nativeMethod]
 	constantCache        *concurrent.OrderedMap[string, *nativeConstant]
 	goImports            *concurrent.OrderedMap[string, *goImportEntry]
-	fileNames            *concurrent.Map[string, string]
+	files                *concurrent.Map[string, *nativeFile]
 	namespaceBodyCounter atomic.Int64 // Number of namespace bodies already compiled
 	closureCounter       atomic.Int64 // Number of closures already compiled
 }
@@ -707,7 +817,7 @@ func newNativeGlobalData() *nativeGlobalData {
 		methodCache:   concurrent.NewOrderedMap[string, *nativeMethod](),
 		constantCache: concurrent.NewOrderedMap[string, *nativeConstant](),
 		goImports:     concurrent.NewOrderedMap[string, *goImportEntry](),
-		fileNames:     concurrent.NewMap[string, string](),
+		files:         concurrent.NewMap[string, *nativeFile](),
 	}
 }
 
@@ -737,11 +847,12 @@ type GoCompiler struct {
 	loc                   *position.Location
 	mode                  goMode
 	children              concurrent.Slice[*GoCompiler]
-	goLocals              ds.OrderedMap[string, *goLocal]
+	goScopes              goScopes
 	loopInfo              []*nativeLoopInfo
 	catchInfo             []*nativeCatchInfo
 	nativeCallsToOptimise []*nativeCall
 	globalData            *GlobalData
+	file                  *nativeFile
 	callFrameStartOffset  int // call frame definition start offset
 	callFrameEndOffset    int // call frame definition end offset
 	goLabelCounter        int
@@ -752,10 +863,13 @@ type GoCompiler struct {
 	currentLineNumber     int
 	closureLevel          int // nesting level of the closure
 	measureTime           bool
+	test                  bool
 	isGenerator           bool
 	isAsync               bool
 	unhygienic            bool
 	hasDefer              bool
+	unoptimisableError    bool
+	optimisedNativeCalls  bool
 }
 
 func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Location, checker types.Checker, globalData *GlobalData, output io.Writer) *GoCompiler {
@@ -767,7 +881,7 @@ func NewGoCompiler(elkName string, goName string, mode goMode, loc *position.Loc
 		buff:              &bytes.Buffer{},
 		Errors:            diagnostic.NewSyncDiagnosticList(),
 		scopes:            nativeElkScopes{newNativeElkScope(defaultNativeElkScopeType)}, // start with an empty set for the 0th scope
-		goLocals:          ds.MakeOrderedMap[string, *goLocal](),
+		goScopes:          []*goLocalTable{ds.NewOrderedMap[string, *goLocal]()},
 		lastElkLocalIndex: -1,
 		globalData:        globalData,
 		checker:           checker,
@@ -857,10 +971,17 @@ func (c *GoCompiler) SetParent(parent Compiler) {
 	p.children.Append(c)
 }
 
-func (c *GoCompiler) addLoopInfo(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeLoopInfo {
+func (c *GoCompiler) addLoopInfo(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool, hasContinueLabel bool) *nativeLoopInfo {
+	goLoopLabel := newGoLabel(fmt.Sprintf("loop%d", c.loopCounter), false)
+
+	var continueGoLabel *goLabel
+	if hasContinueLabel {
+		continueGoLabel = newGoLabel(fmt.Sprintf("cnt%d", c.loopCounter), false)
+	}
 	info := newNativeLoopInfo(
 		elkLabel,
-		newGoLabel(fmt.Sprintf("loop%d", c.loopCounter), false),
+		goLoopLabel,
+		continueGoLabel,
 		resultVar,
 		returnsValFromLastIteration,
 	)
@@ -968,17 +1089,29 @@ func (c *GoCompiler) registerGoLocal(name string, goType *value.GoType) *goLocal
 }
 
 func (c *GoCompiler) registerGoLocalWithComment(name string, goType *value.GoType, comment string) *goLocal {
-	if local, exists := c.goLocals.GetOk(name); exists {
+	return c.registerGoLocalWithScope(c.goScopes.first(), name, goType, comment)
+}
+
+func (c *GoCompiler) registerCurrentGoLocal(name string, goType *value.GoType) *goLocal {
+	return c.registerCurrentGoLocalWithComment(name, goType, "")
+}
+
+func (c *GoCompiler) registerCurrentGoLocalWithComment(name string, goType *value.GoType, comment string) *goLocal {
+	return c.registerGoLocalWithScope(c.goScopes.last(), name, goType, comment)
+}
+
+func (c *GoCompiler) registerGoLocalWithScope(scope *goLocalTable, name string, goType *value.GoType, comment string) *goLocal {
+	if local, exists := scope.GetOk(name); exists {
 		return local
 	}
 	local := newGoLocal(name, goType, comment)
-	c.goLocals.Set(name, local)
+	scope.Set(name, local)
 	return local
 }
 
 func (c *GoCompiler) compileGlobalEnv() {
 	env := c.checker.Env()
-	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"))
+	c.compileModuleDefinition(env.Root, env.Root, value.ToSymbol("Root"), "Root")
 
 	c.registerGoLocal("parentNamespace", goValueType)
 	c.registerGoLocal("namespace", goValueType)
@@ -1058,15 +1191,16 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 
 				localName := local.goIdent()
 				if p.Initialiser != nil {
-					fmt.Fprintf(&funcBuffer, ", arg_%s value.Value", localName)
+					argName := fmt.Sprintf("arg_%s", localName)
+					fmt.Fprintf(&funcBuffer, ", %s value.Value", argName)
 
-					c.emit("if (%s).IsUndefined() {\n", localName)
+					c.emit("if (%s).IsUndefined() {\n", argName)
 					val := c.compileExpression(p.Initialiser, false)
 					c.emitAssignGoLocal(local.goLocal, val)
 					c.emit("} else {\n")
 
 					argVal := newGoValue(
-						localName,
+						argName,
 						typ,
 						goValueType,
 					)
@@ -1086,26 +1220,9 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 						),
 					)
 					c.emitSetInstanceVariable(value.ToSymbol(pName), val)
+					val.markFree()
 				}
 			}
-
-			// TODO: implement async and generators
-
-			// paramCount := len(parameters)
-			// if c.isGenerator {
-			// 	c.emit(location.StartPos.Line, bytecode.GENERATOR)
-			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-			// 	c.registerCatch(-1, -1, c.nextInstructionOffset(), false)
-			// } else if c.isAsync {
-			// 	poolVar := c.defineLocal("_pool", location)
-			// 	paramCount++
-			// 	c.predefinedLocals++
-			// 	c.bytecode.IncrementOptionalParameterCount()
-
-			// 	c.emitGetLocal(location.StartPos.Line, poolVar.index)
-			// 	c.emit(location.StartPos.Line, bytecode.PROMISE)
-			// 	c.emit(location.EndPos.Line, bytecode.RETURN)
-			// }
 
 			c.emitAddCallFrame(loc)
 			return c.compileStatements(body, false)
@@ -1117,28 +1234,42 @@ func (c *GoCompiler) compileMethodFuncLiteralWithNativeArgsBody(parameters []ast
 	c.emitReturn(c.methodReturnValue(returnVal))
 
 	fmt.Fprintf(&funcBuffer, ") (result %s, err value.Value) { // method: %s, loc: %s\n", goReturnType, types.Inspect(c.method), loc.String())
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.callFrameStartOffset += funcBuffer.Len()
 	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
 	c.emit("\n}\n")
-
-	// TODO: implement generators
-	// c.emitFinalReturn(location, nil)
 }
 
 func (c *GoCompiler) optimiseNativeCalls() bool {
+	if c.optimisedNativeCalls || c.unoptimisableError {
+		return true
+	}
+
 	for _, nativeCall := range c.nativeCallsToOptimise {
 		if !nativeCall.method.optimiseNativeCalls() {
 			return false
 		}
 	}
 
-	originalBytes := c.packageBuff.Bytes()
+	var originalBytes []byte
+	if c.mode == closureGoCompilerMode {
+		originalBytes = c.buff.Bytes()
+	} else {
+		originalBytes = c.packageBuff.Bytes()
+	}
+
 	var newBuff bytes.Buffer
 	newBuff.Write(originalBytes[:c.callFrameStartOffset])
 	newBuff.Write(originalBytes[c.callFrameEndOffset:])
-	c.packageBuff = &newBuff
+
+	if c.mode == closureGoCompilerMode {
+		c.buff = &newBuff
+	} else {
+		c.packageBuff = &newBuff
+	}
+
+	c.optimisedNativeCalls = true
 	return true
 }
 
@@ -1153,11 +1284,12 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	closureCompiler.closureLevel = c.closureLevel + 1
 	closureCompiler.parent = c
 	closureCompiler.Errors = c.Errors
-	closureType := c.typeOf(node).(*types.Callable)
+	closureType := typ.(*types.Callable)
 	closureCompiler.hasDefer = closureType.Body.HasDefer()
 
 	tmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
-	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, typ, node.Lambda, tmp, node.Location())
+	closureCompiler.compileClosureFuncLiteralBody(node.Parameters, node.Body, closureType, closureType.Body.ReturnType, node.Lambda, tmp, node.Location())
+	closureCompiler.optimiseNativeCalls()
 
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 	c.emitBytes(closureCompiler.buff.Bytes())
@@ -1165,6 +1297,7 @@ func (c *GoCompiler) compileClosureLiteralNode(node *ast.ClosureLiteralNode, val
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -1188,19 +1321,395 @@ func (c *GoCompiler) compileDeferExpressionNode(node *ast.DeferExpressionNode) *
 	return nilGoValue
 }
 
+type goSelectCase struct {
+	expression   ast.ExpressionNode
+	direction    reflect.SelectDir
+	channelValue *goValue
+	pushedValue  *goValue
+	scope        *nativeElkScope
+	body         []ast.StatementNode
+}
+
+func (c *goSelectCase) markFree() {
+	if c.channelValue != nil {
+		c.channelValue.markFree()
+	}
+	if c.pushedValue != nil {
+		c.pushedValue.markFree()
+	}
+}
+
+func newGoSelectCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, dir reflect.SelectDir, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		scope:        scope,
+		expression:   expr,
+		body:         body,
+		direction:    dir,
+		channelValue: chanVal,
+		pushedValue:  pushedVal,
+	}
+}
+
+func newGoSelectReceiveCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		scope:        scope,
+		expression:   expr,
+		body:         body,
+		direction:    reflect.SelectRecv,
+		channelValue: chanVal,
+	}
+}
+
+func newGoSelectDefaultCase(scope *nativeElkScope, body []ast.StatementNode) *goSelectCase {
+	return &goSelectCase{
+		scope:     scope,
+		body:      body,
+		direction: reflect.SelectDefault,
+	}
+}
+
+func newGoSelectSendCase(scope *nativeElkScope, expr ast.ExpressionNode, body []ast.StatementNode, chanVal *goValue, pushedVal *goValue) *goSelectCase {
+	return &goSelectCase{
+		scope:        scope,
+		expression:   expr,
+		body:         body,
+		direction:    reflect.SelectSend,
+		channelValue: chanVal,
+		pushedValue:  pushedVal,
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseValues(expr ast.ExpressionNode, body []ast.StatementNode) *goSelectCase {
+	switch expr := expr.(type) {
+	case nil:
+		return newGoSelectDefaultCase(nil, body)
+	case *ast.UnaryExpressionNode:
+		if expr.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid unary op in select case: %s", expr.Op.String()))
+		}
+
+		scope := c.enterScope(defaultNativeElkScopeType)
+		defer c.leaveScope()
+
+		return newGoSelectReceiveCase(
+			scope,
+			expr,
+			body,
+			c.wrapValueInTmpGoLocalVal(
+				c.convertValueToAnyChannel(
+					c.compileExpression(expr.Right, false),
+				),
+			),
+		)
+	case *ast.AssignmentExpressionNode:
+		switch expr.Op.Type {
+		case token.EQUAL_OP, token.COLON_EQUAL, token.COLON_COLON_EQUAL:
+		default:
+			panic(fmt.Sprintf("invalid select case assignment operator: %s", expr.Op.Type.String()))
+		}
+		result := c.compileSelectCaseValues(expr.Right, body)
+		result.expression = expr
+		return result
+	case *ast.VariableDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		return c.compileSelectCaseValues(expr.Initialiser, body)
+	case *ast.ValueDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.VariablePatternDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.ValuePatternDeclarationNode:
+		if expr.Initialiser == nil {
+			panic("select case variable must be initialised: %s")
+		}
+		result := c.compileSelectCaseValues(expr.Initialiser, body)
+		result.expression = expr
+		return result
+	case *ast.BinaryExpressionNode:
+		if expr.Op.Type != token.LBITSHIFT {
+			panic(fmt.Sprintf("invalid binary op in select case: %s", expr.Op.String()))
+		}
+		scope := c.enterScope(defaultNativeElkScopeType)
+		defer c.leaveScope()
+
+		return newGoSelectSendCase(
+			scope,
+			expr,
+			body,
+			c.wrapValueInTmpGoLocalVal(
+				c.convertValueToAnyChannel(
+					c.compileExpression(expr.Left, false),
+				),
+			),
+			c.convertValueToWiderType(
+				c.compileExpression(expr.Right, false),
+			),
+		)
+	default:
+		panic(fmt.Sprintf("invalid select case expression: %T", expr))
+	}
+}
+
+func (c *GoCompiler) convertValueToAnyChannel(val *goValue) *goValue {
+	narrowVal := c.convertValueToNarrowerType(val)
+	switch narrowVal.goType.Name {
+	case "value.Channel", "value.AnyChannel", "value.ReadChannel", "value.WriteChannel",
+		"*value.ChannelOfValue", "*value.ReadChannelOfValue", "*value.WriteChannelOfValue",
+		"*value.NativeChannel", "*value.NativeReadChannel", "*vm.NativeWriteChannel",
+		"*value.NativeTransformerChannel", "*value.NativeTransformerReadChannel", "*value.NativeTransformerWriteChannel":
+		return narrowVal
+	default:
+		wider := c.convertValueToWiderType(val)
+		return wider.newGoValue(
+			fmt.Sprintf("(%s).AsReference().(value.AnyChannel)", wider.value),
+			wider.elkType,
+			value.FetchGoType("value.AnyChannel"),
+		)
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseStruct(caseValue *goSelectCase) {
+	switch caseValue.direction {
+	case reflect.SelectRecv:
+		c.emit("{\n")
+		c.emit("  Chan: reflect.ValueOf(%s.NativeChannelAny()),\n", caseValue.channelValue.value)
+		c.emit("	Dir:  reflect.SelectRecv,\n")
+		c.emit("},\n")
+	case reflect.SelectSend:
+		c.emit("{\n")
+		c.emit("  Chan: reflect.ValueOf(%s.NativeChannelAny()),\n", caseValue.channelValue.value)
+		c.emit("  Send: reflect.ValueOf(value.NormaliseSentValueToChannel(%s, %s)),\n", caseValue.channelValue.value, caseValue.pushedValue.value)
+		c.emit("	Dir:  reflect.SelectSend,\n")
+		c.emit("},\n")
+	case reflect.SelectDefault:
+		c.emit("{\n")
+		c.emit("	Dir:  reflect.SelectDefault,\n")
+		c.emit("},\n")
+	default:
+		panic(fmt.Sprintf("invalid select case direction: %d\n", caseValue.direction))
+	}
+}
+
+func (c *GoCompiler) compileSelectCaseBody(caseValue *goSelectCase, i int, selectResultTmp *goLocal) {
+	if caseValue.scope != nil {
+		c.addScope(caseValue.scope)
+		defer c.leaveScope()
+	}
+
+	switch expr := caseValue.expression.(type) {
+	case nil:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	case *ast.UnaryExpressionNode:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	case *ast.AssignmentExpressionNode:
+		c.compileSelectCaseAssignmentBody(expr, caseValue, i, selectResultTmp)
+	case *ast.VariablePatternDeclarationNode:
+		c.compileSelectCaseLocalPatternDeclarationBody(expr.Pattern, expr.Initialiser, caseValue, i, selectResultTmp)
+	case *ast.ValuePatternDeclarationNode:
+		c.compileSelectCaseLocalPatternDeclarationBody(expr.Pattern, expr.Initialiser, caseValue, i, selectResultTmp)
+	case *ast.VariableDeclarationNode:
+		c.compileSelectCaseLocalDeclarationBody(expr.Name, expr.Initialiser, caseValue, i, selectResultTmp)
+	case *ast.ValueDeclarationNode:
+		c.compileSelectCaseLocalDeclarationBody(expr.Name, expr.Initialiser, caseValue, i, selectResultTmp)
+	case *ast.BinaryExpressionNode:
+		c.compileSimpleSelectCaseBody(caseValue, i)
+	default:
+		panic(fmt.Sprintf("invalid select case direction: %d\n", caseValue.direction))
+	}
+}
+
+func (c *GoCompiler) compileSimpleSelectCaseBody(caseValue *goSelectCase, i int) {
+	c.emit("case %d:\n", i)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) emitChannelPopValueHandler(localName string, elkType types.Type, caseValue *goSelectCase, selectResultTmp *goLocal) {
+	c.emitSetLocal(
+		localName,
+		newGoValue(
+			fmt.Sprintf("%s.Result(%s)", selectResultTmp.name, caseValue.channelValue.value),
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+}
+
+func (c *GoCompiler) emitChannelPopResultValueHandler(elkType types.Type, caseValue *goSelectCase, selectResultTmp *goLocal) *goValue {
+	resultTmp := c.defineTmpGoLocal(value.FetchGoType("value.Result"))
+	c.emitAssignGoLocal(
+		resultTmp,
+		newGoValue(
+			fmt.Sprintf("%s.Result(%s)", selectResultTmp.name, caseValue.channelValue.value),
+			elkType,
+			value.FetchGoType("value.Result"),
+		),
+	)
+
+	return newGoValueWithLocal(
+		resultTmp,
+		elkType,
+		false,
+	)
+}
+
+func (c *GoCompiler) compileSelectCaseAssignmentBody(node *ast.AssignmentExpressionNode, caseValue *goSelectCase, i int, selectResultTmp *goLocal) {
+	c.emit("case %d:\n", i)
+
+	name := identifierToName(node.Left.(ast.IdentifierNode))
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+	case token.COLON_EQUAL:
+		typ := c.typeOf(node.Left)
+		goType := c.elkTypeToGoType(typ, false)
+		c.defineLocal(
+			name,
+			typ,
+			goType,
+			node.Left.Location(),
+		)
+	case token.COLON_COLON_EQUAL:
+		typ := c.typeOf(node.Left)
+		goType := c.elkTypeToGoType(typ, false)
+		c.defineLocal(
+			name,
+			typ,
+			goType,
+			node.Left.Location(),
+		)
+	default:
+		panic(fmt.Sprintf("invalid select case assignment operator: %s", node.Op.Type.String()))
+	}
+
+	c.emitChannelPopValueHandler(name, c.typeOf(node.Left), caseValue, selectResultTmp)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectCaseLocalPatternDeclarationBody(pattern ast.PatternNode, initNode ast.ExpressionNode, caseValue *goSelectCase, i int, selectResultTmp *goLocal) {
+	c.emit("case %d:\n", i)
+
+	unary := initNode.(*ast.UnaryExpressionNode)
+
+	val := c.emitChannelPopResultValueHandler(
+		c.typeOf(unary),
+		caseValue,
+		selectResultTmp,
+	)
+	val.enableManualFree()
+	patternResult := c.compilePattern(pattern, val)
+	val.markFree()
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectCaseLocalDeclarationBody(localName ast.IdentifierNode, initNode ast.ExpressionNode, caseValue *goSelectCase, i int, selectResultTmp *goLocal) {
+	c.emit("case %d:\n", i)
+
+	unary := initNode.(*ast.UnaryExpressionNode)
+	name := identifierToName(localName.(ast.IdentifierNode))
+	typ := c.typeOf(unary)
+	goType := c.elkTypeToGoType(typ, false)
+	c.defineLocal(
+		name,
+		typ,
+		goType,
+		localName.Location(),
+	)
+
+	c.emitChannelPopValueHandler(name, typ, caseValue, selectResultTmp)
+	c.compileStatements(caseValue.body, true)
+}
+
+func (c *GoCompiler) compileSelectExpressionNode(node *ast.SelectExpressionNode) *goValue {
+	c.enterScope(defaultNativeElkScopeType)
+	defer c.leaveScope()
+
+	caseValues := make([]*goSelectCase, 0, len(node.Cases)+1)
+	for _, selectCase := range node.Cases {
+		caseValue := c.compileSelectCaseValues(selectCase.Expression, selectCase.Body)
+		caseValues = append(caseValues, caseValue)
+		defer caseValue.markFree()
+	}
+	if len(node.ElseBody) > 0 {
+		caseValue := c.compileSelectCaseValues(nil, node.ElseBody)
+		caseValues = append(caseValues, caseValue)
+	}
+
+	selectResultTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.SelectResult"))
+	defer selectResultTmp.markFree()
+
+	c.registerGoImport("reflect", "")
+	c.emit(
+		"%s = vm.DoSelect([]reflect.SelectCase{\n",
+		selectResultTmp.name,
+	)
+	c.emit("{\n")
+	c.emit("  Chan: reflect.ValueOf(thread.Aborter.Context().Done()),\n")
+	c.emit("	Dir:  reflect.SelectRecv,\n")
+	c.emit("},\n")
+	for _, caseValue := range caseValues {
+		c.compileSelectCaseStruct(caseValue)
+	}
+	c.emit("})\n")
+
+	c.emit("if %s.Err.IsNotUndefined() {\n", selectResultTmp.name)
+	c.emitThrow(
+		newGoValue(
+			fmt.Sprintf("%s.Err", selectResultTmp.name),
+			c.checker.Std(symbol.C_Error),
+			goValueType,
+		),
+	)
+	c.emit("}\n")
+
+	c.emit("switch %s.ChosenCaseIndex {\n", selectResultTmp.name)
+	for i, selectCase := range caseValues {
+		c.compileSelectCaseBody(selectCase, i, selectResultTmp)
+	}
+	c.emit("}\n")
+
+	return nilGoValue
+}
+
 func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode, valueIsIgnored bool) *goValue {
 	endLabel := c.registerGoLabel()
 	c.enterDefaultScope()
 	typ := c.typeOf(node)
 	_, resultVar := c.defineTmpGoLocalIfNotIgnored(c.elkTypeToGoType(typ, false), valueIsIgnored)
-	_, val := c.wrapValueInTmpGoLocal(c.compileExpression(node.Value, false))
+	val := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Value, false))
+	defer val.markFree()
 
 	for _, caseNode := range node.Cases {
 		c.enterDefaultScope()
-
 		patternResult := c.compilePattern(caseNode.Pattern, val)
 
-		if patternResult.value != "value.True" {
+		if patternResult.value == "value.True" {
+			caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
+			if !valueIsIgnored {
+				c.emitAssignGoLocal(resultVar, caseResult)
+			}
+			c.emitGoto(endLabel)
+		} else {
 			c.emit("if %s {\n", c.convertValueToBool(patternResult).fetchValue())
 			caseResult := c.compileStatements(caseNode.Body, valueIsIgnored)
 			if !valueIsIgnored {
@@ -1221,13 +1730,15 @@ func (c *GoCompiler) compileSwitchExpressionNode(node *ast.SwitchExpressionNode,
 	c.leaveScope()
 	c.emitGoLabel(endLabel)
 	if !valueIsIgnored {
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	}
 	return nilGoValue
 }
 
 func (c *GoCompiler) compileMatchExpressionNode(node *ast.MatchExpressionNode) *goValue {
-	val := c.compileExpression(node.Expression, false)
+	val := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Expression, false))
+	defer val.markFree()
+
 	return c.compilePattern(node.Pattern, val)
 }
 
@@ -1241,7 +1752,7 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	closureCompiler.hasDefer = node.HasDefer
 
 	closureTmp := c.defineTmpGoLocal(value.FetchGoType("*vm.NativeClosure"))
-	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, true, closureTmp, node.Location())
+	closureCompiler.compileClosureFuncLiteralBody(nil, node.Body, typ, typ, true, closureTmp, node.Location())
 	c.emitPackageBytes(closureCompiler.packageBuff.Bytes())
 	c.emitBytes(closureCompiler.buff.Bytes())
 
@@ -1258,26 +1769,27 @@ func (c *GoCompiler) compileGoExpressionNode(node *ast.GoExpressionNode, valueIs
 	return newGoValueWithLocal(
 		threadTmp,
 		typ,
+		false,
 	)
 }
 
-func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, typ types.Type, lambda bool, result *goLocal, loc *position.Location) {
+func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNode, body []ast.StatementNode, closureType types.Type, returnType types.Type, lambda bool, result *goLocal, loc *position.Location) {
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "vm.NewNativeClosure(\n")
-	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(typ), loc.String())
+	fmt.Fprintf(&funcBuffer, "func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: %s, sig: %s, loc: %s \n", c.goName, types.Inspect(closureType), loc.String())
 	selfLocal := c.registerGoLocal("self", goValueType)
 	selfLocal.predefined = true
 
 	val := c.compileWithDefer(
 		func() *goValue {
-			for i, param := range parameters {
-				p := param.(*ast.FormalParameterNode)
+			for i, paramNode := range parameters {
+				p := paramNode.(*ast.FormalParameterNode)
 				pSpan := p.Location()
 
 				pName := identifierToName(p.Name)
-				paramType := c.typeOf(p).(*types.Parameter)
-				typ := paramType.Type
-				local := c.defineLocal(pName, typ, c.elkTypeToGoType(typ, false), pSpan)
+				param := c.typeOf(p).(*types.Parameter)
+				paramType := param.Type
+				local := c.defineLocal(pName, paramType, c.elkTypeToGoType(paramType, false), pSpan)
 				if local == nil {
 					return errGoValue
 				}
@@ -1285,7 +1797,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 				if p.Initialiser != nil {
 					argVal := newGoValue(
 						fmt.Sprintf("args[%d]", i),
-						typ,
+						paramType,
 						goValueType,
 					)
 					c.emit("if (%s).IsUndefined() {\n", argVal.value)
@@ -1299,7 +1811,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 				} else {
 					argVal := newGoValue(
 						fmt.Sprintf("args[%d]", i),
-						typ,
+						paramType,
 						goValueType,
 					)
 					c.emitAssignGoLocal(local.goLocal, argVal)
@@ -1309,7 +1821,7 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 			c.emitAddCallFrame(loc)
 			return c.compileStatements(body, false)
 		},
-		typ,
+		returnType,
 		false,
 	)
 
@@ -1317,7 +1829,10 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 
 	c.registerGoImport("github.com/elk-language/elk/position", "")
 
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
+
+	c.callFrameStartOffset += funcBuffer.Len()
+	c.callFrameEndOffset += funcBuffer.Len()
 	c.emitPrependBytes(funcBuffer.Bytes())
 
 	hasUpvalues := c.hasUpvalues()
@@ -1326,10 +1841,16 @@ func (c *GoCompiler) compileClosureFuncLiteralBody(parameters []ast.ParameterNod
 		fmt.Fprintf(&scopeBuffer, "{\n")
 		c.compileClosedUpvaluesTo(&scopeBuffer)
 		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+
+		c.callFrameStartOffset += scopeBuffer.Len()
+		c.callFrameEndOffset += scopeBuffer.Len()
 		c.emitPrependBytes(scopeBuffer.Bytes())
 	} else {
 		var scopeBuffer bytes.Buffer
 		fmt.Fprintf(&scopeBuffer, "%s = ", result.name)
+
+		c.callFrameStartOffset += scopeBuffer.Len()
+		c.callFrameEndOffset += scopeBuffer.Len()
 		c.emitPrependBytes(scopeBuffer.Bytes())
 	}
 
@@ -1363,7 +1884,7 @@ func (c *GoCompiler) compileDeferExpressionBody(body ast.ExpressionNode, result 
 
 	c.emitReturn("")
 
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	c.emitPrependBytes(funcBuffer.Bytes())
 
 	var scopeBuffer bytes.Buffer
@@ -1385,13 +1906,6 @@ func (c *GoCompiler) compileAllFinally() {
 func (c *GoCompiler) emitReturn(val string) {
 	c.compileAllFinally()
 
-	// TODO: implement generators
-	// if c.isGenerator {
-	// 	c.emitYield(location, value)
-	// 	c.emit(location.EndPos.Line, bytecode.STOP_ITERATION)
-	// 	return
-	// }
-
 	if c.goName == "main" {
 		c.emit("return\n")
 		return
@@ -1400,8 +1914,9 @@ func (c *GoCompiler) emitReturn(val string) {
 	switch c.mode {
 	case topLevelGoCompilerMode:
 	case setterMethodGoCompilerMode:
-		firstArg := c.goLocals.Get("l0")
-		result := newGoValueWithLocal(firstArg, c.method.ReturnType)
+		scope := c.goScopes.last()
+		firstArg := scope.Get("l0")
+		result := newGoValueWithLocal(firstArg, c.method.ReturnType, false)
 		val = c.methodReturnValue(result)
 		c.emit("return %s, value.Undefined\n", val)
 	case initMethodGoCompilerMode:
@@ -1427,14 +1942,14 @@ func (c *GoCompiler) emitSetInstanceVariable(name value.Symbol, val *goValue) {
 
 // Emit an instruction that sets the value of an instance variable by its index
 func (c *GoCompiler) emitSetInstanceVariableByIndex(index int, val *goValue) {
-	c.emit("value.SetInstanceVariable(self, %d, %s)\n", index, c.convertValueToWiderType(val).fetchValue())
+	c.emit("value.SetInstanceVariable(self, %d, %s)\n", index, c.convertValueToWiderType(val).value)
 }
 
 // Emit an instruction that sets the value of an instance variable by name
 func (c *GoCompiler) emitSetInstanceVariableByName(name value.Symbol, val *goValue) {
 	c.registerGoLocal("err", goValueType)
 	symbol := c.emitSymbol(name.String())
-	c.emit("err = value.SetInstanceVariableByName(self, %s, %s)\n", symbol, c.convertValueToWiderType(val).fetchValue())
+	c.emit("err = value.SetInstanceVariableByName(self, %s, %s)\n", symbol, c.convertValueToWiderType(val).value)
 	c.emit("if err.IsNotUndefined() { panic(err) }\n")
 }
 
@@ -1474,6 +1989,7 @@ func (c *GoCompiler) emitGetBoxOfInstanceVariableByName(name value.Symbol, typ t
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -1513,6 +2029,7 @@ func (c *GoCompiler) emitGetInstanceVariableByName(name value.Symbol, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -1616,12 +2133,14 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		return
 	}
 
+	origMethod := method
 	if method.Base != nil {
+		c.registerElkMethodAliasName(method.Base.NamespacedName(), method.NamespacedName())
 		// handle aliases
 		method = method.Base
 
 		if method.IsNative() {
-			namespace := value.RootModule.Constants.GetString(method.DefinedUnder.Name()).AsReference()
+			namespace := value.RootModule.Constants().GetString(method.DefinedUnder.Name()).AsReference()
 			c.registerGoLocal("aliasClass", value.FetchGoType("*value.Class"))
 
 			switch namespace.(type) {
@@ -1632,15 +2151,21 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 				moduleVal := c.emitGetConst(value.ToSymbol(method.DefinedUnder.Name()), c.checker.Std(symbol.C_Module))
 				c.emit("aliasClass = (%s).SingletonClass()\n", moduleVal.fetchValue())
 			default:
-				panic(fmt.Sprintf("invalid namespace %T", namespace))
+				panic(
+					fmt.Sprintf(
+						"invalid runtime namespace: %T, for method: %s, under namespace: %s",
+						namespace,
+						method.InspectSignature(false),
+						types.Inspect(method.DefinedUnder),
+					),
+				)
 			}
 
 			oldNameSymbol := c.emitSymbol(method.Name.String())
 			newNameSymbol := c.emitSymbol(name.String())
-			c.emit("class.Methods[%s] = aliasClass.Methods[%s]\n", newNameSymbol, oldNameSymbol)
+			c.emit("class.AttachMethod(%s, aliasClass.Methods()[%s])\n", newNameSymbol, oldNameSymbol)
 
-			method.SetCompiled(true)
-			method.Body = nil
+			origMethod.SetCompiled(true)
 			return
 		}
 	}
@@ -1671,10 +2196,9 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 			}
 
 			ivarNameSymbol := c.emitSymbol(ivarName.String())
-			c.emit("vm.DefineSetter(&class.MethodContainer, %s, %d)\n", ivarNameSymbol, index)
+			c.emit("vm.DefineSetter(class, %s, %d)\n", ivarNameSymbol, index)
 
-			method.SetCompiled(true)
-			method.Body = nil
+			origMethod.SetCompiled(true)
 			return
 		}
 
@@ -1700,10 +2224,9 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		}
 
 		nameSymbol := c.emitSymbol(name.String())
-		c.emit("vm.DefineGetter(&class.MethodContainer, %s, %d)\n", nameSymbol, index)
+		c.emit("vm.DefineGetter(class, %s, %d)\n", nameSymbol, index)
 
-		method.SetCompiled(true)
-		method.Body = nil
+		origMethod.SetCompiled(true)
 		return
 	}
 
@@ -1712,9 +2235,8 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 		methodCompiler := (*GoCompiler)(body)
 		methodCompiler.goMethod.optimiseNativeCalls()
 
-		c.emit("vm.Def(&class.MethodContainer, %q, ", name.String())
+		c.emit("vm.Def(class, %q, ", name.String())
 		c.emitBytes(methodCompiler.buff.Bytes())
-		methodCompiler.buff.Reset()
 
 		c.emitPackageBytes(methodCompiler.packageBuff.Bytes())
 		methodCompiler.packageBuff.Reset()
@@ -1726,72 +2248,81 @@ func (c *GoCompiler) compileMethodDefinition(name value.Symbol, method *types.Me
 
 		c.emit(")\n")
 	case *vm.BytecodeFunction:
-		c.emit("vm.DefBytecode(&class.MethodContainer, %q, ", name.String())
-		c.compileBytecodeMethodBody(body, method)
-		c.emit(")\n")
+		nativeMethod, goSource := c.compileBytecodeMethodBody(body, method)
+		c.emit("%s = %s\n", nativeMethod.goIdent(), goSource)
+		c.emit("vm.DefBytecode(class, %q, %s)\n", name.String(), nativeMethod.goIdent())
 	default:
 		panic(fmt.Sprintf("invalid method body type: %T", body))
 	}
 
-	method.SetCompiled(true)
-	method.Body = nil
+	origMethod.SetCompiled(true)
 }
 
-func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) {
+func (c *GoCompiler) compileBytecodeMethodBody(body *vm.BytecodeFunction, method *types.Method) (*nativeMethod, string) {
 	nativeMethod := c.registerElkMethodName(method.NamespacedName(), true)
-	c.emitPackage("var %s = vm.NewBytecodeFunctionWithOptions(\n", nativeMethod.goIdent())
-	c.emitPackage("vm.BytecodeFunctionWithInstructions([]byte{\n")
-	for _, byt := range body.Instructions {
-		c.emitPackage("%x,", byt)
+	bodySource := c.bytecodeToGoSource(body)
+	c.emitPackage("var %s *vm.BytecodeFunction // method: %s, loc: %s\n", nativeMethod.goIdent(), types.Inspect(method), body.Location.String())
+	return nativeMethod, bodySource
+}
+
+func (c *GoCompiler) registerBytecodeImport() {
+	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
+}
+
+func (c *GoCompiler) bytecodeToGoSource(body *vm.BytecodeFunction) string {
+	var buff bytes.Buffer
+
+	fmt.Fprintf(&buff, "vm.NewBytecodeFunctionWithOptions(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithInstructions([]byte{\n")
+	c.registerBytecodeImport()
+
+	for opcode, operands := range body.AllInstructions() {
+		fmt.Fprintf(&buff, "byte(bytecode.%s), ", opcode.String())
+		for _, operand := range operands {
+			fmt.Fprintf(&buff, "0x%02x, ", operand)
+		}
+		fmt.Fprintln(&buff)
 	}
-	c.emitPackage("}),\n")
+	fmt.Fprintf(&buff, "\n}),\n")
 
-	c.emitPackage("vm.BytecodeFunctionWithLocation(position.NewLocation(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLocation(%s),\n", c.locationToGoSource(body.Location))
 
-	c.emitPackage("%s,\n", body.Location.FilePath)
-	c.emitPackage("position.NewSpan(\n")
-
-	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.StartPos.ByteOffset, body.Location.StartPos.Line, body.Location.StartPos.Column)
-	c.emitPackage("position.New(%d, %d, %d),\n", body.Location.EndPos.ByteOffset, body.Location.EndPos.Line, body.Location.EndPos.Column)
-
-	c.emitPackage("),\n") // end span
-
-	c.emitPackage(")),\n") // end location
-
-	c.emitPackage("vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
-	c.emitPackage("vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
-	c.emitPackage("vm.BytecodeFunctionWithParameters(%d),\n", body.ParameterCount())
-	c.emitPackage("vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithUpvalueCount(%d),\n", body.UpvalueCount)
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithStringName(%q),\n", body.Name().String())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithParameters(%d),\n", body.ParameterCount())
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithOptionalParameters(%d),\n", body.OptionalParameterCount())
 
 	if len(body.CatchEntries) > 0 {
-		c.emitPackage("vm.BytecodeFunctionWithCatchEntriesVar(\n")
+		fmt.Fprintf(&buff, "vm.BytecodeFunctionWithCatchEntriesVar(\n")
 		for _, entry := range body.CatchEntries {
-			c.emitPackage("vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
+			fmt.Fprintf(&buff, "vm.NewCatchEntry(%d, %d, %d, %t),\n", entry.From, entry.To, entry.JumpAddress, entry.Finally)
 		}
-		c.emitPackage("),\n") // end catch entries
+		fmt.Fprintf(&buff, "),\n") // end catch entries
 	}
 
 	c.registerGoImport("github.com/elk-language/elk/bytecode", "")
-	c.emitPackage("vm.BytecodeFunctionWithLineInfoListVar(\n")
+	fmt.Fprintf(&buff, "vm.BytecodeFunctionWithLineInfoListVar(\n")
 	for _, info := range body.LineInfoList {
-		c.emitPackage("bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
+		fmt.Fprintf(&buff, "bytecode.NewLineInfo(%d, %d),\n", info.LineNumber, info.InstructionCount)
 	}
-	c.emitPackage("),\n") // end line info list
+	fmt.Fprintf(&buff, "),\n") // end line info list
 
 	if len(body.Values) > 0 {
-		c.emitPackage("vm.BytecodeFunctionWithValuesVar(\n")
+		fmt.Fprintf(&buff, "vm.BytecodeFunctionWithValuesVar(\n")
 		for _, val := range body.Values {
 			// TODO: use the static type stored in runtime value instead of any
 			goVal := c.valueToGoSource(val, types.Any{}, true)
-			c.emitPackage("%s,\n", c.convertValueToWiderType(goVal).fetchValue())
+			fmt.Fprintf(&buff, "%s,\n", c.convertValueToWiderType(goVal).fetchValue())
 		}
-		c.emitPackage("),\n") // end values
+		fmt.Fprintf(&buff, "),\n") // end values
 	}
 
-	c.emitPackage("}\n") // end struct
+	fmt.Fprintf(&buff, ")") // end constructor
+
+	return buff.String()
 }
 
-func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol) {
+func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types.Namespace, constName value.Symbol, fullName string) {
 	if !namespace.IsDefined() && !namespace.IsNative() {
 		switch p := parentNamespace.(type) {
 		case *types.SingletonClass:
@@ -1827,16 +2358,16 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 			c.emit("%s = value.NewInterface()\n", goIdent)
 			c.emit("namespace = value.Ref(%s)\n", goIdent)
 		}
+		goLocal := newGoLocal(goIdent, goType, "")
 
 		c.globalData.native.constantCache.SetUnsafe(
-			constName.String(),
+			fullName,
 			&nativeConstant{
-				ident:   goIdent,
+				goLocal: goLocal,
 				elkType: elkType,
-				goType:  goType,
 			},
 		)
-		c.emitPackage("var %s %s // %s\n", goIdent, goType, constName.String())
+		c.emitPackage("var %s %s // %s\n", goIdent, goType, fullName)
 		constNameSymbol := c.emitSymbol(constName.String())
 		c.emit("value.AddConstant(parentNamespace, %s, namespace)\n\n", constNameSymbol)
 		namespace.SetDefined(true)
@@ -1846,20 +2377,20 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name))
+		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), subtype.FullName)
 	}
 }
 
-func (c *GoCompiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol) {
+func (c *GoCompiler) compileSubtypeDefinition(parentNamespace types.Namespace, typ types.Type, constName value.Symbol, fullName string) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.compileModuleDefinition(parentNamespace, t, constName)
+		c.compileModuleDefinition(parentNamespace, t, constName, fullName)
 	case *types.Class:
-		c.compileClassDefinition(parentNamespace, t, constName)
+		c.compileClassDefinition(parentNamespace, t, constName, fullName)
 	case *types.Mixin:
-		c.compileMixinDefinition(parentNamespace, t, constName)
+		c.compileMixinDefinition(parentNamespace, t, constName, fullName)
 	case *types.Interface:
-		c.compileInterfaceDefinition(parentNamespace, t, constName)
+		c.compileInterfaceDefinition(parentNamespace, t, constName, fullName)
 	}
 }
 
@@ -1911,36 +2442,38 @@ func (c *GoCompiler) registerGoPackageClause(name string) {
 }
 
 // Emit import level code
-func (c *GoCompiler) registerGoImport(path, name string) {
+func (c *GoCompiler) registerGoImport(path, name string) *goImportEntry {
 	imports := c.globalData.native.goImports
 	imports.Lock()
 	defer imports.Unlock()
 
-	if _, ok := imports.GetUnsafe(path); ok {
-		return
+	if entry, ok := imports.GetUnsafe(path); ok {
+		return entry
 	}
 
-	imports.SetUnsafe(path, newGoImportEntry(path, name))
+	entry := newGoImportEntry(path, name)
+	imports.SetUnsafe(path, entry)
+	return entry
 }
 
 func (c *GoCompiler) typeOf(node ast.Node) types.Type {
 	return node.Type(c.checker.Env())
 }
 
-func (c *GoCompiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, module, constName)
+func (c *GoCompiler) compileModuleDefinition(parentNamespace types.Namespace, module *types.Module, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, module, constName, fullName)
 }
 
-func (c *GoCompiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, class, constName)
+func (c *GoCompiler) compileClassDefinition(parentNamespace types.Namespace, class *types.Class, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, class, constName, fullName)
 }
 
-func (c *GoCompiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, mixin, constName)
+func (c *GoCompiler) compileMixinDefinition(parentNamespace types.Namespace, mixin *types.Mixin, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, mixin, constName, fullName)
 }
 
-func (c *GoCompiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol) {
-	c.compileNamespaceDefinition(parentNamespace, iface, constName)
+func (c *GoCompiler) compileInterfaceDefinition(parentNamespace types.Namespace, iface *types.Interface, constName value.Symbol, fullName string) {
+	c.compileNamespaceDefinition(parentNamespace, iface, constName, fullName)
 }
 
 func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *goValue {
@@ -1958,21 +2491,24 @@ func (c *GoCompiler) emitGetConst(fullName value.Symbol, elkType types.Type) *go
 	fullNameString := fullName.String()
 	if constant, ok := c.globalData.native.constantCache.GetUnsafe(fullNameString); ok {
 		return newGoValue(
-			constant.goIdent(),
+			constant.goLocal.name,
 			elkType,
-			constant.goType,
+			constant.goLocal.goType,
 		)
 	}
 
 	val := c.convertValueToNarrowerType(c.emitDynamicGetConst(fullName, elkType))
 	goIdent := fmt.Sprintf("const%d", c.globalData.native.constantCache.Len())
+	goLocal := newGoLocal(goIdent, val.goType, "")
 	c.emitPackage("var %s %s // %s\n", goIdent, val.goType, fullNameString)
+	if fullNameString == "" {
+		panic("empty const name")
+	}
 	c.globalData.native.constantCache.SetUnsafe(
 		fullNameString,
 		&nativeConstant{
-			ident:   goIdent,
+			goLocal: goLocal,
 			elkType: elkType,
-			goType:  val.goType,
 			init:    val.fetchValue(),
 		},
 	)
@@ -2120,8 +2656,9 @@ func MangleGoIdentifier(name string) string {
 }
 
 func (c *GoCompiler) InitExpressionCompiler(location *position.Location) Compiler {
-	name := c.getGoIdentForFileName(location.FilePath)
-	exprCompiler := NewGoCompiler(location.FilePath, name, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
+	file := c.registerFile(location.FilePath)
+	exprCompiler := NewGoCompiler(location.FilePath, file.goIdent, topLevelGoCompilerMode, location, c.checker, c.globalData, c.output)
+	exprCompiler.file = file
 	exprCompiler.SetParent(c)
 	exprCompiler.Errors = c.Errors
 
@@ -2148,47 +2685,85 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 		return
 	}
 
-	if c.parent != nil {
-		c.parent.emit("%s(thread)\n", c.goName)
+	if c.file != nil {
+		c.file.compiled = true
 	}
 
 	var funcBuffer bytes.Buffer
 	if c.goName == "main" {
-		var methodVarsBuff bytes.Buffer
-		for _, nativeMethod := range c.globalData.native.methodCache.Map.All() {
-			if nativeMethod.init == "" {
-				continue
-			}
+		var prependBuff bytes.Buffer
 
-			fmt.Fprintf(&methodVarsBuff, "%s = %s\n", nativeMethod.goIdent(), nativeMethod.init)
-		}
-		if methodVarsBuff.Len() > 0 {
-			fmt.Fprintln(&methodVarsBuff)
-			c.emitPrependBytes(methodVarsBuff.Bytes())
-		}
-
-		var constVarsBuff bytes.Buffer
+		var initConstPresent bool
 		for _, nativeConst := range c.globalData.native.constantCache.Map.All() {
 			if nativeConst.init == "" {
 				continue
 			}
 
-			fmt.Fprintf(&constVarsBuff, "%s = %s\n", nativeConst.goIdent(), nativeConst.init)
+			initConstPresent = true
+			fmt.Fprintf(&prependBuff, "%s = %s\n", nativeConst.goLocal.name, nativeConst.init)
 		}
-		if constVarsBuff.Len() > 0 {
-			fmt.Fprintln(&constVarsBuff)
-			c.emitPrependBytes(constVarsBuff.Bytes())
+		if initConstPresent {
+			fmt.Fprintln(&prependBuff)
+		}
+
+		var nativeMethodsPresent bool
+		for _, nativeMethod := range c.globalData.native.methodCache.Map.All() {
+			if nativeMethod.init == "" {
+				continue
+			}
+
+			nativeMethodsPresent = true
+			fmt.Fprintf(&prependBuff, "%s = %s\n", nativeMethod.goIdent(), nativeMethod.init)
+		}
+		if nativeMethodsPresent {
+			fmt.Fprintln(&prependBuff)
+		}
+
+		var compiledConstPresent bool
+		for _, nativeConst := range c.globalData.native.constantCache.Map.All() {
+			if nativeConst.node == nil {
+				continue
+			}
+
+			compiledConstPresent = true
+			prevBuff := c.switchBuffer(&prependBuff)
+			c.compileConstantInit(nativeConst)
+			c.switchBuffer(prevBuff)
+		}
+		if compiledConstPresent {
+			fmt.Fprintln(&prependBuff)
+		}
+
+		var filesPresent bool
+		for _, file := range c.globalData.native.files.Map {
+			if !file.compiled {
+				continue
+			}
+
+			filesPresent = true
+			fmt.Fprintf(&prependBuff, "%s(thread)\n", file.goIdent)
+		}
+		if filesPresent {
+			fmt.Fprintln(&prependBuff)
+		}
+
+		if prependBuff.Len() > 0 {
+			c.emitPrependBytes(prependBuff.Bytes())
 		}
 
 		c.emitPrependBytes([]byte(initCode))
 		fmt.Fprintf(&funcBuffer, "func %s() { // loc: %s\n", c.goName, c.loc.FilePath)
-		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n_ = thread\n")
-		fmt.Fprintf(&funcBuffer, "\ndefer func() {\n")
-		fmt.Fprintf(&funcBuffer, "switch r := recover().(type) {\n")
-		fmt.Fprintf(&funcBuffer, "case value.Value: thread.Exit(r)\n")
-		fmt.Fprintf(&funcBuffer, "case nil:\n")
-		fmt.Fprintf(&funcBuffer, "default: panic(r)\n")
-		fmt.Fprintf(&funcBuffer, "}\n")
+		fmt.Fprintf(&funcBuffer, "thread := vm.New()\n")
+		fmt.Fprintf(&funcBuffer, "_ = thread\n\n")
+		fmt.Fprintf(&funcBuffer, "defer func() {\n")
+		fmt.Fprintf(&funcBuffer, "  switch r := recover().(type) {\n")
+		fmt.Fprintf(&funcBuffer, "  case value.Value: thread.Exit(r)\n")
+		fmt.Fprintf(&funcBuffer, "  case nil:\n")
+		if c.test {
+			fmt.Fprintf(&funcBuffer, "    test.MustRun()\n")
+		}
+		fmt.Fprintf(&funcBuffer, "  default: panic(r)\n")
+		fmt.Fprintf(&funcBuffer, "  }\n")
 		fmt.Fprintf(&funcBuffer, "}()\n\n")
 
 		if c.measureTime {
@@ -2196,11 +2771,12 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 			fmt.Fprintf(&funcBuffer, "\nstartTime := value.TimeNow()\n")
 			fmt.Fprintf(&funcBuffer, "defer func() { fmt.Printf(\"?: %%s\\n\", value.TimeSince(startTime).String()) }()\n\n")
 		}
+
 	} else {
 		fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // loc: %s\n", c.goName, c.loc.FilePath)
 	}
 	c.registerGoLocal("self", goValueType)
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 	fmt.Fprintf(&funcBuffer, "self = value.Ref(value.GlobalObject)\n")
 	c.emitPrependBytes(funcBuffer.Bytes())
 
@@ -2208,27 +2784,43 @@ func (c *GoCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 }
 
 func (c *GoCompiler) hasUpvalues() bool {
-	for _, local := range c.goLocals.All() {
-		if local.upvalue {
-			return true
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if local.upvalue {
+				return true
+			}
 		}
 	}
 	return false
 }
 
 func (c *GoCompiler) compileClosedUpvaluesTo(buff io.Writer) {
-	for _, local := range c.goLocals.All() {
-		if !local.upvalue {
-			continue
-		}
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if !local.upvalue {
+				continue
+			}
 
-		fmt.Fprintf(buff, "%[1]s := %[1]s // close: %s", local.name, local.comment)
+			fmt.Fprintf(buff, "%[1]s := %[1]s // close: %s", local.name, local.comment)
+		}
 	}
 	buff.Write([]byte("\n"))
 }
 
-func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
-	for _, local := range c.goLocals.All() {
+func (c *GoCompiler) withGoScope(fn func()) {
+	c.enterGoScope()
+	defer c.leaveGoScope()
+
+	prevBuff := c.switchNewBuffer()
+	fn()
+
+	newBuff := c.switchBuffer(prevBuff)
+	c.compileCurrentLocals()
+	c.emitBytes(newBuff.Bytes())
+}
+
+func (c *GoCompiler) compileCurrentLocalsTo(buff io.Writer) {
+	for _, local := range c.goScopes.last().All() {
 		if local.predefined {
 			continue
 		}
@@ -2242,8 +2834,29 @@ func (c *GoCompiler) compileLocalsTo(buff io.Writer) {
 	buff.Write([]byte("\n"))
 }
 
-func (c *GoCompiler) compileLocals() {
-	c.compileLocalsTo(c.buff)
+func (c *GoCompiler) compileCurrentLocals() {
+	c.compileCurrentLocalsTo(c.buff)
+}
+
+func (c *GoCompiler) compileAllLocalsTo(buff io.Writer) {
+	for _, scope := range c.goScopes {
+		for _, local := range scope.All() {
+			if local.predefined {
+				continue
+			}
+
+			fmt.Fprintf(buff, "var %s %s", local.name, local.goType)
+			if local.comment != "" {
+				fmt.Fprintf(buff, " // %s", local.comment)
+			}
+			fmt.Fprintf(buff, "\n_ = %s\n", local.name)
+		}
+	}
+	buff.Write([]byte("\n"))
+}
+
+func (c *GoCompiler) compileAllLocals() {
+	c.compileAllLocalsTo(c.buff)
 }
 
 // Entry point to the compilation process
@@ -2293,6 +2906,10 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		*ast.InstanceVariableDeclarationNode, *ast.InstanceValueDeclarationNode, *ast.MacroDefinitionNode,
 		*ast.ReceiverlessMacroCallNode, *ast.MacroCallNode, *ast.ScopedMacroCallNode:
 		return nilGoValue
+	case *ast.MacroBoundaryNode:
+		return c.compileMacroBoundaryNode(node, valueIsIgnored)
+	case *ast.UnhygienicNode:
+		return c.compileUnhygienicExpressionNode(node, valueIsIgnored)
 	case *ast.TypeofExpressionNode:
 		return c.compileExpression(node.Value, valueIsIgnored)
 	case *ast.ExtendWhereBlockExpressionNode:
@@ -2309,10 +2926,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileInterfaceDeclarationNode(node)
 	case *ast.VariableDeclarationNode:
 		return c.compileVariableDeclarationNode(node)
+	case *ast.VariablePatternDeclarationNode:
+		return c.compileVariablePatternDeclarationNode(node)
+	case *ast.ValuePatternDeclarationNode:
+		return c.compileValuePatternDeclarationNode(node)
 	case *ast.ValueDeclarationNode:
 		return c.compileValueDeclarationNode(node)
-	case *ast.NewExpressionNode:
-		return c.compileNewExpressionNode(node, valueIsIgnored)
 	case *ast.ConstructorCallNode:
 		return c.compileConstructorCallNode(node, valueIsIgnored)
 	case *ast.GenericConstructorCallNode:
@@ -2381,6 +3000,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileCharLiteralNode(node)
 	case *ast.SimpleSymbolLiteralNode:
 		return c.compileSimpleSymbolLiteralNode(node)
+	case *ast.TryExpressionNode:
+		return c.compileExpression(node.Value, valueIsIgnored)
 	case *ast.NilLiteralNode:
 		return nilGoValue
 	case *ast.TypeExpressionNode, *ast.PatternExpressionNode:
@@ -2392,11 +3013,14 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 			goValueType,
 		)
 	case *ast.BreakpointNode:
-		c.addFailure(
-			"breakpoint is not available in native mode",
-			node.Location(),
+		c.emitThrow(
+			newGoValue(
+				"value.NewError(value.NotImplementedError, \"breakpoint is not supported in native mode.\")",
+				c.checker.Std(symbol.C_Error),
+				value.FetchGoType("*value.Object"),
+			),
 		)
-		return nilGoValue
+		return neverGoValue
 	case *ast.TrueLiteralNode:
 		return newGoValue("value.True", types.Bool{}, value.FetchGoType("value.Bool"))
 	case *ast.FalseLiteralNode:
@@ -2463,6 +3087,12 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		return c.compileAsExpressionNode(node, valueIsIgnored)
 	case *ast.MustExpressionNode:
 		return c.compileMustExpressionNode(node, valueIsIgnored)
+	case *ast.AwaitExpressionNode:
+		return c.compileAwaitExpressionNode(node)
+	case *ast.QuoteExpressionNode:
+		return c.compileQuoteExpressionNode(node)
+	case *ast.UnquoteNode:
+		return c.compileUnquoteNode(node, valueIsIgnored)
 	case *ast.DoExpressionNode:
 		return c.compileDoExpressionNode(node, valueIsIgnored)
 	case *ast.ThrowExpressionNode:
@@ -2514,6 +3144,8 @@ func (c *GoCompiler) compileExpression(node ast.ExpressionNode, valueIsIgnored b
 		)
 	case *ast.ClosureLiteralNode:
 		return c.compileClosureLiteralNode(node, valueIsIgnored)
+	case *ast.SelectExpressionNode:
+		return c.compileSelectExpressionNode(node)
 	case *ast.SwitchExpressionNode:
 		return c.compileSwitchExpressionNode(node, valueIsIgnored)
 	case *ast.MatchExpressionNode:
@@ -2542,7 +3174,7 @@ func (c *GoCompiler) compileRelationalPatternNode(pattern ast.Node, val *goValue
 	c.emitAssignGoLocal(resultVar, falseGoValue)
 	c.emit("}\n")
 
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileLiteralPatternNode(pattern ast.PatternNode, val *goValue, op token.Type) *goValue {
@@ -2571,7 +3203,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, left func() *goValue, r
 		leftVal := left()
 		c.emitAssignGoLocal(tmp, leftVal)
 
-		result := newGoValueWithLocal(tmp, types.Bool{})
+		result := newGoValueWithLocal(tmp, types.Bool{}, false)
 		c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
@@ -2583,7 +3215,7 @@ func (c *GoCompiler) compileBinaryPattern(op token.Type, left func() *goValue, r
 		leftVal := left()
 		c.emitAssignGoLocal(tmp, leftVal)
 
-		result := newGoValueWithLocal(tmp, types.Bool{})
+		result := newGoValueWithLocal(tmp, types.Bool{}, false)
 		c.emit("if %s {\n", c.convertValueToBool(result).value)
 		rightVal := right()
 		c.emitAssignGoLocal(tmp, rightVal)
@@ -2821,15 +3453,21 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 		case *ast.SymbolKeyValuePatternNode:
 			keyName := identifierToName(e.Key)
 			keyNameSymbol := c.emitSymbolValue(keyName)
-			elementValue := c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false)
-
+			elementValue := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(val, keyNameSymbol, c.typeOf(e), loc, false),
+			)
 			patternResult := c.compilePattern(e.Value, elementValue)
+			elementValue.markFree()
+
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.KeyValuePatternNode:
 			keyVal := c.compileExpression(e.Key, false)
-			elementValue := c.compileSubscript(val, keyVal, c.typeOf(e), loc, false)
-
+			elementValue := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(val, keyVal, c.typeOf(e), loc, false),
+			)
 			patternResult := c.compilePattern(e.Value, elementValue)
+			elementValue.markFree()
+
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.PublicIdentifierNode:
 			c.compileIdentifierMapPatternElement(val, e.Value, typ, loc)
@@ -2844,7 +3482,7 @@ func (c *GoCompiler) compileMapOrRecordPattern(val *goValue, typ types.Type, ele
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) newSmallIntValue(number int) *goValue {
@@ -2892,13 +3530,13 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			c.checker.Std(symbol.C_ArrayList).(types.Namespace),
 			elementType,
 		)
-		restArrayListVar := c.arrayListToGoSource(
+		restArrayListVal := c.arrayListToGoSource(
 			value.NewArrayListOfValue(0),
 			restVarType,
 		)
 
-		restListVar = c.defineLocal(restVariableName, restVarType, restArrayListVar.goType, loc)
-		c.emitAssignGoLocal(restListVar.goLocal, restArrayListVar)
+		restListVar = c.defineLocal(restVariableName, restVarType, restArrayListVal.goType, loc)
+		c.emitAssignGoLocal(restListVar.goLocal, restArrayListVal)
 	}
 
 	var mixin string
@@ -2932,6 +3570,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 		false,
 	)
 	lengthVar, lengthVal := c.wrapValueInTmpGoLocal(c.convertValueToSmallInt(lengthVal))
+	defer lengthVar.markFree()
 
 	if elementBeforeRestCount == -1 {
 		c.emit("if %s != %d {\n", lengthVar.name, len(elementNodes))
@@ -2952,21 +3591,24 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	}
 	for i, elementNode := range elementsBeforeRest {
 		loc := elementNode.Location()
-		elementVal := c.compileSubscript(
-			val,
-			c.newSmallIntValue(i),
-			elementType,
-			loc,
-			false,
+		elementVal := c.wrapValueInTmpGoLocalVal(
+			c.compileSubscript(
+				val,
+				c.newSmallIntValue(i),
+				elementType,
+				loc,
+				false,
+			),
 		)
-
 		patternResult := c.compilePattern(elementNode, elementVal)
+		elementVal.markFree()
+
 		c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 	}
 
 	if elementBeforeRestCount != -1 {
 		iteratorVar := c.defineTmpGoLocal(value.FetchGoType("value.SmallInt"))
-		iteratorVal := newGoValueWithLocal(iteratorVar, c.checker.StdInt())
+		iteratorVal := newGoValueWithLocal(iteratorVar, c.checker.StdInt(), true)
 
 		if restVariableName != "" {
 			// adjust the length variable
@@ -3003,20 +3645,21 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 			}
 		}
 
-		lengthVar.markFree()
-
 		elementsAfterRest := elementNodes[elementBeforeRestCount+1:]
 		for _, elementNode := range elementsAfterRest {
 			loc := elementNode.Location()
-			elementVal := c.compileSubscript(
-				val,
-				iteratorVal,
-				elementType,
-				loc,
-				false,
+			elementVal := c.wrapValueInTmpGoLocalVal(
+				c.compileSubscript(
+					val,
+					iteratorVal,
+					elementType,
+					loc,
+					false,
+				),
 			)
-
 			patternResult := c.compilePattern(elementNode, elementVal)
+			elementVal.markFree()
+
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 
 			// i++
@@ -3027,7 +3670,7 @@ func (c *GoCompiler) compileListOrTuplePattern(val *goValue, elementType types.T
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) emitPatternUnmatchedJump(endLabel *goLabel, resultVar *goLocal, patternResult *goValue) {
@@ -3124,7 +3767,7 @@ subPatternLoop:
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileIdentifierMapPatternElement(val *goValue, name string, typ types.Type, loc *position.Location) {
@@ -3177,7 +3820,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 			methodName := identifierToName(e.Key)
 			methodNameSym := c.emitSymbol(methodName)
 
-			attrVal := c.compileMethodCallWithLiteralArgValuesAndName(
+			callVal := c.compileMethodCallWithLiteralArgValuesAndName(
 				val.elkType,
 				c.typeOf(e),
 				methodNameSym,
@@ -3188,7 +3831,12 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 				loc,
 				false,
 			)
+			attrVal := c.wrapValueInTmpGoLocalVal(callVal)
+
 			patternResult := c.compilePattern(e.Value, attrVal)
+			attrVal.markFree()
+			callVal.markFree()
+
 			c.emitPatternUnmatchedJump(endLabel, resultVar, patternResult)
 		case *ast.PublicIdentifierNode:
 			c.compileIdentifierObjectPatternAttribute(e.Value, c.typeOf(e), val, loc)
@@ -3203,7 +3851,7 @@ func (c *GoCompiler) compileObjectPattern(val *goValue, objectTypeNode ast.Compl
 	}
 
 	c.emitGoLabel(endLabel)
-	return newGoValueWithLocal(resultVar, types.Bool{})
+	return newGoValueWithLocal(resultVar, types.Bool{}, false)
 }
 
 func (c *GoCompiler) compileIdentifierObjectPatternAttribute(name string, returnType types.Type, val *goValue, loc *position.Location) {
@@ -3339,44 +3987,48 @@ func (c *GoCompiler) compileForIn(
 	} else {
 		goType := c.elkTypeToGoType(typ, false)
 		resultVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(resultVar, typ)
+		result = newGoValueWithLocal(resultVar, typ, false)
 
 		if c.checker.IsSubtype(types.Nil{}, typ) {
 			c.emit("%s = value.Nil\n", resultVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, resultVar, false)
+	scope := c.enterLoopScope(label, resultVar, false, false)
 
 	inVal := c.compileExpression(inExpression, false)
 	inExpressionType := c.typeOf(inExpression)
 	nextType, _ := c.checker.GetIteratorElementType(inExpressionType)
 	loopTmpVar := c.defineTmpGoLocal(goValueType)
-	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType)
+	loopTmpVal := newGoValueWithLocal(loopTmpVar, nextType, true)
 	c.registerUnoptimisableErr()
 
 	prevBuff := c.switchNewBuffer()
 	c.emit("for %s, err = range vm.Iterate(thread, %s) {\n", loopTmpVar.name, c.convertValueToWiderType(inVal).fetchValue())
 
-	patternResult := c.compilePattern(param, loopTmpVal)
-	if patternResult.value != "value.True" {
-		c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
-		errVal := newGoValue(
-			"value.NewPatternNotMatchedInForInLoopError()",
-			c.checker.Std(symbol.C_Error),
-			value.FetchGoType("*value.Object"),
-		)
-		c.emitThrow(errVal)
-		c.emit("}\n")
-	}
+	c.withGoScope(func() {
+		patternResult := c.compilePattern(param, loopTmpVal)
+		loopTmpVal.markFree()
 
-	// loop body
-	then()
+		if patternResult.value != "value.True" {
+			c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+			errVal := newGoValue(
+				"value.NewPatternNotMatchedInForInLoopError()",
+				c.checker.Std(symbol.C_Error),
+				value.FetchGoType("*value.Object"),
+			)
+			c.emitThrow(errVal)
+			c.emit("}\n")
+		}
+
+		// loop body
+		then()
+	})
 
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -3429,8 +4081,8 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 	}
 
 	startType := c.typeOf(inRange.Start)
-	paramLocal := c.defineLocal(paramName, startType, c.elkTypeToGoType(startType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
 
 	var op token.Type
 	switch inRange.Op.Type {
@@ -3447,6 +4099,8 @@ func (c *GoCompiler) compileForInRangeLiteralAsNumericFor(label string, inRange 
 	}
 
 	init := func() {
+		paramLocal = c.defineLocal(paramName, startType, c.elkTypeToGoType(startType, false), paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
 		var initVal *goValue
 
 		switch inRange.Op.Type {
@@ -3540,15 +4194,22 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 	}
 
 	elementType := rangeType.TypeArguments.Get(0).Type
-	paramLocal := c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
-	_, rangeVal := c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
+	var rangeVal *goValue
+	defer func() {
+		if rangeVal != nil {
+			rangeVal.markFree()
+		}
+	}()
 
 	init := func() {
-		var initVal *goValue
+		paramLocal = c.defineLocal(paramName, elementType, c.elkTypeToGoType(elementType, false), paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+		_, rangeVal = c.wrapValueInTmpGoLocal(c.compileExpression(inRange, false))
 
 		startSymbol := c.emitSymbol("start")
-		initVal = c.compileMethodCallWithLiteralArgValuesAndName(
+		initVal := c.compileMethodCallWithLiteralArgValuesAndName(
 			rangeType,
 			elementType,
 			startSymbol,
@@ -3586,24 +4247,30 @@ func (c *GoCompiler) compileForInRangeAsNumericFor(label string, inRange ast.Exp
 		)
 	}
 
-	endSymbol := c.emitSymbol("end")
-	_, endVal := c.wrapValueInTmpGoLocal(
-		c.compileMethodCallWithLiteralArgValuesAndName(
-			rangeType,
-			elementType,
-			endSymbol,
-			"end",
-			[]*goValue{
-				rangeVal,
-			},
-			loc,
-			false,
-		),
-	)
+	var endVal *goValue
+	defer func() {
+		if endVal != nil {
+			endVal.markFree()
+		}
+	}()
 
 	var cond func() *goValue
 	if cmpOp != token.ZERO_VALUE {
 		cond = func() *goValue {
+			endSymbol := c.emitSymbol("end")
+			_, endVal := c.wrapValueInTmpGoLocal(
+				c.compileMethodCallWithLiteralArgValuesAndName(
+					rangeType,
+					elementType,
+					endSymbol,
+					"end",
+					[]*goValue{
+						rangeVal,
+					},
+					loc,
+					false,
+				),
+			)
 			return c.compileBinaryExpression(
 				paramVal,
 				endVal,
@@ -3637,16 +4304,18 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 
 	var paramLocal *nativeElkLocal
 	var paramType *value.GoType
-	if isSmallInt {
-		paramType = value.FetchGoType("value.SmallInt")
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	} else {
-		paramType = goValueType
-		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	}
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	var paramVal *goValue
 
 	init := func() {
+		if isSmallInt {
+			paramType = value.FetchGoType("value.SmallInt")
+			paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		} else {
+			paramType = goValueType
+			paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		}
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+
 		var initVal *goValue
 		if isSmallInt {
 			initVal = newGoValue("value.SmallInt(0)", c.checker.Std(symbol.C_Int), paramType)
@@ -3695,14 +4364,18 @@ func (c *GoCompiler) compileForInIntLiteralAsNumericFor(label string, inInt *ast
 
 func (c *GoCompiler) compileForInIntAsNumericFor(label string, inInt ast.ExpressionNode, then func() *goValue, paramExpr ast.ExpressionNode, paramName string, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
 	paramType := goValueType
-	paramLocal := c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
-	paramVal := newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType)
+	var paramLocal *nativeElkLocal
+	var paramVal *goValue
 
 	init := func() {
+		paramLocal = c.defineLocal(paramName, c.checker.Std(symbol.C_Int), paramType, paramExpr.Location())
+		paramVal = newGoValueWithLocal(paramLocal.goLocal, paramLocal.elkType, true)
+
 		initVal := newGoValue("value.SmallInt(0).ToValue()", c.checker.Std(symbol.C_Int), paramType)
 		c.emitAssignGoLocal(paramLocal.goLocal, initVal)
 	}
 	increment := func() {
+
 		c.emitAssignGoLocal(
 			paramLocal.goLocal,
 			c.compileIncrement(
@@ -3873,7 +4546,7 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 		return neverGoValue
 	}
 
-	loopInfo.markLabelUsed()
+	loopInfo.markLoopLabelUsed()
 
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
@@ -3883,7 +4556,7 @@ func (c *GoCompiler) compileBreakExpressionNode(node *ast.BreakExpressionNode) *
 		c.compileFinallyFromCatchInfo(catchInfo)
 	}
 
-	c.emit("break %s\n", loopInfo.goLabel.name)
+	c.emit("break %s\n", loopInfo.loopGoLabel.name)
 	return neverGoValue
 }
 
@@ -3935,8 +4608,6 @@ func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionN
 		return neverGoValue
 	}
 
-	loopInfo.markLabelUsed()
-
 	if loopInfo.resultVar != nil {
 		c.emitAssignGoLocal(loopInfo.resultVar, value)
 	}
@@ -3945,7 +4616,13 @@ func (c *GoCompiler) compileContinueExpressionNode(node *ast.ContinueExpressionN
 		c.compileFinallyFromCatchInfo(catchInfo)
 	}
 
-	c.emit("continue %s\n", loopInfo.goLabel.name)
+	if loopInfo.continueGoLabel != nil {
+		loopInfo.markContinueLabelUsed()
+		c.emit("goto %s\n", loopInfo.continueGoLabel.name)
+	} else {
+		loopInfo.markLoopLabelUsed()
+		c.emit("continue %s\n", loopInfo.loopGoLabel.name)
+	}
 	return neverGoValue
 }
 
@@ -4023,15 +4700,16 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	} else {
 		goType := c.elkTypeToGoType(typ, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, typ)
+		result = newGoValueWithLocal(tmpVar, typ, false)
 
 		if c.checker.IsSubtype(types.Nil{}, typ) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
 
+	outerGoScope := c.enterGoScope()
 	// loop initialiser eg. `i := 0`
 	if init != nil {
 		init()
@@ -4041,20 +4719,32 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	if cond != nil {
-		condVal := cond()
-		if condVal != nil {
-			c.emit("if %s { break }\n", c.convertValueToNotBool(condVal).fetchValue())
+	c.emit("{\n")
+	for _, local := range outerGoScope.All() {
+		c.emit("%[1]s := %[1]s\n", local.name)
+	}
+	c.leaveGoScope()
+	c.mergeGoScope(outerGoScope)
+
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		if cond != nil {
+			condVal := cond()
+			if condVal != nil {
+				c.emit("if %s { break }\n", c.convertValueToNotBool(condVal).fetchValue())
+			}
 		}
-	}
 
-	// loop body
-	thenVal := then()
+		// loop body
+		thenVal := then()
 
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, thenVal)
-	}
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, thenVal)
+		}
+
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+	})
+	c.emit("}\n")
 
 	if increment != nil {
 		// increment step eg. `i += 1`
@@ -4065,7 +4755,7 @@ func (c *GoCompiler) compileNumericForVal(label string, init func(), cond func()
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4086,22 +4776,24 @@ func (c *GoCompiler) compileLoop(label string, body []ast.StatementNode, elkType
 	} else {
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, false)
+	scope := c.enterLoopScope(label, tmpVar, false, false)
 
 	prevBuff := c.switchNewBuffer()
 	c.emit("for {\n")
-	c.compileStatements(body, true)
+	c.withGoScope(func() {
+		c.compileStatements(body, true)
+	})
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4135,6 +4827,24 @@ func (c *GoCompiler) compileThrowExpressionNode(node *ast.ThrowExpressionNode) *
 	return nilGoValue
 }
 
+func (c *GoCompiler) compileUnhygienicExpressionNode(node *ast.UnhygienicNode, valueIsIgnored bool) *goValue {
+	prevUnhygienic := c.unhygienic
+	c.unhygienic = true
+
+	val := c.compileExpression(node.Node.(ast.ExpressionNode), valueIsIgnored)
+
+	c.unhygienic = prevUnhygienic
+	return val
+}
+
+func (c *GoCompiler) compileMacroBoundaryNode(node *ast.MacroBoundaryNode, valueIsIgnored bool) *goValue {
+	c.enterScope(macroBoundaryNativeElkScopeType)
+	val := c.compileStatements(node.Body, valueIsIgnored)
+	c.leaveScope()
+
+	return val
+}
+
 func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIsIgnored bool) *goValue {
 	return c.compileDo(
 		func() *goValue {
@@ -4145,6 +4855,111 @@ func (c *GoCompiler) compileDoExpressionNode(node *ast.DoExpressionNode, valueIs
 		c.typeOf(node),
 		valueIsIgnored,
 	)
+}
+
+func (c *GoCompiler) compileQuoteExpressionNode(node *ast.QuoteExpressionNode) *goValue {
+	location := node.Location()
+
+	var newNode ast.ExpressionNode
+	if expr := node.SingleExpression(); expr != nil {
+		newNode = expr
+	} else {
+		newNode = ast.NewDoExpressionNode(location, node.Body, nil, nil)
+	}
+
+	var unquoteVals []*goValue
+	ast.Traverse(
+		node,
+		func(node, parent ast.Node) ast.TraverseOption {
+			switch node := node.(type) {
+			case *ast.UnquoteNode:
+				unquoteVals = append(unquoteVals, c.compileExpression(node, false))
+				return ast.TraverseSkip
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	resultTmp := c.defineTmpGoLocal(value.FetchGoType("ast.Node"))
+	var nodeVal *goValue
+	if len(unquoteVals) > 0 {
+		spliceInfo := newGoAstSpliceInfo(unquoteVals)
+		nodeVal = c.astNodeToGoSource(newNode, spliceInfo)
+	} else {
+		nodeVal = c.astNodeToGoSource(newNode, nil)
+	}
+
+	c.emit(
+		"%s = %s\n",
+		resultTmp.name,
+		nodeVal.fetchValue(),
+	)
+	return newGoValueWithLocal(resultTmp, c.AstNodeType(), false)
+}
+
+func (c *GoCompiler) compileUnquoteNode(node *ast.UnquoteNode, valueIsIgnored bool) *goValue {
+	exprType := c.typeOf(node.Expression)
+
+	var methodNameSym string
+	var methodName string
+	var nodeType types.Type
+	switch node.Kind {
+	case ast.UNQUOTE_EXPRESSION_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ExpressionNode)
+		methodName = "to_ast_expr_node"
+		methodNameSym = "symbol.L_to_ast_expr_node"
+	case ast.UNQUOTE_CONSTANT_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ConstantNode)
+		methodName = "to_ast_const_node"
+		methodNameSym = "symbol.L_to_ast_const_node"
+	case ast.UNQUOTE_COMPLEX_CONSTANT_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ComplexConstantNode)
+		methodName = "to_ast_complex_const_node"
+		methodNameSym = "symbol.L_to_ast_complex_const_node"
+	case ast.UNQUOTE_PATTERN_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_PatternNode)
+		methodName = "to_ast_pattern_node"
+		methodNameSym = "symbol.L_to_ast_pattern_node"
+	case ast.UNQUOTE_PATTERN_EXPRESSION_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_LiteralPatternNode)
+		methodName = "to_ast_pattern_expr_node"
+		methodNameSym = "symbol.L_to_ast_pattern_expr_node"
+	case ast.UNQUOTE_TYPE_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_TypeNode)
+		methodName = "to_ast_type_node"
+		methodNameSym = "symbol.L_to_ast_type_node"
+	case ast.UNQUOTE_IDENTIFIER_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_IdentifierNode)
+		methodName = "to_ast_ident_node"
+		methodNameSym = "symbol.L_to_ast_ident_node"
+	case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
+		nodeType = types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_InstanceVariableNode)
+		methodName = "to_ast_ivar_node"
+		methodNameSym = "symbol.L_to_ast_ivar_node"
+	default:
+		panic(fmt.Sprintf("invalid unquote kind %d", node.Kind))
+	}
+
+	expr := c.compileExpression(node.Expression, false)
+	if c.checker.IsSubtype(expr.elkType, nodeType) {
+		return expr
+	}
+
+	return c.compileMethodCallWithLiteralArgValuesAndName(
+		exprType,
+		nodeType,
+		methodNameSym,
+		methodName,
+		[]*goValue{expr},
+		node.Expression.Location(),
+		valueIsIgnored,
+	)
+}
+
+func (c *GoCompiler) AstNodeType() types.Type {
+	return types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node)
 }
 
 const deferFnsVarName = "deferFns"
@@ -4205,7 +5020,7 @@ func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, f
 		resultVal = nilGoValue
 	} else if catchLabel.used {
 		resultVar = c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
-		resultVal = newGoValueWithLocal(resultVar, typ)
+		resultVal = newGoValueWithLocal(resultVar, typ, false)
 		c.emitAssignGoLocal(resultVar, thenVal)
 	} else {
 		resultVal = thenVal
@@ -4229,7 +5044,7 @@ func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, f
 		c.emitGoLabel(catchLabel)
 
 		errVar := c.defineTmpGoLocal(goValueType)
-		errVal := newGoValueWithLocal(errVar, types.Any{})
+		errVal := newGoValueWithLocal(errVar, types.Any{}, true)
 		c.emit("%s = err\n", errVar.name)
 
 		for _, catchNode := range catches {
@@ -4282,6 +5097,7 @@ func (c *GoCompiler) compileDo(body func() *goValue, catches []*ast.CatchNode, f
 		}
 
 		c.emitRethrow(errVal)
+		errVal.markFree()
 
 		if finallyIsPresent && len(catches) > 0 {
 			// finally after a successful catch
@@ -4365,39 +5181,52 @@ func (c *GoCompiler) compileModifierWhileExpressionNode(label string, node *ast.
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
+
+	var doneTmp *goLocal
+	if conditionIsStaticFalsy {
+		doneTmp = c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		defer doneTmp.markFree()
+		c.emitAssignGoLocal(doneTmp, falseGoValue)
+	}
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
+	c.withGoScope(func() {
+		if conditionIsStaticFalsy {
+			c.emit("if %s {\n", doneTmp.name)
+			c.emit("  break\n")
+			c.emit("}\n")
+			c.emitAssignGoLocal(doneTmp, trueGoValue)
+		}
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
 
-	if conditionIsStaticFalsy {
-		// after loop
-		c.emit("break\n")
-	} else {
-		// loop condition eg. `i < 5`
-		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
-	}
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+		if !conditionIsStaticFalsy {
+			// loop condition eg. `i < 5`
+			cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
+			c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4409,7 +5238,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 	body := node.Left
 	condition := node.Right
 
-	var conditionIsStaticFalsy bool
+	var conditionIsStaticTruthy bool
 
 	if result := resolve(condition, c.checker); result.IsNotUndefined() {
 		if value.Falsy(result) {
@@ -4418,7 +5247,7 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		}
 
 		// the loop will only iterate once
-		conditionIsStaticFalsy = true
+		conditionIsStaticTruthy = true
 	}
 
 	var result *goValue
@@ -4430,39 +5259,51 @@ func (c *GoCompiler) compileModifierUntilExpressionNode(label string, node *ast.
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, true)
+
+	var doneTmp *goLocal
+	if conditionIsStaticTruthy {
+		doneTmp = c.defineTmpGoLocal(value.FetchGoType("value.Bool"))
+		c.emitAssignGoLocal(doneTmp, falseGoValue)
+	}
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
+	c.withGoScope(func() {
+		if conditionIsStaticTruthy {
+			c.emit("if %s {\n", doneTmp.name)
+			c.emit("  break\n")
+			c.emit("}\n")
+			c.emitAssignGoLocal(doneTmp, trueGoValue)
+		}
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileExpression(body, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
 
-	if conditionIsStaticFalsy {
-		// after loop
-		c.emit("break\n")
-	} else {
-		// loop condition eg. `i < 5`
-		cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
-		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
-	}
+		c.emitGoLabel(scope.loopInfo.continueGoLabel)
+		if !conditionIsStaticTruthy {
+			// loop condition eg. `i < 5`
+			cond := c.convertValueToNarrowerType(c.compileExpression(condition, false))
+			c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4491,34 +5332,36 @@ func (c *GoCompiler) compileWhileExpressionNode(label string, node *ast.WhileExp
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, false)
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-	c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
+		c.emit("if %s { break }\n", c.convertValueToNotBool(cond).fetchValue())
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
@@ -4547,39 +5390,60 @@ func (c *GoCompiler) compileUntilExpressionNode(label string, node *ast.UntilExp
 		elkType := c.typeOf(node)
 		goType := c.elkTypeToGoType(elkType, false)
 		tmpVar = c.defineTmpGoLocal(goType)
-		result = newGoValueWithLocal(tmpVar, elkType)
+		result = newGoValueWithLocal(tmpVar, elkType, false)
 
 		if c.checker.IsSubtype(types.Nil{}, elkType) {
 			c.emit("%s = value.Nil\n", tmpVar.name)
 		}
 	}
 
-	scope := c.enterLoopScope(label, tmpVar, true)
+	scope := c.enterLoopScope(label, tmpVar, true, false)
 
 	prevBuff := c.switchNewBuffer()
 	// loop start
 	c.emit("for {\n")
 
-	// loop condition eg. `i < 5`
-	cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
-	c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
+	c.withGoScope(func() {
+		// loop condition eg. `i < 5`
+		cond := c.convertValueToNarrowerType(c.compileExpression(node.Condition, false))
+		c.emit("if %s { break }\n", c.convertValueToBool(cond).fetchValue())
 
-	// loop body
-	then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
-	if !valueIsIgnored {
-		c.emitAssignGoLocal(tmpVar, then)
-	}
+		// loop body
+		then := c.convertValueToNarrowerType(c.compileStatements(node.ThenBody, valueIsIgnored))
+		if !valueIsIgnored {
+			c.emitAssignGoLocal(tmpVar, then)
+		}
+	})
 
 	// after loop
 	c.emit("}\n")
 
 	newBuff := c.switchBuffer(prevBuff)
-	c.emitGoLabel(scope.loopInfo.goLabel)
+	c.emitGoLabel(scope.loopInfo.loopGoLabel)
 	c.emitBytes(newBuff.Bytes())
 
 	c.leaveScope()
 
 	return result
+}
+
+func (c *GoCompiler) compileAwaitExpressionNode(node *ast.AwaitExpressionNode) *goValue {
+	val := c.convertValueToNarrowerType(c.compileExpression(node.Value, false))
+
+	resultType := c.typeOf(node)
+	resultGoType := c.elkTypeToGoType(resultType, false)
+	resultVar := c.defineTmpGoLocal(resultGoType)
+	resultVal := newGoValueWithLocal(resultVar, resultType, false)
+
+	stackTraceVar := c.defineTmpGoLocal(value.FetchGoType("*value.StackTrace"))
+	stackTraceVal := newGoValueWithLocal(stackTraceVar, c.checker.Std(symbol.C_StackTrace), false)
+
+	c.registerUnoptimisableErr()
+	c.emitSetCallFrameLineNumber(node.Location())
+	c.emit("%s, %s, err = (%s).AwaitSync()\n", resultVar.name, stackTraceVar.name, val.fetchValue())
+	c.emitErrorPropagationPrependStackTrace(stackTraceVal)
+
+	return resultVal
 }
 
 func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, valueIsIgnored bool) *goValue {
@@ -4592,13 +5456,13 @@ func (c *GoCompiler) compileMustExpressionNode(node *ast.MustExpressionNode, val
 		result = val
 	} else {
 		tmpVar := c.defineTmpGoLocal(val.goType)
-		result = newGoValueWithLocal(tmpVar, c.typeOf(node))
+		result = newGoValueWithLocal(tmpVar, c.typeOf(node), false)
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
 	c.registerUnoptimisableErr()
 	c.emitSetCallFrameLineNumber(node.Location())
-	c.emit("err = value.Must(%s)\n", c.convertValueToWiderType(result).fetchValue())
+	c.emit("err = value.Must(%s)\n", c.convertValueToWiderType(result).value)
 	c.emitErrorPropagation()
 
 	return result
@@ -4618,7 +5482,7 @@ func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIs
 		result = val
 	} else {
 		tmpVar := c.defineTmpGoLocal(val.goType)
-		result = newGoValueWithLocal(tmpVar, val.elkType)
+		result = newGoValueWithLocal(tmpVar, val.elkType, false)
 		c.emitAssignGoLocal(tmpVar, val)
 	}
 
@@ -4626,9 +5490,9 @@ func (c *GoCompiler) compileAsExpressionNode(node *ast.AsExpressionNode, valueIs
 	c.emitSetCallFrameLineNumber(node.Location())
 	switch narrowClass.goType.Name {
 	case "*value.Class", "*value.Mixin":
-		c.emit("err = value.As(%s, %s)\n", c.convertValueToWiderType(result).fetchValue(), narrowClass.fetchValue())
+		c.emit("err = value.As(%s, %s)\n", c.convertValueToWiderType(result).value, narrowClass.value)
 	default:
-		c.emit("err = value.AsUnsafe(%s, %s)\n", c.convertValueToWiderType(result).fetchValue(), c.convertValueToWiderType(class).fetchValue())
+		c.emit("err = value.AsUnsafe(%s, %s)\n", c.convertValueToWiderType(result).value, c.convertValueToWiderType(class).value)
 	}
 	c.emitErrorPropagation()
 
@@ -4809,7 +5673,19 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 			)
 		case *ast.ModifierForInNode:
 			finalizeStaticElements()
-			// TODO: compile for in
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
 
@@ -4864,6 +5740,7 @@ func (c *GoCompiler) compileArrayTupleLiteralNode(node *ast.ArrayTupleLiteralNod
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -4904,7 +5781,12 @@ func (c *GoCompiler) compileCollectionAppendExpr(tmp *goLocal, expr ast.Expressi
 }
 
 func (c *GoCompiler) compileCollectionAppend(tmp *goLocal, val *goValue) {
-	c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
+	switch tmp.goType.Name {
+	case "*value.NativeArrayList", "*value.NativeArrayTuple":
+		c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToNarrowerType(val).fetchValue())
+	default:
+		c.emit("%s.Append(%s)\n", tmp.name, c.convertValueToWiderType(val).fetchValue())
+	}
 }
 
 func (c *GoCompiler) compileHashSetAppendExpr(tmp *goLocal, expr ast.ExpressionNode) {
@@ -5170,8 +6052,20 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileArrayAppend(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5235,6 +6129,7 @@ func (c *GoCompiler) compileArrayListLiteralNode(node *ast.ArrayListLiteralNode)
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -5396,8 +6291,20 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					c.compileHashSetAppendExpr(tmp, elementNode.ThenExpression)
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5466,6 +6373,7 @@ func (c *GoCompiler) compileHashSetLiteralNode(node *ast.HashSetLiteralNode) *go
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -5491,7 +6399,8 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	var tmp *goLocal
 
 	var keyType, valType types.Type
-	var goKeyType, goValType *value.GoType
+	goKeyType := goValueType
+	goValType := goValueType
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
@@ -5663,8 +6572,32 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 				return nilGoValue
 			}
 
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			if node.Capacity != nil {
 				c.addFailure(
@@ -5803,6 +6736,7 @@ func (c *GoCompiler) compileHashMapLiteralNode(node *ast.HashMapLiteralNode) *go
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -5818,7 +6752,8 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	var tmp *goLocal
 
 	var keyType, valType types.Type
-	var goKeyType, goValType *value.GoType
+	goKeyType := goValueType
+	goValType := goValueType
 
 	typ := c.typeOf(node)
 	elementType, _ := c.checker.GetIteratorElementType(typ)
@@ -5958,8 +6893,32 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 				true,
 			)
 		case *ast.ModifierForInNode:
-			// TODO: compile for in
 			finalizeStaticElements()
+
+			c.compileForIn(
+				"",
+				elementNode.Pattern,
+				elementNode.InExpression,
+				func() *goValue {
+					switch then := elementNode.ThenExpression.(type) {
+					case *ast.KeyValueExpressionNode:
+						key := c.compileExpression(then.Key, false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					case *ast.SymbolKeyValueExpressionNode:
+						key := c.valueToGoSource(value.ToSymbol(identifierToName(then.Key)).ToValue(), c.checker.Std(symbol.C_Symbol), false)
+						val := c.compileExpression(then.Value, false)
+						c.compileMapSet(tmp, key, val, then.Location())
+					default:
+						panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+					}
+
+					return nilGoValue
+				},
+				c.typeOf(elementNode),
+				elementNode.Location(),
+				true,
+			)
 		case *ast.ModifierIfElseNode:
 			finalizeStaticElements()
 
@@ -6090,6 +7049,7 @@ func (c *GoCompiler) compileHashRecordLiteralNode(node *ast.HashRecordLiteralNod
 	return newGoValueWithLocal(
 		tmp,
 		c.typeOf(node),
+		false,
 	)
 }
 
@@ -6240,6 +7200,7 @@ func (c *GoCompiler) compileInterpolatedRegexLiteralNode(node *ast.InterpolatedR
 	return newGoValueWithLocal(
 		resultVar,
 		elkType,
+		false,
 	)
 }
 
@@ -6563,6 +7524,42 @@ func (c *GoCompiler) compileFloat32LiteralNode(node *ast.Float32LiteralNode) *go
 	)
 }
 
+func (c *GoCompiler) compileVariablePatternDeclarationNode(node *ast.VariablePatternDeclarationNode) *goValue {
+	initVal := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Initialiser, false))
+	patternResult := c.compilePattern(node.Pattern, initVal)
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	initVal.disableManualFree()
+	return initVal
+}
+
+func (c *GoCompiler) compileValuePatternDeclarationNode(node *ast.ValuePatternDeclarationNode) *goValue {
+	initVal := c.wrapValueInTmpGoLocalVal(c.compileExpression(node.Initialiser, false))
+	patternResult := c.compilePattern(node.Pattern, initVal)
+
+	c.emit("if %s {\n", c.convertValueToNotBool(patternResult).fetchValue())
+	c.emitThrow(
+		newGoValue(
+			"value.NewPatternNotMatchedInVariableDeclarationError()",
+			c.checker.Std(symbol.C_Error),
+			value.FetchGoType("*value.Object"),
+		),
+	)
+	c.emit("}\n")
+
+	initVal.disableManualFree()
+	return initVal
+}
+
 func (c *GoCompiler) compileVariableDeclarationNode(node *ast.VariableDeclarationNode) *goValue {
 	initialised := node.Initialiser != nil
 
@@ -6664,6 +7661,9 @@ func (c *GoCompiler) methodReturnValue(val *goValue) string {
 	if c.method == nil {
 		return c.convertValueToWiderType(val).fetchValue()
 	}
+	if types.IsNever(val.elkType) {
+		return "result"
+	}
 
 	goReturnType := c.elkTypeToGoType(c.method.ReturnType, false)
 	if goReturnType.Name == "value.Value" {
@@ -6682,14 +7682,12 @@ func (c *GoCompiler) compilePrivateConstantNode(node *ast.PrivateConstantNode) *
 }
 
 func (c *GoCompiler) compileCallNode(node *ast.CallNode, valueIsIgnored bool) *goValue {
-	receiver := c.compileExpression(node.Receiver, false)
-
-	return c.compileMethodCallWithArgNodes(
-		receiver,
-		receiver.elkType,
-		c.typeOf(node),
+	return c.compileMethodCall(
+		node.Receiver,
+		node.OpType(),
 		"call",
 		node.PositionalArguments,
+		c.typeOf(node),
 		node.Location(),
 		valueIsIgnored,
 	)
@@ -6712,21 +7710,6 @@ func (c *GoCompiler) compileGenericConstructorCallNode(node *ast.GenericConstruc
 	return c.compileConstructorCall(
 		node.Method,
 		class,
-		node.PositionalArguments,
-		c.typeOf(node),
-		node.Location(),
-		valueIsIgnored,
-	)
-}
-
-func (c *GoCompiler) compileNewExpressionNode(node *ast.NewExpressionNode, valueIsIgnored bool) *goValue {
-	return c.compileConstructorCall(
-		node.Method,
-		newGoValue(
-			"self",
-			c.checker.SelfType(),
-			goValueType,
-		),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
@@ -6759,8 +7742,8 @@ func (c *GoCompiler) compileConstructorCall(method *types.Method, class *goValue
 func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgnored bool) *goValue {
 	return c.compileMethodCall(
 		node.Receiver,
-		node.Op,
-		node.MethodName,
+		node.Op.Type,
+		identifierToName(node.MethodName),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
@@ -6771,8 +7754,8 @@ func (c *GoCompiler) compileMethodCallNode(node *ast.MethodCallNode, valueIsIgno
 func (c *GoCompiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNode, valueIsIgnored bool) *goValue {
 	return c.compileMethodCall(
 		node.Receiver,
-		node.Op,
-		node.MethodName,
+		node.Op.Type,
+		identifierToName(node.MethodName),
 		node.PositionalArguments,
 		c.typeOf(node),
 		node.Location(),
@@ -6780,10 +7763,8 @@ func (c *GoCompiler) compileGenericMethodCallNode(node *ast.GenericMethodCallNod
 	)
 }
 
-func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.Token, nameNode ast.IdentifierNode, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
-	name := identifierToName(nameNode)
-
-	switch op.Type {
+func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op token.Type, name string, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
+	switch op {
 	case token.QUESTION_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
@@ -6791,11 +7772,11 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(receiverVal).fetchValue())
 		c.emit("%s = value.Nil\n", resultVar.name)
 		c.emit("} else {\n")
-		callResult := c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		callResult := c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, callResult)
 		c.emit("}\n")
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.QUESTION_DOT_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
@@ -6803,28 +7784,28 @@ func (c *GoCompiler) compileMethodCall(receiver ast.ExpressionNode, op *token.To
 		c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(receiverVal).fetchValue())
 		c.emit("%s = value.Nil\n", resultVar.name)
 		c.emit("} else {\n")
-		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, receiverVal)
 		c.emit("}\n")
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.DOT_DOT:
 		receiverVal := c.compileExpression(receiver, false)
 		resultVar := c.defineTmpGoLocal(goValueType)
 
-		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 		c.emitAssignGoLocal(resultVar, receiverVal)
 
-		return newGoValueWithLocal(resultVar, typ)
+		return newGoValueWithLocal(resultVar, typ, false)
 	case token.DOT:
 		receiverVal := c.compileExpression(receiver, false)
-		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, op, args, typ, location, valueIsIgnored)
+		return c.compileInnerMethodCall(receiverVal, c.typeOf(receiver), name, args, typ, location, valueIsIgnored)
 	default:
 		panic(fmt.Sprintf("invalid method call operator: %#v", op))
 	}
 }
 
-func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType types.Type, name string, op *token.Token, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
+func (c *GoCompiler) compileInnerMethodCall(receiver *goValue, receiverType types.Type, name string, args []ast.ExpressionNode, typ types.Type, location *position.Location, valueIsIgnored bool) *goValue {
 	return c.compileMethodCallWithArgNodes(receiver, receiverType, typ, name, args, location, valueIsIgnored)
 }
 
@@ -6856,7 +7837,8 @@ func (c *GoCompiler) registerElkMethodName(methodName string, isBytecode bool) *
 	c.globalData.native.methodCache.Lock()
 
 	var method *nativeMethod
-	if entry, ok := c.globalData.native.methodCache.GetUnsafe(methodName); ok {
+	entry, ok := c.globalData.native.methodCache.GetUnsafe(methodName)
+	if ok {
 		method = entry
 	} else {
 		goName := fmt.Sprintf("fn_method%d", c.globalData.native.methodCache.Len())
@@ -6875,28 +7857,52 @@ func (c *GoCompiler) registerElkMethodName(methodName string, isBytecode bool) *
 	return method
 }
 
+func (c *GoCompiler) registerElkMethodAliasName(baseMethodName, aliasMethodName string) *nativeMethod {
+	c.globalData.native.methodCache.Lock()
+
+	var method *nativeMethod
+	baseEntry, ok := c.globalData.native.methodCache.GetUnsafe(baseMethodName)
+	if !ok {
+		return nil
+	}
+
+	c.globalData.native.methodCache.SetUnsafe(
+		aliasMethodName,
+		baseEntry,
+	)
+
+	c.globalData.native.methodCache.Unlock()
+
+	return method
+}
+
 func (c *GoCompiler) getGoIdentForNamespaceBody() string {
 	id := c.globalData.native.namespaceBodyCounter.Add(1) - 1
 	return fmt.Sprintf("fn_ns_expr%d", id)
 }
 
-func (c *GoCompiler) getGoIdentForFileName(fileName string) string {
-	c.globalData.native.fileNames.Lock()
-	defer c.globalData.native.fileNames.Unlock()
+func (c *GoCompiler) registerFile(fileName string) *nativeFile {
+	c.globalData.native.files.Lock()
+	defer c.globalData.native.files.Unlock()
 
-	ident, ok := c.globalData.native.fileNames.GetUnsafe(fileName)
+	file, ok := c.globalData.native.files.GetUnsafe(fileName)
 	if ok {
-		return ident
+		return file
 	}
 
-	ident = fmt.Sprintf("fn_file_expr%d", c.globalData.native.fileNames.Len())
-	c.globalData.native.fileNames.SetUnsafe(fileName, ident)
-	return ident
+	file = newNativeFile(
+		fileName,
+		fmt.Sprintf("fn_file_expr%d", c.globalData.native.files.Len()),
+	)
+	c.globalData.native.files.SetUnsafe(fileName, file)
+	return file
 }
 
 func (c *GoCompiler) RegisterMethod(node *ast.MethodDefinitionNode) {
 	method := c.typeOf(node).(*types.Method)
-	c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
+	if !method.IsAttribute() && !method.IsNative() {
+		c.registerElkMethodName(method.NamespacedName(), node.IsAsync() || node.IsGenerator())
+	}
 }
 
 func (c *GoCompiler) compileOptimizedNativeMethodCall(receiverType, returnType types.Type, args []*goValue, name string, loc *position.Location, valueIsIgnored bool) *goValue {
@@ -6935,6 +7941,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		case "value.Box", "*value.BoxOfValue":
 			_, arg := c.wrapValueInTmpGoLocalIfNotIgnored(c.convertValueToWiderType(args[1]), valueIsIgnored)
 			c.emit("(%s).SetValue(%s)\n", narrowReceiver.fetchValue(), arg.value)
+			arg.disableManualFree()
 			if valueIsIgnored {
 				arg.fetchValue()
 				return nilGoValue
@@ -6944,6 +7951,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		case "*value.NativeBox", "*value.ImmutableNativeBox":
 			_, arg := c.wrapValueInTmpGoLocalIfNotIgnored(c.convertValueToNarrowerType(args[1]), valueIsIgnored)
 			c.emit("(%s).Set(%s)\n", narrowReceiver.fetchValue(), arg.value)
+			arg.disableManualFree()
 			if valueIsIgnored {
 				arg.fetchValue()
 				return nilGoValue
@@ -6955,7 +7963,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 		switch narrowReceiver.goType.Name {
 		case "*vm.BytecodeClosure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -6963,15 +7971,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallBytecodeClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallBytecodeClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -6981,10 +7999,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		case "*vm.NativeClosure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -6992,15 +8011,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallNativeClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallNativeClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -7010,10 +8039,11 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		case "vm.Closure":
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-			callArgsVar := c.defineCallArgs(len(args))
+			callArgsVar := c.defineCallArgs(len(args) - 1)
 
 			for i, posArg := range args[1:] {
 				c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -7021,15 +8051,25 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 
 			c.registerUnoptimisableErr()
 			c.emitSetCallFrameLineNumber(loc)
-			c.emit(
-				"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
-				tmpName,
-				narrowReceiver.fetchValue(),
-				callArgsVar.name,
-				types.Inspect(receiverType),
-				name,
-			)
-			callArgsVar.markFree()
+			if callArgsVar == nil {
+				c.emit(
+					"%s, err = thread.CallClosure(%s) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					types.Inspect(receiverType),
+					name,
+				)
+			} else {
+				c.emit(
+					"%s, err = thread.CallClosure(%s, %s...) // receiver: %s, name: %s\n",
+					tmpName,
+					narrowReceiver.fetchValue(),
+					callArgsVar.name,
+					types.Inspect(receiverType),
+					name,
+				)
+				callArgsVar.markFree()
+			}
 			c.emitErrorPropagation()
 
 			if valueIsIgnored {
@@ -7039,8 +8079,14 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		default:
+			optimisedValue := c.compileOptimizedNativeMethodCallFromType(receiverType, returnType, args, name, loc, valueIsIgnored)
+			if optimisedValue != nil {
+				return optimisedValue
+			}
+
 			callCache := c.emitCallCache()
 			tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
 			callArgsVar := c.defineCallArgs(len(args))
@@ -7069,6 +8115,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromName(receiverType, retu
 			return newGoValueWithLocal(
 				tmp,
 				returnType,
+				false,
 			)
 		}
 	}
@@ -7188,6 +8235,8 @@ func (c *GoCompiler) generateGetNamespace(typ types.Namespace) string {
 	case *types.Mixin:
 		namespaceVal := c.emitGetConst(value.ToSymbol(typ.Name()), c.checker.Std(symbol.C_Mixin))
 		return c.convertValueToNarrowerType(namespaceVal).value
+	case *types.MixinWithWhere:
+		return c.generateGetNamespace(typ.Namespace)
 	default:
 		panic(fmt.Sprintf("invalid namespace: %T", typ))
 	}
@@ -7198,6 +8247,10 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	if method == nil {
 		return nil
 	}
+	if method.IsAttribute() {
+		return nil
+	}
+
 	c.globalData.native.methodCache.Lock()
 
 	namespacedMethodName := method.NamespacedName()
@@ -7246,7 +8299,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	goMethod.unlock()
 
 	if goMethod.isBytecode {
-		callArgsVar := c.defineCallArgs(len(args))
+		callArgsVar := c.defineCallArgs(len(args) + 1)
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 		}
@@ -7254,7 +8307,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 		c.registerUnoptimisableErr()
 		c.emitSetCallFrameLineNumber(loc)
 		c.emit(
-			"%s, err = thread.CallBytecodeMethod(%s, %s) // receiver: %s, name: %s\n",
+			"%s, err = thread.CallBytecodeMethod(%s, %s...) // receiver: %s, name: %s\n",
 			tmpName,
 			goMethod.goIdent(),
 			callArgsVar.name,
@@ -7265,7 +8318,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 
 		c.emitErrorPropagation()
 	} else if goMethod.hasArgsSlice() {
-		callArgsVar := c.defineCallArgs(len(args))
+		callArgsVar := c.defineCallArgs(len(args) + 1)
 		for i, posArg := range args {
 			c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
 		}
@@ -7349,6 +8402,7 @@ func (c *GoCompiler) compileOptimizedNativeMethodCallFromNamespace(receiverType,
 	return newGoValueWithLocal(
 		tmp,
 		returnType,
+		false,
 	)
 }
 
@@ -7363,8 +8417,12 @@ func (c *GoCompiler) defineTmpGoLocalIfNotIgnored(goType *value.GoType, valueIsI
 }
 
 func (c *GoCompiler) defineCallArgs(argsLen int) *goLocal {
+	if argsLen == 0 {
+		return nil
+	}
+
 	callArgsVar := c.defineTmpGoLocal(value.FetchGoType("[]value.Value"))
-	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, argsLen+1)
+	c.emit("%[1]s = value.ResizeNativeArgs(%[1]s, %d)\n", callArgsVar.name, argsLen)
 	return callArgsVar
 }
 
@@ -7383,7 +8441,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 
 	callCache := c.emitCallCache()
 	tmpName, tmp := c.defineTmpGoLocalIfNotIgnored(goValueType, valueIsIgnored)
-	callArgsVar := c.defineCallArgs(len(args))
+	callArgsVar := c.defineCallArgs(len(args) + 1)
 
 	for i, posArg := range args {
 		c.emit("%s[%d] = %s\n", callArgsVar.name, i, c.convertValueToWiderType(posArg).fetchValue())
@@ -7410,6 +8468,7 @@ func (c *GoCompiler) compileMethodCallWithLiteralArgValuesAndName(receiverType, 
 	return newGoValueWithLocal(
 		tmp,
 		returnType,
+		false,
 	)
 }
 
@@ -7489,7 +8548,7 @@ func (c *GoCompiler) compileNamespaceBody(body []ast.StatementNode, typ types.Na
 
 	var funcBuffer bytes.Buffer
 	fmt.Fprintf(&funcBuffer, "func %s(thread *vm.Thread) { // namespace: %s, loc: %s\n", c.goName, typ.Name(), c.loc.String())
-	c.compileLocalsTo(&funcBuffer)
+	c.compileAllLocalsTo(&funcBuffer)
 
 	switch typ := typ.(type) {
 	case *types.SingletonClass:
@@ -7533,14 +8592,16 @@ func (c *GoCompiler) compileInstanceVariableAssignment(node *ast.AssignmentExpre
 	switch node.Op.Type {
 	case token.EQUAL_OP:
 		expr := c.compileExpression(node.Right, false)
+		defer expr.markFree()
+
 		if valueIsIgnored {
 			c.emitSetInstanceVariable(ivarSymbol, expr)
 			return nilGoValue
 		}
 
 		tmp := c.defineTmpGoLocal(goValueType)
-		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(expr).fetchValue())
-		val := newGoValueWithLocal(tmp, expr.elkType)
+		c.emit("%s = %s\n", tmp.name, c.convertValueToWiderType(expr).value)
+		val := newGoValueWithLocal(tmp, expr.elkType, false)
 		c.emitSetInstanceVariable(ivarSymbol, val)
 		return val
 	default:
@@ -7645,6 +8706,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*value.NativeArrayList":
@@ -7660,6 +8722,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*vm.NativeKeyHashMap":
@@ -7672,6 +8735,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	case "*vm.NativeHashMap":
@@ -7684,6 +8748,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 	}
@@ -7700,6 +8765,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 			return newGoValueWithLocal(
 				tmp,
 				val.elkType,
+				false,
 			)
 		}
 
@@ -7713,6 +8779,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		return newGoValueWithLocal(
 			tmp,
 			val.elkType,
+			false,
 		)
 	}
 
@@ -7727,6 +8794,7 @@ func (c *GoCompiler) compileSubscriptAssignment(receiver, key, val *goValue, loc
 		return newGoValueWithLocal(
 			tmp,
 			val.elkType,
+			false,
 		)
 	}
 
@@ -7786,6 +8854,7 @@ func (c *GoCompiler) emitSetLocal(name string, val *goValue) *goValue {
 	return newGoValueWithLocal(
 		variable.goLocal,
 		variable.elkType,
+		false,
 	)
 }
 
@@ -7957,6 +9026,7 @@ func (c *GoCompiler) compileIf(condType conditionType, condition, then, els func
 	return newGoValueWithLocal(
 		ifResultVar,
 		typ,
+		false,
 	)
 }
 
@@ -7965,6 +9035,7 @@ func (c *GoCompiler) compileLocalVariableAccess(name string, elkType types.Type)
 		return newGoValueWithLocal(
 			local.goLocal,
 			elkType,
+			true,
 		)
 	}
 
@@ -7972,6 +9043,7 @@ func (c *GoCompiler) compileLocalVariableAccess(name string, elkType types.Type)
 		return newGoValueWithLocal(
 			upvalue.goLocal,
 			elkType,
+			true,
 		)
 	}
 
@@ -8091,7 +9163,7 @@ func (c *GoCompiler) emitSymbol(val string) string {
 	}
 	c.globalData.native.symbolCache.SetUnsafe(val, symbol)
 	ident := symbol.goIdent()
-	c.emitPackage("var %s = value.ToSymbol(%q)\n", ident, val)
+	c.emitPackage("var %s = value.ToSymbol(%q) // %s\n", ident, val, val)
 	return ident
 }
 
@@ -8160,7 +9232,7 @@ func (c *GoCompiler) getTmpIdent() string {
 }
 
 func (c *GoCompiler) defineTmpGoLocal(goType *value.GoType) *goLocal {
-	for local := range c.goLocals.Values() {
+	for _, local := range c.goScopes.first().All() {
 		if !local.elkLocal && local.free && local.goType.Equal(goType) {
 			local.markReserved()
 			return local
@@ -8180,12 +9252,17 @@ func (c *GoCompiler) defineTmpGoLocalForValue(val *goValue) *goLocal {
 func (c *GoCompiler) wrapValueInTmpGoLocal(val *goValue) (*goLocal, *goValue) {
 	// is already a go local
 	if val.isLocal() {
-		return val.locals[0], val
+		return val.locals[0], newGoValueWithDetachedLocal(val.locals[0], val.elkType, true)
 	}
 
 	tmp := c.defineTmpGoLocalForValue(val)
-	tmpVal := newGoValueWithLocal(tmp, val.elkType)
+	tmpVal := newGoValueWithLocal(tmp, val.elkType, true)
 	return tmp, tmpVal
+}
+
+func (c *GoCompiler) wrapValueInTmpGoLocalVal(val *goValue) *goValue {
+	_, result := c.wrapValueInTmpGoLocal(val)
+	return result
 }
 
 func (c *GoCompiler) wrapValueInTmpGoLocalIfNotIgnored(val *goValue, valueIsIgnored bool) (*goLocal, *goValue) {
@@ -8195,11 +9272,20 @@ func (c *GoCompiler) wrapValueInTmpGoLocalIfNotIgnored(val *goValue, valueIsIgno
 	return c.wrapValueInTmpGoLocal(val)
 }
 
-func (c *GoCompiler) emitErrorPropagation() {
+func (c *GoCompiler) emitErrorPropagationPrependStackTrace(stackTrace *goValue) {
 	c.emit("if err.IsNotUndefined() {\n")
 	errVal := newGoValue("err", types.Any{}, goValueType)
-	c.emitThrow(errVal)
+	c.emitThrowPrependStackTrace(errVal, stackTrace)
 	c.emit("}\n")
+}
+
+func (c *GoCompiler) emitErrorPropagation() {
+	c.emitErrorPropagationPrependStackTrace(nil)
+}
+
+func (c *GoCompiler) emitThrowPrependStackTrace(val *goValue, stackTrace *goValue) {
+	c.emitCaptureStackTracePrepend(stackTrace)
+	c.emitRethrow(val)
 }
 
 func (c *GoCompiler) emitThrow(val *goValue) {
@@ -8240,7 +9326,15 @@ func (c *GoCompiler) emitRethrow(val *goValue) {
 }
 
 func (c *GoCompiler) emitCaptureStackTrace() {
-	c.emit("thread.CaptureStackTrace()\n")
+	c.emitCaptureStackTracePrepend(nil)
+}
+
+func (c *GoCompiler) emitCaptureStackTracePrepend(stackTrace *goValue) {
+	if stackTrace == nil {
+		c.emit("thread.CaptureStackTrace()\n")
+	} else {
+		c.emit("thread.CaptureStackTracePrepend(%s)\n", stackTrace.fetchValue())
+	}
 }
 
 func (c *GoCompiler) emitCallCache() string {
@@ -8262,8 +9356,8 @@ func (c *GoCompiler) emitAddCallFrame(loc *position.Location) {
 	c.callFrameStartOffset = c.buff.Len()
 	c.emit(
 		"callFrame = thread.AddNativeCallFrame(%s, %s, %d)\n",
-		funcNameSym,
 		fileNameSym,
+		funcNameSym,
 		lineNumber,
 	)
 	c.emit("defer thread.PopNativeCallFrame()\n")
@@ -8284,6 +9378,8 @@ func (c *GoCompiler) emitSetCallFrameLineNumber(loc *position.Location) {
 }
 
 func (c *GoCompiler) markUnoptimisableError() {
+	c.unoptimisableError = true
+
 	if c.goMethod == nil {
 		return
 	}
@@ -8339,7 +9435,7 @@ func (c *GoCompiler) compileLogicalAnd(node *ast.LogicalExpressionNode, valueIsI
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if %s {\n", c.convertValueToBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -8363,7 +9459,7 @@ func (c *GoCompiler) compileLogicalOr(node *ast.LogicalExpressionNode, valueIsIg
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if %s {\n", c.convertValueToNotBool(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -8387,7 +9483,7 @@ func (c *GoCompiler) compileNilCoalescing(node *ast.LogicalExpressionNode, value
 	tmp := c.defineTmpGoLocal(c.elkTypeToGoType(typ, false))
 	c.emitAssignGoLocal(tmp, left)
 
-	result := newGoValueWithLocal(tmp, typ)
+	result := newGoValueWithLocal(tmp, typ, false)
 	c.emit("if value.IsNil(%s) {\n", c.convertValueToWiderType(result).value)
 	c.emitAssignGoLocal(tmp, c.compileExpression(node.Right, valueIsIgnored))
 	c.emit("}\n")
@@ -8437,9 +9533,11 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 
 		receiver := c.compileExpression(n.Receiver, false)
 		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
+		defer receiverTmpVal.markFree()
 
 		key := c.compileExpression(n.Key, false)
 		_, keyTmpVal := c.wrapValueInTmpGoLocal(key)
+		defer keyTmpVal.markFree()
 
 		val := c.compileSubscript(receiverTmpVal, keyTmpVal, typ, loc, valueIsIgnored)
 
@@ -8473,11 +9571,13 @@ func (c *GoCompiler) compilePostfixExpressionNode(node *ast.PostfixExpressionNod
 
 		// set instance variable
 		c.emitSetInstanceVariable(ivarSymbol, resultTmpVal)
+		resultTmpVal.disableManualFree()
 		return resultTmpVal
 	case *ast.AttributeAccessNode:
 		name := identifierToName(n.AttributeName)
 		receiver := c.compileExpression(n.Receiver, false)
 		_, receiverTmpVal := c.wrapValueInTmpGoLocal(receiver)
+		defer receiverTmpVal.markFree()
 
 		// get value
 		val := c.compileAttributeAccess(
@@ -8523,6 +9623,7 @@ func (c *GoCompiler) compileNilSafeSubscriptExpressionNode(node *ast.NilSafeSubs
 	loc := node.Location()
 	typ := c.typeOf(node)
 	_, receiver := c.wrapValueInTmpGoLocal(c.compileExpression(node.Receiver, false))
+	defer receiver.markFree()
 
 	return c.compileIf(
 		isNilConditionType,
@@ -8569,6 +9670,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 	case "*value.NativeArrayList", "*value.NativeArrayTuple":
@@ -8582,6 +9684,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 	case "*vm.NativeKeyHashMap", "vm.NativeKeyHashRecord":
@@ -8621,6 +9724,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -8633,6 +9737,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -8646,6 +9751,7 @@ func (c *GoCompiler) compileSubscript(receiver, key *goValue, typ types.Type, lo
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -9805,6 +10911,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -9827,6 +10934,7 @@ func (c *GoCompiler) compileCompare(left *goValue, right *goValue, typ types.Typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -9879,6 +10987,7 @@ func (c *GoCompiler) compileCompareStringlike(left, right *goValue, loc *positio
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_Int),
+		false,
 	)
 }
 
@@ -9933,6 +11042,7 @@ func (c *GoCompiler) compileCompareCoercibleNumeric(left, right *goValue, loc *p
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_Int),
+		false,
 	)
 }
 
@@ -10097,6 +11207,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -10109,6 +11220,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10130,6 +11242,7 @@ func (c *GoCompiler) compileDivide(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10160,6 +11273,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -10171,6 +11285,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -10208,6 +11323,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10228,6 +11344,7 @@ func (c *GoCompiler) compileDivideBigInt(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10244,6 +11361,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -10255,6 +11373,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -10292,6 +11411,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10312,6 +11432,7 @@ func (c *GoCompiler) compileDivideSmallInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10379,6 +11500,7 @@ func (c *GoCompiler) compileDivideFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10446,6 +11568,7 @@ func (c *GoCompiler) compileDivideBigFloat(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10479,6 +11602,7 @@ func (c *GoCompiler) compileDivideInt64(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10492,6 +11616,7 @@ func (c *GoCompiler) compileDivideInt32(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10505,6 +11630,7 @@ func (c *GoCompiler) compileDivideInt16(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10518,6 +11644,7 @@ func (c *GoCompiler) compileDivideInt8(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10531,6 +11658,7 @@ func (c *GoCompiler) compileDivideUInt64(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10544,6 +11672,7 @@ func (c *GoCompiler) compileDivideUInt32(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10557,6 +11686,7 @@ func (c *GoCompiler) compileDivideUInt16(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10570,6 +11700,7 @@ func (c *GoCompiler) compileDivideUInt8(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10583,6 +11714,7 @@ func (c *GoCompiler) compileDivideUInt(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -10645,6 +11777,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10667,6 +11800,7 @@ func (c *GoCompiler) compileExponentiate(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -10744,6 +11878,7 @@ func (c *GoCompiler) compileExponentiateBigInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10802,6 +11937,7 @@ func (c *GoCompiler) compileExponentiateSmallInt(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10860,6 +11996,7 @@ func (c *GoCompiler) compileExponentiateFloat(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -10918,6 +12055,7 @@ func (c *GoCompiler) compileExponentiateBigFloat(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11084,6 +12222,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11101,6 +12240,7 @@ func (c *GoCompiler) compileBitwiseAnd(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11160,6 +12300,7 @@ func (c *GoCompiler) compileBitwiseAndSmallInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11205,6 +12346,7 @@ func (c *GoCompiler) compileBitwiseAndBigInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11250,6 +12392,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11267,6 +12410,7 @@ func (c *GoCompiler) compileBitwiseAndNot(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11326,6 +12470,7 @@ func (c *GoCompiler) compileBitwiseAndNotSmallInt(left, right *goValue, typ type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11371,6 +12516,7 @@ func (c *GoCompiler) compileBitwiseAndNotBigInt(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11416,6 +12562,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11433,6 +12580,7 @@ func (c *GoCompiler) compileBitwiseOr(left *goValue, right *goValue, typ types.T
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11492,6 +12640,7 @@ func (c *GoCompiler) compileBitwiseOrSmallInt(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11537,6 +12686,7 @@ func (c *GoCompiler) compileBitwiseOrBigInt(left, right *goValue, typ types.Type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11582,6 +12732,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11599,6 +12750,7 @@ func (c *GoCompiler) compileBitwiseXor(left *goValue, right *goValue, typ types.
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11658,6 +12810,7 @@ func (c *GoCompiler) compileBitwiseXorSmallInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11703,6 +12856,7 @@ func (c *GoCompiler) compileBitwiseXorBigInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -11757,6 +12911,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11774,6 +12929,7 @@ func (c *GoCompiler) compileLeftBitshift(left *goValue, right *goValue, typ type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11829,6 +12985,7 @@ func (c *GoCompiler) compileLogicalLeftBitshift(left *goValue, right *goValue, t
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11897,6 +13054,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11914,6 +13072,7 @@ func (c *GoCompiler) compileRightBitshift(left *goValue, right *goValue, typ typ
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -11969,6 +13128,7 @@ func (c *GoCompiler) compileLogicalRightBitshift(left *goValue, right *goValue, 
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -12092,6 +13252,7 @@ func (c *GoCompiler) compileLeftBitshiftSmallInt(left, right *goValue, typ types
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12201,6 +13362,7 @@ func (c *GoCompiler) compileRightBitshiftSmallInt(left, right *goValue, typ type
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12310,6 +13472,7 @@ func (c *GoCompiler) compileLeftBitshiftBigInt(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12339,6 +13502,7 @@ func (c *GoCompiler) compileLeftBitshiftInt64(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12368,6 +13532,7 @@ func (c *GoCompiler) compileLeftBitshiftInt32(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12397,6 +13562,7 @@ func (c *GoCompiler) compileLeftBitshiftInt16(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12426,6 +13592,7 @@ func (c *GoCompiler) compileLeftBitshiftInt8(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12455,6 +13622,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt64(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12484,6 +13652,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt32(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12513,6 +13682,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt16(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12542,6 +13712,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt8(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12571,6 +13742,7 @@ func (c *GoCompiler) compileLeftBitshiftUInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12680,6 +13852,7 @@ func (c *GoCompiler) compileRightBitshiftBigInt(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12693,6 +13866,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt64(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12706,6 +13880,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt32(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12719,6 +13894,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt16(left, right *goValue, typ 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12732,6 +13908,7 @@ func (c *GoCompiler) compileLogicalRightBitshiftInt8(left, right *goValue, typ t
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12757,6 +13934,7 @@ func (c *GoCompiler) compileRightBitshiftInt64(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12782,6 +13960,7 @@ func (c *GoCompiler) compileRightBitshiftInt32(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12807,6 +13986,7 @@ func (c *GoCompiler) compileRightBitshiftInt16(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12832,6 +14012,7 @@ func (c *GoCompiler) compileRightBitshiftInt8(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12857,6 +14038,7 @@ func (c *GoCompiler) compileRightBitshiftUInt64(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12882,6 +14064,7 @@ func (c *GoCompiler) compileRightBitshiftUInt32(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12907,6 +14090,7 @@ func (c *GoCompiler) compileRightBitshiftUInt16(left, right *goValue, typ types.
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12932,6 +14116,7 @@ func (c *GoCompiler) compileRightBitshiftUInt8(left, right *goValue, typ types.T
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -12957,6 +14142,7 @@ func (c *GoCompiler) compileRightBitshiftUInt(left, right *goValue, typ types.Ty
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13023,6 +14209,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13040,6 +14227,7 @@ func (c *GoCompiler) compileMultiply(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13117,6 +14305,7 @@ func (c *GoCompiler) compileMultiplyBigInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13180,6 +14369,7 @@ func (c *GoCompiler) compileMultiplySmallInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13243,6 +14433,7 @@ func (c *GoCompiler) compileMultiplyFloat(left, right *goValue, typ types.Type, 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13306,14 +14497,11 @@ func (c *GoCompiler) compileMultiplyBigFloat(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
 func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
 	narrowRight := c.convertValueToNarrowerType(right)
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
@@ -13326,6 +14514,7 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13338,14 +14527,11 @@ func (c *GoCompiler) compileMultiplyString(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
 func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, loc *position.Location, valueIsIgnored bool) *goValue {
-	if valueIsIgnored {
-		return nilGoValue
-	}
-
 	narrowRight := c.convertValueToNarrowerType(right)
 	switch narrowRight.goType.Name {
 	case "value.SmallInt":
@@ -13358,6 +14544,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13370,6 +14557,7 @@ func (c *GoCompiler) compileMultiplyChar(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13575,6 +14763,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13592,6 +14781,7 @@ func (c *GoCompiler) compileSubtract(left *goValue, right *goValue, typ types.Ty
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -13665,6 +14855,7 @@ func (c *GoCompiler) compileSubtractBigInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13724,6 +14915,7 @@ func (c *GoCompiler) compileSubtractSmallInt(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13783,6 +14975,7 @@ func (c *GoCompiler) compileSubtractFloat(left, right *goValue, typ types.Type, 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -13842,6 +15035,7 @@ func (c *GoCompiler) compileSubtractBigFloat(left, right *goValue, typ types.Typ
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14764,6 +15958,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 			return newGoValueWithLocal(
 				tmp,
 				typ,
+				false,
 			)
 		}
 
@@ -14776,6 +15971,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14793,6 +15989,7 @@ func (c *GoCompiler) compileModulo(left *goValue, right *goValue, typ types.Type
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14866,6 +16063,7 @@ func (c *GoCompiler) compileModuloFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14925,6 +16123,7 @@ func (c *GoCompiler) compileModuloBigFloat(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -14945,6 +16144,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "*value.BigInt":
 		tmp := c.defineTmpGoLocal(goValueType)
@@ -14956,6 +16156,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -14984,6 +16185,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -14997,6 +16199,7 @@ func (c *GoCompiler) compileModuloSmallInt(left, right *goValue, typ types.Type,
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15017,6 +16220,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	case "value.Float":
 		return newGoValueWithDependencies(
@@ -15042,6 +16246,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15056,6 +16261,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15069,6 +16275,7 @@ func (c *GoCompiler) compileModuloBigInt(left, right *goValue, typ types.Type, l
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15086,6 +16293,7 @@ func (c *GoCompiler) compileModuloInt64(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15103,6 +16311,7 @@ func (c *GoCompiler) compileModuloInt32(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15120,6 +16329,7 @@ func (c *GoCompiler) compileModuloInt16(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15137,6 +16347,7 @@ func (c *GoCompiler) compileModuloInt8(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15154,6 +16365,7 @@ func (c *GoCompiler) compileModuloUInt64(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15171,6 +16383,7 @@ func (c *GoCompiler) compileModuloUInt(left, right *goValue, loc *position.Locat
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15188,6 +16401,7 @@ func (c *GoCompiler) compileModuloUInt32(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15205,6 +16419,7 @@ func (c *GoCompiler) compileModuloUInt16(left, right *goValue, loc *position.Loc
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15222,6 +16437,7 @@ func (c *GoCompiler) compileModuloUInt8(left, right *goValue, loc *position.Loca
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15316,6 +16532,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15333,6 +16550,7 @@ func (c *GoCompiler) compileAdd(left *goValue, right *goValue, typ types.Type, l
 		return newGoValueWithLocal(
 			tmp,
 			typ,
+			false,
 		)
 	}
 
@@ -15406,6 +16624,7 @@ func (c *GoCompiler) compileAddBigInt(left, right *goValue, typ types.Type, loc 
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15465,6 +16684,7 @@ func (c *GoCompiler) compileAddSmallInt(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15524,6 +16744,7 @@ func (c *GoCompiler) compileAddFloat(left, right *goValue, typ types.Type, loc *
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15583,6 +16804,7 @@ func (c *GoCompiler) compileAddBigFloat(left, right *goValue, typ types.Type, lo
 	return newGoValueWithLocal(
 		tmp,
 		typ,
+		false,
 	)
 }
 
@@ -15618,6 +16840,7 @@ func (c *GoCompiler) compileAddString(left, right *goValue, loc *position.Locati
 	return newGoValueWithLocal(
 		tmp,
 		left.elkType,
+		false,
 	)
 }
 
@@ -15653,6 +16876,7 @@ func (c *GoCompiler) compileAddChar(left, right *goValue, loc *position.Location
 	return newGoValueWithLocal(
 		tmp,
 		c.checker.Std(symbol.C_String),
+		false,
 	)
 }
 
@@ -15811,22 +17035,138 @@ func (c *GoCompiler) ivarIndicesToGoSource(ivars *ivar.IvarIndices) string {
 	return buff.String()
 }
 
+func (c *GoCompiler) objectToGoSource(obj *value.Object) *goValue {
+	class := obj.DirectClass()
+	if class == nil {
+		panic(fmt.Sprintf("cannot convert object to Go source: %s", obj.Inspect()))
+	}
+
+	classExpr := c.classExpr(class)
+	ivars := obj.InstanceVariables()
+
+	if len(*ivars) == 0 {
+		return newGoValue(
+			fmt.Sprintf("value.NewObject(value.ObjectWithClass(%s))", classExpr),
+			types.Any{},
+			value.FetchGoType("*value.Object"),
+		)
+	}
+
+	var buff strings.Builder
+	var dependencies []*goValue
+	fmt.Fprintf(&buff, "value.NewObject(value.ObjectWithClass(%s), value.ObjectWithInstanceVariables([]value.Value{", classExpr)
+	for i, ivar := range *ivars {
+		ivarVal := c.valueToGoSource(ivar, types.Any{}, true)
+		fmt.Fprintf(&buff, "%d: %s, ", i, ivarVal.value)
+		dependencies = append(dependencies, ivarVal)
+	}
+	buff.WriteString("}))")
+
+	return newGoValueWithDependencies(
+		buff.String(),
+		types.Any{},
+		value.FetchGoType("*value.Object"),
+		dependencies...,
+	)
+}
+
+func (c *GoCompiler) classExpr(class *value.Class) string {
+	if class.IsSingleton() {
+		name := class.Name()
+		if len(name) > 0 && name[0] == '&' {
+			name = name[1:]
+		}
+		return fmt.Sprintf("value.GetSingletonClass(%s)", c.emitSymbol(name))
+	}
+
+	return fmt.Sprintf("value.GetClass(%s)", c.emitSymbol(class.Name()))
+}
+
 func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutable bool) *goValue {
 	if val.IsReference() {
 		switch v := val.AsReference().(type) {
+		case *vm.BytecodeFunction:
+			source := c.bytecodeToGoSource(v)
+			return newGoValue(
+				source,
+				types.Any{},
+				value.FetchGoType("*vm.BytecodeFunction"),
+			)
+		case *value.IvarIndices:
+			source := c.ivarIndicesToGoSource((*ivar.IvarIndices)(v))
+			return newGoValue(
+				source,
+				types.Any{},
+				value.FetchGoType("*value.IvarIndices"),
+			)
 		case *vm.CallSiteInfo:
 			name := c.emitSymbol(v.Name.String())
 			return newGoValue(
 				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
 				types.Any{},
-				goValueType,
+				value.FetchGoType("*vm.CallSiteInfo"),
 			)
-		case *vm.NativeCallSiteInfo:
-			name := c.emitSymbol(v.Method.Name().String())
+		case *BytecodeBreakpointContext:
 			return newGoValue(
-				fmt.Sprintf("vm.NewCallSiteInfo(%s, %d)", name, v.ArgumentCount),
+				"value.Undefined",
 				types.Any{},
 				goValueType,
+			)
+		case *vm.Select:
+			var buff bytes.Buffer
+
+			buff.WriteString("vm.NewSelectVar(")
+			for _, selectCase := range v.Cases {
+				fmt.Fprintf(&buff, "vm.MakeSelectCase(%d), ", selectCase.Direction)
+			}
+			buff.WriteString(")")
+
+			return newGoValue(
+				buff.String(),
+				types.Any{},
+				value.FetchGoType("*vm.Select"),
+			)
+		case *value.Class:
+			var buff bytes.Buffer
+			if v.IsSingleton() {
+				className := v.Name()[1:]
+				classNameSym := c.emitSymbol(className)
+				fmt.Fprintf(&buff, "value.GetSingletonClass(%s)", classNameSym)
+			} else {
+				className := v.Name()
+				classNameSym := c.emitSymbol(className)
+				fmt.Fprintf(&buff, "value.GetClass(%s)", classNameSym)
+			}
+			return newGoValue(
+				buff.String(),
+				types.Any{},
+				value.FetchGoType("*value.Class"),
+			)
+		case value.Method:
+			class := v.Namespace()
+			classGoVal := c.valueToGoSource(class.ToValue(), types.Any{}, false)
+			methodNameSym := c.emitSymbol(v.Name().String())
+
+			return newGoValue(
+				fmt.Sprintf("(%s).GetMethod(%s)", classGoVal.fetchValue(), methodNameSym),
+				types.Any{},
+				value.FetchGoType("value.Method"),
+			)
+		case *vm.NativeCallSiteInfo:
+			methodGoVal := c.valueToGoSource(v.Method.ToValue(), types.Any{}, false)
+
+			return newGoValue(
+				fmt.Sprintf("vm.NewNativeCallSiteInfo(%s.(*vm.NativeMethod), %d)", methodGoVal.fetchValue(), v.ArgumentCount),
+				types.Any{},
+				value.FetchGoType("*vm.NativeCallSiteInfo"),
+			)
+		case *vm.BytecodeCallSiteInfo:
+			methodGoVal := c.valueToGoSource(v.Method.ToValue(), types.Any{}, false)
+
+			return newGoValue(
+				fmt.Sprintf("vm.NewBytecodeCallSiteInfo(%s.(*vm.BytecodeFunction), %d, %t)", methodGoVal.fetchValue(), v.ArgumentCount, v.TailCall),
+				types.Any{},
+				value.FetchGoType("*vm.BytecodeCallSiteInfo"),
 			)
 		case value.ArrayList:
 			if !allowMutable {
@@ -15879,12 +17219,26 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 				c.checker.Std(symbol.C_UInt64),
 				value.FetchGoType("value.UInt64"),
 			)
+		case value.Float64:
+			return newGoValue(
+				fmt.Sprintf("value.Float64(%g)", v),
+				c.checker.Std(symbol.C_Float64),
+				value.FetchGoType("value.Float64"),
+			)
 		case *value.BigInt:
 			return newGoValue(
 				c.emitBigInt(string(v.ToString())),
 				c.checker.Std(symbol.C_Int),
 				value.FetchGoType("*value.BigInt"),
 			)
+		case *value.BigFloat:
+			return newGoValue(
+				c.emitBigFloat(string(v.ToString())),
+				c.checker.Std(symbol.C_BigFloat),
+				value.FetchGoType("*value.BigFloat"),
+			)
+		case *value.Object:
+			return c.objectToGoSource(v)
 		case *value.BeginlessClosedRange, *value.BeginlessOpenRange,
 			*value.EndlessClosedRange, *value.EndlessOpenRange,
 			*value.ClosedRange, *value.OpenRange,
@@ -15892,12 +17246,20 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 			return c.emitCachedRange(value.Ref(v), typ)
 		case *value.Regex:
 			return c.emitCachedRegex(v, typ)
+		case ast.Node:
+			return c.astNodeToGoSource(v, nil)
 		default:
 			panic(fmt.Sprintf("cannot convert elk value to Go source: %T, %s", val, val.Inspect()))
 		}
 	}
 
 	switch val.ValueFlag() {
+	case value.UNDEFINED_FLAG:
+		return newGoValue(
+			"value.Undefined",
+			types.Untyped{},
+			goValueType,
+		)
 	case value.BOOL_FLAG:
 		if val.AsBool() {
 			return newGoValue(
@@ -16391,6 +17753,13 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 			value.FetchGoType("value.UInt8"),
 		)
 	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Promise)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(*vm.Promise)", v.value),
+			elkType,
+			value.FetchGoType("*vm.Promise"),
+		)
+	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ArrayList)) {
 		return v.newNarrower(
 			fmt.Sprintf("(%s).AsReference().(value.ArrayList)", v.value),
@@ -16424,6 +17793,20 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 			fmt.Sprintf("(%s).AsReference().(vm.HashSet)", v.value),
 			elkType,
 			value.FetchGoType("vm.HashSet"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_Box)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(value.Box)", v.value),
+			elkType,
+			value.FetchGoType("value.Box"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_ImmutableBox)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(value.ImmutableBox)", v.value),
+			elkType,
+			value.FetchGoType("value.ImmutableBox"),
 		)
 	}
 	if c.checker.IsSubtype(elkType, c.checker.Std(symbol.C_BeginlessClosedRange)) {
@@ -16532,6 +17915,69 @@ func (c *GoCompiler) convertValueToNarrowerType(v *goValue) *goValue {
 				value.FetchGoType("vm.Closure"),
 			)
 		}
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_IdentifierNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.IdentifierNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.IdentifierNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_LiteralPatternNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.LiteralPatternNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.LiteralPatternNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_InstanceVariableNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.InstanceVariableNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.InstanceVariableNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ExpressionNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ExpressionNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ExpressionNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ConstantNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ConstantNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ConstantNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_ComplexConstantNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.ComplexConstantNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.ComplexConstantNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_PatternNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.PatternNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.PatternNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_TypeNode)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.TypeNode)", v.value),
+			elkType,
+			value.FetchGoType("ast.TypeNode"),
+		)
+	}
+	if c.checker.IsSubtype(elkType, types.GetType(c.checker.Env().Root, symbol.C_Std, symbol.C_Elk, symbol.C_AST, symbol.C_Node)) {
+		return v.newNarrower(
+			fmt.Sprintf("(%s).AsReference().(ast.Node)", v.value),
+			elkType,
+			value.FetchGoType("ast.Node"),
+		)
 	}
 
 	return v
@@ -17410,6 +18856,33 @@ func (c *GoCompiler) valuePairToGoSource(p value.PairOfValue, allowMutable bool)
 	)
 }
 
+func (c *GoCompiler) enterGoScope() *goLocalTable {
+	scope := ds.NewOrderedMap[string, *goLocal]()
+	c.goScopes = append(c.goScopes, scope)
+	return scope
+}
+
+func (c *GoCompiler) leaveGoScope() {
+	currentDepth := len(c.goScopes) - 1
+	c.goScopes[currentDepth] = nil
+	c.goScopes = c.goScopes[:currentDepth]
+}
+
+func (c *GoCompiler) mergeGoScope(mergedScope *goLocalTable) {
+	currentScope := c.goScopes.last()
+	for name, local := range mergedScope.All() {
+		currentScope.Set(name, local)
+	}
+}
+
+func (c *GoCompiler) currentScope() *nativeElkScope {
+	return c.scopes[len(c.scopes)-1]
+}
+
+func (c *GoCompiler) addScope(scope *nativeElkScope) {
+	c.scopes = append(c.scopes, scope)
+}
+
 func (c *GoCompiler) enterScope(typ nativeElkScopeType) *nativeElkScope {
 	scope := newNativeElkScope(typ)
 	c.scopes = append(c.scopes, scope)
@@ -17420,9 +18893,9 @@ func (c *GoCompiler) enterDefaultScope() *nativeElkScope {
 	return c.enterScope(defaultNativeElkScopeType)
 }
 
-func (c *GoCompiler) enterLoopScope(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool) *nativeElkScope {
+func (c *GoCompiler) enterLoopScope(elkLabel string, resultVar *goLocal, returnsValFromLastIteration bool, hasContinueLabel bool) *nativeElkScope {
 	scope := c.enterScope(loopNativeElkScopeType)
-	loopInfo := c.addLoopInfo(elkLabel, resultVar, returnsValFromLastIteration)
+	loopInfo := c.addLoopInfo(elkLabel, resultVar, returnsValFromLastIteration, hasContinueLabel)
 	scope.loopInfo = loopInfo
 	c.loopCounter++
 	return scope
@@ -17513,7 +18986,8 @@ func (c *GoCompiler) registerUpvalue(local *nativeElkLocal) {
 
 	upvalue := local.toUpvalue()
 	varScope.localTable[upvalue.name] = upvalue
-	c.goLocals.Set(upvalue.goLocal.name, upvalue.goLocal)
+	goScope := c.goScopes.last()
+	goScope.Set(upvalue.goLocal.name, upvalue.goLocal)
 }
 
 func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, elkType types.Type, goType *value.GoType, location *position.Location) *nativeElkLocal {
@@ -17533,7 +19007,7 @@ func (c *GoCompiler) defineVariableInScope(scope *nativeElkScope, name string, e
 		goName = fmt.Sprintf("l%d", c.lastElkLocalIndex)
 	}
 
-	goLocal := c.registerGoLocalWithComment(
+	goLocal := c.registerCurrentGoLocalWithComment(
 		goName,
 		goType,
 		fmt.Sprintf("var %s: %s", name, types.Inspect(elkType)),

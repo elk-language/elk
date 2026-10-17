@@ -20,6 +20,7 @@ import (
 )
 
 func init() {
+	elk.InitGlobalEnvironment()
 	env.ELKPATH = filepath.Join(env.ELKPATH, "..")
 }
 
@@ -137,7 +138,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, tc.source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, tc.source, nil)
 	if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 		t.Log(pp.Sprint(gotCompileErr))
 		t.Fatal(diff)
@@ -219,7 +220,7 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	pp.Default.SetColoringEnabled(false)
 
 	typechecker := checker.New()
-	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, source)
+	chunk, gotCompileErr := typechecker.CheckSourceBytecode(testFileName, source, nil)
 	if gotCompileErr.IsFailure() {
 		t.Fatalf("Compile Error: %s", gotCompileErr.Error())
 		return

@@ -125,6 +125,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		expression := stmt.Expression
 
 		switch expr := expression.(type) {
+		case *ast.UsingExpressionNode:
+			c.checkUsingExpressionForMethods(expr)
 		case *ast.MacroBoundaryNode:
 			c.hoistMethodDefinitions(expr.Body)
 		case *ast.ConstantDeclarationNode:
@@ -147,8 +149,6 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			c.hoistSetterDeclaration(expr)
 		case *ast.AttrDeclarationNode:
 			c.hoistAttrDeclaration(expr)
-		case *ast.UsingExpressionNode:
-			c.checkUsingExpressionForMethods(expr)
 		case *ast.ModuleDeclarationNode:
 			c.hoistMethodDefinitionsWithinModule(expr)
 		case *ast.ClassDeclarationNode:
@@ -222,10 +222,11 @@ func (c *Checker) hoistAliasEntry(node *ast.AliasDeclarationEntry, namespace typ
 	}
 
 	alias := aliasedMethod.CreateAlias(newName)
+	alias.SetNative(c.IsHeader())
 	namespace.SetMethod(newName, alias)
 }
 
-func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) {
+func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNode, methodName, asName string, location *position.Location) types.Namespace {
 	_, constant, fullConstantName, _ := c.resolveConstantInRoot(receiverNode)
 	var namespace types.Namespace
 
@@ -239,7 +240,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 			fmt.Sprintf("undefined namespace `%s`", lexer.Colorize(fullConstantName)),
 			receiverNode.Location(),
 		)
-		return
+		return nil
 	}
 
 	originalMethodSymbol := symbol.ToSymbol(methodName)
@@ -255,7 +256,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 	method := namespace.MethodString(methodName)
 	if method != nil {
 		usingNamespace.SetMethod(newMethodSymbol, method)
-		return
+		return usingNamespace
 	}
 
 	placeholder := types.NewMethodPlaceholder(
@@ -267,6 +268,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 	c.registerMethodPlaceholder(placeholder)
 	namespace.SetMethod(originalMethodSymbol, placeholder)
 	usingNamespace.SetMethod(newMethodSymbol, placeholder)
+	return usingNamespace
 }
 
 func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
@@ -282,24 +284,32 @@ func (c *Checker) resolveUsingExpression(node *ast.UsingExpressionNode) {
 
 func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLocation bool) {
 	typ := c.TypeOf(entry)
+	c.resolveUsingNamespace(typ, entry.Location(), pushPlaceholderLocation)
+}
+
+func (c *Checker) resolveUsingNamespace(typ types.Type, loc *position.Location, pushPlaceholderLocation bool) {
 	switch t := typ.(type) {
 	case *types.Module:
 		c.pushConstScope(makeUsingConstantScope(t))
 		c.pushMethodScope(makeUsingMethodScope(t))
 	case *types.Mixin:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.Class:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.Interface:
 		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
 	case *types.NamespacePlaceholder:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
-		if pushPlaceholderLocation {
-			t.Locations.Push(entry.Location())
+		if t.IsResolved() {
+			c.resolveUsingNamespace(t.Namespace, loc, pushPlaceholderLocation)
+		} else {
+			c.pushConstScope(makeUsingConstantScope(t))
+			c.pushMethodScope(makeUsingMethodScope(t))
+			if pushPlaceholderLocation {
+				t.Locations.Push(loc)
+			}
 		}
 	case *types.UsingBufferNamespace:
 		if c.enclosingScopeIsAUsingBuffer() {
@@ -328,7 +338,7 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 	if ok {
 		c.registerNamespaceWithIvars(class, node.Location())
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -379,7 +389,7 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 	if ok {
 		c.registerNamespaceWithIvars(module, node.Location())
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -400,7 +410,7 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -421,7 +431,7 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -445,7 +455,7 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 
 	c.registerNamespaceWithIvars(singleton, expr.Location())
 	c.popLocalConstScope()
-	c.popMethodScope()
+	c.popLocalMethodScope()
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
@@ -462,7 +472,7 @@ func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereB
 
 	if ok {
 		c.popLocalConstScope()
-		c.popMethodScope()
+		c.popLocalMethodScope()
 	}
 }
 
@@ -474,22 +484,24 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 			if e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.Receiver,
 				c.identifierToName(e.Name),
 				"",
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.MethodLookupAsNode:
 			if e.IsMacro() {
 				continue
 			}
-			c.checkUsingMethodLookupEntryNode(
+			namespace := c.checkUsingMethodLookupEntryNode(
 				e.MethodLookup.Receiver,
 				c.identifierToName(e.MethodLookup.Name),
 				c.identifierToName(e.AsName),
 				e.Location(),
 			)
+			entry.SetType(namespace)
 		case *ast.UsingEntryWithSubentriesNode:
 			c.checkUsingEntryWithSubentriesForMethods(e)
 		}
@@ -497,6 +509,11 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 }
 
 func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWithSubentriesNode) {
+	if !node.SkipTypechecking() {
+		usingNamespace := c.getUsingBufferNamespace()
+		node.SetType(usingNamespace)
+	}
+
 	for _, subentry := range node.Subentries {
 		switch s := subentry.(type) {
 		case *ast.PublicIdentifierNode:
@@ -1676,7 +1693,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			})
 			continue
 		}
-		typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+		typedPosArg := c.checkExpressionWithType(posArg, param.Type, false)
 		posArgType := c.TypeOf(typedPosArg)
 
 		inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
@@ -1795,7 +1812,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
-			typedPosArg := c.checkExpressionWithType(posArg, param.Type)
+			typedPosArg := c.checkExpressionWithType(posArg, param.Type, false)
 			posArgType := c.TypeOf(typedPosArg)
 			inferredParamType := c.inferTypeArguments(posArgType, param.Type, typeArgMap, typedPosArg.Location())
 			if inferredParamType == nil {
@@ -1863,7 +1880,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 
-			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type)
+			typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, param.Type, false)
 			namedArgType := c.TypeOf(typedNamedArgValue)
 			inferredParamType := c.inferTypeArguments(namedArgType, param.Type, typeArgMap, typedNamedArgValue.Location())
 			if inferredParamType == nil {
@@ -1928,7 +1945,7 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			namedArgI := namedArguments[i]
 			switch namedArg := namedArgI.(type) {
 			case *ast.NamedCallArgumentNode:
-				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type)
+				typedNamedArgValue := c.checkExpressionWithType(namedArg.Value, namedRestParam.Type, false)
 				posArgType := c.TypeOf(typedNamedArgValue)
 				inferredParamType := c.inferTypeArguments(posArgType, namedRestParam.Type, typeArgMap, typedNamedArgValue.Location())
 				if inferredParamType == nil {
@@ -2090,7 +2107,7 @@ func (c *Checker) checkRestArgument(node ast.ExpressionNode, typ types.Type) ast
 	case *ast.SplatExpressionNode:
 		return c.checkCollectionSplatExpression(n)
 	default:
-		return c.checkExpressionWithType(node, typ)
+		return c.checkExpressionWithType(node, typ, false)
 	}
 }
 
@@ -2269,6 +2286,8 @@ func (c *Checker) checkBinaryOpMethodCall(
 		return newNode
 	}
 
+	node.Left = receiver
+	node.Right = args[0]
 	node.SetType(returnType)
 	return node
 }
@@ -3501,8 +3520,7 @@ func (c *Checker) _getMethod(typ types.Type, name symbol.Symbol, errLoc *positio
 	case *types.Union:
 		return c.getMethodInUnion(t, name, errLoc)
 	default:
-		c.addMissingMethodError(typ, name.String(), errLoc)
-		return nil
+		return c.getMethodInNamespace(c.StdValue(), typ, name, errLoc, inParent, inSelf)
 	}
 }
 

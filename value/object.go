@@ -30,7 +30,7 @@ func NewObjectComparer(opts *cmp.Options) cmp.Option {
 		if x.class == y.class {
 			return true
 		}
-		if x.class != nil && x.class.Name == y.class.Name {
+		if x.class != nil && x.class.name == y.class.name {
 			return true
 		}
 
@@ -136,7 +136,7 @@ func (o *Object) SingletonClass() *Class {
 
 	singletonClass := NewClass()
 	singletonClass.SetSingleton()
-	singletonClass.Parent = o.class
+	singletonClass.parent = o.class
 	o.class = singletonClass
 	return singletonClass
 }

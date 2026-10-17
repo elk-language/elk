@@ -8,7 +8,7 @@ import (
 // ::Std::ArrayList
 func initArrayList() {
 	// Instance methods
-	c := &value.ArrayListClass.MethodContainer
+	c := value.ArrayListClass
 	Def(
 		c,
 		"iter",
@@ -318,7 +318,7 @@ func initArrayList() {
 // ::Std::ArrayList::Iterator
 func initArrayListIterator() {
 	// Instance methods
-	c := &value.ArrayListIteratorClass.MethodContainer
+	c := value.ArrayListIteratorClass
 	Def(
 		c,
 		"next",

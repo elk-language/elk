@@ -24,7 +24,7 @@ func initHashMap() {
 	value.HashMapClass.ConstructorFunc = hashMapConstructor
 
 	// Instance methods
-	c := &value.HashMapClass.MethodContainer
+	c := value.HashMapClass
 	Def(
 		c,
 		"iter",
@@ -170,7 +170,7 @@ func initHashMap() {
 					}
 					r, ok := result.SafeAsReference().(value.Pair)
 					if !ok {
-						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
+						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 					}
 					err = HashMapOfValueSet(vm, newMap, r.Key(), r.Value())
 					if !err.IsUndefined() {
@@ -188,7 +188,7 @@ func initHashMap() {
 				}
 				r, ok := result.SafeAsReference().(value.Pair)
 				if !ok {
-					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name))
+					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 				}
 				err = HashMapOfValueSet(vm, newMap, r.Key(), r.Value())
 				if !err.IsUndefined() {
@@ -287,7 +287,7 @@ func initHashMap() {
 // ::Std::HashMap::Iterator
 func initHashMapIterator() {
 	// Instance methods
-	c := &value.HashMapIteratorClass.MethodContainer
+	c := value.HashMapIteratorClass
 	Def(
 		c,
 		"next",

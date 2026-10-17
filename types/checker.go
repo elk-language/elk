@@ -7,6 +7,7 @@ import (
 
 type Checker interface {
 	Env() *GlobalEnvironment
+	HasNativeGoCompiler() bool
 	IsSubtype(a, b Type) bool
 	IsNilable(typ Type) bool
 	IsNotNilable(typ Type) bool

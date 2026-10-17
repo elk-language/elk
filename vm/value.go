@@ -13,7 +13,7 @@ import (
 // Std::Value
 func initValue() {
 	// Instance methods
-	c := &value.ValueClass.MethodContainer
+	c := value.ValueClass
 	Def(
 		c,
 		"inspect",
@@ -40,7 +40,7 @@ func initValue() {
 		},
 		DefWithParameters(1),
 	)
-	Alias(c, "===", "==")
+	Alias(c, "=~", "==")
 	Def(
 		c,
 		"copy",

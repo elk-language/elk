@@ -71,6 +71,25 @@ func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *SingletonBlockExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SingletonBlockExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *SingletonBlockExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -1,12 +1,10 @@
-using Std::Test::Assertions::*
-using Std::Test::*
 using Std::Sync::WaitGroup
 using Std::Sync::WaitGroup::spawn!
 
-describe "Channel", ->
+describe "Channel" ->
 
-	context "select", ->
-		should "trigger the case for available buffered channel", ->
+	context "select" ->
+		should "trigger the case for available buffered channel" ->
 			ch1 := Channel::[Int](5)
 			ch2 := Channel::[Int]()
 
@@ -23,7 +21,7 @@ describe "Channel", ->
 			assert! result == 12
 		end
 
-		should "wait and trigger the read case for available channel", ->
+		should "wait and trigger the read case for available channel" ->
 			ch1 := Channel::[Int](5)
 			ch2 := Channel::[Int](5)
 
@@ -52,7 +50,7 @@ describe "Channel", ->
 			assert! result == 6
 		end
 
-		should "wait and trigger the write case for available channel", ->
+		should "wait and trigger the write case for available channel" ->
 			ch1 := Channel::[Int]()
 			ch2 := Channel::[Int]()
 
@@ -82,7 +80,7 @@ describe "Channel", ->
 			assert! result == 69
 		end
 
-		should "trigger default case", ->
+		should "trigger default case" ->
 			ch1 := Channel::[Int](5)
 			ch2 := Channel::[Int](5)
 
@@ -113,7 +111,7 @@ describe "Channel", ->
 			assert! result == -420
 		end
 
-		should "trigger send case when no reader is available", ->
+		should "trigger send case when no reader is available" ->
 			ch1 := Channel::[Int]()
 			ch2 := Channel::[Int](5)
 
@@ -145,30 +143,30 @@ describe "Channel", ->
 
 	end
 
-	context "capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			assert! ch.capacity == 0
 		end
 
-		should "return non-zero for buffered channel", ->
+		should "return non-zero for buffered channel" ->
 			ch := Channel::[Float](10)
 			assert! ch.capacity == 10
 		end
 	end
 
-	context "length", ->
-		should "return 0 for non-buffered channel", ->
+	context "length" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			assert! ch.length == 0
 		end
 
-		should "return zero for buffered channel with no elements", ->
+		should "return zero for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			assert! ch.length == 0
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			assert! ch.length == 0
 
@@ -180,19 +178,19 @@ describe "Channel", ->
 		end
 	end
 
-	context "left_capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "left_capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			assert! ch.left_capacity == 0
 		end
 
-		should "return capacity for buffered channel with no elements", ->
+		should "return capacity for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			assert! ch.capacity == 10
 			assert! ch.left_capacity == 10
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			assert! ch.left_capacity == 10
 
@@ -204,14 +202,14 @@ describe "Channel", ->
 		end
 	end
 
-	context "==", ->
-		should "return true for the same channel object", ->
+	context "==" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			result := ch == ch
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			ch2 := Channel::[Float]()
 			result := ch1 == ch2
@@ -219,14 +217,14 @@ describe "Channel", ->
 		end
 	end
 
-	context "=~", ->
-		should "return true for the same channel object", ->
+	context "=~" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			result := ch =~ ch
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			ch2 := Channel::[Float]()
 			result := ch1 =~ ch2
@@ -234,21 +232,21 @@ describe "Channel", ->
 		end
 	end
 
-	context "push", ->
-		should "should push to buffered channel without blocking", ->
+	context "push" ->
+		should "should push to buffered channel without blocking" ->
 			ch := Channel::[Float](2)
 			ch << 2.5
 		end
 
-		should "should throw when pushing to closed channel", ->
+		should "should throw when pushing to closed channel" ->
 			ch := Channel::[Float](2)
 			ch.close
 			assert_throws! ch << 2.5 match Channel::ClosedError()
 		end
 	end
 
-	context "<<@", ->
-		should "should pop from a buffered channel without blocking", ->
+	context "<<@" ->
+		should "should pop from a buffered channel without blocking" ->
 			ch := Channel::[Float](2)
 			ch << 2.5
 
@@ -257,7 +255,7 @@ describe "Channel", ->
 			assert! result.unwrap == 2.5
 		end
 
-		should "should return an error when popping from a closed channel", ->
+		should "should return an error when popping from a closed channel" ->
 			ch := Channel::[Float](2)
 			ch.close
 			result := <<ch
@@ -266,36 +264,36 @@ describe "Channel", ->
 		end
 	end
 
-	context "pop", ->
-		should "should pop from a buffered channel without blocking", ->
+	context "pop" ->
+		should "should pop from a buffered channel without blocking" ->
 			ch := Channel::[Float](2)
 			ch << 2.5
 
 			ch.pop
 		end
 
-		should "should throw when popping from a closed channel", ->
+		should "should throw when popping from a closed channel" ->
 			ch := Channel::[Float](2)
 			ch.close
 			assert_throws! ch.pop match Channel::ClosedError()
 		end
 	end
 
-	context "close", ->
-		should "should close an open channel", ->
+	context "close" ->
+		should "should close an open channel" ->
 			ch := Channel::[Float](2)
 			ch.close
 		end
 
-		should "should throw when closing a closed channel", ->
+		should "should throw when closing a closed channel" ->
 			ch := Channel::[Float](2)
 			ch.close
 			assert_throws! ch.close() match Channel::ClosedError()
 		end
 	end
 
-	context "readonly", ->
-		should "should return a read view of channel", ->
+	context "readonly" ->
+		should "should return a read view of channel" ->
 			ch := Channel::[Float](2)
 			ch << 5.5
 
@@ -306,8 +304,8 @@ describe "Channel", ->
 		end
 	end
 
-	context "writeonly", ->
-		should "should return a write view of channel", ->
+	context "writeonly" ->
+		should "should return a write view of channel" ->
 			ch := Channel::[Float](2)
 
 			wch := ch.writeonly
@@ -319,8 +317,8 @@ describe "Channel", ->
 		end
 	end
 
-	context "iter", ->
-		should "should return a read view of channel", ->
+	context "iter" ->
+		should "should return a read view of channel" ->
 			ch := Channel::[Float](3)
 			ch << 5.5
 			ch << 2.25

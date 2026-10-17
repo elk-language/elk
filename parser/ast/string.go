@@ -87,6 +87,15 @@ func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *RawStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *RawStringLiteralNode) String() string {
 	return fmt.Sprintf("'%s'", n.Value)
 }
@@ -161,6 +170,15 @@ func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringLiteralContentSectionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *StringLiteralContentSectionNode) String() string {
@@ -243,6 +261,15 @@ func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringInspectInterpolationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInspectInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *StringInspectInterpolationNode) String() string {
@@ -336,6 +363,15 @@ func (n *StringInterpolationNode) Equal(other value.Value) bool {
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringInterpolationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *StringInterpolationNode) String() string {
@@ -442,6 +478,25 @@ func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *InterpolatedStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Content) != len(o.Content) {
+		return false
+	}
+
+	for i, content := range n.Content {
+		if !content.LaxEqual(value.Ref(o.Content[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *InterpolatedStringLiteralNode) String() string {
 	var buff strings.Builder
 	buff.WriteString("\"")
@@ -543,6 +598,15 @@ func (n *DoubleQuotedStringLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value && n.loc.Equal(o.loc)
+}
+
+func (n *DoubleQuotedStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleQuotedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 // Return a string representation of the node.

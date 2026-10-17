@@ -6,7 +6,3 @@ func InitGlobalEnvironment() {
 	runtime.InitGlobalEnvironment()
 	// TODO: expose Elk types
 }
-
-func init() {
-	InitGlobalEnvironment()
-}

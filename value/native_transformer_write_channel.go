@@ -24,11 +24,11 @@ func (ch *NativeTransformerWriteChannel[V]) NativeChannelAny() any {
 	return ch.ch
 }
 
-func (ch *NativeTransformerWriteChannel[V]) TransformFromValue(v Value) any {
+func (ch *NativeTransformerWriteChannel[V]) TransformFromValueToAny(v Value) any {
 	return ch.setTransformer(v)
 }
 
-func (ch *NativeTransformerWriteChannel[V]) TransformToValue(v any) Value {
+func (ch *NativeTransformerWriteChannel[V]) TransformAnyToValue(v any) Value {
 	return v.(ValueInterface).ToValue()
 }
 

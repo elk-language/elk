@@ -49,6 +49,19 @@ func (e *evaluator) addSource(input string) string {
 	return sourceName
 }
 
+var helpMessage = `
+Elk Breakpoint Help
+
+Available Commands:
+  :continue, :c           Exit the breakpoint and continue code execution
+  :quit, :q               Exit the program
+  :help, :h               Print this help message
+  :variables, :v          Inspect the currently available variables
+  :stack, :s              Inspect the values on the VM's stack
+  :disassemble, :disasm   Disassemble the bytecode and print it
+
+`
+
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
@@ -63,8 +76,14 @@ func (e *evaluator) evaluate(input string) {
 	case ":s", ":stack":
 		e.thread.InspectValueStack()
 		return
+	case ":disassemble", ":disasm":
+		e.thread.Bytecode().DisassembleStdout()
+		return
 	case ":v", ":variables":
 		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
+	case ":h", ":help":
+		fmt.Print(helpMessage)
+		return
 	default:
 		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input)
 	}

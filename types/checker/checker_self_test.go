@@ -156,7 +156,8 @@ func TestSelfType(t *testing.T) {
 				class Foo
 					singleton
 						def foo
-							var a: Foo = new
+							a := new
+							var b: Foo = a
 						end
 					end
 				end
@@ -167,7 +168,8 @@ func TestSelfType(t *testing.T) {
 				class Foo
 					singleton
 						def foo
-							var a: Object = new
+							a := new
+							var b: Object = a
 						end
 					end
 				end
@@ -179,13 +181,14 @@ func TestSelfType(t *testing.T) {
 				class Foo
 					singleton
 						def foo
-							var a: Bar = new
+							a := new
+							var b: Bar = a
 						end
 					end
 				end
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(89, 6, 21), P(91, 6, 23)), "type `%self` cannot be assigned to type `Bar`"),
+				diagnostic.NewFailure(L("<main>", P(105, 7, 21), P(105, 7, 21)), "type `%self` cannot be assigned to type `Bar`"),
 			},
 		},
 	}

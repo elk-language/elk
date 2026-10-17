@@ -7,14 +7,14 @@ import (
 // Std::Interface
 func initInterface() {
 	// Instance methods
-	c := &value.InterfaceClass.MethodContainer
+	c := value.InterfaceClass
 
 	Def(
 		c,
 		"name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Interface)
-			return value.Ref(value.String(self.Name)), value.Undefined
+			return value.Ref(value.String(self.Name())), value.Undefined
 		},
 	)
 }

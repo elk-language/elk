@@ -71,6 +71,26 @@ func (n *UntilExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *UntilExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UntilExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		!n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *UntilExpressionNode) String() string {
 	var buff strings.Builder
 

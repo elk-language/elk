@@ -52,6 +52,15 @@ func (n *ExactTypeNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *ExactTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExactTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 func (n *ExactTypeNode) String() string {
 	var buff strings.Builder
 

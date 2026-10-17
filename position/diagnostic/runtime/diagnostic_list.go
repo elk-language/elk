@@ -13,7 +13,7 @@ import (
 
 // Std::DiagnosticList
 func initDiagnosticList() {
-	c := &value.DiagnosticListClass.MethodContainer
+	c := value.DiagnosticListClass
 
 	vm.Def(
 		c,
@@ -197,7 +197,7 @@ func initDiagnosticList() {
 // ::Std::DiagnosticList::Iterator
 func initDiagnosticListIterator() {
 	// Instance methods
-	c := &value.DiagnosticListIteratorClass.MethodContainer
+	c := value.DiagnosticListIteratorClass
 	vm.Def(
 		c,
 		"next",

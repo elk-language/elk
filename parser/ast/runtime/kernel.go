@@ -8,7 +8,7 @@ import (
 
 func initKernel() {
 	// Std::Kernel
-	c := &value.KernelModule.SingletonClass().MethodContainer
+	c := value.KernelModule.SingletonClass()
 	vm.Def(
 		c,
 		"#splice",

@@ -72,6 +72,26 @@ func (n *YieldExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *YieldExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*YieldExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Forward != o.Forward {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *YieldExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -87,6 +87,32 @@ func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *HashMapLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *HashMapLiteralNode) String() string {
 	var buff strings.Builder
@@ -266,6 +292,25 @@ func (n *HashRecordLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HashRecordLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashRecordLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.

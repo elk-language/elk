@@ -8,7 +8,7 @@ import (
 )
 
 func initFalseLiteralNode() {
-	c := &value.FalseLiteralNodeClass.MethodContainer
+	c := value.FalseLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -52,6 +52,17 @@ func initFalseLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.FalseLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FalseLiteralNode)
@@ -59,7 +70,7 @@ func initFalseLiteralNode() {
 		},
 	)
 
-	c = &value.FalseClass.MethodContainer
+	c = value.FalseClass
 	vm.Def(
 		c,
 		"to_ast_node",

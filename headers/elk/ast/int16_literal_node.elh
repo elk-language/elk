@@ -16,5 +16,7 @@ module Std::Elk::AST
     pure def value: String; end
     pure def location: FS::Location; end
     pure def to_int16: Int16; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

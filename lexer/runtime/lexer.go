@@ -9,7 +9,7 @@ import (
 // Std::Elk::Lexer
 func initLexer() {
 	// Singleton methods
-	c := &value.ElkLexerClass.SingletonClass().MethodContainer
+	c := value.ElkLexerClass.SingletonClass()
 	vm.Def(
 		c,
 		"colorize",
@@ -32,7 +32,7 @@ func initLexer() {
 	)
 
 	// Instance methods
-	c = &value.ElkLexerClass.MethodContainer
+	c = value.ElkLexerClass
 	vm.Def(
 		c,
 		"#init",

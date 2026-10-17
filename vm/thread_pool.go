@@ -133,7 +133,7 @@ func initThreadPool() {
 	value.ThreadPoolClass.AddConstantString("DEFAULT", value.Ref(DefaultThreadPool))
 
 	// Instance methods
-	c := &value.ThreadPoolClass.MethodContainer
+	c := value.ThreadPoolClass
 	Def(
 		c,
 		"thread_count",

@@ -8,7 +8,7 @@ import (
 )
 
 func initTrueLiteralNode() {
-	c := &value.TrueLiteralNodeClass.MethodContainer
+	c := value.TrueLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -53,6 +53,17 @@ func initTrueLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.TrueLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.TrueLiteralNode)
@@ -60,7 +71,7 @@ func initTrueLiteralNode() {
 		},
 	)
 
-	c = &value.TrueClass.MethodContainer
+	c = value.TrueClass
 	vm.Def(
 		c,
 		"to_ast_node",

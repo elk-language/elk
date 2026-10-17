@@ -108,6 +108,15 @@ func (n *PublicConstantNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *PublicConstantNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicConstantNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 var PublicConstantRegexp = regexp.MustCompile(`^\p{Lu}[\p{L}\p{N}_]*$`)
 
 func (n *PublicConstantNode) String() string {
@@ -203,6 +212,15 @@ func (n *PrivateConstantNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *PrivateConstantNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PrivateConstantNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
+}
+
 func (n *PrivateConstantNode) String() string {
 	return n.Value
 }
@@ -287,6 +305,16 @@ func (n *PublicConstantAsNode) Equal(other value.Value) bool {
 	return n.Target.Equal(value.Ref(o.Target)) &&
 		n.AsName == o.AsName &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PublicConstantAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicConstantAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.LaxEqual(value.Ref(o.Target)) &&
+		n.AsName == o.AsName
 }
 
 func (n *PublicConstantAsNode) String() string {
@@ -398,6 +426,22 @@ func (n *ConstantLookupNode) Equal(other value.Value) bool {
 
 	return n.Right.Equal(value.Ref(o.Right)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *ConstantLookupNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstantLookupNode)
+	if !ok {
+		return false
+	}
+
+	if n.Left == o.Left {
+	} else if n.Left == nil || o.Left == nil {
+		return false
+	} else if !n.Left.LaxEqual(value.Ref(o.Left)) {
+		return false
+	}
+
+	return n.Right.LaxEqual(value.Ref(o.Right))
 }
 
 // Return a string representation of the node.
@@ -524,6 +568,29 @@ func (n *GenericConstantNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *GenericConstantNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericConstantNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // String returns a string representation of the GenericConstantNode.

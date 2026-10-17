@@ -59,6 +59,15 @@ func (n *PublicInstanceVariableNode) Equal(other value.Value) bool {
 		!n.loc.Equal(o.loc)
 }
 
+func (n *PublicInstanceVariableNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicInstanceVariableNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value != o.Value
+}
+
 func (n *PublicInstanceVariableNode) String() string {
 	var buff strings.Builder
 	buff.WriteByte('@')

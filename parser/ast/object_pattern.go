@@ -70,6 +70,25 @@ func (n *ObjectPatternNode) Equal(other value.Value) bool {
 		n.ObjectType.Equal(value.Ref(o.ObjectType))
 }
 
+func (n *ObjectPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ObjectPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Attributes) != len(o.Attributes) {
+		return false
+	}
+
+	for i, attr := range n.Attributes {
+		if !attr.LaxEqual(value.Ref(o.Attributes[i])) {
+			return false
+		}
+	}
+
+	return n.ObjectType.LaxEqual(value.Ref(o.ObjectType))
+}
+
 func (n *ObjectPatternNode) String() string {
 	var buff strings.Builder
 

@@ -10,7 +10,7 @@ import (
 // ::Std::RightOpenRange
 func initRightOpenRange() {
 	// Instance methods
-	c := &value.RightOpenRangeClass.MethodContainer
+	c := value.RightOpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initRightOpenRange() {
 // ::Std::RightOpenRange::Iterator
 func initRightOpenRangeIterator() {
 	// Instance methods
-	c := &value.RightOpenRangeIteratorClass.MethodContainer
+	c := value.RightOpenRangeIteratorClass
 	Def(
 		c,
 		"next",

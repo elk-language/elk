@@ -102,6 +102,25 @@ func (n *ArrayTupleLiteralNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *ArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *ArrayTupleLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -218,6 +237,25 @@ func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -364,6 +402,25 @@ func (n *SymbolArrayTupleLiteralNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *SymbolArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *SymbolArrayTupleLiteralNode) String() string {
 	var buff strings.Builder
@@ -501,6 +558,25 @@ func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HexArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -648,6 +724,28 @@ func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *BinArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *BinArrayTupleLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -780,6 +878,25 @@ func (n *TuplePatternNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *TuplePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TuplePatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}

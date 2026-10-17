@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"math/rand/v2"
+	"os"
 	"sync"
 	"time"
 
@@ -18,13 +19,24 @@ const (
 	TEST_FAILED
 	TEST_ERROR
 	TEST_SKIPPED
+	TEST_INTERRUPTED
 	TEST_RUNNING
 	TEST_SUCCESS
 )
 
+// Runs the tests.
+// Exits the program with code 1 if the tests failed
+func MustRun() {
+	report := Run()
+	if report == nil || report.Status() != TEST_SUCCESS {
+		os.Exit(1)
+	}
+}
+
+// Runs the tests and returns the report.
 func Run() *SuiteReport {
 	v := vm.New()
-	events := make(chan *ReportEvent, 50)
+	events := make(chan *ReportEvent, 200)
 
 	var reporter Reporter
 	if color.NoColor {
@@ -64,7 +76,7 @@ func initTest() *value.Module {
 	testModule := value.NewModule()
 	value.StdModule.AddConstantString("Test", value.Ref(testModule))
 
-	c := &testModule.SingletonClass().MethodContainer
+	c := testModule.SingletonClass()
 	vm.Def(
 		c,
 		"describe",

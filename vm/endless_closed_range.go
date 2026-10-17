@@ -10,7 +10,7 @@ import (
 // ::Std::EndlessClosedRange
 func initEndlessClosedRange() {
 	// Instance methods
-	c := &value.EndlessClosedRangeClass.MethodContainer
+	c := value.EndlessClosedRangeClass
 	Def(
 		c,
 		"iter",
@@ -119,7 +119,7 @@ func initEndlessClosedRange() {
 // ::Std::EndlessClosedRange::Iterator
 func initEndlessClosedRangeIterator() {
 	// Instance methods
-	c := &value.EndlessClosedRangeIteratorClass.MethodContainer
+	c := value.EndlessClosedRangeIteratorClass
 	Def(
 		c,
 		"next",

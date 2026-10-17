@@ -6,7 +6,7 @@ import (
 )
 
 func initConstantNode() {
-	c := &value.ConstantNodeMixin.MethodContainer
+	c := value.ConstantNodeMixin
 	vm.Def(
 		c,
 		"to_ast_const_node",

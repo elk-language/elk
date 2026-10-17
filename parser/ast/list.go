@@ -124,6 +124,33 @@ func (n *ArrayListLiteralNode) Equal(other value.Value) bool {
 	return n.Capacity.Equal(value.Ref(o.Capacity))
 }
 
+func (n *ArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+		return true
+	}
+
+	if n.Capacity == nil || o.Capacity == nil {
+		return false
+	}
+
+	return n.Capacity.LaxEqual(value.Ref(o.Capacity))
+}
+
 func (n *ArrayListLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -284,6 +311,32 @@ func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -480,6 +533,32 @@ func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *SymbolArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *SymbolArrayListLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -666,6 +745,32 @@ func (n *HexArrayListLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HexArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -875,6 +980,35 @@ func (n *BinArrayListLiteralNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *BinArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
+}
+
 func (n *BinArrayListLiteralNode) String() string {
 	var buff strings.Builder
 
@@ -1028,6 +1162,25 @@ func (n *ListPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ListPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ListPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *ListPatternNode) String() string {

@@ -20,6 +20,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -56,6 +57,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -90,7 +92,7 @@ func TestBytecodeQuote(t *testing.T) {
 							),
 						),
 					),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntLiteralNodeClass, "to_ast_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "to_ast_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -102,6 +104,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -136,7 +139,7 @@ func TestBytecodeQuote(t *testing.T) {
 							),
 						),
 					),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntLiteralNodeClass, "to_ast_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "to_ast_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -149,6 +152,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -185,7 +189,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IdentifierNodeMixin, "to_ast_ident_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_ident_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -197,6 +201,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -233,7 +238,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IdentifierNodeMixin, "to_ast_ident_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_ident_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -245,6 +250,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -281,7 +287,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IdentifierNodeMixin, "to_ast_ident_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_ident_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -294,6 +300,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -332,7 +339,7 @@ func TestBytecodeQuote(t *testing.T) {
 							ast.NewDoubleQuotedStringLiteralNode(L(P(36, 3, 26), P(40, 3, 30)), "foo"),
 						),
 					),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntLiteralNodeClass, "to_ast_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "to_ast_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -344,6 +351,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -382,7 +390,7 @@ func TestBytecodeQuote(t *testing.T) {
 							ast.NewDoubleQuotedStringLiteralNode(L(P(30, 3, 20), P(34, 3, 24)), "foo"),
 						),
 					),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntLiteralNodeClass, "to_ast_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.IntClass, "to_ast_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -395,6 +403,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -460,6 +469,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -525,6 +535,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -591,6 +602,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -627,7 +639,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ConstantNodeMixin, "to_ast_const_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_const_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -639,6 +651,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -675,7 +688,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ConstantNodeMixin, "to_ast_const_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_const_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -687,6 +700,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -723,7 +737,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.ConstantNodeMixin, "to_ast_const_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_const_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -736,6 +750,7 @@ func TestBytecodeQuote(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.GET_CONST8), 0,
@@ -774,7 +789,7 @@ func TestBytecodeQuote(t *testing.T) {
 						),
 					),
 					value.ToSymbol("foo").ToValue(),
-					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.InstanceVariableNodeMixin, "to_ast_ivar_node"), 0)),
+					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.SymbolClass, "to_ast_ivar_node"), 0)),
 					value.Ref(vm.NewNativeCallSiteInfo(nativeMethodStr(value.KernelModule.SingletonClass(), "#splice"), 2)),
 				},
 			),
@@ -807,6 +822,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				fib!(10) * 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 110,
@@ -839,6 +855,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				Math::fib!(10) * 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -854,6 +871,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -891,6 +909,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				fib!(10) * 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_INT_8), 110,
@@ -923,6 +942,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				b.value
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -954,6 +974,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -977,6 +998,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						ivarIndicesSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -998,6 +1020,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						methodDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1022,6 +1045,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("BoxString").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
+								nil,
 								value.ToSymbol("BoxString.:#init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
@@ -1078,6 +1102,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var bar *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.PREP_LOCALS8), 1,
@@ -1110,6 +1135,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1133,6 +1159,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							ivarIndicesSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1154,6 +1181,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1172,6 +1200,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&bar, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo.:bar"),
 									[]byte{
 										byte(bytecode.GET_IVAR_0),
@@ -1190,6 +1219,7 @@ func TestBytecodeMacroExpansion(t *testing.T) {
 						)),
 						value.ToSymbol("Foo").ToValue(),
 						value.Ref(vm.NewBytecodeFunction(
+							nil,
 							value.ToSymbol("<class: Foo>"),
 							[]byte{
 								byte(bytecode.NIL),

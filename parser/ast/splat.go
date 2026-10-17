@@ -53,6 +53,15 @@ func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *DoubleSplatExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
+}
+
 // Return a string representation of the node.
 func (n *DoubleSplatExpressionNode) String() string {
 	var buff strings.Builder
@@ -152,6 +161,15 @@ func (n *SplatExpressionNode) Equal(other value.Value) bool {
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SplatExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *SplatExpressionNode) String() string {

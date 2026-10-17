@@ -40,9 +40,8 @@ func main() {
 			func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				objectClass := env.StdSubtypeClass(symbol.C_Object)
 				namespace := env.Root
-				var mixin *Mixin
 				var method *Method
-				mixin.IsLiteral() // noop - avoid unused variable error
+				_ = method
 		`,
 	)
 
@@ -109,7 +108,7 @@ func defineMethodsWithinNamespace(buffer *bytes.Buffer, namespace types.Namespac
 			namespaceType,
 		)
 	}
-	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
+	buffer.WriteString("\n_ = namespace\n")
 
 	setTypeParameters(buffer, namespace)
 
@@ -153,7 +152,7 @@ func defineMethodsWithinSingleton(buffer *bytes.Buffer, namespace types.Namespac
 					namespace := namespace.Singleton()
 			`,
 	)
-	buffer.WriteString("\nnamespace.Name() // noop - avoid unused variable error\n")
+	buffer.WriteString("\n_ = namespace\n")
 
 	setTypeParameters(buffer, namespace)
 
@@ -178,23 +177,30 @@ func includeMixinsAndImplementInterfaces(buffer *bytes.Buffer, namespace types.N
 			fmt.Fprintf(
 				buffer,
 				`
-					// %s
-					mixin = NewMixin("", false, "", env)
 					{
-						namespace := mixin
-						namespace.Name() // noop - avoid unused variable error
+						// %s
+						mixin := NewMixin("", false, "", env)
 				`,
 				p.InspectExtend(),
 			)
 
+			buffer.WriteString("mixinWithWhere := IncludeMixinWithWhere(namespace, mixin, ")
+			createTypeParametersForMixinWithWhere(buffer, p.Where)
+			buffer.WriteString(")\n")
+
+			fmt.Fprint(
+				buffer,
+				`
+					{
+						namespace := mixinWithWhere
+						_ = namespace
+				`,
+			)
 			defineTypeParametersInSubtypes(buffer, p)
 			defineMethods(buffer, p)
 
 			buffer.WriteString("}\n")
-
-			buffer.WriteString("IncludeMixinWithWhere(namespace, mixin, ")
-			createTypeParametersForMixinWithWhere(buffer, p.Where)
-			buffer.WriteString(")\n")
+			buffer.WriteString("}\n")
 		case *types.MixinProxy:
 			fmt.Fprintf(
 				buffer,
@@ -534,7 +540,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	defineSubtypesWithinNamespace(buffer, class)
 	if hasSubtypes {
-		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
+		buffer.WriteString("_ = namespace\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -556,7 +562,7 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	defineSubtypesWithinNamespace(buffer, mixin)
 	if hasSubtypes {
-		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
+		buffer.WriteString("_ = namespace\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -577,7 +583,7 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	defineSubtypesWithinNamespace(buffer, module)
 	if hasSubtypes {
-		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
+		buffer.WriteString("_ = namespace\n")
 		buffer.WriteString("}\n")
 	}
 }
@@ -598,7 +604,7 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	defineSubtypesWithinNamespace(buffer, iface)
 	if hasSubtypes {
-		buffer.WriteString("namespace.Name() // noop - avoid unused variable error\n")
+		buffer.WriteString("_ = namespace\n")
 		buffer.WriteString("}\n")
 	}
 }

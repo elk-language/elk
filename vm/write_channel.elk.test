@@ -1,12 +1,11 @@
-using Std::Test::Assertions::*
-using Std::Test::*
+
 using Std::Sync::WaitGroup
 using Std::Sync::WaitGroup::spawn!
 
-describe "WriteChannel", ->
+describe "WriteChannel" ->
 
-	context "select", ->
-		should "trigger the case for available buffered channel", ->
+	context "select" ->
+		should "trigger the case for available buffered channel" ->
 			ch1 := Channel::[Int](5)
 			wch1 := ch1.writeonly
 
@@ -26,7 +25,7 @@ describe "WriteChannel", ->
 			assert! result == 12
 		end
 
-		should "wait and trigger the read case for available channel", ->
+		should "wait and trigger the read case for available channel" ->
 			ch1 := Channel::[Int](5)
 			wch1 := ch1.writeonly
 
@@ -58,7 +57,7 @@ describe "WriteChannel", ->
 			assert! result == 6
 		end
 
-		should "wait and trigger the write case for available channel", ->
+		should "wait and trigger the write case for available channel" ->
 			ch1 := Channel::[Int]()
 			wch1 := ch1.writeonly
 
@@ -91,7 +90,7 @@ describe "WriteChannel", ->
 			assert! result == 69
 		end
 
-		should "trigger default case", ->
+		should "trigger default case" ->
 			ch1 := Channel::[Int](5)
 			wch1 := ch1.writeonly
 
@@ -125,7 +124,7 @@ describe "WriteChannel", ->
 			assert! result == -420
 		end
 
-		should "trigger send case when no reader is available", ->
+		should "trigger send case when no reader is available" ->
 			ch1 := Channel::[Int]()
 			wch1 := ch1.writeonly
 
@@ -160,34 +159,34 @@ describe "WriteChannel", ->
 
 	end
 
-	context "capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			wch := ch.writeonly
 			assert! wch.capacity == 0
 		end
 
-		should "return non-zero for buffered channel", ->
+		should "return non-zero for buffered channel" ->
 			ch := Channel::[Float](10)
 			wch := ch.writeonly
 			assert! wch.capacity == 10
 		end
 	end
 
-	context "length", ->
-		should "return 0 for non-buffered channel", ->
+	context "length" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			wch := ch.writeonly
 			assert! wch.length == 0
 		end
 
-		should "return zero for buffered channel with no elements", ->
+		should "return zero for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			wch := ch.writeonly
 			assert! wch.length == 0
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			wch := ch.writeonly
 			assert! wch.length == 0
@@ -200,21 +199,21 @@ describe "WriteChannel", ->
 		end
 	end
 
-	context "left_capacity", ->
-		should "return 0 for non-buffered channel", ->
+	context "left_capacity" ->
+		should "return 0 for non-buffered channel" ->
 			ch := Channel::[Float]()
 			wch := ch.writeonly
 			assert! wch.left_capacity == 0
 		end
 
-		should "return capacity for buffered channel with no elements", ->
+		should "return capacity for buffered channel with no elements" ->
 			ch := Channel::[Float](10)
 			wch := ch.writeonly
 			assert! wch.capacity == 10
 			assert! wch.left_capacity == 10
 		end
 
-		should "return non-zero for buffered channel with elements", ->
+		should "return non-zero for buffered channel with elements" ->
 			ch := Channel::[Float](10)
 			wch := ch.writeonly
 			assert! wch.left_capacity == 10
@@ -227,15 +226,15 @@ describe "WriteChannel", ->
 		end
 	end
 
-	context "==", ->
-		should "return true for the same channel object", ->
+	context "==" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			wch := ch.writeonly
 			result := wch == wch
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			wch1 := ch1.writeonly
 
@@ -247,8 +246,8 @@ describe "WriteChannel", ->
 		end
 	end
 
-	context "=~", ->
-		should "return true for the same channel object", ->
+	context "=~" ->
+		should "return true for the same channel object" ->
 			ch := Channel::[Float]()
 			wch := ch.writeonly
 
@@ -256,7 +255,7 @@ describe "WriteChannel", ->
 			assert! result == true
 		end
 
-		should "return false for different channel", ->
+		should "return false for different channel" ->
 			ch1 := Channel::[Float]()
 			wch1 := ch1.writeonly
 
@@ -268,15 +267,15 @@ describe "WriteChannel", ->
 		end
 	end
 
-	context "push", ->
-		should "should push to buffered channel without blocking", ->
+	context "push" ->
+		should "should push to buffered channel without blocking" ->
 			ch := Channel::[Float](2)
 			wch := ch.writeonly
 
 			wch << 2.5
 		end
 
-		should "should throw when pushing to closed channel", ->
+		should "should throw when pushing to closed channel" ->
 			ch := Channel::[Float](2)
 			wch := ch.writeonly
 			wch.close
@@ -284,14 +283,14 @@ describe "WriteChannel", ->
 		end
 	end
 
-	context "close", ->
-		should "should close an open channel", ->
+	context "close" ->
+		should "should close an open channel" ->
 			ch := Channel::[Float](2)
 			wch := ch.writeonly
 			wch.close
 		end
 
-		should "should throw when closing a closed channel", ->
+		should "should throw when closing a closed channel" ->
 			ch := Channel::[Float](2)
 			wch := ch.writeonly
 			wch.close

@@ -52,6 +52,15 @@ func (n *TypeExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *TypeExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 func (n *TypeExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -66,6 +66,25 @@ func (n *GoExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *GoExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GoExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Return a string representation of the node.
 func (n *GoExpressionNode) String() string {
 	var buff strings.Builder

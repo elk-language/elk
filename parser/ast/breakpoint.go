@@ -44,6 +44,15 @@ func (n *BreakpointNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *BreakpointNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*BreakpointNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 func (n *BreakpointNode) String() string {
 	return "breakpoint"
 }

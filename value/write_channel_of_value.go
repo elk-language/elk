@@ -57,11 +57,11 @@ func (ch *WriteChannelOfValue) NativeChannelAny() any {
 	return ch.native
 }
 
-func (*WriteChannelOfValue) TransformFromValue(v Value) any {
+func (*WriteChannelOfValue) TransformFromValueToAny(v Value) any {
 	panic("not a transformer channel")
 }
 
-func (*WriteChannelOfValue) TransformToValue(v any) Value {
+func (*WriteChannelOfValue) TransformAnyToValue(v any) Value {
 	panic("not a transformer channel")
 }
 

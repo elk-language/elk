@@ -1,7 +1,6 @@
 package test
 
 import (
-	"bytes"
 	"time"
 )
 
@@ -11,8 +10,6 @@ type CaseReport struct {
 	err      []Err
 	duration time.Duration // The amount of time it took to run the test
 	status   TestStatus
-	stdout   bytes.Buffer
-	stderr   bytes.Buffer
 }
 
 func (c *CaseReport) traverse(enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) TraverseOption {
@@ -32,14 +29,6 @@ func (c *CaseReport) FullNameWithSeparator() string {
 
 func (c *CaseReport) Err() []Err {
 	return c.err
-}
-
-func (c *CaseReport) Stdout() *bytes.Buffer {
-	return &c.stdout
-}
-
-func (c *CaseReport) Stderr() *bytes.Buffer {
-	return &c.stderr
 }
 
 func (c *CaseReport) RegisterErr(err Err) {

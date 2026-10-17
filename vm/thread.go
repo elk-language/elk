@@ -7,6 +7,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync/atomic"
+	"time"
 	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
@@ -15,6 +17,8 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
+
+var ActiveBreakpoints atomic.Int32
 
 // A single instance of the Elk Virtual Machine.
 type Thread struct {
@@ -76,6 +80,10 @@ func New(opts ...Option) *Thread {
 	return vm
 }
 
+func (vm *Thread) Bytecode() *BytecodeFunction {
+	return vm.bytecode
+}
+
 // Execute the given bytecode chunk.
 func (vm *Thread) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
@@ -119,14 +127,13 @@ func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
 	vm.tailCallCounter = 0
-	vm.pop() // pop the result of last run
 	vm.runWithState()
 
-	err := vm.Err()
-	if !err.IsUndefined() {
-		return value.Undefined, err
+	val := vm.popGet()
+	if vm.state == ErrorState {
+		return value.Undefined, val
 	}
-	return vm.peek(), value.Undefined
+	return val, value.Undefined
 }
 
 func (vm *Thread) runWithState() {
@@ -400,6 +407,9 @@ func (vm *Thread) CallMethodByNameWithCache(name value.Symbol, cc **CallCache, a
 	self := args[0]
 	class := self.DirectClass()
 	method := LookupMethodInCache(class, name, cc)
+	if method == nil {
+		panic(fmt.Sprintf("tried to call an invalid method: %#v, name: %s, class: %s, receiver: %s", method, name.String(), class.Name(), self.Inspect()))
+	}
 	return vm.CallMethod(method, args...)
 }
 
@@ -488,7 +498,7 @@ func (vm *Thread) callMethodOnStackByName(name value.Symbol, args int) value.Val
 				"tried to call a method that is neither bytecode nor native: %#v, %s in %s",
 				method,
 				name,
-				class.Name,
+				class.Name(),
 			),
 		)
 	}
@@ -1410,13 +1420,13 @@ func (vm *Thread) GoNative(closure *NativeClosure) *Thread {
 
 	go func(closure *NativeClosure, thread *Thread) {
 		thread.state = RunningState
-		closure.Function(thread, nil)
-		if thread.state != ErrorState {
+		_, err := closure.Function(thread, nil)
+		if err.IsNotUndefined() {
+			thread.state = ErrorState
+			vm.PrintErrorValue(err)
+		} else {
 			thread.state = TerminatedState
-			return
 		}
-
-		thread.PrintError()
 	}(closure, thread)
 
 	return thread
@@ -1815,7 +1825,7 @@ func (vm *Thread) opDefNamespace() {
 		)
 	}
 
-	if _, ok := parentConstantContainer.Constants[name]; ok {
+	if _, ok := parentConstantContainer.Constants()[name]; ok {
 		return
 	}
 
@@ -2054,12 +2064,25 @@ func (vm *Thread) opBreakpoint() {
 
 	vm.push(value.Nil)
 	prevState := vm.state
+	prevStdout := vm.Stdout
+	prevStderr := vm.Stderr
+	prevStdin := vm.Stdin
+
 	vm.state = IdleState
+	vm.Stdout = os.Stdout
+	vm.Stderr = os.Stderr
+	vm.Stdin = os.Stdin
 	originalCallFrame := vm.makeCurrentCallFrame(false)
 
+	ActiveBreakpoints.Add(1)
+	time.Sleep(500 * time.Millisecond)
 	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+	ActiveBreakpoints.Add(-1)
 
 	vm.state = prevState
+	vm.Stdout = prevStdout
+	vm.Stderr = prevStderr
+	vm.Stdin = prevStdin
 
 	vm.ip = originalCallFrame.ip
 	vm.fp = originalCallFrame.fp
@@ -2070,8 +2093,8 @@ func (vm *Thread) opBreakpoint() {
 
 // Create a new instance of a class
 func (vm *Thread) opInstantiate(args int) (err value.Value) {
-	callInfo := NewCallSiteInfo(value.S(symbol.S_init), args)
-	classPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
+	name := value.S(symbol.S_init)
+	classPtr := vm.spAdd(-args - 1)
 	classVal := *classPtr
 	var class *value.Class
 	switch c := classVal.SafeAsReference().(type) {
@@ -2084,14 +2107,14 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 	instance := class.CreateInstance()
 	// replace the class with the instance
 	*classPtr = instance
-	method := class.LookupMethod(callInfo.Name)
+	method := class.LookupMethod(name)
 
 	switch m := method.(type) {
 	case *BytecodeFunction:
-		vm.callBytecodeFunction(m, callInfo.ArgumentCount)
+		vm.callBytecodeFunction(m, args)
 		return value.Undefined
 	case *NativeMethod:
-		return vm.callNativeMethod(m, callInfo.ArgumentCount)
+		return vm.callNativeMethod(m, args)
 	case nil:
 		// no initialiser defined
 		// no arguments given
@@ -2176,7 +2199,7 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name(), self.Inspect()))
 	}
 }
 
@@ -2200,7 +2223,7 @@ func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
 	case *SetterMethod:
 		return vm.callSetterMethod(m)
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name, self.Inspect()))
+		panic(fmt.Sprintf("tried to call an invalid method: %T (%s) of class: %s (%s)", method, callInfo.Name, class.Name(), self.Inspect()))
 	}
 }
 
@@ -2359,7 +2382,8 @@ func (vm *Thread) opDefMethod() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		m.Methods[name] = body
+		m.AttachMethod(name, body)
+		body.SetNamespace(m)
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2386,7 +2410,7 @@ func (vm *Thread) opDefGetter() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineGetter(&m.MethodContainer, name, int(index))
+		DefineGetter(m, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a getter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2400,7 +2424,7 @@ func (vm *Thread) opDefSetter() {
 
 	switch m := methodContainer.SafeAsReference().(type) {
 	case *value.Class:
-		DefineSetter(&m.MethodContainer, name, int(index))
+		DefineSetter(m, name, int(index))
 	default:
 		panic(fmt.Sprintf("cannot define a setter in an invalid method container: %s", methodContainer.Inspect()))
 	}
@@ -2549,7 +2573,7 @@ func (vm *Thread) opSetSuperclass() {
 	newSuperclass := vm.popGet().AsReference().(*value.Class)
 	class := vm.popGet().AsReference().(*value.Class)
 
-	if class.Parent != nil {
+	if class.Superclass() != nil {
 		return
 	}
 
@@ -2560,8 +2584,9 @@ func (vm *Thread) opSetSuperclass() {
 func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].AsInlineSymbol()
 
-	val := value.RootModule.Constants.Get(symbol)
+	val := value.RootModule.Constants().Get(symbol)
 	if val.IsUndefined() {
+		vm.bytecode.DisassembleStdout()
 		return value.Ref(value.Errorf(value.NoConstantErrorClass, "undefined constant `%s`", symbol.String()))
 	}
 
@@ -3588,9 +3613,13 @@ func (vm *Thread) opSelect() value.Value {
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectSend:
 			val := vm.popGet()
-			send = reflect.ValueOf(val)
-
 			ch := vm.popGet().AsReference().(value.AnyChannel)
+
+			if ch.IsTransformerChannel() {
+				send = reflect.ValueOf(ch.TransformFromValueToAny(val))
+			} else {
+				send = reflect.ValueOf(val)
+			}
 			channels[i] = ch
 			channel = reflect.ValueOf(ch.NativeChannelAny())
 		case reflect.SelectDefault:
@@ -3605,12 +3634,14 @@ func (vm *Thread) opSelect() value.Value {
 		}
 	}
 
-	chosenCaseIndex, val, channelOpen := reflect.Select(reflectSelectCases)
-	if chosenCaseIndex == 0 {
-		return value.ExecutionAbortedError.ToValue()
+	selectResult := DoSelect(reflectSelectCases)
+	if selectResult.Err.IsNotUndefined() {
+		return selectResult.Err
 	}
 
-	chosenCaseIndex--
+	chosenCaseIndex := selectResult.ChosenCaseIndex
+	channelOpen := selectResult.ChannelIsOpen
+	val := selectResult.ReflectValue
 	chosenCase := selectData.Cases[chosenCaseIndex]
 	chosenChannel := channels[chosenCaseIndex]
 
@@ -3634,7 +3665,7 @@ func (vm *Thread) opSelect() value.Value {
 
 	if chosenChannel != nil && chosenChannel.IsTransformerChannel() {
 		result := value.MakeOkResult(
-			chosenChannel.TransformToValue(
+			chosenChannel.TransformAnyToValue(
 				val.Interface(),
 			),
 		)
@@ -3644,7 +3675,7 @@ func (vm *Thread) opSelect() value.Value {
 	}
 
 	switch chosenChannel.(type) {
-	case *value.ChannelOfValue:
+	case *value.ChannelOfValue, *value.ReadChannelOfValue, *value.WriteChannelOfValue:
 		result := value.MakeOkResult(
 			val.Interface().(value.Value),
 		)
@@ -4045,6 +4076,17 @@ func (vm *Thread) CaptureStackTrace() *value.StackTrace {
 
 	vm.state = ErrorState
 	vm.errStackTrace = vm.BuildStackTrace()
+	return vm.errStackTrace
+}
+
+// Create a new stack trace and save it in the VM
+func (vm *Thread) CaptureStackTracePrepend(st *value.StackTrace) *value.StackTrace {
+	if vm.state == ErrorState {
+		return vm.errStackTrace
+	}
+
+	vm.state = ErrorState
+	vm.errStackTrace = vm.BuildStackTracePrepend(st)
 	return vm.errStackTrace
 }
 

@@ -43,6 +43,15 @@ func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *TrueLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*TrueLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 func (n *TrueLiteralNode) String() string {
 	return "true"
 }
@@ -115,6 +124,15 @@ func (n *FalseLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *FalseLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*FalseLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *FalseLiteralNode) String() string {
@@ -191,6 +209,15 @@ func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *SelfLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*SelfLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
+}
+
 func (n *SelfLiteralNode) String() string {
 	return "self"
 }
@@ -259,6 +286,15 @@ func (n *NilLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *NilLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*NilLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *NilLiteralNode) String() string {
@@ -335,6 +371,15 @@ func (n *UndefinedLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *UndefinedLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*UndefinedLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *UndefinedLiteralNode) String() string {

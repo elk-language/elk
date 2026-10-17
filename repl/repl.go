@@ -19,6 +19,7 @@ import (
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/types/checker"
@@ -37,6 +38,7 @@ type evaluator struct {
 	inputIndex     int
 	elkTypechecker *checker.Checker
 	goTypechecker  *types.GoTypechecker
+	prepend        []ast.StatementNode
 }
 
 func (e *evaluator) sourceName() string {
@@ -56,6 +58,58 @@ func (e *evaluator) addSource(input string) string {
 	return sourceName
 }
 
+func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
+	if len(e.prepend) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(e.prepend))
+
+	for i, statement := range e.prepend {
+		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
+	}
+
+	return result
+}
+
+func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
+	if len(using) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(using))
+
+	for i, usingElement := range using {
+		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
+		copy.SetType(nil)
+
+		result[i] = ast.NewExpressionStatementNode(
+			copy.Location(),
+			copy,
+		)
+	}
+
+	return result
+}
+
+func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
+	var result bool
+	ast.Traverse(
+		program,
+		func(node, parent ast.Node) ast.TraverseOption {
+			if _, ok := node.(*ast.BreakpointNode); ok {
+				result = true
+				return ast.TraverseBreak
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	return result
+}
+
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
@@ -67,87 +121,102 @@ func (e *evaluator) evaluate(input string) {
 		e.vm = vm.New()
 	}
 
-	spinner := NewSpinner(os.Stdout, "compiling")
-	spinner.RunWithRestore(
-		func(cd SpinnerCaptureData) error {
-			fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
+	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.deepCopyPrepend())
+	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
+	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
+	e.prepend = e.usingToPrepend(using)
 
-			if dl != nil {
-				fmt.Println()
+	if dl != nil {
+		fmt.Println()
 
-				str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
-				if err != nil {
-					panic(err)
-				}
-				fmt.Println(str)
-				isFailure := dl.IsFailure()
-				e.elkTypechecker.ClearErrors()
-				if isFailure {
-					return nil
-				}
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(str)
+		isFailure := dl.IsFailure()
+		e.elkTypechecker.ClearErrors()
+		if isFailure {
+			return
+		}
+	}
+
+	eval := func(spinner *Spinner, cd SpinnerCaptureData) error {
+		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
+		defer markExecutionFinished()
+
+		vmCtx, abortExecution := context.WithCancel(e.ctx)
+		defer abortExecution()
+
+		cancelSignalCtx, cancelSignal := context.WithCancel(e.ctx)
+		defer cancelSignal()
+
+		go func() {
+			signalCtx, stop := signal.NotifyContext(
+				cancelSignalCtx,
+				syscall.SIGINT,
+				syscall.SIGTERM,
+			)
+			defer stop()
+
+			<-signalCtx.Done()
+
+			abortExecution()
+
+			select {
+			case <-executionFinishedCtx.Done():
+			case <-time.After(5 * time.Second):
+				fmt.Fprintf(e.vm.Stderr, "\ntimed out waiting for execution to finish\n")
+				os.Exit(1)
 			}
+		}()
 
-			executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
-			defer markExecutionFinished()
+		startTime := value.TimeNow()
+		e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
 
-			vmCtx, abortExecution := context.WithCancel(e.ctx)
-			defer abortExecution()
-
-			cancelSignalCtx, cancelSignal := context.WithCancel(e.ctx)
-			defer cancelSignal()
-
-			go func() {
-				signalCtx, stop := signal.NotifyContext(
-					cancelSignalCtx,
-					syscall.SIGINT,
-					syscall.SIGTERM,
-				)
-				defer stop()
-
-				<-signalCtx.Done()
-
-				abortExecution()
-
-				select {
-				case <-executionFinishedCtx.Done():
-				case <-time.After(5 * time.Second):
-					fmt.Fprintf(e.vm.Stderr, "\ntimed out waiting for execution to finish\n")
-					os.Exit(1)
-				}
-			}()
-
-			startTime := value.TimeNow()
-			e.vm.Aborter = value.NewAborter(vmCtx, abortExecution)
-
+		if spinner != nil {
 			spinner.SetMessage("running")
 
 			e.vm.Stdout = cd.NewStdout
 			e.vm.Stderr = cd.NewStderr
+		}
 
-			returnVal, runtimeErr := e.vm.InterpretREPL(fn)
-			duration := value.TimeSince(startTime)
-			cancelSignal()
-			markExecutionFinished()
-			if !runtimeErr.IsUndefined() {
-				e.vm.PrintError()
-				e.vm.ResetError()
-				return nil
-			}
-			fmt.Printf("=> %s\n", lexer.Colorize(returnVal.Inspect()))
-			fmt.Printf("?: %s\n\n", duration.String())
-
-			if e.inspectStack {
-				e.vm.InspectValueStack()
-			}
+		returnVal, runtimeErr := e.vm.InterpretREPL(fn)
+		duration := value.TimeSince(startTime)
+		cancelSignal()
+		markExecutionFinished()
+		if !runtimeErr.IsUndefined() {
+			e.vm.PrintError()
+			e.vm.ResetError()
 			return nil
-		},
-		func(cd SpinnerCaptureData) {
-			e.vm.Stdout = cd.OriginalStdout
-			e.vm.Stderr = cd.OriginalStderr
-			cd.Restore()
-		},
-	)
+		}
+		fmt.Printf("=> %s\n", lexer.Colorize(returnVal.Inspect()))
+		fmt.Printf("?: %s\n\n", duration.String())
 
+		if e.inspectStack {
+			e.vm.InspectValueStack()
+		}
+		return nil
+	}
+
+	if e.programContainsBreakpoint(programNode) {
+		err := eval(nil, SpinnerCaptureData{})
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		spinner := NewSpinner(os.Stdout, "compiling")
+		spinner.RunWithRestore(
+			func(cd SpinnerCaptureData) error {
+				return eval(spinner, cd)
+			},
+			func(cd SpinnerCaptureData) {
+				e.vm.Stdout = cd.OriginalStdout
+				e.vm.Stderr = cd.OriginalStderr
+				cd.Restore()
+			},
+		)
+	}
 }
 
 // parses the input and prints it to the output
@@ -183,7 +252,9 @@ func (e *evaluator) disassemble(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input)
+	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
@@ -294,7 +365,9 @@ func (e *evaluator) typecheck(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	for _, ast := range e.elkTypechecker.ASTCache.Map {
 		if ast.IsBuiltin {
@@ -331,7 +404,9 @@ func (e *evaluator) expand(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input)
+	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.prepend = e.usingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()

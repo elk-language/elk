@@ -6,7 +6,7 @@ import (
 
 func initFloat32() {
 	// Instance methods
-	c := &value.Float32Class.MethodContainer
+	c := value.Float32Class
 	Def(
 		c,
 		"hash",

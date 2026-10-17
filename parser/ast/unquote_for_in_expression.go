@@ -79,6 +79,27 @@ func (n *UnquoteForInExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *UnquoteForInExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteForInExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) ||
+		!n.InExpression.LaxEqual(value.Ref(o.InExpression)) ||
+		len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *UnquoteForInExpressionNode) String() string {
 	var buff strings.Builder
 

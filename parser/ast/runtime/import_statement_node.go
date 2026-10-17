@@ -8,7 +8,7 @@ import (
 )
 
 func initImportStatementNode() {
-	c := &value.ImportStatementNodeClass.MethodContainer
+	c := value.ImportStatementNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -59,6 +59,17 @@ func initImportStatementNode() {
 			self := args[0].MustReference().(*ast.ImportStatementNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ImportStatementNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

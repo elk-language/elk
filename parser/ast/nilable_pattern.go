@@ -89,6 +89,15 @@ func (n *NilablePatternNode) Equal(other value.Value) bool {
 		n.Pattern.Equal(value.Ref(o.Pattern))
 }
 
+func (n *NilablePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilablePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern))
+}
+
 func (n *NilablePatternNode) Error() string {
 	return n.Inspect()
 }

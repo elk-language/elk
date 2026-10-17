@@ -7,7 +7,7 @@ import (
 // Std::StackTrace
 func initStackTrace() {
 	// Instance methods
-	c := &value.StackTraceClass.MethodContainer
+	c := value.StackTraceClass
 	Def(
 		c,
 		"[]",
@@ -67,7 +67,7 @@ func initStackTrace() {
 // ::Std::StackTrace::Iterator
 func initStackTraceIterator() {
 	// Instance methods
-	c := &value.StackTraceIteratorClass.MethodContainer
+	c := value.StackTraceIteratorClass
 	Def(
 		c,
 		"next",

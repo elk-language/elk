@@ -7,7 +7,7 @@ import (
 // ::Std::WriteChannel
 func initWriteChannel() {
 	// Singleton methods
-	c := &value.WriteChannelClass.SingletonClass().MethodContainer
+	c := value.WriteChannelClass.SingletonClass()
 	Def(
 		c,
 		"closed",
@@ -19,7 +19,7 @@ func initWriteChannel() {
 	)
 
 	// Instance methods
-	c = &value.WriteChannelClass.MethodContainer
+	c = value.WriteChannelClass
 	Def(
 		c,
 		"capacity",

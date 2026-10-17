@@ -63,6 +63,16 @@ func (n *VariablePatternDeclarationNode) Equal(other value.Value) bool {
 		n.Initialiser.Equal(value.Ref(o.Initialiser))
 }
 
+func (n *VariablePatternDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariablePatternDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern)) &&
+		n.Initialiser.LaxEqual(value.Ref(o.Initialiser))
+}
+
 func (n *VariablePatternDeclarationNode) String() string {
 	var buff strings.Builder
 

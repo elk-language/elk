@@ -13,10 +13,12 @@ type RuntimeInitialiser func()
 type TypecheckerInitialiser func(types.Checker)
 
 type Extension struct {
-	Name            string
-	RuntimeInit     RuntimeInitialiser
-	TypecheckerInit TypecheckerInitialiser
-	Initialised     bool
+	Name                string
+	GoPackagePath       string
+	RuntimeInitFuncName string
+	RuntimeInit         RuntimeInitialiser
+	TypecheckerInit     TypecheckerInitialiser
+	Initialised         bool
 }
 
 func (e *Extension) Init(checker types.Checker) {
@@ -30,20 +32,25 @@ func (e *Extension) Init(checker types.Checker) {
 	if e.TypecheckerInit != nil {
 		e.TypecheckerInit(checker)
 	}
+	e.Initialised = true
 }
 
-func New(name string, runtimeInit RuntimeInitialiser, typeInit TypecheckerInitialiser) *Extension {
+func New(name string, goPackagePath string, runtimeInitName string, runtimeInit RuntimeInitialiser, typeInit TypecheckerInitialiser) *Extension {
 	return &Extension{
-		Name:            name,
-		RuntimeInit:     runtimeInit,
-		TypecheckerInit: typeInit,
+		Name:                name,
+		GoPackagePath:       goPackagePath,
+		RuntimeInitFuncName: runtimeInitName,
+		RuntimeInit:         runtimeInit,
+		TypecheckerInit:     typeInit,
 	}
 }
 
 // Register registers a new native extension
-func Register(name string, runtimeInit RuntimeInitialiser, typeInit TypecheckerInitialiser) {
+func Register(name string, goPackagePath string, runtimeInitName string, runtimeInit RuntimeInitialiser, typeInit TypecheckerInitialiser) {
 	Map[name] = New(
 		name,
+		goPackagePath,
+		runtimeInitName,
 		runtimeInit,
 		typeInit,
 	)

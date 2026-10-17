@@ -56,6 +56,16 @@ func (n *UnaryTypeNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *UnaryTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnaryTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
+}
+
 func (n *UnaryTypeNode) String() string {
 	var buff strings.Builder
 

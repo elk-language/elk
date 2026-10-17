@@ -273,7 +273,7 @@ func (v Value) Class() *Class {
 	case RESULT_ERR_FLAG:
 		return v.AsResultErr().Class()
 	default:
-		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+		panic(fmt.Sprintf("invalid inline value flag: %d, %#v", v.ValueFlag(), v))
 	}
 }
 
@@ -1544,7 +1544,7 @@ func As(val Value, class *Class) Value {
 		TypeErrorClass,
 		"failed type cast, `%s` is not an instance of `%s`",
 		val.Inspect(),
-		class.Name,
+		class.Name(),
 	).ToValue()
 }
 
@@ -4568,7 +4568,7 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 		)
 	}
 
-	if _, ok := cc.Constants[name]; ok {
+	if _, ok := cc.constants[name]; ok {
 		return
 	}
 
@@ -4576,7 +4576,19 @@ func AddConstant(namespace Value, name Symbol, val Value) {
 }
 
 func GetConstant(name Symbol) Value {
-	return RootModule.Constants.Get(name)
+	return RootModule.constants.Get(name)
+}
+
+func GetClass(name Symbol) *Class {
+	return GetConstant(name).AsReference().(*Class)
+}
+
+func GetNamespace(name Symbol) Namespace {
+	return GetConstant(name).AsReference().(Namespace)
+}
+
+func GetSingletonClass(name Symbol) *Class {
+	return GetConstant(name).SingletonClass()
 }
 
 // Resize the given args slice.

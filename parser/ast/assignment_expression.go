@@ -107,6 +107,17 @@ func (n *AssignmentExpressionNode) Equal(other value.Value) bool {
 		n.Right.Equal(value.Ref(o.Right))
 }
 
+func (n *AssignmentExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AssignmentExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
+}
+
 func (n *AssignmentExpressionNode) String() string {
 	var buff strings.Builder
 

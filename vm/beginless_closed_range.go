@@ -7,7 +7,7 @@ import (
 // ::Std::BeginlessClosedRange
 func initBeginlessClosedRange() {
 	// Instance methods
-	c := &value.BeginlessClosedRangeClass.MethodContainer
+	c := value.BeginlessClosedRangeClass
 	Def(
 		c,
 		"==",

@@ -8,5 +8,7 @@ module Std::Elk::AST
     init(elements: ArrayTuple[TypeNode], location: FS::Location = loop; end); end
     pure def elements: ArrayTuple[TypeNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

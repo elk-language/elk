@@ -8,7 +8,7 @@ import (
 )
 
 func initCallNode() {
-	c := &value.CallNodeClass.MethodContainer
+	c := value.CallNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -104,6 +104,17 @@ func initCallNode() {
 			self := args[0].MustReference().(*ast.CallNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.CallNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

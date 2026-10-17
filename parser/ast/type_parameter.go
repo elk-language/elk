@@ -129,6 +129,37 @@ func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 		n.Name == o.Name
 }
 
+func (n *VariantTypeParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.LowerBound == o.LowerBound {
+	} else if n.LowerBound == nil || o.LowerBound == nil {
+		return false
+	} else if !n.LowerBound.LaxEqual(value.Ref(o.LowerBound)) {
+		return false
+	}
+
+	if n.UpperBound == o.UpperBound {
+	} else if n.UpperBound == nil || o.UpperBound == nil {
+		return false
+	} else if !n.UpperBound.LaxEqual(value.Ref(o.UpperBound)) {
+		return false
+	}
+
+	if n.Default == o.Default {
+	} else if n.Default == nil || o.Default == nil {
+		return false
+	} else if !n.Default.LaxEqual(value.Ref(o.Default)) {
+		return false
+	}
+
+	return n.Variance == o.Variance &&
+		n.Name == o.Name
+}
+
 func (n *VariantTypeParameterNode) String() string {
 	var buff strings.Builder
 

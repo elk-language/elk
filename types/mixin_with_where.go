@@ -3,7 +3,9 @@ package types
 import (
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Represents a mixin parent with a where clause
@@ -25,6 +27,12 @@ func NewMixinWithWhere(mixin *MixinProxy, namespace Namespace, where []*TypePara
 		Namespace:  namespace,
 		Where:      where,
 	}
+}
+
+func (m *MixinWithWhere) DefineMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, typeParams []*TypeParameter, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(docComment, flags, name, typeParams, params, returnType, throwType, m)
+	m.SetMethod(name, method)
+	return method
 }
 
 func (m *MixinWithWhere) ToNonLiteral(env *GlobalEnvironment) Type {

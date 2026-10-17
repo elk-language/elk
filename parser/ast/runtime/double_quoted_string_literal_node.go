@@ -8,7 +8,7 @@ import (
 )
 
 func initDoubleQuotedStringLiteralNode() {
-	c := &value.DoubleQuotedStringLiteralNodeClass.MethodContainer
+	c := value.DoubleQuotedStringLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -66,6 +66,17 @@ func initDoubleQuotedStringLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.DoubleQuotedStringLiteralNode)
@@ -73,7 +84,7 @@ func initDoubleQuotedStringLiteralNode() {
 		},
 	)
 
-	c = &value.StringClass.MethodContainer
+	c = value.StringClass
 	vm.Def(
 		c,
 		"to_ast_node",

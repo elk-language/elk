@@ -7,7 +7,7 @@ import (
 // Std::Mutex
 func initMutex() {
 	// Instance methods
-	c := &value.MutexClass.MethodContainer
+	c := value.MutexClass
 	Def(
 		c,
 		"lock",

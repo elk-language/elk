@@ -13,7 +13,7 @@ import (
 
 func initMacro() {
 	// Std::Macro
-	c := &value.MacroModule.SingletonClass().MethodContainer
+	c := value.MacroModule.SingletonClass()
 
 	vm.Def(
 		c,

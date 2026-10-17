@@ -1,7 +1,6 @@
 package test
 
 import (
-	"bytes"
 	"time"
 )
 
@@ -9,8 +8,6 @@ type Report interface {
 	Duration() time.Duration
 	Err() []Err
 	Status() TestStatus
-	Stdout() *bytes.Buffer
-	Stderr() *bytes.Buffer
 	FullNameWithSeparator() string
 	traverse(enter func(report Report) TraverseOption, leave func(report Report) TraverseOption) TraverseOption
 }

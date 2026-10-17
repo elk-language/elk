@@ -25,11 +25,11 @@ func (ch *NativeTransformerReadChannel[V]) NativeChannelAny() any {
 	return ch.ch
 }
 
-func (ch *NativeTransformerReadChannel[V]) TransformToValue(v any) Value {
+func (ch *NativeTransformerReadChannel[V]) TransformAnyToValue(v any) Value {
 	return ch.getTransformer(v.(V))
 }
 
-func (ch *NativeTransformerReadChannel[V]) TransformFromValue(v Value) any {
+func (ch *NativeTransformerReadChannel[V]) TransformFromValueToAny(v Value) any {
 	return v.ToInterface()
 }
 

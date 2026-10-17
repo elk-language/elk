@@ -64,6 +64,21 @@ func (n *ReturnExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc)
 }
 
+func (n *ReturnExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReturnExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+	return true
+}
+
 func (n *ReturnExpressionNode) String() string {
 	var buff strings.Builder
 

@@ -207,6 +207,19 @@ func (c *Checker) popMethodScope() {
 	c.clearMethodScopeCopyCache()
 }
 
+func (c *Checker) popLocalMethodScope() {
+	for i := len(c.methodScopes) - 1; i >= 0; i-- {
+		methodScope := c.methodScopes[i]
+		if methodScope.kind == scopeLocalKind {
+			c.methodScopes = c.methodScopes[:i]
+			c.clearMethodScopeCopyCache()
+			return
+		}
+	}
+
+	panic("no local method scopes!")
+}
+
 func (c *Checker) pushMethodScope(methodScope methodScope) {
 	c.methodScopes = append(c.methodScopes, methodScope)
 	c.clearMethodScopeCopyCache()

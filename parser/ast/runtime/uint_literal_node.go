@@ -8,7 +8,7 @@ import (
 )
 
 func initUIntLiteralNode() {
-	c := &value.UIntLiteralNodeClass.MethodContainer
+	c := value.UIntLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -69,6 +69,17 @@ func initUIntLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.UIntLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.UIntLiteralNode)
@@ -90,7 +101,7 @@ func initUIntLiteralNode() {
 		},
 	)
 
-	c = &value.UIntClass.MethodContainer
+	c = value.UIntClass
 	vm.Def(
 		c,
 		"to_ast_node",

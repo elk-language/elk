@@ -15,6 +15,7 @@ func TestBytecodeLaxEqual(t *testing.T) {
 		"resolve static 25 =~ 25.0": {
 			input: "25 =~ 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -30,6 +31,7 @@ func TestBytecodeLaxEqual(t *testing.T) {
 		"resolve static 25 =~ 25": {
 			input: "25 =~ 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -45,6 +47,7 @@ func TestBytecodeLaxEqual(t *testing.T) {
 		"resolve static 25 =~ '25'": {
 			input: "25 =~ '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -60,6 +63,7 @@ func TestBytecodeLaxEqual(t *testing.T) {
 		"compile runtime 24 =~ 98": {
 			input: "a := 24; a =~ 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -91,6 +95,7 @@ func TestBytecodeLaxNotEqual(t *testing.T) {
 		"resolve static 25 !~ 25.0": {
 			input: "25 !~ 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -106,6 +111,7 @@ func TestBytecodeLaxNotEqual(t *testing.T) {
 		"resolve static 25 !~ 25": {
 			input: "25 !~ 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -121,6 +127,7 @@ func TestBytecodeLaxNotEqual(t *testing.T) {
 		"resolve static 25 !~ '25'": {
 			input: "25 !~ '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -136,6 +143,7 @@ func TestBytecodeLaxNotEqual(t *testing.T) {
 		"compile runtime 24 !~ 98": {
 			input: "a := 24; a !~ 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -167,6 +175,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"resolve static 25 == 25.0": {
 			input: "25 == 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -185,6 +194,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"resolve static 25 == 25": {
 			input: "25 == 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -200,6 +210,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"resolve static 25 == '25'": {
 			input: "25 == '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -218,6 +229,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a == 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -238,6 +250,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a == 98.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -261,6 +274,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"compile runtime builtin": {
 			input: "var a: Int8 = 24i8; a == 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -281,6 +295,7 @@ func TestBytecodeEqual(t *testing.T) {
 		"compile runtime value": {
 			input: "var a: any = 5; a == 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -314,6 +329,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"resolve static 25 != 25.0": {
 			input: "25 != 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -332,6 +348,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"resolve static 25 != 25": {
 			input: "25 != 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -347,6 +364,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"resolve static 25 != '25'": {
 			input: "25 != '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -365,6 +383,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a != 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -385,6 +404,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a != 98.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -408,6 +428,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"compile runtime builtin": {
 			input: "var a: Int8 = 24i8; a != 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -428,6 +449,7 @@ func TestBytecodeNotEqual(t *testing.T) {
 		"compile runtime value": {
 			input: "var a: any = 5; a != 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -462,6 +484,7 @@ func TestBytecodeStrictEqual(t *testing.T) {
 		"resolve static 25 === 25": {
 			input: "25 === 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -477,6 +500,7 @@ func TestBytecodeStrictEqual(t *testing.T) {
 		"resolve static 25 === 25.0": {
 			input: "25 === 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -495,6 +519,7 @@ func TestBytecodeStrictEqual(t *testing.T) {
 		"resolve static 25 === '25'": {
 			input: "25 === '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -513,6 +538,7 @@ func TestBytecodeStrictEqual(t *testing.T) {
 		"compile runtime 24 === 98": {
 			input: "a := 24; a === 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -544,6 +570,7 @@ func TestBytecodeStrictNotEqual(t *testing.T) {
 		"resolve static 25 !== 25": {
 			input: "25 !== 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -559,6 +586,7 @@ func TestBytecodeStrictNotEqual(t *testing.T) {
 		"resolve static 25 !== 25.0": {
 			input: "25 !== 25.0",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -577,6 +605,7 @@ func TestBytecodeStrictNotEqual(t *testing.T) {
 		"resolve static 25 !== '25'": {
 			input: "25 !== '25'",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -595,6 +624,7 @@ func TestBytecodeStrictNotEqual(t *testing.T) {
 		"compile runtime 24 !== 98": {
 			input: "a := 24; a !== 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -626,6 +656,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"resolve static 3 > 3": {
 			input: "3 > 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -641,6 +672,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"resolve static 25 > 3": {
 			input: "25 > 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -656,6 +688,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"resolve static 25.2 > 25": {
 			input: "25.2 > 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -671,6 +704,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"resolve static 7 > 20": {
 			input: "7 > 20",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -686,6 +720,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a > 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -706,6 +741,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a > 98.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -729,6 +765,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 		"compile runtime builtin": {
 			input: "a := 24i8; a > 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -759,6 +796,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var gt *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -779,6 +817,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -798,6 +837,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -817,6 +857,7 @@ func TestBytecodeGreaterThan(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&gt, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::>"),
 									[]byte{
 										byte(bytecode.TRUE),
@@ -854,6 +895,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"resolve static 3 >= 3": {
 			input: "3 >= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -869,6 +911,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"resolve static 25 >= 3": {
 			input: "25 >= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -884,6 +927,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"resolve static 25.2 >= 25": {
 			input: "25.2 >= 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -899,6 +943,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"resolve static 7 >= 20": {
 			input: "7 >= 20",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -914,6 +959,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a >= 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -934,6 +980,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a >= 98.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -957,6 +1004,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 		"compile runtime builtin": {
 			input: "a := 24i8; a >= 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -987,6 +1035,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var ge *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -1007,6 +1056,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1026,6 +1076,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1045,6 +1096,7 @@ func TestBytecodeGreaterThanEqual(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&ge, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::>="),
 									[]byte{
 										byte(bytecode.TRUE),
@@ -1082,6 +1134,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"resolve static 3 < 3": {
 			input: "3 < 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1097,6 +1150,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"resolve static 25 < 3": {
 			input: "25 < 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1112,6 +1166,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"resolve static 25.2 < 25": {
 			input: "25.2 < 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1127,6 +1182,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"resolve static 7 < 20": {
 			input: "7 < 20",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -1142,6 +1198,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a < 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1162,6 +1219,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a < 98.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1185,6 +1243,7 @@ func TestBytecodeLessThan(t *testing.T) {
 		"compile runtime builtin": {
 			input: "a := 24i8; a < 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1215,6 +1274,7 @@ func TestBytecodeLessThan(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var lt *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -1235,6 +1295,7 @@ func TestBytecodeLessThan(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1254,6 +1315,7 @@ func TestBytecodeLessThan(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1273,6 +1335,7 @@ func TestBytecodeLessThan(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&lt, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::<"),
 									[]byte{
 										byte(bytecode.TRUE),
@@ -1310,6 +1373,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"resolve static 3 <= 3": {
 			input: "3 <= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -1325,6 +1389,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"resolve static 25 <= 3": {
 			input: "25 <= 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1340,6 +1405,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"resolve static 25.2 <= 25": {
 			input: "25.2 <= 25",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -1355,6 +1421,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"resolve static 7 <= 20": {
 			input: "7 <= 20",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -1370,6 +1437,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"compile runtime int": {
 			input: "a := 24; a <= 98",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1390,6 +1458,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"compile runtime float": {
 			input: "a := 24.5; a <= 98.5",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1413,6 +1482,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 		"compile runtime builtin": {
 			input: "a := 24i8; a <= 98i8",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1443,6 +1513,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 			wantFn: func(btc bytecodeTestCase) *vm.BytecodeFunction {
 				var le *vm.BytecodeFunction
 				return vm.NewBytecodeFunctionNoParams(
+					nil,
 					mainSymbol,
 					[]byte{
 						byte(bytecode.LOAD_VALUE_0),
@@ -1463,6 +1534,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 					},
 					[]value.Value{
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							namespaceDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1482,6 +1554,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 							},
 						)),
 						value.Ref(vm.NewBytecodeFunctionNoParams(
+							nil,
 							methodDefinitionsSymbol,
 							[]byte{
 								byte(bytecode.GET_CONST8), 0,
@@ -1501,6 +1574,7 @@ func TestBytecodeLessThanEqual(t *testing.T) {
 							[]value.Value{
 								value.ToSymbol("Foo").ToValue(),
 								value.Ref(set(&le, vm.NewBytecodeFunction(
+									nil,
 									value.ToSymbol("Foo::<="),
 									[]byte{
 										byte(bytecode.TRUE),

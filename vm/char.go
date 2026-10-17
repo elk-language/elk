@@ -6,7 +6,7 @@ import (
 
 func initChar() {
 	// Instance methods
-	c := &value.CharClass.MethodContainer
+	c := value.CharClass
 	Def(
 		c,
 		"++",

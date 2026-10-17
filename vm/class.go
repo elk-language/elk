@@ -6,9 +6,16 @@ import (
 
 func initClass() {
 	// Instance methods
-	c := &value.ClassClass.MethodContainer
-	Accessor(c, "doc")
+	c := value.ClassClass
 
+	Def(
+		c,
+		"singleton",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*value.Class)
+			return value.Ref(self.SingletonClass()), value.Undefined
+		},
+	)
 	Def(
 		c,
 		"superclass",
@@ -26,7 +33,7 @@ func initClass() {
 		"name",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.Class)
-			return value.Ref(value.String(self.Name)), value.Undefined
+			return value.Ref(value.String(self.Name())), value.Undefined
 		},
 	)
 }

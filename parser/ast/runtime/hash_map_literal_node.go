@@ -8,7 +8,7 @@ import (
 )
 
 func initHashMapLiteralNode() {
-	c := &value.HashMapLiteralNodeClass.MethodContainer
+	c := value.HashMapLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -85,6 +85,17 @@ func initHashMapLiteralNode() {
 			self := args[0].MustReference().(*ast.HashMapLiteralNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.HashMapLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

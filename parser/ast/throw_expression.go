@@ -68,6 +68,22 @@ func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 		n.loc.Equal(o.loc)
 }
 
+func (n *ThrowExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	return n.Unchecked == o.Unchecked
+}
+
 func (n *ThrowExpressionNode) String() string {
 	var buff strings.Builder
 

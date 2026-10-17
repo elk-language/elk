@@ -58,11 +58,11 @@ func (ch *ReadChannelOfValue) NativeChannelAny() any {
 	return ch.native
 }
 
-func (*ReadChannelOfValue) TransformToValue(v any) Value {
+func (*ReadChannelOfValue) TransformAnyToValue(v any) Value {
 	panic("not a transformer channel")
 }
 
-func (*ReadChannelOfValue) TransformFromValue(v Value) any {
+func (*ReadChannelOfValue) TransformFromValueToAny(v Value) any {
 	panic("not a transformer channel")
 }
 

@@ -8,7 +8,7 @@ type MixinOption = func(*Class)
 
 func MixinWithName(name string) MixinOption {
 	return func(m *Class) {
-		m.ConstantContainer.Name = name
+		m.ConstantContainer.name = name
 	}
 }
 
@@ -20,19 +20,19 @@ func MixinWithClass(class *Class) MixinOption {
 
 func MixinWithConstants(constants SymbolMap) MixinOption {
 	return func(m *Mixin) {
-		m.Constants = constants
+		m.constants = constants
 	}
 }
 
 func MixinWithMethods(methods MethodMap) MixinOption {
 	return func(m *Mixin) {
-		m.Methods = methods
+		m.methods = methods
 	}
 }
 
 func MixinWithParent(parent *Class) MixinOption {
 	return func(m *Mixin) {
-		m.Parent = parent
+		m.parent = parent
 	}
 }
 
@@ -40,10 +40,10 @@ func MixinWithParent(parent *Class) MixinOption {
 func NewMixin() *Mixin {
 	m := &Mixin{
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Methods: make(MethodMap),
+			methods: make(MethodMap),
 		},
 		metaClass: MixinClass,
 	}
@@ -66,10 +66,10 @@ func NewMixinWithOptions(opts ...MixinOption) *Class {
 func MixinConstructor(class *Class) Value {
 	m := &Mixin{
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Methods: make(MethodMap),
+			methods: make(MethodMap),
 		},
 		metaClass:         MixinClass,
 		instanceVariables: make([]Value, class.IvarIndices.Length()),
@@ -88,8 +88,8 @@ func MixinConstructor(class *Class) Value {
 func (m *Mixin) CreateProxyClass() *Class {
 	proxy := NewClass()
 	proxy.SetMixinProxy()
-	proxy.Methods = m.Methods
-	proxy.Name = m.Name
+	proxy.methods = m.methods
+	proxy.name = m.name
 	proxy.metaClass = m
 
 	return proxy

@@ -7,7 +7,7 @@ import (
 // Std::Nil
 func initNil() {
 	// Instance methods
-	c := &value.NilClass.MethodContainer
+	c := value.NilClass
 	Def(
 		c,
 		"hash",

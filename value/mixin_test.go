@@ -150,6 +150,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
+								nil,
 								value.ToSymbol("foo"),
 								[]byte{},
 								&position.Location{},
@@ -160,6 +161,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 			),
 			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeFunctionSimple(
+				nil,
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
@@ -173,6 +175,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
 									value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
+										nil,
 										value.ToSymbol("foo"),
 										[]byte{},
 										&position.Location{},
@@ -185,6 +188,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 			),
 			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeFunctionSimple(
+				nil,
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
@@ -194,6 +198,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
+						nil,
 						value.ToSymbol("foo"),
 						[]byte{},
 						&position.Location{},
@@ -202,6 +207,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 			),
 			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeFunctionSimple(
+				nil,
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},

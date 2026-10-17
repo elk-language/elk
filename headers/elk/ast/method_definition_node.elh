@@ -63,5 +63,7 @@ module Std::Elk::AST
       Whether the method is pure so has no side effects.
     ]##
     pure def is_pure: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

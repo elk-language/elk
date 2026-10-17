@@ -2366,6 +2366,148 @@ func TestMethodCalls(t *testing.T) {
 			},
 		},
 
+		"infer receiver in method argument": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				def baz(col: Color)
+					println "col: #col"
+				end
+				baz(.red)
+			`,
+		},
+		"infer receiver in local definition": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				var color: Color = .red
+			`,
+		},
+		"infer receiver in switch case": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color.red
+				switch color
+				case == .green
+					println "green"
+				end
+			`,
+		},
+		"infer receiver in binary operator": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color.red
+				color == .blue
+			`,
+		},
+		"cannot infer without context": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				.red
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(351, 23, 5), P(354, 23, 8)), "receiver is impossible to infer"),
+			},
+		},
+
 		"missing required argument": {
 			input: `
 				module Foo
@@ -3629,6 +3771,23 @@ func TestInitDefinition(t *testing.T) {
 
 func TestConstructorCall(t *testing.T) {
 	tests := testTable{
+		"infer class in local assignment": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color::RED
+				color = new(89u8, 12u8, 202u8)
+			`,
+		},
 		"instantiate a class without a constructor": {
 			input: `
 				class Foo; end

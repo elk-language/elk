@@ -95,6 +95,33 @@ func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	return true
 }
 
+func (n *SwitchExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Cases) != len(o.Cases) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	for i, c := range n.Cases {
+		if !c.LaxEqual(value.Ref(o.Cases[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.LaxEqual(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (n *SwitchExpressionNode) String() string {
 	var buff strings.Builder
 
@@ -191,16 +218,16 @@ func (n *SwitchExpressionNode) Error() string {
 
 // Represents a `case` node eg. `case 3 then println("eureka!")`
 type SwitchCaseNode struct {
-	NodeBase
+	TypedNodeBase
 	Pattern PatternNode
 	Body    []StatementNode
 }
 
 func (n *SwitchCaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
-		Body:     SpliceSlice(n.Body, loc, args, unquote),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 
@@ -250,6 +277,29 @@ func (n *SwitchCaseNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *SwitchCaseNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchCaseNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *SwitchCaseNode) String() string {
@@ -312,8 +362,8 @@ func (n *SwitchCaseNode) Error() string {
 // Create a new switch `case` node
 func NewSwitchCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *SwitchCaseNode {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: loc},
-		Pattern:  pattern,
-		Body:     body,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Pattern:       pattern,
+		Body:          body,
 	}
 }

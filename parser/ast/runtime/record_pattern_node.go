@@ -8,7 +8,7 @@ import (
 )
 
 func initRecordPatternNode() {
-	c := &value.RecordPatternNodeClass.MethodContainer
+	c := value.RecordPatternNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -66,6 +66,17 @@ func initRecordPatternNode() {
 			self := args[0].MustReference().(*ast.RecordPatternNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.RecordPatternNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -8,7 +8,7 @@ import (
 )
 
 func initTryExpressionNode() {
-	c := &value.TryExpressionNodeClass.MethodContainer
+	c := value.TryExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -60,6 +60,17 @@ func initTryExpressionNode() {
 			self := args[0].MustReference().(*ast.TryExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.TryExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

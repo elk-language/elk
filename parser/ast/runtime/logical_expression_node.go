@@ -9,7 +9,7 @@ import (
 )
 
 func initLogicalExpressionNode() {
-	c := &value.LogicalExpressionNodeClass.MethodContainer
+	c := value.LogicalExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -86,6 +86,17 @@ func initLogicalExpressionNode() {
 			self := args[0].MustReference().(*ast.LogicalExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.LogicalExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -9,7 +9,7 @@ import (
 // Std::Elk::Type::Checker::Error
 func initError() {
 	// Instance methods
-	c := &value.ElkTypeCheckerErrorClass.MethodContainer
+	c := value.ElkTypeCheckerErrorClass
 	vm.Def(
 		c,
 		"#init",

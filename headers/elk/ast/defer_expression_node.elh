@@ -8,5 +8,7 @@ module Std::Elk::AST
     init(expression: ExpressionNode, location: FS::Location = loop; end); end
     pure def expression: ExpressionNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

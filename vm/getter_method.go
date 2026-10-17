@@ -8,12 +8,20 @@ import (
 
 // A simple getter method.
 type GetterMethod struct {
+	namespace     *value.Class
 	AttributeName value.Symbol
-	Doc           value.Value
 	IvarIndex     int
 }
 
 var _ value.Method = &GetterMethod{}
+
+func (g *GetterMethod) Namespace() *value.Class {
+	return g.namespace
+}
+
+func (g *GetterMethod) SetNamespace(namespace *value.Class) {
+	g.namespace = namespace
+}
 
 func (g *GetterMethod) Name() value.Symbol {
 	return g.AttributeName
@@ -94,8 +102,9 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 }
 
 // Create a new getter method.
-func NewGetterMethod(attrName value.Symbol, index int) *GetterMethod {
+func NewGetterMethod(namespace *value.Class, attrName value.Symbol, index int) *GetterMethod {
 	return &GetterMethod{
+		namespace:     namespace,
 		AttributeName: attrName,
 		IvarIndex:     index,
 	}
@@ -104,28 +113,30 @@ func NewGetterMethod(attrName value.Symbol, index int) *GetterMethod {
 // Creates a getter method and attaches it to
 // the given container.
 func DefineGetter(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	name value.Symbol,
 	index int,
 ) {
 	getterMethod := NewGetterMethod(
+		namespace,
 		name,
 		index,
 	)
-	container.AttachMethod(name, getterMethod)
+	namespace.AttachMethod(name, getterMethod)
 }
 
 // Utility method that creates a new getter method and
 // attaches it as a method to the given container.
 // It panics when the method cannot be defined.
 func Getter(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	name string,
 ) {
 	nameSymbol := value.ToSymbol(name)
 	getterMethod := NewGetterMethod(
+		namespace,
 		nameSymbol,
 		-1,
 	)
-	container.AttachMethod(nameSymbol, getterMethod)
+	namespace.AttachMethod(nameSymbol, getterMethod)
 }
