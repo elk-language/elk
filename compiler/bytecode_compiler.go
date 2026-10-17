@@ -197,6 +197,7 @@ const (
 
 // Represents an bytecodeUpvalue, a captured variable from an outer context
 type bytecodeUpvalue struct {
+	name  string
 	index uint16 // index of the upvalue
 	// index of the captured local if `isLocal` is true,
 	// otherwise the index of the captured upvalue from the outer context
@@ -207,6 +208,7 @@ type bytecodeUpvalue struct {
 
 func (u *bytecodeUpvalue) deepClone() *bytecodeUpvalue {
 	return &bytecodeUpvalue{
+		name:    u.name,
 		index:   u.index,
 		upIndex: u.upIndex,
 		kind:    u.kind,
@@ -274,6 +276,7 @@ type BytecodeCompiler struct {
 	lastLocalIndex        int // index of the last local variable
 	maxLocalIndex         int // max index of a local variable
 	predefinedLocals      int
+	breakpointContexts    []*BytecodeBreakpointContext
 	patternNesting        int
 	isGenerator           bool
 	isAsync               bool
@@ -312,7 +315,7 @@ func NewBytecodeCompiler(name string, mode bytecodeCompilerMode, loc *position.L
 }
 
 func (c *BytecodeCompiler) createBreakpointContext(typecheckerContext value.Reference, loc *position.Location) *BytecodeBreakpointContext {
-	return &BytecodeBreakpointContext{
+	context := &BytecodeBreakpointContext{
 		lastLocalIndex:     c.lastLocalIndex,
 		maxLocalIndex:      c.maxLocalIndex,
 		patternNesting:     c.patternNesting,
@@ -320,6 +323,22 @@ func (c *BytecodeCompiler) createBreakpointContext(typecheckerContext value.Refe
 		scopes:             c.scopes.deepClone(),
 		Location:           loc,
 		TypecheckerContext: typecheckerContext,
+	}
+	c.breakpointContexts = append(c.breakpointContexts, context)
+	return context
+}
+
+// Copy the finished upvalue list into every breakpoint context created while
+// compiling this function. Upvalues referenced after a breakpoint do not exist
+// yet when the context is first created.
+func (c *BytecodeCompiler) sealBreakpointContexts() {
+	if len(c.breakpointContexts) == 0 {
+		return
+	}
+
+	upvalues := c.upvalues.deepClone()
+	for _, context := range c.breakpointContexts {
+		context.upvalues = upvalues
 	}
 }
 
@@ -507,6 +526,8 @@ func (c *BytecodeCompiler) CompileExpression(node ast.ExpressionNode) {
 
 // Entry point to the compilation process
 func (c *BytecodeCompiler) compileProgram(node ast.Node) {
+	defer c.sealBreakpointContexts()
+
 	c.compileWithDefer(
 		func() {
 			c.compileNode(node, false)
@@ -569,6 +590,8 @@ func (c *BytecodeCompiler) compileFunctionStatements(location *position.Location
 }
 
 func (c *BytecodeCompiler) compileFunction(location *position.Location, parameters []ast.ParameterNode, body func()) {
+	defer c.sealBreakpointContexts()
+
 	c.bytecode.SetParameterCount(len(parameters))
 
 	for _, param := range parameters {
@@ -3298,26 +3321,41 @@ func (c *BytecodeCompiler) compileLocalVariableAccess(name string, location *pos
 
 // Resolve an upvalue from an outer context and get its index.
 func (c *BytecodeCompiler) resolveUpvalue(name string, location *position.Location) (*bytecodeUpvalue, bool) {
+	// Breakpoint code is compiled after the enclosing function is finished.
+	// It has no parent compiler, so captured variables are resolved from the
+	// upvalue list copied out of that function.
+	if c.mode == breakpointBytecodeCompilerMode {
+		for _, upvalue := range c.upvalues {
+			if upvalue.name == name {
+				return upvalue, true
+			}
+		}
+		return nil, false
+	}
+
 	parent := c.parent
 	if parent == nil {
 		return nil, false
 	}
 	local, ok := parent.resolveLocal(name)
 	if ok {
-		return c.addUpvalue(local, local.index, upvalueParentLocal, location), true
+		return c.addUpvalue(name, local, local.index, upvalueParentLocal, location), true
 	}
 
 	upvalue, ok := parent.resolveUpvalue(name, location)
 	if ok {
-		return c.addUpvalue(upvalue.local, upvalue.index, upvalueParentUpvalue, location), true
+		return c.addUpvalue(name, upvalue.local, upvalue.index, upvalueParentUpvalue, location), true
 	}
 
 	return nil, false
 }
 
-func (c *BytecodeCompiler) addUpvalue(local *bytecodeLocal, upIndex uint16, kind bytecodeUpvalueKind, location *position.Location) *bytecodeUpvalue {
+func (c *BytecodeCompiler) addUpvalue(name string, local *bytecodeLocal, upIndex uint16, kind bytecodeUpvalueKind, location *position.Location) *bytecodeUpvalue {
 	for _, upvalue := range c.upvalues {
 		if upvalue.upIndex == upIndex && upvalue.kind == kind {
+			if upvalue.name == "" {
+				upvalue.name = name
+			}
 			return upvalue
 		}
 	}
@@ -3330,6 +3368,7 @@ func (c *BytecodeCompiler) addUpvalue(local *bytecodeLocal, upIndex uint16, kind
 	}
 
 	upvalue := &bytecodeUpvalue{
+		name:    name,
 		index:   uint16(len(c.upvalues)),
 		upIndex: upIndex,
 		local:   local,
@@ -8304,6 +8343,7 @@ func (c *BytecodeCompiler) compileBoxOfLocal(name string, typ types.Type, loc *p
 
 	if !local.hasUpvalue {
 		upvalue := &bytecodeUpvalue{
+			name:    name,
 			index:   uint16(len(c.upvalues)),
 			upIndex: local.index,
 			local:   local,

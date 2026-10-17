@@ -360,7 +360,14 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 		}
 
 		fmt.Fprintf(&result, "   %s:\n", testErr.Typ.String())
-		if value.IsA(testErr.Err, AssertionErrorClass) {
+
+		if testErr.Err.IsUndefined() {
+			fmt.Fprintf(
+				&result,
+				"    error: stderr output\n    took: %s",
+				report.Duration(),
+			)
+		} else if value.IsA(testErr.Err, AssertionErrorClass) {
 			assertionErr := testErr.Err.AsReference().(*value.Object)
 			frame, err := testErr.StackTrace.Get(-1)
 			if !err.IsUndefined() {
@@ -379,7 +386,7 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 			err := testErr.Err.AsReference().(*value.Object)
 			fmt.Fprintf(
 				&result,
-				"    error: %s,\n    message: %s\n    took: %s\n",
+				"    error: %s\n    message: %s\n    took: %s\n",
 				lexer.Colorize(testErr.Err.Class().Name()),
 				lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
 				report.Duration(),
@@ -388,10 +395,23 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 		} else {
 			fmt.Fprintf(
 				&result,
-				"    error: %s\n",
+				"    error: %s\n    took: %s\n",
 				lexer.Colorize(testErr.Err.Inspect()),
+				report.Duration(),
 			)
 			indent.IndentString(&result, testErr.StackTrace.String(), 2)
+		}
+
+		stdout := testErr.Stdout
+		if stdout != nil && stdout.Len() > 0 {
+			fmt.Fprintln(&result, "\n\n    --- stdout ---")
+			indent.IndentString(&result, stdout.String(), 2)
+		}
+
+		stderr := testErr.Stderr
+		if stderr != nil && stderr.Len() > 0 {
+			fmt.Fprintln(&result, "\n\n    --- stderr ---")
+			indent.IndentString(&result, stderr.String(), 2)
 		}
 
 		switch testErr.Typ {
@@ -410,18 +430,6 @@ func (r *RichReporter) reportFailure(report Report, typ string) tea.Cmd {
 		case TEST_FAILED:
 			r.failedCounter += suiteCases
 		}
-	}
-
-	stdout := report.Stdout()
-	if stdout.Len() > 0 {
-		fmt.Fprintln(&result, "\n\n    --- stdout ---")
-		indent.IndentString(&result, stdout.String(), 2)
-	}
-
-	stderr := report.Stderr()
-	if stderr.Len() > 0 {
-		fmt.Fprintln(&result, "\n\n    --- stderr ---")
-		indent.IndentString(&result, stderr.String(), 2)
 	}
 
 	return tea.Println(result.String())

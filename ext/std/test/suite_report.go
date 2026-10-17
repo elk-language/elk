@@ -15,9 +15,9 @@ type SuiteReport struct {
 	err             []Err
 	duration        time.Duration
 	status          TestStatus
-	stdout          bytes.Buffer
-	stderr          bytes.Buffer
 }
+
+var _ Report = &SuiteReport{}
 
 type ErrTyp uint8
 
@@ -45,6 +45,8 @@ type Err struct {
 	Typ        ErrTyp
 	Err        value.Value
 	StackTrace *value.StackTrace
+	Stdout     *bytes.Buffer
+	Stderr     *bytes.Buffer
 }
 
 func NewSuiteReport(suite *Suite) *SuiteReport {
@@ -90,14 +92,6 @@ func (s *SuiteReport) Status() TestStatus {
 
 func (s *SuiteReport) Err() []Err {
 	return s.err
-}
-
-func (s *SuiteReport) Stdout() *bytes.Buffer {
-	return &s.stdout
-}
-
-func (s *SuiteReport) Stderr() *bytes.Buffer {
-	return &s.stderr
 }
 
 func (s *SuiteReport) RegisterErr(err Err) {

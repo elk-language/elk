@@ -139,7 +139,13 @@ func (s *PlainReporter) reportFailure(report Report) {
 			}
 
 			fmt.Printf("   %s:\n", testErr.Typ.String())
-			if value.IsA(testErr.Err, AssertionErrorClass) {
+
+			if testErr.Err.IsUndefined() {
+				fmt.Printf(
+					"    error: stderr output\n    took: %s",
+					report.Duration(),
+				)
+			} else if value.IsA(testErr.Err, AssertionErrorClass) {
 				assertionErr := testErr.Err.AsReference().(*value.Object)
 				frame, err := testErr.StackTrace.Get(-1)
 				if !err.IsUndefined() {
@@ -155,31 +161,33 @@ func (s *PlainReporter) reportFailure(report Report) {
 			} else if value.IsA(testErr.Err, value.ErrorClass) {
 				err := testErr.Err.AsReference().(*value.Object)
 				fmt.Printf(
-					"    error: %s,\n    message: %s\n",
+					"    error: %s\n    message: %s\n",
 					lexer.Colorize(testErr.Err.Class().Name()),
 					lexer.ColorizeEmbellishedText(err.Message().AsString().String()),
 				)
 				indent.IndentString(os.Stdout, testErr.StackTrace.String(), 2)
 			} else {
 				fmt.Printf(
-					"    error: %s\n",
+					"    error: %s\n    took: %s\n",
 					lexer.Colorize(testErr.Err.Inspect()),
+					report.Duration(),
 				)
 				indent.IndentString(os.Stdout, testErr.StackTrace.String(), 2)
 			}
+
+			stdout := testErr.Stdout
+			if stdout != nil && stdout.Len() > 0 {
+				fmt.Println("\n\n    --- stdout ---")
+				indent.IndentString(os.Stdout, stdout.String(), 2)
+			}
+
+			stderr := testErr.Stderr
+			if stderr != nil && stderr.Len() > 0 {
+				fmt.Println("\n\n    --- stderr ---")
+				indent.IndentString(os.Stdout, stderr.String(), 2)
+			}
 		}
 
-		stdout := report.Stdout()
-		if stdout.Len() > 0 {
-			fmt.Println("\n\n    --- stdout ---")
-			indent.IndentString(os.Stdout, stdout.String(), 2)
-		}
-
-		stderr := report.Stdout()
-		if stderr.Len() > 0 {
-			fmt.Println("\n\n    --- stderr ---")
-			indent.IndentString(os.Stdout, stderr.String(), 2)
-		}
 		fmt.Print("\n\n")
 	}
 }

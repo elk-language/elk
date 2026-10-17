@@ -80,6 +80,10 @@ func New(opts ...Option) *Thread {
 	return vm
 }
 
+func (vm *Thread) Bytecode() *BytecodeFunction {
+	return vm.bytecode
+}
+
 // Execute the given bytecode chunk.
 func (vm *Thread) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
@@ -123,14 +127,13 @@ func (vm *Thread) InterpretBreakpoint(fn *BytecodeFunction) (value.Value, value.
 	vm.bytecode = fn
 	vm.ipSet(&fn.Instructions[0])
 	vm.tailCallCounter = 0
-	vm.pop() // pop the result of last run
 	vm.runWithState()
 
-	err := vm.Err()
-	if !err.IsUndefined() {
-		return value.Undefined, err
+	val := vm.popGet()
+	if vm.state == ErrorState {
+		return value.Undefined, val
 	}
-	return vm.peek(), value.Undefined
+	return val, value.Undefined
 }
 
 func (vm *Thread) runWithState() {

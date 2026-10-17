@@ -35,9 +35,8 @@ describe "Thread" ->
 
 			assert_stdout("5\n") ->
 				go
+					defer wg.end
 					puts c()
-					breakpoint
-					wg.end
 				end
 
 				wg.wait
