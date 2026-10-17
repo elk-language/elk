@@ -2042,9 +2042,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Include mixins and implement interfaces
 
 				// Define methods
+				namespace.DefineMethod("Prints the disassembly of the current\nbytecode method.\n\nThrows an unchecked error when the current method\ndoes not have bytecode (is native).", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("inspect_bytecode"), nil, []*Parameter{NewParameter(symbol.ToSymbol("method"), NameToType("Std::Closure", env), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("inspect_call_stack"), nil, nil, Void{}, Never{})
+				namespace.DefineMethod("Prints the disassembly of the current\nbytecode method.\n\nThrows an unchecked error when the current method\ndoes not have bytecode (is native).", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("inspect_current_bytecode"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("inspect_inheritance"), nil, []*Parameter{NewParameter(symbol.ToSymbol("klass"), NameToType("Std::Class", env), NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
 				namespace.DefineMethod("Returns the name of the native type of the value.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("inspect_native_type"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), Any{}, NormalParameterKind, false)}, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Prints the disassembly of the parent\nbytecode method.\n\nThrows an unchecked error when the parent method\ndoes not have bytecode (is native).", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("inspect_parent_bytecode"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("inspect_value_stack"), nil, nil, Void{}, Never{})
 				namespace.DefineMethod("Returns the current stack trace.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("stack_trace"), nil, nil, NameToType("Std::StackTrace", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("start_cpu_profile"), nil, []*Parameter{NewParameter(symbol.ToSymbol("file_path"), NameToType("Std::String", env), NormalParameterKind, false)}, Void{}, NameToType("Std::FileSystemError", env))

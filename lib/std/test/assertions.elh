@@ -26,7 +26,7 @@ module ::Std::Test
       quote
         v := !{unhygienic(match_expr.expression)}
         unless v match !{match_expr.pattern_node}
-          throw unchecked ::Std::Test::AssertionError("value `${v.inspect}` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
+          throw unchecked ::Std::Test::AssertionError("value `#v` does not match pattern `${unquote(match_expr.pattern_node.to_string)}`")
         end
       end
     end
@@ -43,10 +43,20 @@ module ::Std::Test
     def assert_stdout(expected: String, fn: ||: void); end
 
     ##[
+      Call the given closure and returns the produced stdout.
+    ]##
+    def capture_stdout(fn: ||: void): String; end
+
+    ##[
       Call the given closure and checks whether the produced stderr
       matches the expected value.
     ]##
     def assert_stderr(expected: String, fn: ||: void); end
+
+    ##[
+      Call the given closure and returns the produced stderr.
+    ]##
+    def capture_stderr(fn: ||: void): String; end
 
     ##[
       Checks whether the given value is truthy.

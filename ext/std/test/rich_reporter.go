@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/fatih/color"
 )
 
@@ -39,17 +41,34 @@ type RichReporter struct {
 	progress          progress.Model
 	spinner           spinner.Model
 	events            chan *ReportEvent
+	shutdown          context.CancelFunc
+	startTime         time.Time
 	totalCaseCount    int
 	finishedCaseCount int
 	errorCounter      int
 	failedCounter     int
 	skippedCounter    int
 	successCounter    int
-	quit              bool
-	startTime         time.Time
 	interrupted       bool
-	shutdown          context.CancelFunc
+	quit              bool
+	paused            bool
 }
+
+// Blocks the bubbletea model
+// until the `done` channel is closed
+type holdTerminal struct{}
+
+var _ tea.ExecCommand = holdTerminal{}
+
+func (h holdTerminal) Run() error {
+	for vm.ActiveBreakpoints.Load() > 0 {
+		time.Sleep(100 * time.Millisecond)
+	}
+	return nil
+}
+func (holdTerminal) SetStdin(io.Reader)  {}
+func (holdTerminal) SetStdout(io.Writer) {}
+func (holdTerminal) SetStderr(io.Writer) {}
 
 const successBarColor = "#27F57D"
 const failBarColor = "#FC1249"
@@ -71,10 +90,12 @@ func (r *RichReporter) Init() tea.Cmd {
 	return tea.Batch(waitForEvent(r.events), r.spinner.Tick)
 }
 
-type finishRichReport struct{}
+type finishRichReportMsg struct{}
+type pauseMsg struct{}
+type resumeMsg struct{}
 
 func finishRichReportCmd() tea.Msg {
-	return finishRichReport{}
+	return finishRichReportMsg{}
 }
 
 func (r *RichReporter) Percent() float64 {
@@ -86,9 +107,21 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		r.progress.Width = min(msg.Width-padding*2-4, maxWidth)
 		return r, nil
-	case finishRichReport:
+	case finishRichReportMsg:
 		r.quit = true
 		return r, tea.Quit
+	case pauseMsg:
+		r.paused = true
+		return r, tea.Exec(holdTerminal{}, func(error) tea.Msg {
+			return resumeMsg{}
+		})
+	case resumeMsg:
+		r.paused = false
+		return r, tea.Batch(
+			r.spinner.Tick,
+			r.progress.SetPercent(r.Percent()),
+			waitForEvent(r.events),
+		)
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
 			r.shutdown()
@@ -150,10 +183,18 @@ func (r *RichReporter) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return r, waitForEvent(r.events)
 	case spinner.TickMsg:
+		if r.paused {
+			return r, nil
+		}
+
 		var cmd tea.Cmd
 		r.spinner, cmd = r.spinner.Update(msg)
 		return r, cmd
 	case progress.FrameMsg:
+		if r.paused {
+			return r, nil
+		}
+
 		// FrameMsg is sent when the progress bar wants to animate itself
 		progressModel, cmd := r.progress.Update(msg)
 		r.progress = progressModel.(progress.Model)
@@ -175,6 +216,10 @@ func (r *RichReporter) setFailed() {
 // Cmd helper: wait for next value from channel
 func waitForEvent(ch <-chan *ReportEvent) tea.Cmd {
 	return func() tea.Msg {
+		if vm.ActiveBreakpoints.Load() > 0 {
+			return pauseMsg{}
+		}
+
 		d, ok := <-ch
 		if !ok {
 			return nil

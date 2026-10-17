@@ -1,0 +1,55 @@
+describe "Variables" ->
+	should "handle boxes" ->
+		var b: Box[Int]
+		do
+			a := 5
+			assert! a == 5
+
+			read_pre := -> a
+			set_pre := |v: Int| -> a = v
+
+			assert! read_pre() == 5
+			set_pre(10)
+			assert! read_pre() == 10
+			assert! a == 10
+
+			b = &a
+			read_post := -> a
+			set_post := |v: Int| -> a = v
+
+			assert! b.get == 10
+			assert! read_pre() == 10
+			assert! read_post() == 10
+
+			b.set 50
+			assert! b.get == 50
+			assert! a == 50
+			assert! read_pre() == 50
+			assert! read_post() == 50
+
+			a = 15
+			assert! b.get == 15
+			assert! a == 15
+			assert! read_pre() == 15
+			assert! read_post() == 15
+
+			set_post(100)
+			assert! b.get == 100
+			assert! a == 100
+			assert! read_pre() == 100
+			assert! read_post() == 100
+
+			set_pre(200)
+			assert! b.get == 200
+			assert! a == 200
+			assert! read_pre() == 200
+			assert! read_post() == 200
+		end
+
+		assert! b.get == 200
+
+		b.set 42
+
+		assert! b.get == 42
+	end
+end

@@ -513,10 +513,11 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 		return node, types.Never{}
 	}
 
+	nonLiteralType := c.ToNonLiteral(typ, true)
 	var ofAny *types.Generic
 	if classOrMixin.IsGeneric() {
 		ofAny = types.NewGenericWithUpperBoundTypeArgsAndVariance(classOrMixin, types.COVARIANT)
-		extractedNamespace, typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, typ)
+		extractedNamespace, typeArgs := c.extractTypeArgumentsFromType(classOrMixin, ofAny, nonLiteralType)
 		if typeArgs == nil {
 			typeParams := classOrMixin.TypeParameters()
 			typeArgMap := make(types.TypeArgumentMap, len(typeParams))

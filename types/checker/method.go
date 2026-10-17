@@ -3520,8 +3520,7 @@ func (c *Checker) _getMethod(typ types.Type, name symbol.Symbol, errLoc *positio
 	case *types.Union:
 		return c.getMethodInUnion(t, name, errLoc)
 	default:
-		c.addMissingMethodError(typ, name.String(), errLoc)
-		return nil
+		return c.getMethodInNamespace(c.StdValue(), typ, name, errLoc, inParent, inSelf)
 	}
 }
 

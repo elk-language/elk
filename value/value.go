@@ -273,7 +273,7 @@ func (v Value) Class() *Class {
 	case RESULT_ERR_FLAG:
 		return v.AsResultErr().Class()
 	default:
-		panic(fmt.Sprintf("invalid inline value flag: %d", v.ValueFlag()))
+		panic(fmt.Sprintf("invalid inline value flag: %d, %#v", v.ValueFlag(), v))
 	}
 }
 

@@ -244,6 +244,25 @@ func initAssertions(testModule *value.Module) {
 
 	vm.Def(
 		c,
+		"capture_stdout",
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+			callable := args[1]
+
+			prevStdout := v.Stdout
+			var buff strings.Builder
+			v.Stdout = &buff
+
+			v.CallCallable(callable)
+
+			v.Stdout = prevStdout
+
+			return value.String(buff.String()).ToValue(), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"assert_stderr",
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			expected := args[1].AsString()
@@ -275,6 +294,25 @@ func initAssertions(testModule *value.Module) {
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"capture_stderr",
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+			callable := args[1]
+
+			prevStderr := v.Stderr
+			var buff strings.Builder
+			v.Stderr = &buff
+
+			v.CallCallable(callable)
+
+			v.Stderr = prevStderr
+
+			return value.String(buff.String()).ToValue(), value.Undefined
+		},
+		vm.DefWithParameters(1),
 	)
 
 	vm.Def(

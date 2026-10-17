@@ -7,6 +7,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync/atomic"
+	"time"
 	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
@@ -15,6 +17,8 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
+
+var ActiveBreakpoints atomic.Int32
 
 // A single instance of the Elk Virtual Machine.
 type Thread struct {
@@ -1413,13 +1417,13 @@ func (vm *Thread) GoNative(closure *NativeClosure) *Thread {
 
 	go func(closure *NativeClosure, thread *Thread) {
 		thread.state = RunningState
-		closure.Function(thread, nil)
-		if thread.state != ErrorState {
+		_, err := closure.Function(thread, nil)
+		if err.IsNotUndefined() {
+			thread.state = ErrorState
+			vm.PrintErrorValue(err)
+		} else {
 			thread.state = TerminatedState
-			return
 		}
-
-		thread.PrintError()
 	}(closure, thread)
 
 	return thread
@@ -2057,12 +2061,25 @@ func (vm *Thread) opBreakpoint() {
 
 	vm.push(value.Nil)
 	prevState := vm.state
+	prevStdout := vm.Stdout
+	prevStderr := vm.Stderr
+	prevStdin := vm.Stdin
+
 	vm.state = IdleState
+	vm.Stdout = os.Stdout
+	vm.Stderr = os.Stderr
+	vm.Stdin = os.Stdin
 	originalCallFrame := vm.makeCurrentCallFrame(false)
 
+	ActiveBreakpoints.Add(1)
+	time.Sleep(500 * time.Millisecond)
 	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+	ActiveBreakpoints.Add(-1)
 
 	vm.state = prevState
+	vm.Stdout = prevStdout
+	vm.Stderr = prevStderr
+	vm.Stdin = prevStdin
 
 	vm.ip = originalCallFrame.ip
 	vm.fp = originalCallFrame.fp

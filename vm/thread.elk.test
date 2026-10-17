@@ -1,0 +1,119 @@
+using Std::Sync::{WaitGroup, Mutex}
+using ThreadTest::*
+
+module ThreadTest
+	class Counter
+		attr n: Int, m: Mutex
+
+		init
+			@n = 0
+			@m = Mutex()
+		end
+
+		def incr
+			@m.lock
+			@n++
+			@m.unlock
+		end
+	end
+
+	def work(c: Counter, wg: WaitGroup)
+		for i in 1...50
+			c.incr
+		end
+
+		wg.end
+	end
+end
+
+describe "Thread" ->
+	context "go" ->
+		should "call a new lambda in another thread" ->
+			wg := Sync::WaitGroup(1)
+			a := 5
+			c := ~> a
+
+			assert_stdout("5\n") ->
+				go
+					puts c()
+					breakpoint
+					wg.end
+				end
+
+				wg.wait
+			end
+		end
+
+		should "handle an error thrown in a separate coroutine" ->
+			got := capture_stderr() ->
+				wg := WaitGroup(1)
+				go
+					defer wg.end
+					throw unchecked 5
+				end
+				wg.wait
+				sleep 10.millisecond
+			end
+
+			assert! got match %/Error! Uncaught thrown value:/
+		end
+
+		should "wait for a thread with a WaitGroup" ->
+			print_numbers := |name: String| ->
+				for i in 1...5
+					println "$name: $i"
+				end
+			end
+
+			expected := "go1: 1\ngo1: 2\ngo1: 3\ngo1: 4\ngo1: 5\nmain1: 1\nmain1: 2\nmain1: 3\nmain1: 4\nmain1: 5\n"
+			assert_stdout(expected) ->
+				wg := WaitGroup(1)
+				go
+					defer wg.end
+					print_numbers("go1")
+				end
+
+				wg.wait
+				print_numbers("main1")
+			end
+		end
+
+		should "synchronise threads with a mutex" ->
+			c := Counter()
+			wg := WaitGroup(5)
+
+			for i in 1...5
+				go work(c, wg)
+			end
+
+			wg.wait
+			assert! c.n == 250
+		end
+
+		should "synchronise threads with a channel" ->
+			ch := Channel::[Int]()
+			wg := WaitGroup(2)
+
+			expected := "5\n10\n2\n"
+			assert_stdout(expected) ->
+				go
+					ch << 5
+					ch << 10
+					ch << 2
+					ch.close
+					wg.end
+				end
+
+				go
+					for i in ch
+						println i.inspect
+					end
+					wg.end
+				end
+
+				wg.wait
+			end
+		end
+
+	end
+end
