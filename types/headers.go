@@ -660,6 +660,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			_ = namespace
 		}
+		namespace.TryDefineClass("Thrown when a pattern was not matched in destructuring etc.", false, false, false, false, false, symbol.ToSymbol("PatternNotMatchedError"), objectClass, env)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop.", symbol.ToSymbol("PrimitiveIterable"), env)
 			_ = namespace
@@ -9357,6 +9358,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Wrap the given node in an unhygienic node.\nIt enables macro-generated code to access\nlocal variables from outer scopes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("unhygienic"), nil, []*Parameter{NewParameter(symbol.ToSymbol("node"), NameToType("Std::Elk::AST::Node", env), NormalParameterKind, false)}, NameToType("Std::Elk::AST::UnhygienicNode", env), Never{})
 
 				// Define constants
+				namespace.DefineConstant(symbol.ToSymbol("STORE"), NewGeneric(NameToType("Std::HashMap", env).(*Class), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Key"): NewTypeArgument(NameToType("Std::String", env), INVARIANT), symbol.ToSymbol("Value"): NewTypeArgument(Any{}, INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Key"), symbol.ToSymbol("Value")})))
 
 				// Define instance variables
 			}
@@ -9649,6 +9651,20 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("PatternNotMatchedError").(*Class)
+
+				_ = namespace
+				namespace.SetParent(NameToType("Std::Error", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtypeString("PrimitiveIterable").(*Interface)

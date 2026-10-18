@@ -3,6 +3,12 @@
 ]##
 module ::Std::Macro
   ##[
+    A map that can be used in macros
+    to store temporary info.
+  ]##
+  const STORE: HashMap[String, any]
+
+  ##[
     Convert the given AST Node, or collection of nodes into
     an expression.
   ]##

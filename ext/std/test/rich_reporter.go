@@ -315,6 +315,8 @@ func (r *RichReporter) View() string {
 		}
 	}
 
+	fmt.Fprintln(&result)
+
 	return result.String()
 }
 

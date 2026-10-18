@@ -104,4 +104,5 @@ func InitGlobalEnvironment() {
 	initDateTime()
 	initDateTimeSpan()
 	initTimezone()
+	initMacro()
 }

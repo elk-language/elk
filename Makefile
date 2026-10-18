@@ -24,9 +24,9 @@ elk-test: header
 	ELKWARN=0 go run -tags debug ./cmd/elk test
 
 elk-test-native: header
-	ELKWARN=0 go run -tags debug ./cmd/elk test -n
+	ELKWARN=0 go run -tags debug ./cmd/elk test --native
 
-test: go-test elk-test
+test: go-test elk-test elk-test-native
 
 repl: fmt
 	go run -tags debug ./cmd/elk repl

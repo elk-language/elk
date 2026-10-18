@@ -1,55 +1,238 @@
 describe "Variables" ->
-	should "handle boxes" ->
-		var b: Box[Int]
-		do
-			a := 5
-			assert! a == 5
+	context "locals" ->
+		should "handle boxes" ->
+			var b: Box[Int]
+			do
+				a := 5
+				assert! a == 5
 
-			read_pre := -> a
-			set_pre := |v: Int| -> a = v
+				read_pre := -> a
+				set_pre := |v: Int| -> a = v
 
-			assert! read_pre() == 5
-			set_pre(10)
-			assert! read_pre() == 10
-			assert! a == 10
+				assert! read_pre() == 5
+				set_pre(10)
+				assert! read_pre() == 10
+				assert! a == 10
 
-			b = &a
-			read_post := -> a
-			set_post := |v: Int| -> a = v
+				b = &a
+				read_post := -> a
+				set_post := |v: Int| -> a = v
 
-			assert! b.get == 10
-			assert! read_pre() == 10
-			assert! read_post() == 10
+				assert! b.get == 10
+				assert! read_pre() == 10
+				assert! read_post() == 10
 
-			b.set 50
-			assert! b.get == 50
-			assert! a == 50
-			assert! read_pre() == 50
-			assert! read_post() == 50
+				b.set 50
+				assert! b.get == 50
+				assert! a == 50
+				assert! read_pre() == 50
+				assert! read_post() == 50
 
-			a = 15
-			assert! b.get == 15
-			assert! a == 15
-			assert! read_pre() == 15
-			assert! read_post() == 15
+				a = 15
+				assert! b.get == 15
+				assert! a == 15
+				assert! read_pre() == 15
+				assert! read_post() == 15
 
-			set_post(100)
-			assert! b.get == 100
-			assert! a == 100
-			assert! read_pre() == 100
-			assert! read_post() == 100
+				set_post(100)
+				assert! b.get == 100
+				assert! a == 100
+				assert! read_pre() == 100
+				assert! read_post() == 100
 
-			set_pre(200)
+				set_pre(200)
+				assert! b.get == 200
+				assert! a == 200
+				assert! read_pre() == 200
+				assert! read_post() == 200
+			end
+
 			assert! b.get == 200
-			assert! a == 200
-			assert! read_pre() == 200
-			assert! read_post() == 200
+
+			b.set 42
+
+			assert! b.get == 42
 		end
 
-		assert! b.get == 200
+		should "define and initialise a variable" ->
+			var a = "foo"
+			assert! a == "foo"
+		end
 
-		b.set 42
+		should "shadow a variable" ->
+			var a = 10
+			var b = do
+				var a = 5
+				a + 3
+			end
+			assert! a + b == 18
+		end
 
-		assert! b.get == 42
+		should "define and set a variable" ->
+			var a = "foo"
+			a = a + " bar"
+			assert! a == "foo bar"
+		end
+
+		should "define variables with a pattern" ->
+			var [1, a] = [1, 25]
+			assert! a == 25
+		end
+
+		should "override variables with a pattern" ->
+			var a = 5
+			var b = -7
+			var [b, a] = [a, b]
+			result := [a, b]
+			assert! result == [-7, 5]
+		end
+
+		should "define variables with a pattern that does not match" ->
+			fn := ->
+				var [1, 2, a] = [1, 25]
+				a
+			end
+			assert_throws!(fn() match PatternNotMatchedError(message: "assigned value does not match the pattern defined in variable declaration"))
+		end
+
+		should "increment" ->
+			a := 1
+			assert! a++ == 2
+		end
+
+		should "decrement" ->
+			a := 1
+			result := a--
+			assert! result == 0
+			assert! a == 0
+		end
+
+		should "set add" ->
+			a := 1
+			result := a += 2
+			assert! result == 3
+			assert! a == 3
+		end
+
+		should "set subtract" ->
+			a := 1
+			result := a -= 2
+			assert! result == -1
+			assert! a == -1
+		end
+
+		should "set multiply" ->
+			a := 2
+			result := a *= 3
+			assert! result == 6
+			assert! a == 6
+		end
+
+		should "set divide" ->
+			a := 12
+			result := a /= 3
+			assert! result == 4
+			assert! a == 4
+		end
+
+		should "set exponentiate" ->
+			a := 12
+			a := 12
+			result := a **= 2
+			assert! result == 144
+			assert! a == 144
+		end
+
+		should "set modulo" ->
+			a := 14
+			result := a %= 3
+			assert! result == 2
+			assert! a == 2
+		end
+
+		should "set left bitshift" ->
+			a := 14
+			result := a <<= 3
+			assert! result == 112
+			assert! a == 112
+		end
+
+		should "set logic left bitshift" ->
+			a := 14i8
+			result := a <<<= 3
+			assert! result == 112i8
+			assert! a == 112i8
+		end
+
+		should "set right bitshift" ->
+			a := 14
+			result := a >>= 2
+			assert! result == 3
+			assert! a == 3
+		end
+
+		should "set logic right bitshift" ->
+			a := 14i8
+			result := a >>>= 2
+			assert! result == 3i8
+			assert! a == 3i8
+		end
+
+		should "set bitwise and" ->
+			a := 14
+			result := a &= 5
+			assert! result == 4
+			assert! a == 4
+		end
+
+		should "set bitwise or" ->
+			a := 14
+			result := a |= 5
+			assert! result == 15
+			assert! a == 15
+		end
+
+		should "set bitwise xor" ->
+			a := 14
+			result := a ^= 5
+			assert! result == 11
+			assert! a == 11
+		end
+
+		should "set logic or false" ->
+			var a: Int | bool = false
+			result := a ||= 5
+			assert! result == 5
+			assert! a == 5
+		end
+
+		should "set logic or nil" ->
+			var a: Int? = nil
+			result := a ||= 5
+			assert! result == 5
+			assert! a == 5
+		end
+
+		should "set logic and nil" ->
+			var a: Int? = nil
+			result := a &&= 5
+			assert! result == nil
+			assert! a == nil
+		end
+
+		should "set logic and false" ->
+			var a: Int | bool = false
+			result := a &&= 5
+			assert! result == false
+			assert! a == false
+		end
+
+		should "set nil coalesce nil" ->
+			var a: Int? = nil
+			result := a ??= 5
+			assert! result == 5
+			assert! a == 5
+		end
 	end
+
 end
