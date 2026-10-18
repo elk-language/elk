@@ -122,9 +122,6 @@ func (e *evaluator) evaluate(input string) {
 	}
 
 	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.deepCopyPrepend())
-	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
-	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
-	e.prepend = e.usingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
@@ -140,6 +137,10 @@ func (e *evaluator) evaluate(input string) {
 			return
 		}
 	}
+
+	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
+	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
+	e.prepend = e.usingToPrepend(using)
 
 	eval := func(spinner *Spinner, cd SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
