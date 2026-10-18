@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 )
 
@@ -90,7 +91,7 @@ func (Size) InstanceVariables() *InstanceVariables {
 }
 
 func (s Size) Inspect() string {
-	return fmt.Sprintf("Std::Size.parse(%s)", s.ToString().Inspect())
+	return fmt.Sprintf("%s", s.ToString())
 }
 
 func (s Size) Error() string {
@@ -120,7 +121,7 @@ func (s Size) String() string {
 	terabytes := (s % Petabyte) / Terabyte
 	if terabytes != 0 {
 		if buff.Len() != 0 {
-			buff.WriteByte(' ')
+			buff.WriteString(" + ")
 		}
 		fmt.Fprintf(&buff, "%d.terabytes", terabytes)
 	}
@@ -128,7 +129,7 @@ func (s Size) String() string {
 	gigabytes := (s % Terabyte) / Gigabyte
 	if gigabytes != 0 {
 		if buff.Len() != 0 {
-			buff.WriteByte(' ')
+			buff.WriteString(" + ")
 		}
 		fmt.Fprintf(&buff, "%d.gigabytes", gigabytes)
 	}
@@ -136,7 +137,7 @@ func (s Size) String() string {
 	megabytes := (s % Gigabyte) / Megabyte
 	if megabytes != 0 {
 		if buff.Len() != 0 {
-			buff.WriteByte(' ')
+			buff.WriteString(" + ")
 		}
 		fmt.Fprintf(&buff, "%d.megabytes", megabytes)
 	}
@@ -144,7 +145,7 @@ func (s Size) String() string {
 	kilobytes := (s % Megabyte) / Kilobyte
 	if kilobytes != 0 {
 		if buff.Len() != 0 {
-			buff.WriteByte(' ')
+			buff.WriteString(" + ")
 		}
 		fmt.Fprintf(&buff, "%d.kilobytes", kilobytes)
 	}
@@ -152,7 +153,7 @@ func (s Size) String() string {
 	bytes := (s % Kilobyte) / Byte
 	if bytes != 0 {
 		if buff.Len() != 0 {
-			buff.WriteByte(' ')
+			buff.WriteString(" + ")
 		}
 		fmt.Fprintf(&buff, "%d.bytes", bytes)
 	}
@@ -179,18 +180,115 @@ func (s Size) Cmp(other Size) int {
 	return 0
 }
 
-func (s Size) GreaterThan(other Size) bool {
-	return s > other
+func (s Size) Multiply(other Value) (Size, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return s.MultiplyBigInt(o)
+		case *BigFloat:
+			return s.MultiplyBigFloat(o)
+		default:
+			return 0, Ref(NewCoerceError(s.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return s.MultiplySmallInt(other.AsSmallInt())
+	case FLOAT_FLAG:
+		return s.MultiplyFloat(other.AsFloat())
+	default:
+		return 0, Ref(NewCoerceError(s.Class(), other.Class()))
+	}
 }
 
-func (s Size) GreaterThanEqual(other Size) bool {
-	return s >= other
+func (s Size) MultiplyBigInt(other *BigInt) (Size, Value) {
+	newSize := big.NewInt(int64(s))
+	result := ToElkBigInt(newSize.Mul(newSize, other.ToGoBigInt()))
+	return Size(result.ToSmallInt()), Undefined
 }
 
-func (s Size) LessThan(other Size) bool {
-	return s < other
+func (s Size) MultiplySmallInt(other SmallInt) (Size, Value) {
+	return s * Size(other), Undefined
 }
 
-func (s Size) LessThanEqual(other Size) bool {
-	return s <= other
+func (s Size) MultiplyInt(other Value) (Size, Value) {
+	if other.IsSmallInt() {
+		return s.MultiplySmallInt(other.AsSmallInt())
+	}
+	return s.MultiplyBigInt((*BigInt)(other.Pointer()))
+}
+
+func (s Size) MultiplyFloat(other Float) (Size, Value) {
+	return Size(Float(s) * other), Undefined
+}
+
+func (s Size) MultiplyBigFloat(other *BigFloat) (Size, Value) {
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(int64(s))
+	iBigFloat.MulMutBigFloat(iBigFloat, other)
+	return Size(iBigFloat.ToInt64()), Undefined
+}
+
+func (s Size) Divide(other Value) (Size, Value) {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case *BigInt:
+			return s.DivideBigInt(o)
+		case *BigFloat:
+			return s.DivideBigFloat(o)
+		default:
+			return 0, Ref(NewCoerceError(s.Class(), other.Class()))
+		}
+	}
+
+	switch other.ValueFlag() {
+	case SMALL_INT_FLAG:
+		return s.DivideSmallInt(other.AsSmallInt())
+	case FLOAT_FLAG:
+		return s.DivideFloat(other.AsFloat())
+	default:
+		return 0, Ref(NewCoerceError(s.Class(), other.Class()))
+	}
+}
+
+func (s Size) DivideBigInt(other *BigInt) (Size, Value) {
+	if other.IsZero() {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	newBig := big.NewInt(int64(s))
+	result := ToElkBigInt(newBig.Div(newBig, other.ToGoBigInt()))
+	return Size(result.ToSmallInt()), Undefined
+}
+
+func (s Size) DivideSmallInt(other SmallInt) (Size, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return s / Size(other), Undefined
+}
+
+func (s Size) DivideInt(other Value) (Size, Value) {
+	if other.IsReference() {
+		return s.DivideBigInt((*BigInt)(other.Pointer()))
+	}
+
+	return s.DivideSmallInt(other.AsSmallInt())
+}
+
+func (s Size) DivideFloat(other Float) (Size, Value) {
+	if other == 0 {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	return Size(Float(s) / other), Undefined
+}
+
+func (s Size) DivideBigFloat(other *BigFloat) (Size, Value) {
+	if other.IsZero() {
+		return 0, Ref(NewZeroDivisionError())
+	}
+	prec := max(other.Precision(), 64)
+	iBigFloat := (&BigFloat{}).SetPrecision(prec).SetInt64(int64(s))
+	iBigFloat.DivMutBigFloat(iBigFloat, other)
+	return Size(iBigFloat.ToInt64()), Undefined
 }

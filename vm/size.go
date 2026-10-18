@@ -4,7 +4,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// Std::Date::Span
+// Std::Size
 func initSize() {
 	// Instance methods
 	c := &value.SizeClass.MethodContainer
@@ -44,29 +44,89 @@ func initSize() {
 		},
 		DefWithParameters(1),
 	)
-	// ?: Idk if restricting `other` argument to Size type is good idea, what does 3.bytes * 3.bytes mean?
-	// ?: Under the hood Size is a int64, but allowing integers in general should be smarter approach
-	// ?: for both `*` and `/` operators.
+
 	Def(
 		c,
 		"*",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsSize()
-			other := args[1].AsSize()
-			return (self * other).ToValue(), value.Undefined
+			self := args[0].MustSize()
+			other := args[1]
+			return value.ToValueErr(self.Multiply(other))
 		},
 		DefWithParameters(1),
 	)
 	Def(
 		c,
-		"/",
+		"*@1",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
-			other := args[1].AsSize()
-			return (self / other).ToValue(), value.Undefined
+			other := args[1]
+			return value.ToValueErr(self.MultiplyInt(other))
 		},
 		DefWithParameters(1),
 	)
+	Def(
+		c,
+		"*@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			other := args[1].AsFloat()
+			return value.ToValueErr(self.MultiplyFloat(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"*@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.ToValueErr(self.MultiplyBigFloat(other))
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"/",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustSize()
+			other := args[1]
+			return value.ToValueErr(self.Divide(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@1",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			other := args[1]
+			return value.ToValueErr(self.DivideInt(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@2",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			other := args[1].AsFloat()
+			return value.ToValueErr(self.DivideFloat(other))
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"/@3",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			other := (*value.BigFloat)(args[1].Pointer())
+			return value.ToValueErr(self.DivideBigFloat(other))
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"<=>",
@@ -83,7 +143,7 @@ func initSize() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
 			other := args[1].AsSize()
-			return value.BoolVal(self.GreaterThan(other)), value.Undefined
+			return value.BoolVal(self > other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -93,7 +153,7 @@ func initSize() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
 			other := args[1].AsSize()
-			return value.BoolVal(self.GreaterThanEqual(other)), value.Undefined
+			return value.BoolVal(self >= other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -103,7 +163,7 @@ func initSize() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
 			other := args[1].AsSize()
-			return value.BoolVal(self.LessThan(other)), value.Undefined
+			return value.BoolVal(self < other), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -113,7 +173,7 @@ func initSize() {
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
 			other := args[1].AsSize()
-			return value.BoolVal(self.LessThanEqual(other)), value.Undefined
+			return value.BoolVal(self <= other), value.Undefined
 		},
 		DefWithParameters(1),
 	)

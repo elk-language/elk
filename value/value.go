@@ -1082,6 +1082,21 @@ func (v Value) AsSizeOk() (Size, bool) {
 	return 0, false
 }
 
+func (v Value) MustSize() Size {
+	if v.IsReference() {
+		return v.AsReference().(Size)
+	} else {
+		return v.MustInlineSize()
+	}
+}
+
+func (v Value) MustInlineSize() Size {
+	if !v.IsInlineTimeSpan() {
+		panic(fmt.Sprintf("value `%s` is not an inline Size", v.Inspect()))
+	}
+	return v.AsInlineSize()
+}
+
 func (v Value) IsInlineDateSpan() bool {
 	return v.flag == DATE_SPAN_FLAG
 }

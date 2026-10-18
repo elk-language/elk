@@ -380,7 +380,7 @@ func TestSize_ToString(t *testing.T) {
 		},
 		"returns string with overflowing sizes": {
 			s:    2020*value.Byte + 2020*value.Kilobyte + 2020*value.Megabyte + 2020*value.Gigabyte + 2020*value.Terabyte,
-			want: "1.petabytes 997.terabytes 997.gigabytes 997.megabytes 997.kilobytes 996.bytes",
+			want: "1.petabytes + 997.terabytes + 997.gigabytes + 997.megabytes + 997.kilobytes + 996.bytes",
 		},
 	}
 

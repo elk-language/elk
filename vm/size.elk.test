@@ -2,10 +2,19 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "Size" ->
-	context "bytes" ->
-		should "returns self as float" ->
-			s := 5.megabytes
-			assert! s.bytes == 5200.0
+	context "unary minus", ->
+		should "negate positive size", ->
+			s:= 5.bytes
+			r := -s
+			assert! r <<: Std::Size
+			assert! r.to_string == "-5.bytes"
+		end
+
+		should "negate negative span", ->
+			s := -5.bytes
+			r := -s
+			assert! s <<: Std::Size
+			assert! r.to_string == "5.bytes"
 		end
 	end
 
