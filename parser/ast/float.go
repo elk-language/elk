@@ -36,7 +36,7 @@ func (n *FloatLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *FloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *FloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewFloatLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -129,7 +129,7 @@ func (n *BigFloatLiteralNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *BigFloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *BigFloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewBigFloatLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -222,7 +222,7 @@ func (n *Float64LiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *Float64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Float64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewFloat64LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -315,7 +315,7 @@ func (n *Float32LiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *Float32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Float32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewFloat32LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)

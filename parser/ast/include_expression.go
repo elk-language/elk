@@ -44,8 +44,11 @@ func (n *IncludeExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *IncludeExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	consts := traverseMapSlice(n.Constants, n, fn)
+func (n *IncludeExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	consts, err := traverseMapSlice(n.Constants, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewIncludeExpressionNode(n.loc, consts)
 

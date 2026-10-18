@@ -46,8 +46,11 @@ func (n *GoExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *GoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *GoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGoExpressionNode(n.loc, body)
 

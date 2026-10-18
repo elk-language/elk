@@ -36,7 +36,7 @@ func (n InferredExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n InferredExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n InferredExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := InferredExpressionNode{}
 
 	return fn(newNode, parent)

@@ -45,8 +45,11 @@ func (n *PostfixExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *PostfixExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	expr := n.Expression.traverseMap(n, fn)
+func (n *PostfixExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewPostfixExpressionNode(n.loc, n.Op, expr.(ExpressionNode))
 

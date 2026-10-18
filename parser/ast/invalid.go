@@ -42,7 +42,7 @@ func (n *InvalidNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *InvalidNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *InvalidNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewInvalidNode(n.loc, n.Token)
 
 	return fn(newNode, parent)

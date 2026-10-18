@@ -55,10 +55,16 @@ func (n *NewExpressionNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *NewExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+func (n *NewExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewNewExpressionNode(n.loc, posArgs, namedArgs)
 
@@ -291,14 +297,26 @@ func (n *GenericConstructorCallNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
-func (n *GenericConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	class := n.ClassNode.traverseMap(n, fn)
+func (n *GenericConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	class, err := n.ClassNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGenericConstructorCallNode(
 		n.loc,
@@ -580,12 +598,21 @@ func (n *ConstructorCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *ConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	class := n.ClassNode.traverseMap(n, fn)
+func (n *ConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	class, err := n.ClassNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewConstructorCallNode(n.loc, class.(ComplexConstantNode), posArgs, namedArgs)
 
@@ -811,10 +838,16 @@ func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *AttributeAccessNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	recv := n.Receiver.traverseMap(n, fn)
+func (n *AttributeAccessNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	attrName := n.AttributeName.traverseMap(n, fn)
+	attrName, err := n.AttributeName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewAttributeAccessNode(n.loc, recv.(ExpressionNode), attrName.(IdentifierNode))
 
@@ -947,10 +980,16 @@ func (n *SubscriptExpressionNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
-func (n *SubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	recv := n.Receiver.traverseMap(n, fn)
+func (n *SubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	key := n.Key.traverseMap(n, fn)
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
 
@@ -1091,10 +1130,16 @@ func (n *NilSafeSubscriptExpressionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
-func (n *NilSafeSubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	recv := n.Receiver.traverseMap(n, fn)
+func (n *NilSafeSubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	key := n.Key.traverseMap(n, fn)
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewNilSafeSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
 
@@ -1243,12 +1288,21 @@ func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseO
 	return leave(n, parent)
 }
 
-func (n *CallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	recv := n.Receiver.traverseMap(n, fn)
+func (n *CallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewCallNode(n.loc, recv.(ExpressionNode), n.NilSafe, posArgs, namedArgs)
 
@@ -1529,16 +1583,31 @@ func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *GenericMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	methodName := n.MethodName.traverseMap(n, fn)
+func (n *GenericMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	recv := n.Receiver.traverseMap(n, fn)
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGenericMethodCallNode(
 		n.loc,
@@ -1854,14 +1923,26 @@ func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *MethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	methodName := n.MethodName.traverseMap(n, fn)
+func (n *MethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	recv := n.Receiver.traverseMap(n, fn)
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMethodCallNode(
 		n.loc,
@@ -2119,12 +2200,21 @@ func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
-func (n *ReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	methodName := n.MethodName.traverseMap(n, fn)
+func (n *ReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewReceiverlessMethodCallNode(n.loc, methodName.(IdentifierNode), posArgs, namedArgs)
 
@@ -2362,14 +2452,26 @@ func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(nod
 	return leave(n, parent)
 }
 
-func (n *GenericReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	methodName := n.MethodName.traverseMap(n, fn)
+func (n *GenericReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGenericReceiverlessMethodCallNode(
 		n.loc,

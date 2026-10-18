@@ -57,12 +57,21 @@ func (n *UnquoteForInExpressionNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
-func (n *UnquoteForInExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	pattern := n.Pattern.traverseMap(n, fn)
+func (n *UnquoteForInExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	inExpr := n.InExpression.traverseMap(n, fn)
+	inExpr, err := n.InExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	then := traverseMapSlice(n.ThenBody, n, fn)
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewUnquoteForInExpressionNode(
 		n.loc,

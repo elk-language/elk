@@ -116,24 +116,44 @@ func (n *MethodDefinitionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *MethodDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *MethodDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	params := traverseMapSlice(n.Parameters, n, fn)
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		returnType = mapped.(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
 	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMethodDefinitionNode(
 		n.loc,
@@ -626,15 +646,25 @@ func (n *InitDefinitionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *InitDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	params := traverseMapSlice(n.Parameters, n, fn)
+func (n *InitDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
 	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewInitDefinitionNode(
 		n.loc,
@@ -929,21 +959,38 @@ func (n *MethodSignatureDefinitionNode) traverse(parent Node, enter func(node, p
 	return leave(n, parent)
 }
 
-func (n *MethodSignatureDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *MethodSignatureDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	params := traverseMapSlice(n.Parameters, n, fn)
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		returnType = mapped.(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
 	}
 
 	newNode := NewMethodSignatureDefinitionNode(
@@ -1229,10 +1276,16 @@ func (n *AliasDeclarationEntry) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *AliasDeclarationEntry) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	oldName := n.OldName.traverseMap(n, fn)
+func (n *AliasDeclarationEntry) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	oldName, err := n.OldName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	newName := n.NewName.traverseMap(n, fn)
+	newName, err := n.NewName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewAliasDeclarationEntry(n.loc, newName.(IdentifierNode), oldName.(IdentifierNode))
 
@@ -1359,8 +1412,11 @@ func (n *AliasDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *AliasDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	entries := traverseMapSlice(n.Entries, n, fn)
+func (n *AliasDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	entries, err := traverseMapSlice(n.Entries, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewAliasDeclarationNode(n.loc, entries)
 
@@ -1515,8 +1571,11 @@ func (n *GetterDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *GetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	entries := traverseMapSlice(n.Entries, n, fn)
+func (n *GetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	entries, err := traverseMapSlice(n.Entries, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGetterDeclarationNode(n.loc, n.DocComment(), n.Flags.ToBitFlag(), entries)
 
@@ -1707,8 +1766,11 @@ func (n *SetterDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *SetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	entries := traverseMapSlice(n.Entries, n, fn)
+func (n *SetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	entries, err := traverseMapSlice(n.Entries, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSetterDeclarationNode(n.loc, n.DocComment(), entries)
 
@@ -1871,8 +1933,11 @@ func (n *AttrDeclarationNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *AttrDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	entries := traverseMapSlice(n.Entries, n, fn)
+func (n *AttrDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	entries, err := traverseMapSlice(n.Entries, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewAttrDeclarationNode(n.loc, n.DocComment(), n.Flags.ToBitFlag(), entries)
 

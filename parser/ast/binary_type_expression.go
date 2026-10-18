@@ -50,10 +50,16 @@ func (n *BinaryTypeNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *BinaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	left := n.Left.traverseMap(n, fn)
+func (n *BinaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	right := n.Right.traverseMap(n, fn)
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewBinaryTypeNode(n.loc, n.Op, left.(TypeNode), right.(TypeNode))
 

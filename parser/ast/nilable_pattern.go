@@ -42,8 +42,11 @@ func (n *NilablePatternNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *NilablePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	pattern := n.Pattern.traverseMap(n, fn)
+func (n *NilablePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewNilablePatternNode(n.loc, pattern.(PatternNode))
 

@@ -49,7 +49,7 @@ func (n *PublicInstanceVariableNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
-func (n *PublicInstanceVariableNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *PublicInstanceVariableNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewPublicInstanceVariableNode(n.loc, n.Value)
 
 	return fn(newNode, parent)

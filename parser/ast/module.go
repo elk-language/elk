@@ -65,13 +65,20 @@ func (n *ModuleDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *ModuleDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *ModuleDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
 	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewModuleDeclarationNode(n.loc, n.DocComment(), constant, body)
 

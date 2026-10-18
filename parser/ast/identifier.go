@@ -63,7 +63,7 @@ func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *PublicIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *PublicIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewPublicIdentifierNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -174,7 +174,7 @@ func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *PrivateIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *PrivateIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewPrivateIdentifierNode(n.loc, n.Value)
 
 	return fn(newNode, parent)

@@ -59,8 +59,11 @@ func (n *UnquoteNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *UnquoteNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	expr := n.Expression.traverseMap(n, fn)
+func (n *UnquoteNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewUnquoteNode(n.loc, n.Kind, expr.(ExpressionNode))
 

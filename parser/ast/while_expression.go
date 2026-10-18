@@ -52,13 +52,20 @@ func (n *WhileExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *WhileExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *WhileExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	var cond ExpressionNode
 	if n.Condition != nil {
-		cond = n.Condition.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Condition.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		cond = mapped.(ExpressionNode)
 	}
 
-	then := traverseMapSlice(n.ThenBody, n, fn)
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewWhileExpressionNode(n.loc, cond, then)
 

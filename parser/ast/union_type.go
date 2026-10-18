@@ -44,8 +44,11 @@ func (n *UnionTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
-func (n *UnionTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *UnionTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewUnionTypeNode(n.loc, elements)
 

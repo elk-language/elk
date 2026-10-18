@@ -42,8 +42,11 @@ func (n *DoubleSplatExpressionNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
-func (n *DoubleSplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	val := n.Value.traverseMap(n, fn)
+func (n *DoubleSplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewDoubleSplatExpressionNode(n.loc, val.(ExpressionNode))
 
@@ -161,8 +164,11 @@ func (n *SplatExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *SplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	val := n.Value.traverseMap(n, fn)
+func (n *SplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSplatExpressionNode(n.loc, val.(ExpressionNode))
 

@@ -44,8 +44,11 @@ func (n *LoopExpressionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *LoopExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	then := traverseMapSlice(n.ThenBody, n, fn)
+func (n *LoopExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewLoopExpressionNode(n.loc, then)
 

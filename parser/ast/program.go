@@ -69,8 +69,11 @@ func (n *ProgramNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *ProgramNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *ProgramNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewProgramNode(n.loc, body)
 

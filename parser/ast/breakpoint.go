@@ -35,7 +35,7 @@ func (n *BreakpointNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *BreakpointNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *BreakpointNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewBreakpointNode(n.loc)
 
 	return fn(newNode, parent)

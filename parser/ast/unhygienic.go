@@ -41,8 +41,11 @@ func (n *UnhygienicNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *UnhygienicNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	node := n.Node.traverseMap(n, fn)
+func (n *UnhygienicNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	node, err := n.Node.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewUnhygienicNode(n.loc, node)
 

@@ -36,7 +36,7 @@ func (n *CharLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *CharLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *CharLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewCharLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -128,7 +128,7 @@ func (n *RawCharLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *RawCharLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *RawCharLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewRawCharLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)

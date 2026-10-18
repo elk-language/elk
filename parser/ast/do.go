@@ -72,12 +72,21 @@ func (n *DoExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *DoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *DoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	catches := traverseMapSlice(n.Catches, n, fn)
+	catches, err := traverseMapSlice(n.Catches, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	finally := traverseMapSlice(n.Finally, n, fn)
+	finally, err := traverseMapSlice(n.Finally, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewDoExpressionNode(n.loc, body, catches, finally)
 
@@ -324,14 +333,24 @@ func (n *CatchNode) traverse(parent Node, enter func(node, parent Node) Traverse
 	return leave(n, parent)
 }
 
-func (n *CatchNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *CatchNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	pattern := n.Pattern.traverseMap(n, fn)
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var stackTraceVar IdentifierNode
 	if n.StackTraceVar != nil {
-		stackTraceVar = n.StackTraceVar.traverseMap(n, fn).(IdentifierNode)
+		mapped, err := n.StackTraceVar.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		stackTraceVar = mapped.(IdentifierNode)
 	}
 
 	newNode := NewCatchNode(n.loc, pattern.(PatternNode), stackTraceVar, body)

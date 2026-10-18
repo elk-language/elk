@@ -44,8 +44,11 @@ func (n *AwaitExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *AwaitExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	val := n.Value.traverseMap(n, fn)
+func (n *AwaitExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewAwaitExpressionNode(n.loc, val.(ExpressionNode), n.Sync)
 

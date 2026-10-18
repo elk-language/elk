@@ -36,7 +36,7 @@ func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *IntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *IntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewIntLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -128,7 +128,7 @@ func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *Int64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Int64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewInt64LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -221,7 +221,7 @@ func (n *UIntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *UIntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UIntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUIntLiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -314,7 +314,7 @@ func (n *UInt64LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *UInt64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UInt64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUInt64LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -407,7 +407,7 @@ func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *Int32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Int32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewInt32LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -496,7 +496,7 @@ func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *UInt32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UInt32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUInt32LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -589,7 +589,7 @@ func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *Int16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Int16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewInt16LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -682,7 +682,7 @@ func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *UInt16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UInt16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUInt16LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -775,7 +775,7 @@ func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *Int8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *Int8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewInt8LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -868,7 +868,7 @@ func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *UInt8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UInt8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUInt8LiteralNode(n.loc, n.Value)
 
 	return fn(newNode, parent)

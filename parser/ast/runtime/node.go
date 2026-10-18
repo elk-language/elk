@@ -53,6 +53,41 @@ func initNode() {
 	)
 	vm.Def(
 		c,
+		"traverse_map",
+		func(v *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(ast.Node)
+			fn := args[1]
+
+			var result ast.Node
+			var err error
+			switch f := fn.SafeAsReference().(type) {
+			case vm.Closure:
+				result, err = ast.TraverseMap(self, func(node, parent ast.Node) (ast.Node, error) {
+					result, err := v.CallClosure(f, value.Ref(node))
+					if !err.IsUndefined() {
+						return nil, err
+					}
+					return result.AsReference().(ast.Node), nil
+				})
+			default:
+				result, err = ast.TraverseMap(self, func(node, parent ast.Node) (ast.Node, error) {
+					result, err := v.CallMethodByName(value.S(symbol.L_call), value.Ref(node))
+					if !err.IsUndefined() {
+						return nil, err
+					}
+					return result.AsReference().(ast.Node), nil
+				})
+			}
+
+			if err != nil {
+				return value.Undefined, err.(value.Value)
+			}
+			return result.ToValue(), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+	vm.Def(
+		c,
 		"iter",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(ast.Node)

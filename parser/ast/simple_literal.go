@@ -34,7 +34,7 @@ func (n *TrueLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *TrueLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *TrueLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewTrueLiteralNode(n.loc)
 
 	return fn(newNode, parent)
@@ -123,7 +123,7 @@ func (n *FalseLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *FalseLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *FalseLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewFalseLiteralNode(n.loc)
 
 	return fn(newNode, parent)
@@ -212,7 +212,7 @@ func (n *SelfLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *SelfLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *SelfLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewSelfLiteralNode(n.loc)
 
 	return fn(newNode, parent)
@@ -297,7 +297,7 @@ func (n *NilLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *NilLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *NilLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewNilLiteralNode(n.loc)
 
 	return fn(newNode, parent)
@@ -388,7 +388,7 @@ func (n *UndefinedLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *UndefinedLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UndefinedLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUndefinedLiteralNode(n.loc)
 
 	return fn(newNode, parent)

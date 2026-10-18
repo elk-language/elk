@@ -83,15 +83,25 @@ func (n *StructDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *StructDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *StructDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	var constant ExpressionNode
 	if n.Constant != nil {
-		constant = n.Constant.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
 	}
 
-	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewStructDeclarationNode(n.loc, n.DocComment(), n.Immutable, constant, typeParams, body)
 

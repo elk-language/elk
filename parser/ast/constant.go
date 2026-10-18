@@ -98,7 +98,7 @@ func (n *PublicConstantNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *PublicConstantNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *PublicConstantNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewPublicConstantNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -208,7 +208,7 @@ func (n *PrivateConstantNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *PrivateConstantNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *PrivateConstantNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewPrivateConstantNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -308,8 +308,11 @@ func (n *PublicConstantAsNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *PublicConstantAsNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	target := n.Target.traverseMap(n, fn)
+func (n *PublicConstantAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	target, err := n.Target.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewPublicConstantAsNode(n.loc, target.(*PublicConstantNode), n.AsName)
 
@@ -430,13 +433,20 @@ func (n *ConstantLookupNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *ConstantLookupNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *ConstantLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	var left ExpressionNode
 	if n.Left != nil {
-		left = n.Left.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Left.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		left = mapped.(ExpressionNode)
 	}
 
-	right := n.Right.traverseMap(n, fn)
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewConstantLookupNode(n.loc, left, right.(ComplexConstantNode))
 
@@ -579,10 +589,16 @@ func (n *GenericConstantNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *GenericConstantNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	constant := n.Constant.traverseMap(n, fn)
+func (n *GenericConstantNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	args := traverseMapSlice(n.TypeArguments, n, fn)
+	args, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewGenericConstantNode(n.loc, constant.(ComplexConstantNode), args)
 

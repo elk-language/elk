@@ -60,12 +60,19 @@ func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
-func (n *ArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *ArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
 	}
 
 	newNode := NewArrayListLiteralNode(n.loc, elements, capacity)
@@ -304,12 +311,19 @@ func (n *WordArrayListLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
-func (n *WordArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *WordArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
 	}
 
 	newNode := NewWordArrayListLiteralNode(n.loc, elements, capacity)
@@ -532,12 +546,19 @@ func (n *SymbolArrayListLiteralNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
-func (n *SymbolArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *SymbolArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
 	}
 
 	newNode := NewSymbolArrayListLiteralNode(n.loc, elements, capacity)
@@ -759,12 +780,19 @@ func (n *HexArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
-func (n *HexArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *HexArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
 	}
 
 	newNode := NewHexArrayListLiteralNode(n.loc, elements, capacity)
@@ -988,12 +1016,19 @@ func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
-func (n *BinArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *BinArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var capacity ExpressionNode
 	if n.Capacity != nil {
-		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
 	}
 
 	newNode := NewBinArrayListLiteralNode(n.loc, elements, capacity)
@@ -1210,8 +1245,11 @@ func (n *ListPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *ListPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *ListPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewListPatternNode(n.loc, elements)
 

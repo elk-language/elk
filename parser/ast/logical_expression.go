@@ -52,10 +52,16 @@ func (n *LogicalExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *LogicalExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	left := n.Left.traverseMap(n, fn)
+func (n *LogicalExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	right := n.Right.traverseMap(n, fn)
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewLogicalExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
 

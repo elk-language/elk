@@ -51,10 +51,14 @@ func (n *YieldExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *YieldExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *YieldExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	var val ExpressionNode
 	if n.Value != nil {
-		val = n.Value.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Value.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		val = mapped.(ExpressionNode)
 	}
 
 	newNode := NewYieldExpressionNode(n.loc, n.Forward, val)

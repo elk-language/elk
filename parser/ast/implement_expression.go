@@ -44,8 +44,11 @@ func (n *ImplementExpressionNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
-func (n *ImplementExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	consts := traverseMapSlice(n.Constants, n, fn)
+func (n *ImplementExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	consts, err := traverseMapSlice(n.Constants, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewImplementExpressionNode(n.loc, consts)
 

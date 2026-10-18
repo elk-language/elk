@@ -64,7 +64,7 @@ func (n *UninterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
-func (n *UninterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *UninterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewUninterpolatedRegexLiteralNode(n.loc, n.Content, n.Flags)
 
 	return fn(newNode, parent)
@@ -242,7 +242,7 @@ func (n *RegexLiteralContentSectionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
-func (n *RegexLiteralContentSectionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *RegexLiteralContentSectionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewRegexLiteralContentSectionNode(n.loc, n.Value)
 
 	return fn(newNode, parent)
@@ -339,8 +339,11 @@ func (n *RegexInterpolationNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
-func (n *RegexInterpolationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	expr := n.Expression.traverseMap(n, fn)
+func (n *RegexInterpolationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewRegexInterpolationNode(n.loc, expr.(ExpressionNode))
 
@@ -453,8 +456,11 @@ func (n *InterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
-func (n *InterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	content := traverseMapSlice(n.Content, n, fn)
+func (n *InterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	content, err := traverseMapSlice(n.Content, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewInterpolatedRegexLiteralNode(n.loc, content, n.Flags)
 

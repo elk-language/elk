@@ -81,17 +81,30 @@ func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *MacroDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *MacroDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	params := traverseMapSlice(n.Parameters, n, fn)
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var returnType TypeNode
 	if n.ReturnType != nil {
-		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		returnType = mapped.(TypeNode)
 	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMacroDefinitionNode(
 		n.loc,
@@ -368,14 +381,26 @@ func (n *ScopedMacroCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *ScopedMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	macroName := n.MacroName.traverseMap(n, fn)
+func (n *ScopedMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	macroName, err := n.MacroName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	recv := n.Receiver.traverseMap(n, fn)
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewScopedMacroCallNode(
 		n.loc,
@@ -643,14 +668,26 @@ func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
-func (n *MacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	macroName := n.MacroName.traverseMap(n, fn)
+func (n *MacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	macroName, err := n.MacroName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	recv := n.Receiver.traverseMap(n, fn)
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMacroCallNode(
 		n.loc,
@@ -908,10 +945,16 @@ func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
-func (n *ReceiverlessMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+func (n *ReceiverlessMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewReceiverlessMacroCallNode(n.loc, n.Kind, n.MacroName, posArgs, namedArgs)
 

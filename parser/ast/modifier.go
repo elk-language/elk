@@ -51,10 +51,16 @@ func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
-func (n *ModifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	left := n.Left.traverseMap(n, fn)
+func (n *ModifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	right := n.Right.traverseMap(n, fn)
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewModifierNode(n.loc, n.Modifier, left.(ExpressionNode), right.(ExpressionNode))
 
@@ -206,12 +212,21 @@ func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *ModifierIfElseNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	then := n.ThenExpression.traverseMap(n, fn)
+func (n *ModifierIfElseNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := n.ThenExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	cond := n.Condition.traverseMap(n, fn)
+	cond, err := n.Condition.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	els := n.ElseExpression.traverseMap(n, fn)
+	els, err := n.ElseExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewModifierIfElseNode(
 		n.loc,
@@ -367,12 +382,21 @@ func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *ModifierForInNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	then := n.ThenExpression.traverseMap(n, fn)
+func (n *ModifierForInNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := n.ThenExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	pattern := n.Pattern.traverseMap(n, fn)
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	in := n.InExpression.traverseMap(n, fn)
+	in, err := n.InExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewModifierForInNode(
 		n.loc,

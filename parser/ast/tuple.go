@@ -47,8 +47,11 @@ func (n *ArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *ArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *ArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewArrayTupleLiteralNode(n.loc, elements)
 
@@ -232,8 +235,11 @@ func (n *WordArrayTupleLiteralNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
-func (n *WordArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *WordArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewWordArrayTupleLiteralNode(n.loc, elements)
 
@@ -397,8 +403,11 @@ func (n *SymbolArrayTupleLiteralNode) traverse(parent Node, enter func(node, par
 	return leave(n, parent)
 }
 
-func (n *SymbolArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *SymbolArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSymbolArrayTupleLiteralNode(n.loc, elements)
 
@@ -564,8 +573,11 @@ func (n *HexArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
-func (n *HexArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *HexArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewHexArrayTupleLiteralNode(n.loc, elements)
 
@@ -730,8 +742,11 @@ func (n *BinArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
-func (n *BinArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *BinArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewBinArrayTupleLiteralNode(n.loc, elements)
 
@@ -905,8 +920,11 @@ func (n *TuplePatternNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *TuplePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	elements := traverseMapSlice(n.Elements, n, fn)
+func (n *TuplePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewTuplePatternNode(n.loc, elements)
 

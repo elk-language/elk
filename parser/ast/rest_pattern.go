@@ -42,8 +42,11 @@ func (n *RestPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *RestPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	ident := n.Identifier.traverseMap(n, fn)
+func (n *RestPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	ident, err := n.Identifier.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewRestPatternNode(n.loc, ident.(IdentifierNode))
 

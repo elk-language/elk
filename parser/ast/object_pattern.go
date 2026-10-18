@@ -50,10 +50,16 @@ func (n *ObjectPatternNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *ObjectPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	objectType := n.ObjectType.traverseMap(n, fn)
+func (n *ObjectPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	objectType, err := n.ObjectType.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	attrs := traverseMapSlice(n.Attributes, n, fn)
+	attrs, err := traverseMapSlice(n.Attributes, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewObjectPatternNode(n.loc, objectType.(ComplexConstantNode), attrs)
 

@@ -44,8 +44,11 @@ func (n *BoxTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *BoxTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	typ := n.TypeNode.traverseMap(n, fn)
+func (n *BoxTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typ, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewBoxTypeNode(n.loc, typ.(TypeNode), n.Immutable)
 

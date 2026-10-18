@@ -121,17 +121,28 @@ func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *FormalParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *FormalParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
 	}
 
 	newNode := NewFormalParameterNode(n.loc, name.(IdentifierNode), typ, init, n.Kind)
@@ -340,17 +351,28 @@ func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *MethodParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *MethodParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
 	}
 
 	newNode := NewMethodParameterNode(
@@ -560,12 +582,19 @@ func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
-func (n *SignatureParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *SignatureParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	newNode := NewSignatureParameterNode(n.loc, name.(IdentifierNode), typ, n.Optional, n.Kind)
@@ -745,17 +774,28 @@ func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
-func (n *AttributeParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	name := n.Name.traverseMap(n, fn)
+func (n *AttributeParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	var init ExpressionNode
 	if n.Initialiser != nil {
-		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
 	}
 
 	newNode := NewAttributeParameterNode(n.loc, name.(IdentifierNode), typ, init)

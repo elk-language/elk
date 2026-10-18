@@ -45,8 +45,11 @@ func (n *ConstantAsNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
-func (n *ConstantAsNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	constant := n.Constant.traverseMap(n, fn)
+func (n *ConstantAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewConstantAsNode(n.loc, constant.(ComplexConstantNode), n.AsName)
 

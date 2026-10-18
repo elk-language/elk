@@ -42,8 +42,11 @@ func (n *ExactTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
-func (n *ExactTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	typeNode := n.TypeNode.traverseMap(n, fn)
+func (n *ExactTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typeNode, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewExactTypeNode(n.loc, typeNode.(TypeNode))
 

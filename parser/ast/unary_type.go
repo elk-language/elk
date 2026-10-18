@@ -45,8 +45,11 @@ func (n *UnaryTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
-func (n *UnaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	typeNode := n.TypeNode.traverseMap(n, fn)
+func (n *UnaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typeNode, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewUnaryTypeNode(n.loc, n.Op, typeNode.(TypeNode))
 

@@ -86,20 +86,34 @@ func (n *ClosureLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *ClosureLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	params := traverseMapSlice(n.Parameters, n, fn)
+func (n *ClosureLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var retType TypeNode
 	if n.ReturnType != nil {
-		retType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		retType = mapped.(TypeNode)
 	}
 
 	var throwType TypeNode
 	if n.ThrowType != nil {
-		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
 	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewClosureLiteralNode(n.loc, params, retType, throwType, body, n.Lambda, n.Pure)
 

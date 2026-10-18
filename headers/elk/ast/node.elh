@@ -40,7 +40,7 @@ module ::Std::Elk::AST
 			passing them as arguments to the given closure
 			and replacing them with the returned node.
 		]##
-		def traverse_map(fn: |node: Node|: Node): Node; end
+		def traverse_map[E = never](fn: |node: Node|: Node ! E): Node ! E; end
 
 		##[
 			Create a new iterator by eagerly traversing the entire AST

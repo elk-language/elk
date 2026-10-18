@@ -42,8 +42,11 @@ func (n *InstanceOfTypeNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *InstanceOfTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	typ := n.TypeNode.traverseMap(n, fn)
+func (n *InstanceOfTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typ, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewInstanceOfTypeNode(n.loc, typ.(TypeNode))
 

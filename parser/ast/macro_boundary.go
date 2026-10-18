@@ -46,8 +46,11 @@ func (n *MacroBoundaryNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
-func (n *MacroBoundaryNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *MacroBoundaryNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMacroBoundaryNode(n.loc, body, n.Name)
 

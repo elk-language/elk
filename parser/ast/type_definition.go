@@ -60,14 +60,24 @@ func (n *GenericTypeDefinitionNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
-func (n *GenericTypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	constant := n.Constant.traverseMap(n, fn)
+func (n *GenericTypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	typeVars := traverseMapSlice(n.TypeParameters, n, fn)
+	typeVars, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	newNode := NewGenericTypeDefinitionNode(
@@ -268,12 +278,19 @@ func (n *TypeDefinitionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *TypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	constant := n.Constant.traverseMap(n, fn)
+func (n *TypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	var typ TypeNode
 	if n.TypeNode != nil {
-		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
 	}
 
 	newNode := NewTypeDefinitionNode(n.loc, n.DocComment(), constant.(ComplexConstantNode), typ)

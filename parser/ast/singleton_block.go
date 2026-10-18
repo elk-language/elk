@@ -52,8 +52,11 @@ func (n *SingletonBlockExpressionNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
-func (n *SingletonBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	body := traverseMapSlice(n.Body, n, fn)
+func (n *SingletonBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSingletonBlockExpressionNode(n.loc, body)
 

@@ -34,7 +34,7 @@ func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
-func (n *BoolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *BoolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewBoolLiteralNode(n.loc)
 
 	return fn(newNode, parent)
@@ -123,7 +123,7 @@ func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
-func (n *VoidTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *VoidTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewVoidTypeNode(n.loc)
 
 	return fn(newNode, parent)
@@ -206,7 +206,7 @@ func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
-func (n *NeverTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *NeverTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewNeverTypeNode(n.loc)
 
 	return fn(newNode, parent)
@@ -293,7 +293,7 @@ func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
-func (n *AnyTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+func (n *AnyTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
 	newNode := NewAnyTypeNode(n.loc)
 
 	return fn(newNode, parent)

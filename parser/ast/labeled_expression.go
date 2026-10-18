@@ -44,8 +44,11 @@ func (n *LabeledExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *LabeledExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	expr := n.Expression.traverseMap(n, fn)
+func (n *LabeledExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewLabeledExpressionNode(n.loc, n.Label, expr.(ExpressionNode))
 

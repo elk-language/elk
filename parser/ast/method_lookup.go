@@ -48,10 +48,16 @@ func (n *InstanceMethodLookupNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
-func (n *InstanceMethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	receiver := n.Receiver.traverseMap(n, fn)
+func (n *InstanceMethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	name := n.Name.traverseMap(n, fn)
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewInstanceMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
 
@@ -186,10 +192,16 @@ func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
-func (n *MethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	receiver := n.Receiver.traverseMap(n, fn)
+func (n *MethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	name := n.Name.traverseMap(n, fn)
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
 
@@ -325,10 +337,16 @@ func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
-func (n *MethodLookupAsNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	methodLookup := n.MethodLookup.traverseMap(n, fn)
+func (n *MethodLookupAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodLookup, err := n.MethodLookup.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	as := n.AsName.traverseMap(n, fn)
+	as, err := n.AsName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewMethodLookupAsNode(n.loc, methodLookup.(*MethodLookupNode), as.(IdentifierNode))
 

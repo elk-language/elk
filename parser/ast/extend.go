@@ -56,10 +56,16 @@ func (n *ExtendWhereBlockExpressionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
-func (n *ExtendWhereBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	where := traverseMapSlice(n.Where, n, fn)
+func (n *ExtendWhereBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	where, err := traverseMapSlice(n.Where, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	body := traverseMapSlice(n.Body, n, fn)
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewExtendWhereBlockExpressionNode(n.loc, body, where)
 

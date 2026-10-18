@@ -42,8 +42,11 @@ func (n *PatternExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
-func (n *PatternExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	patternNode := n.PatternNode.traverseMap(n, fn)
+func (n *PatternExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	patternNode, err := n.PatternNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewPatternExpressionNode(n.loc, patternNode.(PatternNode))
 

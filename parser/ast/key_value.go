@@ -52,10 +52,16 @@ func (n *KeyValueExpressionNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
-func (n *KeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	key := n.Key.traverseMap(n, fn)
+func (n *KeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	val := n.Value.traverseMap(n, fn)
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewKeyValueExpressionNode(n.loc, key.(ExpressionNode), val.(ExpressionNode))
 
@@ -179,8 +185,11 @@ func (n *SymbolKeyValueExpressionNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
-func (n *SymbolKeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	val := n.Value.traverseMap(n, fn)
+func (n *SymbolKeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSymbolKeyValueExpressionNode(n.loc, n.Key, val.(ExpressionNode))
 
@@ -301,10 +310,16 @@ func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
-func (n *SymbolKeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	key := n.Key.traverseMap(n, fn)
+func (n *SymbolKeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	val := n.Value.traverseMap(n, fn)
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewSymbolKeyValuePatternNode(n.loc, key.(IdentifierNode), val.(PatternNode))
 
@@ -425,10 +440,16 @@ func (n *KeyValuePatternNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
-func (n *KeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
-	key := n.Key.traverseMap(n, fn)
+func (n *KeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
-	val := n.Value.traverseMap(n, fn)
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
 
 	newNode := NewKeyValuePatternNode(n.loc, key.(LiteralPatternNode), val.(PatternNode))
 
