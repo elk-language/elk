@@ -36,6 +36,12 @@ func (n *FloatLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *FloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewFloatLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *FloatLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FloatLiteralNode)
 	if !ok {
@@ -121,6 +127,12 @@ func (n *BigFloatLiteralNode) traverse(parent Node, enter func(node, parent Node
 	}
 
 	return leave(n, parent)
+}
+
+func (n *BigFloatLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewBigFloatLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *BigFloatLiteralNode) Equal(other value.Value) bool {
@@ -210,6 +222,12 @@ func (n *Float64LiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *Float64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewFloat64LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Float64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Float64LiteralNode)
 	if !ok {
@@ -295,6 +313,12 @@ func (n *Float32LiteralNode) traverse(parent Node, enter func(node, parent Node)
 	}
 
 	return leave(n, parent)
+}
+
+func (n *Float32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewFloat32LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *Float32LiteralNode) Equal(other value.Value) bool {

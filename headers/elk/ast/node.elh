@@ -36,6 +36,13 @@ module ::Std::Elk::AST
 		def traverse(fn: |node: Node|: bool): bool; end
 
 		##[
+			Build a new AST by visiting all nodes of this AST
+			passing them as arguments to the given closure
+			and replacing them with the returned node.
+		]##
+		def traverse_map(fn: |node: Node|: Node): Node; end
+
+		##[
 			Create a new iterator by eagerly traversing the entire AST
 			and collecting its nodes to a collection.
 		]##

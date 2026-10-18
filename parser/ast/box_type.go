@@ -44,6 +44,14 @@ func (n *BoxTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *BoxTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	typ := n.TypeNode.traverseMap(n, fn)
+
+	newNode := NewBoxTypeNode(n.loc, typ.(TypeNode), n.Immutable)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if this node equals the other node.
 func (n *BoxTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoxTypeNode)

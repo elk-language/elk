@@ -61,6 +61,16 @@ func (n *SelectExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *SelectExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	cases := traverseMapSlice(n.Cases, n, fn)
+
+	els := traverseMapSlice(n.ElseBody, n, fn)
+
+	newNode := NewSelectExpressionNode(n.loc, cases, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *SelectExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelectExpressionNode)
 	if !ok {
@@ -243,6 +253,16 @@ func (n *SelectCaseNode) traverse(parent Node, enter func(node, parent Node) Tra
 	}
 
 	return leave(n, parent)
+}
+
+func (n *SelectCaseNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	expr := n.Expression.traverseMap(n, fn)
+
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewSelectCaseNode(n.loc, expr.(ExpressionNode), body)
+
+	return fn(newNode, parent)
 }
 
 func (n *SelectCaseNode) Equal(other value.Value) bool {

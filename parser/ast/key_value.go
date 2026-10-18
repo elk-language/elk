@@ -52,6 +52,16 @@ func (n *KeyValueExpressionNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *KeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	key := n.Key.traverseMap(n, fn)
+
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewKeyValueExpressionNode(n.loc, key.(ExpressionNode), val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
 	if !ok {
@@ -169,6 +179,14 @@ func (n *SymbolKeyValueExpressionNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
+func (n *SymbolKeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewSymbolKeyValueExpressionNode(n.loc, n.Key, val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValueExpressionNode)
 	if !ok {
@@ -283,6 +301,16 @@ func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *SymbolKeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	key := n.Key.traverseMap(n, fn)
+
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewSymbolKeyValuePatternNode(n.loc, key.(IdentifierNode), val.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
 	if !ok {
@@ -395,6 +423,16 @@ func (n *KeyValuePatternNode) traverse(parent Node, enter func(node, parent Node
 	}
 
 	return leave(n, parent)
+}
+
+func (n *KeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	key := n.Key.traverseMap(n, fn)
+
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewKeyValuePatternNode(n.loc, key.(LiteralPatternNode), val.(PatternNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *KeyValuePatternNode) Equal(other value.Value) bool {

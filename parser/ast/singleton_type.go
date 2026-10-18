@@ -42,6 +42,14 @@ func (n *SingletonTypeNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *SingletonTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	typ := n.TypeNode.traverseMap(n, fn)
+
+	newNode := NewSingletonTypeNode(n.loc, typ.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SingletonTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonTypeNode)
 	if !ok {

@@ -50,6 +50,16 @@ func (n *AssignmentExpressionNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *AssignmentExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	left := n.Left.traverseMap(n, fn)
+
+	right := n.Right.traverseMap(n, fn)
+
+	newNode := NewAssignmentExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AssignmentExpressionNode) IsStatic() bool {
 	return false
 }

@@ -58,6 +58,14 @@ func (n *ExpressionStatementNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *ExpressionStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	expr := n.Expression.traverseMap(n, fn)
+
+	newNode := NewExpressionStatementNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
 	if !ok {
@@ -155,6 +163,12 @@ func (n *EmptyStatementNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *EmptyStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewEmptyStatementNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*EmptyStatementNode)
@@ -242,6 +256,14 @@ func (n *ImportStatementNode) traverse(parent Node, enter func(node, parent Node
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ImportStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	path := n.Path.traverseMap(n, fn)
+
+	newNode := NewImportStatementNode(n.loc, path.(StringLiteralNode))
+
+	return fn(newNode, parent)
 }
 
 // Check if this node equals another node.
@@ -335,6 +357,14 @@ func (n *ParameterStatementNode) traverse(parent Node, enter func(node, parent N
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ParameterStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	param := n.Parameter.traverseMap(n, fn)
+
+	newNode := NewParameterStatementNode(n.loc, param.(ParameterNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *ParameterStatementNode) Equal(other value.Value) bool {
@@ -442,6 +472,14 @@ func (n *TypeStatementNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *TypeStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	typeNode := n.TypeNode.traverseMap(n, fn)
+
+	newNode := NewTypeStatementNode(n.loc, typeNode.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *TypeStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TypeStatementNode)
 	if !ok {
@@ -537,6 +575,14 @@ func (n *PatternStatementNode) traverse(parent Node, enter func(node, parent Nod
 	}
 
 	return leave(n, parent)
+}
+
+func (n *PatternStatementNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	pattern := n.Pattern.traverseMap(n, fn)
+
+	newNode := NewPatternStatementNode(n.loc, pattern.(PatternNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *PatternStatementNode) Equal(other value.Value) bool {

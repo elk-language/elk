@@ -61,6 +61,22 @@ func (n *BreakExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *BreakExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	var label IdentifierNode
+	if n.Label != nil {
+		label = n.Label.traverseMap(n, fn).(IdentifierNode)
+	}
+
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewBreakExpressionNode(n.loc, label, val)
+
+	return fn(newNode, parent)
+}
+
 func (n *BreakExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BreakExpressionNode)
 	if !ok {

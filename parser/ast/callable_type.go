@@ -76,6 +76,24 @@ func (n *CallableTypeNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *CallableTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	params := traverseMapSlice(n.Parameters, n, fn)
+
+	var retType TypeNode
+	if n.ReturnType != nil {
+		retType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+	}
+
+	newNode := NewCallableTypeNode(n.loc, params, retType, throwType, n.IsClosure, n.IsPure)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *CallableTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CallableTypeNode)

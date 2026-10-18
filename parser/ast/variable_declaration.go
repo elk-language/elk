@@ -72,6 +72,24 @@ func (n *VariableDeclarationNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *VariableDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewVariableDeclarationNode(n.loc, n.DocComment(), name.(IdentifierNode), typ, init)
+
+	return fn(newNode, parent)
+}
+
 func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
 	if !ok {

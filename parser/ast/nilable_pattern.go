@@ -42,6 +42,14 @@ func (n *NilablePatternNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *NilablePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	pattern := n.Pattern.traverseMap(n, fn)
+
+	newNode := NewNilablePatternNode(n.loc, pattern.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (*NilablePatternNode) IsStatic() bool {
 	return false
 }

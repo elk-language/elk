@@ -82,6 +82,22 @@ func (n *RangeLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *RangeLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	var start ExpressionNode
+	if n.Start != nil {
+		start = n.Start.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	var end ExpressionNode
+	if n.End != nil {
+		end = n.End.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewRangeLiteralNode(n.loc, n.Op, start, end)
+
+	return fn(newNode, parent)
+}
+
 func (n *RangeLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RangeLiteralNode)
 	if !ok {

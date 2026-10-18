@@ -64,6 +64,12 @@ func (n *UninterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *UninterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUninterpolatedRegexLiteralNode(n.loc, n.Content, n.Flags)
+
+	return fn(newNode, parent)
+}
+
 func (n *UninterpolatedRegexLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UninterpolatedRegexLiteralNode)
 	if !ok {
@@ -236,6 +242,12 @@ func (n *RegexLiteralContentSectionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *RegexLiteralContentSectionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewRegexLiteralContentSectionNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *RegexLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RegexLiteralContentSectionNode)
 	if !ok {
@@ -325,6 +337,14 @@ func (n *RegexInterpolationNode) traverse(parent Node, enter func(node, parent N
 	}
 
 	return leave(n, parent)
+}
+
+func (n *RegexInterpolationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	expr := n.Expression.traverseMap(n, fn)
+
+	newNode := NewRegexInterpolationNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *RegexInterpolationNode) Equal(other value.Value) bool {
@@ -431,6 +451,14 @@ func (n *InterpolatedRegexLiteralNode) traverse(parent Node, enter func(node, pa
 	}
 
 	return leave(n, parent)
+}
+
+func (n *InterpolatedRegexLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	content := traverseMapSlice(n.Content, n, fn)
+
+	newNode := NewInterpolatedRegexLiteralNode(n.loc, content, n.Flags)
+
+	return fn(newNode, parent)
 }
 
 func (n *InterpolatedRegexLiteralNode) Equal(other value.Value) bool {

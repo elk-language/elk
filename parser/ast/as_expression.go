@@ -47,6 +47,16 @@ func (n *AsExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *AsExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	val := n.Value.traverseMap(n, fn)
+
+	runtimeType := n.RuntimeType.traverseMap(n, fn)
+
+	newNode := NewAsExpressionNode(n.loc, val.(ExpressionNode), runtimeType.(ComplexConstantNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AsExpressionNode) IsStatic() bool {
 	return false
 }

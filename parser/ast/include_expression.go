@@ -44,6 +44,14 @@ func (n *IncludeExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *IncludeExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	consts := traverseMapSlice(n.Constants, n, fn)
+
+	newNode := NewIncludeExpressionNode(n.loc, consts)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *IncludeExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IncludeExpressionNode)

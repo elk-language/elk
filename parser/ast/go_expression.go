@@ -46,6 +46,14 @@ func (n *GoExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *GoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewGoExpressionNode(n.loc, body)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *GoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GoExpressionNode)

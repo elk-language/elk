@@ -97,6 +97,27 @@ func (n *VariantTypeParameterNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *VariantTypeParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	var lower TypeNode
+	if n.LowerBound != nil {
+		lower = n.LowerBound.traverseMap(n, fn).(TypeNode)
+	}
+
+	var upper TypeNode
+	if n.UpperBound != nil {
+		upper = n.UpperBound.traverseMap(n, fn).(TypeNode)
+	}
+
+	var def TypeNode
+	if n.Default != nil {
+		def = n.Default.traverseMap(n, fn).(TypeNode)
+	}
+
+	newNode := NewVariantTypeParameterNode(n.loc, n.Variance, n.Name, lower, upper, def)
+
+	return fn(newNode, parent)
+}
+
 func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
 	if !ok {

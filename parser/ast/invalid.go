@@ -42,6 +42,12 @@ func (n *InvalidNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *InvalidNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewInvalidNode(n.loc, n.Token)
+
+	return fn(newNode, parent)
+}
+
 func (n *InvalidNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InvalidNode)
 	if !ok {

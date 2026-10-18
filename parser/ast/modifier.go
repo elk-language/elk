@@ -51,6 +51,16 @@ func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
+func (n *ModifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	left := n.Left.traverseMap(n, fn)
+
+	right := n.Right.traverseMap(n, fn)
+
+	newNode := NewModifierNode(n.loc, n.Modifier, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *ModifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierNode)
 	if !ok {
@@ -196,6 +206,23 @@ func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *ModifierIfElseNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	then := n.ThenExpression.traverseMap(n, fn)
+
+	cond := n.Condition.traverseMap(n, fn)
+
+	els := n.ElseExpression.traverseMap(n, fn)
+
+	newNode := NewModifierIfElseNode(
+		n.loc,
+		then.(ExpressionNode),
+		cond.(ExpressionNode),
+		els.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
 	if !ok {
@@ -338,6 +365,23 @@ func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ModifierForInNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	then := n.ThenExpression.traverseMap(n, fn)
+
+	pattern := n.Pattern.traverseMap(n, fn)
+
+	in := n.InExpression.traverseMap(n, fn)
+
+	newNode := NewModifierForInNode(
+		n.loc,
+		then.(ExpressionNode),
+		pattern.(PatternNode),
+		in.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
 }
 
 func (n *ModifierForInNode) Equal(other value.Value) bool {

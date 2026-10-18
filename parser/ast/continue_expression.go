@@ -62,6 +62,22 @@ func (n *ContinueExpressionNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *ContinueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	var label IdentifierNode
+	if n.Label != nil {
+		label = n.Label.traverseMap(n, fn).(IdentifierNode)
+	}
+
+	var val ExpressionNode
+	if n.Value != nil {
+		val = n.Value.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewContinueExpressionNode(n.loc, label, val)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ContinueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ContinueExpressionNode)

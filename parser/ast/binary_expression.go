@@ -54,6 +54,16 @@ func (n *BinaryExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *BinaryExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	left := n.Left.traverseMap(n, fn)
+
+	right := n.Right.traverseMap(n, fn)
+
+	newNode := NewBinaryExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *BinaryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryExpressionNode)
 	if !ok {

@@ -34,6 +34,12 @@ func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *BoolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewBoolLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoolLiteralNode)
 	if !ok {
@@ -117,6 +123,12 @@ func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
+func (n *VoidTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewVoidTypeNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *VoidTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VoidTypeNode)
 	if !ok {
@@ -192,6 +204,12 @@ func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	}
 
 	return leave(n, parent)
+}
+
+func (n *NeverTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewNeverTypeNode(n.loc)
+
+	return fn(newNode, parent)
 }
 
 func (n *NeverTypeNode) Equal(other value.Value) bool {
@@ -273,6 +291,12 @@ func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	}
 
 	return leave(n, parent)
+}
+
+func (n *AnyTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewAnyTypeNode(n.loc)
+
+	return fn(newNode, parent)
 }
 
 func (n *AnyTypeNode) Equal(other value.Value) bool {

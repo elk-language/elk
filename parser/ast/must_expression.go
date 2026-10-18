@@ -42,6 +42,14 @@ func (n *MustExpressionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *MustExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewMustExpressionNode(n.loc, val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *MustExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MustExpressionNode)
 	if !ok {

@@ -44,6 +44,14 @@ func (n *AwaitExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *AwaitExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewAwaitExpressionNode(n.loc, val.(ExpressionNode), n.Sync)
+
+	return fn(newNode, parent)
+}
+
 func (*AwaitExpressionNode) IsStatic() bool {
 	return false
 }

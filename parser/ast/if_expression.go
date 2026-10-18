@@ -64,6 +64,18 @@ func (n *IfExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *IfExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	cond := n.Condition.traverseMap(n, fn)
+
+	then := traverseMapSlice(n.ThenBody, n, fn)
+
+	els := traverseMapSlice(n.ElseBody, n, fn)
+
+	newNode := NewIfExpressionNode(n.loc, cond.(ExpressionNode), then, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *IfExpressionNode) ifExpression() {}
 
 func (n *IfExpressionNode) SetElseBody(body []StatementNode) {

@@ -42,6 +42,14 @@ func (n *NilableTypeNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *NilableTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	typ := n.TypeNode.traverseMap(n, fn)
+
+	newNode := NewNilableTypeNode(n.loc, typ.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *NilableTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NilableTypeNode)
 	if !ok {

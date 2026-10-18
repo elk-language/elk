@@ -44,6 +44,14 @@ func (n *RecordPatternNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *RecordPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewRecordPatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *RecordPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RecordPatternNode)
 	if !ok {

@@ -52,6 +52,14 @@ func (n *SingletonBlockExpressionNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
+func (n *SingletonBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewSingletonBlockExpressionNode(n.loc, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *SingletonBlockExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SingletonBlockExpressionNode)
 	if !ok {

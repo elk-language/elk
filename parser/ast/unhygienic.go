@@ -34,11 +34,19 @@ func (n *UnhygienicNode) traverse(parent Node, enter func(node, parent Node) Tra
 		return leave(n, parent)
 	}
 
-	if n.traverse(n.Node, enter, leave) == TraverseBreak {
+	if n.Node.traverse(n, enter, leave) == TraverseBreak {
 		return TraverseBreak
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UnhygienicNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	node := n.Node.traverseMap(n, fn)
+
+	newNode := NewUnhygienicNode(n.loc, node)
+
+	return fn(newNode, parent)
 }
 
 // Check if this node equals another node.

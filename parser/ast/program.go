@@ -69,6 +69,14 @@ func (n *ProgramNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *ProgramNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewProgramNode(n.loc, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *ProgramNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ProgramNode)
 	if !ok {

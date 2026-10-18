@@ -47,6 +47,14 @@ func (n *ArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *ArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
 	if t.static == staticUnset {
 		if isExpressionSliceStatic(t.Elements) {
@@ -224,6 +232,14 @@ func (n *WordArrayTupleLiteralNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *WordArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewWordArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
 	if !ok {
@@ -379,6 +395,14 @@ func (n *SymbolArrayTupleLiteralNode) traverse(parent Node, enter func(node, par
 	}
 
 	return leave(n, parent)
+}
+
+func (n *SymbolArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewSymbolArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 // Check if this node equals another node.
@@ -540,6 +564,14 @@ func (n *HexArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *HexArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewHexArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
@@ -696,6 +728,14 @@ func (n *BinArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	}
 
 	return leave(n, parent)
+}
+
+func (n *BinArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewBinArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
@@ -863,6 +903,14 @@ func (n *TuplePatternNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *TuplePatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewTuplePatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 func (n *TuplePatternNode) Equal(other value.Value) bool {

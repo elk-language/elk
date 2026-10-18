@@ -60,6 +60,19 @@ func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *ArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (l *ArrayListLiteralNode) IsStatic() bool {
 	if l.static == staticUnset {
 		if isExpressionSliceStatic(l.Elements) && isExpressionStatic(l.Capacity) {
@@ -291,6 +304,19 @@ func (n *WordArrayListLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *WordArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewWordArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
 	if !ok {
@@ -506,6 +532,19 @@ func (n *SymbolArrayListLiteralNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *SymbolArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewSymbolArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
 	if !ok {
@@ -718,6 +757,19 @@ func (n *HexArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *HexArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewHexArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
 }
 
 // Check if this node equals another node.
@@ -936,6 +988,19 @@ func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *BinArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewBinArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (b *BinArrayListLiteralNode) IsStatic() bool {
 	if b.static == staticUnset {
 		if isExpressionStatic(b.Capacity) {
@@ -1143,6 +1208,14 @@ func (n *ListPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ListPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewListPatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 func (n *ListPatternNode) Equal(other value.Value) bool {

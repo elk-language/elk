@@ -81,6 +81,31 @@ func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *MacroDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	params := traverseMapSlice(n.Parameters, n, fn)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+	}
+
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewMacroDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		n.sealed,
+		name.(IdentifierNode),
+		params,
+		returnType,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Check if this method definition is equal to another value.
 func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
@@ -343,6 +368,27 @@ func (n *ScopedMacroCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ScopedMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	macroName := n.MacroName.traverseMap(n, fn)
+
+	recv := n.Receiver.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewScopedMacroCallNode(
+		n.loc,
+		n.Kind,
+		recv.(ExpressionNode),
+		macroName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ScopedMacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ScopedMacroCallNode)
 	if !ok {
@@ -597,6 +643,27 @@ func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *MacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	macroName := n.MacroName.traverseMap(n, fn)
+
+	recv := n.Receiver.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewMacroCallNode(
+		n.loc,
+		n.Kind,
+		recv.(ExpressionNode),
+		macroName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroCallNode)
 	if !ok {
@@ -839,6 +906,16 @@ func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, paren
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ReceiverlessMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewReceiverlessMacroCallNode(n.loc, n.Kind, n.MacroName, posArgs, namedArgs)
+
+	return fn(newNode, parent)
 }
 
 func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {

@@ -36,6 +36,12 @@ func (n InferredExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n InferredExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := InferredExpressionNode{}
+
+	return fn(newNode, parent)
+}
+
 func (n InferredExpressionNode) Equal(other value.Value) bool {
 	_, ok := other.SafeAsReference().(InferredExpressionNode)
 	return ok

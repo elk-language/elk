@@ -55,6 +55,16 @@ func (n *NewExpressionNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *NewExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewNewExpressionNode(n.loc, posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 func (n *NewExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NewExpressionNode)
 	if !ok {
@@ -279,6 +289,26 @@ func (n *GenericConstructorCallNode) traverse(parent Node, enter func(node, pare
 	}
 
 	return leave(n, parent)
+}
+
+func (n *GenericConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	class := n.ClassNode.traverseMap(n, fn)
+
+	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewGenericConstructorCallNode(
+		n.loc,
+		class.(ComplexConstantNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
 }
 
 // Equal checks if the given GenericConstructorCallNode is equal to another value.
@@ -550,6 +580,18 @@ func (n *ConstructorCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	class := n.ClassNode.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewConstructorCallNode(n.loc, class.(ComplexConstantNode), posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstructorCallNode)
@@ -769,6 +811,16 @@ func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *AttributeAccessNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	recv := n.Receiver.traverseMap(n, fn)
+
+	attrName := n.AttributeName.traverseMap(n, fn)
+
+	newNode := NewAttributeAccessNode(n.loc, recv.(ExpressionNode), attrName.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AttributeAccessNode) IsStatic() bool {
 	return false
 }
@@ -893,6 +945,16 @@ func (n *SubscriptExpressionNode) traverse(parent Node, enter func(node, parent 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *SubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	recv := n.Receiver.traverseMap(n, fn)
+
+	key := n.Key.traverseMap(n, fn)
+
+	newNode := NewSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
@@ -1027,6 +1089,16 @@ func (n *NilSafeSubscriptExpressionNode) traverse(parent Node, enter func(node, 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *NilSafeSubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	recv := n.Receiver.traverseMap(n, fn)
+
+	key := n.Key.traverseMap(n, fn)
+
+	newNode := NewNilSafeSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
@@ -1169,6 +1241,18 @@ func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseO
 	}
 
 	return leave(n, parent)
+}
+
+func (n *CallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	recv := n.Receiver.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewCallNode(n.loc, recv.(ExpressionNode), n.NilSafe, posArgs, namedArgs)
+
+	return fn(newNode, parent)
 }
 
 func (n *CallNode) OpType() token.Type {
@@ -1443,6 +1527,30 @@ func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *GenericMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	methodName := n.MethodName.traverseMap(n, fn)
+
+	recv := n.Receiver.traverseMap(n, fn)
+
+	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewGenericMethodCallNode(
+		n.loc,
+		recv.(ExpressionNode),
+		n.Op,
+		methodName.(IdentifierNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
 }
 
 // Equal checks if the given GenericMethodCallNode is equal to another value.
@@ -1746,6 +1854,27 @@ func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *MethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	methodName := n.MethodName.traverseMap(n, fn)
+
+	recv := n.Receiver.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewMethodCallNode(
+		n.loc,
+		recv.(ExpressionNode),
+		n.Op,
+		methodName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodCallNode)
 	if !ok {
@@ -1990,6 +2119,18 @@ func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *ReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	methodName := n.MethodName.traverseMap(n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewReceiverlessMethodCallNode(n.loc, methodName.(IdentifierNode), posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
 	if !ok {
@@ -2219,6 +2360,26 @@ func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(nod
 	}
 
 	return leave(n, parent)
+}
+
+func (n *GenericReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	methodName := n.MethodName.traverseMap(n, fn)
+
+	typeArgs := traverseMapSlice(n.TypeArguments, n, fn)
+
+	posArgs := traverseMapSlice(n.PositionalArguments, n, fn)
+
+	namedArgs := traverseMapSlice(n.NamedArguments, n, fn)
+
+	newNode := NewGenericReceiverlessMethodCallNode(
+		n.loc,
+		methodName.(IdentifierNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
 }
 
 // Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.

@@ -121,6 +121,24 @@ func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *FormalParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewFormalParameterNode(n.loc, name.(IdentifierNode), typ, init, n.Kind)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if the given FormalParameterNode is equal to another value.
 func (n *FormalParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FormalParameterNode)
@@ -322,6 +340,31 @@ func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *MethodParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewMethodParameterNode(
+		n.loc,
+		name.(IdentifierNode),
+		n.SetInstanceVariable,
+		typ,
+		init,
+		n.Kind,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodParameterNode)
 	if !ok {
@@ -517,6 +560,19 @@ func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *SignatureParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	newNode := NewSignatureParameterNode(n.loc, name.(IdentifierNode), typ, n.Optional, n.Kind)
+
+	return fn(newNode, parent)
+}
+
 func (n *SignatureParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SignatureParameterNode)
 	if !ok {
@@ -687,6 +743,24 @@ func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent N
 	}
 
 	return leave(n, parent)
+}
+
+func (n *AttributeParameterNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewAttributeParameterNode(n.loc, name.(IdentifierNode), typ, init)
+
+	return fn(newNode, parent)
 }
 
 func (*AttributeParameterNode) IsStatic() bool {

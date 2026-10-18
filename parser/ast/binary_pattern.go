@@ -50,6 +50,16 @@ func (n *BinaryPatternNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *BinaryPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	left := n.Left.traverseMap(n, fn)
+
+	right := n.Right.traverseMap(n, fn)
+
+	newNode := NewBinaryPatternNode(n.loc, n.Op, left.(PatternNode), right.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *BinaryPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryPatternNode)
 	if !ok {

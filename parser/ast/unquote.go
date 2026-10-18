@@ -59,6 +59,14 @@ func (n *UnquoteNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *UnquoteNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	expr := n.Expression.traverseMap(n, fn)
+
+	newNode := NewUnquoteNode(n.loc, n.Kind, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UnquoteNode) MacroType(env *types.GlobalEnvironment) types.Type {
 	return types.NameToType("Std::Elk::AST::UnquoteNode", env)
 }

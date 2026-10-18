@@ -52,6 +52,16 @@ func (n *LogicalExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *LogicalExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	left := n.Left.traverseMap(n, fn)
+
+	right := n.Right.traverseMap(n, fn)
+
+	newNode := NewLogicalExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
 	if !ok {

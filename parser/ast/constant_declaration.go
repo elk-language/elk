@@ -72,6 +72,24 @@ func (n *ConstantDeclarationNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *ConstantDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	constant := n.Constant.traverseMap(n, fn)
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		typ = n.TypeNode.traverseMap(n, fn).(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		init = n.Initialiser.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewConstantDeclarationNode(n.loc, n.DocComment(), constant.(ExpressionNode), typ, init)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ConstantDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantDeclarationNode)

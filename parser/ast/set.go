@@ -60,6 +60,19 @@ func (n *HashSetLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *HashSetLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewHashSetLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashSetLiteralNode)
@@ -287,6 +300,19 @@ func (n *WordHashSetLiteralNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *WordHashSetLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewWordHashSetLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *WordHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordHashSetLiteralNode)
 	if !ok {
@@ -502,6 +528,19 @@ func (n *SymbolHashSetLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *SymbolHashSetLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewSymbolHashSetLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolHashSetLiteralNode)
 	if !ok {
@@ -714,6 +753,19 @@ func (n *HexHashSetLiteralNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *HexHashSetLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewHexHashSetLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
 }
 
 func (h *HexHashSetLiteralNode) IsStatic() bool {
@@ -931,6 +983,19 @@ func (n *BinHashSetLiteralNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *BinHashSetLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewBinHashSetLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *BinHashSetLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinHashSetLiteralNode)
 	if !ok {
@@ -1135,6 +1200,14 @@ func (n *SetPatternNode) traverse(parent Node, enter func(node, parent Node) Tra
 	}
 
 	return leave(n, parent)
+}
+
+func (n *SetPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewSetPatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 func (n *SetPatternNode) Equal(other value.Value) bool {

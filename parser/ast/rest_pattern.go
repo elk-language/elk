@@ -42,6 +42,14 @@ func (n *RestPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *RestPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	ident := n.Identifier.traverseMap(n, fn)
+
+	newNode := NewRestPatternNode(n.loc, ident.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *RestPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RestPatternNode)
 	if !ok {

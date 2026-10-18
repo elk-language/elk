@@ -59,6 +59,20 @@ func (n *NamedCallArgumentNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *NamedCallArgumentNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	val := n.Value.traverseMap(n, fn)
+
+	newNode := NewNamedCallArgumentNode(
+		n.loc,
+		name.(IdentifierNode),
+		val.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
 	if !ok {

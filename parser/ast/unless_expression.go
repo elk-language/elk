@@ -58,6 +58,18 @@ func (n *UnlessExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *UnlessExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	cond := n.Condition.traverseMap(n, fn)
+
+	then := traverseMapSlice(n.ThenBody, n, fn)
+
+	els := traverseMapSlice(n.ElseBody, n, fn)
+
+	newNode := NewUnlessExpressionNode(n.loc, cond.(ExpressionNode), then, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
 	if !ok {

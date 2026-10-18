@@ -60,6 +60,19 @@ func (n *HashMapLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *HashMapLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		capacity = n.Capacity.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	newNode := NewHashMapLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
@@ -272,6 +285,14 @@ func (n *HashRecordLiteralNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *HashRecordLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewHashRecordLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
 }
 
 // Check if this node equals another node.

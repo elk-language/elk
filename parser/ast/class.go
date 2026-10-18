@@ -97,6 +97,38 @@ func (n *ClassDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *ClassDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		constant = n.Constant.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+
+	var superclass ExpressionNode
+	if n.Superclass != nil {
+		superclass = n.Superclass.traverseMap(n, fn).(ExpressionNode)
+	}
+
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewClassDeclarationNode(
+		n.loc,
+		n.DocComment(),
+		n.Abstract,
+		n.Sealed,
+		n.Primitive,
+		n.NoInit,
+		n.Immutable,
+		constant,
+		typeParams,
+		superclass,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
 	if !ok {

@@ -44,6 +44,14 @@ func (n *LabeledExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *LabeledExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	expr := n.Expression.traverseMap(n, fn)
+
+	newNode := NewLabeledExpressionNode(n.loc, n.Label, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *LabeledExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LabeledExpressionNode)
 	if !ok {

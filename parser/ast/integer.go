@@ -36,6 +36,12 @@ func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *IntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewIntLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *IntLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntLiteralNode)
 	if !ok {
@@ -120,6 +126,12 @@ func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *Int64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewInt64LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *Int64LiteralNode) Equal(other value.Value) bool {
@@ -209,6 +221,12 @@ func (n *UIntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *UIntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUIntLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UIntLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UIntLiteralNode)
 	if !ok {
@@ -294,6 +312,12 @@ func (n *UInt64LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UInt64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUInt64LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *UInt64LiteralNode) Equal(other value.Value) bool {
@@ -383,6 +407,12 @@ func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *Int32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewInt32LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int32LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int32LiteralNode)
 	if !ok {
@@ -464,6 +494,12 @@ func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UInt32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUInt32LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *UInt32LiteralNode) Equal(other value.Value) bool {
@@ -553,6 +589,12 @@ func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *Int16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewInt16LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int16LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int16LiteralNode)
 	if !ok {
@@ -638,6 +680,12 @@ func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UInt16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUInt16LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *UInt16LiteralNode) Equal(other value.Value) bool {
@@ -727,6 +775,12 @@ func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *Int8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewInt8LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int8LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int8LiteralNode)
 	if !ok {
@@ -812,6 +866,12 @@ func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UInt8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUInt8LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *UInt8LiteralNode) Equal(other value.Value) bool {

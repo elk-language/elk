@@ -44,6 +44,14 @@ func (n *LoopExpressionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *LoopExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	then := traverseMapSlice(n.ThenBody, n, fn)
+
+	newNode := NewLoopExpressionNode(n.loc, then)
+
+	return fn(newNode, parent)
+}
+
 func (n *LoopExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LoopExpressionNode)
 	if !ok {

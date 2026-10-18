@@ -116,6 +116,40 @@ func (n *MethodDefinitionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *MethodDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+
+	params := traverseMapSlice(n.Parameters, n, fn)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+	}
+
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewMethodDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		n.Flags.ToBitFlag(),
+		name.(IdentifierNode),
+		typeParams,
+		params,
+		returnType,
+		throwType,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Check if this method definition is equal to another value.
 func (n *MethodDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodDefinitionNode)
@@ -592,6 +626,28 @@ func (n *InitDefinitionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *InitDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	params := traverseMapSlice(n.Parameters, n, fn)
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+	}
+
+	body := traverseMapSlice(n.Body, n, fn)
+
+	newNode := NewInitDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		n.Flags.ToBitFlag(),
+		params,
+		throwType,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *InitDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InitDefinitionNode)
@@ -873,6 +929,36 @@ func (n *MethodSignatureDefinitionNode) traverse(parent Node, enter func(node, p
 	return leave(n, parent)
 }
 
+func (n *MethodSignatureDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	typeParams := traverseMapSlice(n.TypeParameters, n, fn)
+
+	params := traverseMapSlice(n.Parameters, n, fn)
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		returnType = n.ReturnType.traverseMap(n, fn).(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		throwType = n.ThrowType.traverseMap(n, fn).(TypeNode)
+	}
+
+	newNode := NewMethodSignatureDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		name.(IdentifierNode),
+		typeParams,
+		params,
+		returnType,
+		throwType,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodSignatureDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodSignatureDefinitionNode)
 	if !ok {
@@ -1143,6 +1229,16 @@ func (n *AliasDeclarationEntry) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *AliasDeclarationEntry) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	oldName := n.OldName.traverseMap(n, fn)
+
+	newName := n.NewName.traverseMap(n, fn)
+
+	newNode := NewAliasDeclarationEntry(n.loc, newName.(IdentifierNode), oldName.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AliasDeclarationEntry) IsStatic() bool {
 	return false
 }
@@ -1261,6 +1357,14 @@ func (n *AliasDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	}
 
 	return leave(n, parent)
+}
+
+func (n *AliasDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	entries := traverseMapSlice(n.Entries, n, fn)
+
+	newNode := NewAliasDeclarationNode(n.loc, entries)
+
+	return fn(newNode, parent)
 }
 
 func (n *AliasDeclarationNode) String() string {
@@ -1409,6 +1513,14 @@ func (n *GetterDeclarationNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *GetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	entries := traverseMapSlice(n.Entries, n, fn)
+
+	newNode := NewGetterDeclarationNode(n.loc, n.DocComment(), n.Flags.ToBitFlag(), entries)
+
+	return fn(newNode, parent)
 }
 
 // Equal checks if this node equals the other node.
@@ -1595,6 +1707,14 @@ func (n *SetterDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *SetterDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	entries := traverseMapSlice(n.Entries, n, fn)
+
+	newNode := NewSetterDeclarationNode(n.loc, n.DocComment(), entries)
+
+	return fn(newNode, parent)
+}
+
 func (n *SetterDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SetterDeclarationNode)
 	if !ok {
@@ -1749,6 +1869,14 @@ func (n *AttrDeclarationNode) traverse(parent Node, enter func(node, parent Node
 	}
 
 	return leave(n, parent)
+}
+
+func (n *AttrDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	entries := traverseMapSlice(n.Entries, n, fn)
+
+	newNode := NewAttrDeclarationNode(n.loc, n.DocComment(), n.Flags.ToBitFlag(), entries)
+
+	return fn(newNode, parent)
 }
 
 func (*AttrDeclarationNode) IsStatic() bool {

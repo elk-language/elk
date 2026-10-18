@@ -34,6 +34,12 @@ func (n *TrueLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *TrueLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewTrueLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TrueLiteralNode)
 	if !ok {
@@ -115,6 +121,12 @@ func (n *FalseLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *FalseLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewFalseLiteralNode(n.loc)
+
+	return fn(newNode, parent)
 }
 
 func (n *FalseLiteralNode) Equal(other value.Value) bool {
@@ -200,6 +212,12 @@ func (n *SelfLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *SelfLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewSelfLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelfLiteralNode)
 	if !ok {
@@ -277,6 +295,12 @@ func (n *NilLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	}
 
 	return leave(n, parent)
+}
+
+func (n *NilLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewNilLiteralNode(n.loc)
+
+	return fn(newNode, parent)
 }
 
 func (n *NilLiteralNode) Equal(other value.Value) bool {
@@ -362,6 +386,12 @@ func (n *UndefinedLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	}
 
 	return leave(n, parent)
+}
+
+func (n *UndefinedLiteralNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewUndefinedLiteralNode(n.loc)
+
+	return fn(newNode, parent)
 }
 
 func (n *UndefinedLiteralNode) Equal(other value.Value) bool {

@@ -50,6 +50,16 @@ func (n *UntilExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *UntilExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	cond := n.Condition.traverseMap(n, fn)
+
+	then := traverseMapSlice(n.ThenBody, n, fn)
+
+	newNode := NewUntilExpressionNode(n.loc, cond.(ExpressionNode), then)
+
+	return fn(newNode, parent)
+}
+
 func (n *UntilExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UntilExpressionNode)
 	if !ok {

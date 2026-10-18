@@ -6,6 +6,8 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp/v3"
@@ -277,5 +279,99 @@ func TestSplice(t *testing.T) {
 				t.Fail()
 			}
 		})
+	}
+}
+
+func TestTraverseMap(t *testing.T) {
+	loc := L("main", S(P(0, 1, 1), P(5, 1, 6)))
+	left := NewIntLiteralNode(loc, "1")
+	left.SetType(types.Untyped{})
+	expr := NewBinaryExpressionNode(
+		loc,
+		T(loc, token.PLUS),
+		left,
+		NewIntLiteralNode(loc, "2"),
+	)
+
+	copied := TraverseMap(expr, func(node, parent Node) Node {
+		return node
+	}).(*BinaryExpressionNode)
+
+	if !expr.LaxEqual(value.Ref(copied)) {
+		t.Fatalf("copy mismatch: %s", copied.String())
+	}
+	if copied == expr || copied.Left == left {
+		t.Fatal("expected a deep copy")
+	}
+	if copied.Left.Type(nil) != nil {
+		t.Fatal("copied literal should not keep its type")
+	}
+
+	replaced := TraverseMap(expr, func(node, parent Node) Node {
+		lit, ok := node.(*IntLiteralNode)
+		if ok && lit.Value == "1" {
+			return NewIntLiteralNode(lit.Location(), "9")
+		}
+		return node
+	})
+	if replaced.String() != "9 + 2" {
+		t.Fatalf("replaced tree is %s", replaced.String())
+	}
+	if expr.String() != "1 + 2" {
+		t.Fatalf("original tree changed: %s", expr.String())
+	}
+
+	var seenParent Node
+	TraverseMap(expr, func(node, parent Node) Node {
+		if lit, ok := node.(*IntLiteralNode); ok && lit.Value == "1" {
+			seenParent = parent
+		}
+		return node
+	})
+	if seenParent != Node(expr) {
+		t.Fatal("expected the literal's parent to be the original binary expression")
+	}
+
+	classNode := NewClassDeclarationNode(loc, "docs", true, false, false, false, false, nil, nil, nil, nil)
+	classNode.HasDefer = true
+	classNode.SetType(types.Untyped{})
+	classCopy := TraverseMap(classNode, func(node, parent Node) Node {
+		return node
+	}).(*ClassDeclarationNode)
+	if !classNode.LaxEqual(value.Ref(classCopy)) || classCopy.DocComment() != "docs" || !classCopy.Abstract {
+		t.Fatalf("class copy mismatch: %s", classCopy.Inspect())
+	}
+	if classCopy.HasDefer || classCopy.Type(nil) != nil {
+		t.Fatal("class copy kept typechecker state")
+	}
+
+	prog := NewProgramNode(loc, nil)
+	prog.ImportPaths = []string{"foo"}
+	prog.State = CHECKED_EXPRESSIONS
+	prog.HasDefer = true
+	prog.IsBuiltin = true
+	progCopy := TraverseMap(prog, func(node, parent Node) Node {
+		return node
+	}).(*ProgramNode)
+	if progCopy.ImportPaths != nil || progCopy.State != UNCHECKED || progCopy.HasDefer || progCopy.IsBuiltin {
+		t.Fatalf("program copy kept typechecker state: %#v", progCopy)
+	}
+
+	method := NewMethodDefinitionNode(
+		loc,
+		"doc",
+		bitfield.BitFlag8(1),
+		NewPublicIdentifierNode(loc, "foo"),
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+	methodCopy := TraverseMap(method, func(node, parent Node) Node {
+		return node
+	}).(*MethodDefinitionNode)
+	if methodCopy.DocComment() != "doc" || methodCopy.Flags != method.Flags {
+		t.Fatalf("method copy flags %v comment %q", methodCopy.Flags, methodCopy.DocComment())
 	}
 }

@@ -47,6 +47,16 @@ func (n *AsPatternNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *AsPatternNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	name := n.Name.traverseMap(n, fn)
+
+	pattern := n.Pattern.traverseMap(n, fn)
+
+	newNode := NewAsPatternNode(n.loc, pattern.(PatternNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AsPatternNode) IsStatic() bool {
 	return false
 }

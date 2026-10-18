@@ -56,6 +56,18 @@ func (n *ForInExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ForInExpressionNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	pattern := n.Pattern.traverseMap(n, fn)
+
+	inExpr := n.InExpression.traverseMap(n, fn)
+
+	then := traverseMapSlice(n.ThenBody, n, fn)
+
+	newNode := NewForInExpressionNode(n.loc, pattern.(PatternNode), inExpr.(ExpressionNode), then)
+
+	return fn(newNode, parent)
+}
+
 func (n *ForInExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ForInExpressionNode)
 	if !ok {

@@ -63,6 +63,12 @@ func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *PublicIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewPublicIdentifierNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
 	if !ok {
@@ -166,6 +172,12 @@ func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent No
 	}
 
 	return leave(n, parent)
+}
+
+func (n *PrivateIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	newNode := NewPrivateIdentifierNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
 }
 
 func (n *PrivateIdentifierNode) Equal(other value.Value) bool {

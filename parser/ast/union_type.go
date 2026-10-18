@@ -44,6 +44,14 @@ func (n *UnionTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *UnionTypeNode) traverseMap(parent Node, fn func(node, parent Node) Node) Node {
+	elements := traverseMapSlice(n.Elements, n, fn)
+
+	newNode := NewUnionTypeNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *UnionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnionTypeNode)
 	if !ok {
