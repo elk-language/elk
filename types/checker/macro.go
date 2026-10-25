@@ -12,9 +12,41 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/macros"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
+
+type macroAppendExpression struct {
+	key        string
+	kind       types.MacroAppendExpressionKind
+	expression ast.ExpressionNode
+	loc        *position.Location
+	used       bool
+}
+
+func newMacroAppendExpression(loc *position.Location, key string, kind types.MacroAppendExpressionKind, expr ast.ExpressionNode) *macroAppendExpression {
+	return &macroAppendExpression{
+		loc:        loc,
+		key:        key,
+		kind:       kind,
+		expression: expr,
+	}
+}
+
+func (c *Checker) RegisterMacroAppendExpression(loc *position.Location, key string, kind types.MacroAppendExpressionKind, expr types.AstNode) {
+	entry := newMacroAppendExpression(loc, key, kind, expr.(ast.ExpressionNode))
+	if key == "" {
+		c.macroAppendExpressionSlice = append(c.macroAppendExpressionSlice, entry)
+		return
+	}
+
+	_, present := c.macroAppendExpressionMap[key]
+	if !present {
+		c.macroAppendExpressionMap[key] = entry
+		c.macroAppendExpressionSlice = append(c.macroAppendExpressionSlice, entry)
+	}
+}
 
 // Expand top level macros
 func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramNode) {
@@ -40,10 +72,32 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 
 	c.expandTopLevelMacros(node.Body)
 
+	node.Body = c.expandTopLevelMacroAppendExpressions(node.Body, node.Location().NewLocationFromEnd())
+
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
 
 	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
+}
+
+func (c *Checker) expandTopLevelMacroAppendExpressions(body []ast.StatementNode, loc *position.Location) []ast.StatementNode {
+	for _, macroAppend := range c.macroAppendExpressionSlice {
+		if macroAppend.used {
+			continue
+		}
+
+		macroAppend.used = true
+		exprLoc := position.SpliceLocation(loc, macroAppend.loc, false)
+		expr := ast.Splice(macroAppend.expression, exprLoc, nil).(ast.ExpressionNode)
+		statement := ast.NewExpressionStatementNode(
+			expr.Location(),
+			expr,
+		)
+		c.expandTopLevelMacrosInStatement(statement)
+		body = append(body, statement)
+	}
+
+	return body
 }
 
 func (c *Checker) checkUsingExpressionForMacros(node *ast.UsingExpressionNode) {
@@ -99,10 +153,14 @@ func (c *Checker) checkUsingEntryWithSubentriesForMacros(node *ast.UsingEntryWit
 
 func (c *Checker) expandTopLevelMacros(statements []ast.StatementNode) {
 	for _, statement := range statements {
-		switch stmt := statement.(type) {
-		case *ast.ExpressionStatementNode:
-			stmt.Expression = c.expandTopLevelMacrosInExpression(stmt.Expression)
-		}
+		c.expandTopLevelMacrosInStatement(statement)
+	}
+}
+
+func (c *Checker) expandTopLevelMacrosInStatement(node ast.StatementNode) {
+	switch stmt := node.(type) {
+	case *ast.ExpressionStatementNode:
+		stmt.Expression = c.expandTopLevelMacrosInExpression(stmt.Expression)
 	}
 }
 
@@ -371,10 +429,16 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 		return nil
 	}
 
-	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+1)
+	constScope := c.currentConstScope()
+	runtimeArgs := make([]value.Value, 0, len(checkedArgs)+2)
 	runtimeArgs = append(
 		runtimeArgs,
 		value.Ref(value.MacroModule),
+		macros.NewContext(
+			c,
+			loc,
+			constScope.container,
+		).ToValue(),
 	)
 
 	for _, arg := range checkedArgs {
@@ -389,9 +453,17 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	var promise *vm.Promise
 	switch body := macro.Body.(type) {
 	case *vm.NativeMethod:
-		promise = vm.NewNativePromise(c.threadPool, body.Function, runtimeArgs...)
+		promise = vm.NewNativePromise(
+			c.threadPool,
+			body.Function,
+			runtimeArgs...,
+		)
 	case *vm.BytecodeFunction:
-		promise = vm.NewBytecodePromise(c.threadPool, body, runtimeArgs...)
+		promise = vm.NewBytecodePromise(
+			c.threadPool,
+			body,
+			runtimeArgs...,
+		)
 	default:
 		panic(fmt.Sprintf("invalid compiled macro body %T for: %s", body, macro.InspectSignature(false)))
 	}
@@ -853,7 +925,7 @@ func (c *Checker) checkMacroDefinition(node *ast.MacroDefinitionNode, macro *typ
 		node.Parameters,
 		nil,
 		nil,
-		node.Body,
+		&node.Body,
 		node.Location(),
 	)
 

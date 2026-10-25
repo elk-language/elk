@@ -6,8 +6,10 @@ import (
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -64,5 +66,38 @@ func initMacro() {
 			return checker.EvalNode(thread, node)
 		},
 		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"append_expression",
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			node := args[1].AsReference().(ast.ExpressionNode)
+			kindArg := args[2].AsSymbol()
+
+			var kind types.MacroAppendExpressionKind
+			switch kindArg.Id {
+			case symbol.L_end_of_file:
+				kind = types.MacroAppendExpressionEndOfFileKind
+			case symbol.L_end_of_namespace:
+				kind = types.MacroAppendExpressionEndOfNamespaceKind
+			default:
+				return value.Undefined, value.NewError(
+					value.ArgumentErrorClass,
+					fmt.Sprintf(
+						"invalid `kind`, expected `:end_of_file` or `:end_of_namespace`, got: `%s`",
+						kindArg.Inspect(),
+					),
+				).ToValue()
+			}
+
+			var key string
+			if args[3].IsNotUndefined() {
+				key = string(args[3].AsString())
+			}
+			thread.TypeChecker.RegisterMacroAppendExpression(nil, key, kind, node)
+			return value.Nil, value.Undefined
+		},
+		vm.DefWithParameters(3),
 	)
 }

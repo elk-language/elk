@@ -105,4 +105,8 @@ func InitGlobalEnvironment() {
 	initDateTimeSpan()
 	initTimezone()
 	initMacro()
+	initOrderedHashRecord()
+	initOrderedHashMap()
+	initSyncHashMap()
+	initSyncHashMapIterator()
 }

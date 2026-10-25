@@ -348,19 +348,19 @@ func (l *ArrayListOfValue) SubscriptSetInt(key int, val Value) Value {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
+func (l *ArrayListOfValue) ConcatOk(other Value) (*ArrayListOfValue, bool) {
 	if other.IsReference() {
 		switch o := other.AsReference().(type) {
 		case *ArrayListOfValue:
 			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
 			copy(newList, *l)
 			newList = append(newList, *o...)
-			return &newList, Undefined
+			return &newList, true
 		case *ArrayTupleOfValue:
 			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
 			copy(newList, *l)
 			newList = append(newList, *o...)
-			return &newList, Undefined
+			return &newList, true
 		case ArrayTuple:
 			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
 			copy(newList, *l)
@@ -369,15 +369,35 @@ func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
 				newList[len(*l)+i] = element
 			}
 
-			return &newList, Undefined
+			return &newList, true
 		}
 	}
 
-	return nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
+	return nil, false
+}
+
+// Concatenate another value with this list, creating a new list, and return the result.
+// If the operation is illegal an error will be returned.
+func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
+	result, ok := l.ConcatOk(other)
+	if !ok {
+		return nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
+	}
+
+	return result, Undefined
 }
 
 func (l *ArrayListOfValue) ConcatVal(other Value) (Value, Value) {
 	return RefErr(l.Concat(other))
+}
+
+func (l *ArrayListOfValue) ConcatValOk(other Value) (Value, bool) {
+	result, ok := l.ConcatOk(other)
+	if !ok {
+		return Undefined, false
+	}
+
+	return result.ToValue(), true
 }
 
 // Repeat the content of this list n times and return a new list containing the result.

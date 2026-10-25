@@ -372,29 +372,36 @@ func (l *NativeArrayList[T]) SubscriptSetInt(key int, val Value) Value {
 	return l.Set(key, v)
 }
 
+func (l *NativeArrayList[T]) ConcatValOk(other Value) (Value, bool) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeArrayList[T]:
+		newList := make(NativeArrayList[T], len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return Ref(&newList), true
+	case ArrayTuple:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
+		for i, element := range *l {
+			newList[i] = element.ToValue()
+		}
+		for i, element := range o.Elements() {
+			newList[i+o.Length()] = element
+		}
+		return Ref(&newList), true
+	default:
+		return Undefined, false
+	}
+}
+
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
 func (l *NativeArrayList[T]) ConcatVal(other Value) (Value, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *NativeArrayList[T]:
-			newList := make(NativeArrayList[T], len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return Ref(&newList), Undefined
-		case ArrayTuple:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
-			for i, element := range *l {
-				newList[i] = element.ToValue()
-			}
-			for i, element := range o.Elements() {
-				newList[i+o.Length()] = element
-			}
-			return Ref(&newList), Undefined
-		}
+	result, ok := l.ConcatValOk(other)
+	if !ok {
+		return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
 	}
 
-	return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
+	return result, Undefined
 }
 
 // Repeat the content of this list n times and return a new list containing the result.

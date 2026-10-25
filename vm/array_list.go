@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -93,10 +95,10 @@ func initArrayList() {
 	Def(
 		c,
 		"+",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
-			return self.ConcatVal(other)
+			return ArrayListConcat(thread, self, other)
 		},
 		DefWithParameters(1),
 	)
@@ -135,13 +137,13 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			switch other := args[1].SafeAsReference().(type) {
 			case value.ArrayList:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := ArrayTupleLaxEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
 				return value.BoolVal(equal), value.Undefined
 			case value.ArrayTuple:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := ArrayTupleLaxEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -343,4 +345,62 @@ func initArrayListIterator() {
 			return args[0], value.Undefined
 		},
 	)
+}
+
+func ArrayListConcat(thread *Thread, l value.ArrayList, other value.Value) (value.Value, value.Value) {
+	switch l := l.(type) {
+	case *value.ArrayListOfValue:
+		return value.RefErr(ArrayListOfValueConcat(thread, l, other))
+	case value.ArrayList:
+		return ArrayListInterfaceConcat(thread, l, other)
+	default:
+		panic(fmt.Sprintf("invalid arraylist type for concat: %T", l))
+	}
+}
+
+func ArrayListOfValueConcat(thread *Thread, l *value.ArrayListOfValue, other value.Value) (*value.ArrayListOfValue, value.Value) {
+	result, ok := l.ConcatOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+
+	newList := make(value.ArrayListOfValue, len(*l), len(*l))
+	copy(newList, *l)
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		newList[len(*l)+i] = element
+		i++
+	}
+
+	return &newList, value.Undefined
+}
+
+func ArrayListInterfaceConcat(thread *Thread, l value.ArrayList, other value.Value) (value.Value, value.Value) {
+	result, ok := l.ConcatValOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+
+	length := l.Length()
+	newList := make(value.ArrayListOfValue, length, length)
+	for i, element := range l.Elements() {
+		newList[i] = element
+	}
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		newList[length+i] = element
+		i++
+	}
+
+	return (&newList).ToValue(), value.Undefined
 }

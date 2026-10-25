@@ -56,6 +56,16 @@ func (h NativeKeyHashRecord[K]) NewHashRecord(capacity int) HashRecord {
 	return MakeNativeKeyHashRecord[K](capacity)
 }
 
+func (h NativeKeyHashRecord[K]) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for k, _ := range h {
+			if !yield(k.ToValue()) {
+				return
+			}
+		}
+	}
+}
+
 func (h NativeKeyHashRecord[K]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h {
@@ -182,6 +192,24 @@ func (h NativeKeyHashRecord[K]) ConcatVal(thread *Thread, other value.Value) (va
 		err = HashRecordOfValueCopyInterface(thread, newMap, o)
 		if err.IsNotUndefined() {
 			return value.Undefined, err
+		}
+
+		return newMap.ToValue(), value.Undefined
+	default:
+		newMap := NewHashRecordOfValue(h.Length())
+
+		err := HashRecordOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			newMap.SetVal(thread, entry.Key(), entry.Value())
 		}
 
 		return newMap.ToValue(), value.Undefined

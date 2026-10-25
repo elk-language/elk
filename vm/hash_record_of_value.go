@@ -3,6 +3,7 @@ package vm
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -22,6 +23,20 @@ func NewHashRecordOfValue(capacity int) *HashRecordOfValue {
 
 func HashRecordOfValueConstructor(class *value.Class) value.Value {
 	return value.Ref(&HashRecordOfValue{})
+}
+
+func (h *HashRecordOfValue) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for _, pair := range h.Table {
+			if pair.Key().IsUndefined() {
+				continue
+			}
+
+			if !yield(pair.Key()) {
+				return
+			}
+		}
+	}
 }
 
 func (h *HashRecordOfValue) All() iter.Seq[value.PairOfValue] {
@@ -49,6 +64,14 @@ func (h *HashRecordOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 				return
 			}
 		}
+	}
+}
+
+func (h *HashRecordOfValue) Clone() *HashRecordOfValue {
+	return &HashRecordOfValue{
+		Table:         slices.Clone(h.Table),
+		OccupiedSlots: h.OccupiedSlots,
+		Elements:      h.Elements,
 	}
 }
 

@@ -1,0 +1,15 @@
+##[
+  Context created by the typechecker that is
+  available during macro expansion.
+]##
+noinit sealed primitive class ::Std::Macro::Context
+  ##[
+    Location of the macro call in source code.
+  ]##
+  pure def location: FS::Location; end
+
+  ##[
+    Location of the macro call in source code.
+  ]##
+  def namespace_store: HashMap; end
+end

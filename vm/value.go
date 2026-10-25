@@ -128,7 +128,7 @@ func initValue() {
 			}
 
 			class := self.DirectClass()
-			name := args[1].AsInlineSymbol()
+			name := args[1].AsSymbol()
 			index, ok := class.IvarIndices.GetIndexOk(name)
 			if !ok {
 				return value.Undefined, value.Ref(
@@ -163,7 +163,7 @@ func initValue() {
 			}
 
 			class := self.DirectClass()
-			name := args[1].AsInlineSymbol()
+			name := args[1].AsSymbol()
 			index, ok := class.IvarIndices.GetIndexOk(name)
 			if !ok {
 				return value.Undefined, value.Ref(

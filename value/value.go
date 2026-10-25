@@ -102,7 +102,7 @@ func (v Value) ToInterface() ValueInterface {
 	case FLOAT_FLAG:
 		return v.AsFloat()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol()
+		return v.AsSymbol()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64()
 	case FLOAT32_FLAG:
@@ -164,7 +164,7 @@ func (v Value) Inspect() string {
 	case FLOAT_FLAG:
 		return v.AsFloat().Inspect()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().Inspect()
+		return v.AsSymbol().Inspect()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().Inspect()
 	case FLOAT32_FLAG:
@@ -233,7 +233,7 @@ func (v Value) Class() *Class {
 	case FLOAT_FLAG:
 		return v.AsFloat().Class()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().Class()
+		return v.AsSymbol().Class()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().Class()
 	case FLOAT32_FLAG:
@@ -294,7 +294,7 @@ func (v Value) DirectClass() *Class {
 	case FLOAT_FLAG:
 		return v.AsFloat().DirectClass()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().DirectClass()
+		return v.AsSymbol().DirectClass()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().DirectClass()
 	case FLOAT32_FLAG:
@@ -355,7 +355,7 @@ func (v Value) SingletonClass() *Class {
 	case FLOAT_FLAG:
 		return v.AsFloat().SingletonClass()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().SingletonClass()
+		return v.AsSymbol().SingletonClass()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().SingletonClass()
 	case FLOAT32_FLAG:
@@ -416,7 +416,7 @@ func (v Value) InstanceVariables() *InstanceVariables {
 	case FLOAT_FLAG:
 		return v.AsFloat().InstanceVariables()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().InstanceVariables()
+		return v.AsSymbol().InstanceVariables()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().InstanceVariables()
 	case FLOAT32_FLAG:
@@ -477,7 +477,7 @@ func (v Value) Error() string {
 	case FLOAT_FLAG:
 		return v.AsFloat().Error()
 	case SYMBOL_FLAG:
-		return v.AsInlineSymbol().Error()
+		return v.AsSymbol().Error()
 	case FLOAT64_FLAG:
 		return v.AsInlineFloat64().Error()
 	case FLOAT32_FLAG:
@@ -1094,19 +1094,19 @@ func (v Value) MustInlineDateSpan() DateSpan {
 	return v.AsInlineDateSpan()
 }
 
-func (v Value) IsInlineSymbol() bool {
+func (v Value) IsSymbol() bool {
 	return v.flag == SYMBOL_FLAG
 }
 
-func (v Value) AsInlineSymbol() Symbol {
+func (v Value) AsSymbol() Symbol {
 	return S(symbol.Symbol(v.data))
 }
 
-func (v Value) MustInlineSymbol() Symbol {
-	if !v.IsInlineSymbol() {
-		panic(fmt.Sprintf("value `%s` is not an inline Symbol", v.Inspect()))
+func (v Value) MustSymbol() Symbol {
+	if !v.IsSymbol() {
+		panic(fmt.Sprintf("value `%s` is not a Symbol", v.Inspect()))
 	}
-	return v.AsInlineSymbol()
+	return v.AsSymbol()
 }
 
 func (v Value) IsBool() bool {
@@ -1646,7 +1646,7 @@ func Hash(key Value) (result UInt64, err Value) {
 		k := key.AsChar()
 		return k.Hash(), err
 	case SYMBOL_FLAG:
-		k := key.AsInlineSymbol()
+		k := key.AsSymbol()
 		return k.Hash(), err
 	case SMALL_INT_FLAG:
 		k := key.AsSmallInt()
@@ -3347,7 +3347,7 @@ func LaxEqualVal(left, right Value) Value {
 		l := left.AsChar()
 		return l.LaxEqualVal(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.LaxEqualVal(right)
 	case FLOAT64_FLAG:
 		l := left.AsInlineFloat64()
@@ -3420,7 +3420,7 @@ func LaxEqual(left, right Value) bool {
 		l := left.AsChar()
 		return l.LaxEqual(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.LaxEqual(right)
 	case FLOAT64_FLAG:
 		l := left.AsInlineFloat64()
@@ -3513,7 +3513,7 @@ func EqualVal(left, right Value) Value {
 		l := left.AsFloat()
 		return l.EqualVal(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.EqualVal(right)
 	case CHAR_FLAG:
 		l := left.AsChar()
@@ -3593,7 +3593,7 @@ func Equal(left, right Value) bool {
 		l := left.AsFloat()
 		return l.Equal(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.Equal(right)
 	case CHAR_FLAG:
 		l := left.AsChar()
@@ -3699,7 +3699,7 @@ func StrictEqualVal(left, right Value) Value {
 		l := left.AsFloat()
 		return l.StrictEqualVal(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.StrictEqualVal(right)
 	case CHAR_FLAG:
 		l := left.AsChar()
@@ -3770,7 +3770,7 @@ func StrictEqual(left, right Value) bool {
 		l := left.AsFloat()
 		return l.Equal(right)
 	case SYMBOL_FLAG:
-		l := left.AsInlineSymbol()
+		l := left.AsSymbol()
 		return l.Equal(right)
 	case CHAR_FLAG:
 		l := left.AsChar()

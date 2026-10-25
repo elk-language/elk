@@ -85,7 +85,7 @@ func (n *UnhygienicNode) String() string {
 }
 
 func (n *UnhygienicNode) IsStatic() bool {
-	return n.IsStatic()
+	return n.Node.IsStatic()
 }
 
 func (*UnhygienicNode) Class() *value.Class {

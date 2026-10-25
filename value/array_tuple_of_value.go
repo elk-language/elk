@@ -243,34 +243,41 @@ func (t *ArrayTupleOfValue) SubscriptSet(key, val Value) Value {
 	return t.Set(i, val)
 }
 
+func (t *ArrayTupleOfValue) ConcatValOk(other Value) (Value, bool) {
+	switch o := other.SafeAsReference().(type) {
+	case *ArrayListOfValue:
+		newList := make(ArrayListOfValue, len(*t), len(*t)+len(*o))
+		copy(newList, *t)
+		newList = append(newList, *o...)
+		return Ref(&newList), true
+	case *ArrayTupleOfValue:
+		newArrayTuple := make(ArrayTupleOfValue, len(*t), len(*t)+len(*o))
+		copy(newArrayTuple, *t)
+		newArrayTuple = append(newArrayTuple, *o...)
+		return Ref(&newArrayTuple), true
+	case ArrayList:
+		newArrayTuple := make(ArrayListOfValue, len(*t), len(*t)+o.Length())
+		copy(newArrayTuple, *t)
+
+		for i, element := range o.Elements() {
+			newArrayTuple[len(*t)+i] = element
+		}
+
+		return Ref(&newArrayTuple), true
+	default:
+		return Undefined, false
+	}
+}
+
 // Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
 func (t *ArrayTupleOfValue) ConcatVal(other Value) (Value, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *ArrayListOfValue:
-			newList := make(ArrayListOfValue, len(*t), len(*t)+len(*o))
-			copy(newList, *t)
-			newList = append(newList, *o...)
-			return Ref(&newList), Undefined
-		case *ArrayTupleOfValue:
-			newArrayTuple := make(ArrayTupleOfValue, len(*t), len(*t)+len(*o))
-			copy(newArrayTuple, *t)
-			newArrayTuple = append(newArrayTuple, *o...)
-			return Ref(&newArrayTuple), Undefined
-		case ArrayList:
-			newArrayTuple := make(ArrayListOfValue, len(*t), len(*t)+o.Length())
-			copy(newArrayTuple, *t)
-
-			for i, element := range o.Elements() {
-				newArrayTuple[len(*t)+i] = element
-			}
-
-			return Ref(&newArrayTuple), Undefined
-		}
+	result, ok := t.ConcatValOk(other)
+	if !ok {
+		return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
 	}
 
-	return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
+	return result, Undefined
 }
 
 // Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.

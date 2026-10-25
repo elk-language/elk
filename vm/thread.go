@@ -41,6 +41,7 @@ type Thread struct {
 	errStackTrace   *value.StackTrace // The most recent error stack trace
 	threadPool      *ThreadPool
 	Aborter         *value.Aborter
+	Store           *NativeKeyHashMap[value.String] // Thread-local key value store
 	state           State
 }
 
@@ -66,6 +67,7 @@ func New(opts ...Option) *Thread {
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
 		threadPool: DefaultThreadPool,
+		Store:      NewNativeKeyHashMap[value.String](5),
 	}
 	vm.cfpSet(&callFrames[0])
 
@@ -1804,7 +1806,7 @@ func (vm *Thread) self() {
 
 func (vm *Thread) opDefNamespace() {
 	typ := vm.readByte()
-	name := vm.popGet().AsInlineSymbol()
+	name := vm.popGet().AsSymbol()
 	parentNamespace := vm.popGet()
 
 	var parentConstantContainer value.ConstantContainer
@@ -1917,7 +1919,7 @@ func (vm *Thread) callSetterMethod(method *SetterMethod) value.Value {
 
 // Set the value of an instance variable by name
 func (vm *Thread) opSetIvarName(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
+	name := vm.bytecode.Values[nameIndex].AsSymbol()
 	val := vm.popGet()
 	self := vm.selfValue()
 	return value.SetInstanceVariableByName(self, name, val)
@@ -1932,7 +1934,7 @@ func (vm *Thread) opSetIvar(index int) {
 
 // Get the value of an instance variable by name
 func (vm *Thread) opGetIvarName(nameIndex int) (err value.Value) {
-	name := vm.bytecode.Values[nameIndex].AsInlineSymbol()
+	name := vm.bytecode.Values[nameIndex].AsSymbol()
 	self := vm.selfValue()
 	val, err := value.GetInstanceVariableByName(self, name)
 	if !err.IsUndefined() {
@@ -2376,7 +2378,7 @@ func (vm *Thread) opInclude() (err value.Value) {
 
 // Define a new method
 func (vm *Thread) opDefMethod() {
-	name := vm.popGet().AsInlineSymbol()
+	name := vm.popGet().AsSymbol()
 	body := vm.popGet().AsReference().(value.Method)
 	methodContainer := vm.peek()
 
@@ -2405,7 +2407,7 @@ func (vm *Thread) opExec() {
 // Define a getter method
 func (vm *Thread) opDefGetter() {
 	index := vm.popGet().AsSmallInt()
-	name := vm.popGet().AsInlineSymbol()
+	name := vm.popGet().AsSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -2419,7 +2421,7 @@ func (vm *Thread) opDefGetter() {
 // Define a setter method
 func (vm *Thread) opDefSetter() {
 	index := vm.popGet().AsSmallInt()
-	name := vm.popGet().AsInlineSymbol()
+	name := vm.popGet().AsSymbol()
 	methodContainer := vm.peek()
 
 	switch m := methodContainer.SafeAsReference().(type) {
@@ -2582,7 +2584,7 @@ func (vm *Thread) opSetSuperclass() {
 
 // Look for a constant with the given name.
 func (vm *Thread) opGetConst(nameIndex int) (err value.Value) {
-	symbol := vm.bytecode.Values[nameIndex].AsInlineSymbol()
+	symbol := vm.bytecode.Values[nameIndex].AsSymbol()
 
 	val := value.RootModule.Constants().Get(symbol)
 	if val.IsUndefined() {
@@ -2608,7 +2610,7 @@ func (vm *Thread) opNext(callInfoIndex int) value.Value {
 
 	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
 	result, err := vm.CallMethod(method, iterator)
-	if err.IsInlineSymbol() && err.AsInlineSymbol() == stopIterationSymbol {
+	if err.IsSymbol() && err.AsSymbol() == stopIterationSymbol {
 		vm.replace(value.Undefined)
 		return value.Undefined
 	}
@@ -2959,7 +2961,7 @@ func (vm *Thread) opNewArrayTuple(dynamicElements int) {
 // Define a new constant
 func (vm *Thread) opDefConst() {
 	constVal := vm.popGet()
-	constName := vm.popGet().AsInlineSymbol()
+	constName := vm.popGet().AsSymbol()
 	namespace := vm.popGet()
 
 	value.AddConstant(namespace, constName, constVal)

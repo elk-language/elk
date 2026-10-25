@@ -1151,7 +1151,7 @@ func (c *Checker) checkMethod(
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
-	body []ast.StatementNode,
+	body *[]ast.StatementNode,
 	location *position.Location,
 ) (ast.TypeNode, ast.TypeNode) {
 	prevCatchScopes := c.catchScopes
@@ -1273,7 +1273,7 @@ func (c *Checker) checkMethod(
 		c.pushCatchScope(makeCatchScope(throwType, false))
 	}
 
-	if len(body) > 0 && checkedMethod.IsAbstract() {
+	if len(*body) > 0 && checkedMethod.IsAbstract() {
 		c.addFailure(
 			fmt.Sprintf(
 				"method `%s` cannot have a body because it is abstract",
@@ -2300,7 +2300,7 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, method *
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
-		node.Body,
+		&node.Body,
 		node.Location(),
 	)
 

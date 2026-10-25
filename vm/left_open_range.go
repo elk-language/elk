@@ -214,8 +214,8 @@ func LeftOpenRangeIteratorAll(vm *Thread, i *value.LeftOpenRangeIterator) iter.S
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := LeftOpenRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

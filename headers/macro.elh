@@ -26,4 +26,11 @@ module ::Std::Macro
     Can throw typechecker/compiler errors.
   ]##
   def eval_node(node: Elk::AST::ExpressionNode): any ! Elk::Type::Checker::Error; end
+
+  ##[
+    Tells the typechecker to append the given expression either at the end of the namespace
+    or at the end of the file. The optional `key: String?` argument let's you
+    deduplicate entries to avoid appending the same code multiple times.
+  ]##
+  def append_expression(node: Elk::AST::ExpressionNode, kind: :end_of_namespace | :end_of_file, key: String = ""); end
 end

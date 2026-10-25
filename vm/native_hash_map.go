@@ -111,6 +111,16 @@ func (h *NativeHashMap[K, V]) CloneHashRecord(thread *Thread, capacity int) (Has
 	return h.CloneHashMap(thread, capacity)
 }
 
+func (h *NativeHashMap[K, V]) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for k, _ := range h.m {
+			if !yield(k.ToValue()) {
+				return
+			}
+		}
+	}
+}
+
 func (h *NativeHashMap[K, V]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h.m {
@@ -235,6 +245,24 @@ func (h *NativeHashMap[K, V]) ConcatVal(thread *Thread, other value.Value) (valu
 		err = HashMapOfValueCopyInterface(thread, newMap, o)
 		if err.IsNotUndefined() {
 			return value.Undefined, err
+		}
+
+		return newMap.ToValue(), value.Undefined
+	default:
+		newMap := NewHashMapOfValue(h.Length())
+
+		err := HashMapOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			newMap.SetVal(thread, entry.Key(), entry.Value())
 		}
 
 		return newMap.ToValue(), value.Undefined

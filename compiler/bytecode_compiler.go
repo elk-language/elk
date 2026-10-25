@@ -982,6 +982,9 @@ func (c *BytecodeCompiler) compileMacroBody(location *position.Location, paramet
 	c.compileWithDefer(
 		func() {
 			paramCount := len(parameters)
+			c.defineLocal("context", location)
+			paramCount++
+			c.predefinedLocals++
 
 			for _, param := range parameters {
 				p := param.(*ast.FormalParameterNode)

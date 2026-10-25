@@ -1,0 +1,113 @@
+##[
+	A thread-safe version of `Std::HashMap`.
+	A dynamically resizable map data structure backed
+	by an array with a hashing algorithm.
+
+	It is an unordered collection of key-value pairs.
+]##
+sealed primitive class ::Std::Sync::HashMap[Key, Value]
+	include Map[Key, Value]
+
+	##[
+		Returns the number of key-value pairs present in the map.
+	]##
+	pure sealed def length: Int; end
+
+	##[
+		Get the element under the given key.
+		Returns `nil` when the key is not present.
+	]##
+	sealed def [](key: Key): Value?; end
+
+	##[
+		Set the element under the given index to the given value.
+	]##
+	sealed def []=(key: Key, value: Value); end
+
+	##[
+		Create a new `HashMap` containing the pairs of `self`
+		and another given record/map.
+	]##
+	sealed def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
+
+	##[
+		Check whether the given `pair` is present in this map.
+	]##
+	def contains[V := Pair[Key, Value]](value: V): bool; end
+
+	##[
+		Check whether the given `key` is present in this map.
+	]##
+	def contains_key(key: Key): bool; end
+
+	##[
+		Check whether the given `value` is present in this map.
+	]##
+	def contains_value(value: Value): bool; end
+
+	##[
+		Check whether the given value is a `Sync::HashMap`
+		with the same elements.
+	]##
+	sealed def ==(other: any): bool; end
+	alias =~ ==
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new ArrayList that consists of the values returned
+		by the given closure.
+	]##
+	def map[V, E = never](fn: |element: Pair[Key, Value]|: V ! E): ArrayList[V] ! E; end
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the key value pairs returned
+		by the given closure.
+	]##
+	def map_pairs[K, V, E = never](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): HashMap[K, V] ! E; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the values returned
+		by the given closure.
+	]##
+	def map_values[V, E = never](fn: |value: Value|: V ! E): HashMap[Key, V] ! E; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Mutates the map in place replacing the values with the ones
+		returned by the given closure.
+	]##
+	def map_values_mut[E = never](fn: |value: Value|: Value ! E): self ! E; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the map.
+	]##
+	pure def iter: Iterator[Key, Value]; end
+
+	sealed primitive class Iterator[Key, Value]
+		include ::Std::ResettableIterator::Base[Pair[Key, Value]]
+
+		init(map: Sync::HashMap[Key, Value]); end
+
+		##[
+			Get the next pair of the map.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Pair[Key, Value] ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
+	end
+end

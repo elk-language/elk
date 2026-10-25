@@ -8,11 +8,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-type HashRecord interface {
+type Record interface {
 	value.ValueInterface
 	value.NativeIterable
+	All() iter.Seq[value.PairOfValue]
+	Length() int
+}
+
+type HashRecord interface {
+	Record
 	IterRecord() value.NativeResettableIterator
 	All() iter.Seq[value.PairOfValue]
+	Keys() iter.Seq[value.Value]
 	Length() int
 	// If the key is not present should return (Undefined, Undefined)
 	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
@@ -31,6 +38,65 @@ type HashRecord interface {
 
 func hashRecordConstructor(class *value.Class) value.Value {
 	return NewHashRecordOfValue(5).ToValue()
+}
+
+func HashRecordEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Value) {
+	if x == y {
+		return true, value.Undefined
+	}
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for pair := range x.All() {
+		yVal, err := y.GetValUndefined(vm, pair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := Equal(vm, pair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func HashRecordLaxEqual(vm *Thread, x HashRecord, y HashRecord) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for xPair := range x.All() {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := LaxEqual(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
 }
 
 // ::Std::HashRecord

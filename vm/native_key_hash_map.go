@@ -83,6 +83,16 @@ func (h *NativeKeyHashMap[K]) CloneHashRecord(thread *Thread, capacity int) (Has
 	return h.CloneHashMap(thread, capacity)
 }
 
+func (h *NativeKeyHashMap[K]) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for k, _ := range h.m {
+			if !yield(k.ToValue()) {
+				return
+			}
+		}
+	}
+}
+
 func (h *NativeKeyHashMap[K]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h.m {
@@ -203,6 +213,24 @@ func (h *NativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (valu
 		err = HashMapOfValueCopyInterface(thread, newMap, o)
 		if err.IsNotUndefined() {
 			return value.Undefined, err
+		}
+
+		return newMap.ToValue(), value.Undefined
+	default:
+		newMap := NewHashMapOfValue(h.Length())
+
+		err := HashMapOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			newMap.SetVal(thread, entry.Key(), entry.Value())
 		}
 
 		return newMap.ToValue(), value.Undefined
@@ -457,7 +485,7 @@ type NativeKeyHashMapIterator[K value.ComparableValueInterface] struct {
 	version  int
 }
 
-var _ value.NativeResettableIterator = &NativeHashMapIterator[value.String, value.String]{}
+var _ value.NativeResettableIterator = &NativeKeyHashMapIterator[value.String]{}
 
 func NewNativeKeyHashMapIterator[K value.ComparableValueInterface](hmap *NativeKeyHashMap[K]) *NativeKeyHashMapIterator[K] {
 	iterator := &NativeKeyHashMapIterator[K]{

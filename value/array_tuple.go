@@ -24,6 +24,7 @@ type ArrayTuple interface {
 	SubscriptInt(index int) (Value, Value)
 	Subscript(index Value) (Value, Value)
 	ConcatVal(Value) (Value, Value)
+	ConcatValOk(Value) (Value, bool)
 	RepeatVal(Value) (Value, Value)
 	IterTuple() ArrayTupleIterator
 	NewArrayTuple(capacity int) ArrayTuple

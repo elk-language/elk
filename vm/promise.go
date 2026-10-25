@@ -169,6 +169,7 @@ func (p *Promise) RegisterContinuationUnsafe(continuation *Promise) {
 
 func (p *Promise) ResolveReject(result, err value.Value) {
 	p.m.Lock()
+	defer p.m.Unlock()
 
 	queue := p.ThreadPool.TaskQueue
 	p.Body = nil
@@ -177,12 +178,11 @@ func (p *Promise) ResolveReject(result, err value.Value) {
 	p.err = err
 	p.wg.Done()
 	p.enqueueContinuations(queue)
-
-	p.m.Unlock()
 }
 
 func (p *Promise) Resolve(result value.Value) {
 	p.m.Lock()
+	defer p.m.Unlock()
 
 	queue := p.ThreadPool.TaskQueue
 	p.Body = nil
@@ -190,12 +190,11 @@ func (p *Promise) Resolve(result value.Value) {
 	p.result = result
 	p.wg.Done()
 	p.enqueueContinuations(queue)
-
-	p.m.Unlock()
 }
 
 func (p *Promise) Reject(err value.Value, stackTrace *value.StackTrace) {
 	p.m.Lock()
+	defer p.m.Unlock()
 
 	queue := p.ThreadPool.TaskQueue
 	p.Body = nil
@@ -204,8 +203,6 @@ func (p *Promise) Reject(err value.Value, stackTrace *value.StackTrace) {
 	p.stackTrace = stackTrace
 	p.wg.Done()
 	p.enqueueContinuations(queue)
-
-	p.m.Unlock()
 }
 
 func (p *Promise) enqueueContinuations(queue chan *Promise) {
