@@ -15,15 +15,24 @@ type ArrayListOfValue []Value
 var _ ArrayList = &ArrayListOfValue{}
 
 func NormalizeArrayIndex(index, length int) (int, Value) {
-	if index >= length || index < -length {
+	i, ok := NormalizeArrayIndexOk(index, length)
+	if !ok {
 		return 0, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), length))
+	}
+
+	return i, Undefined
+}
+
+func NormalizeArrayIndexOk(index, length int) (int, bool) {
+	if index >= length || index < -length {
+		return 0, false
 	}
 
 	if index < 0 {
 		index = length + index
 	}
 
-	return index, Undefined
+	return index, true
 }
 
 func ArrayListOfValueConstructor(class *Class) Value {
@@ -296,6 +305,17 @@ func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 	return (*collection)[index], Undefined
 }
 
+// Get an element under the given index.
+func GetFromSliceOk[V any](collection *[]V, index int) (ret V, ok bool) {
+	l := len(*collection)
+	index, ok = NormalizeArrayIndexOk(index, l)
+	if !ok {
+		return ret, false
+	}
+
+	return (*collection)[index], true
+}
+
 // Set an element under the given index.
 func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 	index, err = NormalizeArrayIndex(index, len(*collection))
@@ -310,6 +330,11 @@ func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 // Get an element under the given index.
 func (l *ArrayListOfValue) Get(index int) (Value, Value) {
 	return GetFromSlice((*[]Value)(l), index)
+}
+
+// Get an element under the given index.
+func (l *ArrayListOfValue) GetOk(index int) (Value, bool) {
+	return GetFromSliceOk((*[]Value)(l), index)
 }
 
 // Get an element under the given index without bounds checking
@@ -338,6 +363,26 @@ func (l *ArrayListOfValue) Subscript(key Value) (Value, Value) {
 
 func (l *ArrayListOfValue) SubscriptInt(key int) (Value, Value) {
 	return l.Get(key)
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *ArrayListOfValue) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val, Undefined
 }
 
 // Set an element under the given index.

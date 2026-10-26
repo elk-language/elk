@@ -26,9 +26,24 @@ noinit sealed primitive class ::Std::OrderedHashMap[Key, Value]
 
 	##[
 		Get the pair with the given index.
-		Returns `nil` when the key is not present.
+
+		Throws an unchecked error if the index is out of range.
 	]##
-	pure sealed def at(index: Int): Value?; end
+	pure sealed def get_at(index: AnyInt): Value; end
+
+	##[
+		Get the pair with the given index.
+
+		Throws a checked error if the index is out of range.
+	]##
+	pure sealed def at(index: AnyInt): Value ! OutOfRangeError; end
+
+	##[
+		Get the pair with the given index.
+
+		Returns `nil` when the index is out of range.
+	]##
+	pure sealed def try_at(index: AnyInt): Value?; end
 
 	##[
 		Returns the first pair.
@@ -63,6 +78,7 @@ noinit sealed primitive class ::Std::OrderedHashMap[Key, Value]
 		and another given record/map.
 	]##
 	sealed pure def +[K, V](other: Record[K, V]): OrderedHashMap[Key | K, Value | V]; end
+	alias merge +
 
 	##[
 		Delete the given key from the map.

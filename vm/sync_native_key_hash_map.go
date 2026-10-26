@@ -166,7 +166,7 @@ func (h *SyncNativeKeyHashMap[K]) SetVal(thread *Thread, key, val value.Value) v
 	return h.Map.SetVal(thread, key, val)
 }
 
-func (h *SyncNativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *SyncNativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (SyncHashMap, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *SyncNativeKeyHashMap[K]:
 		newMap := NewSyncNativeKeyHashMap[K](h.Length() + o.Length())
@@ -178,7 +178,7 @@ func (h *SyncNativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (
 		maps.Copy(newMap.Map.m, o.Map.m)
 		o.Unlock()
 
-		return newMap.ToValue(), value.Undefined
+		return newMap, value.Undefined
 	case SyncHashMap:
 		newMap := NewSyncHashMapOfValue(h.Length() + o.Length())
 
@@ -186,17 +186,17 @@ func (h *SyncNativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (
 		err := HashMapOfValueCopyInterface(thread, newMap.Map, h.Map)
 		h.Unlock()
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
 
 		o.Lock()
 		err = HashMapOfValueCopyInterface(thread, newMap.Map, o)
 		o.Unlock()
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
 
-		return newMap.ToValue(), value.Undefined
+		return newMap, value.Undefined
 	case *NativeKeyHashMap[K]:
 		h.Lock()
 		newMap := NewSyncNativeKeyHashMap[K](h.Length() + o.Length())
@@ -204,7 +204,7 @@ func (h *SyncNativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (
 		h.Unlock()
 
 		maps.Copy(newMap.Map.m, o.m)
-		return newMap.ToValue(), value.Undefined
+		return newMap, value.Undefined
 	case HashRecord:
 		h.Lock()
 		defer h.Unlock()
@@ -213,18 +213,18 @@ func (h *SyncNativeKeyHashMap[K]) ConcatVal(thread *Thread, other value.Value) (
 
 		err := HashMapOfValueCopyInterface(thread, newMap.Map, h)
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
 
 		err = HashMapOfValueCopyInterface(thread, newMap.Map, o)
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
 
-		return newMap.ToValue(), value.Undefined
+		return newMap, value.Undefined
 	}
 
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+	return nil, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
 }
 
 func (h *SyncNativeKeyHashMap[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {

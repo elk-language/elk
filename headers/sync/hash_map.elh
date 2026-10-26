@@ -28,7 +28,8 @@ sealed primitive class ::Std::Sync::HashMap[Key, Value]
 		Create a new `HashMap` containing the pairs of `self`
 		and another given record/map.
 	]##
-	sealed def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
+	sealed def +[K, V](other: Record[K, V]): Sync::HashMap[Key | K, Value | V]; end
+	alias merge +
 
 	##[
 		Delete the given key from the map.

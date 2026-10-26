@@ -174,7 +174,7 @@ func (h NativeHashRecord[K, V]) Set(key K, val V) {
 	h[key] = val
 }
 
-func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h NativeHashRecord[K, V]) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case NativeHashRecord[K, V]:
 		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())

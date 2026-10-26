@@ -120,12 +120,12 @@ func (h *HashRecordOfValue) SetVal(thread *Thread, key, val value.Value) value.V
 	return HashRecordOfValueSet(thread, h, key, val)
 }
 
-func (h *HashRecordOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *HashRecordOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashRecordOfValue:
-		return value.RefErr(HashRecordOfValueConcat(thread, h, o))
+		return value.RefErr(HashRecordOfValueMerge(thread, h, o))
 	case HashRecord:
-		return value.RefErr(HashRecordOfValueConcatInterface(thread, h, o))
+		return value.RefErr(HashRecordOfValueMergeInterface(thread, h, o))
 	}
 
 	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with record %s", other.Inspect(), h.Inspect()))

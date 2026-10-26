@@ -251,6 +251,11 @@ func (t *NativeArrayTuple[T]) Get(index int) (T, Value) {
 	return GetFromSlice((*[]T)(t), index)
 }
 
+// Get an element under the given index.
+func (t *NativeArrayTuple[T]) GetOk(index int) (T, bool) {
+	return GetFromSliceOk((*[]T)(t), index)
+}
+
 // Get an element under the given index without bounds checking.
 func (t *NativeArrayTuple[T]) At(i int) T {
 	return (*t)[i]
@@ -278,6 +283,26 @@ func (t *NativeArrayTuple[T]) Subscript(key Value) (Value, Value) {
 // Get an element under the given index.
 func (t *NativeArrayTuple[T]) SubscriptInt(key int) (Value, Value) {
 	return ToValueErr(t.Get(key))
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *NativeArrayTuple[T]) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val.ToValue(), Undefined
 }
 
 // Set an element under the given index.

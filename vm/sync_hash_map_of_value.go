@@ -136,17 +136,17 @@ func (h *SyncHashMapOfValue) SetVal(thread *Thread, key, val value.Value) value.
 	return h.Map.SetVal(thread, key, val)
 }
 
-func (h *SyncHashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *SyncHashMapOfValue) MergeVal(thread *Thread, other value.Value) (SyncHashMap, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashMapOfValue:
 		h.Lock()
 		defer h.Unlock()
 
-		m, err := HashMapOfValueConcat(thread, h.Map, o)
+		m, err := HashMapOfValueMerge(thread, h.Map, o)
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
-		return NewSyncHashMapOfValueWithMap(m).ToValue(), value.Undefined
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	case *SyncHashMapOfValue:
 		h.Lock()
 		defer h.Unlock()
@@ -154,20 +154,20 @@ func (h *SyncHashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value
 		o.Lock()
 		defer o.Unlock()
 
-		m, err := HashMapOfValueConcat(thread, h.Map, o.Map)
+		m, err := HashMapOfValueMerge(thread, h.Map, o.Map)
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
-		return NewSyncHashMapOfValueWithMap(m).ToValue(), value.Undefined
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	case HashRecord:
 		h.Lock()
 		defer h.Unlock()
 
-		m, err := HashMapOfValueConcatInterface(thread, h.Map, o)
+		m, err := HashMapOfValueMergeInterface(thread, h.Map, o)
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
-		return NewSyncHashMapOfValueWithMap(m).ToValue(), value.Undefined
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	case SyncHashMap:
 		h.Lock()
 		defer h.Unlock()
@@ -175,14 +175,14 @@ func (h *SyncHashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value
 		o.Lock()
 		defer o.Unlock()
 
-		m, err := HashMapOfValueConcatInterface(thread, h.Map, o.HashMap())
+		m, err := HashMapOfValueMergeInterface(thread, h.Map, o.HashMap())
 		if err.IsNotUndefined() {
-			return value.Undefined, err
+			return nil, err
 		}
-		return NewSyncHashMapOfValueWithMap(m).ToValue(), value.Undefined
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	}
 
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+	return nil, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
 }
 
 func (h *SyncHashMapOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {

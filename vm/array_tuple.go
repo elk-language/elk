@@ -39,6 +39,18 @@ func initArrayTuple() {
 		DefWithParameters(1),
 	)
 	Alias(c, "at", "[]")
+
+	Def(
+		c,
+		"try_at",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayTuple)
+			other := args[1]
+			return self.TryAtVal(other)
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"+",

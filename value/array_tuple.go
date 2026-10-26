@@ -31,7 +31,7 @@ type ArrayTuple interface {
 	Subscript(index Value) (Value, Value)
 	// normalizes the index so that `-1` becomes `length-1`
 	// does bounds checking and returns elk `nil` if the index is out of range
-	FetchVal(Value) Value
+	TryAtVal(Value) (Value, Value)
 	ConcatVal(Value) (Value, Value)
 	ConcatValOk(Value) (Value, bool)
 	RepeatVal(Value) (Value, Value)

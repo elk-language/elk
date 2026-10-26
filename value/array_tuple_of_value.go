@@ -190,6 +190,11 @@ func (t *ArrayTupleOfValue) Get(index int) (Value, Value) {
 	return GetFromSlice((*[]Value)(t), index)
 }
 
+// Get an element under the given index.
+func (t *ArrayTupleOfValue) GetOk(index int) (Value, bool) {
+	return GetFromSliceOk((*[]Value)(t), index)
+}
+
 // Get an element under the given index without bounds checking.
 func (t *ArrayTupleOfValue) At(i int) Value {
 	return (*t)[i]
@@ -199,7 +204,8 @@ func (t *ArrayTupleOfValue) AtVal(i int) Value {
 	return t.At(i)
 }
 
-// Get an element under the given index.
+// Get an element under the given index, throws an error
+// if out of range
 func (t *ArrayTupleOfValue) Subscript(key Value) (Value, Value) {
 	var i int
 
@@ -212,6 +218,26 @@ func (t *ArrayTupleOfValue) Subscript(key Value) (Value, Value) {
 	}
 
 	return t.Get(i)
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *ArrayTupleOfValue) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val, Undefined
 }
 
 // Get an element under the given index.

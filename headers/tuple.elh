@@ -43,8 +43,7 @@ abstract mixin ::Std::Tuple[+Val]
 	##[
 		Get the element under the given index.
 
-		Returns `nil` if the index is a negative number
-		or is greater or equal to `length`.
+		Returns `nil` if the index is out of range.
 	]##
 	def try_at(index: AnyInt): Val?; end
 

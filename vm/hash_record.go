@@ -9,7 +9,7 @@ import (
 )
 
 type Record interface {
-	value.ValueInterface
+	value.Reference
 	value.NativeIterable
 	All() iter.Seq[value.PairOfValue]
 	Length() int
@@ -25,7 +25,7 @@ type HashRecord interface {
 	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
 	// If the key is not present should return (Nil, Undefined)
 	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
-	ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value)
+	MergeVal(thread *Thread, other value.Value) (value.Value, value.Value)
 	Contains(thread *Thread, pair value.Pair) (bool, value.Value)
 	ContainsKey(thread *Thread, key value.Value) (bool, value.Value)
 	ContainsValue(thread *Thread, val value.Value) (bool, value.Value)
@@ -138,10 +138,12 @@ func initHashRecord() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(HashRecord)
 			other := args[1]
-			return self.ConcatVal(vm, other)
+			return self.MergeVal(vm, other)
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "merge", "+")
+
 	Def(
 		c,
 		"contains",
@@ -396,16 +398,16 @@ func HashRecordOfValueCopyInterface(vm *Thread, target *HashRecordOfValue, sourc
 }
 
 // Create a new map containing the pairs of both maps.
-func HashRecordOfValueConcat(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (*HashRecordOfValue, value.Value) {
-	m, err := HashMapOfValueConcat(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+func HashRecordOfValueMerge(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueMerge(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
 	if err.IsNotUndefined() {
 		return nil, err
 	}
 	return (*HashRecordOfValue)(m), value.Undefined
 }
 
-func HashRecordOfValueConcatInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (*HashRecordOfValue, value.Value) {
-	m, err := HashMapOfValueConcatInterface(vm, (*HashMapOfValue)(x), y)
+func HashRecordOfValueMergeInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueMergeInterface(vm, (*HashMapOfValue)(x), y)
 	if err.IsNotUndefined() {
 		return nil, err
 	}

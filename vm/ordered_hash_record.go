@@ -12,13 +12,16 @@ type OrderedHashRecord interface {
 	IterOrderedRecord() value.NativeResettableIterator
 	All() iter.Seq[value.PairOfValue]
 	Length() int
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns elk `nil` if the index is out of range
+	TryAtVal(value.Value) (value.Pair, value.Value)
 	AtInterface(int) value.Pair
 	GetAtInterface(int) (value.Pair, value.Value)
 	// If the key is not present should return (Undefined, Undefined)
 	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
 	// If the key is not present should return (Nil, Undefined)
 	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
-	ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value)
+	MergeVal(thread *Thread, other value.Value) (OrderedHashRecord, value.Value)
 	Contains(thread *Thread, pair value.Pair) (bool, value.Value)
 	ContainsKey(thread *Thread, key value.Value) (bool, value.Value)
 	ContainsValue(thread *Thread, val value.Value) (bool, value.Value)
@@ -66,16 +69,114 @@ func initOrderedHashRecord() {
 		},
 		DefWithParameters(1),
 	)
+
 	Def(
 		c,
 		"+",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashRecord)
 			other := args[1]
-			return self.ConcatVal(vm, other)
+			return value.RefErr(self.MergeVal(vm, other))
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "merge", "+")
+
+	Def(
+		c,
+		"try_first",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			length := self.Length()
+			if length == 0 {
+				return value.Nil, value.Undefined
+			}
+
+			return self.AtInterface(0).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"first",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			length := self.Length()
+			if length == 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.IterableNotFoundErrorClass,
+						"cannot get first element of `%s`",
+						self.Inspect(),
+					),
+				)
+			}
+
+			return self.AtInterface(0).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"try_last",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			length := self.Length()
+			if length == 0 {
+				return value.Nil, value.Undefined
+			}
+
+			return self.AtInterface(length - 1).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"last",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			length := self.Length()
+			if length == 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.IterableNotFoundErrorClass,
+						"cannot get last element of `%s`",
+						self.Inspect(),
+					),
+				)
+			}
+
+			return self.AtInterface(length - 1).ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"get_at",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			index := args[1].AsAnyInt()
+			return value.RefErr(self.GetAtInterface(index))
+		},
+		DefWithParameters(1),
+	)
+	Alias(c, "at", "get_at")
+
+	Def(
+		c,
+		"try_at",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashRecord)
+			other := args[1]
+			pair, err := self.TryAtVal(other)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			if pair == nil {
+				return value.Nil, value.Undefined
+			}
+			return pair.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"contains",

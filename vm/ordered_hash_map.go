@@ -72,10 +72,12 @@ func initOrderedHashMap() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashMap)
 			other := args[1]
-			return self.ConcatVal(vm, other)
+			return value.RefErr(self.MergeVal(vm, other))
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "merge", "+")
+
 	Def(
 		c,
 		"remove_key",
@@ -103,7 +105,6 @@ func initOrderedHashMap() {
 
 			return self.AtInterface(0).ToValue(), value.Undefined
 		},
-		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -123,7 +124,6 @@ func initOrderedHashMap() {
 
 			return self.AtInterface(0).ToValue(), value.Undefined
 		},
-		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -137,7 +137,6 @@ func initOrderedHashMap() {
 
 			return self.AtInterface(length - 1).ToValue(), value.Undefined
 		},
-		DefWithParameters(1),
 	)
 	Def(
 		c,
@@ -157,8 +156,39 @@ func initOrderedHashMap() {
 
 			return self.AtInterface(length - 1).ToValue(), value.Undefined
 		},
+	)
+
+	Def(
+		c,
+		"get_at",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			index := args[1].AsAnyInt()
+			return value.RefErr(self.GetAtInterface(index))
+		},
 		DefWithParameters(1),
 	)
+	Alias(c, "at", "get_at")
+
+	Def(
+		c,
+		"try_at",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			other := args[1]
+			pair, err := self.TryAtVal(other)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			if pair == nil {
+				return value.Nil, value.Undefined
+			}
+			return pair.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"contains",

@@ -227,7 +227,7 @@ func (h *NativeHashMap[K, V]) SetVal(thread *Thread, key, val value.Value) value
 	return value.Undefined
 }
 
-func (h *NativeHashMap[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *NativeHashMap[K, V]) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *NativeHashMap[K, V]:
 		newMap := NewNativeHashMap[K, V](h.Length() + o.Length())

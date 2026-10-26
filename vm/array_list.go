@@ -77,6 +77,18 @@ func initArrayList() {
 		DefWithParameters(1),
 	)
 	Alias(c, "at", "[]")
+
+	Def(
+		c,
+		"try_at",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			other := args[1]
+			return self.TryAtVal(other)
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"[]=",
@@ -221,8 +233,22 @@ func initArrayList() {
 		"remove_at",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
-			val := args[1].AsInt()
-			return value.Nil, self.RemoveAtErr(val)
+			val := args[1]
+			return value.Nil, self.RemoveAtVal(val)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_at_range",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			rng := args[1]
+			err := value.ArrayListInterfaceRemoveAtRange(self, rng)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
 	)

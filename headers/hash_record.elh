@@ -23,6 +23,7 @@ noinit sealed primitive class ::Std::HashRecord[Key, Value]
 		and another given record.
 	]##
 	sealed pure def +[K, V](other: Record[K, V]): HashRecord[Key | K, Value | V]; end
+	alias merge +
 
 	##[
 		Check whether the given `pair` is present in this record.

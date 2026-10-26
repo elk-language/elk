@@ -66,16 +66,19 @@ func initHashMap() {
 		},
 		DefWithParameters(2),
 	)
+
 	Def(
 		c,
 		"+",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(HashMap)
 			other := args[1]
-			return self.ConcatVal(vm, other)
+			return self.MergeVal(vm, other)
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "merge", "+")
+
 	Def(
 		c,
 		"remove_key",

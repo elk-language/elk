@@ -106,7 +106,7 @@ noinit sealed primitive class ::Std::ArrayList[Val]
 
 		Returns `nil` if the index is out of range.
 	]##
-	pure def fetch(index: AnyInt): Val?; end
+	pure def try_at(index: AnyInt): Val?; end
 
 	##[
 		Get the element under the given index.

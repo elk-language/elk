@@ -145,12 +145,12 @@ func (h *HashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value
 	return HashMapOfValueDelete(thread, h, key)
 }
 
-func (h *HashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *HashMapOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashMapOfValue:
-		return value.RefErr(HashMapOfValueConcat(thread, h, o))
+		return value.RefErr(HashMapOfValueMerge(thread, h, o))
 	case HashRecord:
-		return value.RefErr(HashMapOfValueConcatInterface(thread, h, o))
+		return value.RefErr(HashMapOfValueMergeInterface(thread, h, o))
 	}
 
 	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
@@ -499,7 +499,7 @@ func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord
 }
 
 // Create a new map containing the pairs of both maps.
-func HashMapOfValueConcat(vm *Thread, x, y *HashMapOfValue) (*HashMapOfValue, value.Value) {
+func HashMapOfValueMerge(vm *Thread, x, y *HashMapOfValue) (*HashMapOfValue, value.Value) {
 	result := x.Clone()
 	err := HashMapOfValueCopy(vm, result, y)
 	if !err.IsUndefined() {
@@ -508,7 +508,7 @@ func HashMapOfValueConcat(vm *Thread, x, y *HashMapOfValue) (*HashMapOfValue, va
 	return result, value.Undefined
 }
 
-func HashMapOfValueConcatInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (*HashMapOfValue, value.Value) {
+func HashMapOfValueMergeInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (*HashMapOfValue, value.Value) {
 	result := x.Clone()
 	err := HashMapOfValueCopyInterface(vm, result, y)
 	if !err.IsUndefined() {

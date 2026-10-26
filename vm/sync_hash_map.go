@@ -23,7 +23,7 @@ type SyncHashMap interface {
 	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
 	// If the key is not present should return (Nil, Undefined)
 	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
-	ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value)
+	MergeVal(thread *Thread, other value.Value) (SyncHashMap, value.Value)
 	Contains(thread *Thread, pair value.Pair) (bool, value.Value)
 	ContainsKey(thread *Thread, key value.Value) (bool, value.Value)
 	ContainsValue(thread *Thread, val value.Value) (bool, value.Value)
@@ -83,16 +83,19 @@ func initSyncHashMap() {
 		},
 		DefWithParameters(2),
 	)
+
 	Def(
 		c,
 		"+",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(SyncHashMap)
 			other := args[1]
-			return self.ConcatVal(vm, other)
+			return value.RefErr(self.MergeVal(vm, other))
 		},
 		DefWithParameters(1),
 	)
+	Alias(c, "merge", "+")
+
 	Def(
 		c,
 		"remove_key",

@@ -127,6 +127,25 @@ func (h *OrderedHashRecordOfValue) GetAt(index int) (result *value.PairOfValue, 
 	return &h.entries[index], value.Undefined
 }
 
+func (h *OrderedHashRecordOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
+	var i int
+
+	i, ok := value.ToGoInt(index)
+	if !ok {
+		if i == -1 {
+			return nil, value.Undefined
+		}
+		return nil, value.NewCoerceError(value.IntClass, index.Class()).ToValue()
+	}
+
+	i, ok = value.NormalizeArrayIndexOk(i, h.Length())
+	if !ok {
+		return nil, value.Undefined
+	}
+
+	return &h.entries[i], value.Undefined
+}
+
 func (h *OrderedHashRecordOfValue) GetAtInterface(index int) (result value.Pair, err value.Value) {
 	result, err = h.GetAt(index)
 	return result, err
@@ -173,7 +192,7 @@ func (h *OrderedHashRecordOfValue) SetVal(thread *Thread, key, val value.Value) 
 	return value.Undefined
 }
 
-func (h *OrderedHashRecordOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *OrderedHashRecordOfValue) MergeVal(thread *Thread, other value.Value) (OrderedHashRecord, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *OrderedHashRecordOfValue:
 		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
@@ -185,18 +204,7 @@ func (h *OrderedHashRecordOfValue) ConcatVal(thread *Thread, other value.Value) 
 			result.SetVal(thread, entry.Key(), entry.Value())
 		}
 
-		return result.ToValue(), value.Undefined
-	case OrderedHashMap:
-		result := NewOrderedHashMapOfValue(h.Length() + o.Length())
-
-		for _, entry := range h.entries {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-		for entry := range o.All() {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-
-		return result.ToValue(), value.Undefined
+		return result, value.Undefined
 	case OrderedHashRecord:
 		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
 
@@ -207,18 +215,7 @@ func (h *OrderedHashRecordOfValue) ConcatVal(thread *Thread, other value.Value) 
 			result.SetVal(thread, entry.Key(), entry.Value())
 		}
 
-		return result.ToValue(), value.Undefined
-	case HashMap:
-		result := NewOrderedHashMapOfValue(h.Length() + o.Length())
-
-		for _, entry := range h.entries {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-		for entry := range o.All() {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-
-		return result.ToValue(), value.Undefined
+		return result, value.Undefined
 	case HashRecord:
 		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
 
@@ -229,7 +226,7 @@ func (h *OrderedHashRecordOfValue) ConcatVal(thread *Thread, other value.Value) 
 			result.SetVal(thread, entry.Key(), entry.Value())
 		}
 
-		return result.ToValue(), value.Undefined
+		return result, value.Undefined
 	default:
 		result := NewOrderedHashRecordOfValue(h.Length())
 
@@ -239,14 +236,14 @@ func (h *OrderedHashRecordOfValue) ConcatVal(thread *Thread, other value.Value) 
 
 		for element, err := range Iterate(thread, other) {
 			if err.IsNotUndefined() {
-				return value.Undefined, err
+				return nil, err
 			}
 
 			entry := element.AsReference().(value.Pair)
 			result.SetVal(thread, entry.Key(), entry.Value())
 		}
 
-		return result.ToValue(), value.Undefined
+		return result, value.Undefined
 	}
 }
 

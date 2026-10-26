@@ -324,6 +324,11 @@ func (l *NativeArrayList[T]) Get(index int) (T, Value) {
 	return GetFromSlice((*[]T)(l), index)
 }
 
+// Get an element under the given index.
+func (l *NativeArrayList[T]) GetOk(index int) (T, bool) {
+	return GetFromSliceOk((*[]T)(l), index)
+}
+
 // Get an element under the given index without bounds checking
 func (l *NativeArrayList[T]) At(i int) T {
 	return (*l)[i]
@@ -350,6 +355,26 @@ func (l *NativeArrayList[T]) Subscript(key Value) (t Value, err Value) {
 
 func (l *NativeArrayList[T]) SubscriptInt(key int) (t Value, err Value) {
 	return ToValueErr(l.Get(key))
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *NativeArrayList[T]) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val.ToValue(), Undefined
 }
 
 // Set an element under the given index.
