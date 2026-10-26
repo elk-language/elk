@@ -141,6 +141,10 @@ func (h *HashMapOfValue) SetVal(thread *Thread, key, val value.Value) value.Valu
 	return HashMapOfValueSet(thread, h, key, val)
 }
 
+func (h *HashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	return HashMapOfValueDelete(thread, h, key)
+}
+
 func (h *HashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashMapOfValue:

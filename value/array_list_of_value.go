@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
@@ -216,20 +217,46 @@ func (l *ArrayListOfValue) Capacity() int {
 	return cap(*l)
 }
 
-func (l *ArrayListOfValue) RemoveAtErr(index int) Value {
-	index, err := NormalizeArrayIndex(index, l.Length())
+// RemoveAtRange removes the elements s[i..j] in place
+func (l *ArrayListOfValue) RemoveAtRange(i, j int) {
+	*l = slices.Delete(*l, i, j+1)
+}
+
+// RemoveAtRangeErr removes the elements s[i..j] in place with index normalisation
+func (l *ArrayListOfValue) RemoveAtRangeErr(i, j int) (err Value) {
+	i, err = NormalizeArrayIndex(i, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+	j, err = NormalizeArrayIndex(j, l.Length())
 	if !err.IsUndefined() {
 		return err
 	}
 
-	l.RemoveAt(index)
+	l.RemoveAtRange(i, j)
 	return Undefined
 }
 
 func (l *ArrayListOfValue) RemoveAt(i int) {
-	s := *l
-	copy(s[i:], s[i+1:])
-	*l = s[:len(s)-1]
+	*l = slices.Delete(*l, i, i+1)
+}
+
+func (l *ArrayListOfValue) RemoveAtVal(indexVal Value) Value {
+	index, ok := ToGoInt(indexVal)
+	if !ok {
+		if index == -1 {
+			return Ref(NewIndexOutOfRangeError(indexVal.Inspect(), len(*l)))
+		}
+		return Ref(NewCoerceError(IntClass, indexVal.Class()))
+	}
+
+	i, err := NormalizeArrayIndex(index, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+
+	l.RemoveAt(i)
+	return Undefined
 }
 
 func (l *ArrayListOfValue) LeftCapacity() int {

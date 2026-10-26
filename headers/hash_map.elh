@@ -30,6 +30,12 @@ noinit sealed primitive class ::Std::HashMap[Key, Value]
 	sealed pure def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
 
 	##[
+		Delete the given key from the map.
+		Returns `true` if the key has been removed, otherwise `false`.
+	]##
+	sealed def remove_key(key: K): bool; end
+
+	##[
 		Check whether the given `pair` is present in this map.
 	]##
 	def contains[V := Pair[Key, Value]](value: V): bool; end

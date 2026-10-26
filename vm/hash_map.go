@@ -9,6 +9,7 @@ type HashMap interface {
 	HashRecord
 	IterMap() value.NativeResettableIterator
 	SetVal(thread *Thread, key, val value.Value) value.Value
+	RemoveKey(thread *Thread, key value.Value) (bool, value.Value)
 	CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value)
 	NewHashMap(capacity int) HashMap
 }
@@ -72,6 +73,21 @@ func initHashMap() {
 			self := args[0].AsReference().(HashMap)
 			other := args[1]
 			return self.ConcatVal(vm, other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_key",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashMap)
+			key := args[1]
+			ok, err := self.RemoveKey(vm, key)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.Bool(ok).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

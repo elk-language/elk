@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 	"unsafe"
 
@@ -244,20 +245,46 @@ func (l *NativeArrayList[T]) Capacity() int {
 	return cap(*l)
 }
 
-func (l *NativeArrayList[T]) RemoveAtErr(index int) Value {
-	index, err := NormalizeArrayIndex(index, l.Length())
+func (l *NativeArrayList[T]) RemoveAtVal(indexVal Value) Value {
+	index, ok := ToGoInt(indexVal)
+	if !ok {
+		if index == -1 {
+			return Ref(NewIndexOutOfRangeError(indexVal.Inspect(), len(*l)))
+		}
+		return Ref(NewCoerceError(IntClass, indexVal.Class()))
+	}
+
+	i, err := NormalizeArrayIndex(index, l.Length())
 	if !err.IsUndefined() {
 		return err
 	}
 
-	l.RemoveAt(index)
+	l.RemoveAt(i)
 	return Undefined
 }
 
 func (l *NativeArrayList[T]) RemoveAt(i int) {
-	s := *l
-	copy(s[i:], s[i+1:])
-	*l = s[:len(s)-1]
+	*l = slices.Delete(*l, i, i+1)
+}
+
+// RemoveAtRange removes the elements s[i..j] in place
+func (l *NativeArrayList[T]) RemoveAtRange(i, j int) {
+	*l = slices.Delete(*l, i, j+1)
+}
+
+// RemoveAtRangeErr removes the elements s[i..j] in place with index normalisation
+func (l *NativeArrayList[T]) RemoveAtRangeErr(i, j int) (err Value) {
+	i, err = NormalizeArrayIndex(i, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+	j, err = NormalizeArrayIndex(j, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+
+	l.RemoveAtRange(i, j)
+	return Undefined
 }
 
 func (l *NativeArrayList[T]) LeftCapacity() int {

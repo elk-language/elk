@@ -143,6 +143,28 @@ func (h *OrderedHashMapOfValue) GetIndex(thread *Thread, key value.Value) (value
 	return index, value.Undefined
 }
 
+func (h *OrderedHashMapOfValue) At(index int) *value.PairOfValue {
+	return &h.entries[index]
+}
+
+func (h *OrderedHashMapOfValue) AtInterface(index int) value.Pair {
+	return h.At(index)
+}
+
+func (h *OrderedHashMapOfValue) GetAt(index int) (result *value.PairOfValue, err value.Value) {
+	index, err = value.NormalizeArrayIndex(index, h.Length())
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	return &h.entries[index], value.Undefined
+}
+
+func (h *OrderedHashMapOfValue) GetAtInterface(index int) (result value.Pair, err value.Value) {
+	result, err = h.GetAt(index)
+	return result, err
+}
+
 func (h *OrderedHashMapOfValue) GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value) {
 	index, err := h.GetIndex(thread, key)
 	if err.IsNotUndefined() {
@@ -278,6 +300,21 @@ func (h *OrderedHashMapOfValue) ContainsKey(thread *Thread, key value.Value) (bo
 	if val.IsUndefined() {
 		return false, value.Undefined
 	}
+	return true, value.Undefined
+}
+
+func (h *OrderedHashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	index, err := h.GetIndex(thread, key)
+	if err.IsNotUndefined() {
+		return false, err
+	}
+
+	h.entries = slices.Delete(h.entries, int(index), int(index)+1)
+	_, err = h.index.RemoveKey(thread, key)
+	if err.IsNotUndefined() {
+		return false, err
+	}
+
 	return true, value.Undefined
 }
 

@@ -110,6 +110,28 @@ func (h *OrderedHashRecordOfValue) GetIndex(thread *Thread, key value.Value) (va
 	return indexVal.AsSmallInt(), value.Undefined
 }
 
+func (h *OrderedHashRecordOfValue) At(index int) *value.PairOfValue {
+	return &h.entries[index]
+}
+
+func (h *OrderedHashRecordOfValue) AtInterface(index int) value.Pair {
+	return h.At(index)
+}
+
+func (h *OrderedHashRecordOfValue) GetAt(index int) (result *value.PairOfValue, err value.Value) {
+	index, err = value.NormalizeArrayIndex(index, h.Length())
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	return &h.entries[index], value.Undefined
+}
+
+func (h *OrderedHashRecordOfValue) GetAtInterface(index int) (result value.Pair, err value.Value) {
+	result, err = h.GetAt(index)
+	return result, err
+}
+
 func (h *OrderedHashRecordOfValue) GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value) {
 	index, err := h.GetIndex(thread, key)
 	if err.IsNotUndefined() {

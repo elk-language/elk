@@ -13,6 +13,7 @@ type SyncHashMap interface {
 	Lock()
 	Unlock()
 	IterSyncMap() value.NativeResettableIterator
+	RemoveKey(thread *Thread, key value.Value) (bool, value.Value)
 	SetVal(thread *Thread, key, val value.Value) value.Value
 	CloneSyncHashMap(thread *Thread, capacity int) (SyncHashMap, value.Value)
 	NewSyncHashMap(capacity int) SyncHashMap
@@ -89,6 +90,21 @@ func initSyncHashMap() {
 			self := args[0].AsReference().(SyncHashMap)
 			other := args[1]
 			return self.ConcatVal(vm, other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_key",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncHashMap)
+			key := args[1]
+			ok, err := self.RemoveKey(vm, key)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.Bool(ok).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

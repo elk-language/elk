@@ -20,9 +20,18 @@ type ArrayTuple interface {
 	Elements() iter.Seq2[int, Value]
 	Length() int
 	ImmutableBoxOfVal(index Value) (Value, Value)
+	// does not normalize the index for negative values
+	// does not do bounds checking
 	AtVal(int) Value
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns an elk error
 	SubscriptInt(index int) (Value, Value)
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns an elk error
 	Subscript(index Value) (Value, Value)
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns elk `nil` if the index is out of range
+	FetchVal(Value) Value
 	ConcatVal(Value) (Value, Value)
 	ConcatValOk(Value) (Value, bool)
 	RepeatVal(Value) (Value, Value)

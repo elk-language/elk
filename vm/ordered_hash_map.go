@@ -8,6 +8,7 @@ import (
 type OrderedHashMap interface {
 	OrderedHashRecord
 	IterOrderedMap() value.NativeResettableIterator
+	RemoveKey(thread *Thread, key value.Value) (bool, value.Value)
 	SetVal(thread *Thread, key, val value.Value) value.Value
 	CloneOrderedHashMap(thread *Thread, capacity int) (OrderedHashMap, value.Value)
 	NewOrderedHashMap(capacity int) OrderedHashMap
@@ -72,6 +73,89 @@ func initOrderedHashMap() {
 			self := args[0].AsReference().(OrderedHashMap)
 			other := args[1]
 			return self.ConcatVal(vm, other)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_key",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			key := args[1]
+			ok, err := self.RemoveKey(vm, key)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			return value.Bool(ok).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"try_first",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			length := self.Length()
+			if length == 0 {
+				return value.Nil, value.Undefined
+			}
+
+			return self.AtInterface(0).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"first",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			length := self.Length()
+			if length == 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.IterableNotFoundErrorClass,
+						"cannot get first element of `%s`",
+						self.Inspect(),
+					),
+				)
+			}
+
+			return self.AtInterface(0).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"try_last",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			length := self.Length()
+			if length == 0 {
+				return value.Nil, value.Undefined
+			}
+
+			return self.AtInterface(length - 1).ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"last",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(OrderedHashMap)
+			length := self.Length()
+			if length == 0 {
+				return value.Undefined, value.Ref(
+					value.Errorf(
+						value.IterableNotFoundErrorClass,
+						"cannot get last element of `%s`",
+						self.Inspect(),
+					),
+				)
+			}
+
+			return self.AtInterface(length - 1).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)

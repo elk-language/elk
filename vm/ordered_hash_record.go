@@ -12,6 +12,8 @@ type OrderedHashRecord interface {
 	IterOrderedRecord() value.NativeResettableIterator
 	All() iter.Seq[value.PairOfValue]
 	Length() int
+	AtInterface(int) value.Pair
+	GetAtInterface(int) (value.Pair, value.Value)
 	// If the key is not present should return (Undefined, Undefined)
 	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
 	// If the key is not present should return (Nil, Undefined)

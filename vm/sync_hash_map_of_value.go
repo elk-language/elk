@@ -206,6 +206,13 @@ func (h *SyncHashMapOfValue) ContainsKey(thread *Thread, key value.Value) (bool,
 	return h.Map.ContainsKey(thread, key)
 }
 
+func (h *SyncHashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.RemoveKey(thread, key)
+}
+
 func (h *SyncHashMapOfValue) Equal(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *SyncHashMapOfValue:

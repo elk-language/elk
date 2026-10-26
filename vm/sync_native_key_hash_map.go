@@ -262,6 +262,20 @@ func (h *SyncNativeKeyHashMap[K]) ContainsKey(thread *Thread, key value.Value) (
 	return h.Map.ContainsKey(thread, key)
 }
 
+func (h *SyncNativeKeyHashMap[K]) RemoveNativeKey(thread *Thread, key K) bool {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.RemoveNativeKey(thread, key)
+}
+
+func (h *SyncNativeKeyHashMap[K]) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.RemoveKey(thread, key)
+}
+
 func (h *SyncNativeKeyHashMap[K]) EqualNative(thread *Thread, other *SyncNativeKeyHashMap[K]) (bool, value.Value) {
 	h.Lock()
 	defer h.Unlock()

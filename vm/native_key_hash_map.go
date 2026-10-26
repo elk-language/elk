@@ -295,6 +295,24 @@ func (h *NativeKeyHashMap[K]) ContainsKey(thread *Thread, key value.Value) (bool
 	return h.ContainsNativeKey(thread, k), value.Undefined
 }
 
+func (h *NativeKeyHashMap[K]) RemoveNativeKey(thread *Thread, key K) bool {
+	_, ok := h.m[key]
+	if !ok {
+		return false
+	}
+
+	delete(h.m, key)
+	return true
+}
+
+func (h *NativeKeyHashMap[K]) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	k, ok := value.Downcast[K](key)
+	if !ok {
+		return false, value.NewInvalidKeyInTypedMap(h, key.Class()).ToValue()
+	}
+	return h.RemoveNativeKey(thread, k), value.Undefined
+}
+
 func (h *NativeKeyHashMap[K]) EqualNative(thread *Thread, other *NativeKeyHashMap[K]) (bool, value.Value) {
 	if h == other {
 		return true, value.Undefined

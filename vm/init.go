@@ -106,7 +106,9 @@ func InitGlobalEnvironment() {
 	initTimezone()
 	initMacro()
 	initOrderedHashRecord()
+	initOrderedHashRecordIterator()
 	initOrderedHashMap()
+	initOrderedHashMapIterator()
 	initSyncHashMap()
 	initSyncHashMapIterator()
 }
