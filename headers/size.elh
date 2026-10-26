@@ -5,12 +5,39 @@ sealed primitive noinit class ::Std::Size < Value
 	sealed def -@: Size; end
 	sealed def +@: Size; end
 
-	def +(other: Size): Size; end
+	pure sealed def +(other: Size): Size; end
+	pure sealed def -(other: Size): Size; end
+
+	pure overload def *(other: CoercibleNumeric): Size; end
+	pure overload def *(other: Int): Size; end
+	pure overload def *(other: Float): Size; end
+	pure overload def *(other: BigFloat): Size; end
+
+	pure overload def /(other: CoercibleNumeric): Size; end
+	pure overload def /(other: Int): Size; end
+	pure overload def /(other: Float): Size; end
+	pure overload def /(other: BigFloat): Size; end
+
+	pure sealed def <=>(other: Size): Int; end
+	pure sealed def >=(other: Size): bool; end
+	pure sealed def >(other: Size): bool; end
+	pure sealed def <=(other: Size): bool; end
+	pure sealed def <(other: Size): bool; end
 
 	##[
 		Returns the string representation of the date span in the format "5Y2M10D".
 	]##
 	def to_string: String; end
+
+	##[
+		Returns the approximate count of bytes in this size as a Float.
+	]##
+	def in_bytes: Float; end
+
+	##[
+		Returns the amount of full bytes in this size.
+	]##
+	def bytes: Int; end
 
 	##[
 		Returns the approximate count of kilobytes in this size as a Float.
@@ -21,5 +48,45 @@ sealed primitive noinit class ::Std::Size < Value
 		Returns the amount of full kilobytes in this size.
 	]##
 	def kilobytes: Int; end
+
+	##[
+		Returns the approximate count of megabytes in this size as a Float.
+	]##
+	def in_megabytes: Float; end
+
+	##[
+		Returns the amount of full megabytes in this size.
+	]##
+	def megabytes: Int; end
+
+	##[
+		Returns the approximate count of gigabytes in this size as a Float.
+	]##
+	def in_gigabytes: Float; end
+
+	##[
+		Returns the amount of full gigabytes in this size.
+	]##
+	def gigabytes: Int; end
+
+	##[
+		Returns the approximate count of terabytes in this size as a Float.
+	]##
+	def in_terabytes: Float; end
+
+	##[
+		Returns the amount of full terabytes in this size.
+	]##
+	def terabytes: Int; end
+
+	##[
+		Returns the approximate count of petabytes in this size as a Float.
+	]##
+	def in_petabytes: Float; end
+
+	##[
+		Returns the amount of full petabytes in this size.
+	]##
+	def petabytes: Int; end
 
 end

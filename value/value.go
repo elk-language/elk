@@ -134,10 +134,10 @@ func (v Value) ToInterface() ValueInterface {
 		return v.AsDate()
 	case DATE_SPAN_FLAG:
 		return v.AsDateSpan()
-	case SIZE_FLAG:
-		return v.AsSize()
 	case TIME_FLAG:
 		return v.AsTime()
+	case SIZE_FLAG:
+		return v.AsSize()
 	case WEAK_FLAG:
 		return v.AsWeak()
 	case RESULT_OK_FLAG:
@@ -200,6 +200,8 @@ func (v Value) Inspect() string {
 		return v.AsDateSpan().Inspect()
 	case TIME_FLAG:
 		return v.AsTime().Inspect()
+	case SIZE_FLAG:
+		return v.AsSize().Inspect()
 	case WEAK_FLAG:
 		return v.AsWeak().Inspect()
 	case RESULT_OK_FLAG:
@@ -269,6 +271,8 @@ func (v Value) Class() *Class {
 		return v.AsDateSpan().Class()
 	case TIME_FLAG:
 		return v.AsTime().Class()
+	case SIZE_FLAG:
+		return v.AsSize().Class()
 	case WEAK_FLAG:
 		return v.AsWeak().Class()
 	case RESULT_OK_FLAG:
@@ -330,6 +334,8 @@ func (v Value) DirectClass() *Class {
 		return v.AsDateSpan().DirectClass()
 	case TIME_FLAG:
 		return v.AsTime().DirectClass()
+	case SIZE_FLAG:
+		return v.AsSize().DirectClass()
 	case WEAK_FLAG:
 		return v.AsWeak().DirectClass()
 	case RESULT_OK_FLAG:
@@ -454,6 +460,8 @@ func (v Value) InstanceVariables() *InstanceVariables {
 		return v.AsDateSpan().InstanceVariables()
 	case TIME_FLAG:
 		return v.AsTime().InstanceVariables()
+	case SIZE_FLAG:
+		return v.AsSize().InstanceVariables()
 	case WEAK_FLAG:
 		return v.AsWeak().InstanceVariables()
 	case RESULT_OK_FLAG:
@@ -515,6 +523,8 @@ func (v Value) Error() string {
 		return v.AsDateSpan().Error()
 	case TIME_FLAG:
 		return v.AsTime().Error()
+	case SIZE_FLAG:
+		return v.AsSize().Error()
 	case WEAK_FLAG:
 		return v.AsWeak().Error()
 	case RESULT_OK_FLAG:

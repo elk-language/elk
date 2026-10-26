@@ -191,12 +191,23 @@ func initSize() {
 
 	Def(
 		c,
+		"to_string",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsSize()
+			return value.Ref(self.ToString()), value.Undefined
+		},
+	)
+	Alias(c, "to_string", "inspect")
+
+	Def(
+		c,
 		"bytes",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsSize()
 			return self.Bytes(), value.Undefined
 		},
 	)
+	Alias(c, "byte", "bytes")
 	Def(
 		c,
 		"in_bytes",
@@ -214,6 +225,7 @@ func initSize() {
 			return self.Kilobytes(), value.Undefined
 		},
 	)
+	Alias(c, "kilobyte", "kilobytes")
 	Def(
 		c,
 		"in_kilobytes",
@@ -231,6 +243,7 @@ func initSize() {
 			return self.Megabytes(), value.Undefined
 		},
 	)
+	Alias(c, "megabyte", "megabytes")
 	Def(
 		c,
 		"in_megabytes",
@@ -248,6 +261,7 @@ func initSize() {
 			return self.Gigabytes(), value.Undefined
 		},
 	)
+	Alias(c, "gigabyte", "gigabytes")
 	Def(
 		c,
 		"in_gigabytes",
@@ -265,6 +279,7 @@ func initSize() {
 			return self.Terabytes(), value.Undefined
 		},
 	)
+	Alias(c, "terabyte", "terabytes")
 	Def(
 		c,
 		"in_terabytes",
@@ -282,6 +297,7 @@ func initSize() {
 			return self.Petabytes(), value.Undefined
 		},
 	)
+	Alias(c, "petabyte", "petabytes")
 	Def(
 		c,
 		"in_petabytes",
