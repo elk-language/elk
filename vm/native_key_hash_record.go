@@ -167,21 +167,7 @@ func (h NativeKeyHashRecord[K]) MergeVal(thread *Thread, other value.Value) (val
 		maps.Copy(newMap, h)
 		maps.Copy(newMap, o)
 		return newMap.ToValue(), value.Undefined
-	case HashMap:
-		newMap := NewHashMapOfValue(h.Length() + o.Length())
-
-		err := HashMapOfValueCopyInterface(thread, newMap, h)
-		if err.IsNotUndefined() {
-			return value.Undefined, err
-		}
-
-		err = HashMapOfValueCopyInterface(thread, newMap, o)
-		if err.IsNotUndefined() {
-			return value.Undefined, err
-		}
-
-		return newMap.ToValue(), value.Undefined
-	case HashRecord:
+	case Record:
 		newMap := NewHashRecordOfValue(h.Length() + o.Length())
 
 		err := HashRecordOfValueCopyInterface(thread, newMap, h)
@@ -214,8 +200,6 @@ func (h NativeKeyHashRecord[K]) MergeVal(thread *Thread, other value.Value) (val
 
 		return newMap.ToValue(), value.Undefined
 	}
-
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
 }
 
 func (h NativeKeyHashRecord[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {

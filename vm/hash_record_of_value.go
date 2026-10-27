@@ -120,15 +120,49 @@ func (h *HashRecordOfValue) SetVal(thread *Thread, key, val value.Value) value.V
 	return HashRecordOfValueSet(thread, h, key, val)
 }
 
-func (h *HashRecordOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *HashRecordOfValue) Merge(thread *Thread, other value.Value) (*HashRecordOfValue, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashRecordOfValue:
-		return value.RefErr(HashRecordOfValueMerge(thread, h, o))
+		return HashRecordOfValueMerge(thread, h, o)
 	case HashRecord:
-		return value.RefErr(HashRecordOfValueMergeInterface(thread, h, o))
+		return HashRecordOfValueMergeInterface(thread, h, o)
+	case Record:
+		newMap := NewHashRecordOfValue(h.Length() + o.Length())
+		err := HashRecordOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		err = HashRecordOfValueCopyInterface(thread, newMap, o)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		return newMap, value.Undefined
+	default:
+		result := NewHashRecordOfValue(h.Length())
+
+		err := HashRecordOfValueCopyInterface(thread, result, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return nil, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			result.SetVal(thread, entry.Key(), entry.Value())
+		}
+
+		return result, value.Undefined
 	}
 
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with record %s", other.Inspect(), h.Inspect()))
+}
+
+func (h *HashRecordOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+	return value.RefErr(h.Merge(thread, other))
 }
 
 func (h *HashRecordOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {

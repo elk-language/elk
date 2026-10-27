@@ -195,7 +195,7 @@ func (h *SyncNativeHashMap[K, V]) MergeVal(thread *Thread, other value.Value) (S
 		maps.Copy(newMap.Map.m, h.Map.m)
 		maps.Copy(newMap.Map.m, o.m)
 		return newMap, value.Undefined
-	case HashRecord:
+	case Record:
 		h.Lock()
 		defer h.Unlock()
 

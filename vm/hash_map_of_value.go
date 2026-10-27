@@ -145,15 +145,48 @@ func (h *HashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value
 	return HashMapOfValueDelete(thread, h, key)
 }
 
-func (h *HashMapOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *HashMapOfValue) Merge(thread *Thread, other value.Value) (*HashMapOfValue, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashMapOfValue:
-		return value.RefErr(HashMapOfValueMerge(thread, h, o))
+		return HashMapOfValueMerge(thread, h, o)
 	case HashRecord:
-		return value.RefErr(HashMapOfValueMergeInterface(thread, h, o))
-	}
+		return HashMapOfValueMergeInterface(thread, h, o)
+	case Record:
+		newMap := NewHashMapOfValue(h.Length() + o.Length())
+		err := HashMapOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
 
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+		err = HashMapOfValueCopyInterface(thread, newMap, o)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		return newMap, value.Undefined
+	default:
+		result := NewHashMapOfValue(h.Length())
+
+		err := HashMapOfValueCopyInterface(thread, result, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return nil, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			result.SetVal(thread, entry.Key(), entry.Value())
+		}
+
+		return result, value.Undefined
+	}
+}
+
+func (h *HashMapOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+	return value.RefErr(h.Merge(thread, other))
 }
 
 func (h *HashMapOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {

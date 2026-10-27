@@ -180,9 +180,41 @@ func (h *SyncHashMapOfValue) MergeVal(thread *Thread, other value.Value) (SyncHa
 			return nil, err
 		}
 		return NewSyncHashMapOfValueWithMap(m), value.Undefined
-	}
+	case Record:
+		h.Lock()
+		defer h.Unlock()
 
-	return nil, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+		newMap := NewSyncHashMapOfValue(h.Length() + o.Length())
+
+		err := HashMapOfValueCopyInterface(thread, newMap.Map, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		err = HashMapOfValueCopyInterface(thread, newMap.Map, o)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+		return newMap, value.Undefined
+	default:
+		result := NewSyncHashMapOfValue(h.Length())
+
+		err := HashMapOfValueCopyInterface(thread, result.Map, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return nil, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			result.Map.SetVal(thread, entry.Key(), entry.Value())
+		}
+
+		return result, value.Undefined
+	}
 }
 
 func (h *SyncHashMapOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {

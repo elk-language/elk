@@ -96,7 +96,7 @@ func (h *NativeKeyHashMap[K]) Keys() iter.Seq[value.Value] {
 func (h *NativeKeyHashMap[K]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h.m {
-			pair := value.MakePairOfValue(k.ToValue(), v.ToValue())
+			pair := value.MakePairOfValue(k.ToValue(), v)
 			if !yield(pair) {
 				return
 			}
@@ -166,7 +166,7 @@ func (h *NativeKeyHashMap[K]) GetValUndefined(thread *Thread, key value.Value) (
 	if !ok {
 		return value.Undefined, value.Undefined
 	}
-	return v.ToValue(), value.Undefined
+	return v, value.Undefined
 }
 
 func (h *NativeKeyHashMap[K]) GetValNil(thread *Thread, key value.Value) (value.Value, value.Value) {
@@ -178,7 +178,7 @@ func (h *NativeKeyHashMap[K]) GetValNil(thread *Thread, key value.Value) (value.
 	if !ok {
 		return value.Nil, value.Undefined
 	}
-	return v.ToValue(), value.Undefined
+	return v, value.Undefined
 }
 
 func (h *NativeKeyHashMap[K]) Set(key K, val value.Value) {
@@ -202,7 +202,7 @@ func (h *NativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (value
 		maps.Copy(newMap.m, h.m)
 		maps.Copy(newMap.m, o.m)
 		return newMap.ToValue(), value.Undefined
-	case HashRecord:
+	case Record:
 		newMap := NewHashMapOfValue(h.Length() + o.Length())
 
 		err := HashMapOfValueCopyInterface(thread, newMap, h)
@@ -235,8 +235,6 @@ func (h *NativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (value
 
 		return newMap.ToValue(), value.Undefined
 	}
-
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
 }
 
 func (h *NativeKeyHashMap[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {
@@ -245,7 +243,7 @@ func (h *NativeKeyHashMap[K]) ContainsNativePair(thread *Thread, other *value.Na
 		return false, value.Undefined
 	}
 
-	eq, err := Equal(thread, v.ToValue(), other.Value())
+	eq, err := Equal(thread, v, other.Value())
 	if err.IsNotUndefined() {
 		return false, err
 	}
@@ -269,7 +267,7 @@ func (h *NativeKeyHashMap[K]) Contains(thread *Thread, other value.Pair) (bool, 
 
 func (h *NativeKeyHashMap[K]) ContainsValue(thread *Thread, val value.Value) (bool, value.Value) {
 	for _, hval := range h.m {
-		eq, err := Equal(thread, hval.ToValue(), val.ToValue())
+		eq, err := Equal(thread, hval, val)
 		if err.IsNotUndefined() {
 			return false, err
 		}
@@ -323,7 +321,7 @@ func (h *NativeKeyHashMap[K]) EqualNative(thread *Thread, other *NativeKeyHashMa
 
 	for hkey, hval := range h.m {
 		oval := other.m[hkey]
-		eqVal, err := Equal(thread, hval.ToValue(), oval.ToValue())
+		eqVal, err := Equal(thread, hval, oval)
 		if !err.IsUndefined() {
 			return false, err
 		}
@@ -357,7 +355,7 @@ func (h *NativeKeyHashMap[K]) LaxEqualNative(thread *Thread, other *NativeKeyHas
 
 	for hkey, hval := range h.m {
 		oval := other.m[hkey]
-		eqVal, err := LaxEqual(thread, hval.ToValue(), oval.ToValue())
+		eqVal, err := LaxEqual(thread, hval, oval)
 		if !err.IsUndefined() {
 			return false, err
 		}

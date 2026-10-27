@@ -398,7 +398,7 @@ func OrderedHashRecordLaxEqual(thread *Thread, a OrderedHashRecord, b OrderedHas
 	return true, value.Undefined
 }
 
-func OrderedHashRecordLaxEqualHashRecord(thread *Thread, a OrderedHashRecord, b HashRecord) (bool, value.Value) {
+func OrderedHashRecordLaxEqualRecord(thread *Thread, a OrderedHashRecord, b Record) (bool, value.Value) {
 	if a.Length() != b.Length() {
 		return false, value.Undefined
 	}

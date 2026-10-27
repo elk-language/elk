@@ -205,7 +205,7 @@ func (h *SyncNativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (S
 
 		maps.Copy(newMap.Map.m, o.m)
 		return newMap, value.Undefined
-	case HashRecord:
+	case Record:
 		h.Lock()
 		defer h.Unlock()
 
@@ -222,9 +222,25 @@ func (h *SyncNativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (S
 		}
 
 		return newMap, value.Undefined
-	}
+	default:
+		result := NewSyncHashMapOfValue(h.Length())
 
-	return nil, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+		err := HashMapOfValueCopyInterface(thread, result.Map, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return nil, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			result.Map.SetVal(thread, entry.Key(), entry.Value())
+		}
+
+		return result, value.Undefined
+	}
 }
 
 func (h *SyncNativeKeyHashMap[K]) ContainsNativePair(thread *Thread, other *value.NativePair[K, value.Value]) (bool, value.Value) {

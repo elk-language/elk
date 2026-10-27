@@ -14,6 +14,7 @@ import (
 type OrderedHashMapOfValue struct {
 	index   *HashMapOfValue     // map of key to small int index of key-value pair in `entries`
 	entries []value.PairOfValue // slice with key value pairs
+	version int
 }
 
 var _ OrderedHashMap = &OrderedHashMapOfValue{}
@@ -26,20 +27,6 @@ func NewOrderedHashMapOfValue(capacity int) *OrderedHashMapOfValue {
 	return &OrderedHashMapOfValue{
 		index:   NewHashMapOfValue(capacity),
 		entries: make([]value.PairOfValue, 0, capacity),
-	}
-}
-
-func NewOrderedHashMapOfValueFromMap(m *HashMapOfValue) *OrderedHashMapOfValue {
-	entries := make([]value.PairOfValue, m.Length())
-	i := 0
-	for pair := range m.All() {
-		entries[i] = pair
-		i++
-	}
-
-	return &OrderedHashMapOfValue{
-		index:   m,
-		entries: entries,
 	}
 }
 
@@ -211,6 +198,7 @@ func (h *OrderedHashMapOfValue) SetVal(thread *Thread, key, val value.Value) val
 	if err.IsNotUndefined() {
 		return err
 	}
+	h.version++
 
 	if existingIndex.IsUndefined() {
 		// new key
@@ -238,18 +226,7 @@ func (h *OrderedHashMapOfValue) MergeVal(thread *Thread, other value.Value) (Ord
 		}
 
 		return result, value.Undefined
-	case OrderedHashRecord:
-		result := NewOrderedHashMapOfValue(h.Length() + o.Length())
-
-		for _, entry := range h.entries {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-		for entry := range o.All() {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-
-		return result, value.Undefined
-	case HashRecord:
+	case Record:
 		result := NewOrderedHashMapOfValue(h.Length() + o.Length())
 
 		for _, entry := range h.entries {
@@ -328,6 +305,7 @@ func (h *OrderedHashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool
 		return false, err
 	}
 
+	h.version++
 	h.entries = slices.Delete(h.entries, int(index), int(index)+1)
 	_, err = h.index.RemoveKey(thread, key)
 	if err.IsNotUndefined() {
@@ -406,8 +384,8 @@ func (h *OrderedHashMapOfValue) LaxEqual(thread *Thread, other value.Value) (boo
 	switch o := other.SafeAsReference().(type) {
 	case OrderedHashRecord:
 		return OrderedHashRecordLaxEqual(thread, h, o)
-	case HashRecord:
-		return OrderedHashRecordLaxEqualHashRecord(thread, h, o)
+	case Record:
+		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	}
 
 	return false, value.Undefined
@@ -541,7 +519,7 @@ var _ value.NativeResettableIterator = &OrderedHashMapOfValueIterator{}
 func NewOrderedHashMapOfValueIterator(hmap *OrderedHashMapOfValue) *OrderedHashMapOfValueIterator {
 	return &OrderedHashMapOfValueIterator{
 		HashMap: hmap,
-		version: hmap.index.version,
+		version: hmap.version,
 	}
 }
 
@@ -582,24 +560,20 @@ func (*OrderedHashMapOfValueIterator) InstanceVariables() *value.InstanceVariabl
 }
 
 func (h *OrderedHashMapOfValueIterator) NextValue() (value.Value, value.Value) {
-	if h.version != h.HashMap.index.version {
+	if h.version != h.HashMap.version {
 		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 
-	for {
-		if h.Index >= h.HashMap.Capacity() {
-			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
-		}
-
-		pair := &h.HashMap.entries[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(pair), value.Undefined
-		}
+	if h.Index >= h.HashMap.Capacity() {
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
+
+	pair := &h.HashMap.entries[h.Index]
+	h.Index++
+	return value.Ref(pair), value.Undefined
 }
 
 func (h *OrderedHashMapOfValueIterator) Reset() {
 	h.Index = 0
-	h.version = h.HashMap.index.version
+	h.version = h.HashMap.version
 }

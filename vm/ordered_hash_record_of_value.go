@@ -205,18 +205,7 @@ func (h *OrderedHashRecordOfValue) MergeVal(thread *Thread, other value.Value) (
 		}
 
 		return result, value.Undefined
-	case OrderedHashRecord:
-		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
-
-		for _, entry := range h.entries {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-		for entry := range o.All() {
-			result.SetVal(thread, entry.Key(), entry.Value())
-		}
-
-		return result, value.Undefined
-	case HashRecord:
+	case Record:
 		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
 
 		for _, entry := range h.entries {
@@ -305,8 +294,8 @@ func (h *OrderedHashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (
 	switch o := other.SafeAsReference().(type) {
 	case OrderedHashRecord:
 		return OrderedHashRecordLaxEqual(thread, h, o)
-	case HashRecord:
-		return OrderedHashRecordLaxEqualHashRecord(thread, h, o)
+	case Record:
+		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	}
 
 	return false, value.Undefined

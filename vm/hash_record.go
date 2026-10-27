@@ -13,6 +13,10 @@ type Record interface {
 	value.NativeIterable
 	All() iter.Seq[value.PairOfValue]
 	Length() int
+	// If the key is not present should return (Undefined, Undefined)
+	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
+	// If the key is not present should return (Nil, Undefined)
+	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
 }
 
 type HashRecord interface {
@@ -21,10 +25,6 @@ type HashRecord interface {
 	All() iter.Seq[value.PairOfValue]
 	Keys() iter.Seq[value.Value]
 	Length() int
-	// If the key is not present should return (Undefined, Undefined)
-	GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value)
-	// If the key is not present should return (Nil, Undefined)
-	GetValNil(thread *Thread, key value.Value) (value.Value, value.Value)
 	MergeVal(thread *Thread, other value.Value) (value.Value, value.Value)
 	Contains(thread *Thread, pair value.Pair) (bool, value.Value)
 	ContainsKey(thread *Thread, key value.Value) (bool, value.Value)
@@ -393,7 +393,7 @@ func HashRecordOfValueCopy(vm *Thread, target *HashRecordOfValue, source *HashRe
 	return HashMapOfValueCopy(vm, (*HashMapOfValue)(target), (*HashMapOfValue)(source))
 }
 
-func HashRecordOfValueCopyInterface(vm *Thread, target *HashRecordOfValue, source HashRecord) value.Value {
+func HashRecordOfValueCopyInterface(vm *Thread, target *HashRecordOfValue, source Record) value.Value {
 	return HashMapOfValueCopyInterface(vm, (*HashMapOfValue)(target), source)
 }
 
