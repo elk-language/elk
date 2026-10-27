@@ -220,9 +220,37 @@ func (h *HashMapOfValue) LaxEqual(thread *Thread, other value.Value) (bool, valu
 		return HashMapOfValueLaxEqualInterface(thread, h, o)
 	case HashRecord:
 		return HashMapOfValueLaxEqualInterface(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (h *HashMapOfValue) Grow(thread *Thread, newSlots int) value.Value {
@@ -361,18 +389,29 @@ func (h *HashMapOfValue) Length() int {
 }
 
 type HashMapOfValueIterator struct {
-	HashMap *HashMapOfValue
-	Index   int
-	version int
+	HashMap  *HashMapOfValue
+	Index    int
+	snapshot []value.PairOfValue
+	version  int
 }
 
 var _ value.NativeResettableIterator = &HashMapOfValueIterator{}
 
 func NewHashMapOfValueIterator(hmap *HashMapOfValue) *HashMapOfValueIterator {
-	return &HashMapOfValueIterator{
+	iterator := &HashMapOfValueIterator{
 		HashMap: hmap,
 		version: hmap.version,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *HashMapOfValueIterator) captureSnapshot() {
+	snapshot := make([]value.PairOfValue, 0, h.HashMap.Length())
+	for pair := range h.HashMap.All() {
+		snapshot = append(snapshot, pair)
+	}
+	h.snapshot = snapshot
 }
 
 func (*HashMapOfValueIterator) Class() *value.Class {
@@ -389,9 +428,10 @@ func (*HashMapOfValueIterator) SingletonClass() *value.Class {
 
 func (h *HashMapOfValueIterator) Copy() value.Reference {
 	return &HashMapOfValueIterator{
-		HashMap: h.HashMap,
-		Index:   h.Index,
-		version: h.version,
+		HashMap:  h.HashMap,
+		Index:    h.Index,
+		snapshot: h.snapshot,
+		version:  h.version,
 	}
 }
 
@@ -416,17 +456,13 @@ func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 
-	for {
-		if h.Index >= h.HashMap.Capacity() {
-			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
-		}
-
-		pair := h.HashMap.Table[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(&h.HashMap.Table[h.Index-1]), value.Undefined
-		}
+	if h.Index >= len(h.snapshot) {
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
+
+	pair := &h.snapshot[h.Index]
+	h.Index++
+	return value.Ref(pair), value.Undefined
 }
 
 func (h *HashMapOfValueIterator) Reset() {
@@ -501,7 +537,7 @@ func HashMapOfValueLaxEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (b
 	return true, value.Undefined
 }
 
-func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (bool, value.Value) {
+func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y Record) (bool, value.Value) {
 	if x.Length() != y.Length() {
 		return false, value.Undefined
 	}

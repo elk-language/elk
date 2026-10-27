@@ -51,11 +51,7 @@ func (h *SyncHashMapOfValue) All() iter.Seq[value.PairOfValue] {
 		h.Lock()
 		defer h.Unlock()
 
-		for _, pair := range h.Map.Table {
-			if pair.Key().IsUndefined() {
-				continue
-			}
-
+		for pair := range h.Map.All() {
 			if !yield(pair) {
 				return
 			}
@@ -69,11 +65,7 @@ func (h *SyncHashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 		defer h.Unlock()
 
 		originalVersion := h.Map.version
-		for _, pair := range h.Map.Table {
-			if pair.Key().IsUndefined() {
-				continue
-			}
-
+		for pair := range h.Map.All() {
 			if originalVersion != h.Map.version {
 				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue())
 				return
@@ -138,15 +130,6 @@ func (h *SyncHashMapOfValue) SetVal(thread *Thread, key, val value.Value) value.
 
 func (h *SyncHashMapOfValue) MergeVal(thread *Thread, other value.Value) (SyncHashMap, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case *HashMapOfValue:
-		h.Lock()
-		defer h.Unlock()
-
-		m, err := HashMapOfValueMerge(thread, h.Map, o)
-		if err.IsNotUndefined() {
-			return nil, err
-		}
-		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	case *SyncHashMapOfValue:
 		h.Lock()
 		defer h.Unlock()
@@ -159,15 +142,6 @@ func (h *SyncHashMapOfValue) MergeVal(thread *Thread, other value.Value) (SyncHa
 			return nil, err
 		}
 		return NewSyncHashMapOfValueWithMap(m), value.Undefined
-	case HashRecord:
-		h.Lock()
-		defer h.Unlock()
-
-		m, err := HashMapOfValueMergeInterface(thread, h.Map, o)
-		if err.IsNotUndefined() {
-			return nil, err
-		}
-		return NewSyncHashMapOfValueWithMap(m), value.Undefined
 	case SyncHashMap:
 		h.Lock()
 		defer h.Unlock()
@@ -176,6 +150,24 @@ func (h *SyncHashMapOfValue) MergeVal(thread *Thread, other value.Value) (SyncHa
 		defer o.Unlock()
 
 		m, err := HashMapOfValueMergeInterface(thread, h.Map, o.HashMap())
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
+	case *HashMapOfValue:
+		h.Lock()
+		defer h.Unlock()
+
+		m, err := HashMapOfValueMerge(thread, h.Map, o)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+		return NewSyncHashMapOfValueWithMap(m), value.Undefined
+	case HashRecord:
+		h.Lock()
+		defer h.Unlock()
+
+		m, err := HashMapOfValueMergeInterface(thread, h.Map, o)
 		if err.IsNotUndefined() {
 			return nil, err
 		}
@@ -291,14 +283,45 @@ func (h *SyncHashMapOfValue) LaxEqual(thread *Thread, other value.Value) (bool, 
 		defer h.Unlock()
 
 		return HashMapOfValueLaxEqual(thread, h.Map, o)
-	case HashMap:
+	case Record:
 		h.Lock()
 		defer h.Unlock()
 
 		return HashMapOfValueLaxEqualInterface(thread, h.Map, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		h.Lock()
+		defer h.Unlock()
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.Map.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (h *SyncHashMapOfValue) Grow(thread *Thread, newSlots int) value.Value {

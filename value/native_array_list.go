@@ -431,7 +431,7 @@ func (l *NativeArrayList[T]) ConcatValOk(other Value) (Value, bool) {
 		copy(newList, *l)
 		newList = append(newList, *o...)
 		return Ref(&newList), true
-	case ArrayTuple:
+	case Tuple:
 		newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
 		for i, element := range *l {
 			newList[i] = element.ToValue()

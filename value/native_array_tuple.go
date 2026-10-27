@@ -336,28 +336,28 @@ func (t *NativeArrayTuple[T]) SubscriptSet(key, val Value) Value {
 func (t *NativeArrayTuple[T]) ConcatValOk(other Value) (Value, bool) {
 	switch o := other.SafeAsReference().(type) {
 	case *NativeArrayTuple[T]:
-		newList := make(NativeArrayTuple[T], len(*t), len(*t)+len(*o))
-		copy(newList, *t)
-		newList = append(newList, *o...)
-		return Ref(&newList), true
+		newTuple := make(NativeArrayTuple[T], len(*t), len(*t)+len(*o))
+		copy(newTuple, *t)
+		newTuple = append(newTuple, *o...)
+		return Ref(&newTuple), true
 	case ArrayList:
-		newList := make(ArrayListOfValue, len(*t), len(*t)+o.Length())
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
 		for i, element := range *t {
-			newList[i] = element.ToValue()
+			newTuple[i] = element.ToValue()
 		}
 		for i, element := range o.Elements() {
-			newList[i+o.Length()] = element
+			newTuple[i+o.Length()] = element
 		}
-		return Ref(&newList), true
-	case ArrayTuple:
-		newList := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
+		return Ref(&newTuple), true
+	case Tuple:
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
 		for i, element := range *t {
-			newList[i] = element.ToValue()
+			newTuple[i] = element.ToValue()
 		}
 		for i, element := range o.Elements() {
-			newList[i+o.Length()] = element
+			newTuple[i+o.Length()] = element
 		}
-		return Ref(&newList), true
+		return Ref(&newTuple), true
 	default:
 		return Undefined, false
 	}

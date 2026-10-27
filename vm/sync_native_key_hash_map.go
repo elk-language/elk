@@ -346,6 +346,39 @@ func (h *SyncNativeKeyHashMap[K]) LaxEqual(thread *Thread, other value.Value) (b
 		defer h.Unlock()
 
 		return HashRecordLaxEqual(thread, h.Map, o)
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
+
+		h.Lock()
+		defer h.Unlock()
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.Map.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
 	}
 
 	return false, value.Undefined

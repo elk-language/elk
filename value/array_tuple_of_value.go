@@ -272,16 +272,16 @@ func (t *ArrayTupleOfValue) SubscriptSet(key, val Value) Value {
 func (t *ArrayTupleOfValue) ConcatValOk(other Value) (Value, bool) {
 	switch o := other.SafeAsReference().(type) {
 	case *ArrayListOfValue:
-		newList := make(ArrayListOfValue, len(*t), len(*t)+len(*o))
-		copy(newList, *t)
-		newList = append(newList, *o...)
-		return Ref(&newList), true
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+len(*o))
+		copy(newTuple, *t)
+		newTuple = append(newTuple, *o...)
+		return Ref(&newTuple), true
 	case *ArrayTupleOfValue:
-		newArrayTuple := make(ArrayTupleOfValue, len(*t), len(*t)+len(*o))
-		copy(newArrayTuple, *t)
-		newArrayTuple = append(newArrayTuple, *o...)
-		return Ref(&newArrayTuple), true
-	case ArrayList:
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+len(*o))
+		copy(newTuple, *t)
+		newTuple = append(newTuple, *o...)
+		return Ref(&newTuple), true
+	case Tuple:
 		newArrayTuple := make(ArrayListOfValue, len(*t), len(*t)+o.Length())
 		copy(newArrayTuple, *t)
 

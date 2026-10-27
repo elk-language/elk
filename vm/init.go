@@ -111,4 +111,6 @@ func InitGlobalEnvironment() {
 	initOrderedHashMapIterator()
 	initSyncHashMap()
 	initSyncHashMapIterator()
+	initSyncOrderedHashMap()
+	initSyncOrderedHashMapIterator()
 }

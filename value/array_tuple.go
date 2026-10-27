@@ -14,15 +14,19 @@ var ArrayTupleClass *Class
 // ArrayTuple iterator class.
 var ArrayTupleIteratorClass *Class
 
-type ArrayTuple interface {
+type Tuple interface {
 	ValueInterface
 	NativeIterable
 	Elements() iter.Seq2[int, Value]
 	Length() int
-	ImmutableBoxOfVal(index Value) (Value, Value)
 	// does not normalize the index for negative values
 	// does not do bounds checking
 	AtVal(int) Value
+}
+
+type ArrayTuple interface {
+	Tuple
+	ImmutableBoxOfVal(index Value) (Value, Value)
 	// normalizes the index so that `-1` becomes `length-1`
 	// does bounds checking and returns an elk error
 	SubscriptInt(index int) (Value, Value)

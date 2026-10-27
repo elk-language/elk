@@ -345,9 +345,37 @@ func (h *OrderedNativeKeyHashRecord[K]) LaxEqual(thread *Thread, other value.Val
 		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (*OrderedNativeKeyHashRecord[K]) Class() *value.Class {
@@ -469,14 +497,25 @@ func (h *OrderedNativeKeyHashRecord[K]) Length() int {
 type OrderedNativeKeyHashRecordIterator[K value.ComparableValueInterface] struct {
 	HashRecord *OrderedNativeKeyHashRecord[K]
 	index      int
+	snapshot   []value.NativePair[K, value.Value]
 }
 
 var _ value.NativeResettableIterator = &OrderedNativeKeyHashRecordIterator[value.String]{}
 
 func NewOrderedNativeKeyHashRecordIterator[K value.ComparableValueInterface](hrec *OrderedNativeKeyHashRecord[K]) *OrderedNativeKeyHashRecordIterator[K] {
-	return &OrderedNativeKeyHashRecordIterator[K]{
+	iterator := &OrderedNativeKeyHashRecordIterator[K]{
 		HashRecord: hrec,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *OrderedNativeKeyHashRecordIterator[K]) captureSnapshot() {
+	snapshot := make([]value.NativePair[K, value.Value], 0, h.HashRecord.Length())
+	for k, v := range h.HashRecord.AllNative() {
+		snapshot = append(snapshot, value.MakeNativePair(k, v))
+	}
+	h.snapshot = snapshot
 }
 
 func (*OrderedNativeKeyHashRecordIterator[K]) Class() *value.Class {
@@ -495,6 +534,7 @@ func (h *OrderedNativeKeyHashRecordIterator[K]) Copy() value.Reference {
 	return &OrderedNativeKeyHashRecordIterator[K]{
 		HashRecord: h.HashRecord,
 		index:      h.index,
+		snapshot:   h.snapshot,
 	}
 }
 
@@ -515,11 +555,11 @@ func (*OrderedNativeKeyHashRecordIterator[K]) InstanceVariables() *value.Instanc
 }
 
 func (h *OrderedNativeKeyHashRecordIterator[K]) Next() (p value.NativePair[K, value.Value], err value.Value) {
-	if h.index >= len(h.HashRecord.entries) {
+	if h.index >= len(h.snapshot) {
 		return p, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
-	v := h.HashRecord.entries[h.index]
+	v := h.snapshot[h.index]
 	h.index++
 	return v, value.Undefined
 }

@@ -194,9 +194,37 @@ func (h *HashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (bool, v
 		return HashRecordOfValueLaxEqual(thread, h, o)
 	case HashRecord:
 		return HashRecordOfValueLaxEqualInterface(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (*HashRecordOfValue) Class() *value.Class {
@@ -317,21 +345,34 @@ func (h *HashRecordOfValue) Length() int {
 type HashRecordOfValueIterator struct {
 	HashRecord *HashRecordOfValue
 	Index      int
+	snapshot   []value.PairOfValue
 }
 
 var _ value.NativeResettableIterator = &HashRecordOfValueIterator{}
 
 func NewHashRecordOfValueIterator(hrec *HashRecordOfValue) *HashRecordOfValueIterator {
-	return &HashRecordOfValueIterator{
+	iterator := &HashRecordOfValueIterator{
 		HashRecord: hrec,
 	}
+	iterator.captureSnapshot()
+	return iterator
 }
 
 func NewHashRecordOfValueIteratorWithIndex(hrec *HashRecordOfValue, index int) *HashRecordOfValueIterator {
-	return &HashRecordOfValueIterator{
+	iterator := &HashRecordOfValueIterator{
 		HashRecord: hrec,
 		Index:      index,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *HashRecordOfValueIterator) captureSnapshot() {
+	snapshot := make([]value.PairOfValue, 0, h.HashRecord.Length())
+	for pair := range h.HashRecord.All() {
+		snapshot = append(snapshot, pair)
+	}
+	h.snapshot = snapshot
 }
 
 func (*HashRecordOfValueIterator) Class() *value.Class {
@@ -354,6 +395,7 @@ func (h *HashRecordOfValueIterator) Copy() value.Reference {
 	return &HashRecordOfValueIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,
+		snapshot:   h.snapshot,
 	}
 }
 
@@ -370,17 +412,13 @@ func (*HashRecordOfValueIterator) InstanceVariables() *value.InstanceVariables {
 }
 
 func (h *HashRecordOfValueIterator) NextValue() (value.Value, value.Value) {
-	for {
-		if h.Index >= len(h.HashRecord.Table) {
-			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
-		}
-
-		pair := h.HashRecord.Table[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(&h.HashRecord.Table[h.Index-1]), value.Undefined
-		}
+	if h.Index >= len(h.snapshot) {
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
+
+	pair := &h.snapshot[h.Index]
+	h.Index++
+	return value.Ref(pair), value.Undefined
 }
 
 func (h *HashRecordOfValueIterator) Reset() {

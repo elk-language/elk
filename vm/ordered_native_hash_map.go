@@ -39,7 +39,7 @@ func NewOrderedNativeHashMapWithElementsAndTotalCapacity[K value.ComparableValue
 	return m
 }
 
-func (h *OrderedNativeHashMap[K, V]) CloneOrderedHashMap(thread *Thread, capacity int) (OrderedHashMap, value.Value) {
+func (h *OrderedNativeHashMap[K, V]) CloneNative(thread *Thread, capacity int) (*OrderedNativeHashMap[K, V], value.Value) {
 	newMap := make(map[K]int, capacity)
 	maps.Copy(newMap, h.index)
 
@@ -50,6 +50,15 @@ func (h *OrderedNativeHashMap[K, V]) CloneOrderedHashMap(thread *Thread, capacit
 		index:   newMap,
 		entries: entries,
 	}
+	return result, value.Undefined
+}
+
+func (h *OrderedNativeHashMap[K, V]) CloneOrderedHashMap(thread *Thread, capacity int) (OrderedHashMap, value.Value) {
+	result, err := h.CloneNative(thread, capacity)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
 	return result, value.Undefined
 }
 
@@ -402,9 +411,37 @@ func (h *OrderedNativeHashMap[K, V]) LaxEqual(thread *Thread, other value.Value)
 		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (*OrderedNativeHashMap[K, V]) Class() *value.Class {
@@ -524,18 +561,29 @@ func (h *OrderedNativeHashMap[K, V]) Length() int {
 }
 
 type OrderedNativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterface] struct {
-	HashMap *OrderedNativeHashMap[K, V]
-	index   int
-	version int
+	HashMap  *OrderedNativeHashMap[K, V]
+	index    int
+	snapshot []value.NativePair[K, V]
+	version  int
 }
 
 var _ value.NativeResettableIterator = &OrderedNativeHashMapIterator[value.String, value.String]{}
 
 func NewOrderedNativeHashMapIterator[K value.ComparableValueInterface, V value.ValueInterface](hmap *OrderedNativeHashMap[K, V]) *OrderedNativeHashMapIterator[K, V] {
-	return &OrderedNativeHashMapIterator[K, V]{
+	iterator := &OrderedNativeHashMapIterator[K, V]{
 		HashMap: hmap,
 		version: hmap.version,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *OrderedNativeHashMapIterator[K, V]) captureSnapshot() {
+	snapshot := make([]value.NativePair[K, V], 0, h.HashMap.Length())
+	for k, v := range h.HashMap.AllNative() {
+		snapshot = append(snapshot, value.MakeNativePair(k, v))
+	}
+	h.snapshot = snapshot
 }
 
 func (*OrderedNativeHashMapIterator[K, V]) Class() *value.Class {
@@ -552,9 +600,10 @@ func (*OrderedNativeHashMapIterator[K, V]) SingletonClass() *value.Class {
 
 func (h *OrderedNativeHashMapIterator[K, V]) Copy() value.Reference {
 	return &OrderedNativeHashMapIterator[K, V]{
-		HashMap: h.HashMap,
-		index:   h.index,
-		version: h.version,
+		HashMap:  h.HashMap,
+		index:    h.index,
+		snapshot: h.snapshot,
+		version:  h.version,
 	}
 }
 
@@ -578,11 +627,11 @@ func (h *OrderedNativeHashMapIterator[K, V]) Next() (p value.NativePair[K, V], e
 	if h.version != h.HashMap.version {
 		return p, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
 	}
-	if h.index >= len(h.HashMap.entries) {
+	if h.index >= len(h.snapshot) {
 		return p, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
-	v := h.HashMap.entries[h.index]
+	v := h.snapshot[h.index]
 	h.index++
 	return v, value.Undefined
 }

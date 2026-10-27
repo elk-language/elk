@@ -296,9 +296,37 @@ func (h *OrderedHashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (
 		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (*OrderedHashRecordOfValue) Class() *value.Class {
@@ -421,14 +449,25 @@ func (h *OrderedHashRecordOfValue) Length() int {
 type OrderedHashRecordOfValueIterator struct {
 	HashRecord *OrderedHashRecordOfValue
 	Index      int
+	snapshot   []value.PairOfValue
 }
 
 var _ value.NativeResettableIterator = &OrderedHashRecordOfValueIterator{}
 
 func NewOrderedHashRecordOfValueIterator(hrec *OrderedHashRecordOfValue) *OrderedHashRecordOfValueIterator {
-	return &OrderedHashRecordOfValueIterator{
+	iterator := &OrderedHashRecordOfValueIterator{
 		HashRecord: hrec,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *OrderedHashRecordOfValueIterator) captureSnapshot() {
+	snapshot := make([]value.PairOfValue, 0, h.HashRecord.Length())
+	for pair := range h.HashRecord.All() {
+		snapshot = append(snapshot, pair)
+	}
+	h.snapshot = snapshot
 }
 
 func (*OrderedHashRecordOfValueIterator) Class() *value.Class {
@@ -447,6 +486,7 @@ func (h *OrderedHashRecordOfValueIterator) Copy() value.Reference {
 	return &OrderedHashRecordOfValueIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,
+		snapshot:   h.snapshot,
 	}
 }
 
@@ -467,11 +507,11 @@ func (*OrderedHashRecordOfValueIterator) InstanceVariables() *value.InstanceVari
 }
 
 func (h *OrderedHashRecordOfValueIterator) NextValue() (value.Value, value.Value) {
-	if h.Index >= h.HashRecord.Length() {
+	if h.Index >= len(h.snapshot) {
 		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
-	pair := &h.HashRecord.entries[h.Index]
+	pair := &h.snapshot[h.Index]
 	h.Index++
 	return value.Ref(pair), value.Undefined
 }

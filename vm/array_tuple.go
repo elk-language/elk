@@ -86,22 +86,13 @@ func initArrayTuple() {
 		"=~",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayTuple)
-			switch other := args[1].SafeAsReference().(type) {
-			case value.ArrayList:
-				equal, err := ArrayTupleLaxEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			case value.ArrayTuple:
-				equal, err := ArrayTupleLaxEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			default:
-				return value.False.ToValue(), value.Undefined
+			other := args[1]
+			eq, err := ArrayTupleLaxEqualValue(vm, self, other)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
 			}
+
+			return value.Bool(eq).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -210,7 +201,7 @@ func ArrayTupleEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
 	return true, value.Undefined
 }
 
-func ArrayTupleLaxEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
+func ArrayTupleLaxEqual(vm *Thread, x, y value.Tuple) (bool, value.Value) {
 	xLen := x.Length()
 	if xLen != y.Length() {
 		return false, value.Undefined
@@ -226,6 +217,47 @@ func ArrayTupleLaxEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
 		}
 	}
 	return true, value.Undefined
+}
+
+func ArrayTupleLaxEqualValue(vm *Thread, x value.ArrayTuple, y value.Value) (bool, value.Value) {
+	switch narrowY := y.SafeAsReference().(type) {
+	case value.Tuple:
+		return ArrayTupleLaxEqual(vm, x, narrowY)
+	default:
+		if !value.IsA(y, value.TupleMixin) {
+			return false, value.Undefined
+		}
+
+		yLengthVal, err := vm.CallMethodByName(value.S(symbol.L_length), y)
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		yLength := yLengthVal.AsInt()
+		if x.Length() != yLength {
+			return false, value.Undefined
+		}
+
+		i := 0
+		for yVal, err := range Iterate(vm, y) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			xVal := x.AtVal(i)
+			eq, err := LaxEqual(vm, xVal, yVal)
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+			i++
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func ArrayTupleConcat(thread *Thread, l value.ArrayTuple, other value.Value) (value.Value, value.Value) {

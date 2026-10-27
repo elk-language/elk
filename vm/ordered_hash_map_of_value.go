@@ -386,9 +386,37 @@ func (h *OrderedHashMapOfValue) LaxEqual(thread *Thread, other value.Value) (boo
 		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (*OrderedHashMapOfValue) Class() *value.Class {
@@ -509,18 +537,29 @@ func (h *OrderedHashMapOfValue) Length() int {
 }
 
 type OrderedHashMapOfValueIterator struct {
-	HashMap *OrderedHashMapOfValue
-	Index   int
-	version int
+	HashMap  *OrderedHashMapOfValue
+	Index    int
+	snapshot []value.PairOfValue
+	version  int
 }
 
 var _ value.NativeResettableIterator = &OrderedHashMapOfValueIterator{}
 
 func NewOrderedHashMapOfValueIterator(hmap *OrderedHashMapOfValue) *OrderedHashMapOfValueIterator {
-	return &OrderedHashMapOfValueIterator{
+	iterator := &OrderedHashMapOfValueIterator{
 		HashMap: hmap,
 		version: hmap.version,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *OrderedHashMapOfValueIterator) captureSnapshot() {
+	snapshot := make([]value.PairOfValue, 0, h.HashMap.Length())
+	for pair := range h.HashMap.All() {
+		snapshot = append(snapshot, pair)
+	}
+	h.snapshot = snapshot
 }
 
 func (*OrderedHashMapOfValueIterator) Class() *value.Class {
@@ -537,9 +576,10 @@ func (*OrderedHashMapOfValueIterator) SingletonClass() *value.Class {
 
 func (h *OrderedHashMapOfValueIterator) Copy() value.Reference {
 	return &OrderedHashMapOfValueIterator{
-		HashMap: h.HashMap,
-		Index:   h.Index,
-		version: h.version,
+		HashMap:  h.HashMap,
+		Index:    h.Index,
+		snapshot: h.snapshot,
+		version:  h.version,
 	}
 }
 
@@ -564,11 +604,11 @@ func (h *OrderedHashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 
-	if h.Index >= h.HashMap.Capacity() {
+	if h.Index >= len(h.snapshot) {
 		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
-	pair := &h.HashMap.entries[h.Index]
+	pair := &h.snapshot[h.Index]
 	h.Index++
 	return value.Ref(pair), value.Undefined
 }

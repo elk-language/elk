@@ -433,7 +433,7 @@ func (l *ArrayListOfValue) ConcatOk(other Value) (*ArrayListOfValue, bool) {
 			copy(newList, *l)
 			newList = append(newList, *o...)
 			return &newList, true
-		case ArrayTuple:
+		case Tuple:
 			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
 			copy(newList, *l)
 

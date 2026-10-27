@@ -170,6 +170,7 @@ func InitGlobalEnvironment() {
 	initOrderedHashRecord()
 	initOrderedHashMap()
 	initSyncHashMap()
+	initSyncOrderedHashMap()
 	initElkLexer()
 	initElkParser()
 	initElkType()

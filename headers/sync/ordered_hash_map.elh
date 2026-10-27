@@ -1,0 +1,176 @@
+##[
+	A thread-safe version of `Std::OrderedHashMap`.
+
+	An ordered HashMap.
+	A dynamically resizable map data structure backed
+	by an array with a hashing algorithm.
+
+	It is an ordered collection of key-value pairs.
+]##
+noinit sealed primitive class ::Std::Sync::OrderedHashMap[Key, Value]
+	include Map[Key, Value]
+
+	##[
+		Returns the number of key-value pairs present in the map.
+	]##
+	pure sealed def length: Int; end
+
+	##[
+		Get the element under the given key.
+		Returns `nil` when the key is not present.
+	]##
+	pure sealed def [](key: Key): Value?; end
+
+	##[
+		Set the element under the given index to the given value.
+	]##
+	sealed def []=(key: Key, value: Value); end
+
+	##[
+		Get the pair with the given index.
+
+		Throws an unchecked error if the index is out of range.
+	]##
+	pure sealed def get_at(index: AnyInt): Value; end
+
+	##[
+		Get the pair with the given index.
+
+		Throws a checked error if the index is out of range.
+	]##
+	pure sealed def at(index: AnyInt): Value ! OutOfRangeError; end
+
+	##[
+		Get the pair with the given index.
+
+		Returns `nil` when the index is out of range.
+	]##
+	pure sealed def try_at(index: AnyInt): Value?; end
+
+	##[
+		Returns the first pair.
+		Throws an error when the iterable is empty.
+	]##
+	def first: Pair[Key, Value] ! NotFoundError; end
+
+	##[
+		Returns the first element.
+		Returns `nil` when the iterable is empty.
+	]##
+	def try_first: Pair[Key, Value]?; end
+
+	##[
+		Returns the last element.
+		Throws an error when the iterable is empty.
+
+		Never returns if the iterable is infinite.
+	]##
+	def last: Pair[Key, Value] ! NotFoundError; end
+
+	##[
+		Returns the first element.
+		Returns `nil` when the collection is empty.
+
+		Never returns if the iterable is infinite.
+	]##
+	def try_last: Pair[Key, Value]?; end
+
+	##[
+		Create a new `Sync::OrderedHashMap` containing the pairs of `self`
+		and another given record/map.
+	]##
+	sealed pure def +[K, V](other: Record[K, V]): Sync::OrderedHashMap[Key | K, Value | V]; end
+	alias merge +
+
+	##[
+		Delete the given key from the map.
+		Returns `true` if the key has been removed, otherwise `false`.
+	]##
+	sealed def remove_key(key: K): bool; end
+
+	##[
+		Check whether the given `pair` is present in this map.
+	]##
+	def contains[V := Pair[Key, Value]](value: V): bool; end
+
+	##[
+		Check whether the given `key` is present in this map.
+	]##
+	def contains_key(key: Key): bool; end
+
+	##[
+		Check whether the given `value` is present in this map.
+	]##
+	def contains_value(value: Value): bool; end
+
+	##[
+		Check whether the given value is an `Sync::OrderedHashMap`
+		with the same elements.
+	]##
+	sealed def ==(other: any): bool; end
+
+	##[
+		Check whether the given value is a map or record
+		with the same elements.
+	]##
+	sealed def =~(other: any): bool; end
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new ArrayList that consists of the values returned
+		by the given closure.
+	]##
+	def map[V, E = never](fn: |element: Pair[Key, Value]|: V ! E): ArrayList[V] ! E; end
+
+	##[
+		Iterates over the key value pairs of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the key value pairs returned
+		by the given closure.
+	]##
+	def map_pairs[K, V, E = never](fn: |pair: Pair[Key, Value]|: Pair[K, V] ! E): Sync::OrderedHashMap[K, V] ! E; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Returns a new HashMap that consists of the values returned
+		by the given closure.
+	]##
+	def map_values[V, E = never](fn: |value: Value|: V ! E): Sync::OrderedHashMap[Key, V] ! E; end
+
+	##[
+		Iterates over the values of this map,
+		yielding them to the given closure.
+
+		Mutates the map in place replacing the values with the ones
+		returned by the given closure.
+	]##
+	def map_values_mut[E = never](fn: |value: Value|: Value ! E): self ! E; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the map.
+	]##
+	pure def iter: Iterator[Key, Value]; end
+
+	sealed primitive class Iterator[Key, Value]
+		include ::Std::ResettableIterator::Base[Pair[Key, Value]]
+
+		init(map: Sync::OrderedHashMap[Key, Value]); end
+
+		##[
+			Get the next pair of the map.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Pair[Key, Value] ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
+	end
+end
