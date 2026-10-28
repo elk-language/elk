@@ -131,7 +131,7 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			switch other := args[1].SafeAsReference().(type) {
 			case value.ArrayList:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := TupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -148,7 +148,7 @@ func initArrayList() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
-			eq, err := ArrayTupleLaxEqualValue(vm, self, other)
+			eq, err := TupleLaxEqualValue(vm, self, other)
 			if err.IsNotUndefined() {
 				return value.Undefined, err
 			}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/elk-language/elk/indent"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 const HashSetMaxLoad = 0.75
@@ -290,7 +291,7 @@ func (h *HashSetOfValueIterator) NextValue() (value.Value, value.Value) {
 
 	for {
 		if h.index >= h.HashSet.Capacity() {
-			return value.Undefined, stopIterationSymbol.ToValue()
+			return value.Undefined, S(symbol.L_stop_iteration).ToValue()
 		}
 
 		element := h.HashSet.table[h.index]

@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's native array tuple implementation
@@ -509,7 +510,7 @@ func (*NativeArrayTupleIterator[T]) InstanceVariables() *InstanceVariables {
 
 func (t *NativeArrayTupleIterator[T]) Next() (r T, err Value) {
 	if t.Index >= t.ArrayTuple.Length() {
-		return r, stopIterationSymbol.ToValue()
+		return r, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*t.ArrayTuple)[t.Index]

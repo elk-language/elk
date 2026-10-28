@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/position/diagnostic"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 var SyncDiagnosticListIteratorClass *Class // ::Std::Sync::DiagnosticList::Iterator
@@ -347,7 +348,7 @@ func (*SyncDiagnosticListIterator) InstanceVariables() *InstanceVariables {
 
 func (l *SyncDiagnosticListIterator) Next() (Value, Value) {
 	if l.Index >= l.SyncDiagnosticList.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := l.SyncDiagnosticList.At(l.Index)

@@ -36,7 +36,7 @@ func TestArrayTupleEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			v := vm.New()
-			equal, err := vm.ArrayTupleEqual(v, tc.tuple, tc.other)
+			equal, err := vm.TupleEqual(v, tc.tuple, tc.other)
 			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatal(diff)
 			}

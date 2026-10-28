@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's BigInt value
@@ -1692,7 +1693,7 @@ func (l *BigIntIterator) Next() (Value, Value) {
 		return Undefined, err
 	}
 	if stop {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := l.Counter

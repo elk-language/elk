@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's ArrayListOfValue value
@@ -63,6 +64,12 @@ func NewArrayListOfValueWithElementsAndTotalCapacity(capacity int, elements ...V
 
 func (l *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
 	return NewArrayListOfValue(capacity)
+}
+
+func (l *ArrayListOfValue) Clone() *ArrayListOfValue {
+	newList := NewArrayListOfValue(l.Capacity())
+	newList.Append(*l...)
+	return newList
 }
 
 func (l *ArrayListOfValue) CloneArrayList(capacity int) ArrayList {
@@ -396,7 +403,7 @@ func (l *ArrayListOfValue) SetAt(index int, val Value) {
 }
 
 func (l *ArrayListOfValue) SetAtVal(index int, val Value) Value {
-	l.SetAtVal(index, val)
+	l.SetAt(index, val)
 	return Undefined
 }
 
@@ -421,31 +428,29 @@ func (l *ArrayListOfValue) SubscriptSetInt(key int, val Value) Value {
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
 func (l *ArrayListOfValue) ConcatOk(other Value) (*ArrayListOfValue, bool) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *ArrayListOfValue:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return &newList, true
-		case *ArrayTupleOfValue:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return &newList, true
-		case Tuple:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
-			copy(newList, *l)
+	switch o := other.SafeAsReference().(type) {
+	case *ArrayListOfValue:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return &newList, true
+	case *ArrayTupleOfValue:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return &newList, true
+	case Tuple:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
+		copy(newList, *l)
 
-			for i, element := range o.Elements() {
-				newList[len(*l)+i] = element
-			}
-
-			return &newList, true
+		for i, element := range o.Elements() {
+			newList[len(*l)+i] = element
 		}
-	}
 
-	return nil, false
+		return &newList, true
+	default:
+		return nil, false
+	}
 }
 
 // Concatenate another value with this list, creating a new list, and return the result.
@@ -653,11 +658,9 @@ func (*ArrayListOfValueIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-var stopIterationSymbol = ToSymbol("stop_iteration")
-
 func (l *ArrayListOfValueIterator) NextValue() (Value, Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]

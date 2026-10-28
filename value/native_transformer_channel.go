@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"iter"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // An adapter for a native Go channel to make it a valid Elk channel.
@@ -154,7 +156,7 @@ func (ch *NativeTransformerChannel[V]) PopCtx(ctx context.Context) (v Value, err
 func (ch *NativeTransformerChannel[V]) NextValue() (Value, Value) {
 	next, ok := <-ch.ch
 	if !ok {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	return ch.getTransformer(next), Undefined
@@ -164,7 +166,7 @@ func (ch *NativeTransformerChannel[V]) NextValueCtx(ctx context.Context) (Value,
 	select {
 	case next, ok := <-ch.ch:
 		if !ok {
-			return Undefined, stopIterationSymbol.ToValue()
+			return Undefined, S(symbol.L_stop_iteration).ToValue()
 		}
 		return ch.getTransformer(next), Undefined
 	case <-ctx.Done():

@@ -59,7 +59,7 @@ func init() {
 	)
 }
 
-var stopIterationSymbol = value.ToSymbol("stop_iteration")
+var S (symbol.L_stop_iteration) = value.ToSymbol("stop_iteration")
 
 type Option func(*Thread) // constructor option function
 

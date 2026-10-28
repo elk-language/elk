@@ -195,9 +195,13 @@ func initSyncHashMap() {
 			callable := args[1]
 			newMap := NewSyncHashMapOfValue(self.Length())
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.HashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
 						return value.Undefined, err
@@ -215,7 +219,7 @@ func initSyncHashMap() {
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -242,9 +246,13 @@ func initSyncHashMap() {
 			callable := args[1]
 			newMap := NewSyncHashMapOfValue(self.Length())
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.HashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					if pair.Key().IsUndefined() {
 						continue
 					}
@@ -261,7 +269,7 @@ func initSyncHashMap() {
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				if pair.Key().IsUndefined() {
 					continue
 				}
@@ -286,9 +294,13 @@ func initSyncHashMap() {
 			self := args[0].AsReference().(SyncHashMap)
 			callable := args[1]
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.HashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					if pair.Key().IsUndefined() {
 						continue
 					}
@@ -296,13 +308,13 @@ func initSyncHashMap() {
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
-					self.SetVal(vm, pair.Key(), result)
+					hashMap.SetVal(vm, pair.Key(), result)
 				}
 				return self.ToValue(), value.Undefined
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				if pair.Key().IsUndefined() {
 					continue
 				}
@@ -310,7 +322,7 @@ func initSyncHashMap() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				self.SetVal(vm, pair.Key(), result)
+				hashMap.SetVal(vm, pair.Key(), result)
 			}
 			return self.ToValue(), value.Undefined
 		},

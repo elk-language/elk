@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's ArrayTupleOfValue value
@@ -482,7 +483,7 @@ func (*ArrayTupleOfValueIterator) InstanceVariables() *InstanceVariables {
 
 func (t *ArrayTupleOfValueIterator) NextValue() (Value, Value) {
 	if t.Index >= t.ArrayTuple.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*t.ArrayTuple)[t.Index]

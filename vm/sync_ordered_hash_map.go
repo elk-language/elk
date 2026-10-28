@@ -296,9 +296,13 @@ func initSyncOrderedHashMap() {
 			callable := args[1]
 			newMap := NewSyncOrderedHashMapOfValue(self.Length())
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.OrderedHashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					result, err := vm.CallClosure(function, pair.ToValue())
 					if !err.IsUndefined() {
 						return value.Undefined, err
@@ -307,7 +311,7 @@ func initSyncOrderedHashMap() {
 					if !ok {
 						return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 					}
-					err = newMap.SetVal(vm, r.Key(), r.Value())
+					err = newMap.Map.SetVal(vm, r.Key(), r.Value())
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
@@ -316,7 +320,7 @@ func initSyncOrderedHashMap() {
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				result, err := vm.CallMethodByName(value.S(symbol.L_call), callable, pair.ToValue())
 				if !err.IsUndefined() {
 					return value.Undefined, err
@@ -325,7 +329,7 @@ func initSyncOrderedHashMap() {
 				if !ok {
 					return value.Undefined, value.Ref(value.NewArgumentTypeError("pair", result.Class().Name(), value.PairClass.Name()))
 				}
-				err = newMap.SetVal(vm, r.Key(), r.Value())
+				err = newMap.Map.SetVal(vm, r.Key(), r.Value())
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -343,9 +347,13 @@ func initSyncOrderedHashMap() {
 			callable := args[1]
 			newMap := NewSyncOrderedHashMapOfValue(self.Length())
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.OrderedHashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					if pair.Key().IsUndefined() {
 						continue
 					}
@@ -353,7 +361,7 @@ func initSyncOrderedHashMap() {
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
-					newMap.SetVal(vm, pair.Key(), result)
+					newMap.Map.SetVal(vm, pair.Key(), result)
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
@@ -362,7 +370,7 @@ func initSyncOrderedHashMap() {
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				if pair.Key().IsUndefined() {
 					continue
 				}
@@ -370,7 +378,7 @@ func initSyncOrderedHashMap() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				newMap.SetVal(vm, pair.Key(), result)
+				newMap.Map.SetVal(vm, pair.Key(), result)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -387,9 +395,13 @@ func initSyncOrderedHashMap() {
 			self := args[0].AsReference().(SyncOrderedHashMap)
 			callable := args[1]
 
+			self.Lock()
+			defer self.Unlock()
+
+			hashMap := self.OrderedHashMap()
 			// callable is a closure
 			if function, ok := callable.SafeAsReference().(Closure); ok {
-				for pair := range self.All() {
+				for pair := range hashMap.All() {
 					if pair.Key().IsUndefined() {
 						continue
 					}
@@ -397,13 +409,13 @@ func initSyncOrderedHashMap() {
 					if !err.IsUndefined() {
 						return value.Undefined, err
 					}
-					self.SetVal(vm, pair.Key(), result)
+					hashMap.SetVal(vm, pair.Key(), result)
 				}
 				return self.ToValue(), value.Undefined
 			}
 
 			// callable is another value
-			for pair := range self.All() {
+			for pair := range hashMap.All() {
 				if pair.Key().IsUndefined() {
 					continue
 				}
@@ -411,7 +423,7 @@ func initSyncOrderedHashMap() {
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
-				self.SetVal(vm, pair.Key(), result)
+				hashMap.SetVal(vm, pair.Key(), result)
 			}
 			return self.ToValue(), value.Undefined
 		},

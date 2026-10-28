@@ -694,7 +694,7 @@ func (*StringCharIterator) InstanceVariables() *InstanceVariables {
 
 func (s *StringCharIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 	run, size := utf8.DecodeRuneInString(string(s.String[s.ByteOffset:]))
 
@@ -763,7 +763,7 @@ func (*StringByteIterator) InstanceVariables() *InstanceVariables {
 
 func (s *StringByteIterator) NextValue() (Value, Value) {
 	if s.ByteOffset >= len(s.String) {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 	result := UInt8(s.String[s.ByteOffset])
 	s.ByteOffset += 1
@@ -836,7 +836,7 @@ func (*StringGraphemeIterator) InstanceVariables() *InstanceVariables {
 
 func (s *StringGraphemeIterator) NextValue() (Value, Value) {
 	if len(s.Rest) == 0 {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	var grapheme string

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/fatih/color"
 )
 
@@ -137,7 +138,7 @@ func (*StackTraceIterator) InstanceVariables() *InstanceVariables {
 
 func (s *StackTraceIterator) Next() (Value, Value) {
 	if s.Index >= s.StackTrace.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := &(*s.StackTrace)[s.Index]

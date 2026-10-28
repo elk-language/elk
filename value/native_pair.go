@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"iter"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type NativePair[K ComparableValueInterface, V ValueInterface] struct {
@@ -244,7 +246,7 @@ func (*NativePairIterator[K, V]) InstanceVariables() *InstanceVariables {
 
 func (l *NativePairIterator[K, V]) NextValue() (Value, Value) {
 	if l.Index >= pairLength {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next, err := l.Pair.Get(l.Index)

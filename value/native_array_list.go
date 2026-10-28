@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's native array list implementation
@@ -108,9 +109,13 @@ func (l *NativeArrayList[T]) CloneArrayList(capacity int) ArrayList {
 	return newList
 }
 
-func (l *NativeArrayList[T]) SliceArrayList(from, to int) ArrayList {
+func (l *NativeArrayList[T]) Slice(from, to int) *NativeArrayList[T] {
 	n := (*l)[from:to]
 	return &n
+}
+
+func (l *NativeArrayList[T]) SliceArrayList(from, to int) ArrayList {
+	return l.Slice(from, to)
 }
 
 func (l *NativeArrayList[T]) SliceArrayTuple(from, to int) ArrayTuple {
@@ -161,7 +166,7 @@ func (*NativeArrayList[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (l *NativeArrayList[T]) Copy() Reference {
+func (l *NativeArrayList[T]) Clone() *NativeArrayList[T] {
 	if l == nil {
 		return l
 	}
@@ -169,6 +174,10 @@ func (l *NativeArrayList[T]) Copy() Reference {
 	newList := make(NativeArrayList[T], len(*l))
 	copy(newList, *l)
 	return &newList
+}
+
+func (l *NativeArrayList[T]) Copy() Reference {
+	return l.Clone()
 }
 
 func (l *NativeArrayList[T]) Error() string {
@@ -618,7 +627,7 @@ func (*NativeArrayListIterator[T]) InstanceVariables() *InstanceVariables {
 
 func (l *NativeArrayListIterator[T]) Next() (t T, err Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return t, stopIterationSymbol.ToValue()
+		return t, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]

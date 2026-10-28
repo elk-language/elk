@@ -87,7 +87,7 @@ func initArrayTuple() {
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayTuple)
 			other := args[1]
-			eq, err := ArrayTupleLaxEqualValue(vm, self, other)
+			eq, err := TupleLaxEqualValue(vm, self, other)
 			if err.IsNotUndefined() {
 				return value.Undefined, err
 			}
@@ -103,7 +103,7 @@ func initArrayTuple() {
 			self := args[0].AsReference().(value.ArrayTuple)
 			switch other := args[1].SafeAsReference().(type) {
 			case value.ArrayTuple:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := TupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -183,7 +183,7 @@ func initArrayTupleIterator() {
 
 }
 
-func ArrayTupleEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
+func TupleEqual(vm *Thread, x, y value.Tuple) (bool, value.Value) {
 	xLen := x.Length()
 	if xLen != y.Length() {
 		return false, value.Undefined
@@ -219,7 +219,7 @@ func ArrayTupleLaxEqual(vm *Thread, x, y value.Tuple) (bool, value.Value) {
 	return true, value.Undefined
 }
 
-func ArrayTupleLaxEqualValue(vm *Thread, x value.ArrayTuple, y value.Value) (bool, value.Value) {
+func TupleLaxEqualValue(vm *Thread, x value.Tuple, y value.Value) (bool, value.Value) {
 	switch narrowY := y.SafeAsReference().(type) {
 	case value.Tuple:
 		return ArrayTupleLaxEqual(vm, x, narrowY)

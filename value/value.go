@@ -4487,7 +4487,7 @@ func IterateNativeIterator(iter NativeIterator) iter.Seq2[Value, Value] {
 				continue
 			}
 
-			if err != stopIterationSymbol.ToValue() {
+			if err != S(symbol.L_stop_iteration).ToValue() {
 				yield(Undefined, err)
 			}
 			return

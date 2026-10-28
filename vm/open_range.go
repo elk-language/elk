@@ -201,7 +201,7 @@ func OpenRangeIteratorNext(vm *Thread, i *value.OpenRangeIterator) (value.Value,
 	}
 
 	if value.Truthy(greater) {
-		return value.Undefined, stopIterationSymbol.ToValue()
+		return value.Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	current := i.CurrentElement

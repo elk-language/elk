@@ -3,6 +3,8 @@ package value
 import (
 	"fmt"
 	"iter"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type PairOfValue struct {
@@ -211,7 +213,7 @@ func (*PairOfValueIterator) InstanceVariables() *InstanceVariables {
 
 func (l *PairOfValueIterator) NextValue() (Value, Value) {
 	if l.Index >= pairLength {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next, err := l.Pair.Get(l.Index)
