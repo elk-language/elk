@@ -167,6 +167,40 @@ func (h NativeKeyHashRecord[K]) MergeVal(thread *Thread, other value.Value) (val
 		maps.Copy(newMap, h)
 		maps.Copy(newMap, o)
 		return newMap.ToValue(), value.Undefined
+	case *NativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		maps.Copy(newMap, o.m)
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *SyncNativeKeyHashMap[K]:
+		o.Lock()
+		defer o.Unlock()
+
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Map.Length())
+		maps.Copy(newMap, h)
+		maps.Copy(newMap, o.Map.m)
+		return newMap.ToValue(), value.Undefined
+	case *SyncOrderedNativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeKeyHashRecord[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
 	case Record:
 		newMap := NewHashRecordOfValue(h.Length() + o.Length())
 

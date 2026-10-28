@@ -243,6 +243,108 @@ func (h *OrderedNativeHashRecord[K, V]) MergeVal(thread *Thread, other value.Val
 		}
 
 		return result, value.Undefined
+	case *NativeHashMap[K, V]:
+		result := NewOrderedNativeHashRecord[K, V](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *NativeKeyHashMap[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *OrderedNativeHashMap[K, V]:
+		result := NewOrderedNativeHashRecord[K, V](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *OrderedNativeKeyHashMap[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *SyncNativeHashMap[K, V]:
+		o.Lock()
+		defer o.Unlock()
+
+		result := NewOrderedNativeHashRecord[K, V](h.Length() + o.Map.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue())
+		}
+		for k, v := range o.Map.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *SyncNativeKeyHashMap[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *SyncOrderedNativeHashMap[K, V]:
+		result := NewOrderedNativeHashRecord[K, V](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *SyncOrderedNativeKeyHashMap[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case NativeHashRecord[K, V]:
+		result := NewOrderedNativeHashRecord[K, V](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case NativeKeyHashRecord[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
+	case *OrderedNativeKeyHashRecord[K]:
+		result := NewOrderedNativeKeyHashRecord[K](h.Length() + o.Length())
+		for _, entry := range h.entries {
+			result.Set(entry.NativeKey(), entry.NativeValue().ToValue())
+		}
+		for k, v := range o.AllNative() {
+			result.Set(k, v)
+		}
+		return result, value.Undefined
 	case Record:
 		result := NewOrderedHashRecordOfValue(h.Length() + o.Length())
 		for _, entry := range h.entries {

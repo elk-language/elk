@@ -232,6 +232,8 @@ func (h *SyncOrderedNativeHashMap[K, V]) syncMergeResult(result OrderedHashRecor
 	switch m := result.(type) {
 	case *OrderedNativeHashMap[K, V]:
 		return &SyncOrderedNativeHashMap[K, V]{Map: m}, value.Undefined
+	case *OrderedNativeKeyHashMap[K]:
+		return &SyncOrderedNativeKeyHashMap[K]{Map: m}, value.Undefined
 	case *OrderedHashMapOfValue:
 		return &SyncOrderedHashMapOfValue{Map: m}, value.Undefined
 	default:

@@ -179,6 +179,47 @@ func (h *SyncNativeKeyHashMap[K]) MergeVal(thread *Thread, other value.Value) (S
 		o.Unlock()
 
 		return newMap, value.Undefined
+	case *OrderedNativeKeyHashMap[K]:
+		h.Lock()
+		defer h.Unlock()
+
+		newMap := NewSyncNativeKeyHashMap[K](h.Map.Length() + o.Length())
+		maps.Copy(newMap.Map.m, h.Map.m)
+		for k, v := range o.AllNative() {
+			newMap.Map.Set(k, v)
+		}
+		return newMap, value.Undefined
+	case *SyncOrderedNativeKeyHashMap[K]:
+		h.Lock()
+		defer h.Unlock()
+
+		o.Lock()
+		defer o.Unlock()
+
+		newMap := NewSyncNativeKeyHashMap[K](h.Map.Length() + o.Map.Length())
+		maps.Copy(newMap.Map.m, h.Map.m)
+		for k, v := range o.Map.AllNative() {
+			newMap.Map.Set(k, v)
+		}
+		return newMap, value.Undefined
+	case NativeKeyHashRecord[K]:
+		h.Lock()
+		defer h.Unlock()
+
+		newMap := NewSyncNativeKeyHashMap[K](h.Map.Length() + o.Length())
+		maps.Copy(newMap.Map.m, h.Map.m)
+		maps.Copy(newMap.Map.m, o)
+		return newMap, value.Undefined
+	case *OrderedNativeKeyHashRecord[K]:
+		h.Lock()
+		defer h.Unlock()
+
+		newMap := NewSyncNativeKeyHashMap[K](h.Map.Length() + o.Length())
+		maps.Copy(newMap.Map.m, h.Map.m)
+		for k, v := range o.AllNative() {
+			newMap.Map.Set(k, v)
+		}
+		return newMap, value.Undefined
 	case SyncHashMap:
 		newMap := NewSyncHashMapOfValue(h.Length() + o.Length())
 
@@ -502,7 +543,7 @@ func (*SyncNativeKeyHashMap[K]) InstanceVariables() *value.InstanceVariables {
 }
 
 func (h *SyncNativeKeyHashMap[K]) Length() int {
-	return h.Length()
+	return h.Map.Length()
 }
 
 type SyncNativeKeyHashMapIterator[K value.ComparableValueInterface] struct {
