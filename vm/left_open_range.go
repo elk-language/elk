@@ -201,7 +201,7 @@ func LeftOpenRangeIteratorNext(vm *Thread, i *value.LeftOpenRangeIterator) (valu
 	}
 
 	if value.Truthy(greater) {
-		return value.Undefined, S(symbol.L_stop_iteration).ToValue()
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	current := i.CurrentElement

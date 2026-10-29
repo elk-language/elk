@@ -480,8 +480,6 @@ func (h *SyncNativeHashMap[K, V]) LaxEqual(thread *Thread, other value.Value) (b
 
 		return true, value.Undefined
 	}
-
-	return false, value.Undefined
 }
 
 func (*SyncNativeHashMap[K, V]) Class() *value.Class {

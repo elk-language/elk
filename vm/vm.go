@@ -59,8 +59,6 @@ func init() {
 	)
 }
 
-var S (symbol.L_stop_iteration) = value.ToSymbol("stop_iteration")
-
 type Option func(*Thread) // constructor option function
 
 // Assign an aborter to the thread

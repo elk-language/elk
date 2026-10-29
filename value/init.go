@@ -172,6 +172,7 @@ func InitGlobalEnvironment() {
 	initSyncArrayList()
 	initSyncHashMap()
 	initSyncOrderedHashMap()
+	initSyncHashSet()
 	initElkLexer()
 	initElkParser()
 	initElkType()

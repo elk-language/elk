@@ -424,3 +424,131 @@ func (h *HashRecordOfValueIterator) NextValue() (value.Value, value.Value) {
 func (h *HashRecordOfValueIterator) Reset() {
 	h.Index = 0
 }
+
+// Create a new hash record with the given entries.
+func NewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+	return NewHashRecordOfValueWithCapacityAndElements(vm, len(elements), elements...)
+}
+
+// Create a new hash record with the given entries.
+func MustNewHashRecordOfValueWithElements(vm *Thread, elements ...value.PairOfValue) *HashRecordOfValue {
+	hrec, err := NewHashRecordOfValueWithElements(vm, elements...)
+	if !err.IsUndefined() {
+		panic(err)
+	}
+
+	return hrec
+}
+
+func NewHashRecordOfValueWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashRecordOfValue, value.Value) {
+	h := NewHashRecordOfValue(capacity)
+	for _, element := range elements {
+		err := HashRecordOfValueSet(vm, h, element.Key(), element.Value())
+		if !err.IsUndefined() {
+			return nil, err
+		}
+	}
+
+	return h, value.Undefined
+}
+
+func MustNewHashRecordWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) *HashRecordOfValue {
+	hrec, err := NewHashRecordOfValueWithCapacityAndElements(vm, capacity, elements...)
+	if !err.IsUndefined() {
+		panic(err)
+	}
+
+	return hrec
+}
+
+// Delete the given key from the hashMap
+func HashRecordOfValueDelete(vm *Thread, hashRecord *HashRecordOfValue, key value.Value) (bool, value.Value) {
+	return HashMapOfValueDelete(vm, (*HashMapOfValue)(hashRecord), key)
+}
+
+// Get the element under the given key.
+func HashRecordOfValueGet(vm *Thread, hashRecord *HashRecordOfValue, key value.Value) (value.Value, value.Value) {
+	return HashMapOfValueGet(vm, (*HashMapOfValue)(hashRecord), key)
+}
+
+func HashRecordOfValueCopyTable(vm *Thread, target *HashRecordOfValue, source []value.PairOfValue) value.Value {
+	return HashMapOfValueCopyTable(vm, (*HashMapOfValue)(target), source)
+}
+
+// Copy the pairs of one hash record to the other.
+func HashRecordOfValueCopy(vm *Thread, target *HashRecordOfValue, source *HashRecordOfValue) value.Value {
+	return HashMapOfValueCopy(vm, (*HashMapOfValue)(target), (*HashMapOfValue)(source))
+}
+
+func HashRecordOfValueCopyInterface(vm *Thread, target *HashRecordOfValue, source Record) value.Value {
+	return HashMapOfValueCopyInterface(vm, (*HashMapOfValue)(target), source)
+}
+
+// Create a new map containing the pairs of both maps.
+func HashRecordOfValueMerge(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueMerge(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return (*HashRecordOfValue)(m), value.Undefined
+}
+
+func HashRecordOfValueMergeInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (*HashRecordOfValue, value.Value) {
+	m, err := HashMapOfValueMergeInterface(vm, (*HashMapOfValue)(x), y)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return (*HashRecordOfValue)(m), value.Undefined
+}
+
+// Check if the given pair is present in the record
+func HashRecordOfValueContains(vm *Thread, hrec *HashRecordOfValue, pair value.Pair) (bool, value.Value) {
+	return HashMapOfValueContains(vm, (*HashMapOfValue)(hrec), pair)
+}
+
+// Check if the given key is present in the record
+func HashRecordOfValueContainsKey(vm *Thread, hrec *HashRecordOfValue, key value.Value) (bool, value.Value) {
+	return HashMapOfValueContainsKey(vm, (*HashMapOfValue)(hrec), key)
+}
+
+// Check if the given value is present in the record
+func HashRecordOfValueContainsValue(vm *Thread, hrec *HashRecordOfValue, val value.Value) (bool, value.Value) {
+	return HashMapOfValueContainsValue(vm, (*HashMapOfValue)(hrec), val)
+}
+
+// Checks whether two hash records are equal (lax)
+func HashRecordOfValueLaxEqual(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (bool, value.Value) {
+	return HashMapOfValueLaxEqual(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+}
+
+func HashRecordOfValueLaxEqualInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (bool, value.Value) {
+	return HashMapOfValueLaxEqualInterface(vm, (*HashMapOfValue)(x), y)
+}
+
+// Checks whether two hash records are equal
+func HashRecordOfValueEqual(vm *Thread, x *HashRecordOfValue, y *HashRecordOfValue) (bool, value.Value) {
+	return HashMapOfValueEqual(vm, (*HashMapOfValue)(x), (*HashMapOfValue)(y))
+}
+
+func HashRecordOfValueEqualInterface(vm *Thread, x *HashRecordOfValue, y HashRecord) (bool, value.Value) {
+	return HashMapOfValueEqualInterface(vm, (*HashMapOfValue)(x), y)
+}
+
+// Add additional n empty slots for new elements.
+func HashRecordOfValueGrow(vm *Thread, hashRecord *HashRecordOfValue, newSlots int) value.Value {
+	return HashMapOfValueGrow(vm, (*HashMapOfValue)(hashRecord), newSlots)
+}
+
+// Resize the given hash record to the desired capacity.
+func HashRecordOfValueSetCapacity(vm *Thread, hashRecord *HashRecordOfValue, capacity int) value.Value {
+	return HashMapOfValueSetCapacity(vm, (*HashMapOfValue)(hashRecord), capacity)
+}
+
+func HashRecordOfValueSetWithMaxLoad(vm *Thread, hashRecord *HashRecordOfValue, key, val value.Value, maxLoad float64) value.Value {
+	return HashMapOfValueSetWithMaxLoad(vm, (*HashMapOfValue)(hashRecord), key, val, maxLoad)
+}
+
+// Set a value under the given key.
+func HashRecordOfValueSet(vm *Thread, hashRecord *HashRecordOfValue, key, val value.Value) value.Value {
+	return HashMapOfValueSet(vm, (*HashMapOfValue)(hashRecord), key, val)
+}

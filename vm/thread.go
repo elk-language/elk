@@ -2610,7 +2610,7 @@ func (vm *Thread) opNext(callInfoIndex int) value.Value {
 
 	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
 	result, err := vm.CallMethod(method, iterator)
-	if err.IsSymbol() && err.AsSymbol() == S(symbol.L_stop_iteration) {
+	if err.IsSymbol() && err.AsSymbol() == value.S(symbol.L_stop_iteration) {
 		vm.replace(value.Undefined)
 		return value.Undefined
 	}

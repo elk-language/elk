@@ -286,14 +286,48 @@ func (h *NativeHashSet[V]) UnionInterface(thread *Thread, other HashSet) (result
 	return newSet, value.Undefined
 }
 
+func (h *NativeHashSet[V]) UnionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
+	if !value.IsA(other, value.SetMixin) {
+		return nil, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
+	}
+
+	oLengthVal, err := thread.CallMethodByName(value.S(symbol.L_length), other)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	oLength := oLengthVal.AsInt()
+	newSet := NewHashSetOfValue(h.Length() + oLength)
+
+	for v := range h.All() {
+		_, err := newSet.AppendVal(thread, v)
+		if !err.IsUndefined() {
+			return nil, err
+		}
+	}
+
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		_, err := newSet.AppendVal(thread, element)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+
+	return newSet, value.Undefined
+}
+
 func (h *NativeHashSet[V]) UnionVal(thread *Thread, other value.Value) (result value.Value, err value.Value) {
-	switch other := other.SafeAsReference().(type) {
+	switch o := other.SafeAsReference().(type) {
 	case *NativeHashSet[V]:
-		return h.Union(other).ToValue(), value.Undefined
+		return h.Union(o).ToValue(), value.Undefined
 	case HashSet:
-		return value.RefErr(h.UnionInterface(thread, other))
+		return value.RefErr(h.UnionInterface(thread, o))
 	default:
-		return value.Undefined, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
+		return value.RefErr(h.UnionValue(thread, other))
 	}
 }
 
@@ -332,14 +366,44 @@ func (h *NativeHashSet[V]) IntersectionInterface(thread *Thread, other HashSet) 
 	return newSet, value.Undefined
 }
 
+func (h *NativeHashSet[V]) IntersectionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
+	if !value.IsA(other, value.SetMixin) {
+		return nil, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
+	}
+
+	newSet := NewHashSetOfValue(5)
+
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		contains, err := h.Contains(thread, element)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		if !contains {
+			continue
+		}
+
+		_, err = newSet.AppendVal(thread, element)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+
+	return newSet, value.Undefined
+}
+
 func (h *NativeHashSet[V]) IntersectionVal(thread *Thread, other value.Value) (result value.Value, err value.Value) {
-	switch other := other.SafeAsReference().(type) {
+	switch o := other.SafeAsReference().(type) {
 	case *NativeHashSet[V]:
-		return h.Intersection(other).ToValue(), value.Undefined
+		return h.Intersection(o).ToValue(), value.Undefined
 	case HashSet:
-		return value.RefErr(h.IntersectionInterface(thread, other))
+		return value.RefErr(h.IntersectionInterface(thread, o))
 	default:
-		return value.Undefined, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
+		return value.RefErr(h.IntersectionValue(thread, other))
 	}
 }
 
@@ -365,6 +429,34 @@ func (h *NativeHashSet[V]) EqualInterface(thread *Thread, other HashSet) (bool, 
 	return true, value.Undefined
 }
 
+func (h *NativeHashSet[V]) LaxEqualValue(thread *Thread, other value.Value) (bool, value.Value) {
+	if !value.IsA(other, value.SetMixin) {
+		return false, value.Undefined
+	}
+
+	oLengthVal, err := thread.CallMethodByName(value.S(symbol.L_length), other)
+	if err.IsNotUndefined() {
+		return false, err
+	}
+
+	oLength := oLengthVal.AsInt()
+	if h.Length() != oLength {
+		return false, value.Undefined
+	}
+
+	for _, element := range Iterate(thread, other) {
+		contains, err := h.Contains(thread, element)
+		if err.IsNotUndefined() {
+			return false, err
+		}
+		if !contains {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
 func (h *NativeHashSet[V]) Equal(thread *Thread, other value.Value) (result bool, err value.Value) {
 	switch other := other.SafeAsReference().(type) {
 	case *NativeHashSet[V]:
@@ -372,7 +464,23 @@ func (h *NativeHashSet[V]) Equal(thread *Thread, other value.Value) (result bool
 	case HashSet:
 		return h.EqualInterface(thread, other)
 	default:
-		return false, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
+		return false, value.Undefined
+	}
+}
+
+func (h *NativeHashSet[V]) LaxEqual(thread *Thread, other value.Value) (result bool, err value.Value) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeHashSet[V]:
+		return h.EqualNative(o), value.Undefined
+	case HashSet:
+		return h.EqualInterface(thread, o)
+	case SyncHashSet:
+		o.Lock()
+		defer o.Unlock()
+
+		return h.EqualInterface(thread, o.HashSet())
+	default:
+		return h.LaxEqualValue(thread, other)
 	}
 }
 

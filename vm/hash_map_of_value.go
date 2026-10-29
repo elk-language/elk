@@ -803,7 +803,10 @@ func HashMapOfValueCopyTable(vm *Thread, target *HashMapOfValue, source []value.
 func HashMapOfValueCopy(vm *Thread, target *HashMapOfValue, source *HashMapOfValue) value.Value {
 	requiredCapacity := target.Length() + source.Length()
 	if target.Capacity() < requiredCapacity {
-		HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		err := HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		if err.IsNotUndefined() {
+			return err
+		}
 	}
 
 	target.version++
@@ -830,7 +833,10 @@ func HashMapOfValueCopy(vm *Thread, target *HashMapOfValue, source *HashMapOfVal
 func HashMapOfValueCopyInterface(vm *Thread, target *HashMapOfValue, source Record) value.Value {
 	requiredCapacity := target.Length() + source.Length()
 	if target.Capacity() < requiredCapacity {
-		HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		err := HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		if err.IsNotUndefined() {
+			return err
+		}
 	}
 
 	target.version++
@@ -893,9 +899,15 @@ func HashMapOfValueSetCapacity(vm *Thread, hashMap *HashMapOfValue, capacity int
 
 func HashMapOfValueSetWithMaxLoad(vm *Thread, hashMap *HashMapOfValue, key, val value.Value, maxLoad float64) value.Value {
 	if hashMap.Capacity() == 0 {
-		HashMapOfValueSetCapacity(vm, hashMap, 5)
+		err := HashMapOfValueSetCapacity(vm, hashMap, 5)
+		if err.IsNotUndefined() {
+			return err
+		}
 	} else if float64(hashMap.OccupiedSlots) >= float64(hashMap.Capacity())*maxLoad {
-		HashMapOfValueSetCapacity(vm, hashMap, hashMap.OccupiedSlots*2)
+		err := HashMapOfValueSetCapacity(vm, hashMap, hashMap.OccupiedSlots*2)
+		if err.IsNotUndefined() {
+			return err
+		}
 	}
 
 	index, err := HashMapOfValueIndex(vm, hashMap, key)
