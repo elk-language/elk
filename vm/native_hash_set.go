@@ -286,7 +286,7 @@ func (h *NativeHashSet[V]) UnionInterface(thread *Thread, other HashSet) (result
 	return newSet, value.Undefined
 }
 
-func (h *NativeHashSet[V]) UnionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
+func (h *NativeHashSet[V]) unionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
 	if !value.IsA(other, value.SetMixin) {
 		return nil, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
 	}
@@ -327,7 +327,7 @@ func (h *NativeHashSet[V]) UnionVal(thread *Thread, other value.Value) (result v
 	case HashSet:
 		return value.RefErr(h.UnionInterface(thread, o))
 	default:
-		return value.RefErr(h.UnionValue(thread, other))
+		return value.RefErr(h.unionValue(thread, other))
 	}
 }
 
@@ -366,7 +366,7 @@ func (h *NativeHashSet[V]) IntersectionInterface(thread *Thread, other HashSet) 
 	return newSet, value.Undefined
 }
 
-func (h *NativeHashSet[V]) IntersectionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
+func (h *NativeHashSet[V]) intersectionValue(thread *Thread, other value.Value) (result *HashSetOfValue, err value.Value) {
 	if !value.IsA(other, value.SetMixin) {
 		return nil, value.NewCoerceError(value.HashSetClass, other.Class()).ToValue()
 	}
@@ -403,7 +403,7 @@ func (h *NativeHashSet[V]) IntersectionVal(thread *Thread, other value.Value) (r
 	case HashSet:
 		return value.RefErr(h.IntersectionInterface(thread, o))
 	default:
-		return value.RefErr(h.IntersectionValue(thread, other))
+		return value.RefErr(h.intersectionValue(thread, other))
 	}
 }
 
