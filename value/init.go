@@ -174,6 +174,7 @@ func InitGlobalEnvironment() {
 	initSyncOrderedHashMap()
 	initSyncHashSet()
 	initOrderedHashSet()
+	initSyncOrderedHashSet()
 	initElkLexer()
 	initElkParser()
 	initElkType()

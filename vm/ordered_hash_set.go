@@ -8,8 +8,7 @@ import (
 )
 
 type OrderedHashSet interface {
-	value.Reference
-	value.NativeIterable
+	Set
 	All() iter.Seq[value.Value]
 	Length() int
 	// Normalizes the index so that `-1` becomes `length-1`.
