@@ -36,6 +36,27 @@ func (h *SyncOrderedNativeHashSet[V]) OrderedHashSet() OrderedHashSet {
 	return h.Set
 }
 
+func (h *SyncOrderedNativeHashSet[V]) ToHashSet() (HashSet, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Set.ToHashSet()
+}
+
+func (h *SyncOrderedNativeHashSet[V]) ToSyncHashSet() (SyncHashSet, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Set.ToSyncHashSet()
+}
+
+func (h *SyncOrderedNativeHashSet[V]) ToOrderedHashSet() OrderedHashSet {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Set.Clone()
+}
+
 func (h *SyncOrderedNativeHashSet[V]) CloneSyncOrderedHashSet(thread *Thread, capacity int) (SyncOrderedHashSet, value.Value) {
 	h.Lock()
 	defer h.Unlock()

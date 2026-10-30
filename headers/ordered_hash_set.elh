@@ -144,6 +144,29 @@ noinit sealed primitive class ::Std::OrderedHashSet[Val]
 	]##
 	pure def iter: Iterator[Val]; end
 
+	##[
+		Returns a new `Std::HashSet`
+		with the same elements.
+	]##
+	def to_hash_set: HashSet[Val]; end
+
+	##[
+		Returns a new `Std::Sync::HashSet`
+		with the same elements.
+	]##
+	def to_sync_hash_set: Sync::HashSet[Val]; end
+
+	##[
+		Returns a new `Std::Sync::OrderedHashSet`
+		with the same elements.
+	]##
+	def to_sync_ordered_hash_set: Sync::OrderedHashSet[Val]; end
+
+	##[
+		Returns itself.
+	]##
+	def to_ordered_hash_set: OrderedHashSet[Val]; end
+
 	sealed primitive class Iterator[Val]
 		include ::Std::ResettableIterator::Base[Val]
 

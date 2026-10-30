@@ -99,6 +99,32 @@ func (h *OrderedHashSetOfValue) Clone() *OrderedHashSetOfValue {
 	}
 }
 
+func (h *OrderedHashSetOfValue) ToHashSetOfValue() (*HashSetOfValue, value.Value) {
+	set := NewHashSetOfValue(len(h.entries))
+	for _, element := range h.entries {
+		_, err := HashSetOfValueAppend(nil, set, element)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+	return set, value.Undefined
+}
+func (h *OrderedHashSetOfValue) ToHashSet() (HashSet, value.Value) {
+	return h.ToHashSetOfValue()
+}
+
+func (h *OrderedHashSetOfValue) ToSyncHashSet() (SyncHashSet, value.Value) {
+	set, err := h.ToHashSetOfValue()
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return &SyncHashSetOfValue{Set: set}, value.Undefined
+}
+
+func (h *OrderedHashSetOfValue) ToSyncOrderedHashSet() SyncOrderedHashSet {
+	return &SyncOrderedHashSetOfValue{Set: h.Clone()}
+}
+
 func (h *OrderedHashSetOfValue) Copy() value.Reference {
 	return h.Clone()
 }

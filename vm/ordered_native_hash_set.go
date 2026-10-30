@@ -107,6 +107,30 @@ func (h *OrderedNativeHashSet[V]) Clone() *OrderedNativeHashSet[V] {
 	}
 }
 
+func (h *OrderedNativeHashSet[V]) ToHashSet() (HashSet, value.Value) {
+	return h.ToNativeHashSet()
+}
+
+func (h *OrderedNativeHashSet[V]) ToNativeHashSet() (*NativeHashSet[V], value.Value) {
+	set := NewNativeHashSet[V](len(h.entries))
+	for _, element := range h.entries {
+		set.Append(element)
+	}
+	return set, value.Undefined
+}
+
+func (h *OrderedNativeHashSet[V]) ToSyncHashSet() (SyncHashSet, value.Value) {
+	set, err := h.ToNativeHashSet()
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return &SyncNativeHashSet[V]{Set: set}, value.Undefined
+}
+
+func (h *OrderedNativeHashSet[V]) ToSyncOrderedHashSet() SyncOrderedHashSet {
+	return &SyncOrderedNativeHashSet[V]{Set: h.Clone()}
+}
+
 func (h *OrderedNativeHashSet[V]) Copy() value.Reference {
 	return h.Clone()
 }
