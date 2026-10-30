@@ -34,6 +34,8 @@ type HashRecord interface {
 	CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value)
 	NewHashRecord(capacity int) HashRecord
 	SetVal(thread *Thread, key, val value.Value) value.Value
+	ToHashMap() HashMap
+	ToSyncHashMap() SyncHashMap
 }
 
 func hashRecordConstructor(class *value.Class) value.Value {
@@ -112,6 +114,29 @@ func initHashRecord() {
 			self := args[0].AsReference().(HashRecord)
 			iterator := self.IterRecord()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_record",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashRecord)
+			return self.ToHashMap().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashRecord)
+			return self.ToSyncHashMap().ToValue(), value.Undefined
 		},
 	)
 	Def(

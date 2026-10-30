@@ -29,6 +29,8 @@ type ArrayList interface {
 	NewArrayList(capacity int) ArrayList
 	CloneArrayList(capacity int) ArrayList
 	SliceArrayList(from, to int) ArrayList
+	ToArrayTuple() ArrayTuple
+	ToSyncArrayList() SyncArrayList
 }
 
 type ArrayListIterator interface {

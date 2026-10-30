@@ -12,6 +12,8 @@ type HashMap interface {
 	RemoveKey(thread *Thread, key value.Value) (bool, value.Value)
 	CloneHashMap(thread *Thread, capacity int) (HashMap, value.Value)
 	NewHashMap(capacity int) HashMap
+	ToHashRecord() HashRecord
+	ToSyncHashMap() SyncHashMap
 }
 
 func hashMapConstructor(class *value.Class) value.Value {
@@ -31,6 +33,29 @@ func initHashMap() {
 			self := args[0].AsReference().(HashMap)
 			iterator := self.IterMap()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashMap)
+			return self.ToSyncHashMap().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_record",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashMap)
+			return self.ToHashRecord().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
 		},
 	)
 	Def(

@@ -22,6 +22,29 @@ func initArrayList() {
 	)
 	Def(
 		c,
+		"to_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_array_tuple",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			return self.ToArrayTuple().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			return self.ToSyncArrayList().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)

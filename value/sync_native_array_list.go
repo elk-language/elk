@@ -58,6 +58,20 @@ func (l *SyncNativeArrayList[T]) SliceSyncArrayList(from, to int) SyncArrayList 
 	}
 }
 
+func (l *SyncNativeArrayList[T]) ToArrayList() ArrayList {
+	l.Lock()
+	defer l.Unlock()
+
+	return l.List.Clone()
+}
+
+func (l *SyncNativeArrayList[T]) ToArrayTuple() ArrayTuple {
+	l.Lock()
+	defer l.Unlock()
+
+	return l.List.ToArrayTuple()
+}
+
 func (l *SyncNativeArrayList[T]) Elements() iter.Seq2[int, Value] {
 	return func(yield func(int, Value) bool) {
 		l.Lock()

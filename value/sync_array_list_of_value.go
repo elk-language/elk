@@ -68,6 +68,20 @@ func (l *SyncArrayListOfValue) SliceSyncArrayList(from, to int) SyncArrayList {
 	}
 }
 
+func (l *SyncArrayListOfValue) ToArrayList() ArrayList {
+	l.Lock()
+	defer l.Unlock()
+
+	return l.List.Clone()
+}
+
+func (l *SyncArrayListOfValue) ToArrayTuple() ArrayTuple {
+	l.Lock()
+	defer l.Unlock()
+
+	return l.List.ToArrayTuple()
+}
+
 func (*SyncArrayListOfValue) Class() *Class {
 	return SyncArrayListClass
 }

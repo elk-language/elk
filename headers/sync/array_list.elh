@@ -176,6 +176,23 @@ noinit sealed primitive class ::Std::Sync::ArrayList[Val]
 	]##
 	pure def iter: Iterator[Val]; end
 
+	##[
+		Returns a new `Std::ArrayTuple`
+		with the same elements.
+	]##
+	def to_array_tuple: ArrayTuple[Val]; end
+
+	##[
+		Returns a new `Std::ArrayList`
+		with the same elements.
+	]##
+	def to_array_list: ArrayList[Val]; end
+
+	##[
+		Returns itself.
+	]##
+	def to_sync_array_list: Sync::ArrayList; end
+
 	sealed primitive class Iterator[Val]
 		include ::Std::ResettableIterator::Base[Val]
 

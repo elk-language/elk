@@ -476,6 +476,16 @@ func (h NativeHashRecord[K, V]) Clone() NativeHashRecord[K, V] {
 	return newMap
 }
 
+func (h NativeHashRecord[K, V]) ToHashMap() HashMap {
+	return NewNativeHashMapFromMap(maps.Clone(map[K]V(h)))
+}
+
+func (h NativeHashRecord[K, V]) ToSyncHashMap() SyncHashMap {
+	return &SyncNativeHashMap[K, V]{
+		Map: NewNativeHashMapFromMap(maps.Clone(map[K]V(h))),
+	}
+}
+
 func (h NativeHashRecord[K, V]) Copy() value.Reference {
 	return h.Clone()
 }

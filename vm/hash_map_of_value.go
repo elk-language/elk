@@ -277,6 +277,18 @@ func (h *HashMapOfValue) Clone() *HashMapOfValue {
 	}
 }
 
+func (h *HashMapOfValue) ToHashMap() HashMap {
+	return h
+}
+
+func (h *HashMapOfValue) ToHashRecord() HashRecord {
+	return (*HashRecordOfValue)(h.Clone())
+}
+
+func (h *HashMapOfValue) ToSyncHashMap() SyncHashMap {
+	return &SyncHashMapOfValue{Map: h.Clone()}
+}
+
 func (h *HashMapOfValue) Copy() value.Reference {
 	return h.Clone()
 }

@@ -75,6 +75,14 @@ func (h *HashRecordOfValue) Clone() *HashRecordOfValue {
 	}
 }
 
+func (h *HashRecordOfValue) ToHashMap() HashMap {
+	return (*HashMapOfValue)(h.Clone())
+}
+
+func (h *HashRecordOfValue) ToSyncHashMap() SyncHashMap {
+	return &SyncHashMapOfValue{Map: (*HashMapOfValue)(h.Clone())}
+}
+
 func (h *HashRecordOfValue) CloneHashRecord(thread *Thread, capacity int) (HashRecord, value.Value) {
 	newRecord := NewHashRecordOfValue(capacity)
 	err := HashRecordOfValueCopy(thread, newRecord, h)

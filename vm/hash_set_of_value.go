@@ -106,6 +106,10 @@ func (h *HashSetOfValue) Clone() *HashSetOfValue {
 	}
 }
 
+func (h *HashSetOfValue) ToSyncHashSet() SyncHashSet {
+	return &SyncHashSetOfValue{Set: h.Clone()}
+}
+
 func (h *HashSetOfValue) Copy() value.Reference {
 	return h.Clone()
 }

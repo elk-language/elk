@@ -26,6 +26,7 @@ type HashSet interface {
 	IterSet() value.NativeResettableIterator
 	CloneHashSet(thread *Thread, capacity int) (result HashSet, err value.Value)
 	NewHashSet(capacity int) HashSet
+	ToSyncHashSet() SyncHashSet
 }
 
 func hashSetConstructor(class *value.Class) value.Value {
@@ -45,6 +46,21 @@ func initHashSet() {
 			self := args[0].AsReference().(HashSet)
 			iterator := self.IterSet()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_set",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_set",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(HashSet)
+			return self.ToSyncHashSet().ToValue(), value.Undefined
 		},
 	)
 	Def(

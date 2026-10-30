@@ -400,6 +400,16 @@ func (h NativeKeyHashRecord[K]) Clone() NativeKeyHashRecord[K] {
 	return newMap
 }
 
+func (h NativeKeyHashRecord[K]) ToHashMap() HashMap {
+	return NewNativeKeyHashMapFromMap(maps.Clone(map[K]value.Value(h)))
+}
+
+func (h NativeKeyHashRecord[K]) ToSyncHashMap() SyncHashMap {
+	return &SyncNativeKeyHashMap[K]{
+		Map: NewNativeKeyHashMapFromMap(maps.Clone(map[K]value.Value(h))),
+	}
+}
+
 func (h NativeKeyHashRecord[K]) Copy() value.Reference {
 	return h.Clone()
 }

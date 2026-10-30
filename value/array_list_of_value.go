@@ -72,6 +72,15 @@ func (l *ArrayListOfValue) Clone() *ArrayListOfValue {
 	return newList
 }
 
+func (l *ArrayListOfValue) ToArrayTuple() ArrayTuple {
+	tuple := ArrayTupleOfValue(slices.Clone(*l))
+	return &tuple
+}
+
+func (l *ArrayListOfValue) ToSyncArrayList() SyncArrayList {
+	return &SyncArrayListOfValue{List: l.Clone()}
+}
+
 func (l *ArrayListOfValue) CloneArrayList(capacity int) ArrayList {
 	newList := NewArrayListOfValue(capacity)
 	newList.Append(*l...)

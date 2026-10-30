@@ -46,6 +46,8 @@ type SyncArrayList interface {
 	ConcatVal(Value) (Value, Value)
 	ConcatValOk(Value) (Value, bool)
 	RepeatVal(Value) (Value, Value)
+	ToArrayList() ArrayList
+	ToArrayTuple() ArrayTuple
 }
 
 type SyncArrayListIterator interface {

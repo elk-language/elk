@@ -163,6 +163,12 @@ func (h *NativeHashSet[V]) Copy() value.Reference {
 	}
 }
 
+func (h *NativeHashSet[V]) ToSyncHashSet() SyncHashSet {
+	return &SyncNativeHashSet[V]{
+		Set: h.Copy().(*NativeHashSet[V]),
+	}
+}
+
 func (h *NativeHashSet[V]) ToValue() value.Value {
 	return value.Ref(h)
 }
