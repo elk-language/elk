@@ -160,6 +160,8 @@ func (h *OrderedNativeKeyHashRecord[K]) GetAtInterface(index int) (result value.
 	return result, err
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedNativeKeyHashRecord[K]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 

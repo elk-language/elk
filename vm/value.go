@@ -207,6 +207,28 @@ func ValueSliceEqual(thread *Thread, a []value.Value, b []value.Value) (bool, va
 	return true, value.Undefined
 }
 
+func NativeValueSliceEqual[V value.ValueInterface](thread *Thread, a []V, b []V) (bool, value.Value) {
+	if len(a) != len(b) {
+		return false, value.Undefined
+	}
+
+	for i := range len(a) {
+		aEntry := a[i]
+		bEntry := b[i]
+
+		eq, err := Equal(thread, aEntry.ToValue(), bEntry.ToValue())
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		if value.Falsy(eq) {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
 func PairSliceEqual(thread *Thread, a []value.PairOfValue, b []value.PairOfValue) (bool, value.Value) {
 	if len(a) != len(b) {
 		return false, value.Undefined

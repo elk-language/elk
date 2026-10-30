@@ -198,10 +198,16 @@ func (h *OrderedHashSetOfValue) GetIndex(thread *Thread, key value.Value) (value
 	return index, value.Undefined
 }
 
+// Get the element with the given index
+// Does not do bounds checking or index normalisation.
+// Panics if the index is invalid.
 func (h *OrderedHashSetOfValue) AtVal(index int) value.Value {
 	return h.entries[index]
 }
 
+// Get the element with the given index
+// Does not do bounds checking or index normalisation.
+// Returns an error (undefined, err) if the index is out of range.
 func (h *OrderedHashSetOfValue) GetAtVal(index int) (result value.Value, err value.Value) {
 	index, err = value.NormalizeArrayIndex(index, h.Length())
 	if err.IsNotUndefined() {
@@ -211,6 +217,8 @@ func (h *OrderedHashSetOfValue) GetAtVal(index int) (result value.Value, err val
 	return h.entries[index], value.Undefined
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedHashSetOfValue) TryAtVal(index value.Value) (value.Value, value.Value) {
 	var i int
 
@@ -235,12 +243,22 @@ func (h *OrderedHashSetOfValue) RemoveVal(thread *Thread, other value.Value) (re
 	if err.IsNotUndefined() {
 		return false, err
 	}
+	if index == -1 {
+		return false, value.Undefined
+	}
 
 	h.version++
 	h.entries = slices.Delete(h.entries, int(index), int(index)+1)
 	_, err = h.index.RemoveKey(thread, other)
 	if err.IsNotUndefined() {
 		return false, err
+	}
+
+	for i := int(index); i < len(h.entries); i++ {
+		err = h.index.SetVal(thread, h.entries[i], value.SmallInt(i).ToValue())
+		if err.IsNotUndefined() {
+			return false, err
+		}
 	}
 
 	return true, value.Undefined
@@ -383,7 +401,7 @@ func (*OrderedHashSetOfValueIterator) InstanceVariables() *value.InstanceVariabl
 
 func (h *OrderedHashSetOfValueIterator) NextValue() (value.Value, value.Value) {
 	if h.version != h.HashSet.version {
-		return value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return value.Undefined, value.NewMutationDuringIterationError(h.HashSet.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()

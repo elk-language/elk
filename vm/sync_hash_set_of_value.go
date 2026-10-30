@@ -342,7 +342,7 @@ func (*SyncHashSetOfValueIterator) InstanceVariables() *value.InstanceVariables 
 
 func (h *SyncHashSetOfValueIterator) NextValue() (value.Value, value.Value) {
 	if h.version != h.HashSet.Set.version {
-		return value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return value.Undefined, value.NewMutationDuringIterationError(h.HashSet.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()

@@ -621,7 +621,7 @@ func (*NativeKeyHashMapIterator[K]) InstanceVariables() *value.InstanceVariables
 
 func (h *NativeKeyHashMapIterator[K]) Next() (p value.NativePair[K, value.Value], err value.Value) {
 	if h.version != h.HashMap.version {
-		return p, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return p, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return p, value.S(symbol.L_stop_iteration).ToValue()

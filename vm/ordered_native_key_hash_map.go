@@ -180,6 +180,8 @@ func (h *OrderedNativeKeyHashMap[K]) GetAtInterface(index int) (result value.Pai
 	return result, err
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedNativeKeyHashMap[K]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -397,8 +399,11 @@ func (h *OrderedNativeKeyHashMap[K]) RemoveNativeKey(key K) bool {
 	}
 
 	h.version++
-	h.entries = slices.Delete(h.entries, int(index), int(index)+1)
+	h.entries = slices.Delete(h.entries, index, index+1)
 	delete(h.index, key)
+	for i := index; i < len(h.entries); i++ {
+		h.index[h.entries[i].NativeKey()] = i
+	}
 	return true
 }
 
@@ -702,7 +707,7 @@ func (*OrderedNativeKeyHashMapIterator[K]) InstanceVariables() *value.InstanceVa
 
 func (h *OrderedNativeKeyHashMapIterator[K]) Next() (p value.NativePair[K, value.Value], err value.Value) {
 	if h.version != h.HashMap.version {
-		return p, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return p, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return p, value.S(symbol.L_stop_iteration).ToValue()

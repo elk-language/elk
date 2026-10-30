@@ -106,6 +106,8 @@ func (h *SyncOrderedHashMapOfValue) IterSyncOrderedMap() value.NativeResettableI
 	return h.IterNative()
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *SyncOrderedHashMapOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	h.Lock()
 	defer h.Unlock()

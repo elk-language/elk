@@ -459,7 +459,7 @@ func (*SyncNativeHashSetIterator[V]) InstanceVariables() *value.InstanceVariable
 
 func (h *SyncNativeHashSetIterator[V]) Next() (v V, err value.Value) {
 	if h.version != h.HashSet.Set.version {
-		return v, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return v, value.NewMutationDuringIterationError(h.HashSet.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return v, value.S(symbol.L_stop_iteration).ToValue()

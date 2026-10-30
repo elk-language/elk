@@ -578,7 +578,7 @@ func (*NativeHashSetIterator[V]) InstanceVariables() *value.InstanceVariables {
 
 func (h *NativeHashSetIterator[V]) Next() (v V, err value.Value) {
 	if h.version != h.HashSet.version {
-		return v, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return v, value.NewMutationDuringIterationError(h.HashSet.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return v, value.S(symbol.L_stop_iteration).ToValue()

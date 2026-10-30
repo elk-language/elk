@@ -1,0 +1,164 @@
+##[
+	A thread-safe version of `Std::OrderedHashSet`.
+	An ordered dynamically resizable set data structure backed
+	by an array with a hashing algorithm.
+
+	It is an ordered collection of unique values.
+]##
+noinit sealed primitive class ::Std::Sync::OrderedHashSet[Val]
+	include Set[Val]
+
+	##[
+		Removes the element from the set.
+
+		Returns `true` if the element has been removed,
+		otherwise returns `false.
+	]##
+	def remove(value: Val): bool; end
+
+	##[
+		Removes all elements from the set.
+	]##
+	def clear; end
+
+	##[
+		Returns the number of elements present in the set.
+	]##
+	pure def length: Int; end
+
+	##[
+		Get the pair with the given index.
+
+		Throws an unchecked error if the index is out of range.
+	]##
+	pure sealed def get_at(index: AnyInt): Val; end
+
+	##[
+		Get the pair with the given index.
+
+		Throws a checked error if the index is out of range.
+	]##
+	pure sealed def at(index: AnyInt): Val ! OutOfRangeError; end
+
+	##[
+		Get the pair with the given index.
+
+		Returns `nil` when the index is out of range.
+	]##
+	pure sealed def try_at(index: AnyInt): Val?; end
+
+	##[
+		Returns the first pair.
+		Throws an error when the iterable is empty.
+	]##
+	def first: Val ! NotFoundError; end
+
+	##[
+		Returns the first element.
+		Returns `nil` when the iterable is empty.
+	]##
+	def try_first: Val?; end
+
+	##[
+		Returns the last element.
+		Throws an error when the iterable is empty.
+	]##
+	def last: Val ! NotFoundError; end
+
+	##[
+		Returns the first element.
+		Returns `nil` when the collection is empty.
+	]##
+	def try_last: Val?; end
+
+	##[
+		Return the union of both sets.
+
+		Create a new `HashSet` containing all the elements
+		present in `self` and `other`.
+	]##
+	pure sealed def +[V](other: ImmutableSet[V]): Sync:OrderedHashSet[Val | V]; end
+	alias | +
+
+	##[
+		Return the intersection of both sets.
+		Create a new `HashSet` containing only the elements
+		present both in `self` and `other`.
+	]##
+	pure sealed def &[V](other: ImmutableSet[V]): Sync::OrderedHashSet[Val & V]; end
+
+	##[
+		Check whether the given `value` is present in this set.
+	]##
+	def contains[V := Val](value: V): bool; end
+
+	##[
+		Check whether the given value is a `Sync::OrderedHashSet`
+		with the same elements.
+	]##
+	sealed def ==(other: any): bool; end
+	alias =~ ==
+
+	##[
+		Adds the given values to the set.
+
+		Skips a value if it is already present in the set.
+
+		Reallocates the underlying array if it is
+		too small to hold them.
+	]##
+	def append(*values: Val): self; end
+
+	##[
+		Adds the given value to the set.
+
+		Does nothing if the value is already present in the set.
+
+		Reallocates the underlying array if it is
+		too small to hold it.
+	]##
+	def <<(value: Val): self; end
+
+	##[
+		Adds the given value to the set.
+
+		Returns `false` if the value is already present in the set.
+		Otherwise returns `true`.
+
+		Reallocates the underlying array if it is
+		too small to hold it.
+	]##
+	def push(value: Val): bool; end
+
+	##[
+		Iterates over the elements of this set,
+		yielding them to the given closure.
+
+		Returns a new HashSet that consists of the elements returned
+		by the given closure.
+	]##
+	def map[V, E](fn: |element: Val|: V ! E): Sync::OrderedHashSet[V] ! E; end
+
+	##[
+		Returns an iterator that iterates
+		over each element of the set.
+	]##
+	pure def iter: Iterator[Val]; end
+
+	sealed primitive class Iterator[Val]
+		include ::Std::ResettableIterator::Base[Val]
+
+		init(set: Sync::OrderedHashSet[Val]); end
+
+		##[
+			Get the next element of the set.
+			Throws `:stop_iteration` when there are no more elements.
+		]##
+		def next: Val ! :stop_iteration; end
+
+		##[
+			Resets the state of the iterator.
+		]##
+		def reset; end
+	end
+end

@@ -12,11 +12,18 @@ type OrderedHashSet interface {
 	value.NativeIterable
 	All() iter.Seq[value.Value]
 	Length() int
-	// normalizes the index so that `-1` becomes `length-1`
-	// does bounds checking and returns elk `nil` if the index is out of range
+	// Normalizes the index so that `-1` becomes `length-1`.
+	// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 	TryAtVal(value.Value) (value.Value, value.Value)
+	// Get the element with the given index
+	// Does not do bounds checking or index normalisation.
+	// Panics if the index is invalid.
 	AtVal(int) value.Value
+	// Get the element with the given index
+	// Does not do bounds checking or index normalisation.
+	// Returns an error (undefined, err) if the index is out of range.
 	GetAtVal(int) (value.Value, value.Value)
+
 	UnionVal(*Thread, value.Value) (result value.Value, err value.Value)
 	IntersectionVal(*Thread, value.Value) (result value.Value, err value.Value)
 	Equal(*Thread, value.Value) (result bool, err value.Value)

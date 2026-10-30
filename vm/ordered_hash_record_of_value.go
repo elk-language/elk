@@ -127,6 +127,8 @@ func (h *OrderedHashRecordOfValue) GetAt(index int) (result *value.PairOfValue, 
 	return &h.entries[index], value.Undefined
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedHashRecordOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 

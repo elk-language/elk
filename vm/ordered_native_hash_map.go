@@ -190,6 +190,8 @@ func (h *OrderedNativeHashMap[K, V]) GetAtInterface(index int) (result value.Pai
 	return result, err
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedNativeHashMap[K, V]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -725,7 +727,7 @@ func (*OrderedNativeHashMapIterator[K, V]) InstanceVariables() *value.InstanceVa
 
 func (h *OrderedNativeHashMapIterator[K, V]) Next() (p value.NativePair[K, V], err value.Value) {
 	if h.version != h.HashMap.version {
-		return p, value.NewMutationDuringIterationError(h.Class().Name()).ToValue()
+		return p, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 	if h.index >= len(h.snapshot) {
 		return p, value.S(symbol.L_stop_iteration).ToValue()

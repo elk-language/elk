@@ -190,6 +190,8 @@ func (h *SyncOrderedNativeHashMap[K, V]) GetAtInterface(index int) (value.Pair, 
 	return h.Map.GetAtInterface(index)
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *SyncOrderedNativeHashMap[K, V]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	h.Lock()
 	defer h.Unlock()

@@ -18,8 +18,8 @@ type SyncOrderedHashMap interface {
 
 	All() iter.Seq[value.PairOfValue]
 	Length() int
-	// normalizes the index so that `-1` becomes `length-1`
-	// does bounds checking and returns elk `nil` if the index is out of range
+	// Normalizes the index so that `-1` becomes `length-1`.
+	// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 	TryAtVal(value.Value) (value.Pair, value.Value)
 	AtInterface(int) value.Pair
 	GetAtInterface(int) (value.Pair, value.Value)

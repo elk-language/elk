@@ -152,6 +152,8 @@ func (h *OrderedHashMapOfValue) GetAtInterface(index int) (result value.Pair, er
 	return result, err
 }
 
+// Normalizes the index so that `-1` becomes `length-1`.
+// Does bounds checking and returns (undefined, undefined) if the index is out of range.
 func (h *OrderedHashMapOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -304,12 +306,22 @@ func (h *OrderedHashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool
 	if err.IsNotUndefined() {
 		return false, err
 	}
+	if index == -1 {
+		return false, value.Undefined
+	}
 
 	h.version++
 	h.entries = slices.Delete(h.entries, int(index), int(index)+1)
 	_, err = h.index.RemoveKey(thread, key)
 	if err.IsNotUndefined() {
 		return false, err
+	}
+
+	for i := int(index); i < len(h.entries); i++ {
+		err = h.index.SetVal(thread, h.entries[i].Key(), value.SmallInt(i).ToValue())
+		if err.IsNotUndefined() {
+			return false, err
+		}
 	}
 
 	return true, value.Undefined
