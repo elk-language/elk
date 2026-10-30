@@ -371,33 +371,6 @@ func initOrderedHashRecordIterator() {
 
 }
 
-func OrderedHashRecordLaxEqual(thread *Thread, a OrderedHashRecord, b OrderedHashRecord) (bool, value.Value) {
-	if a.Length() != b.Length() {
-		return false, value.Undefined
-	}
-
-	for aEntry := range a.All() {
-		bVal, err := b.GetValUndefined(thread, aEntry.Key())
-		if err.IsNotUndefined() {
-			return false, err
-		}
-		if bVal.IsUndefined() {
-			return false, value.Undefined
-		}
-
-		eqVal, err := LaxEqual(thread, aEntry.Value(), bVal)
-		if !err.IsUndefined() {
-			return false, err
-		}
-		equal := value.Truthy(eqVal)
-		if !equal {
-			return false, value.Undefined
-		}
-	}
-
-	return true, value.Undefined
-}
-
 func OrderedHashRecordLaxEqualRecord(thread *Thread, a OrderedHashRecord, b Record) (bool, value.Value) {
 	if a.Length() != b.Length() {
 		return false, value.Undefined

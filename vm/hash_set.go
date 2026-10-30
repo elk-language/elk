@@ -7,16 +7,20 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
-type HashSet interface {
+type Set interface {
 	value.Reference
 	value.NativeIterable
 	All() iter.Seq[value.Value]
 	Length() int
+	Contains(*Thread, value.Value) (result bool, err value.Value)
+}
+
+type HashSet interface {
+	Set
 	UnionVal(*Thread, value.Value) (result value.Value, err value.Value)
 	IntersectionVal(*Thread, value.Value) (result value.Value, err value.Value)
 	Equal(*Thread, value.Value) (result bool, err value.Value)
 	LaxEqual(*Thread, value.Value) (result bool, err value.Value)
-	Contains(*Thread, value.Value) (result bool, err value.Value)
 	AppendVal(*Thread, value.Value) (added bool, err value.Value)
 	RemoveVal(thread *Thread, other value.Value) (removed bool, err value.Value)
 	IterSet() value.NativeResettableIterator

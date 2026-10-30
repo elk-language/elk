@@ -509,8 +509,6 @@ func (h *OrderedNativeHashMap[K, V]) Equal(thread *Thread, other value.Value) (b
 
 func (h *OrderedNativeHashMap[K, V]) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case OrderedHashRecord:
-		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	default:

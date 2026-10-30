@@ -29,21 +29,21 @@ noinit sealed primitive class ::Std::OrderedHashMap[Key, Value]
 
 		Throws an unchecked error if the index is out of range.
 	]##
-	pure sealed def get_at(index: AnyInt): Value; end
+	pure sealed def get_at(index: AnyInt): Pair[Key, Value]; end
 
 	##[
 		Get the pair with the given index.
 
 		Throws a checked error if the index is out of range.
 	]##
-	pure sealed def at(index: AnyInt): Value ! OutOfRangeError; end
+	pure sealed def at(index: AnyInt): Pair[Key, Value] ! OutOfRangeError; end
 
 	##[
 		Get the pair with the given index.
 
 		Returns `nil` when the index is out of range.
 	]##
-	pure sealed def try_at(index: AnyInt): Value?; end
+	pure sealed def try_at(index: AnyInt): Pair[Key, Value]?; end
 
 	##[
 		Returns the first pair.
@@ -60,16 +60,12 @@ noinit sealed primitive class ::Std::OrderedHashMap[Key, Value]
 	##[
 		Returns the last element.
 		Throws an error when the iterable is empty.
-
-		Never returns if the iterable is infinite.
 	]##
 	def last: Pair[Key, Value] ! NotFoundError; end
 
 	##[
 		Returns the first element.
 		Returns `nil` when the collection is empty.
-
-		Never returns if the iterable is infinite.
 	]##
 	def try_last: Pair[Key, Value]?; end
 

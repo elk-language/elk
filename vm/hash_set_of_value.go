@@ -97,13 +97,17 @@ func (h *HashSetOfValue) IterSet() value.NativeResettableIterator {
 	return NewHashSetOfValueIterator(h)
 }
 
-func (h *HashSetOfValue) Copy() value.Reference {
+func (h *HashSetOfValue) Clone() *HashSetOfValue {
 	newTable := slices.Clone(h.table)
 	return &HashSetOfValue{
 		table:         newTable,
 		occupiedSlots: h.occupiedSlots,
 		elements:      h.elements,
 	}
+}
+
+func (h *HashSetOfValue) Copy() value.Reference {
+	return h.Clone()
 }
 
 func (h *HashSetOfValue) ToValue() value.Value {

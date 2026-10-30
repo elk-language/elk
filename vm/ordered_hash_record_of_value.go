@@ -183,7 +183,10 @@ func (h *OrderedHashRecordOfValue) SetVal(thread *Thread, key, val value.Value) 
 		// new key
 		entryIndex := len(h.entries)
 		h.entries = append(h.entries, value.MakePairOfValue(key, val))
-		h.index.SetVal(thread, key, value.SmallInt(entryIndex).ToValue())
+		err := h.index.SetVal(thread, key, value.SmallInt(entryIndex).ToValue())
+		if err.IsNotUndefined() {
+			return err
+		}
 	} else {
 		// key is already present
 		entryIndex := existingIndex.AsSmallInt()
@@ -292,8 +295,6 @@ func (h *OrderedHashRecordOfValue) Equal(thread *Thread, other value.Value) (boo
 
 func (h *OrderedHashRecordOfValue) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case OrderedHashRecord:
-		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	default:

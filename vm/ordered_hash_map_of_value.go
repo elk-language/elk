@@ -52,9 +52,9 @@ func (h *OrderedHashMapOfValue) All() iter.Seq[value.PairOfValue] {
 
 func (h *OrderedHashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 	return func(yield func(value.Value, value.Value) bool) {
-		originalVersion := h.index.version
+		originalVersion := h.version
 		for _, pair := range h.entries {
-			if originalVersion != h.index.version {
+			if originalVersion != h.version {
 				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue())
 				return
 			}
@@ -315,59 +315,6 @@ func (h *OrderedHashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool
 	return true, value.Undefined
 }
 
-func ValueSliceEqual(thread *Thread, a []value.Value, b []value.Value) (bool, value.Value) {
-	if len(a) != len(b) {
-		return false, value.Undefined
-	}
-
-	for i := range len(a) {
-		aEntry := a[i]
-		bEntry := b[i]
-
-		eq, err := Equal(thread, aEntry, bEntry)
-		if err.IsNotUndefined() {
-			return false, err
-		}
-
-		if value.Falsy(eq) {
-			return false, value.Undefined
-		}
-	}
-
-	return true, value.Undefined
-}
-
-func PairSliceEqual(thread *Thread, a []value.PairOfValue, b []value.PairOfValue) (bool, value.Value) {
-	if len(a) != len(b) {
-		return false, value.Undefined
-	}
-
-	for i := range len(a) {
-		aEntry := a[i]
-		bEntry := b[i]
-
-		keyEq, err := Equal(thread, aEntry.Key(), bEntry.Key())
-		if err.IsNotUndefined() {
-			return false, err
-		}
-
-		if value.Falsy(keyEq) {
-			return false, value.Undefined
-		}
-
-		valEq, err := Equal(thread, aEntry.Value(), bEntry.Value())
-		if err.IsNotUndefined() {
-			return false, err
-		}
-
-		if value.Falsy(valEq) {
-			return false, value.Undefined
-		}
-	}
-
-	return true, value.Undefined
-}
-
 func (h *OrderedHashMapOfValue) Equal(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *OrderedHashMapOfValue:
@@ -382,8 +329,6 @@ func (h *OrderedHashMapOfValue) Equal(thread *Thread, other value.Value) (bool, 
 
 func (h *OrderedHashMapOfValue) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case OrderedHashRecord:
-		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	default:

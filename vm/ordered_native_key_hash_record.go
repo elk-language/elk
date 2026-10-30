@@ -386,8 +386,6 @@ func (h *OrderedNativeKeyHashRecord[K]) Equal(thread *Thread, other value.Value)
 
 func (h *OrderedNativeKeyHashRecord[K]) LaxEqual(thread *Thread, other value.Value) (bool, value.Value) {
 	switch o := other.SafeAsReference().(type) {
-	case OrderedHashRecord:
-		return OrderedHashRecordLaxEqual(thread, h, o)
 	case Record:
 		return OrderedHashRecordLaxEqualRecord(thread, h, o)
 	default:
