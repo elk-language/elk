@@ -7,7 +7,7 @@ module Std::Elk::AST
 
     init(
       object_type: ComplexConstantNode,
-      attributes: ArrayTuple[PatternNode] = loop; end,
+      attributes: Tuple[PatternNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

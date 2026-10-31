@@ -7,9 +7,9 @@ module Std::Elk::AST
 
     init(
       method_name: IdentifierNode,
-      type_arguments: ArrayTuple[TypeNode],
-      positional_arguments: ArrayTuple[ExpressionNode] = loop; end,
-      named_arguments: ArrayTuple[NamedArgumentNode] = loop; end,
+      type_arguments: Tuple[TypeNode],
+      positional_arguments: Tuple[ExpressionNode] = loop; end,
+      named_arguments: Tuple[NamedArgumentNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

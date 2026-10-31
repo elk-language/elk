@@ -6,7 +6,7 @@ module Std::Elk::AST
     include LiteralPatternNode
 
     init(
-      elements: ArrayTuple[IntCollectionContentNode] = loop; end,
+      elements: Tuple[IntCollectionContentNode] = loop; end,
       capacity: ExpressionNode? = nil,
       location: FS::Location = loop; end,
     ); end

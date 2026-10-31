@@ -4,13 +4,13 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-var macroSTORE = NewHashMapOfValue(5)
+var macroSTORE = NewSyncNativeKeyHashMap[value.String](5)
 
-func MacroSTORE() *HashMapOfValue {
+func MacroSTORE() *SyncNativeKeyHashMap[value.String] {
 	return macroSTORE
 }
 
-func SetMacroSTORE(m *HashMapOfValue) {
+func SetMacroSTORE(m *SyncNativeKeyHashMap[value.String]) {
 	macroSTORE = m
 	value.MacroModule.AddConstantString("STORE", m.ToValue())
 }

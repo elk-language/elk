@@ -360,3 +360,40 @@ func ArrayTupleInterfaceConcat(thread *Thread, l value.ArrayTuple, other value.V
 
 	return (&newList).ToValue(), value.Undefined
 }
+
+// Transform any elk Tuple value to a new Elk `NativeArrayTuple` with Elk types
+// using the given function.
+// eg.
+//
+//	TransformValueIntoNativeArrayTuple(thread, m, func(v value.Value) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformTupleValueIntoNativeArrayTuple[T value.ValueInterface](
+	thread *Thread,
+	val value.Value,
+	fn func(v value.Value) T,
+) (*value.NativeArrayTuple[T], value.Value) {
+	switch v := val.SafeAsReference().(type) {
+	case *value.NativeArrayTuple[T]:
+		return v, value.Undefined
+	}
+
+	vLengthVal, err := thread.CallMethodByName(value.S(symbol.L_length), val)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	vLength := vLengthVal.AsInt()
+	newList := value.NewNativeArrayTupleWithLength[T](vLength)
+	i := 0
+	for v, err := range Iterate(thread, val) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		ov := fn(v)
+		newList.SetAt(i, ov)
+		i++
+	}
+	return newList, value.Undefined
+}

@@ -13,11 +13,14 @@ func initAttrDeclarationNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			entriesTuple := args[1].AsReference().(value.ArrayTuple)
-			entries := value.TransformArrayTupleIntoNativeArrayTuple(entriesTuple, func(v value.Value) ast.ParameterNode {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
+			entriesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.ParameterNode {
 				return v.AsReference().(ast.ParameterNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			entries := entriesTuple.ToSlice()
 
 			var argFlags bitfield.BitFlag8
 			if !args[2].IsUndefined() {

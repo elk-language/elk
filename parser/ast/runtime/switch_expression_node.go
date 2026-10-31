@@ -12,20 +12,26 @@ func initSwitchExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argValue := args[1].MustReference().(ast.ExpressionNode)
 
-			argCasesTuple := args[2].AsReference().(value.ArrayTuple)
-			argCases := value.TransformArrayTupleIntoNativeArrayTuple(argCasesTuple, func(v value.Value) *ast.SwitchCaseNode {
+			argCasesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) *ast.SwitchCaseNode {
 				return v.AsReference().(*ast.SwitchCaseNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argCases := argCasesTuple.ToSlice()
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].AsReference().(value.ArrayTuple)
-				argElseBody = value.TransformArrayTupleIntoNativeArrayTuple(argElseBodyTuple, func(v value.Value) ast.StatementNode {
+				argElseBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argElseBody = argElseBodyTuple.ToSlice()
 			}
 
 			var argLoc *position.Location

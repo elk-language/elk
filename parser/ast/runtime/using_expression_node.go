@@ -12,11 +12,14 @@ func initUsingExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].AsReference().(value.ArrayTuple)
-			argEntries := value.TransformArrayTupleIntoNativeArrayTuple(argEntriesTuple, func(v value.Value) ast.UsingEntryNode {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
+			argEntriesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.UsingEntryNode {
 				return v.AsReference().(ast.UsingEntryNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argEntries := argEntriesTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {

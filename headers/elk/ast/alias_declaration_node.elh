@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class AliasDeclarationNode
     include ExpressionNode
 
-    init(entries: ArrayTuple[AliasDeclarationEntry], location: FS::Location = loop; end); end
+    init(entries: Tuple[AliasDeclarationEntry], location: FS::Location = loop; end); end
     pure def entries: ArrayTuple[AliasDeclarationEntry]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

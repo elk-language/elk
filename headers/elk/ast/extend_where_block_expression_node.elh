@@ -11,7 +11,7 @@ module Std::Elk::AST
   sealed primitive class ExtendWhereBlockExpressionNode
     include ExpressionNode
 
-    init(body: ArrayTuple[StatementNode], where_params: ArrayTuple[TypeParameterNode], location: FS::Location = loop; end); end
+    init(body: Tuple[StatementNode], where_params: Tuple[TypeParameterNode], location: FS::Location = loop; end); end
     pure def body: ArrayTuple[StatementNode]; end
     pure def where_params: ArrayTuple[TypeParameterNode]; end
     pure def location: FS::Location; end

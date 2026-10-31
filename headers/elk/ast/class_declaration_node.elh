@@ -7,8 +7,8 @@ module Std::Elk::AST
 
     init(
       constant: ExpressionNode,
-      body: ArrayTuple[StatementNode] = loop; end,
-      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
+      type_parameters: Tuple[TypeParameterNode] = loop; end,
       is_abstract: bool = false,
       is_sealed: bool = false,
       is_primitive: bool = false,

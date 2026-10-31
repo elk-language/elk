@@ -12,11 +12,14 @@ func initIncludeExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argConstantsTuple := args[1].AsReference().(value.ArrayTuple)
-			argConstants := value.TransformArrayTupleIntoNativeArrayTuple(argConstantsTuple, func(v value.Value) ast.ComplexConstantNode {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
+			argConstantsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.ComplexConstantNode {
 				return v.AsReference().(ast.ComplexConstantNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argConstants := argConstantsTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {

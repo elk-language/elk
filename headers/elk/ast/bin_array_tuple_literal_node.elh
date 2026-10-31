@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class BinArrayTupleLiteralNode
     include LiteralPatternNode
 
-    init(elements: ArrayTuple[IntCollectionContentNode], location: FS::Location = loop; end); end
+    init(elements: Tuple[IntCollectionContentNode], location: FS::Location = loop; end); end
     pure def elements: ArrayTuple[IntCollectionContentNode]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

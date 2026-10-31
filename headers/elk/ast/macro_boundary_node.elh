@@ -15,7 +15,7 @@ module Std::Elk::AST
     include LiteralPatternNode
 
     init(
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       name: String = "",
       location: FS::Location = loop; end,
     ); end

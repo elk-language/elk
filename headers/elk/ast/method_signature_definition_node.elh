@@ -7,8 +7,8 @@ module Std::Elk::AST
 
     init(
       name: IdentifierNode,
-      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
-      parameters: ArrayTuple[ParameterNode] = loop; end,
+      type_parameters: Tuple[TypeParameterNode] = loop; end,
+      parameters: Tuple[ParameterNode] = loop; end,
       return_type: TypeNode? = nil,
       throw_type: TypeNode? = nil,
       doc_comment: String = "",

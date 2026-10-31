@@ -8,7 +8,7 @@ module Std::Elk::AST
 
     init(
       namespace: UsingEntryNode,
-      subentries: ArrayTuple[UsingSubentryNode],
+      subentries: Tuple[UsingSubentryNode],
       location: FS::Location = loop; end,
     ); end
 

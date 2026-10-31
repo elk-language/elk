@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class UsingExpressionNode
     include ExpressionNode
 
-    init(entries: ArrayTuple[UsingEntryNode], location: FS::Location = loop; end); end
+    init(entries: Tuple[UsingEntryNode], location: FS::Location = loop; end); end
     pure def entries: ArrayTuple[UsingEntryNode]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class ImplementExpressionNode
     include ExpressionNode
 
-    init(constants: ArrayTuple[ComplexConstantNode], location: FS::Location = loop; end); end
+    init(constants: Tuple[ComplexConstantNode], location: FS::Location = loop; end); end
     pure def constants: ArrayTuple[ComplexConstantNode]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

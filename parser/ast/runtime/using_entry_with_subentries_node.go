@@ -12,13 +12,16 @@ func initUsingEntryWithSubentriesNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argNamespace := args[1].MustReference().(ast.UsingEntryNode)
 
-			argSubentriesTuple := args[2].AsReference().(value.ArrayTuple)
-			argSubentries := value.TransformArrayTupleIntoNativeArrayTuple(argSubentriesTuple, func(v value.Value) ast.UsingSubentryNode {
+			argSubentriesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.UsingSubentryNode {
 				return v.AsReference().(ast.UsingSubentryNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argSubentries := argSubentriesTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {

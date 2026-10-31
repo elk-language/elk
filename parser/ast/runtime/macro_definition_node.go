@@ -12,15 +12,18 @@ func initMacroDefinitionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argParameters []ast.ParameterNode
 			if !args[2].IsUndefined() {
-				argParametersTuple := args[2].AsReference().(value.ArrayTuple)
-				argParameters = value.TransformArrayTupleIntoNativeArrayTuple(argParametersTuple, func(v value.Value) ast.ParameterNode {
+				argParametersTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.ParameterNode {
 					return v.AsReference().(ast.ParameterNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argParameters = argParametersTuple.ToSlice()
 			}
 
 			var argReturnType ast.TypeNode
@@ -30,10 +33,13 @@ func initMacroDefinitionNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].AsReference().(value.ArrayTuple)
-				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+				argBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[4], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argBody = argBodyTuple.ToSlice()
 			}
 
 			var argSealed bool
