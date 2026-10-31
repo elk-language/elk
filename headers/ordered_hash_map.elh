@@ -151,6 +151,41 @@ noinit sealed primitive class ::Std::OrderedHashMap[Key, Value]
 	]##
 	pure def iter: Iterator[Key, Value]; end
 
+	##[
+		Returns a new `Std::Sync::OrderedHashMap`
+		with the same elements.
+	]##
+	def to_sync_ordered_hash_map: Sync::OrderedHashMap[Key, Value]; end
+
+	##[
+		Returns self.
+	]##
+	def to_ordered_hash_map: OrderedHashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::HashMap`
+		with the same elements.
+	]##
+	def to_hash_map: HashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::Sync::HashMap`
+		with the same elements.
+	]##
+	def to_sync_hash_map: Sync::HashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::HashRecord`
+		with the same elements.
+	]##
+	def to_hash_record: HashRecord[Key, Value]; end
+
+	##[
+		Returns a new `Std::OrderedHashRecord`
+		with the same elements.
+	]##
+	def to_ordered_hash_record: OrderedHashRecord[Key, Value]; end
+
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]
 

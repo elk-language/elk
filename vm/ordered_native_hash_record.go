@@ -512,6 +512,49 @@ func (h *OrderedNativeHashRecord[K, V]) Clone() *OrderedNativeHashRecord[K, V] {
 	}
 }
 
+func (h *OrderedNativeHashRecord[K, V]) ToNativeHashMap() *NativeHashMap[K, V] {
+	hashMap := NewNativeHashMap[K, V](len(h.entries))
+	for _, pair := range h.entries {
+		hashMap.Set(pair.NativeKey(), pair.NativeValue())
+	}
+	return hashMap
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToHashMap(thread *Thread) (HashMap, value.Value) {
+	return h.ToNativeHashMap(), value.Undefined
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToNativeHashRecord() NativeHashRecord[K, V] {
+	record := MakeNativeHashRecord[K, V](len(h.entries))
+	for _, pair := range h.entries {
+		record.Set(pair.NativeKey(), pair.NativeValue())
+	}
+	return record
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToHashRecord(thread *Thread) (HashRecord, value.Value) {
+	return h.ToNativeHashRecord(), value.Undefined
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value) {
+	return &SyncNativeHashMap[K, V]{Map: h.ToNativeHashMap()}, value.Undefined
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToOrderedNativeHashMap() *OrderedNativeHashMap[K, V] {
+	return &OrderedNativeHashMap[K, V]{
+		index:   maps.Clone(h.index),
+		entries: slices.Clone(h.entries),
+	}
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToOrderedHashMap() OrderedHashMap {
+	return h.ToOrderedNativeHashMap()
+}
+
+func (h *OrderedNativeHashRecord[K, V]) ToSyncOrderedHashMap() SyncOrderedHashMap {
+	return &SyncOrderedNativeHashMap[K, V]{Map: h.ToOrderedNativeHashMap()}
+}
+
 func (h *OrderedNativeHashRecord[K, V]) Copy() value.Reference {
 	return h.Clone()
 }

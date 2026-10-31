@@ -40,6 +40,58 @@ func (h *SyncOrderedNativeKeyHashMap[K]) OrderedHashMap() OrderedHashMap {
 	return h.Map
 }
 
+func (h *SyncOrderedNativeKeyHashMap[K]) ToNativeKeyHashMap() *NativeKeyHashMap[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToNativeKeyHashMap()
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToHashMap(thread *Thread) (HashMap, value.Value) {
+	return h.ToNativeKeyHashMap(), value.Undefined
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToNativeKeyHashRecord() NativeKeyHashRecord[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToNativeKeyHashRecord()
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToHashRecord(thread *Thread) (HashRecord, value.Value) {
+	return h.ToNativeKeyHashRecord(), value.Undefined
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToSyncNativeKeyHashMap() *SyncNativeKeyHashMap[K] {
+	return &SyncNativeKeyHashMap[K]{Map: h.ToNativeKeyHashMap()}
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value) {
+	return h.ToSyncNativeKeyHashMap(), value.Undefined
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToOrderedNativeKeyHashMap() *OrderedNativeKeyHashMap[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.Clone()
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToOrderedHashMap() OrderedHashMap {
+	return h.ToOrderedNativeKeyHashMap()
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToOrderedNativeKeyHashRecord() *OrderedNativeKeyHashRecord[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToOrderedNativeKeyHashRecord()
+}
+
+func (h *SyncOrderedNativeKeyHashMap[K]) ToOrderedHashRecord() OrderedHashRecord {
+	return h.ToOrderedNativeKeyHashRecord()
+}
+
 func (h *SyncOrderedNativeKeyHashMap[K]) Lock() {
 	h.mu.Lock()
 }

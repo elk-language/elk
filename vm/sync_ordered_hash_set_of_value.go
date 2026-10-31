@@ -36,18 +36,18 @@ func (h *SyncOrderedHashSetOfValue) OrderedHashSet() OrderedHashSet {
 	return h.Set
 }
 
-func (h *SyncOrderedHashSetOfValue) ToHashSet() (HashSet, value.Value) {
+func (h *SyncOrderedHashSetOfValue) ToHashSet(thread *Thread) (HashSet, value.Value) {
 	h.Lock()
 	defer h.Unlock()
 
-	return h.Set.ToHashSet()
+	return h.Set.ToHashSet(thread)
 }
 
-func (h *SyncOrderedHashSetOfValue) ToSyncHashSet() (SyncHashSet, value.Value) {
+func (h *SyncOrderedHashSetOfValue) ToSyncHashSet(thread *Thread) (SyncHashSet, value.Value) {
 	h.Lock()
 	defer h.Unlock()
 
-	return h.Set.ToSyncHashSet()
+	return h.Set.ToSyncHashSet(thread)
 }
 
 func (h *SyncOrderedHashSetOfValue) ToOrderedHashSet() OrderedHashSet {

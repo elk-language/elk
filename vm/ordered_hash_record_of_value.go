@@ -12,19 +12,19 @@ import (
 )
 
 type OrderedHashRecordOfValue struct {
-	index   *HashRecordOfValue  // record of key to small int index of key-value pair in `entries`
+	index   *HashMapOfValue     // record of key to small int index of key-value pair in `entries`
 	entries []value.PairOfValue // slice with key value pairs
 }
 
 var _ OrderedHashRecord = &OrderedHashRecordOfValue{}
 
 func OrderedHashRecordOfValueConstructor(class *value.Class) value.Value {
-	return value.Ref(&OrderedHashRecordOfValue{index: &HashRecordOfValue{}})
+	return value.Ref(&OrderedHashRecordOfValue{index: &HashMapOfValue{}})
 }
 
 func NewOrderedHashRecordOfValue(capacity int) *OrderedHashRecordOfValue {
 	return &OrderedHashRecordOfValue{
-		index:   NewHashRecordOfValue(capacity),
+		index:   NewHashMapOfValue(capacity),
 		entries: make([]value.PairOfValue, 0, capacity),
 	}
 }
@@ -66,9 +66,62 @@ func (h *OrderedHashRecordOfValue) Clone() *OrderedHashRecordOfValue {
 	}
 }
 
+func (h *OrderedHashRecordOfValue) ToHashMapOfValue(thread *Thread) (*HashMapOfValue, value.Value) {
+	hashMap := NewHashMapOfValue(len(h.entries))
+	for _, pair := range h.entries {
+		err := HashMapOfValueSet(thread, hashMap, pair.Key(), pair.Value())
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+	return hashMap, value.Undefined
+}
+
+func (h *OrderedHashRecordOfValue) ToHashMap(thread *Thread) (HashMap, value.Value) {
+	return h.ToHashMapOfValue(thread)
+}
+
+func (h *OrderedHashRecordOfValue) ToHashRecordOfValue(thread *Thread) (*HashRecordOfValue, value.Value) {
+	hashRecord := NewHashRecordOfValue(len(h.entries))
+	for _, pair := range h.entries {
+		err := HashRecordOfValueSet(thread, hashRecord, pair.Key(), pair.Value())
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+	return hashRecord, value.Undefined
+}
+
+func (h *OrderedHashRecordOfValue) ToHashRecord(thread *Thread) (HashRecord, value.Value) {
+	return h.ToHashRecordOfValue(thread)
+}
+
+func (h *OrderedHashRecordOfValue) ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value) {
+	hashMap, err := h.ToHashMapOfValue(thread)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return &SyncHashMapOfValue{Map: hashMap}, value.Undefined
+}
+
+func (h *OrderedHashRecordOfValue) ToOrderedHashMapOfValue() *OrderedHashMapOfValue {
+	return &OrderedHashMapOfValue{
+		index:   h.index.Clone(),
+		entries: slices.Clone(h.entries),
+	}
+}
+
+func (h *OrderedHashRecordOfValue) ToOrderedHashMap() OrderedHashMap {
+	return h.ToOrderedHashMapOfValue()
+}
+
+func (h *OrderedHashRecordOfValue) ToSyncOrderedHashMap() SyncOrderedHashMap {
+	return &SyncOrderedHashMapOfValue{Map: h.ToOrderedHashMapOfValue()}
+}
+
 func (h *OrderedHashRecordOfValue) CloneOrderedHashRecord(thread *Thread, capacity int) (OrderedHashRecord, value.Value) {
-	newIndex := NewHashRecordOfValue(capacity)
-	err := HashRecordOfValueCopy(thread, newIndex, h.index)
+	newIndex := NewHashMapOfValue(capacity)
+	err := HashMapOfValueCopy(thread, newIndex, h.index)
 	if !err.IsUndefined() {
 		return nil, err
 	}

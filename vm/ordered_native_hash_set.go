@@ -107,7 +107,7 @@ func (h *OrderedNativeHashSet[V]) Clone() *OrderedNativeHashSet[V] {
 	}
 }
 
-func (h *OrderedNativeHashSet[V]) ToHashSet() (HashSet, value.Value) {
+func (h *OrderedNativeHashSet[V]) ToHashSet(thread *Thread) (HashSet, value.Value) {
 	return h.ToNativeHashSet()
 }
 
@@ -119,7 +119,7 @@ func (h *OrderedNativeHashSet[V]) ToNativeHashSet() (*NativeHashSet[V], value.Va
 	return set, value.Undefined
 }
 
-func (h *OrderedNativeHashSet[V]) ToSyncHashSet() (SyncHashSet, value.Value) {
+func (h *OrderedNativeHashSet[V]) ToSyncHashSet(thread *Thread) (SyncHashSet, value.Value) {
 	set, err := h.ToNativeHashSet()
 	if err.IsNotUndefined() {
 		return nil, err

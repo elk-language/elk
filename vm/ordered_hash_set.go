@@ -33,8 +33,8 @@ type OrderedHashSet interface {
 	IterOrderedSet() value.NativeResettableIterator
 	CloneOrderedHashSet(thread *Thread, capacity int) (result OrderedHashSet, err value.Value)
 	NewOrderedHashSet(capacity int) OrderedHashSet
-	ToHashSet() (HashSet, value.Value)
-	ToSyncHashSet() (SyncHashSet, value.Value)
+	ToHashSet(thread *Thread) (HashSet, value.Value)
+	ToSyncHashSet(thread *Thread) (SyncHashSet, value.Value)
 	ToSyncOrderedHashSet() SyncOrderedHashSet
 }
 
@@ -153,9 +153,9 @@ func initOrderedHashSet() {
 	Def(
 		c,
 		"to_hash_set",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashSet)
-			set, err := self.ToHashSet()
+			set, err := self.ToHashSet(vm)
 			if err.IsNotUndefined() {
 				return value.Undefined, err
 			}
@@ -165,9 +165,9 @@ func initOrderedHashSet() {
 	Def(
 		c,
 		"to_sync_hash_set",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashSet)
-			set, err := self.ToSyncHashSet()
+			set, err := self.ToSyncHashSet(vm)
 			if err.IsNotUndefined() {
 				return value.Undefined, err
 			}

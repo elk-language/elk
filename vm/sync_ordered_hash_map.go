@@ -35,6 +35,11 @@ type SyncOrderedHashMap interface {
 	LaxEqual(thread *Thread, other value.Value) (bool, value.Value)
 	CloneSyncOrderedHashMap(thread *Thread, capacity int) (SyncOrderedHashMap, value.Value)
 	NewSyncOrderedHashMap(capacity int) SyncOrderedHashMap
+	ToHashRecord(thread *Thread) (HashRecord, value.Value)
+	ToHashMap(thread *Thread) (HashMap, value.Value)
+	ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value)
+	ToOrderedHashMap() OrderedHashMap
+	ToOrderedHashRecord() OrderedHashRecord
 }
 
 func syncOrderedHashMapConstructor(class *value.Class) value.Value {
@@ -54,6 +59,65 @@ func initSyncOrderedHashMap() {
 			self := args[0].AsReference().(SyncOrderedHashMap)
 			iterator := self.IterSyncOrderedMap()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_map",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncOrderedHashMap)
+			result, err := self.ToHashMap(vm)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_map",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncOrderedHashMap)
+			result, err := self.ToSyncHashMap(vm)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_record",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncOrderedHashMap)
+			result, err := self.ToHashRecord(vm)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			return result.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_ordered_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncOrderedHashMap)
+			return self.ToOrderedHashMap().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_ordered_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_ordered_hash_record",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncOrderedHashMap)
+			return self.ToOrderedHashRecord().ToValue(), value.Undefined
 		},
 	)
 	Def(

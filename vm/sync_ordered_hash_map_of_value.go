@@ -32,6 +32,62 @@ func (h *SyncOrderedHashMapOfValue) OrderedHashMap() OrderedHashMap {
 	return h.Map
 }
 
+func (h *SyncOrderedHashMapOfValue) ToHashMapOfValue(thread *Thread) (*HashMapOfValue, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToHashMapOfValue(thread)
+}
+
+func (h *SyncOrderedHashMapOfValue) ToHashMap(thread *Thread) (HashMap, value.Value) {
+	return h.ToHashMapOfValue(thread)
+}
+
+func (h *SyncOrderedHashMapOfValue) ToHashRecordOfValue(thread *Thread) (*HashRecordOfValue, value.Value) {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToHashRecordOfValue(thread)
+}
+
+func (h *SyncOrderedHashMapOfValue) ToHashRecord(thread *Thread) (HashRecord, value.Value) {
+	return h.ToHashRecordOfValue(thread)
+}
+
+func (h *SyncOrderedHashMapOfValue) ToSyncHashMapOfValue(thread *Thread) (*SyncHashMapOfValue, value.Value) {
+	hashMap, err := h.ToHashMapOfValue(thread)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return &SyncHashMapOfValue{Map: hashMap}, value.Undefined
+}
+
+func (h *SyncOrderedHashMapOfValue) ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value) {
+	return h.ToSyncHashMapOfValue(thread)
+}
+
+func (h *SyncOrderedHashMapOfValue) ToOrderedHashMapOfValue() *OrderedHashMapOfValue {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.Clone()
+}
+
+func (h *SyncOrderedHashMapOfValue) ToOrderedHashMap() OrderedHashMap {
+	return h.ToOrderedHashMapOfValue()
+}
+
+func (h *SyncOrderedHashMapOfValue) ToOrderedHashRecordOfValue() *OrderedHashRecordOfValue {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToOrderedHashRecordOfValue()
+}
+
+func (h *SyncOrderedHashMapOfValue) ToOrderedHashRecord() OrderedHashRecord {
+	return h.ToOrderedHashRecordOfValue()
+}
+
 func (h *SyncOrderedHashMapOfValue) Lock() {
 	h.mu.Lock()
 }

@@ -99,22 +99,22 @@ func (h *OrderedHashSetOfValue) Clone() *OrderedHashSetOfValue {
 	}
 }
 
-func (h *OrderedHashSetOfValue) ToHashSetOfValue() (*HashSetOfValue, value.Value) {
+func (h *OrderedHashSetOfValue) ToHashSetOfValue(thread *Thread) (*HashSetOfValue, value.Value) {
 	set := NewHashSetOfValue(len(h.entries))
 	for _, element := range h.entries {
-		_, err := HashSetOfValueAppend(nil, set, element)
+		_, err := HashSetOfValueAppend(thread, set, element)
 		if err.IsNotUndefined() {
 			return nil, err
 		}
 	}
 	return set, value.Undefined
 }
-func (h *OrderedHashSetOfValue) ToHashSet() (HashSet, value.Value) {
-	return h.ToHashSetOfValue()
+func (h *OrderedHashSetOfValue) ToHashSet(thread *Thread) (HashSet, value.Value) {
+	return h.ToHashSetOfValue(thread)
 }
 
-func (h *OrderedHashSetOfValue) ToSyncHashSet() (SyncHashSet, value.Value) {
-	set, err := h.ToHashSetOfValue()
+func (h *OrderedHashSetOfValue) ToSyncHashSet(thread *Thread) (SyncHashSet, value.Value) {
+	set, err := h.ToHashSetOfValue(thread)
 	if err.IsNotUndefined() {
 		return nil, err
 	}

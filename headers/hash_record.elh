@@ -88,19 +88,19 @@ noinit sealed primitive class ::Std::HashRecord[Key, Value]
 	##[
 		Returns self.
 	]##
-	def to_hash_record: HashRecord; end
+	def to_hash_record: HashRecord[Key, Value]; end
 
 	##[
 		Returns a new `Std::Sync::HashMap`
 		with the same elements.
 	]##
-	def to_sync_hash_map: Sync::HashMap; end
+	def to_sync_hash_map: Sync::HashMap[Key, Value]; end
 
 	##[
 		Returns a new `Std::HashMap`
 		with the same elements.
 	]##
-	def to_hash_map: HashMap; end
+	def to_hash_map: HashMap[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]

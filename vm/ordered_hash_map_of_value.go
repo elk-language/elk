@@ -73,6 +73,63 @@ func (h *OrderedHashMapOfValue) Clone() *OrderedHashMapOfValue {
 	}
 }
 
+func (h *OrderedHashMapOfValue) ToHashMapOfValue(thread *Thread) (*HashMapOfValue, value.Value) {
+	hashMap := NewHashMapOfValue(len(h.entries))
+	for _, pair := range h.entries {
+		err := HashMapOfValueSet(thread, hashMap, pair.Key(), pair.Value())
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+	return hashMap, value.Undefined
+}
+
+func (h *OrderedHashMapOfValue) ToHashMap(thread *Thread) (HashMap, value.Value) {
+	return h.ToHashMapOfValue(thread)
+}
+
+func (h *OrderedHashMapOfValue) ToHashRecordOfValue(thread *Thread) (*HashRecordOfValue, value.Value) {
+	hashRecord := NewHashRecordOfValue(len(h.entries))
+	for _, pair := range h.entries {
+		err := HashRecordOfValueSet(thread, hashRecord, pair.Key(), pair.Value())
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+	}
+	return hashRecord, value.Undefined
+}
+
+func (h *OrderedHashMapOfValue) ToHashRecord(thread *Thread) (HashRecord, value.Value) {
+	return h.ToHashRecordOfValue(thread)
+}
+
+func (h *OrderedHashMapOfValue) ToSyncHashMap(thread *Thread) (SyncHashMap, value.Value) {
+	hashMap, err := h.ToHashMapOfValue(thread)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+	return &SyncHashMapOfValue{Map: hashMap}, value.Undefined
+}
+
+func (h *OrderedHashMapOfValue) ToSyncOrderedHashMap() SyncOrderedHashMap {
+	return &SyncOrderedHashMapOfValue{Map: h.Clone()}
+}
+
+func (h *OrderedHashMapOfValue) ToOrderedHashRecordOfValue() *OrderedHashRecordOfValue {
+	return &OrderedHashRecordOfValue{
+		index:   h.index.Clone(),
+		entries: slices.Clone(h.entries),
+	}
+}
+
+func (h *OrderedHashMapOfValue) ToOrderedHashRecord() OrderedHashRecord {
+	return h.ToOrderedHashRecordOfValue()
+}
+
+func (h *OrderedHashMapOfValue) ToOrderedHashMap() OrderedHashMap {
+	return h
+}
+
 func (h *OrderedHashMapOfValue) CloneOrderedHashMap(thread *Thread, capacity int) (OrderedHashMap, value.Value) {
 	newMap := NewHashMapOfValue(capacity)
 	err := HashMapOfValueCopy(thread, newMap, h.index)
