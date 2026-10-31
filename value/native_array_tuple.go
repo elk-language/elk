@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 	"unsafe"
 
@@ -135,6 +136,23 @@ func (*NativeArrayTuple[T]) SingletonClass() *Class {
 
 func (t *NativeArrayTuple[T]) Copy() Reference {
 	return t
+}
+
+func (t *NativeArrayTuple[T]) ToNativeArrayList() *NativeArrayList[T] {
+	list := NativeArrayList[T](slices.Clone(*t))
+	return &list
+}
+
+func (t *NativeArrayTuple[T]) ToArrayList() ArrayList {
+	return t.ToNativeArrayList()
+}
+
+func (t *NativeArrayTuple[T]) ToSyncNativeArrayList() *SyncNativeArrayList[T] {
+	return &SyncNativeArrayList[T]{List: t.ToNativeArrayList()}
+}
+
+func (t *NativeArrayTuple[T]) ToSyncArrayList() SyncArrayList {
+	return t.ToSyncNativeArrayList()
 }
 
 func (t *NativeArrayTuple[T]) ToSlice() []T {

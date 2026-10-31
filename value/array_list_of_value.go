@@ -72,6 +72,14 @@ func (l *ArrayListOfValue) Clone() *ArrayListOfValue {
 	return newList
 }
 
+func (l *ArrayListOfValue) ToArrayListOfValue() *ArrayListOfValue {
+	return l
+}
+
+func (l *ArrayListOfValue) ToArrayList() ArrayList {
+	return l.ToArrayListOfValue()
+}
+
 func (l *ArrayListOfValue) ToArrayTuple() ArrayTuple {
 	tuple := ArrayTupleOfValue(slices.Clone(*l))
 	return &tuple

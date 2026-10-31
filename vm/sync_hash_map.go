@@ -29,6 +29,9 @@ type SyncHashMap interface {
 	ContainsValue(thread *Thread, val value.Value) (bool, value.Value)
 	Equal(thread *Thread, other value.Value) (bool, value.Value)
 	LaxEqual(thread *Thread, other value.Value) (bool, value.Value)
+	ToHashRecord() HashRecord
+	ToHashMap() HashMap
+	ToSyncHashMap() SyncHashMap
 }
 
 func syncHashMapConstructor(class *value.Class) value.Value {
@@ -48,6 +51,30 @@ func initSyncHashMap() {
 			self := args[0].AsReference().(SyncHashMap)
 			iterator := self.IterSyncMap()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncHashMap)
+			return self.ToHashMap().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_map",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncHashMap)
+			return self.ToSyncHashMap().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_record",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncHashMap)
+			return self.ToHashRecord().ToValue(), value.Undefined
 		},
 	)
 	Def(

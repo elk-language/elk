@@ -176,6 +176,14 @@ func (l *NativeArrayList[T]) Clone() *NativeArrayList[T] {
 	return &newList
 }
 
+func (l *NativeArrayList[T]) ToNativeArrayList() *NativeArrayList[T] {
+	return l
+}
+
+func (l *NativeArrayList[T]) ToArrayList() ArrayList {
+	return l.ToNativeArrayList()
+}
+
 func (l *NativeArrayList[T]) ToArrayTuple() ArrayTuple {
 	tuple := slices.Clone(*l)
 	return &tuple

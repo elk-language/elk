@@ -35,6 +35,36 @@ func (h *SyncNativeHashMap[K, V]) HashMap() HashMap {
 	return h.Map
 }
 
+func (h *SyncNativeHashMap[K, V]) ToNativeHashMap() *NativeHashMap[K, V] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.Clone()
+}
+
+func (h *SyncNativeHashMap[K, V]) ToHashMap() HashMap {
+	return h.ToNativeHashMap()
+}
+
+func (h *SyncNativeHashMap[K, V]) ToNativeHashRecord() NativeHashRecord[K, V] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToNativeHashRecord()
+}
+
+func (h *SyncNativeHashMap[K, V]) ToHashRecord() HashRecord {
+	return h.ToNativeHashRecord()
+}
+
+func (h *SyncNativeHashMap[K, V]) ToSyncNativeHashMap() *SyncNativeHashMap[K, V] {
+	return &SyncNativeHashMap[K, V]{Map: h.ToNativeHashMap()}
+}
+
+func (h *SyncNativeHashMap[K, V]) ToSyncHashMap() SyncHashMap {
+	return h.ToSyncNativeHashMap()
+}
+
 func (h *SyncNativeHashMap[K, V]) Lock() {
 	h.mu.Lock()
 }

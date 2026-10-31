@@ -8,8 +8,7 @@ import (
 )
 
 type SyncHashSet interface {
-	value.Reference
-	value.NativeIterable
+	Set
 	Lock()
 	Unlock()
 	HashSet() HashSet
@@ -25,6 +24,7 @@ type SyncHashSet interface {
 	IterSyncSet() value.NativeResettableIterator
 	CloneSyncHashSet(thread *Thread, capacity int) (result SyncHashSet, err value.Value)
 	NewSyncHashSet(capacity int) SyncHashSet
+	ToHashSet() HashSet
 }
 
 func syncHashSetConstructor(class *value.Class) value.Value {
@@ -44,6 +44,21 @@ func initSyncHashSet() {
 			self := args[0].AsReference().(SyncHashSet)
 			iterator := self.IterSyncSet()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_hash_set",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(SyncHashSet)
+			return self.ToHashSet().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_hash_set",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
 		},
 	)
 	Def(

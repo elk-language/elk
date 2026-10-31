@@ -47,6 +47,36 @@ func (h *SyncNativeKeyHashMap[K]) HashMap() HashMap {
 	return h.Map
 }
 
+func (h *SyncNativeKeyHashMap[K]) ToNativeKeyHashMap() *NativeKeyHashMap[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.Clone()
+}
+
+func (h *SyncNativeKeyHashMap[K]) ToHashMap() HashMap {
+	return h.ToNativeKeyHashMap()
+}
+
+func (h *SyncNativeKeyHashMap[K]) ToNativeKeyHashRecord() NativeKeyHashRecord[K] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToNativeKeyHashRecord()
+}
+
+func (h *SyncNativeKeyHashMap[K]) ToHashRecord() HashRecord {
+	return h.ToNativeKeyHashRecord()
+}
+
+func (h *SyncNativeKeyHashMap[K]) ToSyncNativeKeyHashMap() *SyncNativeKeyHashMap[K] {
+	return &SyncNativeKeyHashMap[K]{Map: h.ToNativeKeyHashMap()}
+}
+
+func (h *SyncNativeKeyHashMap[K]) ToSyncHashMap() SyncHashMap {
+	return h.ToSyncNativeKeyHashMap()
+}
+
 func (h *SyncNativeKeyHashMap[K]) CloneSyncHashMap(thread *Thread, capacity int) (SyncHashMap, value.Value) {
 	h.Lock()
 	defer h.Unlock()

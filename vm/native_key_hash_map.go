@@ -463,8 +463,12 @@ func (h *NativeKeyHashMap[K]) ToHashMap() HashMap {
 	return h
 }
 
-func (h *NativeKeyHashMap[K]) ToHashRecord() HashRecord {
+func (h *NativeKeyHashMap[K]) ToNativeKeyHashRecord() NativeKeyHashRecord[K] {
 	return MakeNativeKeyHashRecordFromMap(maps.Clone(h.m))
+}
+
+func (h *NativeKeyHashMap[K]) ToHashRecord() HashRecord {
+	return h.ToNativeKeyHashRecord()
 }
 
 func (h *NativeKeyHashMap[K]) ToSyncHashMap() SyncHashMap {

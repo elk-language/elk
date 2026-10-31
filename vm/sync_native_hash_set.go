@@ -37,6 +37,17 @@ func (h *SyncNativeHashSet[V]) HashSet() HashSet {
 	return h.Set
 }
 
+func (h *SyncNativeHashSet[V]) ToNativeHashSet() *NativeHashSet[V] {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Set.Clone()
+}
+
+func (h *SyncNativeHashSet[V]) ToHashSet() HashSet {
+	return h.ToNativeHashSet()
+}
+
 func (h *SyncNativeHashSet[V]) CloneSyncHashSet(thread *Thread, capacity int) (SyncHashSet, value.Value) {
 	h.Lock()
 	defer h.Unlock()
@@ -114,7 +125,7 @@ func (h *SyncNativeHashSet[V]) Copy() value.Reference {
 	defer h.Unlock()
 
 	return &SyncNativeHashSet[V]{
-		Set: h.Set.Copy().(*NativeHashSet[V]),
+		Set: h.Set.Clone(),
 	}
 }
 

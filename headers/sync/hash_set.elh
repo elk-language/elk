@@ -101,13 +101,13 @@ noinit sealed primitive class ::Std::Sync::HashSet[Val]
 	pure def iter: Iterator[Val]; end
 
 	##[
-		Returns itself.
+		Returns a new `Std::HashSet`
+		with the same elements.
 	]##
 	def to_hash_set: HashSet[Val]; end
 
 	##[
-		Returns a new `Std::Sync::HashSet`
-		with the same elements.
+		Returns itself.
 	]##
 	def to_sync_hash_set: Sync::HashSet[Val]; end
 

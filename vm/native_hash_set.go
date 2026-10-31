@@ -157,15 +157,19 @@ func (h *NativeHashSet[V]) IterSet() value.NativeResettableIterator {
 	return NewNativeHashSetIterator(h)
 }
 
-func (h *NativeHashSet[V]) Copy() value.Reference {
+func (h *NativeHashSet[V]) Clone() *NativeHashSet[V] {
 	return &NativeHashSet[V]{
 		m: maps.Clone(h.m),
 	}
 }
 
+func (h *NativeHashSet[V]) Copy() value.Reference {
+	return h.Clone()
+}
+
 func (h *NativeHashSet[V]) ToSyncHashSet() SyncHashSet {
 	return &SyncNativeHashSet[V]{
-		Set: h.Copy().(*NativeHashSet[V]),
+		Set: h.Clone(),
 	}
 }
 

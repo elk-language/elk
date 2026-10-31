@@ -46,6 +46,8 @@ type ArrayTuple interface {
 
 	SubscriptSet(key, val Value) Value
 	AppendVal(elements ...Value) Value
+	ToArrayList() ArrayList
+	ToSyncArrayList() SyncArrayList
 }
 
 type ArrayTupleIterator interface {

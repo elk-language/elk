@@ -38,12 +38,42 @@ func (h *SyncHashMapOfValue) HashMap() HashMap {
 	return h.Map
 }
 
-func (h *SyncHashMapOfValue) Lock() {
+func (h *SyncHashMapOfValue) ToHashMapOfValue() *HashMapOfValue {
 	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.Clone()
+}
+
+func (h *SyncHashMapOfValue) ToHashMap() HashMap {
+	return h.ToHashMapOfValue()
+}
+
+func (h *SyncHashMapOfValue) ToHashRecordOfValue() *HashRecordOfValue {
+	h.Lock()
+	defer h.Unlock()
+
+	return h.Map.ToHashRecordOfValue()
+}
+
+func (h *SyncHashMapOfValue) ToHashRecord() HashRecord {
+	return h.ToHashRecordOfValue()
+}
+
+func (h *SyncHashMapOfValue) ToSyncHashMapOfValue() *SyncHashMapOfValue {
+	return &SyncHashMapOfValue{Map: h.ToHashMapOfValue()}
+}
+
+func (h *SyncHashMapOfValue) ToSyncHashMap() SyncHashMap {
+	return h.ToSyncHashMapOfValue()
+}
+
+func (h *SyncHashMapOfValue) Lock() {
+	h.mu.Lock()
 }
 
 func (h *SyncHashMapOfValue) Unlock() {
-	h.Unlock()
+	h.mu.Unlock()
 }
 
 func (h *SyncHashMapOfValue) All() iter.Seq[value.PairOfValue] {

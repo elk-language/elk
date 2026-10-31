@@ -69,6 +69,23 @@ func (t *ArrayTupleOfValue) Copy() Reference {
 	return t
 }
 
+func (t *ArrayTupleOfValue) ToArrayListOfValue() *ArrayListOfValue {
+	list := (ArrayListOfValue)(slices.Clone(*t))
+	return &list
+}
+
+func (t *ArrayTupleOfValue) ToArrayList() ArrayList {
+	return t.ToArrayListOfValue()
+}
+
+func (t *ArrayTupleOfValue) ToSyncArrayListOfValue() *SyncArrayListOfValue {
+	return &SyncArrayListOfValue{List: t.ToArrayListOfValue()}
+}
+
+func (t *ArrayTupleOfValue) ToSyncArrayList() SyncArrayList {
+	return t.ToSyncArrayListOfValue()
+}
+
 func (l *ArrayTupleOfValue) Elements() iter.Seq2[int, Value] {
 	return func(yield func(int, Value) bool) {
 		for i, element := range *l {

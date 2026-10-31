@@ -563,8 +563,12 @@ func (h *NativeHashMap[K, V]) ToHashMap() HashMap {
 	return h
 }
 
-func (h *NativeHashMap[K, V]) ToHashRecord() HashRecord {
+func (h *NativeHashMap[K, V]) ToNativeHashRecord() NativeHashRecord[K, V] {
 	return MakeNativeHashRecordFromMap(maps.Clone(h.m))
+}
+
+func (h *NativeHashMap[K, V]) ToHashRecord() HashRecord {
+	return h.ToNativeHashRecord()
 }
 
 func (h *NativeHashMap[K, V]) ToSyncHashMap() SyncHashMap {
