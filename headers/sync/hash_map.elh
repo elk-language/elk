@@ -37,7 +37,7 @@ sealed primitive class ::Std::Sync::HashMap[Key, Value]
 		Delete the given key from the map.
 		Returns `true` if the key has been removed, otherwise `false`.
 	]##
-	sealed def remove_key(key: K): bool; end
+	sealed def remove_key(key: Key): bool; end
 
 	##[
 		Check whether the given `pair` is present in this map.

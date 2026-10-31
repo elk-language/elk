@@ -81,6 +81,7 @@ var (
 	C_Type                  = ToSymbol("Type")
 	C_Checker               = ToSymbol("Checker")
 	C_Macro                 = ToSymbol("Macro")
+	C_Context               = ToSymbol("Context")
 	C_Token                 = ToSymbol("Token")
 	C_Node                  = ToSymbol("Node")
 	C_ExpressionNode        = ToSymbol("ExpressionNode")

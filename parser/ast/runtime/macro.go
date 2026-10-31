@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/macros"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
@@ -72,8 +73,9 @@ func initMacro() {
 		c,
 		"append_expression",
 		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			node := args[1].AsReference().(ast.ExpressionNode)
-			kindArg := args[2].AsSymbol()
+			context := args[1].AsReference().(*macros.Context)
+			node := args[2].AsReference().(ast.ExpressionNode)
+			kindArg := args[3].AsSymbol()
 
 			var kind types.MacroAppendExpressionKind
 			switch kindArg.Id {
@@ -92,12 +94,12 @@ func initMacro() {
 			}
 
 			var key string
-			if args[3].IsNotUndefined() {
-				key = string(args[3].AsString())
+			if args[4].IsNotUndefined() {
+				key = string(args[4].AsString())
 			}
-			thread.TypeChecker.RegisterMacroAppendExpression(nil, key, kind, node)
+			context.TypeChecker.RegisterMacroAppendExpression(nil, key, kind, node)
 			return value.Nil, value.Undefined
 		},
-		vm.DefWithParameters(3),
+		vm.DefWithParameters(4),
 	)
 }

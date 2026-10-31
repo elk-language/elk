@@ -163,7 +163,7 @@ func (h *SyncOrderedHashMapOfValue) IterSyncOrderedMap() value.NativeResettableI
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *SyncOrderedHashMapOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	h.Lock()
 	defer h.Unlock()
@@ -419,7 +419,7 @@ func (h *SyncOrderedHashMapOfValue) Inspect() string {
 
 	var buff strings.Builder
 
-	buff.WriteString("Std::Sync::OrderedHashMap{")
+	buff.WriteString("Std::Sync::OrderedHashMap(")
 	if hasMultilineElements || h.Map.Length() > 15 {
 		buff.WriteRune('\n')
 		for i := range len(keyStrings) {
@@ -457,7 +457,7 @@ func (h *SyncOrderedHashMapOfValue) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune('}')
+	buff.WriteRune(')')
 
 	return buff.String()
 }

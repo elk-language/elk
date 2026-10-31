@@ -191,7 +191,7 @@ func (h *OrderedNativeHashMap[K, V]) GetAtInterface(index int) (result value.Pai
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *OrderedNativeHashMap[K, V]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -658,7 +658,7 @@ func (h *OrderedNativeHashMap[K, V]) Inspect() string {
 
 	var buff strings.Builder
 
-	buff.WriteString("Std::OrderedHashMap{")
+	buff.WriteString("Std::OrderedHashMap(")
 	if hasMultilineElements || h.Length() > 15 {
 		buff.WriteRune('\n')
 		for i := range len(keyStrings) {
@@ -696,7 +696,7 @@ func (h *OrderedNativeHashMap[K, V]) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune('}')
+	buff.WriteRune(')')
 
 	return buff.String()
 }

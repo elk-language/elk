@@ -247,7 +247,7 @@ func (h *SyncOrderedHashSetOfValue) GetAtVal(index int) (value.Value, value.Valu
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *SyncOrderedHashSetOfValue) TryAtVal(index value.Value) (value.Value, value.Value) {
 	h.Lock()
 	defer h.Unlock()

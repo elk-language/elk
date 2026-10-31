@@ -15,7 +15,7 @@ type SyncOrderedHashSet interface {
 	All() iter.Seq[value.Value]
 	Length() int
 	// Normalizes the index so that `-1` becomes `length-1`.
-	// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+	// Does bounds checking and returns (nil, undefined) if the index is out of range.
 	TryAtVal(value.Value) (value.Value, value.Value)
 	// Get the element with the given index
 	// Does not do bounds checking or index normalisation.

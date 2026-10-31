@@ -26,6 +26,7 @@ func initMacro(env *types.GlobalEnvironment) {
 	macroType := env.StdSubtypeModule(symbol.C_Macro)
 
 	vm.DefMacro(
+		env,
 		macroType,
 		`Evaluates the if condition and returns the "then" body nodes if it's result is truthy.
 Otherwise returns the "else" body nodes if they're present or a "nil" node.
@@ -51,7 +52,7 @@ Example:
 		},
 		exprType,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			node := args[1].AsReference().(ast.ExpressionNode)
+			node := args[2].AsReference().(ast.ExpressionNode)
 
 			var conditionNode ast.ExpressionNode
 			var thenBody []ast.StatementNode

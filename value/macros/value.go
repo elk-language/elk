@@ -15,6 +15,7 @@ func initValue(env *types.GlobalEnvironment) {
 	valueClass := env.StdSubtypeClass(symbol.C_Value).Singleton()
 
 	vm.DefMacro(
+		env,
 		valueClass,
 		`Expands to an expression with never type, an endless loop.
 Useful in header files for function parameter default value.

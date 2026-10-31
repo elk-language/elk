@@ -17,6 +17,8 @@ type Object struct {
 	instanceVariables InstanceVariables // Slice that stores instance variables of the value
 }
 
+var _ Reference = &Object{}
+
 func NewObjectComparer(opts *cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Object) bool {
 		if x == nil && y == nil {

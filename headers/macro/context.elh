@@ -9,7 +9,9 @@ noinit sealed primitive class ::Std::Macro::Context
   pure def location: FS::Location; end
 
   ##[
-    Location of the macro call in source code.
+    Key value store of the current namespace.
+    Can be used to store meta info regarding
+    the current namespace for other macro calls.
   ]##
-  def namespace_store: HashMap; end
+  def namespace_store: Sync::HashMap[String, Value]; end
 end

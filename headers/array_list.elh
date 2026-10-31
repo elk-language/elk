@@ -223,7 +223,7 @@ noinit sealed primitive class ::Std::ArrayList[Val]
 		Returns a new `Std::Sync::ArrayList`
 		with the same elements.
 	]##
-	def to_sync_array_list: Sync::ArrayList; end
+	def to_sync_array_list: Sync::ArrayList[Val]; end
 
 	sealed primitive class Iterator[Val]
 		include ::Std::ResettableIterator::Base[Val]

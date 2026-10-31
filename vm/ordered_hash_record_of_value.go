@@ -181,7 +181,7 @@ func (h *OrderedHashRecordOfValue) GetAt(index int) (result *value.PairOfValue, 
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *OrderedHashRecordOfValue) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -443,7 +443,7 @@ func (h *OrderedHashRecordOfValue) Inspect() string {
 
 	var buff strings.Builder
 
-	buff.WriteString("Std::OrderedHashRecord{")
+	buff.WriteString("Std::OrderedHashRecord(")
 	if hasMultilineElements {
 		buff.WriteRune('\n')
 		for i := range len(keyStrings) {
@@ -481,7 +481,7 @@ func (h *OrderedHashRecordOfValue) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune('}')
+	buff.WriteRune(')')
 
 	return buff.String()
 }

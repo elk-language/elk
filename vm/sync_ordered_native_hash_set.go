@@ -178,7 +178,7 @@ func (h *SyncOrderedNativeHashSet[V]) Inspect() string {
 	}
 
 	var buff strings.Builder
-	buff.WriteString("Std::Sync::OrderedHashSet[")
+	buff.WriteString("Std::Sync::OrderedHashSet(")
 	if hasMultilineElements || h.Set.Length() > 15 {
 		buff.WriteRune('\n')
 		for i, elementString := range elementStrings {
@@ -208,7 +208,7 @@ func (h *SyncOrderedNativeHashSet[V]) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune(']')
+	buff.WriteRune(')')
 
 	return buff.String()
 }
@@ -274,7 +274,7 @@ func (h *SyncOrderedNativeHashSet[V]) GetAtVal(index int) (value.Value, value.Va
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *SyncOrderedNativeHashSet[V]) TryAtVal(index value.Value) (value.Value, value.Value) {
 	h.Lock()
 	defer h.Unlock()

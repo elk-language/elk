@@ -32,5 +32,5 @@ module ::Std::Macro
     or at the end of the file. The optional `key: String?` argument let's you
     deduplicate entries to avoid appending the same code multiple times.
   ]##
-  def append_expression(node: Elk::AST::ExpressionNode, kind: :end_of_namespace | :end_of_file, key: String = ""); end
+  def append_expression(context: Macro::Context, node: Elk::AST::ExpressionNode, kind: :end_of_namespace | :end_of_file, key: String = ""); end
 end

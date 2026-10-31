@@ -243,7 +243,7 @@ func (h *SyncOrderedNativeKeyHashMap[K]) GetAtInterface(index int) (value.Pair, 
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *SyncOrderedNativeKeyHashMap[K]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	h.Lock()
 	defer h.Unlock()
@@ -515,7 +515,7 @@ func (h *SyncOrderedNativeKeyHashMap[K]) Inspect() string {
 
 	var buff strings.Builder
 
-	buff.WriteString("Std::Sync::OrderedHashMap{")
+	buff.WriteString("Std::Sync::OrderedHashMap(")
 	if hasMultilineElements || h.Map.Length() > 15 {
 		buff.WriteRune('\n')
 		for i := range len(keyStrings) {
@@ -553,7 +553,7 @@ func (h *SyncOrderedNativeKeyHashMap[K]) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune('}')
+	buff.WriteRune(')')
 
 	return buff.String()
 }

@@ -160,7 +160,7 @@ func (h *OrderedHashSetOfValue) Inspect() string {
 	}
 
 	var buff strings.Builder
-	buff.WriteString("Std::OrderedHashSet[")
+	buff.WriteString("Std::OrderedHashSet(")
 	if hasMultilineElements || h.Length() > 15 {
 		buff.WriteRune('\n')
 		for i, elementString := range elementStrings {
@@ -190,7 +190,7 @@ func (h *OrderedHashSetOfValue) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune(']')
+	buff.WriteRune(')')
 
 	return buff.String()
 }
@@ -244,21 +244,21 @@ func (h *OrderedHashSetOfValue) GetAtVal(index int) (result value.Value, err val
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *OrderedHashSetOfValue) TryAtVal(index value.Value) (value.Value, value.Value) {
 	var i int
 
 	i, ok := value.ToGoInt(index)
 	if !ok {
 		if i == -1 {
-			return value.Undefined, value.Undefined
+			return value.Nil, value.Undefined
 		}
 		return value.Undefined, value.NewCoerceError(value.IntClass, index.Class()).ToValue()
 	}
 
 	i, ok = value.NormalizeArrayIndexOk(i, h.Length())
 	if !ok {
-		return value.Undefined, value.Undefined
+		return value.Nil, value.Undefined
 	}
 
 	return h.entries[i], value.Undefined

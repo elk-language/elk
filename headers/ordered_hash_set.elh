@@ -52,7 +52,7 @@ sealed primitive class ::Std::OrderedHashSet[Val]
 		Returns the first pair.
 		Throws an error when the iterable is empty.
 	]##
-	def first: Val ! NotFoundError; end
+	def first: Val ! Iterable::NotFoundError; end
 
 	##[
 		Returns the first element.
@@ -64,7 +64,7 @@ sealed primitive class ::Std::OrderedHashSet[Val]
 		Returns the last element.
 		Throws an error when the iterable is empty.
 	]##
-	def last: Val ! NotFoundError; end
+	def last: Val ! Iterable::NotFoundError; end
 
 	##[
 		Returns the first element.

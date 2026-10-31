@@ -162,7 +162,7 @@ func (h *OrderedNativeHashRecord[K, V]) GetAtInterface(index int) (result value.
 }
 
 // Normalizes the index so that `-1` becomes `length-1`.
-// Does bounds checking and returns (undefined, undefined) if the index is out of range.
+// Does bounds checking and returns (nil, undefined) if the index is out of range.
 func (h *OrderedNativeHashRecord[K, V]) TryAtVal(index value.Value) (value.Pair, value.Value) {
 	var i int
 
@@ -601,7 +601,7 @@ func (h *OrderedNativeHashRecord[K, V]) Inspect() string {
 
 	var buff strings.Builder
 
-	buff.WriteString("Std::OrderedHashRecord{")
+	buff.WriteString("Std::OrderedHashRecord(")
 	if hasMultilineElements {
 		buff.WriteRune('\n')
 		for i := range len(keyStrings) {
@@ -639,7 +639,7 @@ func (h *OrderedNativeHashRecord[K, V]) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune('}')
+	buff.WriteRune(')')
 
 	return buff.String()
 }
