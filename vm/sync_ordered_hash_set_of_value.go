@@ -165,7 +165,7 @@ func (h *SyncOrderedHashSetOfValue) Inspect() string {
 	}
 
 	var buff strings.Builder
-	buff.WriteString("Std::Sync::OrderedHashSet[")
+	buff.WriteString("Std::Sync::OrderedHashSet(")
 	if hasMultilineElements || h.Set.Length() > 15 {
 		buff.WriteRune('\n')
 		for i, elementString := range elementStrings {
@@ -195,7 +195,7 @@ func (h *SyncOrderedHashSetOfValue) Inspect() string {
 			}
 		}
 	}
-	buff.WriteRune(']')
+	buff.WriteRune(')')
 
 	return buff.String()
 }

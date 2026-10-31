@@ -1493,15 +1493,14 @@ func TestBytecodeArrayTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
-					byte(bytecode.COPY),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(29, 1, 30)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Ref(&value.ArrayListOfValue{
+					value.Ref(&value.ArrayTupleOfValue{
 						value.SmallInt(1).ToValue(),
 						value.SmallInt(2).ToValue(),
 						value.SmallInt(3).ToValue(),

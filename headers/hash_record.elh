@@ -4,8 +4,10 @@
 	It is an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-noinit sealed primitive class ::Std::HashRecord[Key, Value]
+sealed primitive class ::Std::HashRecord[Key, Value]
 	include Record[Key, Value]
+
+	init(*entries: Pair[Key, Value]); end
 
 	##[
 		Returns the number of key-value pairs present in the record.

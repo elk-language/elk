@@ -1862,6 +1862,8 @@ func (c *Checker) checkExpressionWithTailPosition(node ast.ExpressionNode, tailP
 		return c.checkHashMapLiteralNode(n)
 	case *ast.HashRecordLiteralNode:
 		return c.checkHashRecordLiteralNode(n)
+	case *ast.KeyValueExpressionNode:
+		return c.checkKeyValueExpressionNode(n)
 	case *ast.RangeLiteralNode:
 		return c.checkRangeLiteralNode(n)
 	case *ast.ThrowExpressionNode:
@@ -2716,6 +2718,30 @@ func (c *Checker) checkHashMapLiteralNodeWithType(node *ast.HashMapLiteralNode, 
 	}
 
 	return node
+}
+
+func (c *Checker) checkKeyValueExpressionNode(node *ast.KeyValueExpressionNode) ast.ExpressionNode {
+	newNode := ast.NewConstructorCallNode(
+		node.Location(),
+		ast.NewConstantLookupNode(
+			node.Location(),
+			ast.NewPublicConstantNode(
+				node.Location(),
+				"Std",
+			),
+			ast.NewPublicConstantNode(
+				node.Location(),
+				"Pair",
+			),
+		),
+		[]ast.ExpressionNode{
+			node.Key,
+			node.Value,
+		},
+		nil,
+	)
+
+	return c.checkExpression(newNode)
 }
 
 func (c *Checker) checkRangeLiteralNode(node *ast.RangeLiteralNode) ast.ExpressionNode {

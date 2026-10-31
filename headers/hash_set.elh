@@ -4,8 +4,10 @@
 
 	It is an unordered collection of unique values.
 ]##
-noinit sealed primitive class ::Std::HashSet[Val]
+sealed primitive class ::Std::HashSet[Val]
 	include Set[Val]
+
+	init(*entries: Val); end
 
 	##[
 		Removes the element from the set.
