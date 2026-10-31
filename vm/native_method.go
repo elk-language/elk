@@ -147,19 +147,6 @@ func DefWithOptionalParameters(optParams int) DefOption {
 // Define a native macro
 func DefMacro(env *types.GlobalEnvironment, namespace types.Namespace, docComment string, name string, params []*types.Parameter, returnType types.Type, fn NativeFunction) *types.Method {
 	symbolName := symbol.ToSymbol(name)
-	macroContextClass := types.GetType(env.Std(), symbol.C_Macro, symbol.C_Context)
-	params = append(
-		[]*types.Parameter{
-			types.NewParameter(
-				symbol.ToSymbol("context"),
-				macroContextClass,
-				types.NormalParameterKind,
-				false,
-			),
-		},
-		params...,
-	)
-
 	macro := namespace.DefineMethod(
 		docComment,
 		types.METHOD_MACRO_FLAG,
@@ -173,7 +160,7 @@ func DefMacro(env *types.GlobalEnvironment, namespace types.Namespace, docCommen
 	macro.Body = NewNativeMethod(
 		nil,
 		value.S(symbolName),
-		len(params),
+		len(params)+1,
 		0,
 		fn,
 	)
