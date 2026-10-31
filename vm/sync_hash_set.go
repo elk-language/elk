@@ -39,6 +39,26 @@ func initSyncHashSet() {
 	c := value.SyncHashSetClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*SyncHashSetOfValue)
+			entries := args[1]
+
+			s := self.Set
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				s.AppendVal(thread, entry)
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(SyncHashSet)

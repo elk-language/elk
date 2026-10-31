@@ -8,6 +8,8 @@
 sealed primitive class ::Std::Sync::HashMap[Key, Value]
 	include Map[Key, Value]
 
+	init(*entries: Pair[Key, Value]); end
+
 	##[
 		Returns the number of key-value pairs present in the map.
 	]##

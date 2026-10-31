@@ -8,6 +8,8 @@
 noinit sealed primitive class ::Std::Sync::ArrayList[Val]
 	include List[Val]
 
+	init(*elements: Val); end
+
 	##[
 		Removes the element from the list.
 

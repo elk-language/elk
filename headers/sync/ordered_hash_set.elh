@@ -5,8 +5,10 @@
 
 	It is an ordered collection of unique values.
 ]##
-noinit sealed primitive class ::Std::Sync::OrderedHashSet[Val]
+sealed primitive class ::Std::Sync::OrderedHashSet[Val]
 	include Set[Val]
+
+	init(*entries: Val); end
 
 	##[
 		Removes the element from the set.

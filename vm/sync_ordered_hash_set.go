@@ -53,6 +53,26 @@ func initSyncOrderedHashSet() {
 	c := value.SyncOrderedHashSetClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*SyncOrderedHashSetOfValue)
+			entries := args[1]
+
+			s := self.Set
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				s.AppendVal(thread, entry)
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"try_first",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(SyncOrderedHashSet)

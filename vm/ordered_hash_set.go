@@ -50,6 +50,25 @@ func initOrderedHashSet() {
 	c := value.OrderedHashSetClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*OrderedHashSetOfValue)
+			entries := args[1]
+
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				self.AppendVal(thread, entry)
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"try_first",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashSet)

@@ -7,8 +7,10 @@
 
 	It is an ordered collection of key-value pairs.
 ]##
-noinit sealed primitive class ::Std::Sync::OrderedHashMap[Key, Value]
+sealed primitive class ::Std::Sync::OrderedHashMap[Key, Value]
 	include Map[Key, Value]
+
+	init(*entries: Pair[Key, Value]); end
 
 	##[
 		Returns the number of key-value pairs present in the map.

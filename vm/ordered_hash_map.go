@@ -31,6 +31,26 @@ func initOrderedHashMap() {
 	c := value.OrderedHashMapClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*OrderedHashMapOfValue)
+			entries := args[1]
+
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				pair := entry.AsReference().(value.Pair)
+				self.SetVal(thread, pair.Key(), pair.Value())
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(OrderedHashMap)

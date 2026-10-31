@@ -46,6 +46,27 @@ func initSyncHashMap() {
 	c := value.SyncHashMapClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*SyncHashMapOfValue)
+			entries := args[1]
+
+			m := self.Map
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				pair := entry.AsReference().(value.Pair)
+				m.SetVal(thread, pair.Key(), pair.Value())
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(SyncHashMap)
