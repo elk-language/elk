@@ -2,20 +2,435 @@ using Std::Test::Assertions::*
 using Std::Test::*
 
 describe "Size" ->
-	context "unary minus", ->
-		should "negate positive size", ->
-			s:= 5.bytes
-			r := -s
-			assert! r <<: Std::Size
-			assert! r.to_string == "-5.bytes"
+  context "unary minus", ->
+    should "negate positive size", ->
+      s:= 5.bytes
+      r := -s
+      assert! r <<: Std::Size
+      assert! r == -5.bytes
+      assert! r.to_string == "-5.bytes"
+    end
+
+    should "negate negative size", ->
+      s := -5.bytes
+      r := -s
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+    end
+  end
+
+  context "unary plus", ->
+    should "not change positive size", ->
+      s:= 5.bytes
+      r := +s
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+    end
+
+    should "not change negative size", ->
+      s := -5.bytes
+      r := +s
+      assert! r <<: Std::Size
+      assert! r == -5.bytes
+      assert! r.to_string == "-5.bytes"
+    end
+  end
+
+  context "+", ->
+    should "add sizes of the same unit", ->
+      s:= 5.bytes
+      r := s + 70.bytes
+      assert! r <<: Std::Size
+      assert! r == 75.bytes
+      assert! r.to_string == "75.bytes"
+    end
+
+    should "add sizes with multiple units", ->
+      s:= 1.bytes + 2.kilobytes + 3.megabytes
+      r := s + 3.bytes + 2.kilobytes + 1.megabytes
+      assert! r <<: Std::Size
+      assert! r == 4.bytes + 4.kilobytes + 4.megabytes
+      assert! r.to_string == "4.megabytes + 4.kilobytes + 4.bytes"
+    end
+
+    should "add sizes with overflow", ->
+      s:= 5.bytes
+      r := s + 1019.bytes
+      assert! r <<: Std::Size
+      assert! r == 1.kilobytes
+      assert! r.to_string == "1.kilobytes"
+    end
+
+    should "add sizes with multiple overflows", ->
+      s:= 5.bytes
+      r := s + 71984840712.bytes
+      assert! r <<: Std::Size
+      assert! r == 67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes
+      assert! r.to_string == "67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes"
+    end
+  end
+
+  context "-", ->
+    should "subtract sizes of the same unit", ->
+      s:= 75.bytes
+      r := s - 70.bytes
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+    end
+
+    should "subtract sizes with multiple units", ->
+      s:= 4.bytes + 4.kilobytes + 4.megabytes
+      r := s - (3.bytes + 2.kilobytes + 1.megabytes)
+      assert! r <<: Std::Size
+      assert! r == 1.bytes + 2.kilobytes + 3.megabytes
+      assert! r.to_string == "3.megabytes + 2.kilobytes + 1.bytes"
+    end
+
+    should "subtract sizes with borrow", ->
+      s:= 1.kilobytes
+      r := s - 1019.bytes
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+    end
+
+    should "add sizes with multiple borrows", ->
+      s:= 67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes
+      r := s - (67.gigabytes + 42.megabytes + 96.kilobytes + 8.bytes)
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+    end
+  end
+
+	context "*", ->
+		context "multiply by numeric", ->
+			should "multiply by int", ->
+				s:= 5.bytes
+				var d: CoercibleNumeric = 15
+				r := s * d
+        assert! r <<: Std::Size
+        assert! r == 75.bytes
+        assert! r.to_string == "75.bytes"
+			end
+
+			should "multiply by float", ->
+				s:= 5.bytes
+				var d: CoercibleNumeric = 15.5
+				r := s * d
+        assert! r <<: Std::Size
+        assert! r == 77.bytes
+        assert! r.to_string == "77.bytes"
+			end
+
+			should "multiply by big float", ->
+        s:= 5.bytes
+				var d: CoercibleNumeric = 15.5bf
+				r := s * d
+        assert! r <<: Std::Size
+        assert! r == 77.bytes
+        assert! r.to_string == "77.bytes"
+			end
 		end
 
-		should "negate negative span", ->
-			s := -5.bytes
-			r := -s
-			assert! s <<: Std::Size
-			assert! r.to_string == "5.bytes"
+		should "multiply by int", ->
+      s:= 5.bytes
+      r := s * 15
+      assert! r <<: Std::Size
+      assert! r == 75.bytes
+      assert! r.to_string == "75.bytes"
+		end
+
+		should "multiply by float", ->
+      s:= 5.bytes
+      r := s * 15.5
+      assert! r <<: Std::Size
+      assert! r == 77.bytes
+      assert! r.to_string == "77.bytes"
+		end
+
+		should "multiply by big float", ->
+      s:= 5.bytes
+      r := s * 15.5bf
+      assert! r <<: Std::Size
+      assert! r == 77.bytes
+      assert! r.to_string == "77.bytes"
 		end
 	end
+
+	context "/", ->
+		context "divide by numeric", ->
+			should "divide by int", ->
+				s:= 75.bytes
+				var d: CoercibleNumeric = 15
+				r := s / d
+        assert! r <<: Std::Size
+        assert! r == 5.bytes
+        assert! r.to_string == "5.bytes"
+			end
+
+			should "divide by float", ->
+				s:= 75.bytes
+				var d: CoercibleNumeric = 15.5
+				r := s / d
+        assert! r <<: Std::Size
+        assert! r == 4.bytes
+        assert! r.to_string == "4.bytes"
+			end
+
+			should "divide by big float", ->
+        s:= 75.bytes
+				var d: CoercibleNumeric = 15.5bf
+				r := s / d
+        assert! r <<: Std::Size
+        assert! r == 4.bytes
+        assert! r.to_string == "4.bytes"
+			end
+		end
+
+		should "divide by int", ->
+      s:= 75.bytes
+      r := s / 15
+      assert! r <<: Std::Size
+      assert! r == 5.bytes
+      assert! r.to_string == "5.bytes"
+		end
+
+		should "divide by float", ->
+      s:= 75.bytes
+      r := s / 15.5
+      assert! r <<: Std::Size
+      assert! r == 4.bytes
+      assert! r.to_string == "4.bytes"
+		end
+
+		should "divide by big float", ->
+      s:= 75.bytes
+      r := s / 15.5bf
+      assert! r <<: Std::Size
+      assert! r == 4.bytes
+      assert! r.to_string == "4.bytes"
+		end
+	end
+
+	context "<=>", ->
+		should "return 1 when greater", ->
+			s := 5.bytes
+			assert! s <=> 3.bytes == 1
+		end
+
+		should "return 0 when equal", ->
+			s := 5.bytes
+      assert! s <=> 5.bytes == 0
+		end
+
+		should "return -1 when less", ->
+			s := 5.bytes
+      assert! s <=> 7.bytes == -1
+		end
+	end
+
+	context ">=", ->
+		should "return true when greater", ->
+			s := 5.bytes
+      assert! s >= 3.bytes == true
+		end
+
+		should "return true when equal", ->
+      s := 5.bytes
+      assert! s >= 5.bytes == true
+		end
+
+		should "return false when less", ->
+			s := 5.bytes
+      assert! s >= 7.bytes == false
+		end
+	end
+
+	context ">", ->
+		should "return true when greater", ->
+			s := 5.bytes
+      assert! s > 3.bytes == true
+		end
+
+		should "return false when equal", ->
+			s := 5.bytes
+      assert! s > 5.bytes == false
+		end
+
+		should "return false when less", ->
+			s := 5.bytes
+      assert! s > 7.bytes == false
+		end
+	end
+
+	context "<=", ->
+		should "return false when greater", ->
+			s := 5.bytes
+      assert! s <= 3.bytes == false
+		end
+
+		should "return true when equal", ->
+			s := 5.bytes
+      assert! s <= 5.bytes == true
+		end
+
+		should "return true when less", ->
+			s := 5.bytes
+      assert! s <= 7.bytes == true
+		end
+	end
+
+	context "<", ->
+		should "return false when greater", ->
+			s := 5.bytes
+      assert! s < 3.bytes == false
+		end
+
+		should "return false when equal", ->
+      s := 5.bytes
+      assert! s < 5.bytes == false
+		end
+
+		should "return true when less", ->
+      s := 5.bytes
+      assert! s < 7.bytes == true
+		end
+	end
+
+  context "from bytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.bytes
+      assert! s.in_bytes == 32.0
+      assert! s.in_kilobytes == 0.03125
+      assert! s.in_megabytes < 0.0003
+      assert! s.in_gigabytes < 0.000003
+      assert! s.in_terabytes < 0.00000003
+      assert! s.in_petabytes < 0.0000000003
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.bytes
+      assert! s.bytes == 32
+      assert! s.kilobytes == 0
+      assert! s.megabytes == 0
+      assert! s.gigabytes == 0
+      assert! s.terabytes == 0
+      assert! s.petabytes == 0
+    end
+  end
+
+  context "from kilobytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.kilobytes
+      assert! s.in_bytes == 32768.0
+      assert! s.in_kilobytes == 32.0
+      assert! s.in_megabytes == 0.03125
+      assert! s.in_gigabytes < 0.0003
+      assert! s.in_terabytes < 0.000003
+      assert! s.in_petabytes < 0.00000003
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.kilobytes
+      assert! s.bytes == 32768
+      assert! s.kilobytes == 32
+      assert! s.megabytes == 0
+      assert! s.gigabytes == 0
+      assert! s.terabytes == 0
+      assert! s.petabytes == 0
+    end
+  end
+
+  context "from megabytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.megabytes
+      assert! s.in_bytes == 33554432.0
+      assert! s.in_kilobytes == 32768.0
+      assert! s.in_megabytes == 32.0
+      assert! s.in_gigabytes == 0.03125
+      assert! s.in_terabytes < 0.0003
+      assert! s.in_petabytes < 0.000003
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.megabytes
+      assert! s.bytes == 33554432
+      assert! s.kilobytes == 32768
+      assert! s.megabytes == 32
+      assert! s.gigabytes == 0
+      assert! s.terabytes == 0
+      assert! s.petabytes == 0
+    end
+  end
+
+  context "from gigabytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.gigabytes
+      assert! s.in_bytes == 34359738368.0
+      assert! s.in_kilobytes == 33554432.0
+      assert! s.in_megabytes == 32768.0
+      assert! s.in_gigabytes == 32.0
+      assert! s.in_terabytes == 0.03125
+      assert! s.in_petabytes < 0.0003
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.gigabytes
+      assert! s.bytes == 34359738368
+      assert! s.kilobytes == 33554432
+      assert! s.megabytes == 32768
+      assert! s.gigabytes == 32
+      assert! s.terabytes == 0
+      assert! s.petabytes == 0
+    end
+  end
+
+  context "from terabytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.terabytes
+      assert! s.in_bytes == 35184372088832.0
+      assert! s.in_kilobytes == 34359738368.0
+      assert! s.in_megabytes == 33554432.0
+      assert! s.in_gigabytes == 32768.0
+      assert! s.in_terabytes == 32.0
+      assert! s.in_petabytes == 0.03125
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.terabytes
+      assert! s.bytes == 35184372088832
+      assert! s.kilobytes == 34359738368
+      assert! s.megabytes == 33554432
+      assert! s.gigabytes == 32768
+      assert! s.terabytes == 32
+      assert! s.petabytes == 0
+    end
+  end
+
+  context "from petabytes", ->
+    should "return approximate size count as a Float", ->
+      s := 32.petabytes
+      assert! s.in_bytes == 36028797018963968.0
+      assert! s.in_kilobytes == 35184372088832.0
+      assert! s.in_megabytes == 34359738368.0
+      assert! s.in_gigabytes == 33554432.0
+      assert! s.in_terabytes == 32768.0
+      assert! s.in_petabytes == 32.0
+    end
+
+    should "return exact size amount as an Int", ->
+      s := 32.petabytes
+      assert! s.bytes == 36028797018963968
+      assert! s.kilobytes == 35184372088832
+      assert! s.megabytes == 34359738368
+      assert! s.gigabytes == 33554432
+      assert! s.terabytes == 32768
+      assert! s.petabytes == 32
+    end
+  end
 
 end

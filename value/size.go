@@ -71,6 +71,7 @@ func (s Size) Petabytes() Value {
 
 func initSize() {
 	SizeClass = NewClassWithOptions(ClassWithSuperclass(ValueClass))
+	StdModule.AddConstantString("Size", Ref(SizeClass))
 	RegisterNativeClass("Std::Size", "value.SizeClass")
 }
 
@@ -91,7 +92,7 @@ func (Size) InstanceVariables() *InstanceVariables {
 }
 
 func (s Size) Inspect() string {
-	return fmt.Sprintf("%s", s.ToString())
+	return fmt.Sprintf("%s", s.String())
 }
 
 func (s Size) Error() string {

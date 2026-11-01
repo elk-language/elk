@@ -1101,7 +1101,7 @@ func (v Value) MustSize() Size {
 }
 
 func (v Value) MustInlineSize() Size {
-	if !v.IsInlineTimeSpan() {
+	if !v.IsInlineSize() {
 		panic(fmt.Sprintf("value `%s` is not an inline Size", v.Inspect()))
 	}
 	return v.AsInlineSize()

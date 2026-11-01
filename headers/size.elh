@@ -25,7 +25,7 @@ sealed primitive noinit class ::Std::Size < Value
 	pure sealed def <(other: Size): bool; end
 
 	##[
-		Returns the string representation of the date span in the format "5Y2M10D".
+		Returns the string representation of the size in the format "1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes".
 	]##
 	def to_string: String; end
 

@@ -9726,7 +9726,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the amount of full megabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("megabytes"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the amount of full petabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("petabytes"), nil, nil, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Returns the amount of full terabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("terabytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the string representation of the date span in the format \"5Y2M10D\".", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the size in the format \"1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes\".", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
 
