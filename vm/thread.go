@@ -109,10 +109,12 @@ func (vm *Thread) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value)
 	if vm.sp == uintptr(unsafe.Pointer(&vm.stack[0])) {
 		// populate the predeclared local variables
 		vm.push(value.Ref(value.GlobalObject)) // populate self
-		vm.localCount = 1
+		vm.push(value.Nil)                     // populate _
+		vm.localCount = 2
 	} else {
 		// pop the return value of the last run
-		vm.pop()
+		lastVal := vm.popGet()
+		vm.setLocalValue(1, lastVal)
 	}
 	vm.runWithState()
 

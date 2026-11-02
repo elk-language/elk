@@ -29,7 +29,7 @@ const (
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
-	NodeBase
+	TypedNodeBase
 	Body        []StatementNode
 	ImportPaths []string
 	State       ProgramState
@@ -39,12 +39,12 @@ type ProgramNode struct {
 
 func (n *ProgramNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ProgramNode{
-		NodeBase:    NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Body:        SpliceSlice(n.Body, loc, args, unquote),
-		ImportPaths: n.ImportPaths,
-		HasDefer:    n.HasDefer,
-		IsBuiltin:   n.IsBuiltin,
-		State:       n.State,
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
+		ImportPaths:   n.ImportPaths,
+		HasDefer:      n.HasDefer,
+		IsBuiltin:     n.IsBuiltin,
+		State:         n.State,
 	}
 }
 
@@ -174,7 +174,7 @@ func (p *ProgramNode) Error() string {
 // Create a new program node.
 func NewProgramNode(loc *position.Location, body []StatementNode) *ProgramNode {
 	return &ProgramNode{
-		NodeBase: NodeBase{loc: loc},
-		Body:     body,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Body:          body,
 	}
 }

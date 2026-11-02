@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler/colorize"
-	"github.com/elk-language/elk/compiler/types"
+	compilerTypes "github.com/elk-language/elk/compiler/types"
 	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
@@ -24,6 +24,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -38,7 +39,7 @@ type evaluator struct {
 	sourceMap      map[string]string
 	inputIndex     int
 	elkTypechecker *checker.Checker
-	goTypechecker  *types.GoTypechecker
+	goTypechecker  *compilerTypes.GoTypechecker
 	prepend        []ast.StatementNode
 	prompt         *goprompt.Prompt
 }
@@ -118,9 +119,10 @@ func (e *evaluator) evaluate(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetAdditionalAbortChecks(true)
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 		e.vm = vm.New()
+
+		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
 	}
 
 	var fn *vm.BytecodeFunction
@@ -136,14 +138,14 @@ func (e *evaluator) evaluate(input string) {
 	case ":disassemble", ":disasm":
 		e.vm.Bytecode().DisassembleStdout()
 		return
-	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	case ":h", ":help", "help":
 		printHelp()
 		return
 	case ":clear", "clear":
 		e.prompt.ClearScreen()
 		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	default:
 		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
 	}
@@ -166,6 +168,9 @@ func (e *evaluator) evaluate(input string) {
 	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
 	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
 	e.prepend = e.usingToPrepend(using)
+
+	resultType := e.elkTypechecker.TypeOf(programNode)
+	e.elkTypechecker.DefineLocal("_", resultType, true, true)
 
 	eval := func(spinner *Spinner, cd SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
@@ -291,7 +296,7 @@ func (e *evaluator) disassemble(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
 
 	var fn *vm.BytecodeFunction
@@ -461,7 +466,7 @@ func (e *evaluator) typecheck(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
 	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
@@ -513,7 +518,7 @@ func (e *evaluator) expand(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
 	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
@@ -643,7 +648,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 		return
 	}
 	if opts.Transpile {
-		checker, err := types.NewGoTypechecker()
+		checker, err := compilerTypes.NewGoTypechecker()
 		if err != nil {
 			panic(fmt.Sprintf("go typechecker error: %s\n", err))
 		}

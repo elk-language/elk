@@ -135,7 +135,6 @@ const (
 	TestSuiteFlag                                // the checked code is part of a test suite
 	TestFileFlag                                 // the checked code is a test file
 	GoCompilerFlag
-	AdditionalAbortChecksFlag   // compile additional abort checks (eg. for the REPL) so that endless loops can be terminated by cancelling the thread context
 	BuiltinImportsProcessedFlag // indicates that builtin imports do not need to be processed
 	MeasureTimeFlag
 	inferClosureReturnTypeFlag
@@ -144,7 +143,7 @@ const (
 	unhygienicFlag
 	conditionFlag            // checked expression is a part of an if/unless condition
 	definedMacrosFlag        // indicates that the typechecker has defined some macros
-	incrementalFlag          // indicates the typechecker should check and compiler code incrementally (REPL)
+	replFlag                 // indicates the typechecker should check and compiler code incrementally (REPL)
 	hasDeferFlag             // indicates that defer is used in the current context eg. a function
 	readonlyTypecheckingFlag // indicates that no state of the typechecker should be modified during typechecking
 )
@@ -273,15 +272,15 @@ func (c *Checker) HasNativeGoCompiler() bool {
 	return c.flags.HasFlag(GoCompilerFlag)
 }
 
-func (c *Checker) IsIncremental() bool {
-	return c.flags.HasFlag(incrementalFlag)
+func (c *Checker) IsREPL() bool {
+	return c.flags.HasFlag(replFlag)
 }
 
-func (c *Checker) SetIncremental(val bool) {
+func (c *Checker) SetREPL(val bool) {
 	if val {
-		c.flags.SetFlag(incrementalFlag)
+		c.flags.SetFlag(replFlag)
 	} else {
-		c.flags.UnsetFlag(incrementalFlag)
+		c.flags.UnsetFlag(replFlag)
 	}
 }
 
@@ -318,18 +317,6 @@ func (c *Checker) setReadonly(val bool) {
 		c.flags.SetFlag(readonlyTypecheckingFlag)
 	} else {
 		c.flags.UnsetFlag(readonlyTypecheckingFlag)
-	}
-}
-
-func (c *Checker) HasAdditionalAbortChecks() bool {
-	return c.flags.HasFlag(AdditionalAbortChecksFlag)
-}
-
-func (c *Checker) SetAdditionalAbortChecks(val bool) {
-	if val {
-		c.flags.SetFlag(AdditionalAbortChecksFlag)
-	} else {
-		c.flags.UnsetFlag(AdditionalAbortChecksFlag)
 	}
 }
 
@@ -686,7 +673,7 @@ func (c *Checker) checkBreakpointProgram(node *ast.ProgramNode) compiler.Compile
 }
 
 func (c *Checker) CheckMacroExpression(node ast.ExpressionNode) *compiler.BytecodeCompiler {
-	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors, c.HasAdditionalAbortChecks())
+	compiler := compiler.CreateBytecodeCompiler(nil, c, node.Location(), c.Errors, c.IsREPL())
 	c.compiler = compiler
 
 	node = c.checkExpression(node)
@@ -734,7 +721,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 		return
 	}
 
-	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
+	c.macroCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.IsREPL())
 }
 
 // Create a new compiler and emit bytecode
@@ -747,11 +734,11 @@ func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
 	parent := c.compiler
 	var mainCompiler compiler.Compiler
 	if parent != nil {
-		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.HasAdditionalAbortChecks(), c.HasMeasureTime())
+		mainCompiler = parent.CreateMainCompiler(c, location, c.Errors, c.output, c.IsREPL(), c.HasMeasureTime())
 	} else if c.flags.HasFlag(GoCompilerFlag) {
 		mainCompiler = compiler.CreateGoCompiler(nil, c, location, c.Errors, c.output, c.HasMeasureTime(), c.InTestSuite())
 	} else {
-		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.HasAdditionalAbortChecks())
+		mainCompiler = compiler.CreateBytecodeCompiler(nil, c, location, c.Errors, c.IsREPL())
 	}
 	mainCompiler.InitMainCompiler(c.extensions.Slice)
 	c.compiler = mainCompiler.InitGlobalEnv()
@@ -930,12 +917,13 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	prevHasDefer := c.hasDefer()
 	c.setHasDefer(false)
 
-	c.checkStatementsWithAppendMacros(
+	returnType, _ := c.checkStatementsWithAppendMacros(
 		&node.Body,
 		false,
 		node.Location().NewLocationFromEnd(),
 		types.MacroAppendExpressionEndOfFileKind,
 	)
+	node.SetType(returnType)
 
 	node.State = ast.CHECKED_EXPRESSIONS
 	node.HasDefer = c.hasDefer()
@@ -3934,6 +3922,7 @@ func (c *Checker) checkTypeofExpressionNode(node *ast.TypeofExpressionNode) ast.
 	node.Value = c.checkExpression(node.Value)
 	typ := c.TypeOf(node.Value)
 	fmt.Printf("typeof: %s\n", types.InspectWithColor(typ))
+	node.SetType(typ)
 	return node
 }
 
@@ -5121,7 +5110,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 }
 
 func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIvarIndices) {
-	if !c.IsIncremental() && namespace.IvarIndices() != nil {
+	if !c.IsREPL() && namespace.IvarIndices() != nil {
 		return
 	}
 
@@ -5137,7 +5126,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			if len(parent.InstanceVariables()) > 0 {
 				firstParentWithIvars = i
 			}
-			if !c.IsIncremental() && parent.IvarIndices() != nil {
+			if !c.IsREPL() && parent.IvarIndices() != nil {
 				break
 			}
 		case *types.MixinProxy:
@@ -5159,7 +5148,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 		parent := parents[i]
 		switch parent := parent.(type) {
 		case types.NamespaceWithIvarIndices:
-			if !c.IsIncremental() && parent.IvarIndices() != nil {
+			if !c.IsREPL() && parent.IvarIndices() != nil {
 				currentIvarIndices = maps.Clone(*parent.IvarIndices())
 				continue
 			}

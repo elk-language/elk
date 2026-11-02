@@ -912,7 +912,7 @@ func (c *Checker) newMacroChecker(
 		threadPool:           threadPool,
 	}
 	checker.setMacroGlobalEnv(c.macroEnv)
-	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors, c.HasAdditionalAbortChecks())
+	checker.macroCompiler = compiler.CreateBytecodeCompiler(nil, checker, loc, c.Errors, c.IsREPL())
 
 	return checker
 }

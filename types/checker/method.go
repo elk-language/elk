@@ -621,7 +621,7 @@ func (c *Checker) newMethodChecker(
 		methodCache:          concurrent.NewSlice[*types.Method](),
 		threadPool:           threadPool,
 	}
-	checker.compiler = compiler.CreateCompiler(funcName, c.compiler, checker, loc, c.Errors, c.HasAdditionalAbortChecks())
+	checker.compiler = compiler.CreateCompiler(funcName, c.compiler, checker, loc, c.Errors, c.IsREPL())
 
 	return checker
 }

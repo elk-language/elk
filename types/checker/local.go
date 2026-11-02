@@ -351,6 +351,12 @@ func (c *Checker) addLocal(name string, l *local) {
 	env.addLocal(symbol.ToSymbol(name), l)
 }
 
+func (c *Checker) DefineLocal(name string, typ types.Type, initialised bool, singleAssignment bool) {
+	env := c.currentLocalEnv()
+	l := newLocal(typ, initialised, singleAssignment)
+	env.addLocal(symbol.ToSymbol(name), l)
+}
+
 // Get the local with the specified name from the current local environment
 func (c *Checker) getLocal(name string) *local {
 	env := c.currentLocalEnv()
