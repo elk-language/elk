@@ -247,6 +247,16 @@ func (e *evaluator) parse(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+	}
+
 	ast, dl := parser.Parse(sourceName, input)
 
 	pp.Println(ast)
@@ -275,7 +285,23 @@ func (e *evaluator) disassemble(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	fn, dl := e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.prepend)
+
+	var fn *vm.BytecodeFunction
+	var dl diagnostic.DiagnosticList
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+	}
+
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -302,6 +328,16 @@ func (e *evaluator) disassemble(input string) {
 func (e *evaluator) transpile(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+	}
 
 	var buff bytes.Buffer
 	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField16{}, &buff, vm.DefaultThreadPool)
@@ -345,10 +381,19 @@ func (e *evaluator) native(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+	}
+
 	err := compileRunNative(sourceName, input)
 	if err != nil {
-		var dl diagnostic.DiagnosticList
-		if errors.As(err, &dl) {
+		if dl, ok := errors.AsType[diagnostic.DiagnosticList](err); ok {
 			fmt.Println()
 
 			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
@@ -383,6 +428,16 @@ func compileRunNative(sourceName, input string) error {
 func (e *evaluator) typecheck(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+	}
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
@@ -422,6 +477,16 @@ func (e *evaluator) typecheck(input string) {
 func (e *evaluator) expand(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+	}
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
