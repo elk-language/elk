@@ -73,20 +73,21 @@ func TestBreakpointInGoReadsCapturedVariables(t *testing.T) {
 			elk.InitGlobalEnvironment()
 			var got string
 			var gotErr string
-			vm.BREAKPOINT_HANDLER = breakpointFunc(func(thread *vm.Thread, ctx value.Value) {
+			vm.BREAKPOINT_HANDLER = breakpointFunc(func(thread *vm.Thread, ctx value.Value) error {
 				context := ctx.AsReference().(*compiler.BytecodeBreakpointContext)
 				typechecker := checker.NewBreakpointChecker(context)
 				fn, dl := typechecker.CheckBreakpointSource("<bp>", tc.expr)
 				if dl != nil && dl.IsFailure() {
 					gotErr = dl.Error()
-					return
+					return nil
 				}
 				val, runtimeErr := thread.InterpretBreakpoint(fn)
 				if !runtimeErr.IsUndefined() {
 					gotErr = runtimeErr.Inspect()
-					return
+					return nil
 				}
 				got = val.Inspect()
+				return nil
 			})
 
 			stdout := &strings.Builder{}
@@ -113,8 +114,8 @@ func TestBreakpointInGoReadsCapturedVariables(t *testing.T) {
 	}
 }
 
-type breakpointFunc func(thread *vm.Thread, ctx value.Value)
+type breakpointFunc func(thread *vm.Thread, ctx value.Value) error
 
-func (f breakpointFunc) RunBreakpoint(thread *vm.Thread, ctx value.Value) {
-	f(thread, ctx)
+func (f breakpointFunc) RunBreakpoint(thread *vm.Thread, ctx value.Value) error {
+	return f(thread, ctx)
 }

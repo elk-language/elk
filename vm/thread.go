@@ -2078,7 +2078,10 @@ func (vm *Thread) opBreakpoint() {
 
 	ActiveBreakpoints.Add(1)
 	time.Sleep(500 * time.Millisecond)
-	BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+	err := BREAKPOINT_HANDLER.RunBreakpoint(vm, breakpointContext)
+	if err != nil {
+		panic(fmt.Sprintf("breakpoint error: %s", err))
+	}
 	ActiveBreakpoints.Add(-1)
 
 	vm.state = prevState

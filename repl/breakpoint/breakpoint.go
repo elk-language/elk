@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 
@@ -130,18 +131,26 @@ func exitChecker(input string, breakline bool) bool {
 
 type BreakpointHandler struct{}
 
-func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value) {
-	Run(thread, context.AsReference().(*compiler.BytecodeBreakpointContext))
+func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value) error {
+	return Run(thread, context.AsReference().(*compiler.BytecodeBreakpointContext))
 }
 
 // Start the REPL.
-func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) {
+func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	breakpointHistoryFilePath := filepath.Join(cwd, ".elk_breakpoint_history")
 	prompt.Run(
 		executor(thread, context),
 		goprompt.WithPrefix("!> "),
 		goprompt.WithPrefixTextColor(goprompt.Yellow),
 		goprompt.WithExitChecker(exitChecker),
+		goprompt.WithFSHistory(breakpointHistoryFilePath),
 	)
+	return nil
 }
 
 func executor(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) goprompt.Executor {
