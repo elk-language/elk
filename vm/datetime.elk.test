@@ -5302,13 +5302,13 @@ describe "DateTime" ->
 
 		context "date1" ->
 			should "build" ->
-				t := DateTime(2025, 10, 25, 14, 44, 13)
-				assert! t.strftime("%+") == "Sat Oct 25 14:44:13 CEST 2025"
+				t := DateTime(2025, 10, 25, 14, 44, 13, zone: Timezone.get("UTC"))
+				assert! t.strftime("%+") == "Sat Oct 25 14:44:13 UTC 2025"
 			end
 
 			should "build uppercase" ->
-				t := DateTime(2025, 10, 25, 14, 44, 13)
-				assert! t.strftime("%^+") == "SAT OCT 25 14:44:13 CEST 2025"
+				t := DateTime(2025, 10, 25, 14, 44, 13, zone: Timezone.get("UTC"))
+				assert! t.strftime("%^+") == "SAT OCT 25 14:44:13 UTC 2025"
 			end
 		end
 
