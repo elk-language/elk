@@ -7,7 +7,7 @@ module Std::Elk::AST
             RegexLiteralNode
 
     init(
-      content: ArrayTuple[RegexLiteralContentNode],
+      content: Tuple[RegexLiteralContentNode],
       flags: UInt8 = 0u8,
       location: FS::Location = loop; end,
     ); end

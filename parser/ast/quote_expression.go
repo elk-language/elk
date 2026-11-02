@@ -89,6 +89,17 @@ func (n *QuoteExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *QuoteExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewQuoteExpressionNode(n.loc, n.Kind, body)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *QuoteExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*QuoteExpressionNode)

@@ -27,7 +27,7 @@ module Std::Elk::AST
     const QUOTE_TYPE_KIND: UInt8
 
     init(
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       kind: UInt8 = loop; end,
       location: FS::Location = loop; end,
     ); end

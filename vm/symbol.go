@@ -13,7 +13,7 @@ func initSymbol() {
 		c,
 		"==",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustInlineSymbol()
+			self := args[0].MustSymbol()
 			other := args[1]
 			return self.EqualVal(other), value.Undefined
 		},
@@ -23,7 +23,7 @@ func initSymbol() {
 		c,
 		"hash",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustInlineSymbol()
+			self := args[0].MustSymbol()
 			return self.Hash().ToValue(), value.Undefined
 		},
 	)
@@ -38,7 +38,7 @@ func initSymbol() {
 		c,
 		"to_string",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustInlineSymbol()
+			self := args[0].MustSymbol()
 			return value.Ref(self.ToString()), value.Undefined
 		},
 	)
@@ -48,7 +48,7 @@ func initSymbol() {
 		c,
 		"inspect",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].MustInlineSymbol()
+			self := args[0].MustSymbol()
 			return value.Ref(value.String(self.Inspect())), value.Undefined
 		},
 	)

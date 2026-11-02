@@ -40,9 +40,9 @@ func threadWorker(thread *Thread, queue chan *Promise) {
 	for task := range queue {
 		switch body := task.Body.(type) {
 		case *Generator:
-			executeBytecodePromise(thread, queue, task)
+			executeBytecodePromise(thread, task)
 		case *NativePromiseBody:
-			executeNativePromise(thread, queue, task, body)
+			executeNativePromise(thread, task, body)
 		default:
 			panic(fmt.Sprintf("invalid promise body: %T", task.Body))
 		}
@@ -51,7 +51,7 @@ func threadWorker(thread *Thread, queue chan *Promise) {
 	}
 }
 
-func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) {
+func executeBytecodePromise(thread *Thread, task *Promise) {
 	thread.callBytecodePromise(task)
 
 	switch thread.state {
@@ -71,8 +71,9 @@ func executeBytecodePromise(thread *Thread, queue chan *Promise, task *Promise) 
 	}
 }
 
-func executeNativePromise(thread *Thread, queue chan *Promise, task *Promise, body *NativePromiseBody) {
+func executeNativePromise(thread *Thread, task *Promise, body *NativePromiseBody) {
 	result, err := body.Function(thread, body.Args)
+
 	if !err.IsUndefined() {
 		task.Reject(err, nil)
 		return

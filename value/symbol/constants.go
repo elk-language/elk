@@ -81,6 +81,7 @@ var (
 	C_Type                  = ToSymbol("Type")
 	C_Checker               = ToSymbol("Checker")
 	C_Macro                 = ToSymbol("Macro")
+	C_Context               = ToSymbol("Context")
 	C_Token                 = ToSymbol("Token")
 	C_Node                  = ToSymbol("Node")
 	C_ExpressionNode        = ToSymbol("ExpressionNode")
@@ -135,6 +136,8 @@ var (
 	L_slice                     = ToSymbol("slice")
 	L_diagnostics               = ToSymbol("diagnostics")
 	L_source_map                = ToSymbol("source_map")
+	L_end_of_file               = ToSymbol("end_of_file")
+	L_end_of_namespace          = ToSymbol("end_of_namespace")
 )
 
 // special symbols

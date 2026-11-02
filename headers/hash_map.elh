@@ -4,8 +4,10 @@
 
 	It is an unordered collection of key-value pairs.
 ]##
-noinit sealed primitive class ::Std::HashMap[Key, Value]
+sealed primitive class ::Std::HashMap[Key, Value]
 	include Map[Key, Value]
+
+	init(*entries: Pair[Key, Value]); end
 
 	##[
 		Returns the number of key-value pairs present in the map.
@@ -28,6 +30,12 @@ noinit sealed primitive class ::Std::HashMap[Key, Value]
 		and another given record/map.
 	]##
 	sealed pure def +[K, V](other: Record[K, V]): HashMap[Key | K, Value | V]; end
+
+	##[
+		Delete the given key from the map.
+		Returns `true` if the key has been removed, otherwise `false`.
+	]##
+	sealed def remove_key(key: Key): bool; end
 
 	##[
 		Check whether the given `pair` is present in this map.
@@ -97,6 +105,23 @@ noinit sealed primitive class ::Std::HashMap[Key, Value]
 		over each element of the map.
 	]##
 	pure def iter: Iterator[Key, Value]; end
+
+	##[
+		Returns self.
+	]##
+	def to_hash_map: HashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::Sync::HashMap`
+		with the same elements.
+	]##
+	def to_sync_hash_map: Sync::HashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::HashRecord`
+		with the same elements.
+	]##
+	def to_hash_record: HashRecord[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]

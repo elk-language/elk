@@ -48,6 +48,22 @@ func (n *InstanceMethodLookupNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *InstanceMethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInstanceMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *InstanceMethodLookupNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceMethodLookupNode)
 	if !ok {
@@ -174,6 +190,22 @@ func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) T
 	}
 
 	return leave(n, parent)
+}
+
+func (n *MethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
 }
 
 func (n *MethodLookupNode) Equal(other value.Value) bool {
@@ -303,6 +335,22 @@ func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node)
 	}
 
 	return leave(n, parent)
+}
+
+func (n *MethodLookupAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodLookup, err := n.MethodLookup.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	as, err := n.AsName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMethodLookupAsNode(n.loc, methodLookup.(*MethodLookupNode), as.(IdentifierNode))
+
+	return fn(newNode, parent)
 }
 
 // Check if this method lookup as node is equal to another value.

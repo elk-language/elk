@@ -195,7 +195,7 @@ func RightOpenRangeIteratorNext(vm *Thread, i *value.RightOpenRangeIterator) (va
 	}
 
 	if value.Truthy(greater) {
-		return value.Undefined, stopIterationSymbol.ToValue()
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	current := i.CurrentElement
@@ -215,8 +215,8 @@ func RightOpenRangeIteratorAll(vm *Thread, i *value.RightOpenRangeIterator) iter
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := RightOpenRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

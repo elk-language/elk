@@ -6,7 +6,7 @@ module Std::Elk::AST
   sealed primitive class UnquoteForInExpressionNode
     include ExpressionNode
 
-    init(pattern_node: PatternNode, in_expression: ExpressionNode, then_body: ArrayTuple[StatementNode], location: FS::Location = loop; end); end
+    init(pattern_node: PatternNode, in_expression: ExpressionNode, then_body: Tuple[StatementNode], location: FS::Location = loop; end); end
     pure def pattern_node: PatternNode; end
     pure def in_expression: ExpressionNode; end
     pure def then_body: ArrayTuple[StatementNode]; end

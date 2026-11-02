@@ -44,6 +44,17 @@ func (n *InferredObjectPatternNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *InferredObjectPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	attrs, err := traverseMapSlice(n.Attributes, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInferredObjectPatternNode(n.loc, attrs)
+
+	return fn(newNode, parent)
+}
+
 func (n *InferredObjectPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ObjectPatternNode)
 	if !ok {

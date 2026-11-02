@@ -1,0 +1,17 @@
+##[
+  Context created by the typechecker that is
+  available during macro expansion.
+]##
+noinit sealed primitive class ::Std::Macro::Context
+  ##[
+    Location of the macro call in source code.
+  ]##
+  pure def location: FS::Location; end
+
+  ##[
+    Key value store of the current namespace.
+    Can be used to store meta info regarding
+    the current namespace for other macro calls.
+  ]##
+  def namespace_store: Sync::HashMap[String, Value]; end
+end

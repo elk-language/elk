@@ -50,6 +50,22 @@ func (n *ObjectPatternNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *ObjectPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	objectType, err := n.ObjectType.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	attrs, err := traverseMapSlice(n.Attributes, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewObjectPatternNode(n.loc, objectType.(ComplexConstantNode), attrs)
+
+	return fn(newNode, parent)
+}
+
 func (n *ObjectPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ObjectPatternNode)
 	if !ok {

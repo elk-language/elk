@@ -6,10 +6,10 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      parameters: ArrayTuple[ParameterNode] = loop; end,
+      parameters: Tuple[ParameterNode] = loop; end,
       return_type: TypeNode? = nil,
       throw_type: TypeNode? = nil,
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       is_lambda: bool = false,
       is_pure: bool = false,
       location: FS::Location = loop; end,

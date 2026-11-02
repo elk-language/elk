@@ -59,6 +59,27 @@ func (n *UnquoteIfExpressionNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *UnquoteIfExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cond, err := n.Condition.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := traverseMapSlice(n.ElseBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnquoteIfExpressionNode(n.loc, cond.(ExpressionNode), then, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *UnquoteIfExpressionNode) ifExpression() {}
 
 func (n *UnquoteIfExpressionNode) SetElseBody(body []StatementNode) {

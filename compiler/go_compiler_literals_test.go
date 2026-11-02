@@ -4267,6 +4267,7 @@ func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")   // main
 var sym1 = value.ToSymbol("<main>") // <main>
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue(), (value.SmallInt(10)).ToValue())
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4292,7 +4293,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
-	l0 = value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue(), (value.SmallInt(10)).ToValue())
+	l0 = arrtuple0
 }
 `,
 		},

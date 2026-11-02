@@ -34,6 +34,7 @@ func typecheckerInit(checker types.Checker) {
 
 	n := assertionsMixin.Singleton()
 	vm.DefMacro(
+		env,
 		n,
 		"",
 		"assert!",
@@ -47,7 +48,7 @@ func typecheckerInit(checker types.Checker) {
 		},
 		expressionNodeMixin,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			expr := args[1].AsReference().(ast.ExpressionNode)
+			expr := args[2].AsReference().(ast.ExpressionNode)
 
 			assertionsConstant := ast.NewConstantLookupNode(
 				position.ZeroLocation,

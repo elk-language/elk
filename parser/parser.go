@@ -24,12 +24,13 @@ import (
 type mode uint8
 
 const (
-	zeroMode             mode = iota // initial zero value mode
-	normalMode                       // regular parsing mode
-	panicMode                        // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
-	withoutBitwiseOrMode             // disables bitwise OR `|` from the grammar
-	incompleteMode                   // the input is incomplete, parser expected more tokens but received an END_OF_FILE.
-	withoutUnionTypeMode             // disables union type `|` from the grammar
+	zeroMode                      mode = iota // initial zero value mode
+	normalMode                                // regular parsing mode
+	panicMode                                 // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
+	withoutBitwiseOrMode                      // disables bitwise OR `|` from the grammar
+	incompleteMode                            // the input is incomplete, parser expected more tokens but received an END_OF_FILE.
+	withoutUnionTypeMode                      // disables union type `|` from the grammar
+	withoutKeyValueExpressionMode             // disables key value expressions `"foo" => "bar"` from the grammar
 )
 
 // Holds the current state of the parsing process.
@@ -851,9 +852,9 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	return left
 }
 
-// assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
+// assignmentExpression = keyValueExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
-	left := p.logicalOrExpression()
+	left := p.keyValueExpression()
 
 	if !p.lookahead.IsAssignmentOperator() {
 		return left
@@ -891,6 +892,27 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		left,
 		right,
 	)
+}
+
+// keyValueExpression = logicalOrExpression |
+// logicalOrExpression "=>" logicalOrExpression
+func (p *Parser) keyValueExpression() ast.ExpressionNode {
+	if p.mode == withoutKeyValueExpressionMode {
+		return p.logicalOrExpression()
+	}
+
+	key := p.logicalOrExpression()
+	if p.match(token.THICK_ARROW) {
+		p.swallowNewlines()
+		value := p.logicalOrExpression()
+		return ast.NewKeyValueExpressionNode(
+			key.Location().Join(value.Location()),
+			key,
+			value,
+		)
+	}
+
+	return key
 }
 
 // formalParameter = identifier [":" typeAnnotationWithoutUnionAndVoid] ["=" expressionWithoutModifier]
@@ -2476,7 +2498,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.regexLiteral()
 	case token.LPAREN:
 		p.advance()
-		if p.mode == withoutBitwiseOrMode {
+		switch p.mode {
+		case withoutBitwiseOrMode, withoutKeyValueExpressionMode:
 			p.mode = normalMode
 		}
 		expr := p.expressionWithModifier()
@@ -3100,7 +3123,7 @@ func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 		)
 	}
 
-	return p.collectionElementModifier(p.keyValueExpression)
+	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
 
 // recordLiteralElements = recordLiteralElement ("," recordLiteralElement)*
@@ -3157,7 +3180,11 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 			val,
 		)
 	}
+
+	p.mode = withoutKeyValueExpressionMode
 	key := p.expressionWithoutModifier()
+	p.mode = normalMode
+
 	if !p.match(token.THICK_ARROW) {
 		switch key.(type) {
 		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode,
@@ -3177,23 +3204,6 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		key,
 		val,
 	)
-}
-
-// keyValueExpression = expressionWithoutModifier |
-// expressionWithoutModifier "=>" expressionWithoutModifier
-func (p *Parser) keyValueExpression() ast.ExpressionNode {
-	key := p.expressionWithoutModifier()
-	if p.match(token.THICK_ARROW) {
-		p.swallowNewlines()
-		value := p.expressionWithoutModifier()
-		return ast.NewKeyValueExpressionNode(
-			key.Location().Join(value.Location()),
-			key,
-			value,
-		)
-	}
-
-	return key
 }
 
 // hashSetLiteral = "^[" [hashSetLiteralElements] "]" [":" primaryExpression]
@@ -6918,7 +6928,10 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 			val,
 		)
 	}
+	p.mode = withoutKeyValueExpressionMode
 	key := p.simplePattern()
+	p.mode = normalMode
+
 	if !p.match(token.THICK_ARROW) {
 		switch key.(type) {
 		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode:

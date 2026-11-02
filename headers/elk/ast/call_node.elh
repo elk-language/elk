@@ -8,8 +8,8 @@ module Std::Elk::AST
     init(
       receiver: ExpressionNode,
       nil_safe: bool,
-      positional_arguments: ArrayTuple[ExpressionNode],
-      named_arguments: ArrayTuple[NamedArgumentNode],
+      positional_arguments: Tuple[ExpressionNode],
+      named_arguments: Tuple[NamedArgumentNode],
       location: FS::Location = loop; end
     ); end
 

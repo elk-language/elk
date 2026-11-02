@@ -16,8 +16,8 @@ module Std::Elk::AST
 
     init(
       value: ExpressionNode,
-      cases: ArrayTuple[SwitchCaseNode],
-      else_body: ArrayTuple[StatementNode] = loop; end,
+      cases: Tuple[SwitchCaseNode],
+      else_body: Tuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

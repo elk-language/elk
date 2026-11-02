@@ -99,7 +99,7 @@ func initSimpleSymbolLiteralNode() {
 		c,
 		"to_ast_node",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsInlineSymbol()
+			self := args[0].AsSymbol()
 			node := ast.NewSimpleSymbolLiteralNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
 		},
@@ -113,7 +113,7 @@ func initSimpleSymbolLiteralNode() {
 		c,
 		"to_ast_ident_node",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsInlineSymbol()
+			self := args[0].AsSymbol()
 			node := ast.NewPublicIdentifierNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
 		},
@@ -123,7 +123,7 @@ func initSimpleSymbolLiteralNode() {
 		c,
 		"to_ast_const_node",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsInlineSymbol()
+			self := args[0].AsSymbol()
 			node := ast.NewPublicConstantNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
 		},
@@ -133,7 +133,7 @@ func initSimpleSymbolLiteralNode() {
 		c,
 		"to_ast_ivar_node",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsInlineSymbol()
+			self := args[0].AsSymbol()
 			node := ast.NewPublicInstanceVariableNode(position.ZeroLocation, self.String())
 			return value.Ref(node), value.Undefined
 		},

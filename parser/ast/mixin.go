@@ -79,6 +79,31 @@ func (n *MixinDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *MixinDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMixinDeclarationNode(n.loc, n.DocComment(), n.Abstract, constant, typeParams, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
 	if !ok {

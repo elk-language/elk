@@ -52,6 +52,30 @@ func (n *VariablePatternDeclarationNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *VariablePatternDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var pattern PatternNode
+	if n.Pattern != nil {
+		mapped, err := n.Pattern.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		pattern = mapped.(PatternNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewVariablePatternDeclarationNode(n.loc, pattern, init)
+
+	return fn(newNode, parent)
+}
+
 func (n *VariablePatternDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariablePatternDeclarationNode)
 	if !ok {

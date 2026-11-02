@@ -50,6 +50,17 @@ func (n *DeferExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *DeferExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewDeferExpressionNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *DeferExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DeferExpressionNode)
 	if !ok {

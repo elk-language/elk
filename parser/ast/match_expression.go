@@ -50,6 +50,22 @@ func (n *MatchExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *MatchExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expression, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMatchExpressionNode(n.loc, expression.(ExpressionNode), pattern.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *MatchExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MatchExpressionNode)
 	if !ok {

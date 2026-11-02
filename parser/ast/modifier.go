@@ -51,6 +51,22 @@ func (n *ModifierNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
+func (n *ModifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewModifierNode(n.loc, n.Modifier, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *ModifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierNode)
 	if !ok {
@@ -196,6 +212,32 @@ func (n *ModifierIfElseNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *ModifierIfElseNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := n.ThenExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	cond, err := n.Condition.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := n.ElseExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewModifierIfElseNode(
+		n.loc,
+		then.(ExpressionNode),
+		cond.(ExpressionNode),
+		els.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ModifierIfElseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModifierIfElseNode)
 	if !ok {
@@ -338,6 +380,32 @@ func (n *ModifierForInNode) traverse(parent Node, enter func(node, parent Node) 
 	}
 
 	return leave(n, parent)
+}
+
+func (n *ModifierForInNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := n.ThenExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	in, err := n.InExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewModifierForInNode(
+		n.loc,
+		then.(ExpressionNode),
+		pattern.(PatternNode),
+		in.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
 }
 
 func (n *ModifierForInNode) Equal(other value.Value) bool {

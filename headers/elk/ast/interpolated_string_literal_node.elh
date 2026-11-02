@@ -7,7 +7,7 @@ module Std::Elk::AST
             TypeNode,
             StringLiteralNode
 
-    init(content: ArrayTuple[StringLiteralContentNode], location: FS::Location = loop; end); end
+    init(content: Tuple[StringLiteralContentNode], location: FS::Location = loop; end); end
     pure def content: ArrayTuple[StringLiteralContentNode]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

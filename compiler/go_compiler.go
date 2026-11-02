@@ -17344,7 +17344,7 @@ func (c *GoCompiler) valueToGoSource(val value.Value, typ types.Type, allowMutab
 		)
 	case value.SYMBOL_FLAG:
 		return newGoValue(
-			c.emitSymbol(val.AsInlineSymbol().String()),
+			c.emitSymbol(val.AsSymbol().String()),
 			c.checker.Std(symbol.C_Symbol),
 			value.FetchGoType("value.Symbol"),
 		)

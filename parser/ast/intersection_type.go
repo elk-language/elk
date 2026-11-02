@@ -44,6 +44,17 @@ func (n *IntersectionTypeNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *IntersectionTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewIntersectionTypeNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *IntersectionTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntersectionTypeNode)
 	if !ok {

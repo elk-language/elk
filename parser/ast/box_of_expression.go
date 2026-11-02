@@ -42,6 +42,17 @@ func (n *BoxOfExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *BoxOfExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewBoxOfExpressionNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if this node equals the other node.
 func (n *BoxOfExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoxOfExpressionNode)

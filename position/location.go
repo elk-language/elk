@@ -76,6 +76,17 @@ func (l *Location) NewLocationFromStart() *Location {
 	}
 }
 
+// Create a new location from the end position of this location.
+func (l *Location) NewLocationFromEnd() *Location {
+	return &Location{
+		Span: NewSpan(
+			l.EndPos,
+			l.EndPos,
+		),
+		FilePath: l.FilePath,
+	}
+}
+
 // Create a new location with a given position.
 func NewLocation(filename string, span *Span) *Location {
 	return &Location{

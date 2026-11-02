@@ -3,10 +3,12 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 	"unsafe"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's native array list implementation
@@ -107,9 +109,13 @@ func (l *NativeArrayList[T]) CloneArrayList(capacity int) ArrayList {
 	return newList
 }
 
-func (l *NativeArrayList[T]) SliceArrayList(from, to int) ArrayList {
+func (l *NativeArrayList[T]) Slice(from, to int) *NativeArrayList[T] {
 	n := (*l)[from:to]
 	return &n
+}
+
+func (l *NativeArrayList[T]) SliceArrayList(from, to int) ArrayList {
+	return l.Slice(from, to)
 }
 
 func (l *NativeArrayList[T]) SliceArrayTuple(from, to int) ArrayTuple {
@@ -160,7 +166,7 @@ func (*NativeArrayList[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (l *NativeArrayList[T]) Copy() Reference {
+func (l *NativeArrayList[T]) Clone() *NativeArrayList[T] {
 	if l == nil {
 		return l
 	}
@@ -168,6 +174,27 @@ func (l *NativeArrayList[T]) Copy() Reference {
 	newList := make(NativeArrayList[T], len(*l))
 	copy(newList, *l)
 	return &newList
+}
+
+func (l *NativeArrayList[T]) ToNativeArrayList() *NativeArrayList[T] {
+	return l
+}
+
+func (l *NativeArrayList[T]) ToArrayList() ArrayList {
+	return l.ToNativeArrayList()
+}
+
+func (l *NativeArrayList[T]) ToArrayTuple() ArrayTuple {
+	tuple := slices.Clone(*l)
+	return &tuple
+}
+
+func (l *NativeArrayList[T]) ToSyncArrayList() SyncArrayList {
+	return &SyncNativeArrayList[T]{List: l.Clone()}
+}
+
+func (l *NativeArrayList[T]) Copy() Reference {
+	return l.Clone()
 }
 
 func (l *NativeArrayList[T]) Error() string {
@@ -244,20 +271,46 @@ func (l *NativeArrayList[T]) Capacity() int {
 	return cap(*l)
 }
 
-func (l *NativeArrayList[T]) RemoveAtErr(index int) Value {
-	index, err := NormalizeArrayIndex(index, l.Length())
+func (l *NativeArrayList[T]) RemoveAtVal(indexVal Value) Value {
+	index, ok := ToGoInt(indexVal)
+	if !ok {
+		if index == -1 {
+			return Ref(NewIndexOutOfRangeError(indexVal.Inspect(), len(*l)))
+		}
+		return Ref(NewCoerceError(IntClass, indexVal.Class()))
+	}
+
+	i, err := NormalizeArrayIndex(index, l.Length())
 	if !err.IsUndefined() {
 		return err
 	}
 
-	l.RemoveAt(index)
+	l.RemoveAt(i)
 	return Undefined
 }
 
 func (l *NativeArrayList[T]) RemoveAt(i int) {
-	s := *l
-	copy(s[i:], s[i+1:])
-	*l = s[:len(s)-1]
+	*l = slices.Delete(*l, i, i+1)
+}
+
+// RemoveAtRange removes the elements s[i..j] in place
+func (l *NativeArrayList[T]) RemoveAtRange(i, j int) {
+	*l = slices.Delete(*l, i, j+1)
+}
+
+// RemoveAtRangeErr removes the elements s[i..j] in place with index normalisation
+func (l *NativeArrayList[T]) RemoveAtRangeErr(i, j int) (err Value) {
+	i, err = NormalizeArrayIndex(i, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+	j, err = NormalizeArrayIndex(j, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+
+	l.RemoveAtRange(i, j)
+	return Undefined
 }
 
 func (l *NativeArrayList[T]) LeftCapacity() int {
@@ -297,6 +350,11 @@ func (l *NativeArrayList[T]) Get(index int) (T, Value) {
 	return GetFromSlice((*[]T)(l), index)
 }
 
+// Get an element under the given index.
+func (l *NativeArrayList[T]) GetOk(index int) (T, bool) {
+	return GetFromSliceOk((*[]T)(l), index)
+}
+
 // Get an element under the given index without bounds checking
 func (l *NativeArrayList[T]) At(i int) T {
 	return (*l)[i]
@@ -323,6 +381,26 @@ func (l *NativeArrayList[T]) Subscript(key Value) (t Value, err Value) {
 
 func (l *NativeArrayList[T]) SubscriptInt(key int) (t Value, err Value) {
 	return ToValueErr(l.Get(key))
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *NativeArrayList[T]) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val.ToValue(), Undefined
 }
 
 // Set an element under the given index.
@@ -372,29 +450,36 @@ func (l *NativeArrayList[T]) SubscriptSetInt(key int, val Value) Value {
 	return l.Set(key, v)
 }
 
+func (l *NativeArrayList[T]) ConcatValOk(other Value) (Value, bool) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeArrayList[T]:
+		newList := make(NativeArrayList[T], len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return Ref(&newList), true
+	case Tuple:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
+		for i, element := range *l {
+			newList[i] = element.ToValue()
+		}
+		for i, element := range o.Elements() {
+			newList[i+o.Length()] = element
+		}
+		return Ref(&newList), true
+	default:
+		return Undefined, false
+	}
+}
+
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
 func (l *NativeArrayList[T]) ConcatVal(other Value) (Value, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *NativeArrayList[T]:
-			newList := make(NativeArrayList[T], len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return Ref(&newList), Undefined
-		case ArrayTuple:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
-			for i, element := range *l {
-				newList[i] = element.ToValue()
-			}
-			for i, element := range o.Elements() {
-				newList[i+o.Length()] = element
-			}
-			return Ref(&newList), Undefined
-		}
+	result, ok := l.ConcatValOk(other)
+	if !ok {
+		return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
 	}
 
-	return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
+	return result, Undefined
 }
 
 // Repeat the content of this list n times and return a new list containing the result.
@@ -559,7 +644,7 @@ func (*NativeArrayListIterator[T]) InstanceVariables() *InstanceVariables {
 
 func (l *NativeArrayListIterator[T]) Next() (t T, err Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return t, stopIterationSymbol.ToValue()
+		return t, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]

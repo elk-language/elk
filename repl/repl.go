@@ -8,25 +8,27 @@ import (
 	"go/format"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/compiler/colorize"
-	"github.com/elk-language/elk/compiler/types"
+	compilerTypes "github.com/elk-language/elk/compiler/types"
 	"github.com/elk-language/elk/info"
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
-	"github.com/k0kubun/pp/v3"
 )
 
 type evaluator struct {
@@ -37,8 +39,9 @@ type evaluator struct {
 	sourceMap      map[string]string
 	inputIndex     int
 	elkTypechecker *checker.Checker
-	goTypechecker  *types.GoTypechecker
+	goTypechecker  *compilerTypes.GoTypechecker
 	prepend        []ast.StatementNode
+	prompt         *goprompt.Prompt
 }
 
 func (e *evaluator) sourceName() string {
@@ -116,15 +119,36 @@ func (e *evaluator) evaluate(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetAdditionalAbortChecks(true)
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 		e.vm = vm.New()
+
+		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
 	}
 
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.deepCopyPrepend())
-	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
-	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
-	e.prepend = e.usingToPrepend(using)
+	var fn *vm.BytecodeFunction
+	var dl diagnostic.DiagnosticList
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":s", ":stack":
+		e.vm.InspectValueStack()
+		return
+	case ":disassemble", ":disasm":
+		e.vm.Bytecode().DisassembleStdout()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+	default:
+		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+	}
 
 	if dl != nil {
 		fmt.Println()
@@ -141,7 +165,14 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}
 
-	eval := func(spinner *Spinner, cd SpinnerCaptureData) error {
+	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
+	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
+	e.prepend = e.usingToPrepend(using)
+
+	resultType := e.elkTypechecker.TypeOf(programNode)
+	e.elkTypechecker.DefineLocal("_", resultType, true, true)
+
+	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
 		defer markExecutionFinished()
 
@@ -200,17 +231,17 @@ func (e *evaluator) evaluate(input string) {
 	}
 
 	if e.programContainsBreakpoint(programNode) {
-		err := eval(nil, SpinnerCaptureData{})
+		err := eval(nil, prompt.SpinnerCaptureData{})
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		spinner := NewSpinner(os.Stdout, "compiling")
+		spinner := prompt.NewSpinner(os.Stdout, "compiling")
 		spinner.RunWithRestore(
-			func(cd SpinnerCaptureData) error {
+			func(cd prompt.SpinnerCaptureData) error {
 				return eval(spinner, cd)
 			},
-			func(cd SpinnerCaptureData) {
+			func(cd prompt.SpinnerCaptureData) {
 				e.vm.Stdout = cd.OriginalStdout
 				e.vm.Stderr = cd.OriginalStderr
 				cd.Restore()
@@ -224,9 +255,24 @@ func (e *evaluator) parse(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+	}
+
 	ast, dl := parser.Parse(sourceName, input)
 
-	pp.Println(ast)
+	fmt.Printf("%s\n", lexer.Colorize(ast.Inspect()))
+	// pp.Println(ast) // print Go structures
+
 	if dl != nil {
 		fmt.Println()
 
@@ -250,9 +296,28 @@ func (e *evaluator) disassemble(input string) {
 
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.prepend)
+
+	var fn *vm.BytecodeFunction
+	var dl diagnostic.DiagnosticList
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+	}
+
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -279,6 +344,19 @@ func (e *evaluator) disassemble(input string) {
 func (e *evaluator) transpile(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+	}
 
 	var buff bytes.Buffer
 	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField16{}, &buff, vm.DefaultThreadPool)
@@ -322,10 +400,22 @@ func (e *evaluator) native(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+	}
+
 	err := compileRunNative(sourceName, input)
 	if err != nil {
-		var dl diagnostic.DiagnosticList
-		if errors.As(err, &dl) {
+		if dl, ok := errors.AsType[diagnostic.DiagnosticList](err); ok {
 			fmt.Println()
 
 			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
@@ -344,8 +434,8 @@ func (e *evaluator) native(input string) {
 // Compile the input to a native binary and execute it.
 // A spinner stays on the last line until both phases finish.
 func compileRunNative(sourceName, input string) error {
-	spinner := NewSpinner(os.Stdout, "compiling")
-	return spinner.Run(func(SpinnerCaptureData) error {
+	spinner := prompt.NewSpinner(os.Stdout, "compiling")
+	return spinner.Run(func(prompt.SpinnerCaptureData) error {
 		binPath, err := elk.CompileSource(sourceName, input)
 		if err != nil {
 			return err
@@ -361,11 +451,24 @@ func (e *evaluator) typecheck(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+	}
+
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -400,11 +503,24 @@ func (e *evaluator) expand(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
+	default:
+	}
+
 	if e.elkTypechecker == nil {
 		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetIncremental(true)
+		e.elkTypechecker.SetREPL(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -435,7 +551,11 @@ func (e *evaluator) expand(input string) {
 // lexes the input and prints it to the output
 func (e *evaluator) lex(input string) {
 	tokens := lexer.Lex(input)
-	pp.Println(tokens)
+	for _, token := range tokens {
+		t := (*value.Token)(token)
+		fmt.Printf("%s\n", lexer.Colorize(t.Inspect()))
+	}
+	fmt.Println()
 }
 
 type Options struct {
@@ -450,10 +570,60 @@ type Options struct {
 }
 
 // Start the REPL.
-func Run(ctx context.Context, opts *Options) {
+func Run(ctx context.Context, opts *Options) error {
 	eval := newEvaluator(ctx, opts)
 	banner.Display()
-	prompt.Run(eval.executor)
+	elkDir, err := info.MustDotElkDir()
+	if err != nil {
+		return err
+	}
+
+	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
+	eval.prompt = prompt.New(
+		eval.executor,
+		goprompt.WithExitChecker(exitChecker),
+		goprompt.WithFSHistory(replHistoryFilePath),
+	)
+	eval.prompt.Run()
+
+	return nil
+}
+
+var helpBanner = `
+Elk REPL Help
+=============
+`
+
+var commandsHelp = `
+Available Commands:
+  :quit, :q, exit         Exit the program
+  :help, :h, help         Print this help message
+  :variables, :v          Inspect the currently available variables
+  :stack, :s              Inspect the values on the VM's stack
+  :disassemble, :disasm   Disassemble the bytecode of the previous input and print it
+  :clear, clear           Clear the screen
+`
+
+func printHelp() {
+	fmt.Print(helpBanner)
+	fmt.Print(prompt.KeyBindsHelp)
+	fmt.Println()
+	fmt.Print(commandsHelp)
+	fmt.Println()
+}
+
+func exitChecker(input string, breakline bool) bool {
+	if !breakline {
+		return false
+	}
+
+	switch input {
+	case ":q", ":quit", "exit":
+		os.Exit(0)
+		return true
+	default:
+		return false
+	}
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {
@@ -478,7 +648,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 		return
 	}
 	if opts.Transpile {
-		checker, err := types.NewGoTypechecker()
+		checker, err := compilerTypes.NewGoTypechecker()
 		if err != nil {
 			panic(fmt.Sprintf("go typechecker error: %s\n", err))
 		}

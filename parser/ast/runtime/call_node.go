@@ -12,19 +12,25 @@ func initCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argNilSafe := value.Truthy(args[2])
 
-			argPosArgsTuple := args[3].AsReference().(value.ArrayTuple)
-			argPosArgs := value.TransformArrayTupleIntoNativeArrayTuple(argPosArgsTuple, func(v value.Value) ast.ExpressionNode {
+			argPosArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.ExpressionNode {
 				return v.AsReference().(ast.ExpressionNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argPosArgs := argPosArgsTuple.ToSlice()
 
-			argNamedArgsTuple := args[4].AsReference().(value.ArrayTuple)
-			argNamedArgs := value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgsTuple, func(v value.Value) ast.NamedArgumentNode {
+			argNamedArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[4], func(v value.Value) ast.NamedArgumentNode {
 				return v.AsReference().(ast.NamedArgumentNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argNamedArgs := argNamedArgsTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[5].IsUndefined() {

@@ -128,7 +128,7 @@ func initValue() {
 			}
 
 			class := self.DirectClass()
-			name := args[1].AsInlineSymbol()
+			name := args[1].AsSymbol()
 			index, ok := class.IvarIndices.GetIndexOk(name)
 			if !ok {
 				return value.Undefined, value.Ref(
@@ -163,7 +163,7 @@ func initValue() {
 			}
 
 			class := self.DirectClass()
-			name := args[1].AsInlineSymbol()
+			name := args[1].AsSymbol()
 			index, ok := class.IvarIndices.GetIndexOk(name)
 			if !ok {
 				return value.Undefined, value.Ref(
@@ -183,6 +183,81 @@ func initValue() {
 		DefWithParameters(1),
 	)
 
+}
+
+func ValueSliceEqual(thread *Thread, a []value.Value, b []value.Value) (bool, value.Value) {
+	if len(a) != len(b) {
+		return false, value.Undefined
+	}
+
+	for i := range len(a) {
+		aEntry := a[i]
+		bEntry := b[i]
+
+		eq, err := Equal(thread, aEntry, bEntry)
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		if value.Falsy(eq) {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func NativeValueSliceEqual[V value.ValueInterface](thread *Thread, a []V, b []V) (bool, value.Value) {
+	if len(a) != len(b) {
+		return false, value.Undefined
+	}
+
+	for i := range len(a) {
+		aEntry := a[i]
+		bEntry := b[i]
+
+		eq, err := Equal(thread, aEntry.ToValue(), bEntry.ToValue())
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		if value.Falsy(eq) {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func PairSliceEqual(thread *Thread, a []value.PairOfValue, b []value.PairOfValue) (bool, value.Value) {
+	if len(a) != len(b) {
+		return false, value.Undefined
+	}
+
+	for i := range len(a) {
+		aEntry := a[i]
+		bEntry := b[i]
+
+		keyEq, err := Equal(thread, aEntry.Key(), bEntry.Key())
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		if value.Falsy(keyEq) {
+			return false, value.Undefined
+		}
+
+		valEq, err := Equal(thread, aEntry.Value(), bEntry.Value())
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		if value.Falsy(valEq) {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
 }
 
 func ObjectHash(val value.Value) value.UInt64 {

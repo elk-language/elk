@@ -44,6 +44,21 @@ func (n *TryExpressionNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *TryExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var val ExpressionNode
+	if n.Value != nil {
+		mapped, err := n.Value.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		val = mapped.(ExpressionNode)
+	}
+
+	newNode := NewTryExpressionNode(n.loc, val)
+
+	return fn(newNode, parent)
+}
+
 func (n *TryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TryExpressionNode)
 	if !ok {

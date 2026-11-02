@@ -6,7 +6,7 @@ module Std::Elk::AST
     include Node
 
     init(
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

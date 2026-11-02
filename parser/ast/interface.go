@@ -77,6 +77,31 @@ func (n *InterfaceDeclarationNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *InterfaceDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInterfaceDeclarationNode(n.loc, n.DocComment(), constant, typeParams, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *InterfaceDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InterfaceDeclarationNode)
 	if !ok {

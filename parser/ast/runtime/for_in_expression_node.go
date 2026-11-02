@@ -12,14 +12,17 @@ func initForInExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argPattern := args[1].MustReference().(ast.PatternNode)
 			argInExpression := args[2].MustReference().(ast.ExpressionNode)
 
-			argThenTuple := args[3].AsReference().(value.ArrayTuple)
-			argThen := value.TransformArrayTupleIntoNativeArrayTuple(argThenTuple, func(v value.Value) ast.StatementNode {
+			argThenTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.StatementNode {
 				return v.AsReference().(ast.StatementNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argThen := argThenTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[4].IsUndefined() {

@@ -6,6 +6,32 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
+func TestPairLiteral(t *testing.T) {
+	tests := testTable{
+		"create a pair": {
+			input: `
+				a := 1
+				var foo = a => 5
+				var b: 9 = foo
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(48, 4, 16), P(50, 4, 18)), "type `Std::Pair[Std::Int, Std::Int]` cannot be assigned to type `9`"),
+			},
+		},
+		"use pair literals in a constructor": {
+			input: `
+				OrderedHashMap(1 => 5, 20 => 0)
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestArrayTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"with explicit index from a variable": {

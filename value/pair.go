@@ -8,7 +8,7 @@ var PairClass *Class // ::Std::Pair
 var PairIteratorClass *Class
 
 type Pair interface {
-	ValueInterface
+	Reference
 	NativeIterable
 	Key() Value
 	SetKey(Value) Value

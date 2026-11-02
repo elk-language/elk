@@ -7,9 +7,9 @@ module Std::Elk::AST
 
     init(
       name: IdentifierNode,
-      parameters: ArrayTuple[ParameterNode] = loop; end,
+      parameters: Tuple[ParameterNode] = loop; end,
       return_type: TypeNode? = nil,
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       is_sealed: bool = false,
       doc_comment: String = "",
       location: FS::Location = loop; end,

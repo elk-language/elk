@@ -72,6 +72,27 @@ func (n *DoExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *DoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	catches, err := traverseMapSlice(n.Catches, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	finally, err := traverseMapSlice(n.Finally, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewDoExpressionNode(n.loc, body, catches, finally)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *DoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoExpressionNode)
@@ -310,6 +331,31 @@ func (n *CatchNode) traverse(parent Node, enter func(node, parent Node) Traverse
 	}
 
 	return leave(n, parent)
+}
+
+func (n *CatchNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var stackTraceVar IdentifierNode
+	if n.StackTraceVar != nil {
+		mapped, err := n.StackTraceVar.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		stackTraceVar = mapped.(IdentifierNode)
+	}
+
+	newNode := NewCatchNode(n.loc, pattern.(PatternNode), stackTraceVar, body)
+
+	return fn(newNode, parent)
 }
 
 func (n *CatchNode) Equal(other value.Value) bool {

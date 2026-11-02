@@ -6,7 +6,7 @@ module Std::Elk::AST
     include PatternNode
 
     init(
-      attributes: ArrayTuple[PatternNode] = loop; end,
+      attributes: Tuple[PatternNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

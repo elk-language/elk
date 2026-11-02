@@ -12,29 +12,38 @@ func initDoExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argBody []ast.StatementNode
 			if !args[1].IsUndefined() {
-				argBodyTuple := args[1].AsReference().(value.ArrayTuple)
-				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+				argBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argBody = argBodyTuple.ToSlice()
 			}
 
 			var argCatches []*ast.CatchNode
 			if !args[2].IsUndefined() {
-				argCatchesTuple := args[2].AsReference().(value.ArrayTuple)
-				argCatches = value.TransformArrayTupleIntoNativeArrayTuple(argCatchesTuple, func(v value.Value) *ast.CatchNode {
+				argCatchesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) *ast.CatchNode {
 					return v.AsReference().(*ast.CatchNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argCatches = argCatchesTuple.ToSlice()
 			}
 
 			var argFinally []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argFinallyTuple := args[3].AsReference().(value.ArrayTuple)
-				argFinally = value.TransformArrayTupleIntoNativeArrayTuple(argFinallyTuple, func(v value.Value) ast.StatementNode {
+				argFinallyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argFinally = argFinallyTuple.ToSlice()
 			}
 
 			var argLoc *position.Location

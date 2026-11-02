@@ -319,6 +319,7 @@ type Node interface {
 	MacroType(*types.GlobalEnvironment) types.Type
 	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
+	traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error)
 }
 
 // Create a deep copy of the AST node
@@ -341,6 +342,10 @@ func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave fun
 		leave = noopTraverse
 	}
 	node.traverse(nil, enter, leave)
+}
+
+func TraverseMap(node Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	return node.traverseMap(nil, fn)
 }
 
 func Iter(node Node) iter.Seq[Node] {
@@ -374,6 +379,23 @@ func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquot
 	}
 
 	return result
+}
+
+func traverseMapSlice[N Node](slice []N, parent Node, fn func(node, parent Node) (Node, error)) ([]N, error) {
+	if slice == nil {
+		return nil, nil
+	}
+
+	result := make([]N, len(slice))
+	for i, node := range slice {
+		mapped, err := node.traverseMap(parent, fn)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = mapped.(N)
+	}
+
+	return result, nil
 }
 
 type DocCommentableNode interface {

@@ -42,6 +42,17 @@ func (n *NotTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *NotTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typ, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNotTypeNode(n.loc, typ.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *NotTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NotTypeNode)
 	if !ok {

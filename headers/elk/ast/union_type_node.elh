@@ -5,7 +5,7 @@ module Std::Elk::AST
   sealed primitive class UnionTypeNode
     include TypeNode
 
-    init(elements: ArrayTuple[TypeNode], location: FS::Location = loop; end); end
+    init(elements: Tuple[TypeNode], location: FS::Location = loop; end); end
     pure def elements: ArrayTuple[TypeNode]; end
     pure def location: FS::Location; end
     pure def ==(other: any): bool; end

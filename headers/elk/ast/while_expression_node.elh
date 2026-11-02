@@ -7,7 +7,7 @@ module Std::Elk::AST
 
     init(
       condition: ExpressionNode,
-      then_body: ArrayTuple[StatementNode] = loop; end,
+      then_body: Tuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 

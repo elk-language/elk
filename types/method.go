@@ -151,7 +151,7 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type AstNode interface {
-	position.SpanInterface
+	position.LocationInterface
 }
 
 const (

@@ -1,6 +1,11 @@
 // Package info contains variables with useful info about the elk environment
 package info
 
+import (
+	"os"
+	"path/filepath"
+)
+
 // Contains the version of Elk currently in use
 var Version string
 var CurrentMode Mode
@@ -41,6 +46,30 @@ func init() {
 	if Version == "" {
 		Version = "dev"
 	}
+}
+
+// Compute the path to the `.elk` directory.
+func DotElkDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	historyPath := filepath.Join(home, ".elk")
+	return historyPath, nil
+}
+
+// Compute the path to the `.elk` directory.
+// If the directory does not exist, it gets created.
+func MustDotElkDir() (string, error) {
+	elkDir, err := DotElkDir()
+	if err != nil {
+		return "", err
+	}
+	err = os.MkdirAll(elkDir, 0o700)
+	if err != nil {
+		return "", err
+	}
+	return elkDir, nil
 }
 
 const Logo = `[38;5;239m [38;5;239m [38;5;239m¸[38;5;239m[[38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;103m¸[38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m [38;5;239m:[38;5;239m [38;5;239m [38;5;239m [38;5;146m:[38;5;239m¸[38;5;239m [38;5;239m [0m

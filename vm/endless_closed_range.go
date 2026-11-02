@@ -186,8 +186,8 @@ func EndlessClosedRangeIteratorAll(vm *Thread, i *value.EndlessClosedRangeIterat
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := EndlessClosedRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

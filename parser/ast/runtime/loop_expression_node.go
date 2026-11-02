@@ -12,11 +12,14 @@ func initLoopExpressionNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argThenBodyTuple := args[1].AsReference().(value.ArrayTuple)
-			argThenBody := value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
+			argThenBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.StatementNode {
 				return v.AsReference().(ast.StatementNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argThenBody := argThenBodyTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {

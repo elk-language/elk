@@ -13,12 +13,15 @@ func initInterpolatedRegexLiteralNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 
-			argContentTuple := args[1].AsReference().(value.ArrayTuple)
-			argContent := value.TransformArrayTupleIntoNativeArrayTuple(argContentTuple, func(v value.Value) ast.RegexLiteralContentNode {
+			argContentTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.RegexLiteralContentNode {
 				return v.AsReference().(ast.RegexLiteralContentNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argContent := argContentTuple.ToSlice()
 
 			var argFlags value.UInt8
 			if !args[2].IsUndefined() {

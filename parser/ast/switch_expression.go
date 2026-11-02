@@ -67,6 +67,27 @@ func (n *SwitchExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *SwitchExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	cases, err := traverseMapSlice(n.Cases, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := traverseMapSlice(n.ElseBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSwitchExpressionNode(n.loc, val.(ExpressionNode), cases, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
 	if !ok {
@@ -254,6 +275,22 @@ func (n *SwitchCaseNode) traverse(parent Node, enter func(node, parent Node) Tra
 	}
 
 	return leave(n, parent)
+}
+
+func (n *SwitchCaseNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSwitchCaseNode(n.loc, pattern.(PatternNode), body)
+
+	return fn(newNode, parent)
 }
 
 func (n *SwitchCaseNode) Equal(other value.Value) bool {

@@ -8,8 +8,8 @@ module Std::Elk::AST
     const PURE_FLAG: UInt8
 
     init(
-      parameters: ArrayTuple[ParameterNode] = loop; end,
-      body: ArrayTuple[StatementNode] = loop; end,
+      parameters: Tuple[ParameterNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       throw_type: TypeNode? = nil,
       flags: UInt8 = 0u8,
       doc_comment: String = "",

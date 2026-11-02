@@ -7,7 +7,7 @@ module Std::Elk::AST
 
     init(
       constant: ComplexConstantNode,
-      type_parameters: ArrayTuple[TypeParameterNode],
+      type_parameters: Tuple[TypeParameterNode],
       type_node: TypeNode,
       doc_comment: String = "",
       location: FS::Location = loop; end,

@@ -12,7 +12,7 @@ func initScopedMacroCallNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argMacroName := args[2].MustReference().(ast.IdentifierNode)
 
@@ -23,18 +23,24 @@ func initScopedMacroCallNode() {
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[4].IsUndefined() {
-				argPositionalArgumentsTuple := args[4].AsReference().(value.ArrayTuple)
-				argPositionalArguments = value.TransformArrayTupleIntoNativeArrayTuple(argPositionalArgumentsTuple, func(v value.Value) ast.ExpressionNode {
+				argPositionalArgumentsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[4], func(v value.Value) ast.ExpressionNode {
 					return v.AsReference().(ast.ExpressionNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argPositionalArguments = argPositionalArgumentsTuple.ToSlice()
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[5].IsUndefined() {
-				argNamedArgumentsTuple := args[5].AsReference().(value.ArrayTuple)
-				argNamedArguments = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgumentsTuple, func(v value.Value) ast.NamedArgumentNode {
+				argNamedArgumentsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[5], func(v value.Value) ast.NamedArgumentNode {
 					return v.AsReference().(ast.NamedArgumentNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argNamedArguments = argNamedArgumentsTuple.ToSlice()
 			}
 
 			var argLoc *position.Location

@@ -45,6 +45,17 @@ func (n *UnaryExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *UnaryExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnaryExpressionNode(n.loc, n.Op, right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UnaryExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryExpressionNode)
 	if !ok {

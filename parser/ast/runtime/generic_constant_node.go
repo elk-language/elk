@@ -12,13 +12,16 @@ func initGenericConstantNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argConst := args[1].MustReference().(ast.ComplexConstantNode)
 
-			argArgsTuple := args[2].AsReference().(value.ArrayTuple)
-			argArgs := value.TransformArrayTupleIntoNativeArrayTuple(argArgsTuple, func(v value.Value) ast.TypeNode {
+			argArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.TypeNode {
 				return v.AsReference().(ast.TypeNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argArgs := argArgsTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {

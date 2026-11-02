@@ -39,6 +39,31 @@ func (n *InstanceVariableDeclarationNode) traverse(parent Node, enter func(node,
 	return leave(n, parent)
 }
 
+func (n *InstanceVariableDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	newNode := NewInstanceVariableDeclarationNode(
+		n.loc,
+		n.DocComment(),
+		name.(InstanceVariableNode),
+		typ,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *InstanceVariableDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	name := n.Name.splice(loc, args, unquote).(InstanceVariableNode)
 
@@ -202,6 +227,26 @@ func (n *InstanceValueDeclarationNode) traverse(parent Node, enter func(node, pa
 	}
 
 	return leave(n, parent)
+}
+
+func (n *InstanceValueDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	newNode := NewInstanceValueDeclarationNode(n.loc, n.DocComment(), name.(InstanceVariableNode), typ)
+
+	return fn(newNode, parent)
 }
 
 func (n *InstanceValueDeclarationNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {

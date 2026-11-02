@@ -85,6 +85,44 @@ func (n *NumericForExpressionNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *NumericForExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	var cond ExpressionNode
+	if n.Condition != nil {
+		mapped, err := n.Condition.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		cond = mapped.(ExpressionNode)
+	}
+
+	var incr ExpressionNode
+	if n.Increment != nil {
+		mapped, err := n.Increment.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		incr = mapped.(ExpressionNode)
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNumericForExpressionNode(n.loc, init, cond, incr, then)
+
+	return fn(newNode, parent)
+}
+
 func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
 	if !ok {

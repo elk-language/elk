@@ -3,10 +3,12 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 	"unsafe"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's native array tuple implementation
@@ -136,6 +138,23 @@ func (t *NativeArrayTuple[T]) Copy() Reference {
 	return t
 }
 
+func (t *NativeArrayTuple[T]) ToNativeArrayList() *NativeArrayList[T] {
+	list := NativeArrayList[T](slices.Clone(*t))
+	return &list
+}
+
+func (t *NativeArrayTuple[T]) ToArrayList() ArrayList {
+	return t.ToNativeArrayList()
+}
+
+func (t *NativeArrayTuple[T]) ToSyncNativeArrayList() *SyncNativeArrayList[T] {
+	return &SyncNativeArrayList[T]{List: t.ToNativeArrayList()}
+}
+
+func (t *NativeArrayTuple[T]) ToSyncArrayList() SyncArrayList {
+	return t.ToSyncNativeArrayList()
+}
+
 func (t *NativeArrayTuple[T]) ToSlice() []T {
 	return *t
 }
@@ -251,6 +270,11 @@ func (t *NativeArrayTuple[T]) Get(index int) (T, Value) {
 	return GetFromSlice((*[]T)(t), index)
 }
 
+// Get an element under the given index.
+func (t *NativeArrayTuple[T]) GetOk(index int) (T, bool) {
+	return GetFromSliceOk((*[]T)(t), index)
+}
+
 // Get an element under the given index without bounds checking.
 func (t *NativeArrayTuple[T]) At(i int) T {
 	return (*t)[i]
@@ -278,6 +302,26 @@ func (t *NativeArrayTuple[T]) Subscript(key Value) (Value, Value) {
 // Get an element under the given index.
 func (t *NativeArrayTuple[T]) SubscriptInt(key int) (Value, Value) {
 	return ToValueErr(t.Get(key))
+}
+
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *NativeArrayTuple[T]) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val.ToValue(), Undefined
 }
 
 // Set an element under the given index.
@@ -308,38 +352,45 @@ func (t *NativeArrayTuple[T]) SubscriptSet(key, val Value) Value {
 	return t.Set(i, val.ToInterface().(T))
 }
 
+func (t *NativeArrayTuple[T]) ConcatValOk(other Value) (Value, bool) {
+	switch o := other.SafeAsReference().(type) {
+	case *NativeArrayTuple[T]:
+		newTuple := make(NativeArrayTuple[T], len(*t), len(*t)+len(*o))
+		copy(newTuple, *t)
+		newTuple = append(newTuple, *o...)
+		return Ref(&newTuple), true
+	case ArrayList:
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
+		for i, element := range *t {
+			newTuple[i] = element.ToValue()
+		}
+		for i, element := range o.Elements() {
+			newTuple[i+o.Length()] = element
+		}
+		return Ref(&newTuple), true
+	case Tuple:
+		newTuple := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
+		for i, element := range *t {
+			newTuple[i] = element.ToValue()
+		}
+		for i, element := range o.Elements() {
+			newTuple[i+o.Length()] = element
+		}
+		return Ref(&newTuple), true
+	default:
+		return Undefined, false
+	}
+}
+
 // Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
 func (t *NativeArrayTuple[T]) ConcatVal(other Value) (Value, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *NativeArrayTuple[T]:
-			newList := make(NativeArrayTuple[T], len(*t), len(*t)+len(*o))
-			copy(newList, *t)
-			newList = append(newList, *o...)
-			return Ref(&newList), Undefined
-		case ArrayList:
-			newList := make(ArrayListOfValue, len(*t), len(*t)+o.Length())
-			for i, element := range *t {
-				newList[i] = element.ToValue()
-			}
-			for i, element := range o.Elements() {
-				newList[i+o.Length()] = element
-			}
-			return Ref(&newList), Undefined
-		case ArrayTuple:
-			newList := make(ArrayTupleOfValue, len(*t), len(*t)+o.Length())
-			for i, element := range *t {
-				newList[i] = element.ToValue()
-			}
-			for i, element := range o.Elements() {
-				newList[i+o.Length()] = element
-			}
-			return Ref(&newList), Undefined
-		}
+	result, ok := t.ConcatValOk(other)
+	if !ok {
+		return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
 	}
 
-	return Undefined, Ref(Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect()))
+	return result, Undefined
 }
 
 // Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.
@@ -477,7 +528,7 @@ func (*NativeArrayTupleIterator[T]) InstanceVariables() *InstanceVariables {
 
 func (t *NativeArrayTupleIterator[T]) Next() (r T, err Value) {
 	if t.Index >= t.ArrayTuple.Length() {
-		return r, stopIterationSymbol.ToValue()
+		return r, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*t.ArrayTuple)[t.Index]

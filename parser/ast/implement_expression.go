@@ -44,6 +44,17 @@ func (n *ImplementExpressionNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *ImplementExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	consts, err := traverseMapSlice(n.Constants, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewImplementExpressionNode(n.loc, consts)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ImplementExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ImplementExpressionNode)

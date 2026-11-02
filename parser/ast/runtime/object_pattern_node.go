@@ -12,15 +12,18 @@ func initObjectPatternNode() {
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argObjectType := args[1].MustReference().(ast.ComplexConstantNode)
 
 			var argAttributes []ast.PatternNode
 			if !args[2].IsUndefined() {
-				argAttributesTuple := args[2].AsReference().(value.ArrayTuple)
-				argAttributes = value.TransformArrayTupleIntoNativeArrayTuple(argAttributesTuple, func(v value.Value) ast.PatternNode {
+				argAttributesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.PatternNode {
 					return v.AsReference().(ast.PatternNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argAttributes = argAttributesTuple.ToSlice()
 			}
 
 			var argLoc *position.Location

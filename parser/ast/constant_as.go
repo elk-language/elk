@@ -45,6 +45,17 @@ func (n *ConstantAsNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *ConstantAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewConstantAsNode(n.loc, constant.(ComplexConstantNode), n.AsName)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ConstantAsNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantAsNode)

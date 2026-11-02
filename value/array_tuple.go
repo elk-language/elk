@@ -14,16 +14,30 @@ var ArrayTupleClass *Class
 // ArrayTuple iterator class.
 var ArrayTupleIteratorClass *Class
 
-type ArrayTuple interface {
+type Tuple interface {
 	ValueInterface
 	NativeIterable
 	Elements() iter.Seq2[int, Value]
 	Length() int
-	ImmutableBoxOfVal(index Value) (Value, Value)
+	// does not normalize the index for negative values
+	// does not do bounds checking
 	AtVal(int) Value
+}
+
+type ArrayTuple interface {
+	Tuple
+	ImmutableBoxOfVal(index Value) (Value, Value)
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns an elk error
 	SubscriptInt(index int) (Value, Value)
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns an elk error
 	Subscript(index Value) (Value, Value)
+	// normalizes the index so that `-1` becomes `length-1`
+	// does bounds checking and returns elk `nil` if the index is out of range
+	TryAtVal(Value) (Value, Value)
 	ConcatVal(Value) (Value, Value)
+	ConcatValOk(Value) (Value, bool)
 	RepeatVal(Value) (Value, Value)
 	IterTuple() ArrayTupleIterator
 	NewArrayTuple(capacity int) ArrayTuple
@@ -32,6 +46,8 @@ type ArrayTuple interface {
 
 	SubscriptSet(key, val Value) Value
 	AppendVal(elements ...Value) Value
+	ToArrayList() ArrayList
+	ToSyncArrayList() SyncArrayList
 }
 
 type ArrayTupleIterator interface {

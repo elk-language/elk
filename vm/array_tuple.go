@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -11,11 +13,53 @@ func initArrayTuple() {
 	c := value.ArrayTupleClass
 	Def(
 		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*value.ArrayTupleOfValue)
+			entries := args[1]
+
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				self.AppendVal(entry)
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
 		"iter",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayTuple)
 			iterator := self.IterTuple()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_array_tuple",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayTuple)
+			return self.ToArrayList().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayTuple)
+			return self.ToSyncArrayList().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -37,13 +81,25 @@ func initArrayTuple() {
 		DefWithParameters(1),
 	)
 	Alias(c, "at", "[]")
+
 	Def(
 		c,
-		"+",
+		"try_at",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayTuple)
 			other := args[1]
-			return self.ConcatVal(other)
+			return self.TryAtVal(other)
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"+",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayTuple)
+			other := args[1]
+			return ArrayTupleConcat(thread, self, other)
 		},
 		DefWithParameters(1),
 	)
@@ -72,22 +128,13 @@ func initArrayTuple() {
 		"=~",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayTuple)
-			switch other := args[1].SafeAsReference().(type) {
-			case value.ArrayList:
-				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			case value.ArrayTuple:
-				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			default:
-				return value.False.ToValue(), value.Undefined
+			other := args[1]
+			eq, err := TupleLaxEqualValue(vm, self, other)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
 			}
+
+			return value.Bool(eq).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -98,7 +145,7 @@ func initArrayTuple() {
 			self := args[0].AsReference().(value.ArrayTuple)
 			switch other := args[1].SafeAsReference().(type) {
 			case value.ArrayTuple:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := TupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -178,14 +225,14 @@ func initArrayTupleIterator() {
 
 }
 
-func ArrayTupleEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
+func TupleEqual(vm *Thread, x, y value.Tuple) (bool, value.Value) {
 	xLen := x.Length()
 	if xLen != y.Length() {
 		return false, value.Undefined
 	}
 
 	for i := 0; i < xLen; i++ {
-		equal, err := vm.CallMethodByName(value.S(symbol.OpEqual), x.AtVal(i), y.AtVal(i))
+		equal, err := Equal(vm, x.AtVal(i), y.AtVal(i))
 		if !err.IsUndefined() {
 			return false, err
 		}
@@ -194,4 +241,159 @@ func ArrayTupleEqual(vm *Thread, x, y value.ArrayTuple) (bool, value.Value) {
 		}
 	}
 	return true, value.Undefined
+}
+
+func ArrayTupleLaxEqual(vm *Thread, x, y value.Tuple) (bool, value.Value) {
+	xLen := x.Length()
+	if xLen != y.Length() {
+		return false, value.Undefined
+	}
+
+	for i := 0; i < xLen; i++ {
+		equal, err := LaxEqual(vm, x.AtVal(i), y.AtVal(i))
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if value.Falsy(equal) {
+			return false, value.Undefined
+		}
+	}
+	return true, value.Undefined
+}
+
+func TupleLaxEqualValue(vm *Thread, x value.Tuple, y value.Value) (bool, value.Value) {
+	switch narrowY := y.SafeAsReference().(type) {
+	case value.Tuple:
+		return ArrayTupleLaxEqual(vm, x, narrowY)
+	default:
+		if !value.IsA(y, value.TupleMixin) {
+			return false, value.Undefined
+		}
+
+		yLengthVal, err := vm.CallMethodByName(value.S(symbol.L_length), y)
+		if err.IsNotUndefined() {
+			return false, err
+		}
+
+		yLength := yLengthVal.AsInt()
+		if x.Length() != yLength {
+			return false, value.Undefined
+		}
+
+		i := 0
+		for yVal, err := range Iterate(vm, y) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			xVal := x.AtVal(i)
+			eq, err := LaxEqual(vm, xVal, yVal)
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+			i++
+		}
+
+		return true, value.Undefined
+	}
+}
+
+func ArrayTupleConcat(thread *Thread, l value.ArrayTuple, other value.Value) (value.Value, value.Value) {
+	switch l := l.(type) {
+	case *value.ArrayTupleOfValue:
+		return ArrayTupleOfValueConcat(thread, l, other)
+	case value.ArrayTuple:
+		return ArrayTupleInterfaceConcat(thread, l, other)
+	default:
+		panic(fmt.Sprintf("invalid arraytuple type for concat: %T", l))
+	}
+}
+
+func ArrayTupleOfValueConcat(thread *Thread, l *value.ArrayTupleOfValue, other value.Value) (value.Value, value.Value) {
+	result, ok := l.ConcatValOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+	length := len(*l)
+
+	newList := make(value.ArrayTupleOfValue, length, length)
+	copy(newList, *l)
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		newList[length+i] = element
+		i++
+	}
+
+	return (&newList).ToValue(), value.Undefined
+}
+
+func ArrayTupleInterfaceConcat(thread *Thread, l value.ArrayTuple, other value.Value) (value.Value, value.Value) {
+	result, ok := l.ConcatValOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+
+	length := l.Length()
+	newList := make(value.ArrayTupleOfValue, length, length)
+	for i, element := range l.Elements() {
+		newList[i] = element
+	}
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		newList[length+i] = element
+		i++
+	}
+
+	return (&newList).ToValue(), value.Undefined
+}
+
+// Transform any elk Tuple value to a new Elk `NativeArrayTuple` with Elk types
+// using the given function.
+// eg.
+//
+//	TransformValueIntoNativeArrayTuple(thread, m, func(v value.Value) (value.UInt8) {
+//		return value.UInt8(v)
+//	})
+func TransformTupleValueIntoNativeArrayTuple[T value.ValueInterface](
+	thread *Thread,
+	val value.Value,
+	fn func(v value.Value) T,
+) (*value.NativeArrayTuple[T], value.Value) {
+	switch v := val.SafeAsReference().(type) {
+	case *value.NativeArrayTuple[T]:
+		return v, value.Undefined
+	}
+
+	vLengthVal, err := thread.CallMethodByName(value.S(symbol.L_length), val)
+	if err.IsNotUndefined() {
+		return nil, err
+	}
+
+	vLength := vLengthVal.AsInt()
+	newList := value.NewNativeArrayTupleWithLength[T](vLength)
+	i := 0
+	for v, err := range Iterate(thread, val) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		ov := fn(v)
+		newList.SetAt(i, ov)
+		i++
+	}
+	return newList, value.Undefined
 }
