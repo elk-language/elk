@@ -136,6 +136,29 @@ func initString() {
 		DefWithParameters(1),
 	)
 	Alias(c, "[]", "char_at")
+
+	Def(
+		c,
+		"starts_with",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(value.String)
+			other := args[1].MustReference().(value.String)
+			return value.BoolVal(self.StartsWith(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
+	Def(
+		c,
+		"ends_with",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(value.String)
+			other := args[1].MustReference().(value.String)
+			return value.BoolVal(self.EndsWith(other)), value.Undefined
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"byte_at",

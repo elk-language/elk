@@ -160,6 +160,14 @@ func (s String) ReverseGraphemes() String {
 	return String(uniseg.ReverseString(string(s)))
 }
 
+func (s String) StartsWith(prefix String) bool {
+	return strings.HasPrefix(string(s), string(prefix))
+}
+
+func (s String) EndsWith(suffix String) bool {
+	return strings.HasSuffix(string(s), string(suffix))
+}
+
 func (s String) RJust(targetLen int, padding Char) String {
 	if len(s) >= targetLen {
 		return s

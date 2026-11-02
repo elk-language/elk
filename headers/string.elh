@@ -63,6 +63,18 @@ sealed noinit primitive class ::Std::String
 	pure def grapheme_at(index: AnyInt): String; end
 
 	##[
+		Returns `true` if the string starts
+		with the given prefix.
+	]##
+	pure def starts_with(prefix: String): bool; end
+
+	##[
+		Returns `true` if the string ends
+		with the given suffix.
+	]##
+	pure def ends_with(suffix: String): bool; end
+
+	##[
 		Create a new string with all of the characters
 		of this one turned into uppercase.
 	]##
