@@ -104,7 +104,6 @@ func NewBreakpointChecker(context *compiler.BytecodeBreakpointContext) *Checker 
 		runtimeEnv:     checkerContext.runtimeEnv,
 		threadPool:     vm.DefaultThreadPool,
 	}
-	c.SetREPL(true)
 
 	c.compiler = compiler.CreateBreakpointCompiler(c, context, c.Errors)
 

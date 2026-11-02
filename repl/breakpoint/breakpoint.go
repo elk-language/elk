@@ -14,7 +14,6 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
-	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -220,8 +219,6 @@ func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) error {
 	if err != nil {
 		return err
 	}
-
-	eval.elkTypechecker.DefineLocal("_", types.Any{}, true, true)
 
 	eval.prompt = p
 	p.Run()
