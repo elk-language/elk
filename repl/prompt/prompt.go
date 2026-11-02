@@ -7,7 +7,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/token"
-	"github.com/elk-language/go-prompt"
+	goprompt "github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
 )
 
@@ -21,7 +21,7 @@ func (l *Lexer) Init(input string) {
 	l.Lexer = *lexer.New(input)
 }
 
-func (l *Lexer) Next() (prompt.Token, bool) {
+func (l *Lexer) Next() (goprompt.Token, bool) {
 	t := l.Lexer.Next()
 	if t.Type == token.END_OF_FILE {
 		return nil, false
@@ -31,21 +31,134 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 }
 
 // Start the REPL.
-func Run(executor prompt.Executor, opts ...prompt.Option) {
+func Run(executor goprompt.Executor, opts ...goprompt.Option) {
 	opts = append(
-		[]prompt.Option{
-			prompt.WithLexer(&Lexer{}),
-			prompt.WithExecuteOnEnterCallback(executeOnEnter),
-			prompt.WithPrefix(">> "),
+		[]goprompt.Option{
+			goprompt.WithLexer(&Lexer{}),
+			goprompt.WithExecuteOnEnterCallback(executeOnEnter),
+			goprompt.WithPrefix(">> "),
+			goprompt.WithKeyBindMode(goprompt.CustomOverrideEmacsKeyBind),
+			goprompt.WithKeyBind(
+				goprompt.KeyBind{
+					Key: goprompt.AltRight,
+					Fn:  cursorRight,
+				},
+				goprompt.KeyBind{
+					Key: goprompt.AltLeft,
+					Fn:  cursorLeft,
+				},
+				goprompt.KeyBind{
+					Key: goprompt.AltBackspace,
+					Fn:  deleteWord,
+				},
+				goprompt.KeyBind{
+					Key: goprompt.ControlW,
+					Fn:  deleteWord,
+				},
+			),
 		},
 		opts...,
 	)
 
-	p := prompt.New(
+	p := goprompt.New(
 		executor,
 		opts...,
 	)
 	p.Run()
+}
+
+func cursorRight(p *goprompt.Prompt) bool {
+	doc := p.Buffer().Document()
+	cursorByteOffset := doc.CursorByteOffset()
+	line := doc.CurrentLine()
+
+	var rightBytes pstrings.ByteNumber
+	lex := lexer.New(line)
+	for {
+		token := lex.Next()
+		if token.IsEndOfFile() {
+			break
+		}
+		endPos := token.Location().EndPos
+		if endPos.ByteOffset >= int(cursorByteOffset) {
+			rightBytes = pstrings.ByteNumber(endPos.ByteOffset) - cursorByteOffset
+			break
+		}
+	}
+
+	return p.CursorRightBytes(rightBytes + 1)
+}
+
+func cursorLeft(p *goprompt.Prompt) bool {
+	doc := p.Buffer().Document()
+	cursorByteOffset := doc.CursorByteOffset()
+	line := doc.CurrentLine()
+
+	lex := lexer.New(line)
+	var prevToken *token.Token
+	var cursorToken *token.Token
+
+	for {
+		token := lex.Next()
+		cursorToken = token
+		if token.IsEndOfFile() {
+			break
+		}
+		endByteOffset := pstrings.ByteNumber(token.Location().EndPos.ByteOffset)
+		if endByteOffset >= cursorByteOffset {
+			break
+		}
+		prevToken = token
+	}
+
+	if prevToken != nil {
+		startOfPreviousToken := pstrings.ByteNumber(prevToken.Location().StartPos.ByteOffset)
+		return p.CursorLeftBytes(cursorByteOffset - startOfPreviousToken)
+	}
+
+	startOfCurrentToken := pstrings.ByteNumber(cursorToken.Location().StartPos.ByteOffset)
+	return p.CursorLeftBytes(cursorByteOffset - startOfCurrentToken)
+}
+
+func deleteWord(p *goprompt.Prompt) bool {
+	buf := p.Buffer()
+	doc := buf.Document()
+	cursorByteOffset := doc.CursorByteOffset()
+	line := doc.CurrentLine()
+
+	lex := lexer.New(line)
+	var prevToken *token.Token
+	var cursorToken *token.Token
+
+	for {
+		token := lex.Next()
+		cursorToken = token
+		if token.IsEndOfFile() {
+			break
+		}
+		endByteOffset := pstrings.ByteNumber(token.Location().EndPos.ByteOffset)
+		if endByteOffset >= cursorByteOffset {
+			break
+		}
+		prevToken = token
+	}
+
+	var token *token.Token
+	if prevToken != nil {
+		token = prevToken
+	} else {
+		token = cursorToken
+	}
+
+	startByte := token.Location().StartPos.ByteOffset
+	endByte := token.Location().EndPos.ByteOffset
+	runeCount := pstrings.RuneCountInString(doc.Text[startByte : endByte+1])
+	buf.DeleteBeforeCursorRunes(
+		runeCount,
+		p.TerminalColumns(),
+		p.TerminalRows(),
+	)
+	return true
 }
 
 // A Set of keywords that end a block of code
@@ -65,7 +178,7 @@ var blockSeparatorKeywords = ds.MakeSet(
 // Callback triggered when the Enter key is pressed.
 // Decides whether the input is complete and should be executed
 // or whether a newline with indentation should be added to the buffer.
-func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool) {
+func executeOnEnter(pr *goprompt.Prompt, indentSize int) (indent int, execute bool) {
 	doc := pr.Buffer().Document()
 	var input string
 	if doc.OnLastLine() {

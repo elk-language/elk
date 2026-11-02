@@ -8,6 +8,7 @@ import (
 	"go/format"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -451,10 +452,21 @@ type Options struct {
 }
 
 // Start the REPL.
-func Run(ctx context.Context, opts *Options) {
+func Run(ctx context.Context, opts *Options) error {
 	eval := newEvaluator(ctx, opts)
 	banner.Display()
-	prompt.Run(eval.executor)
+	elkDir, err := info.MustDotElkDir()
+	if err != nil {
+		return err
+	}
+
+	replHistoryFilePath := filepath.Join(elkDir, ".repl-history")
+	prompt.Run(
+		eval.executor,
+		goprompt.WithFSHistory(replHistoryFilePath),
+	)
+
+	return nil
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {

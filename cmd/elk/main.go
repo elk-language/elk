@@ -62,7 +62,10 @@ func replCommand() *cobra.Command {
 		Short: "Start an interactive Elk session",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			repl.Run(context.Background(), opts)
+			err := repl.Run(context.Background(), opts)
+			if err != nil {
+				panic(fmt.Sprintf("repl error: %s", err))
+			}
 		},
 	}
 
