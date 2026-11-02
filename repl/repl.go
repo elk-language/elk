@@ -28,7 +28,6 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
-	"github.com/k0kubun/pp/v3"
 )
 
 type evaluator struct {
@@ -259,7 +258,9 @@ func (e *evaluator) parse(input string) {
 
 	ast, dl := parser.Parse(sourceName, input)
 
-	pp.Println(ast)
+	fmt.Printf("%s\n", lexer.Colorize(ast.Inspect()))
+	// pp.Println(ast) // print Go structures
+
 	if dl != nil {
 		fmt.Println()
 
@@ -523,7 +524,11 @@ func (e *evaluator) expand(input string) {
 // lexes the input and prints it to the output
 func (e *evaluator) lex(input string) {
 	tokens := lexer.Lex(input)
-	pp.Println(tokens)
+	for _, token := range tokens {
+		t := (*value.Token)(token)
+		fmt.Printf("%s\n", lexer.Colorize(t.Inspect()))
+	}
+	fmt.Println()
 }
 
 type Options struct {
