@@ -517,7 +517,14 @@ func (c *BytecodeCompiler) InitExpressionCompiler(location *position.Location) C
 
 func (c *BytecodeCompiler) CompileExpressionsInFile(node *ast.ProgramNode) {
 	c.hasDefer = node.HasDefer
-	c.defineLocal("_", nil)
+	if c.isREPL {
+		// `_` is pushed by the REPL VM, so it must not be allocated again.
+		localsBefore := c.maxLocalIndex
+		c.defineLocal("_", nil)
+		if c.maxLocalIndex != localsBefore {
+			c.predefinedLocals++
+		}
+	}
 	c.compileProgram(node)
 }
 

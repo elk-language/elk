@@ -172,7 +172,7 @@ func (e *evaluator) evaluate(input string) {
 	resultType := e.elkTypechecker.TypeOf(programNode)
 	e.elkTypechecker.DefineLocal("_", resultType, true, true)
 
-	eval := func(spinner *Spinner, cd SpinnerCaptureData) error {
+	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
 		defer markExecutionFinished()
 
@@ -231,17 +231,17 @@ func (e *evaluator) evaluate(input string) {
 	}
 
 	if e.programContainsBreakpoint(programNode) {
-		err := eval(nil, SpinnerCaptureData{})
+		err := eval(nil, prompt.SpinnerCaptureData{})
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		spinner := NewSpinner(os.Stdout, "compiling")
+		spinner := prompt.NewSpinner(os.Stdout, "compiling")
 		spinner.RunWithRestore(
-			func(cd SpinnerCaptureData) error {
+			func(cd prompt.SpinnerCaptureData) error {
 				return eval(spinner, cd)
 			},
-			func(cd SpinnerCaptureData) {
+			func(cd prompt.SpinnerCaptureData) {
 				e.vm.Stdout = cd.OriginalStdout
 				e.vm.Stderr = cd.OriginalStderr
 				cd.Restore()
@@ -434,8 +434,8 @@ func (e *evaluator) native(input string) {
 // Compile the input to a native binary and execute it.
 // A spinner stays on the last line until both phases finish.
 func compileRunNative(sourceName, input string) error {
-	spinner := NewSpinner(os.Stdout, "compiling")
-	return spinner.Run(func(SpinnerCaptureData) error {
+	spinner := prompt.NewSpinner(os.Stdout, "compiling")
+	return spinner.Run(func(prompt.SpinnerCaptureData) error {
 		binPath, err := elk.CompileSource(sourceName, input)
 		if err != nil {
 			return err

@@ -10,9 +10,11 @@ import (
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -25,13 +27,15 @@ func init() {
 }
 
 type evaluator struct {
-	thread          *vm.Thread
-	elkTypechecker  *checker.Checker
-	checkerContext  *checker.BreakpointContext
-	compilerContext *compiler.BytecodeBreakpointContext
-	sourceMap       map[string]string
-	inputIndex      int
-	prompt          *goprompt.Prompt
+	thread                  *vm.Thread
+	elkTypechecker          *checker.Checker
+	checkerContext          *checker.BreakpointContext
+	compilerContext         *compiler.BytecodeBreakpointContext
+	sourceMap               map[string]string
+	inputIndex              int
+	prompt                  *goprompt.Prompt
+	underscoreVariableIndex int
+	prepend                 []ast.StatementNode
 }
 
 func (e *evaluator) sourceName() string {
@@ -92,7 +96,7 @@ func (e *evaluator) evaluate(input string) {
 		e.prompt.ClearScreen()
 		return
 	default:
-		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input)
+		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input, e.deepCopyPrepend())
 	}
 
 	if dl != nil {
@@ -110,13 +114,56 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}
 
-	value, runtimeErr := e.thread.InterpretBreakpoint(fn)
+	programNode, ok := e.elkTypechecker.ASTCache.Get(sourceName)
+	if ok {
+		using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
+		e.prepend = e.usingToPrepend(using)
+	}
+
+	startTime := value.TimeNow()
+	val, runtimeErr := e.thread.InterpretBreakpoint(fn)
 	if !runtimeErr.IsUndefined() {
 		e.thread.PrintError()
 		e.thread.ResetError()
 		return
 	}
-	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
+	duration := value.TimeSince(startTime)
+	fmt.Printf("=> %s\n", lexer.Colorize(val.Inspect()))
+	fmt.Printf("?: %s\n\n", duration.String())
+}
+
+func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
+	if len(using) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(using))
+
+	for i, usingElement := range using {
+		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
+		copy.SetType(nil)
+
+		result[i] = ast.NewExpressionStatementNode(
+			copy.Location(),
+			copy,
+		)
+	}
+
+	return result
+}
+
+func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
+	if len(e.prepend) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(e.prepend))
+
+	for i, statement := range e.prepend {
+		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
+	}
+
+	return result
 }
 
 func printHelp() {
@@ -173,6 +220,8 @@ func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) error {
 	if err != nil {
 		return err
 	}
+
+	eval.elkTypechecker.DefineLocal("_", types.Any{}, true, true)
 
 	eval.prompt = p
 	p.Run()
@@ -237,6 +286,9 @@ func printLocation(loc *position.Location) {
 	currentLine = loc.StartPos.Line
 
 	for {
+		if endCursor >= len(source) {
+			break
+		}
 		if endCursor == len(source)-1 || source[endCursor] == '\n' {
 			lines[currentLine] += string(source[startCursor : endCursor+1])
 

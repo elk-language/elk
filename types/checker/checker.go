@@ -470,12 +470,16 @@ func (c *Checker) CheckSourceREPLNative(sourceName string, source string, output
 }
 
 // Used to typecheck and compile breakpoint code
-func (c *Checker) CheckBreakpointSource(sourceName string, source string) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func (c *Checker) CheckBreakpointSource(sourceName string, source string, prepend []ast.StatementNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
+	if len(prepend) > 0 {
+		ast.Body = append(prepend, ast.Body...)
+	}
 
+	c.ASTCache.Set(sourceName, ast)
 	return c.CheckBreakpointNode(sourceName, ast)
 }
 

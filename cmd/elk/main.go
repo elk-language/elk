@@ -17,6 +17,7 @@ import (
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
+	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/sh"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -248,8 +249,8 @@ func runTestFile(fileName string) {
 
 func compileTestFile(fileName string) {
 	var binPath string
-	spinner := repl.NewSpinner(os.Stdout, "compiling")
-	spinner.Run(func(repl.SpinnerCaptureData) error {
+	spinner := prompt.NewSpinner(os.Stdout, "compiling")
+	spinner.Run(func(prompt.SpinnerCaptureData) error {
 		binPath = compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
 		return nil
 	})
