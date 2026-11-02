@@ -29,6 +29,8 @@ github.com/elk-language/go-prompt v1.5.0 h1:X2f8kG9d3a5zWNhcBnEGD6VqmGPxKwE7pKU1
 github.com/elk-language/go-prompt v1.5.0/go.mod h1:u66CVjp31ldgU/Ok1q8fA2RUmy/a9ysdMj5IZckFWKg=
 github.com/elk-language/go-prompt v1.5.1 h1:e1p06Ia8aWEMmDqZ/XwJhJdLG4s3xW0obS2IMB9ynJ0=
 github.com/elk-language/go-prompt v1.5.1/go.mod h1:u66CVjp31ldgU/Ok1q8fA2RUmy/a9ysdMj5IZckFWKg=
+github.com/elk-language/go-prompt v1.5.2 h1:8Nr2pN6plSW7CTN2C/wFuiwCfg1t/VDPR1VLsieNwho=
+github.com/elk-language/go-prompt v1.5.2/go.mod h1:u66CVjp31ldgU/Ok1q8fA2RUmy/a9ysdMj5IZckFWKg=
 github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f h1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=
 github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f/go.mod h1:vw97MGsxSvLiUE2X8qFplwetxpGLQrlU1Q9AUEIzCaM=
 github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
