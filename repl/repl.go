@@ -21,6 +21,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
 	"github.com/elk-language/elk/types/checker"
@@ -122,7 +123,27 @@ func (e *evaluator) evaluate(input string) {
 		e.vm = vm.New()
 	}
 
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.deepCopyPrepend())
+	var fn *vm.BytecodeFunction
+	var dl diagnostic.DiagnosticList
+
+	switch input {
+	case ":q", ":quit", "exit":
+		fmt.Println()
+		return
+	case ":s", ":stack":
+		e.vm.InspectValueStack()
+		return
+	case ":disassemble", ":disasm":
+		e.vm.Bytecode().DisassembleStdout()
+		return
+	case ":v", ":variables":
+		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+	case ":h", ":help", "help":
+		fmt.Print(helpMessage)
+		return
+	default:
+		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+	}
 
 	if dl != nil {
 		fmt.Println()
@@ -254,7 +275,7 @@ func (e *evaluator) disassemble(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	fn, dl := e.elkTypechecker.CheckSourceBytecode(sourceName, input, e.prepend)
+	fn, dl := e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -367,7 +388,7 @@ func (e *evaluator) typecheck(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -406,7 +427,7 @@ func (e *evaluator) expand(input string) {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetIncremental(true)
 	}
-	_, dl := e.elkTypechecker.CheckSource(sourceName, input, e.prepend)
+	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
 
@@ -463,10 +484,37 @@ func Run(ctx context.Context, opts *Options) error {
 	replHistoryFilePath := filepath.Join(elkDir, ".repl-history")
 	prompt.Run(
 		eval.executor,
+		goprompt.WithExitChecker(exitChecker),
 		goprompt.WithFSHistory(replHistoryFilePath),
 	)
 
 	return nil
+}
+
+var helpMessage = `
+Elk REPL Help
+
+Available Commands:
+  :quit, :q, exit         Exit the program
+  :help, :h, help         Print this help message
+  :variables, :v          Inspect the currently available variables
+  :stack, :s              Inspect the values on the VM's stack
+  :disassemble, :disasm   Disassemble the bytecode of the previous input and print it
+
+`
+
+func exitChecker(input string, breakline bool) bool {
+	if !breakline {
+		return false
+	}
+
+	switch input {
+	case ":q", ":quit", "exit":
+		os.Exit(0)
+		return true
+	default:
+		return false
+	}
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {

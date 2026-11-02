@@ -54,8 +54,8 @@ Elk Breakpoint Help
 
 Available Commands:
   :continue, :c           Exit the breakpoint and continue code execution
-  :quit, :q               Exit the program
-  :help, :h               Print this help message
+  :quit, :q, exit         Exit the program
+  :help, :h, help         Print this help message
   :variables, :v          Inspect the currently available variables
   :stack, :s              Inspect the values on the VM's stack
   :disassemble, :disasm   Disassemble the bytecode and print it
@@ -70,7 +70,7 @@ func (e *evaluator) evaluate(input string) {
 	var dl diagnostic.DiagnosticList
 
 	switch input {
-	case ":c", ":continue", ":q", ":quit":
+	case ":c", ":continue", ":q", ":quit", "exit":
 		fmt.Println()
 		return
 	case ":s", ":stack":
@@ -81,7 +81,7 @@ func (e *evaluator) evaluate(input string) {
 		return
 	case ":v", ":variables":
 		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
-	case ":h", ":help":
+	case ":h", ":help", "help":
 		fmt.Print(helpMessage)
 		return
 	default:
@@ -120,7 +120,7 @@ func exitChecker(input string, breakline bool) bool {
 	switch input {
 	case ":c", ":continue":
 		return true
-	case ":q", ":quit":
+	case ":q", ":quit", "exit":
 		os.Exit(0)
 		return true
 	default:

@@ -414,7 +414,7 @@ func (c *Checker) setInferClosureThrowType(val bool) {
 }
 
 // Used in the REPL to typecheck and compile the input
-func (c *Checker) CheckSource(sourceName string, source string, prepend []ast.StatementNode) (compiler.Compiler, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSourceREPL(sourceName string, source string, prepend []ast.StatementNode) (compiler.Compiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -422,7 +422,13 @@ func (c *Checker) CheckSource(sourceName string, source string, prepend []ast.St
 	if len(prepend) > 0 {
 		ast.Body = append(prepend, ast.Body...)
 	}
-	c.ASTCache.Set(sourceName, ast)
+
+	return c.CheckProgramREPL(sourceName, ast)
+}
+
+// Used in the REPL to typecheck and compile the input
+func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (compiler.Compiler, diagnostic.DiagnosticList) {
+	c.ASTCache.Set(sourceName, node)
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
 	// to restore it in case of errors
@@ -438,7 +444,7 @@ func (c *Checker) CheckSource(sourceName string, source string, prepend []ast.St
 	c.macroChecks = nil
 	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
 	c.setDefinedMacros(false)
-	compiler := c.CheckProgram(ast)
+	compiler := c.CheckProgram(node)
 
 	if c.Errors.IsFailure() {
 		// restore the previous global environment if the code
@@ -456,8 +462,8 @@ func (c *Checker) CheckSource(sourceName string, source string, prepend []ast.St
 }
 
 // Used in the REPL to typecheck and compile the input to bytecode
-func (c *Checker) CheckSourceBytecode(sourceName string, source string, prepend []ast.StatementNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
-	cmp, err := c.CheckSource(sourceName, source, prepend)
+func (c *Checker) CheckSourceREPLBytecode(sourceName string, source string, prepend []ast.StatementNode) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	cmp, err := c.CheckSourceREPL(sourceName, source, prepend)
 	if cmp == nil {
 		return nil, err
 	}
@@ -466,9 +472,9 @@ func (c *Checker) CheckSourceBytecode(sourceName string, source string, prepend 
 }
 
 // Used in the REPL to typecheck and compile the input to Go source code
-func (c *Checker) CheckSourceNative(sourceName string, source string, output io.Writer, prepend []ast.StatementNode) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+func (c *Checker) CheckSourceREPLNative(sourceName string, source string, output io.Writer, prepend []ast.StatementNode) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	c.output = output
-	cmp, err := c.CheckSource(sourceName, source, prepend)
+	cmp, err := c.CheckSourceREPL(sourceName, source, prepend)
 	if cmp == nil {
 		return nil, err
 	}

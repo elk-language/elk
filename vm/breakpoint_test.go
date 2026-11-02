@@ -91,7 +91,7 @@ func TestBreakpointInGoReadsCapturedVariables(t *testing.T) {
 
 			stdout := &strings.Builder{}
 			typechecker := checker.New()
-			chunk, compileErr := typechecker.CheckSourceBytecode("sourceName", tc.source, nil)
+			chunk, compileErr := typechecker.CheckSourceREPLBytecode("sourceName", tc.source, nil)
 			if compileErr.IsFailure() {
 				t.Fatalf("compile: %v", compileErr)
 			}
