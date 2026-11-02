@@ -34,12 +34,14 @@ type Class struct {
 	instanceVariables InstanceVariables
 }
 
+var _ MethodNamespace = &Class{}
+
 // Class constructor option function
 type ClassOption = func(*Class)
 
 func ClassWithName(name string) ClassOption {
 	return func(c *Class) {
-		c.ConstantContainer.Name = name
+		c.ConstantContainer.name = name
 	}
 }
 
@@ -72,7 +74,7 @@ func ClassWithSuperclass(parent *Class) ClassOption {
 
 func ClassWithHidden(name string) ClassOption {
 	return func(c *Class) {
-		c.Name = name
+		c.name = name
 		c.SetSingleton()
 	}
 }
@@ -85,13 +87,13 @@ func ClassWithMetaClass(metaClass *Class) ClassOption {
 
 func ClassWithConstants(constants SymbolMap) ClassOption {
 	return func(c *Class) {
-		c.Constants = constants
+		c.constants = constants
 	}
 }
 
 func ClassWithMethods(methods MethodMap) ClassOption {
 	return func(c *Class) {
-		c.Methods = methods
+		c.methods = methods
 	}
 }
 
@@ -122,11 +124,11 @@ func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 func NewClass() *Class {
 	return &Class{
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Parent:  ObjectClass,
-			Methods: make(MethodMap),
+			parent:  ObjectClass,
+			methods: make(MethodMap),
 		},
 		ConstructorFunc: ObjectConstructor,
 		metaClass:       ClassClass,
@@ -136,7 +138,7 @@ func NewClass() *Class {
 func NewSingletonClass(originalClass *Class, originalName string) *Class {
 	singletonClass := NewClass()
 	singletonClass.SetSingleton()
-	singletonClass.Parent = originalClass
+	singletonClass.parent = originalClass
 	singletonClass.SetSingletonName(originalName)
 	return singletonClass
 }
@@ -156,10 +158,10 @@ func NewClassWithOptions(opts ...ClassOption) *Class {
 func ClassConstructor(metaClass *Class) Value {
 	c := &Class{
 		ConstantContainer: ConstantContainer{
-			Constants: make(SymbolMap),
+			constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
-			Parent: ObjectClass,
+			parent: ObjectClass,
 		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         metaClass,
@@ -185,7 +187,7 @@ func (c *Class) Parents() iter.Seq[*Class] {
 			parent := classes[i]
 			for parent != nil {
 				if parent.IsMixinProxy() {
-					classes = append(classes, parent.Parent)
+					classes = append(classes, parent.parent)
 					parent = parent.metaClass
 					continue
 				}
@@ -193,7 +195,7 @@ func (c *Class) Parents() iter.Seq[*Class] {
 					return
 				}
 
-				parent = parent.Parent
+				parent = parent.parent
 			}
 		}
 	}
@@ -207,8 +209,8 @@ func (c *Class) CreateInstance() Value {
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
 	proxy := mixin.CreateProxyClass()
-	proxy.Parent = c.Parent
-	c.Parent = proxy
+	proxy.parent = c.parent
+	c.parent = proxy
 }
 
 func (c *Class) IsSingleton() bool {
@@ -253,21 +255,21 @@ func (c *Class) SetDirectClass(metaClass *Class) {
 
 func (c *Class) SetSingletonName(name string) {
 	if name != "" {
-		c.Name = "&" + name
+		c.name = "&" + name
 	}
 }
 
 func (c *Class) SetSuperclass(superclass *Class) {
 	classSingleton := c.SingletonClass()
 	if superclass == nil {
-		c.Parent = nil
-		classSingleton.Parent = nil
+		c.parent = nil
+		classSingleton.parent = nil
 		return
 	}
 
 	superclassSingleton := superclass.SingletonClass()
-	c.Parent = superclass
-	classSingleton.Parent = superclassSingleton
+	c.parent = superclass
+	classSingleton.parent = superclassSingleton
 }
 
 func (c *Class) SingletonClass() *Class {
@@ -275,7 +277,7 @@ func (c *Class) SingletonClass() *Class {
 		return c.metaClass
 	}
 
-	singletonClass := NewSingletonClass(c.metaClass, c.Name)
+	singletonClass := NewSingletonClass(c.metaClass, c.name)
 	c.metaClass = singletonClass
 	return singletonClass
 }
@@ -287,12 +289,12 @@ func (c *Class) ToValue() Value {
 func (c *Class) Copy() Reference {
 	newClass := &Class{
 		ConstantContainer: ConstantContainer{
-			Constants: maps.Clone(c.Constants),
-			Name:      c.Name,
+			constants: maps.Clone(c.constants),
+			name:      c.name,
 		},
 		MethodContainer: MethodContainer{
-			Methods: maps.Clone(c.Methods),
-			Parent:  c.Parent,
+			methods: maps.Clone(c.methods),
+			parent:  c.parent,
 		},
 		metaClass:         c.metaClass,
 		instanceVariables: slices.Clone(c.instanceVariables),
@@ -324,11 +326,11 @@ func (c *Class) inspectInheritance(buff *strings.Builder) {
 			buff.WriteByte('[')
 			parent.metaClass.inspectInheritance(buff)
 			buff.WriteByte(']')
-			parent = parent.Parent
+			parent = parent.parent
 			continue
 		}
 
-		parent = parent.Parent
+		parent = parent.parent
 	}
 }
 
@@ -389,11 +391,11 @@ func NewClassComparer(opts *cmp.Options) cmp.Option {
 		}
 
 		return x.Flags == y.Flags &&
-			x.Name == y.Name &&
+			x.name == y.name &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...) &&
 			cmp.Equal(x.Constants, y.Constants, *opts...) &&
 			cmp.Equal(x.Methods, y.Methods, *opts...) &&
-			cmp.Equal(x.Parent, y.Parent, *opts...) &&
+			cmp.Equal(x.parent, y.parent, *opts...) &&
 			cmp.Equal(x.metaClass, y.metaClass, *opts...)
 	})
 }

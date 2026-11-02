@@ -7,7 +7,7 @@ import (
 // Std::Size
 func initSize() {
 	// Instance methods
-	c := &value.SizeClass.MethodContainer
+	c := value.SizeClass
 
 	Def(
 		c,

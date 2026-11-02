@@ -8,7 +8,7 @@ import (
 // Std::Tuple
 func initTuple() {
 	// Instance methods
-	c := &value.TupleMixin.MethodContainer
+	c := value.TupleMixin
 
 	Def(
 		c,

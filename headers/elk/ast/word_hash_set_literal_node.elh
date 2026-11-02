@@ -6,7 +6,7 @@ module Std::Elk::AST
     include LiteralPatternNode
 
     init(
-      elements: ArrayTuple[WordCollectionContentNode] = loop; end,
+      elements: Tuple[WordCollectionContentNode] = loop; end,
       capacity: ExpressionNode? = nil,
       location: FS::Location = loop; end,
     ); end
@@ -14,5 +14,7 @@ module Std::Elk::AST
     pure def elements: ArrayTuple[WordCollectionContentNode]; end
     pure def capacity: ExpressionNode?; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

@@ -32,6 +32,20 @@ func NewHashMapOfValue(capacity int) *HashMapOfValue {
 	}
 }
 
+func (h *HashMapOfValue) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for _, pair := range h.Table {
+			if pair.Key().IsUndefined() {
+				continue
+			}
+
+			if !yield(pair.Key()) {
+				return
+			}
+		}
+	}
+}
+
 func (h *HashMapOfValue) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for _, pair := range h.Table {
@@ -55,7 +69,7 @@ func (h *HashMapOfValue) Iterate() iter.Seq2[value.Value, value.Value] {
 			}
 
 			if originalVersion != h.version {
-				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name).ToValue())
+				yield(value.Undefined, value.NewMutationDuringIterationError(h.Class().Name()).ToValue())
 				return
 			}
 
@@ -104,6 +118,10 @@ func (h *HashMapOfValue) IterRecord() value.NativeResettableIterator {
 	return h.IterNative()
 }
 
+func (h *HashMapOfValue) GetPair(thread *Thread, key value.Value) (value.PairOfValue, value.Value) {
+	return HashMapOfValueGetPair(thread, h, key)
+}
+
 func (h *HashMapOfValue) GetValUndefined(thread *Thread, key value.Value) (value.Value, value.Value) {
 	return HashMapOfValueGet(thread, h, key)
 }
@@ -123,15 +141,52 @@ func (h *HashMapOfValue) SetVal(thread *Thread, key, val value.Value) value.Valu
 	return HashMapOfValueSet(thread, h, key, val)
 }
 
-func (h *HashMapOfValue) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h *HashMapOfValue) RemoveKey(thread *Thread, key value.Value) (bool, value.Value) {
+	return HashMapOfValueDelete(thread, h, key)
+}
+
+func (h *HashMapOfValue) Merge(thread *Thread, other value.Value) (*HashMapOfValue, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case *HashMapOfValue:
-		return value.RefErr(HashMapOfValueConcat(thread, h, o))
+		return HashMapOfValueMerge(thread, h, o)
 	case HashRecord:
-		return value.RefErr(HashMapOfValueConcatInterface(thread, h, o))
-	}
+		return HashMapOfValueMergeInterface(thread, h, o)
+	case Record:
+		newMap := NewHashMapOfValue(h.Length() + o.Length())
+		err := HashMapOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
 
-	return value.Undefined, value.Ref(value.Errorf(value.TypeErrorClass, "cannot concat %s with map %s", other.Inspect(), h.Inspect()))
+		err = HashMapOfValueCopyInterface(thread, newMap, o)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		return newMap, value.Undefined
+	default:
+		result := NewHashMapOfValue(h.Length())
+
+		err := HashMapOfValueCopyInterface(thread, result, h)
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return nil, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			result.SetVal(thread, entry.Key(), entry.Value())
+		}
+
+		return result, value.Undefined
+	}
+}
+
+func (h *HashMapOfValue) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+	return value.RefErr(h.Merge(thread, other))
 }
 
 func (h *HashMapOfValue) Contains(thread *Thread, other value.Pair) (bool, value.Value) {
@@ -163,9 +218,39 @@ func (h *HashMapOfValue) LaxEqual(thread *Thread, other value.Value) (bool, valu
 		return HashMapOfValueLaxEqual(thread, h, o)
 	case HashMap:
 		return HashMapOfValueLaxEqualInterface(thread, h, o)
-	}
+	case HashRecord:
+		return HashMapOfValueLaxEqualInterface(thread, h, o)
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (h *HashMapOfValue) Grow(thread *Thread, newSlots int) value.Value {
@@ -185,12 +270,27 @@ func (*HashMapOfValue) SingletonClass() *value.Class {
 }
 
 func (h *HashMapOfValue) Clone() *HashMapOfValue {
-	newTable := slices.Clone(h.Table)
 	return &HashMapOfValue{
-		Table:         newTable,
+		Table:         slices.Clone(h.Table),
 		OccupiedSlots: h.OccupiedSlots,
 		Elements:      h.Elements,
 	}
+}
+
+func (h *HashMapOfValue) ToHashMap() HashMap {
+	return h
+}
+
+func (h *HashMapOfValue) ToHashRecordOfValue() *HashRecordOfValue {
+	return (*HashRecordOfValue)(h.Clone())
+}
+
+func (h *HashMapOfValue) ToHashRecord() HashRecord {
+	return h.ToHashRecordOfValue()
+}
+
+func (h *HashMapOfValue) ToSyncHashMap() SyncHashMap {
+	return &SyncHashMapOfValue{Map: h.Clone()}
 }
 
 func (h *HashMapOfValue) Copy() value.Reference {
@@ -305,18 +405,29 @@ func (h *HashMapOfValue) Length() int {
 }
 
 type HashMapOfValueIterator struct {
-	HashMap *HashMapOfValue
-	Index   int
-	version int
+	HashMap  *HashMapOfValue
+	Index    int
+	snapshot []value.PairOfValue
+	version  int
 }
 
 var _ value.NativeResettableIterator = &HashMapOfValueIterator{}
 
 func NewHashMapOfValueIterator(hmap *HashMapOfValue) *HashMapOfValueIterator {
-	return &HashMapOfValueIterator{
+	iterator := &HashMapOfValueIterator{
 		HashMap: hmap,
 		version: hmap.version,
 	}
+	iterator.captureSnapshot()
+	return iterator
+}
+
+func (h *HashMapOfValueIterator) captureSnapshot() {
+	snapshot := make([]value.PairOfValue, 0, h.HashMap.Length())
+	for pair := range h.HashMap.All() {
+		snapshot = append(snapshot, pair)
+	}
+	h.snapshot = snapshot
 }
 
 func (*HashMapOfValueIterator) Class() *value.Class {
@@ -333,9 +444,10 @@ func (*HashMapOfValueIterator) SingletonClass() *value.Class {
 
 func (h *HashMapOfValueIterator) Copy() value.Reference {
 	return &HashMapOfValueIterator{
-		HashMap: h.HashMap,
-		Index:   h.Index,
-		version: h.version,
+		HashMap:  h.HashMap,
+		Index:    h.Index,
+		snapshot: h.snapshot,
+		version:  h.version,
 	}
 }
 
@@ -357,23 +469,544 @@ func (*HashMapOfValueIterator) InstanceVariables() *value.InstanceVariables {
 
 func (h *HashMapOfValueIterator) NextValue() (value.Value, value.Value) {
 	if h.version != h.HashMap.version {
-		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name).ToValue()
+		return value.Undefined, value.NewMutationDuringIterationError(h.HashMap.Class().Name()).ToValue()
 	}
 
-	for {
-		if h.Index >= h.HashMap.Capacity() {
-			return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
-		}
-
-		pair := h.HashMap.Table[h.Index]
-		h.Index++
-		if !pair.Key().IsUndefined() {
-			return value.Ref(&h.HashMap.Table[h.Index-1]), value.Undefined
-		}
+	if h.Index >= len(h.snapshot) {
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
+
+	pair := &h.snapshot[h.Index]
+	h.Index++
+	return value.Ref(pair), value.Undefined
 }
 
 func (h *HashMapOfValueIterator) Reset() {
 	h.Index = 0
 	h.version = h.HashMap.version
+}
+
+// Create a new hashmap with the given entries.
+func NewHashMapOfValueWithElements(vm *Thread, elements ...value.PairOfValue) (*HashMapOfValue, value.Value) {
+	return NewHashMapOfValueWithCapacityAndElements(vm, len(elements), elements...)
+}
+
+// Create a new hashmap with the given entries.
+func MustNewHashMapOfValueWithElements(vm *Thread, elements ...value.PairOfValue) *HashMapOfValue {
+	hmap, err := NewHashMapOfValueWithElements(vm, elements...)
+	if !err.IsUndefined() {
+		panic(err)
+	}
+
+	return hmap
+}
+
+func NewHashMapOfValueWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) (*HashMapOfValue, value.Value) {
+	h := NewHashMapOfValue(capacity)
+	for _, element := range elements {
+		err := HashMapOfValueSet(vm, h, element.Key(), element.Value())
+		if !err.IsUndefined() {
+			return nil, err
+		}
+	}
+
+	return h, value.Undefined
+}
+
+func MustNewHashMapOfValueWithCapacityAndElements(vm *Thread, capacity int, elements ...value.PairOfValue) *HashMapOfValue {
+	hmap, err := NewHashMapOfValueWithCapacityAndElements(vm, capacity, elements...)
+	if !err.IsUndefined() {
+		panic(err)
+	}
+
+	return hmap
+}
+
+// Checks whether two hash maps are equal (lax)
+func HashMapOfValueLaxEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := HashMapOfValueGet(vm, y, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := LaxEqual(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func HashMapOfValueLaxEqualInterface(vm *Thread, x *HashMapOfValue, y Record) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := LaxEqual(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+// Create a new map containing the pairs of both maps.
+func HashMapOfValueMerge(vm *Thread, x, y *HashMapOfValue) (*HashMapOfValue, value.Value) {
+	result := x.Clone()
+	err := HashMapOfValueCopy(vm, result, y)
+	if !err.IsUndefined() {
+		return nil, err
+	}
+	return result, value.Undefined
+}
+
+func HashMapOfValueMergeInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (*HashMapOfValue, value.Value) {
+	result := x.Clone()
+	err := HashMapOfValueCopyInterface(vm, result, y)
+	if !err.IsUndefined() {
+		return nil, err
+	}
+	return result, value.Undefined
+}
+
+// Checks whether two hash maps are equal
+func HashMapOfValueEqual(vm *Thread, x *HashMapOfValue, y *HashMapOfValue) (bool, value.Value) {
+	if x == y {
+		return true, value.Undefined
+	}
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := HashMapOfValueGet(vm, y, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := Equal(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+func HashMapOfValueEqualInterface(vm *Thread, x *HashMapOfValue, y HashRecord) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, value.Undefined
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key().IsUndefined() {
+			continue
+		}
+
+		yVal, err := y.GetValUndefined(vm, xPair.Key())
+		if !err.IsUndefined() {
+			return false, err
+		}
+		if yVal.IsUndefined() {
+			return false, value.Undefined
+		}
+		eqVal, err := Equal(vm, xPair.Value(), yVal)
+		if !err.IsUndefined() {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, value.Undefined
+		}
+	}
+
+	return true, value.Undefined
+}
+
+// Delete the given key from the hashMap
+func HashMapOfValueDelete(vm *Thread, hashMap *HashMapOfValue, key value.Value) (bool, value.Value) {
+	if hashMap.Length() == 0 {
+		return false, value.Undefined
+	}
+
+	index, err := HashMapOfValueIndex(vm, hashMap, key)
+	if !err.IsUndefined() {
+		return false, err
+	}
+	if index < 0 {
+		return false, value.Undefined
+	}
+	if hashMap.Table[index].Key().IsUndefined() {
+		return false, value.Undefined
+	}
+
+	hashMap.Table[index] = value.MakePairOfValue(
+		value.Undefined,
+		value.True.ToValue(),
+	)
+	// decrement only the count of active pairs
+	// leave `OccupiedSlots` with the same value, cause
+	// it represents the sum of slots that are active
+	// and "zombie" slots left over by deleted pairs
+	hashMap.Elements--
+	hashMap.version++
+
+	return true, value.Undefined
+}
+
+// Get the element under the given key.
+// Returns (value, undefined) when the value has been found.
+// Returns (undefined, undefined) when the key is not present.
+// Returns (undefined, err) when there was an error.
+func HashMapOfValueGet(vm *Thread, hashMap *HashMapOfValue, key value.Value) (value.Value, value.Value) {
+	if hashMap.Length() == 0 {
+		return value.Undefined, value.Undefined
+	}
+
+	index, err := HashMapOfValueIndex(vm, hashMap, key)
+	if !err.IsUndefined() {
+		return value.Undefined, err
+	}
+	if index == -1 {
+		return value.Undefined, value.Undefined
+	}
+
+	return hashMap.Table[index].Value(), value.Undefined
+}
+
+// Get the pair with the given key.
+// Returns (pair, undefined) when the pair has been found.
+// Returns (undefined, undefined) when the key is not present.
+// Returns (undefined, err) when there was an error.
+func HashMapOfValueGetPair(vm *Thread, hashMap *HashMapOfValue, key value.Value) (p value.PairOfValue, err value.Value) {
+	if hashMap.Length() == 0 {
+		return p, err
+	}
+
+	index, err := HashMapOfValueIndex(vm, hashMap, key)
+	if !err.IsUndefined() {
+		return p, err
+	}
+	if index == -1 {
+		return p, value.Undefined
+	}
+
+	return hashMap.Table[index], value.Undefined
+}
+
+// Check if the given pair is present in the map
+func HashMapOfValueContains(vm *Thread, hashMap *HashMapOfValue, pair value.Pair) (bool, value.Value) {
+	val, err := HashMapOfValueGet(vm, hashMap, pair.Key())
+	if !err.IsUndefined() {
+		return false, err
+	}
+	if val.IsUndefined() {
+		return false, value.Undefined
+	}
+
+	equal, err := Equal(vm, val, pair.Value())
+	if !err.IsUndefined() {
+		return false, err
+	}
+
+	return value.Truthy(equal), value.Undefined
+}
+
+// Check if the given key is present in the map
+func HashMapOfValueContainsKey(vm *Thread, hashMap *HashMapOfValue, key value.Value) (bool, value.Value) {
+	if hashMap.Length() == 0 {
+		return false, value.Undefined
+	}
+
+	index, err := HashMapOfValueIndex(vm, hashMap, key)
+	if !err.IsUndefined() {
+		return false, err
+	}
+	if index == -1 {
+		return false, value.Undefined
+	}
+
+	pair := hashMap.Table[index]
+	if pair.Key().IsUndefined() {
+		return false, value.Undefined
+	}
+
+	return true, value.Undefined
+}
+
+// Check if the given value is present in the map
+func HashMapOfValueContainsValue(vm *Thread, hashMap *HashMapOfValue, val value.Value) (bool, value.Value) {
+	for _, pair := range hashMap.Table {
+		// if the Key is undefined the entry is empty or deleted
+		// so we skip it
+		if pair.Key().IsUndefined() {
+			continue
+		}
+
+		equal, err := Equal(vm, pair.Value(), val)
+		if !err.IsUndefined() {
+			return false, err
+		}
+
+		if value.Truthy(equal) {
+			return true, value.Undefined
+		}
+	}
+
+	return false, value.Undefined
+}
+
+func HashMapOfValueCopyTable(vm *Thread, target *HashMapOfValue, source []value.PairOfValue) value.Value {
+	for _, entry := range source {
+		if entry.Key().IsUndefined() {
+			continue
+		}
+
+		err := HashMapOfValueSetWithMaxLoad(vm, target, entry.Key(), entry.Value(), 1)
+		if !err.IsUndefined() {
+			return err
+		}
+	}
+
+	target.version++
+	return value.Undefined
+}
+
+// Copy the pairs of one hashmap to the other.
+func HashMapOfValueCopy(vm *Thread, target *HashMapOfValue, source *HashMapOfValue) value.Value {
+	requiredCapacity := target.Length() + source.Length()
+	if target.Capacity() < requiredCapacity {
+		err := HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		if err.IsNotUndefined() {
+			return err
+		}
+	}
+
+	target.version++
+	for _, entry := range source.Table {
+		if entry.Key().IsUndefined() {
+			continue
+		}
+
+		i, err := HashMapOfValueIndex(vm, target, entry.Key())
+		if !err.IsUndefined() {
+			return err
+		}
+		if i == -1 {
+			panic("no room in target hashmap during copy")
+		}
+		target.Table[i] = entry
+		target.OccupiedSlots++
+		target.Elements++
+	}
+
+	return value.Undefined
+}
+
+func HashMapOfValueCopyInterface(vm *Thread, target *HashMapOfValue, source Record) value.Value {
+	requiredCapacity := target.Length() + source.Length()
+	if target.Capacity() < requiredCapacity {
+		err := HashMapOfValueSetCapacity(vm, target, requiredCapacity)
+		if err.IsNotUndefined() {
+			return err
+		}
+	}
+
+	target.version++
+	for entry := range source.All() {
+		i, err := HashMapOfValueIndex(vm, target, entry.Key())
+		if !err.IsUndefined() {
+			return err
+		}
+		if i == -1 {
+			panic("no room in target hashmap during copy")
+		}
+		target.Table[i] = entry
+		target.OccupiedSlots++
+		target.Elements++
+	}
+
+	return value.Undefined
+}
+
+// Add additional n empty slots for new elements.
+func HashMapOfValueGrow(vm *Thread, hashMap *HashMapOfValue, newSlots int) value.Value {
+	return HashMapOfValueSetCapacity(vm, hashMap, hashMap.Capacity()+newSlots)
+}
+
+// Resize the given hashmap to the desired capacity.
+func HashMapOfValueSetCapacity(vm *Thread, hashMap *HashMapOfValue, capacity int) value.Value {
+	if hashMap.Capacity() == capacity {
+		return value.Undefined
+	}
+
+	oldTable := hashMap.Table
+	newTable := make([]value.PairOfValue, capacity)
+	tmpHashMap := &HashMapOfValue{
+		Table: newTable,
+	}
+	hashMap.version++
+
+	for _, entry := range oldTable {
+		if entry.Key().IsUndefined() {
+			continue
+		}
+
+		i, err := HashMapOfValueIndex(vm, tmpHashMap, entry.Key())
+		if !err.IsUndefined() {
+			return err
+		}
+		if i == -1 {
+			panic("no room in target hashmap during resizing")
+		}
+		newTable[i] = entry
+		tmpHashMap.OccupiedSlots++
+		tmpHashMap.Elements++
+	}
+
+	hashMap.OccupiedSlots = tmpHashMap.OccupiedSlots
+	hashMap.Elements = tmpHashMap.Elements
+	hashMap.Table = newTable
+	return value.Undefined
+}
+
+func HashMapOfValueSetWithMaxLoad(vm *Thread, hashMap *HashMapOfValue, key, val value.Value, maxLoad float64) value.Value {
+	if hashMap.Capacity() == 0 {
+		err := HashMapOfValueSetCapacity(vm, hashMap, 5)
+		if err.IsNotUndefined() {
+			return err
+		}
+	} else if float64(hashMap.OccupiedSlots) >= float64(hashMap.Capacity())*maxLoad {
+		err := HashMapOfValueSetCapacity(vm, hashMap, hashMap.OccupiedSlots*2)
+		if err.IsNotUndefined() {
+			return err
+		}
+	}
+
+	index, err := HashMapOfValueIndex(vm, hashMap, key)
+	if !err.IsUndefined() {
+		return err
+	}
+	if index == -1 {
+		panic(fmt.Sprintf("no room in target hashmap when trying to add a new key: %s", hashMap.Inspect()))
+	}
+	entry := hashMap.Table[index]
+	if entry.Key().IsUndefined() {
+		hashMap.Elements++
+		if entry.Value().IsUndefined() {
+			// increment OccupiedSlots only when the slot was completely empty
+			// leave the count the same when a zombie slot is overwritten
+			hashMap.OccupiedSlots++
+		}
+	}
+
+	hashMap.Table[index] = value.MakePairOfValue(
+		key,
+		val,
+	)
+	hashMap.version++
+
+	return value.Undefined
+}
+
+// Set a value under the given key.
+func HashMapOfValueSet(vm *Thread, hashMap *HashMapOfValue, key, val value.Value) value.Value {
+	return HashMapOfValueSetWithMaxLoad(vm, hashMap, key, val, HashMapOfValueMaxLoad)
+}
+
+// Get the index that the key should be inserted into.
+// Returns (nil, err) when an error has been encountered.
+// Returns (-1, nil) when there's no room for new values.
+func HashMapOfValueIndex(vm *Thread, hashMap *HashMapOfValue, key value.Value) (int, value.Value) {
+	hash, err := Hash(vm, key)
+	if !err.IsUndefined() {
+		return 0, err
+	}
+	deletedIndex := -1
+
+	capacity := hashMap.Capacity()
+	index := int(hash % value.UInt64(capacity))
+	startIndex := index
+
+	for {
+		entry := hashMap.Table[index]
+		if entry.Key().IsUndefined() {
+			// empty or deleted entry
+
+			if entry.Value().IsUndefined() {
+				// empty bucket
+				if deletedIndex != -1 {
+					return deletedIndex, value.Undefined
+				}
+				return index, value.Undefined
+			} else if deletedIndex == -1 {
+				// deleted entry
+				deletedIndex = index
+			}
+		} else {
+			// present entry
+			equal, err := Equal(vm, entry.Key(), key)
+			if !err.IsUndefined() {
+				return 0, err
+			}
+			if value.Truthy(equal) {
+				return index, value.Undefined
+			}
+		}
+
+		if index == capacity-1 {
+			index = 0
+		} else {
+			index++
+		}
+
+		// when we reach the start index
+		// all slots are checked
+		if index == startIndex {
+			return -1, value.Undefined
+		}
+	}
 }

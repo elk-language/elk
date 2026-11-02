@@ -72,6 +72,35 @@ func (n *VariableDeclarationNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *VariableDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewVariableDeclarationNode(n.loc, n.DocComment(), name.(IdentifierNode), typ, init)
+
+	return fn(newNode, parent)
+}
+
 func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
 	if !ok {
@@ -95,6 +124,34 @@ func (n *VariableDeclarationNode) Equal(other value.Value) bool {
 	} else if n.Initialiser == nil || o.Initialiser == nil {
 		return false
 	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *VariableDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariableDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
 		return false
 	}
 

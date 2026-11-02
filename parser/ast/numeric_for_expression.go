@@ -85,6 +85,44 @@ func (n *NumericForExpressionNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *NumericForExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	var cond ExpressionNode
+	if n.Condition != nil {
+		mapped, err := n.Condition.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		cond = mapped.(ExpressionNode)
+	}
+
+	var incr ExpressionNode
+	if n.Increment != nil {
+		mapped, err := n.Increment.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		incr = mapped.(ExpressionNode)
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNumericForExpressionNode(n.loc, init, cond, incr, then)
+
+	return fn(newNode, parent)
+}
+
 func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
 	if !ok {
@@ -123,6 +161,46 @@ func (n *NumericForExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *NumericForExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NumericForExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	if n.Condition == o.Condition {
+	} else if n.Condition == nil || o.Condition == nil {
+		return false
+	} else if !n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	if n.Increment == o.Increment {
+	} else if n.Increment == nil || o.Increment == nil {
+		return false
+	} else if !n.Increment.LaxEqual(value.Ref(o.Increment)) {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *NumericForExpressionNode) String() string {

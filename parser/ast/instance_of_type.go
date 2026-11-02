@@ -42,6 +42,17 @@ func (n *InstanceOfTypeNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *InstanceOfTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typ, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInstanceOfTypeNode(n.loc, typ.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if this node equals the other node.
 func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)
@@ -51,6 +62,15 @@ func (n *InstanceOfTypeNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
+}
+
+func (n *InstanceOfTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceOfTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
 }
 
 // String returns the string representation of this node.

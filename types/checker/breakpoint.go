@@ -55,7 +55,7 @@ func (c *Checker) createBreakpointContext() *BreakpointContext {
 	}
 }
 
-func (c *Checker) DumpVariablesForBreakpoint(sourceName string, loc *position.Location) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func (c *Checker) DumpVariablesNode(sourceName string, loc *position.Location) *ast.ProgramNode {
 	var variableEntries []ast.ExpressionNode
 
 	for name := range c.allLocals() {
@@ -75,7 +75,16 @@ func (c *Checker) DumpVariablesForBreakpoint(sourceName string, loc *position.Lo
 		),
 	)
 
-	return c.CheckBreakpointNode(sourceName, node)
+	return node
+}
+
+func (c *Checker) DumpVariablesForBreakpoint(sourceName string, loc *position.Location) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	return c.CheckBreakpointNode(sourceName, c.DumpVariablesNode(sourceName, loc))
+}
+
+func (c *Checker) DumpVariablesForREPL(sourceName string, loc *position.Location) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+	compiler, diagnostics := c.CheckProgramREPL(sourceName, c.DumpVariablesNode(sourceName, loc))
+	return compiler.Bytecode(), diagnostics
 }
 
 func NewBreakpointChecker(context *compiler.BytecodeBreakpointContext) *Checker {

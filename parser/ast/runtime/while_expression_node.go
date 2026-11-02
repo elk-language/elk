@@ -8,19 +8,22 @@ import (
 )
 
 func initWhileExpressionNode() {
-	c := &value.WhileExpressionNodeClass.MethodContainer
+	c := value.WhileExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argCondition := args[1].MustReference().(ast.ExpressionNode)
 
 			var argThenBody []ast.StatementNode
 			if !args[2].IsUndefined() {
-				argThenBodyTuple := args[2].AsReference().(value.ArrayTuple)
-				argThenBody = value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+				argThenBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argThenBody = argThenBodyTuple.ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -79,6 +82,17 @@ func initWhileExpressionNode() {
 			self := args[0].MustReference().(*ast.WhileExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.WhileExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

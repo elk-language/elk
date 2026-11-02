@@ -8,24 +8,30 @@ import (
 )
 
 func initUnquoteIfExpressionNode() {
-	c := &value.UnquoteIfExpressionNodeClass.MethodContainer
+	c := value.UnquoteIfExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argCondition := args[1].MustReference().(ast.ExpressionNode)
 
-			argThenBodyTuple := args[2].AsReference().(value.ArrayTuple)
-			argThenBody := value.TransformArrayTupleIntoNativeArrayTuple(argThenBodyTuple, func(v value.Value) ast.StatementNode {
+			argThenBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.StatementNode {
 				return v.AsReference().(ast.StatementNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argThenBody := argThenBodyTuple.ToSlice()
 
 			var argElseBody []ast.StatementNode
 			if !args[3].IsUndefined() {
-				argElseBodyTuple := args[3].AsReference().(value.ArrayTuple)
-				argElseBody = value.TransformArrayTupleIntoNativeArrayTuple(argElseBodyTuple, func(v value.Value) ast.StatementNode {
+				argElseBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argElseBody = argElseBodyTuple.ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -94,6 +100,17 @@ func initUnquoteIfExpressionNode() {
 			self := args[0].MustReference().(*ast.UnquoteIfExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.UnquoteIfExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -27,5 +27,7 @@ module Std::Elk::AST
 		pure def is_positional_rest: bool; end
 		pure def is_named_rest: bool; end
 
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

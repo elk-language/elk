@@ -2,6 +2,8 @@
 	Box wraps another value, it's a pointer to another `Value`.
 ]##
 sealed primitive class ::Std::Box[Val] < ImmutableBox[Val]
+	init(v: Val); end
+
 	##[
 		Stores the given value in the `Box`.
 	]##

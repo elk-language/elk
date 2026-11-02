@@ -9,15 +9,18 @@ import (
 )
 
 func initGetterDeclarationNode() {
-	c := &value.GetterDeclarationNodeClass.MethodContainer
+	c := value.GetterDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
-			argEntriesTuple := args[1].AsReference().(value.ArrayTuple)
-			argEntries := value.TransformArrayTupleIntoNativeArrayTuple(argEntriesTuple, func(v value.Value) ast.ParameterNode {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
+			argEntriesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.ParameterNode {
 				return v.AsReference().(ast.ParameterNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argEntries := argEntriesTuple.ToSlice()
 
 			var argFlags bitfield.BitFlag8
 			if !args[2].IsUndefined() {
@@ -107,6 +110,17 @@ func initGetterDeclarationNode() {
 			self := args[0].MustReference().(*ast.GetterDeclarationNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.GetterDeclarationNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

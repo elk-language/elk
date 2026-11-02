@@ -10,5 +10,7 @@ module Std::Elk::AST
     pure def left: PatternNode; end
     pure def right: PatternNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

@@ -83,6 +83,31 @@ func (n *StructDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *StructDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewStructDeclarationNode(n.loc, n.DocComment(), n.Immutable, constant, typeParams, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *StructDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StructDeclarationNode)
 	if !ok {
@@ -106,6 +131,35 @@ func (n *StructDeclarationNode) Equal(other value.Value) bool {
 
 	for i, bodyStmt := range n.Body {
 		if !bodyStmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *StructDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StructDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) ||
+		n.comment != o.comment ||
+		n.Immutable != o.Immutable ||
+		len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, typeParam := range n.TypeParameters {
+		if !typeParam.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, bodyStmt := range n.Body {
+		if !bodyStmt.LaxEqual(value.Ref(o.Body[i])) {
 			return false
 		}
 	}

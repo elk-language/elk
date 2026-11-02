@@ -5,12 +5,14 @@ module Std::Elk::AST
   sealed primitive class SelectCaseNode
     init(
       expression_node: ExpressionNode,
-      body: ArrayTuple[StatementNode],
+      body: Tuple[StatementNode],
       location: FS::Location = loop; end,
     ); end
 
     pure def expression_node: ExpressionNode; end
     pure def body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

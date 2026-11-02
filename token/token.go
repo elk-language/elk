@@ -31,6 +31,12 @@ func (t *Token) Equal(other *Token) bool {
 		t.loc.Equal(other.loc)
 }
 
+// LaxEqual reports whether both tokens have the same type and value.
+func (t *Token) LaxEqual(other *Token) bool {
+	return t.Type == other.Type &&
+		t.Value == other.Value
+}
+
 // Index of the first byte of the lexeme.
 // Used by go-prompt.
 func (t *Token) FirstByteIndex() pstrings.ByteNumber {

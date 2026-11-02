@@ -50,6 +50,22 @@ func (n *BinaryTypeNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *BinaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewBinaryTypeNode(n.loc, n.Op, left.(TypeNode), right.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *BinaryTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryTypeNode)
 	if !ok {
@@ -60,6 +76,17 @@ func (n *BinaryTypeNode) Equal(other value.Value) bool {
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *BinaryTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
 }
 
 func (n *BinaryTypeNode) String() string {

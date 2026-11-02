@@ -7,7 +7,7 @@ module Std::Elk::AST
             RegexLiteralNode
 
     init(
-      content: ArrayTuple[RegexLiteralContentNode],
+      content: Tuple[RegexLiteralContentNode],
       flags: UInt8 = 0u8,
       location: FS::Location = loop; end,
     ); end
@@ -71,5 +71,7 @@ module Std::Elk::AST
       Whether the regex has the `x` flag.
     ]##
     pure def is_extended: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

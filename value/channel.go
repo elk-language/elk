@@ -9,14 +9,22 @@ var ChannelClosedPopError *Object
 var ChannelClosedPushError *Object
 var ChannelClosedCloseError *Object
 
+func NormaliseSentValueToChannel(channel AnyChannel, val Value) any {
+	if !channel.IsTransformerChannel() {
+		return val
+	}
+
+	return channel.TransformFromValueToAny(val)
+}
+
 type AnyChannel interface {
 	ValueInterface
 	Length() int
 	Capacity() int
 	LeftCapacity() int
 	IsTransformerChannel() bool
-	TransformFromValue(v Value) any
-	TransformToValue(v any) Value
+	TransformFromValueToAny(v Value) any
+	TransformAnyToValue(v any) Value
 	NativeChannelAny() any
 }
 
@@ -25,19 +33,12 @@ type Channel interface {
 	NativeIterable
 	NativeIterator
 	AnyChannel
-	Length() int
-	Capacity() int
-	LeftCapacity() int
 	Push(val Value) (err Value)
 	PushCtx(ctx context.Context, val Value) (err Value)
 	Pop() (val Value, err Value)
 	PopCtx(ctx context.Context) (val Value, err Value)
 	NextValueCtx(ctx context.Context) (val Value, err Value)
 	Close() (err Value)
-	IsTransformerChannel() bool
-	TransformFromValue(v Value) any
-	TransformToValue(v any) Value
-	NativeChannelAny() any
 	ToReadChannel() ReadChannel
 	ToWriteChannel() WriteChannel
 }

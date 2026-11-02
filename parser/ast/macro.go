@@ -81,6 +81,44 @@ func (n *MacroDefinitionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *MacroDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var returnType TypeNode
+	if n.ReturnType != nil {
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		returnType = mapped.(TypeNode)
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMacroDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		n.sealed,
+		name.(IdentifierNode),
+		params,
+		returnType,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Check if this method definition is equal to another value.
 func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
@@ -114,6 +152,40 @@ func (n *MacroDefinitionNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Name.Equal(value.Ref(o.Name)) &&
+		n.sealed == o.sealed
+}
+
+func (n *MacroDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
 		n.sealed == o.sealed
 }
 
@@ -309,6 +381,39 @@ func (n *ScopedMacroCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ScopedMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	macroName, err := n.MacroName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewScopedMacroCallNode(
+		n.loc,
+		n.Kind,
+		recv.(ExpressionNode),
+		macroName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ScopedMacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ScopedMacroCallNode)
 	if !ok {
@@ -336,6 +441,34 @@ func (n *ScopedMacroCallNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.MacroName.Equal(value.Ref(o.MacroName))
+}
+
+func (n *ScopedMacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ScopedMacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.MacroName.LaxEqual(value.Ref(o.MacroName))
 }
 
 func (n *ScopedMacroCallNode) String() string {
@@ -535,6 +668,39 @@ func (n *MacroCallNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *MacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	macroName, err := n.MacroName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMacroCallNode(
+		n.loc,
+		n.Kind,
+		recv.(ExpressionNode),
+		macroName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroCallNode)
 	if !ok {
@@ -562,6 +728,34 @@ func (n *MacroCallNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.MacroName.Equal(value.Ref(o.MacroName))
+}
+
+func (n *MacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.MacroName.LaxEqual(value.Ref(o.MacroName))
 }
 
 func (n *MacroCallNode) String() string {
@@ -751,6 +945,22 @@ func (n *ReceiverlessMacroCallNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *ReceiverlessMacroCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewReceiverlessMacroCallNode(n.loc, n.Kind, n.MacroName, posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReceiverlessMacroCallNode)
 	if !ok {
@@ -773,6 +983,34 @@ func (n *ReceiverlessMacroCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ReceiverlessMacroCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReceiverlessMacroCallNode)
+	if !ok {
+		return false
+	}
+
+	if n.MacroName != o.MacroName ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		n.Kind != o.Kind {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}

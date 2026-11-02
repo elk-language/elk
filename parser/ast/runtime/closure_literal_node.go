@@ -8,17 +8,20 @@ import (
 )
 
 func initClosureLiteralNode() {
-	c := &value.ClosureLiteralNodeClass.MethodContainer
+	c := value.ClosureLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argParameters []ast.ParameterNode
 			if !args[1].IsUndefined() {
-				argParametersTuple := args[1].AsReference().(value.ArrayTuple)
-				argParameters = value.TransformArrayTupleIntoNativeArrayTuple(argParametersTuple, func(v value.Value) ast.ParameterNode {
+				argParametersTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.ParameterNode {
 					return v.AsReference().(ast.ParameterNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argParameters = argParametersTuple.ToSlice()
 			}
 
 			var argReturnType ast.TypeNode
@@ -33,10 +36,13 @@ func initClosureLiteralNode() {
 
 			var argBody []ast.StatementNode
 			if !args[4].IsUndefined() {
-				argBodyTuple := args[4].AsReference().(value.ArrayTuple)
-				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+				argBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[4], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argBody = argBodyTuple.ToSlice()
 			}
 
 			var argLambda bool
@@ -152,6 +158,17 @@ func initClosureLiteralNode() {
 			self := args[0].MustReference().(*ast.ClosureLiteralNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ClosureLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

@@ -45,6 +45,17 @@ func (n *UnaryTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *UnaryTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typeNode, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnaryTypeNode(n.loc, n.Op, typeNode.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UnaryTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnaryTypeNode)
 	if !ok {
@@ -54,6 +65,16 @@ func (n *UnaryTypeNode) Equal(other value.Value) bool {
 	return n.Op.Equal(o.Op) &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UnaryTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnaryTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
 }
 
 func (n *UnaryTypeNode) String() string {

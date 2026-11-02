@@ -8,27 +8,33 @@ import (
 )
 
 func initClassDeclarationNode() {
-	c := &value.ClassDeclarationNodeClass.MethodContainer
+	c := value.ClassDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			constant := args[1].MustReference().(ast.ExpressionNode)
 
 			var body []ast.StatementNode
 			if !args[2].IsUndefined() {
-				bodyTuple := args[2].AsReference().(value.ArrayTuple)
-				body = value.TransformArrayTupleIntoNativeArrayTuple(bodyTuple, func(v value.Value) ast.StatementNode {
+				bodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.StatementNode {
 					return v.AsReference().(ast.StatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				body = bodyTuple.ToSlice()
 			}
 
 			var typeParams []ast.TypeParameterNode
 			if !args[3].IsUndefined() {
-				typeParamTuple := args[3].AsReference().(value.ArrayTuple)
-				typeParams = value.TransformArrayTupleIntoNativeArrayTuple(typeParamTuple, func(v value.Value) ast.TypeParameterNode {
+				typeParamTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.TypeParameterNode {
 					return v.AsReference().(ast.TypeParameterNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				typeParams = typeParamTuple.ToSlice()
 			}
 
 			var abstract bool
@@ -212,6 +218,17 @@ func initClassDeclarationNode() {
 			self := args[0].MustReference().(*ast.ClassDeclarationNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ClassDeclarationNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

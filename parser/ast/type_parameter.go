@@ -97,6 +97,39 @@ func (n *VariantTypeParameterNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *VariantTypeParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var lower TypeNode
+	if n.LowerBound != nil {
+		mapped, err := n.LowerBound.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		lower = mapped.(TypeNode)
+	}
+
+	var upper TypeNode
+	if n.UpperBound != nil {
+		mapped, err := n.UpperBound.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		upper = mapped.(TypeNode)
+	}
+
+	var def TypeNode
+	if n.Default != nil {
+		mapped, err := n.Default.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		def = mapped.(TypeNode)
+	}
+
+	newNode := NewVariantTypeParameterNode(n.loc, n.Variance, n.Name, lower, upper, def)
+
+	return fn(newNode, parent)
+}
+
 func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
 	if !ok {
@@ -126,6 +159,37 @@ func (n *VariantTypeParameterNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Variance == o.Variance &&
+		n.Name == o.Name
+}
+
+func (n *VariantTypeParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*VariantTypeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.LowerBound == o.LowerBound {
+	} else if n.LowerBound == nil || o.LowerBound == nil {
+		return false
+	} else if !n.LowerBound.LaxEqual(value.Ref(o.LowerBound)) {
+		return false
+	}
+
+	if n.UpperBound == o.UpperBound {
+	} else if n.UpperBound == nil || o.UpperBound == nil {
+		return false
+	} else if !n.UpperBound.LaxEqual(value.Ref(o.UpperBound)) {
+		return false
+	}
+
+	if n.Default == o.Default {
+	} else if n.Default == nil || o.Default == nil {
+		return false
+	} else if !n.Default.LaxEqual(value.Ref(o.Default)) {
+		return false
+	}
+
+	return n.Variance == o.Variance &&
 		n.Name == o.Name
 }
 

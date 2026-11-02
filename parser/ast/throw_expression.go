@@ -51,6 +51,21 @@ func (n *ThrowExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ThrowExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var val ExpressionNode
+	if n.Value != nil {
+		mapped, err := n.Value.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		val = mapped.(ExpressionNode)
+	}
+
+	newNode := NewThrowExpressionNode(n.loc, n.Unchecked, val)
+
+	return fn(newNode, parent)
+}
+
 func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
 	if !ok {
@@ -66,6 +81,22 @@ func (n *ThrowExpressionNode) Equal(other value.Value) bool {
 
 	return n.Unchecked == o.Unchecked &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *ThrowExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ThrowExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	return n.Unchecked == o.Unchecked
 }
 
 func (n *ThrowExpressionNode) String() string {

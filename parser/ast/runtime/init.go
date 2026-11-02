@@ -64,6 +64,7 @@ func InitGlobalEnvironment() {
 	initTypeStatementNode()
 	initPatternStatementNode()
 	initExtendWhereBlockExpressionNode()
+	initInferredExpressionNode()
 	initTrueLiteralNode()
 	initFalseLiteralNode()
 	initFloat32LiteralNode()
@@ -214,8 +215,4 @@ func InitGlobalEnvironment() {
 	initWordHashSetLiteralNode()
 	initYieldExpressionNode()
 	initMacroNameNode()
-}
-
-func init() {
-	InitGlobalEnvironment()
 }

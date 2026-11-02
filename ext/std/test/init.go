@@ -12,10 +12,16 @@ import (
 )
 
 func Init() {
-	ext.Register("std/test", runtimeInit, typecheckerInit)
+	ext.Register(
+		"std/test",
+		"github.com/elk-language/elk/ext/std/test",
+		"RuntimeInit",
+		RuntimeInit,
+		typecheckerInit,
+	)
 }
 
-func runtimeInit() {
+func RuntimeInit() {
 	testModule := initTest()
 	initAssertions(testModule)
 }
@@ -28,6 +34,7 @@ func typecheckerInit(checker types.Checker) {
 
 	n := assertionsMixin.Singleton()
 	vm.DefMacro(
+		env,
 		n,
 		"",
 		"assert!",
@@ -41,7 +48,7 @@ func typecheckerInit(checker types.Checker) {
 		},
 		expressionNodeMixin,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			expr := args[1].AsReference().(ast.ExpressionNode)
+			expr := args[2].AsReference().(ast.ExpressionNode)
 
 			assertionsConstant := ast.NewConstantLookupNode(
 				position.ZeroLocation,

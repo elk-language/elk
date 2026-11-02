@@ -7,7 +7,7 @@ import (
 // ::Std::Channel
 func initChannel() {
 	// Singleton methods
-	c := &value.ChannelClass.SingletonClass().MethodContainer
+	c := value.ChannelClass.SingletonClass()
 	Def(
 		c,
 		"closed",
@@ -19,7 +19,7 @@ func initChannel() {
 	)
 
 	// Instance methods
-	c = &value.ChannelClass.MethodContainer
+	c = value.ChannelClass
 	Def(
 		c,
 		"#init",

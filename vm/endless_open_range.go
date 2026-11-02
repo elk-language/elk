@@ -10,7 +10,7 @@ import (
 // ::Std::EndlessOpenRange
 func initEndlessOpenRange() {
 	// Instance methods
-	c := &value.EndlessOpenRangeClass.MethodContainer
+	c := value.EndlessOpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -119,7 +119,7 @@ func initEndlessOpenRange() {
 // ::Std::EndlessOpenRange::Iterator
 func initEndlessOpenRangeIterator() {
 	// Instance methods
-	c := &value.EndlessOpenRangeIteratorClass.MethodContainer
+	c := value.EndlessOpenRangeIteratorClass
 	Def(
 		c,
 		"next",
@@ -186,8 +186,8 @@ func EndlessOpenRangeIteratorAll(vm *Thread, i *value.EndlessOpenRangeIterator) 
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := EndlessOpenRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

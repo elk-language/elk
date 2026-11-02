@@ -50,6 +50,22 @@ func (n *AssignmentExpressionNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *AssignmentExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewAssignmentExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AssignmentExpressionNode) IsStatic() bool {
 	return false
 }
@@ -105,6 +121,17 @@ func (n *AssignmentExpressionNode) Equal(other value.Value) bool {
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *AssignmentExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AssignmentExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
 }
 
 func (n *AssignmentExpressionNode) String() string {

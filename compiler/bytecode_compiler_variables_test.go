@@ -46,6 +46,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 		"declare in a class": {
 			input: "class Foo; var @a: Float?; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -63,6 +64,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -85,6 +87,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -110,6 +113,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 		"declare in a mixin": {
 			input: "mixin Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -124,6 +128,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -147,6 +152,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 		"declare in a module": {
 			input: "module Foo; var @a: Float?; end",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -164,6 +170,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -182,6 +189,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -216,6 +224,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -237,6 +246,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -260,6 +270,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -281,6 +292,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -299,6 +311,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -332,6 +345,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -353,6 +367,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -383,6 +398,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -411,6 +427,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -429,6 +446,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -464,6 +482,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -485,6 +504,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -515,6 +535,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -544,6 +565,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -562,6 +584,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -597,6 +620,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -618,6 +642,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -648,6 +673,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -669,6 +695,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -687,6 +714,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -718,6 +746,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -736,6 +765,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -755,6 +785,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -773,6 +804,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -806,6 +838,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -827,6 +860,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -846,6 +880,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -868,6 +903,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -887,6 +923,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -920,6 +957,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -941,6 +979,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -964,6 +1003,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -986,6 +1026,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1005,6 +1046,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -1038,6 +1080,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1059,6 +1102,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1078,6 +1122,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1100,6 +1145,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1119,6 +1165,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -1152,6 +1199,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1173,6 +1221,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1192,6 +1241,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1214,6 +1264,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1233,6 +1284,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.INT_2),
@@ -1263,6 +1315,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1284,6 +1337,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1307,6 +1361,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1330,6 +1385,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<class: Foo>"),
 						[]byte{
 							byte(bytecode.INT_2),
@@ -1359,6 +1415,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1380,6 +1437,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1399,6 +1457,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1422,6 +1481,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
 							byte(bytecode.INT_2),
@@ -1451,6 +1511,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1472,6 +1533,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1491,6 +1553,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1514,6 +1577,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<interface: Foo>"),
 						[]byte{
 							byte(bytecode.INT_2),
@@ -1541,6 +1605,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1562,6 +1627,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1581,6 +1647,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1604,6 +1671,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.INT_2),
@@ -1635,6 +1703,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1656,6 +1725,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1679,6 +1749,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1700,6 +1771,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1718,6 +1790,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
@@ -1755,6 +1828,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1776,6 +1850,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1806,6 +1881,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1834,6 +1910,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1852,6 +1929,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
@@ -1891,6 +1969,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -1912,6 +1991,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1942,6 +2022,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1963,6 +2044,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -1981,6 +2063,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.INT_0),
@@ -2016,6 +2099,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2034,6 +2118,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2053,6 +2138,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2071,6 +2157,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.LOAD_VALUE_0),
@@ -2108,6 +2195,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2129,6 +2217,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2152,6 +2241,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2173,6 +2263,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2191,6 +2282,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2222,6 +2314,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2243,6 +2336,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2273,6 +2367,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2301,6 +2396,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2319,6 +2415,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2352,6 +2449,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2373,6 +2471,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2403,6 +2502,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2432,6 +2532,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2450,6 +2551,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2487,6 +2589,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2508,6 +2611,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2538,6 +2642,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2559,6 +2664,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2577,6 +2683,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2606,6 +2713,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2624,6 +2732,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2643,6 +2752,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2661,6 +2771,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo.:foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_NAME16), 0, 0,
@@ -2692,6 +2803,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2713,6 +2825,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2732,6 +2845,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2754,6 +2868,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2773,6 +2888,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2804,6 +2920,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2825,6 +2942,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2848,6 +2966,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2870,6 +2989,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2889,6 +3009,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -2920,6 +3041,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -2941,6 +3063,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2960,6 +3083,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -2982,6 +3106,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3001,6 +3126,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3032,6 +3158,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3053,6 +3180,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						namespaceDefinitionsSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3072,6 +3200,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3094,6 +3223,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<methodDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3113,6 +3243,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						[]value.Value{
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
+								nil,
 								value.ToSymbol("Foo::foo"),
 								[]byte{
 									byte(bytecode.GET_IVAR_0),
@@ -3141,6 +3272,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3162,6 +3294,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3185,6 +3318,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3208,6 +3342,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<class: Foo>"),
 						[]byte{
 							byte(bytecode.GET_IVAR_0),
@@ -3235,6 +3370,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3256,6 +3392,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3275,6 +3412,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3298,6 +3436,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<mixin: Foo>"),
 						[]byte{
 							byte(bytecode.GET_IVAR_0),
@@ -3325,6 +3464,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3346,6 +3486,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3365,6 +3506,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3388,6 +3530,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<interface: Foo>"),
 						[]byte{
 							byte(bytecode.GET_IVAR_0),
@@ -3413,6 +3556,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3434,6 +3578,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<namespaceDefinitions>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3453,6 +3598,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 						},
 					)),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<ivarIndices>"),
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -3476,6 +3622,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 					)),
 					value.ToSymbol("Foo").ToValue(),
 					value.Ref(vm.NewBytecodeFunctionNoParams(
+						nil,
 						value.ToSymbol("<module: Foo>"),
 						[]byte{
 							byte(bytecode.GET_IVAR_0),
@@ -3507,6 +3654,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 		"declare": {
 			input: "var a: Int",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3523,6 +3671,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 		"declare and initialise": {
 			input: "var a = 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3541,6 +3690,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 		"declare with a pattern": {
 			input: "var [1, a] = [1, 2]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3597,6 +3747,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 		"read undeclared": {
 			input: "a",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.RETURN),
@@ -3614,6 +3765,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 		"assign undeclared": {
 			input: "a = 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE_0),
@@ -3637,6 +3789,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				a = 'foo'
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3661,6 +3814,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				a = 'bar'
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3689,6 +3843,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				a + 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3720,6 +3875,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				a + 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3747,6 +3903,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3776,6 +3933,7 @@ func TestBytecodeLocalVariables(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3820,6 +3978,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				&a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3843,6 +4002,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				&a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3870,6 +4030,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				b.get
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3904,6 +4065,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3931,6 +4093,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				a = 20
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3961,6 +4124,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				a
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -3984,6 +4148,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -4012,6 +4177,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				-> println upvalue
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4029,6 +4195,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -4059,6 +4226,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4078,6 +4246,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_CONST8), 0,
@@ -4119,6 +4288,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 10,
@@ -4187,6 +4357,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_UPVALUE_0),
@@ -4204,6 +4375,7 @@ func TestBytecodeUpvalues(t *testing.T) {
 						2,
 					)),
 					value.Ref(vm.NewBytecodeFunctionWithUpvalues(
+						nil,
 						functionSymbol,
 						[]byte{
 							byte(bytecode.GET_UPVALUE_0),
@@ -4245,6 +4417,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 		"declare and initialise": {
 			input: "val a = 3",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4263,6 +4436,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 		"declare with a pattern": {
 			input: "val [1, a] = [1, 2]",
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4350,6 +4524,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				a + 2
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4377,6 +4552,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -4406,6 +4582,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -4440,6 +4617,7 @@ func TestBytecodeLocalValues(t *testing.T) {
 				end
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
+				nil,
 				mainSymbol,
 				append(
 					append(

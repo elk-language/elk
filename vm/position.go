@@ -7,7 +7,7 @@ import (
 // Std::String::Position
 func initPosition() {
 	// Instance methods
-	c := &value.PositionClass.MethodContainer
+	c := value.PositionClass
 
 	Def(
 		c,

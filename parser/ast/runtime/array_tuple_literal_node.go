@@ -8,17 +8,19 @@ import (
 )
 
 func initArrayTupleLiteralNode() {
-	c := &value.ArrayTupleLiteralNodeClass.MethodContainer
+	c := value.ArrayTupleLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argElements []ast.ExpressionNode
 			if !args[1].IsUndefined() {
-				arg0Tuple := args[1].AsReference().(value.ArrayTuple)
-				arg0 := value.TransformArrayTupleIntoNativeArrayTuple(arg0Tuple, func(v value.Value) ast.ExpressionNode {
+				arg0, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.ExpressionNode {
 					return v.AsReference().(ast.ExpressionNode)
 				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
 				argElements = arg0.ToSlice()
 			}
 
@@ -65,6 +67,17 @@ func initArrayTupleLiteralNode() {
 			self := args[0].MustReference().(*ast.ArrayTupleLiteralNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ArrayTupleLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

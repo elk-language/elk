@@ -48,5 +48,7 @@ module Std::Elk::AST
       eg. `-V` in `class Foo[-V]; end`
     ]##
     pure def is_contravariant: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

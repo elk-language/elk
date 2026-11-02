@@ -65,6 +65,26 @@ func (n *ModuleDeclarationNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *ModuleDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewModuleDeclarationNode(n.loc, n.DocComment(), constant, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
 	if !ok {
@@ -86,6 +106,33 @@ func (n *ModuleDeclarationNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.Body {
 		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ModuleDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ModuleDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.comment != o.comment ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
 			return false
 		}
 	}

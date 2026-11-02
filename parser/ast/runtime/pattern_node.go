@@ -6,7 +6,7 @@ import (
 )
 
 func initPatternNode() {
-	c := &value.PatternNodeMixin.MethodContainer
+	c := value.PatternNodeMixin
 	vm.Def(
 		c,
 		"to_ast_pattern_node",

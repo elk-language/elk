@@ -71,5 +71,7 @@ module Std::Elk::AST
       Whether the regex has the `x` flag.
     ]##
     pure def is_extended: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

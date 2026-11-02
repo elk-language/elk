@@ -8,13 +8,21 @@ import (
 
 // A simple setter method.
 type SetterMethod struct {
-	Doc           value.Value
+	namespace     *value.Class
 	AttributeName value.Symbol
 	name          value.Symbol
 	IvarIndex     int
 }
 
 var _ value.Method = &SetterMethod{}
+
+func (s *SetterMethod) Namespace() *value.Class {
+	return s.namespace
+}
+
+func (s *SetterMethod) SetNamespace(namespace *value.Class) {
+	s.namespace = namespace
+}
 
 func (s *SetterMethod) Name() value.Symbol {
 	return s.name
@@ -65,7 +73,7 @@ func (s *SetterMethod) ToValue() value.Value {
 }
 
 func (s *SetterMethod) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :setter}", s.AttributeName.Inspect())
+	return fmt.Sprintf("Method{name: %s, type: :setter, namespace: %s}", s.AttributeName.Inspect(), s.namespace.Inspect())
 }
 
 func (s *SetterMethod) Error() string {
@@ -94,8 +102,9 @@ func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, val
 }
 
 // Create a new getter method.
-func NewSetterMethod(attrName value.Symbol, index int) *SetterMethod {
+func NewSetterMethod(namespace *value.Class, attrName value.Symbol, index int) *SetterMethod {
 	return &SetterMethod{
+		namespace:     namespace,
 		AttributeName: attrName,
 		name:          value.ToSymbol(attrName.ToString() + "="),
 		IvarIndex:     index,
@@ -105,48 +114,49 @@ func NewSetterMethod(attrName value.Symbol, index int) *SetterMethod {
 // Creates a setter method and attaches it to
 // the given container.
 func DefineSetter(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	attrName value.Symbol,
 	index int,
 ) {
 	setterMethod := NewSetterMethod(
+		namespace,
 		attrName,
 		index,
 	)
-	container.AttachMethod(setterMethod.name, setterMethod)
+	namespace.AttachMethod(setterMethod.name, setterMethod)
 }
 
 // Utility method that creates a new setter and getter method and
 // attaches them as methods to the given method map.
 func DefineAccessor(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	attrName value.Symbol,
 	index int,
 ) {
-	DefineGetter(container, attrName, index)
-	DefineSetter(container, attrName, index)
+	DefineGetter(namespace, attrName, index)
+	DefineSetter(namespace, attrName, index)
 }
 
 // Utility method that creates a new setter method and
 // attaches it as a method to the given container.
 // Panics when the method cannot be defined.
 func Setter(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	attrName string,
 ) {
 	attrNameSymbol := value.ToSymbol(attrName)
-	setterMethod := NewSetterMethod(attrNameSymbol, -1)
+	setterMethod := NewSetterMethod(namespace, attrNameSymbol, -1)
 
-	container.AttachMethod(setterMethod.name, setterMethod)
+	namespace.AttachMethod(setterMethod.name, setterMethod)
 }
 
 // Utility method that creates a new setter and getter method and
 // attaches them as methods to the given container.
 // Panics when the methods cannot be defined.
 func Accessor(
-	container *value.MethodContainer,
+	namespace *value.Class,
 	attrName string,
 ) {
-	Getter(container, attrName)
-	Setter(container, attrName)
+	Getter(namespace, attrName)
+	Setter(namespace, attrName)
 }

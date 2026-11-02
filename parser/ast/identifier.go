@@ -63,6 +63,12 @@ func (n *PublicIdentifierNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *PublicIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewPublicIdentifierNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
 	if !ok {
@@ -71,6 +77,15 @@ func (n *PublicIdentifierNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PublicIdentifierNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 var IdentifierRegexp = regexp.MustCompile(`^\p{Ll}[\p{L}\p{N}_]*$`)
@@ -159,6 +174,12 @@ func (n *PrivateIdentifierNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *PrivateIdentifierNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewPrivateIdentifierNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PrivateIdentifierNode)
 	if !ok {
@@ -167,6 +188,15 @@ func (n *PrivateIdentifierNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PrivateIdentifierNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PrivateIdentifierNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *PrivateIdentifierNode) String() string {

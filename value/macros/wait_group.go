@@ -19,6 +19,7 @@ func initWaitGroup(env *types.GlobalEnvironment) {
 	waitGroupClass := env.NamesToNamespace(symbol.C_Std, symbol.C_Sync, symbol.C_WaitGroup).Singleton()
 
 	vm.DefMacro(
+		env,
 		waitGroupClass,
 		`Expands to an expression with never type, an endless loop.
 Useful in header files for function parameter default value.
@@ -59,8 +60,8 @@ Example:
 		},
 		exprNode,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			waitGroupExpr := args[1].AsReference().(ast.ExpressionNode)
-			goExpr := args[2].AsReference().(*ast.GoExpressionNode)
+			waitGroupExpr := args[2].AsReference().(ast.ExpressionNode)
+			goExpr := args[3].AsReference().(*ast.GoExpressionNode)
 
 			result := ast.NewDoExpressionNode(
 				position.ZeroLocation,

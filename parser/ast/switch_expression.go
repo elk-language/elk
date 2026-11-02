@@ -67,6 +67,27 @@ func (n *SwitchExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *SwitchExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	cases, err := traverseMapSlice(n.Cases, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := traverseMapSlice(n.ElseBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSwitchExpressionNode(n.loc, val.(ExpressionNode), cases, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
 	if !ok {
@@ -88,6 +109,33 @@ func (n *SwitchExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ElseBody {
 		if !stmt.Equal(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SwitchExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Cases) != len(o.Cases) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.Value.LaxEqual(value.Ref(o.Value)) {
+		return false
+	}
+
+	for i, c := range n.Cases {
+		if !c.LaxEqual(value.Ref(o.Cases[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.LaxEqual(value.Ref(o.ElseBody[i])) {
 			return false
 		}
 	}
@@ -191,16 +239,16 @@ func (n *SwitchExpressionNode) Error() string {
 
 // Represents a `case` node eg. `case 3 then println("eureka!")`
 type SwitchCaseNode struct {
-	NodeBase
+	TypedNodeBase
 	Pattern PatternNode
 	Body    []StatementNode
 }
 
 func (n *SwitchCaseNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
-		Body:     SpliceSlice(n.Body, loc, args, unquote),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:       n.Pattern.splice(loc, args, unquote).(PatternNode),
+		Body:          SpliceSlice(n.Body, loc, args, unquote),
 	}
 }
 
@@ -229,6 +277,22 @@ func (n *SwitchCaseNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *SwitchCaseNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSwitchCaseNode(n.loc, pattern.(PatternNode), body)
+
+	return fn(newNode, parent)
+}
+
 func (n *SwitchCaseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SwitchCaseNode)
 	if !ok {
@@ -250,6 +314,29 @@ func (n *SwitchCaseNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *SwitchCaseNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SwitchCaseNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *SwitchCaseNode) String() string {
@@ -312,8 +399,8 @@ func (n *SwitchCaseNode) Error() string {
 // Create a new switch `case` node
 func NewSwitchCaseNode(loc *position.Location, pattern PatternNode, body []StatementNode) *SwitchCaseNode {
 	return &SwitchCaseNode{
-		NodeBase: NodeBase{loc: loc},
-		Pattern:  pattern,
-		Body:     body,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Pattern:       pattern,
+		Body:          body,
 	}
 }

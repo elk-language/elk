@@ -6,7 +6,7 @@ import (
 )
 
 func initComplexConstantNode() {
-	c := &value.ComplexConstantNodeMixin.MethodContainer
+	c := value.ComplexConstantNodeMixin
 	vm.Def(
 		c,
 		"to_ast_complex_const_node",

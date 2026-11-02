@@ -10,5 +10,7 @@ module Std::Elk::AST
     pure def value: Char; end
     pure def to_char: Char; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

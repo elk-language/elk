@@ -7,7 +7,7 @@ import (
 // ::Std::Regex
 func initRegex() {
 	// Instance methods
-	c := &value.RegexClass.MethodContainer
+	c := value.RegexClass
 	Def(
 		c,
 		"matches",

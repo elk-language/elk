@@ -8,12 +8,14 @@ module Std::Elk::AST
 
     init(
       namespace: UsingEntryNode,
-      subentries: ArrayTuple[UsingSubentryNode],
+      subentries: Tuple[UsingSubentryNode],
       location: FS::Location = loop; end,
     ); end
 
     pure def namespace: UsingEntryNode; end
     pure def subentries: ArrayTuple[UsingSubentryNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

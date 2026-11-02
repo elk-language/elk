@@ -136,6 +136,9 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		)
 		return inferredType
 	case *types.Generic:
+		if exactType, ok := givenType.(*types.Exact); ok {
+			givenType = exactType.Type
+		}
 		gNamespace, ok := givenType.(types.Namespace)
 		if !ok || !c.isSubtype(gNamespace, p.Namespace, nil) {
 			newArgMap := make(types.TypeArgumentMap, len(p.ArgumentMap))

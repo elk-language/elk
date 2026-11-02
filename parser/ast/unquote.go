@@ -59,6 +59,17 @@ func (n *UnquoteNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *UnquoteNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnquoteNode(n.loc, n.Kind, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UnquoteNode) MacroType(env *types.GlobalEnvironment) types.Type {
 	return types.NameToType("Std::Elk::AST::UnquoteNode", env)
 }
@@ -89,6 +100,15 @@ func (n *UnquoteNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Expression.Equal(value.Ref(o.Expression))
+}
+
+func (n *UnquoteNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 // Return a string representation of the node.

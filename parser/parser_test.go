@@ -420,7 +420,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned"),
 			},
 		},
 		"constants are not valid declaration targets": {
@@ -460,7 +460,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+				diagnostic.NewFailure(L(S(P(0, 1, 1), P(4, 1, 5))), "constants cannot be assigned"),
 			},
 		},
 		"private constants are not valid declaration targets": {
@@ -1173,6 +1173,22 @@ func TestConstantLookup(t *testing.T) {
 							L(S(P(4, 2, 1), P(8, 2, 5))),
 							nil,
 							ast.NewPublicConstantNode(L(S(P(6, 2, 3), P(8, 2, 5))), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"can be inferred": {
+			input: ".::Bar",
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(5, 1, 6))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(5, 1, 6))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(5, 1, 6))),
+							ast.InferredExpressionNode{},
+							ast.NewPublicConstantNode(L(S(P(3, 1, 4), P(5, 1, 6))), "Bar"),
 						),
 					),
 				},

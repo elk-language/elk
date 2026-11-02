@@ -9,5 +9,7 @@ module Std::Elk::AST
     pure def op: Elk::Token; end
     pure def type_node: TypeNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

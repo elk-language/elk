@@ -7,7 +7,3 @@ func InitGlobalEnvironment() {
 	initSyncDiagnosticList()
 	initSyncDiagnosticListIterator()
 }
-
-func init() {
-	InitGlobalEnvironment()
-}

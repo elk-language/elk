@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elk-language/elk/ext"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -23,10 +24,10 @@ type Compiler interface {
 	Method() value.Method
 	Parent() Compiler
 	SetParent(Compiler)
-	InitMainCompiler()
+	InitMainCompiler([]*ext.Extension)
 	InitGlobalEnv() Compiler
 	FinishGlobalEnvCompiler()
-	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, additionalAbortChecks, measureTime bool) Compiler
+	CreateMainCompiler(checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, output io.Writer, repl, measureTime bool) Compiler
 	CompileClassInheritance(*types.Class, *position.Location)
 	CompileIvarIndices(target types.NamespaceWithIvarIndices, location *position.Location)
 	CompileInclude(target types.Namespace, mixin *types.Mixin, location *position.Location)
@@ -54,17 +55,17 @@ func NewGlobalData() *GlobalData {
 	}
 }
 
-func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, additionalAbortChecks bool) Compiler {
+func CreateCompiler(funcName string, parent Compiler, checker types.Checker, loc *position.Location, errors *diagnostic.SyncDiagnosticList, isREPL bool) Compiler {
 	switch parent := parent.(type) {
 	case nil:
 		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, NewGlobalData())
-		cmp.additionalAbortChecks = additionalAbortChecks
+		cmp.isREPL = isREPL
 		cmp.Errors = errors
 		cmp.SetParent(parent)
 		return cmp
 	case *BytecodeCompiler:
 		cmp := NewBytecodeCompiler(funcName, topLevelBytecodeCompilerMode, loc, checker, parent.globalData)
-		cmp.additionalAbortChecks = additionalAbortChecks
+		cmp.isREPL = isREPL
 		cmp.Errors = errors
 		cmp.SetParent(parent)
 		return cmp

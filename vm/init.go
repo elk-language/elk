@@ -4,10 +4,6 @@ import (
 	_ "github.com/elk-language/elk/value"
 )
 
-func init() {
-	InitGlobalEnvironment()
-}
-
 func InitGlobalEnvironment() {
 	initError()
 	initIterator()
@@ -108,5 +104,22 @@ func InitGlobalEnvironment() {
 	initDateTime()
 	initDateTimeSpan()
 	initTimezone()
+	initMacro()
+	initOrderedHashRecord()
+	initOrderedHashRecordIterator()
+	initOrderedHashMap()
+	initOrderedHashMapIterator()
+	initOrderedHashSet()
+	initOrderedHashSetIterator()
+	initSyncHashMap()
+	initSyncHashMapIterator()
+	initSyncOrderedHashMap()
+	initSyncOrderedHashMapIterator()
+	initSyncArrayList()
+	initSyncArrayListIterator()
+	initSyncHashSet()
+	initSyncHashSetIterator()
+	initSyncOrderedHashSet()
+	initSyncOrderedHashSetIterator()
 	initSize()
 }

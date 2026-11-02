@@ -9,5 +9,7 @@ module Std::Elk::AST
     pure def expression: ExpressionNode; end
     pure def pattern_node: PatternNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

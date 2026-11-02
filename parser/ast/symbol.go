@@ -49,6 +49,12 @@ func (n *SimpleSymbolLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *SimpleSymbolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewSimpleSymbolLiteralNode(n.loc, n.Content)
+
+	return fn(newNode, parent)
+}
+
 func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
 	if !ok {
@@ -57,6 +63,15 @@ func (n *SimpleSymbolLiteralNode) Equal(other value.Value) bool {
 
 	return n.Content == o.Content &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SimpleSymbolLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SimpleSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content == o.Content
 }
 
 func (n *SimpleSymbolLiteralNode) String() string {
@@ -131,6 +146,17 @@ func (n *InterpolatedSymbolLiteralNode) traverse(parent Node, enter func(node, p
 	return leave(n, parent)
 }
 
+func (n *InterpolatedSymbolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cont, err := n.Content.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInterpolatedSymbolLiteralNode(n.loc, cont.(*InterpolatedStringLiteralNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InterpolatedSymbolLiteralNode)
 	if !ok {
@@ -139,6 +165,15 @@ func (n *InterpolatedSymbolLiteralNode) Equal(other value.Value) bool {
 
 	return n.Content.Equal(value.Ref(o.Content)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *InterpolatedSymbolLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedSymbolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Content.LaxEqual(value.Ref(o.Content))
 }
 
 func (n *InterpolatedSymbolLiteralNode) String() string {

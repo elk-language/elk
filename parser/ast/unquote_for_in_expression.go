@@ -57,6 +57,32 @@ func (n *UnquoteForInExpressionNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *UnquoteForInExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	inExpr, err := n.InExpression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnquoteForInExpressionNode(
+		n.loc,
+		pattern.(PatternNode),
+		inExpr.(ExpressionNode),
+		then,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *UnquoteForInExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnquoteForInExpressionNode)
 	if !ok {
@@ -72,6 +98,27 @@ func (n *UnquoteForInExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ThenBody {
 		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UnquoteForInExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnquoteForInExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) ||
+		!n.InExpression.LaxEqual(value.Ref(o.InExpression)) ||
+		len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
 			return false
 		}
 	}

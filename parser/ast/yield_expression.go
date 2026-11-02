@@ -51,6 +51,21 @@ func (n *YieldExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *YieldExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var val ExpressionNode
+	if n.Value != nil {
+		mapped, err := n.Value.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		val = mapped.(ExpressionNode)
+	}
+
+	newNode := NewYieldExpressionNode(n.loc, n.Forward, val)
+
+	return fn(newNode, parent)
+}
+
 func (n *YieldExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*YieldExpressionNode)
 	if !ok {
@@ -66,6 +81,26 @@ func (n *YieldExpressionNode) Equal(other value.Value) bool {
 	} else if n.Value == nil || o.Value == nil {
 		return false
 	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *YieldExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*YieldExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Forward != o.Forward {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
 		return false
 	}
 

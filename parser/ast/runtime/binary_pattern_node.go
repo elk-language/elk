@@ -9,7 +9,7 @@ import (
 )
 
 func initBinaryPatternNode() {
-	c := &value.BinaryPatternNodeClass.MethodContainer
+	c := value.BinaryPatternNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -87,6 +87,17 @@ func initBinaryPatternNode() {
 			self := args[0].MustReference().(*ast.BinaryPatternNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.BinaryPatternNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

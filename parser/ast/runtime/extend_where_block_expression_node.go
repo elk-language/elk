@@ -8,21 +8,27 @@ import (
 )
 
 func initExtendWhereBlockExpressionNode() {
-	c := &value.ExtendWhereBlockExpressionNodeClass.MethodContainer
+	c := value.ExtendWhereBlockExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 
-			argBodyTuple := args[1].AsReference().(value.ArrayTuple)
-			argBody := value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StatementNode {
+			argBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.StatementNode {
 				return v.AsReference().(ast.StatementNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argBody := argBodyTuple.ToSlice()
 
-			whereTuple := args[2].AsReference().(value.ArrayTuple)
-			argWhere := value.TransformArrayTupleIntoNativeArrayTuple(whereTuple, func(v value.Value) ast.TypeParameterNode {
+			whereTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.TypeParameterNode {
 				return v.AsReference().(ast.TypeParameterNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argWhere := whereTuple.ToSlice()
 
 			var argLoc *position.Location
 			if args[3].IsUndefined() {
@@ -78,6 +84,17 @@ func initExtendWhereBlockExpressionNode() {
 			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ExtendWhereBlockExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

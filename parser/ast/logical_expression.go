@@ -52,6 +52,22 @@ func (n *LogicalExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *LogicalExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewLogicalExpressionNode(n.loc, n.Op, left.(ExpressionNode), right.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
 	if !ok {
@@ -62,6 +78,17 @@ func (n *LogicalExpressionNode) Equal(other value.Value) bool {
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *LogicalExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LogicalExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
 }
 
 func (n *LogicalExpressionNode) String() string {

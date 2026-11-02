@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"iter"
@@ -92,6 +93,20 @@ func callCaseClosure(
 	typ ErrTyp,
 ) bool {
 	var err value.Value
+
+	prevStdout := v.Stdout
+	prevStderr := v.Stderr
+
+	caseStdout := &bytes.Buffer{}
+	caseStderr := &bytes.Buffer{}
+	v.Stdout = caseStdout
+	v.Stderr = caseStderr
+
+	defer func() {
+		v.Stdout = prevStdout
+		v.Stderr = prevStderr
+	}()
+
 	_, err = v.CallClosure(closure)
 	if !err.IsUndefined() {
 		var status TestStatus
@@ -107,6 +122,23 @@ func callCaseClosure(
 				Typ:        typ,
 				Err:        err,
 				StackTrace: v.GetStackTrace(),
+				Stdout:     caseStdout,
+				Stderr:     caseStderr,
+			},
+		)
+		caseReport.duration = time.Since(startTime)
+		v.ResetError()
+		v.ClearStackFrames()
+		return false
+	}
+
+	if caseStderr.Len() > 0 {
+		caseReport.status = TEST_ERROR
+		caseReport.RegisterErr(
+			Err{
+				Typ:    typ,
+				Stdout: caseStdout,
+				Stderr: caseStderr,
 			},
 		)
 		caseReport.duration = time.Since(startTime)
@@ -132,17 +164,6 @@ func (c *Case) Run(v *vm.Thread, events chan<- *ReportEvent, ctx context.Context
 	caseReport.status = TEST_RUNNING
 	events <- NewCaseReportEvent(caseReport, REPORT_START_CASE)
 
-	prevStdout := v.Stdout
-	prevStderr := v.Stderr
-
-	v.Stdout = &caseReport.stdout
-	v.Stderr = &caseReport.stderr
-
-	defer func() {
-		v.Stdout = prevStdout
-		v.Stderr = prevStderr
-	}()
-
 	caseReport, ok = c.runBeforeEach(startTime, caseReport, v, events, ctx)
 	if !ok {
 		c.runAfterEach(startTime, caseReport, v)
@@ -150,18 +171,22 @@ func (c *Case) Run(v *vm.Thread, events chan<- *ReportEvent, ctx context.Context
 	}
 
 	if isDone(ctx) {
+		caseReport.UpdateStatus(TEST_INTERRUPTED)
+		caseReport.duration = time.Since(startTime)
+		events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
 		return nil
 	}
 	callCaseClosure(v, caseReport, startTime, c.Fn, ErrCase)
 
 	c.runAfterEach(startTime, caseReport, v)
 
-	if isDone(ctx) {
-		return nil
-	}
 	caseReport.UpdateStatus(TEST_SUCCESS)
 	caseReport.duration = time.Since(startTime)
 	events <- NewCaseReportEvent(caseReport, REPORT_FINISH_CASE)
+
+	if isDone(ctx) {
+		return nil
+	}
 	return caseReport
 }
 

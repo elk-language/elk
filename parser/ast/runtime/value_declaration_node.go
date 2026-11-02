@@ -8,7 +8,7 @@ import (
 )
 
 func initValueDeclarationNode() {
-	c := &value.ValueDeclarationNodeClass.MethodContainer
+	c := value.ValueDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -100,6 +100,17 @@ func initValueDeclarationNode() {
 			self := args[0].MustReference().(*ast.ValueDeclarationNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ValueDeclarationNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

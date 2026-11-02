@@ -58,6 +58,17 @@ func (n *ExpressionStatementNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *ExpressionStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewExpressionStatementNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
 	if !ok {
@@ -66,6 +77,15 @@ func (e *ExpressionStatementNode) Equal(other value.Value) bool {
 
 	return o.loc.Equal(o.loc) &&
 		e.Expression.Equal(value.Ref(o.Expression))
+}
+
+func (e *ExpressionStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExpressionStatementNode)
+	if !ok {
+		return false
+	}
+
+	return e.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 // Return a string representation of the node.
@@ -146,6 +166,12 @@ func (n *EmptyStatementNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *EmptyStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewEmptyStatementNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*EmptyStatementNode)
@@ -154,6 +180,15 @@ func (n *EmptyStatementNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *EmptyStatementNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*EmptyStatementNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -226,6 +261,17 @@ func (n *ImportStatementNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ImportStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	path, err := n.Path.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewImportStatementNode(n.loc, path.(StringLiteralNode))
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ImportStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ImportStatementNode)
@@ -234,6 +280,15 @@ func (n *ImportStatementNode) Equal(other value.Value) bool {
 	}
 
 	return n.Path.Equal(value.Ref(o.Path)) && n.loc.Equal(o.loc)
+}
+
+func (n *ImportStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ImportStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Path.LaxEqual(value.Ref(o.Path))
 }
 
 // Return a string representation of the node.
@@ -310,6 +365,17 @@ func (n *ParameterStatementNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *ParameterStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	param, err := n.Parameter.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewParameterStatementNode(n.loc, param.(ParameterNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *ParameterStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ParameterStatementNode)
 	if !ok {
@@ -318,6 +384,15 @@ func (n *ParameterStatementNode) Equal(other value.Value) bool {
 
 	return n.Parameter.Equal(value.Ref(o.Parameter)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *ParameterStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ParameterStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Parameter.LaxEqual(value.Ref(o.Parameter))
 }
 
 // Return a string representation of the node.
@@ -406,6 +481,17 @@ func (n *TypeStatementNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *TypeStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typeNode, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewTypeStatementNode(n.loc, typeNode.(TypeNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *TypeStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TypeStatementNode)
 	if !ok {
@@ -414,6 +500,15 @@ func (n *TypeStatementNode) Equal(other value.Value) bool {
 
 	return n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *TypeStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
 }
 
 // Return a string representation of the node.
@@ -494,6 +589,17 @@ func (n *PatternStatementNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *PatternStatementNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewPatternStatementNode(n.loc, pattern.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *PatternStatementNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PatternStatementNode)
 	if !ok {
@@ -502,6 +608,15 @@ func (n *PatternStatementNode) Equal(other value.Value) bool {
 
 	return n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PatternStatementNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PatternStatementNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern))
 }
 
 // Return a string representation of the node.

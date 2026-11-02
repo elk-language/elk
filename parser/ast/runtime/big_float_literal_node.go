@@ -8,7 +8,7 @@ import (
 )
 
 func initBigFloatLiteralNode() {
-	c := &value.BigFloatLiteralNodeClass.MethodContainer
+	c := value.BigFloatLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -66,6 +66,17 @@ func initBigFloatLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.BigFloatLiteralNode)
@@ -73,7 +84,7 @@ func initBigFloatLiteralNode() {
 		},
 	)
 
-	c = &value.BigFloatClass.MethodContainer
+	c = value.BigFloatClass
 	vm.Def(
 		c,
 		"to_ast_node",

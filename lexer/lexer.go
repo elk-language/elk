@@ -491,6 +491,12 @@ func (l *Lexer) skipByte() {
 	l.startColumn += 1
 }
 
+// Skips the next n bytes.
+func (l *Lexer) skipBytes(n int) {
+	l.start += n
+	l.startColumn += n
+}
+
 // Skips the current accumulated token.
 func (l *Lexer) skipToken() {
 	l.start = l.cursor
@@ -1864,6 +1870,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			return l.token(token.COMMA)
 		case '.':
 			if l.matchChar(':') {
+				if l.matchChar(':') {
+					return l.token(token.DOT_COLON_COLON)
+				}
 				return l.token(token.DOT_COLON)
 			}
 			if l.acceptChar('.') {
@@ -2024,7 +2033,7 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				if l.matchChar('[') {
 					return l.token(token.COLON_COLON_LBRACKET)
 				}
-				return l.token(token.SCOPE_RES_OP)
+				return l.token(token.COLON_COLON)
 			}
 			if l.matchChar('=') {
 				return l.token(token.COLON_EQUAL)
@@ -2172,6 +2181,15 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 			}
 			return l.token(token.BANG)
 		case '\\':
+			if l.matchChar('\n') {
+				l.skipToken()
+				continue
+			}
+			if l.acceptChar('\r') && l.acceptNextChar('\n') {
+				l.advanceChars(2)
+				l.skipToken()
+				continue
+			}
 			if l.acceptChar('w') {
 				if l.acceptNextChar('[') {
 					l.advanceChars(2)
@@ -2200,7 +2218,9 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 					return l.token(token.BIN_ARRAY_LIST_BEG)
 				}
 			}
-			fallthrough
+
+			l.skipByte()
+			continue
 		case '%':
 			switch l.peekChar() {
 			case '|':
@@ -2258,7 +2278,8 @@ func (l *Lexer) scanNormal(afterMethodCallOperator bool) *token.Token {
 				l.foldNewLines()
 				return l.token(token.NEWLINE)
 			}
-			fallthrough
+			l.skipByte()
+			continue
 		case ' ', '\t':
 			l.skipByte()
 		case '#':

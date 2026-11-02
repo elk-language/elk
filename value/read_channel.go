@@ -9,15 +9,9 @@ type ReadChannel interface {
 	NativeIterable
 	NativeIterator
 	AnyChannel
-	Length() int
-	Capacity() int
-	LeftCapacity() int
 	Pop() (val Value, err Value)
 	PopCtx(ctx context.Context) (val Value, err Value)
 	NextValueCtx(ctx context.Context) (val Value, err Value)
-	IsTransformerChannel() bool
-	TransformToValue(v any) Value
-	NativeChannelAny() any
 }
 
 func initReadChannel() {

@@ -7,7 +7,7 @@ import (
 // ::Std::Aborter
 func initAborter() {
 	// Singleton methods
-	c := &value.AborterClass.SingletonClass().MethodContainer
+	c := value.AborterClass.SingletonClass()
 	Def(
 		c,
 		"closed",
@@ -50,7 +50,7 @@ func initAborter() {
 	)
 
 	// Instance methods
-	c = &value.AborterClass.MethodContainer
+	c = value.AborterClass
 	Def(
 		c,
 		"#init",

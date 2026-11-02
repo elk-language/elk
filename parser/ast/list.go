@@ -60,6 +60,26 @@ func (n *ArrayListLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *ArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (l *ArrayListLiteralNode) IsStatic() bool {
 	if l.static == staticUnset {
 		if isExpressionSliceStatic(l.Elements) && isExpressionStatic(l.Capacity) {
@@ -122,6 +142,33 @@ func (n *ArrayListLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Capacity.Equal(value.Ref(o.Capacity))
+}
+
+func (n *ArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+		return true
+	}
+
+	if n.Capacity == nil || o.Capacity == nil {
+		return false
+	}
+
+	return n.Capacity.LaxEqual(value.Ref(o.Capacity))
 }
 
 func (n *ArrayListLiteralNode) String() string {
@@ -264,6 +311,26 @@ func (n *WordArrayListLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *WordArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewWordArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
 	if !ok {
@@ -284,6 +351,32 @@ func (n *WordArrayListLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -453,6 +546,26 @@ func (n *SymbolArrayListLiteralNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *SymbolArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewSymbolArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
 	if !ok {
@@ -473,6 +586,32 @@ func (n *SymbolArrayListLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SymbolArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -641,6 +780,26 @@ func (n *HexArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *HexArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewHexArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HexArrayListLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HexArrayListLiteralNode)
@@ -666,6 +825,32 @@ func (n *HexArrayListLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HexArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -831,6 +1016,26 @@ func (n *BinArrayListLiteralNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *BinArrayListLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewBinArrayListLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 func (b *BinArrayListLiteralNode) IsStatic() bool {
 	if b.static == staticUnset {
 		if isExpressionStatic(b.Capacity) {
@@ -869,6 +1074,35 @@ func (n *BinArrayListLiteralNode) Equal(other value.Value) bool {
 	} else if n.Capacity == nil || o.Capacity == nil {
 		return false
 	} else if !n.Capacity.Equal(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *BinArrayListLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayListLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
 		return false
 	}
 
@@ -1011,6 +1245,17 @@ func (n *ListPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *ListPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewListPatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *ListPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ListPatternNode)
 	if !ok {
@@ -1028,6 +1273,25 @@ func (n *ListPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ListPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ListPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *ListPatternNode) String() string {

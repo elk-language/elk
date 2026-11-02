@@ -7,7 +7,7 @@ import (
 // Std::Weak
 func initWeak() {
 	// Instance methods
-	c := &value.WeakClass.MethodContainer
+	c := value.WeakClass
 	Def(
 		c,
 		"#init",

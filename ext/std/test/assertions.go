@@ -20,7 +20,7 @@ func initAssertions(testModule *value.Module) {
 	)
 	testModule.AddConstantString("AssertionError", value.Ref(AssertionErrorClass))
 
-	c := &assertionsMixin.MethodContainer
+	c := assertionsMixin
 	vm.Def(
 		c,
 		"assert_truthy",
@@ -216,9 +216,11 @@ func initAssertions(testModule *value.Module) {
 			var buff strings.Builder
 			v.Stdout = &buff
 
-			v.CallCallable(callable)
-
+			_, err = v.CallCallable(callable)
 			v.Stdout = prevStdout
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 
 			got := value.String(buff.String())
 			if expected != got {
@@ -238,6 +240,25 @@ func initAssertions(testModule *value.Module) {
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"capture_stdout",
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+			callable := args[1]
+
+			prevStdout := v.Stdout
+			var buff strings.Builder
+			v.Stdout = &buff
+
+			v.CallCallable(callable)
+
+			v.Stdout = prevStdout
+
+			return value.String(buff.String()).ToValue(), value.Undefined
+		},
+		vm.DefWithParameters(1),
 	)
 
 	vm.Def(
@@ -273,6 +294,25 @@ func initAssertions(testModule *value.Module) {
 			return value.Nil, value.Undefined
 		},
 		vm.DefWithParameters(2),
+	)
+
+	vm.Def(
+		c,
+		"capture_stderr",
+		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
+			callable := args[1]
+
+			prevStderr := v.Stderr
+			var buff strings.Builder
+			v.Stderr = &buff
+
+			v.CallCallable(callable)
+
+			v.Stderr = prevStderr
+
+			return value.String(buff.String()).ToValue(), value.Undefined
+		},
+		vm.DefWithParameters(1),
 	)
 
 	vm.Def(
@@ -328,7 +368,7 @@ func initAssertions(testModule *value.Module) {
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s` or its parents",
 					gotInspect.AsString().String(),
-					argClass.Name,
+					argClass.Name(),
 				)
 			} else {
 				message = args[3].AsString().String()
@@ -364,7 +404,7 @@ func initAssertions(testModule *value.Module) {
 				message = fmt.Sprintf(
 					"value `%s` is not an instance of `%s`",
 					gotInspect.AsString().String(),
-					argClass.Name,
+					argClass.Name(),
 				)
 			} else {
 				message = args[3].AsString().String()

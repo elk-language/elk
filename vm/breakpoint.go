@@ -3,7 +3,7 @@ package vm
 import "github.com/elk-language/elk/value"
 
 type BreakpointHandler interface {
-	RunBreakpoint(thread *Thread, breakpointContext value.Value)
+	RunBreakpoint(thread *Thread, breakpointContext value.Value) error
 }
 
 var BREAKPOINT_HANDLER BreakpointHandler

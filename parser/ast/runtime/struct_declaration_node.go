@@ -8,27 +8,33 @@ import (
 )
 
 func initStructDeclarationNode() {
-	c := &value.StructDeclarationNodeClass.MethodContainer
+	c := value.StructDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argConstant := args[1].MustReference().(ast.ExpressionNode)
 
 			var argTypeParameters []ast.TypeParameterNode
 			if !args[2].IsUndefined() {
-				argTypeParametersTuple := args[2].AsReference().(value.ArrayTuple)
-				argTypeParameters = value.TransformArrayTupleIntoNativeArrayTuple(argTypeParametersTuple, func(v value.Value) ast.TypeParameterNode {
+				argTypeParametersTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.TypeParameterNode {
 					return v.AsReference().(ast.TypeParameterNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argTypeParameters = argTypeParametersTuple.ToSlice()
 			}
 
 			var argBody []ast.StructBodyStatementNode
 			if !args[3].IsUndefined() {
-				argBodyTuple := args[3].AsReference().(value.ArrayTuple)
-				argBody = value.TransformArrayTupleIntoNativeArrayTuple(argBodyTuple, func(v value.Value) ast.StructBodyStatementNode {
+				argBodyTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.StructBodyStatementNode {
 					return v.AsReference().(ast.StructBodyStatementNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argBody = argBodyTuple.ToSlice()
 			}
 
 			var immutable bool
@@ -132,6 +138,17 @@ func initStructDeclarationNode() {
 			self := args[0].MustReference().(*ast.StructDeclarationNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.StructDeclarationNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

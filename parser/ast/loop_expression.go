@@ -44,6 +44,17 @@ func (n *LoopExpressionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *LoopExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewLoopExpressionNode(n.loc, then)
+
+	return fn(newNode, parent)
+}
+
 func (n *LoopExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*LoopExpressionNode)
 	if !ok {
@@ -61,6 +72,25 @@ func (n *LoopExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *LoopExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*LoopExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *LoopExpressionNode) String() string {

@@ -48,6 +48,22 @@ func (n *InstanceMethodLookupNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *InstanceMethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInstanceMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *InstanceMethodLookupNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InstanceMethodLookupNode)
 	if !ok {
@@ -57,6 +73,16 @@ func (n *InstanceMethodLookupNode) Equal(other value.Value) bool {
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Name.Equal(value.Ref(o.Name))
+}
+
+func (n *InstanceMethodLookupNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InstanceMethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
 }
 
 func (n *InstanceMethodLookupNode) String() string {
@@ -166,6 +192,22 @@ func (n *MethodLookupNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *MethodLookupNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	receiver, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMethodLookupNode(n.loc, receiver.(ExpressionNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodLookupNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodLookupNode)
 	if !ok {
@@ -175,6 +217,16 @@ func (n *MethodLookupNode) Equal(other value.Value) bool {
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Name.Equal(value.Ref(o.Name))
+}
+
+func (n *MethodLookupNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
 }
 
 func (n *MethodLookupNode) String() string {
@@ -244,7 +296,7 @@ func (n *MethodLookupNode) Error() string {
 // Represents a method lookup with as in using declarations
 // eg. `Foo::bar as baz`.
 type MethodLookupAsNode struct {
-	NodeBase
+	TypedNodeBase
 	MethodLookup *MethodLookupNode
 	AsName       IdentifierNode
 }
@@ -256,9 +308,9 @@ func (n *MethodLookupAsNode) IsMacro() bool {
 
 func (n *MethodLookupAsNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		MethodLookup: n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
-		AsName:       n.AsName.splice(loc, args, unquote).(IdentifierNode),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		MethodLookup:  n.MethodLookup.splice(loc, args, unquote).(*MethodLookupNode),
+		AsName:        n.AsName.splice(loc, args, unquote).(IdentifierNode),
 	}
 }
 
@@ -285,6 +337,22 @@ func (n *MethodLookupAsNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *MethodLookupAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodLookup, err := n.MethodLookup.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	as, err := n.AsName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMethodLookupAsNode(n.loc, methodLookup.(*MethodLookupNode), as.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 // Check if this method lookup as node is equal to another value.
 func (n *MethodLookupAsNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodLookupAsNode)
@@ -295,6 +363,16 @@ func (n *MethodLookupAsNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.MethodLookup.Equal(value.Ref(o.MethodLookup)) &&
 		n.AsName.Equal(value.Ref(o.AsName))
+}
+
+func (n *MethodLookupAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodLookupAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.MethodLookup.LaxEqual(value.Ref(o.MethodLookup)) &&
+		n.AsName.LaxEqual(value.Ref(o.AsName))
 }
 
 // Return a string representation of this method lookup as node.
@@ -315,9 +393,9 @@ func (*MethodLookupAsNode) IsStatic() bool {
 // Create a new identifier with as eg. `Foo::bar as Bar`.
 func NewMethodLookupAsNode(loc *position.Location, methodLookup *MethodLookupNode, as IdentifierNode) *MethodLookupAsNode {
 	return &MethodLookupAsNode{
-		NodeBase:     NodeBase{loc: loc},
-		MethodLookup: methodLookup,
-		AsName:       as,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		MethodLookup:  methodLookup,
+		AsName:        as,
 	}
 }
 

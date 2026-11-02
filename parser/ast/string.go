@@ -77,6 +77,12 @@ func (n *RawStringLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *RawStringLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewRawStringLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
 	if !ok {
@@ -85,6 +91,15 @@ func (n *RawStringLiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *RawStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RawStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *RawStringLiteralNode) String() string {
@@ -153,6 +168,12 @@ func (n *StringLiteralContentSectionNode) traverse(parent Node, enter func(node,
 	return leave(n, parent)
 }
 
+func (n *StringLiteralContentSectionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewStringLiteralContentSectionNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
 	if !ok {
@@ -161,6 +182,15 @@ func (n *StringLiteralContentSectionNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringLiteralContentSectionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringLiteralContentSectionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *StringLiteralContentSectionNode) String() string {
@@ -235,6 +265,17 @@ func (n *StringInspectInterpolationNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *StringInspectInterpolationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewStringInspectInterpolationNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringInspectInterpolationNode)
 	if !ok {
@@ -243,6 +284,15 @@ func (n *StringInspectInterpolationNode) Equal(other value.Value) bool {
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringInspectInterpolationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInspectInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *StringInspectInterpolationNode) String() string {
@@ -328,6 +378,17 @@ func (n *StringInterpolationNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *StringInterpolationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewStringInterpolationNode(n.loc, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *StringInterpolationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*StringInterpolationNode)
 	if !ok {
@@ -336,6 +397,15 @@ func (n *StringInterpolationNode) Equal(other value.Value) bool {
 
 	return n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *StringInterpolationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*StringInterpolationNode)
+	if !ok {
+		return false
+	}
+
+	return n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *StringInterpolationNode) String() string {
@@ -423,6 +493,17 @@ func (n *InterpolatedStringLiteralNode) traverse(parent Node, enter func(node, p
 	return leave(n, parent)
 }
 
+func (n *InterpolatedStringLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cont, err := traverseMapSlice(n.Content, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInterpolatedStringLiteralNode(n.loc, cont)
+
+	return fn(newNode, parent)
+}
+
 func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*InterpolatedStringLiteralNode)
 	if !ok {
@@ -440,6 +521,25 @@ func (n *InterpolatedStringLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *InterpolatedStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*InterpolatedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Content) != len(o.Content) {
+		return false
+	}
+
+	for i, content := range n.Content {
+		if !content.LaxEqual(value.Ref(o.Content[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *InterpolatedStringLiteralNode) String() string {
@@ -535,6 +635,12 @@ func (n *DoubleQuotedStringLiteralNode) traverse(parent Node, enter func(node, p
 	return leave(n, parent)
 }
 
+func (n *DoubleQuotedStringLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewDoubleQuotedStringLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *DoubleQuotedStringLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoubleQuotedStringLiteralNode)
@@ -543,6 +649,15 @@ func (n *DoubleQuotedStringLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.Value == o.Value && n.loc.Equal(o.loc)
+}
+
+func (n *DoubleQuotedStringLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleQuotedStringLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 // Return a string representation of the node.

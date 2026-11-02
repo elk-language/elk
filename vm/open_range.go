@@ -10,7 +10,7 @@ import (
 // ::Std::OpenRange
 func initOpenRange() {
 	// Instance methods
-	c := &value.OpenRangeClass.MethodContainer
+	c := value.OpenRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initOpenRange() {
 // ::Std::OpenRange::Iterator
 func initOpenRangeIterator() {
 	// Instance methods
-	c := &value.OpenRangeIteratorClass.MethodContainer
+	c := value.OpenRangeIteratorClass
 	Def(
 		c,
 		"next",
@@ -201,7 +201,7 @@ func OpenRangeIteratorNext(vm *Thread, i *value.OpenRangeIterator) (value.Value,
 	}
 
 	if value.Truthy(greater) {
-		return value.Undefined, stopIterationSymbol.ToValue()
+		return value.Undefined, value.S(symbol.L_stop_iteration).ToValue()
 	}
 
 	current := i.CurrentElement
@@ -214,8 +214,8 @@ func OpenRangeIteratorAll(vm *Thread, i *value.OpenRangeIterator) iter.Seq2[valu
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := OpenRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

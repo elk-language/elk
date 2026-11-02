@@ -44,6 +44,17 @@ func (n *InferredObjectPatternNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *InferredObjectPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	attrs, err := traverseMapSlice(n.Attributes, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewInferredObjectPatternNode(n.loc, attrs)
+
+	return fn(newNode, parent)
+}
+
 func (n *InferredObjectPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ObjectPatternNode)
 	if !ok {
@@ -61,6 +72,25 @@ func (n *InferredObjectPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *InferredObjectPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ObjectPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Attributes) != len(o.Attributes) {
+		return false
+	}
+
+	for i, attr := range n.Attributes {
+		if !attr.LaxEqual(value.Ref(o.Attributes[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *InferredObjectPatternNode) String() string {

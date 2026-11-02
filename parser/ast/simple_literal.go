@@ -34,6 +34,12 @@ func (n *TrueLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *TrueLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewTrueLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TrueLiteralNode)
 	if !ok {
@@ -41,6 +47,15 @@ func (n *TrueLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *TrueLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*TrueLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *TrueLiteralNode) String() string {
@@ -108,6 +123,12 @@ func (n *FalseLiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *FalseLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewFalseLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *FalseLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FalseLiteralNode)
 	if !ok {
@@ -115,6 +136,15 @@ func (n *FalseLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *FalseLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*FalseLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *FalseLiteralNode) String() string {
@@ -182,6 +212,12 @@ func (n *SelfLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *SelfLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewSelfLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelfLiteralNode)
 	if !ok {
@@ -189,6 +225,15 @@ func (n *SelfLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *SelfLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*SelfLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *SelfLiteralNode) String() string {
@@ -252,6 +297,12 @@ func (n *NilLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *NilLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewNilLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *NilLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NilLiteralNode)
 	if !ok {
@@ -259,6 +310,15 @@ func (n *NilLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *NilLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*NilLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *NilLiteralNode) String() string {
@@ -328,6 +388,12 @@ func (n *UndefinedLiteralNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *UndefinedLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUndefinedLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *UndefinedLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UndefinedLiteralNode)
 	if !ok {
@@ -335,6 +401,15 @@ func (n *UndefinedLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *UndefinedLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*UndefinedLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *UndefinedLiteralNode) String() string {

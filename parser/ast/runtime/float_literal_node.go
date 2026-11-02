@@ -10,7 +10,7 @@ import (
 )
 
 func initFloatLiteralNode() {
-	c := &value.FloatLiteralNodeClass.MethodContainer
+	c := value.FloatLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -77,6 +77,17 @@ func initFloatLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.FloatLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.FloatLiteralNode)
@@ -104,7 +115,7 @@ func initFloatLiteralNode() {
 		},
 	)
 
-	c = &value.FloatClass.MethodContainer
+	c = value.FloatClass
 	vm.Def(
 		c,
 		"to_ast_node",

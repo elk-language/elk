@@ -88,8 +88,8 @@ func (s Symbol) InstanceVariables() *InstanceVariables {
 
 // Check whether s is equal to other
 func (s Symbol) EqualVal(other Value) Value {
-	if other.IsInlineSymbol() {
-		return BoolVal(s.Id.EqualSymbol(other.AsInlineSymbol().Id))
+	if other.IsSymbol() {
+		return BoolVal(s.Id.EqualSymbol(other.AsSymbol().Id))
 	}
 
 	return False.ToValue()
@@ -97,8 +97,8 @@ func (s Symbol) EqualVal(other Value) Value {
 
 // Check whether s is equal to other
 func (s Symbol) Equal(other Value) bool {
-	if other.IsInlineSymbol() {
-		return s.Id.EqualSymbol(other.AsInlineSymbol().Id)
+	if other.IsSymbol() {
+		return s.Id.EqualSymbol(other.AsSymbol().Id)
 	}
 
 	return false

@@ -79,6 +79,31 @@ func (n *MixinDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *MixinDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMixinDeclarationNode(n.loc, n.DocComment(), n.Abstract, constant, typeParams, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
 	if !ok {
@@ -111,6 +136,44 @@ func (n *MixinDeclarationNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.Body {
 		if !stmt.Equal(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *MixinDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MixinDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.Abstract != o.Abstract ||
+		n.comment != o.comment {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
 			return false
 		}
 	}

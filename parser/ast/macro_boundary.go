@@ -46,6 +46,17 @@ func (n *MacroBoundaryNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *MacroBoundaryNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMacroBoundaryNode(n.loc, body, n.Name)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroBoundaryNode)
@@ -64,6 +75,25 @@ func (n *MacroBoundaryNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) && n.Name == o.Name
+}
+
+func (n *MacroBoundaryNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroBoundaryNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.Name == o.Name
 }
 
 // Return a string representation of the node.

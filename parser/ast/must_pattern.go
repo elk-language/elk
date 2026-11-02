@@ -35,6 +35,12 @@ func (n *MustPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *MustPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewMustPatternNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *MustPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MustPatternNode)
 	if !ok {
@@ -42,6 +48,15 @@ func (n *MustPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *MustPatternNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*MustPatternNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *MustPatternNode) String() string {

@@ -44,6 +44,17 @@ func (n *MapPatternNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *MapPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMapPatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *MapPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MapPatternNode)
 	if !ok {
@@ -61,6 +72,25 @@ func (n *MapPatternNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *MapPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MapPatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, elem := range n.Elements {
+		if !elem.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *MapPatternNode) String() string {

@@ -8,9 +8,11 @@ module Std::Elk::AST
             UsingEntryNode,
             ComplexConstantNode
 
-    init(constant: ComplexConstantNode, type_arguments: ArrayTuple[TypeNode], location: FS::Location = loop; end); end
+    init(constant: ComplexConstantNode, type_arguments: Tuple[TypeNode], location: FS::Location = loop; end); end
     pure def constant: ComplexConstantNode; end
     pure def type_arguments: ArrayTuple[TypeNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

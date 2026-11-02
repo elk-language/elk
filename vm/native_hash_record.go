@@ -69,6 +69,16 @@ func (h NativeHashRecord[K, V]) NewHashRecord(capacity int) HashRecord {
 	return MakeNativeHashRecord[K, V](capacity)
 }
 
+func (h NativeHashRecord[K, V]) Keys() iter.Seq[value.Value] {
+	return func(yield func(value.Value) bool) {
+		for k, _ := range h {
+			if !yield(k.ToValue()) {
+				return
+			}
+		}
+	}
+}
+
 func (h NativeHashRecord[K, V]) All() iter.Seq[value.PairOfValue] {
 	return func(yield func(value.PairOfValue) bool) {
 		for k, v := range h {
@@ -164,28 +174,100 @@ func (h NativeHashRecord[K, V]) Set(key K, val V) {
 	h[key] = val
 }
 
-func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (value.Value, value.Value) {
+func (h NativeHashRecord[K, V]) MergeVal(thread *Thread, other value.Value) (value.Value, value.Value) {
 	switch o := other.SafeAsReference().(type) {
 	case NativeHashRecord[K, V]:
 		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
 		maps.Copy(newMap, h)
 		maps.Copy(newMap, o)
 		return newMap.ToValue(), value.Undefined
-	case HashMap:
-		newMap := NewHashMapOfValue(h.Length() + o.Length())
-
-		err := HashMapOfValueCopyInterface(thread, newMap, h)
-		if err.IsNotUndefined() {
-			return value.Undefined, err
-		}
-
-		err = HashMapOfValueCopyInterface(thread, newMap, o)
-		if err.IsNotUndefined() {
-			return value.Undefined, err
-		}
-
+	case *NativeHashMap[K, V]:
+		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		maps.Copy(newMap, o.m)
 		return newMap.ToValue(), value.Undefined
-	case HashRecord:
+	case *NativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeHashMap[K, V]:
+		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *SyncNativeHashMap[K, V]:
+		o.Lock()
+		defer o.Unlock()
+
+		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Map.Length())
+		maps.Copy(newMap, h)
+		maps.Copy(newMap, o.Map.m)
+		return newMap.ToValue(), value.Undefined
+	case *SyncNativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *SyncOrderedNativeHashMap[K, V]:
+		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *SyncOrderedNativeKeyHashMap[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case NativeKeyHashRecord[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		maps.Copy(newMap, o)
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeHashRecord[K, V]:
+		newMap := MakeNativeHashRecord[K, V](h.Length() + o.Length())
+		maps.Copy(newMap, h)
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case *OrderedNativeKeyHashRecord[K]:
+		newMap := MakeNativeKeyHashRecord[K](h.Length() + o.Length())
+		for k, v := range h.AllNative() {
+			newMap.Set(k, v.ToValue())
+		}
+		for k, v := range o.AllNative() {
+			newMap.Set(k, v)
+		}
+		return newMap.ToValue(), value.Undefined
+	case Record:
 		newMap := NewHashRecordOfValue(h.Length() + o.Length())
 
 		err := HashRecordOfValueCopyInterface(thread, newMap, h)
@@ -196,6 +278,24 @@ func (h NativeHashRecord[K, V]) ConcatVal(thread *Thread, other value.Value) (va
 		err = HashRecordOfValueCopyInterface(thread, newMap, o)
 		if err.IsNotUndefined() {
 			return value.Undefined, err
+		}
+
+		return newMap.ToValue(), value.Undefined
+	default:
+		newMap := NewHashRecordOfValue(h.Length())
+
+		err := HashRecordOfValueCopyInterface(thread, newMap, h)
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+
+			entry := element.AsReference().(value.Pair)
+			newMap.SetVal(thread, entry.Key(), entry.Value())
 		}
 
 		return newMap.ToValue(), value.Undefined
@@ -325,9 +425,37 @@ func (h NativeHashRecord[K, V]) LaxEqual(thread *Thread, other value.Value) (boo
 		return h.LaxEqualNative(thread, o)
 	case HashRecord:
 		return HashRecordLaxEqual(thread, h, o)
-	}
+	default:
+		if !value.IsA(other, value.MapMixin) {
+			return false, value.Undefined
+		}
 
-	return false, value.Undefined
+		for element, err := range Iterate(thread, other) {
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			pair := element.AsReference().(value.Pair)
+			val, err := h.GetValUndefined(thread, pair.Key())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+			if val.IsUndefined() {
+				return false, value.Undefined
+			}
+
+			eq, err := Equal(thread, val, pair.Value())
+			if err.IsNotUndefined() {
+				return false, err
+			}
+
+			if value.Falsy(eq) {
+				return false, value.Undefined
+			}
+		}
+
+		return true, value.Undefined
+	}
 }
 
 func (NativeHashRecord[K, V]) Class() *value.Class {
@@ -346,6 +474,16 @@ func (h NativeHashRecord[K, V]) Clone() NativeHashRecord[K, V] {
 	newMap := MakeNativeHashRecord[K, V](h.Length())
 	maps.Copy(newMap, h)
 	return newMap
+}
+
+func (h NativeHashRecord[K, V]) ToHashMap() HashMap {
+	return NewNativeHashMapFromMap(maps.Clone(map[K]V(h)))
+}
+
+func (h NativeHashRecord[K, V]) ToSyncHashMap() SyncHashMap {
+	return &SyncNativeHashMap[K, V]{
+		Map: NewNativeHashMapFromMap(maps.Clone(map[K]V(h))),
+	}
 }
 
 func (h NativeHashRecord[K, V]) Copy() value.Reference {

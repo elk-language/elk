@@ -60,6 +60,26 @@ func (n *HashMapLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *HashMapLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var capacity ExpressionNode
+	if n.Capacity != nil {
+		mapped, err := n.Capacity.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		capacity = mapped.(ExpressionNode)
+	}
+
+	newNode := NewHashMapLiteralNode(n.loc, elements, capacity)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
@@ -85,6 +105,32 @@ func (n *HashMapLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HashMapLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashMapLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	if n.Capacity == o.Capacity {
+	} else if n.Capacity == nil || o.Capacity == nil {
+		return false
+	} else if !n.Capacity.LaxEqual(value.Ref(o.Capacity)) {
+		return false
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -248,6 +294,17 @@ func (n *HashRecordLiteralNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *HashRecordLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewHashRecordLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HashRecordLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HashRecordLiteralNode)
@@ -266,6 +323,25 @@ func (n *HashRecordLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HashRecordLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HashRecordLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.

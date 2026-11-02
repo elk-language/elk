@@ -47,6 +47,22 @@ func (n *AsPatternNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *AsPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewAsPatternNode(n.loc, pattern.(PatternNode), name.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AsPatternNode) IsStatic() bool {
 	return false
 }
@@ -97,6 +113,16 @@ func (n *AsPatternNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Pattern.Equal(value.Ref(o.Pattern)) &&
 		n.Name.Equal(value.Ref(o.Name))
+}
+
+func (n *AsPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AsPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Pattern.LaxEqual(value.Ref(o.Pattern)) &&
+		n.Name.LaxEqual(value.Ref(o.Name))
 }
 
 func (n *AsPatternNode) Error() string {

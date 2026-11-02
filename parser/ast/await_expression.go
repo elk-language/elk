@@ -44,6 +44,17 @@ func (n *AwaitExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *AwaitExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewAwaitExpressionNode(n.loc, val.(ExpressionNode), n.Sync)
+
+	return fn(newNode, parent)
+}
+
 func (*AwaitExpressionNode) IsStatic() bool {
 	return false
 }
@@ -71,6 +82,26 @@ func (n *AwaitExpressionNode) Equal(other value.Value) bool {
 	} else if n.Value == nil || o.Value == nil {
 		return false
 	} else if !n.Value.Equal(value.Ref(o.Value)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AwaitExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AwaitExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if n.Sync != o.Sync {
+		return false
+	}
+
+	if n.Value == o.Value {
+	} else if n.Value == nil || o.Value == nil {
+		return false
+	} else if !n.Value.LaxEqual(value.Ref(o.Value)) {
 		return false
 	}
 

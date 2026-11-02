@@ -202,6 +202,28 @@ func (c *Checker) checkConstantIfNecessary(name string, location *position.Locat
 	return c.checkConstantDeclaration(name, check, location)
 }
 
+func (c *Checker) namespaceSingleton(namespace types.Namespace) types.Namespace {
+	switch n := namespace.(type) {
+	case *types.Module:
+		return n
+	case *types.Class:
+		return n.Singleton()
+	case *types.Mixin:
+		return n.Singleton()
+	case *types.Interface:
+		return n.Singleton()
+	case *types.NamespacePlaceholder:
+		if n.IsResolved() {
+			return c.namespaceSingleton(n.Namespace)
+		}
+		return n
+	case *types.Generic:
+		return c.namespaceSingleton(n.Namespace)
+	default:
+		return n
+	}
+}
+
 func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitionCheck, location *position.Location) bool {
 	switch check.state {
 	case CHECKING_CONST:
@@ -215,6 +237,12 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 		return true
 	}
 	check.state = CHECKING_CONST
+
+	prevSelf := c.selfType
+	c.selfType = c.namespaceSingleton(check.namespace)
+	defer func() {
+		c.selfType = prevSelf
+	}()
 
 	node := check.node
 	declaredType := c.TypeOf(node.TypeNode)
@@ -254,6 +282,9 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (types.Type, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
+		if constant.SkipTypechecking() {
+			return c.TypeOf(constant), constant.Value
+		}
 		return c.resolveType(constant.Value, constant.Location())
 	case *ast.PrivateConstantNode:
 		return c.resolveType(constant.Value, constant.Location())
@@ -289,19 +320,32 @@ func (c *Checker) normaliseConstantType(typ types.Type, name string) (types.Type
 	return typ, name
 }
 
-func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, location *position.Location) (types.Type, string) {
+func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.Type, location *position.Location) (types.Type, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
 	switch l := node.Left.(type) {
+	case ast.InferredExpressionNode:
+		name, namespace := c.inferConstantLookupNamespace(node.Left, typ, location)
+		if namespace != nil {
+			leftContainerName = name
+			leftContainerType = namespace
+		} else {
+			return nil, ""
+		}
 	case *ast.PublicConstantNode:
-		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
+		if l.SkipTypechecking() {
+			leftContainerType = c.TypeOf(l)
+			leftContainerName = l.Value
+		} else {
+			leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
+		}
 	case *ast.PrivateConstantNode:
 		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Location())
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookup(l, location)
+		leftContainerType, leftContainerName = c.resolveConstantLookup(l, typ, location)
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
@@ -446,8 +490,41 @@ func (c *Checker) addToConstantCache(name symbol.Symbol) {
 	}
 }
 
-func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
-	typ, name := c.normaliseConstantType(c.resolveConstantLookup(node, node.Location()))
+func (c *Checker) inferConstantLookupNamespace(currentNamespace ast.ExpressionNode, typ types.Type, loc *position.Location) (string, types.Namespace) {
+	if typ == nil {
+		c.addFailure("namespace is impossible to infer", loc)
+		return "", nil
+	}
+
+	switch typ := typ.(type) {
+	case *types.Module:
+		return typ.Name(), typ
+	case *types.Class:
+		return typ.Name(), typ.Singleton()
+	case *types.Mixin:
+		return typ.Name(), typ.Singleton()
+	case *types.Interface:
+		return typ.Name(), typ.Singleton()
+	case *types.NamespacePlaceholder:
+		if typ.IsResolved() {
+			return c.inferConstantLookupNamespace(currentNamespace, typ.Namespace, loc)
+		}
+	case *types.Generic:
+		return c.inferConstantLookupNamespace(currentNamespace, typ.Namespace, loc)
+	}
+
+	c.addFailure(
+		fmt.Sprintf(
+			"namespace is impossible to infer for type `%s`",
+			types.Inspect(typ),
+		),
+		loc,
+	)
+	return "", nil
+}
+
+func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferredType types.Type) *ast.PublicConstantNode {
+	typ, name := c.normaliseConstantType(c.resolveConstantLookup(node, inferredType, node.Location()))
 
 	if typ == nil {
 		typ = types.Untyped{}

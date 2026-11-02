@@ -64,7 +64,7 @@ func IterateIterator(vm *Thread, iteratorVal value.Value) iter.Seq2[value.Value,
 func initIterator() {
 	// ::Std::Iterator::Base
 	// Instance methods
-	c := &value.IteratorBaseMixin.MethodContainer
+	c := value.IteratorBaseMixin
 	Def(
 		c,
 		"iter",

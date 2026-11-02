@@ -97,6 +97,52 @@ func (n *ClassDeclarationNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *ClassDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var constant ExpressionNode
+	if n.Constant != nil {
+		mapped, err := n.Constant.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		constant = mapped.(ExpressionNode)
+	}
+
+	typeParams, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var superclass ExpressionNode
+	if n.Superclass != nil {
+		mapped, err := n.Superclass.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		superclass = mapped.(ExpressionNode)
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewClassDeclarationNode(
+		n.loc,
+		n.DocComment(),
+		n.Abstract,
+		n.Sealed,
+		n.Primitive,
+		n.NoInit,
+		n.Immutable,
+		constant,
+		typeParams,
+		superclass,
+		body,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
 	if !ok {
@@ -143,6 +189,54 @@ func (n *ClassDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ClassDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ClassDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.Abstract != o.Abstract ||
+		n.Sealed != o.Sealed ||
+		n.Primitive != o.Primitive ||
+		n.Immutable != o.Immutable ||
+		n.NoInit != o.NoInit {
+		return false
+	}
+
+	if n.Constant == o.Constant {
+	} else if n.Constant == nil || o.Constant == nil {
+		return false
+	} else if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if n.Superclass == o.Superclass {
+	} else if n.Superclass == nil || o.Superclass == nil {
+		return false
+	} else if !n.Superclass.LaxEqual(value.Ref(o.Superclass)) {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *ClassDeclarationNode) String() string {

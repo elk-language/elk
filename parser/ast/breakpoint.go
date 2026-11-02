@@ -35,6 +35,12 @@ func (n *BreakpointNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *BreakpointNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewBreakpointNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *BreakpointNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BreakpointNode)
 	if !ok {
@@ -42,6 +48,15 @@ func (n *BreakpointNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *BreakpointNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*BreakpointNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *BreakpointNode) String() string {

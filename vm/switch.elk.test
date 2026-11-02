@@ -1,8 +1,5 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "switch expression", ->
-  should "match no value", ->
+describe "switch expression" ->
+  should "match no value" ->
     var a: Int = 20
     result :=
       switch a
@@ -14,7 +11,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match with variable", ->
+  should "match with variable" ->
     var a: Int = 20
     result :=
       switch a
@@ -26,7 +23,7 @@ describe "switch expression", ->
     assert! result == 22
   end
 
-  should "match no value with else", ->
+  should "match no value with else" ->
     var a: any = 20
     result :=
       switch a
@@ -39,7 +36,7 @@ describe "switch expression", ->
     assert! result == :e
   end
 
-  should "match boolean", ->
+  should "match boolean" ->
     var a: any = true
     result :=
       switch a
@@ -51,7 +48,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match nil", ->
+  should "match nil" ->
     var a: any = nil
     result :=
       switch a
@@ -63,7 +60,7 @@ describe "switch expression", ->
     assert! result == :b
   end
 
-  should "match string", ->
+  should "match string" ->
     var a: any = "some string"
     result :=
       switch a
@@ -76,7 +73,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match interpolated string", ->
+  should "match interpolated string" ->
     var a: any = "some 7 string"
     result :=
       switch a
@@ -89,7 +86,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match string with regex", ->
+  should "match string with regex" ->
     var a: any = "some string"
     result :=
       switch a
@@ -102,7 +99,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match string with interpolated regex", ->
+  should "match string with interpolated regex" ->
     var a: any = "some 7 string"
     result :=
       switch a
@@ -115,7 +112,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match symbol", ->
+  should "match symbol" ->
     var a: any = :foo
     result :=
       switch a
@@ -128,7 +125,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match interpolated symbol", ->
+  should "match interpolated symbol" ->
     var a: any = :foo7
     result :=
       switch a
@@ -141,7 +138,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match with method call", ->
+  should "match with method call" ->
     var a: any = "10"
     result :=
       switch a
@@ -154,7 +151,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match comparison with and", ->
+  should "match comparison with and" ->
     var a: any = 10
     result :=
       switch a
@@ -167,7 +164,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match or", ->
+  should "match or" ->
     var a: any = "foo"
     result :=
       switch a
@@ -180,7 +177,7 @@ describe "switch expression", ->
     assert! result == :a
   end
 
-  should "match nilable with a non nil value", ->
+  should "match nilable with a non nil value" ->
     var a: any = "foo"
     result :=
       switch a
@@ -193,7 +190,7 @@ describe "switch expression", ->
     assert! result == :a
   end
 
-  should "match nilable with nil", ->
+  should "match nilable with nil" ->
     var a: any = nil
     result :=
       switch a
@@ -206,7 +203,7 @@ describe "switch expression", ->
     assert! result == :a
   end
 
-  should "match non nil value with must", ->
+  should "match non nil value with must" ->
     var a: any = "foo"
     result :=
       switch a
@@ -216,7 +213,7 @@ describe "switch expression", ->
     assert! result == :a
   end
 
-  should "not match nil with must", ->
+  should "not match nil with must" ->
     var a: any = nil
     result :=
       switch a
@@ -226,7 +223,7 @@ describe "switch expression", ->
     assert! result == :b
   end
 
-  should "match non-list with list patterns", ->
+  should "match non-list with list patterns" ->
     var a: any = :foo
     result :=
       switch a
@@ -239,7 +236,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match tuple with list patterns", ->
+  should "match tuple with list patterns" ->
     var a: any = %[1, 6, 9, 20]
     result :=
       switch a
@@ -252,7 +249,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match set", ->
+  should "match set" ->
     var a: any = ^[1, 6, 9, 20]
     result :=
       switch a
@@ -265,7 +262,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match word set", ->
+  should "match word set" ->
     var a: any = ^['foo', 'bar']
     result :=
       switch a
@@ -278,7 +275,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match symbol set", ->
+  should "match symbol set" ->
     var a: any = ^[:foo, :bar]
     result :=
       switch a
@@ -291,7 +288,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match hex set", ->
+  should "match hex set" ->
     var a: any = ^[0xfe, 0x4]
     result :=
       switch a
@@ -304,7 +301,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match bin set", ->
+  should "match bin set" ->
     var a: any = ^[0b11, 0b10]
     result :=
       switch a
@@ -317,7 +314,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match empty set", ->
+  should "match empty set" ->
     var a: any = ^[]
     result :=
       switch a
@@ -330,7 +327,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match set with rest elements", ->
+  should "match set with rest elements" ->
     var a: any = ^[1, 6, 9, 20]
     result :=
       switch a
@@ -342,7 +339,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match set with skip elements", ->
+  should "match set with skip elements" ->
     var a: any = ^[1, 6, 9, 20]
     result :=
       switch a
@@ -354,7 +351,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list", ->
+  should "match list" ->
     var a: any = [1, 6, 9, 20]
     result :=
       switch a
@@ -367,7 +364,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match word list", ->
+  should "match word list" ->
     var a: any = ['foo', 'bar']
     result :=
       switch a
@@ -380,7 +377,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple with word list", ->
+  should "match tuple with word list" ->
     var a: any = %['foo', 'bar']
     result :=
       switch a
@@ -393,7 +390,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match symbol list", ->
+  should "match symbol list" ->
     var a: any = [:foo, :bar]
     result :=
       switch a
@@ -406,7 +403,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple with symbol list", ->
+  should "match tuple with symbol list" ->
     var a: any = %[:foo, :bar]
     result :=
       switch a
@@ -419,7 +416,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match hex list", ->
+  should "match hex list" ->
     var a: any = [0xfe, 0x4]
     result :=
       switch a
@@ -432,7 +429,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple with hex list", ->
+  should "match tuple with hex list" ->
     var a: any = %[0xfe, 0x4]
     result :=
       switch a
@@ -445,7 +442,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match bin list", ->
+  should "match bin list" ->
     var a: any = [0b11, 0b10]
     result :=
       switch a
@@ -458,7 +455,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple with bin list", ->
+  should "match tuple with bin list" ->
     var a: any = %[0b11, 0b10]
     result :=
       switch a
@@ -471,7 +468,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match empty list", ->
+  should "match empty list" ->
     var a: any = []
     result :=
       switch a
@@ -484,7 +481,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list with rest elements", ->
+  should "match list with rest elements" ->
     var a: any = [1, 6, 9, 20]
     b :=
       switch a
@@ -497,7 +494,7 @@ describe "switch expression", ->
     assert! b == [6, 9]
   end
 
-  should "match list with unnamed rest elements", ->
+  should "match list with unnamed rest elements" ->
     var a: any = [1, 6, 9, 20]
     result :=
       switch a
@@ -511,7 +508,7 @@ describe "switch expression", ->
     assert! result == :e
   end
 
-  should "match nested lists", ->
+  should "match nested lists" ->
     var a: any = [1, 6, [17, 43, [71, 28]], 20]
     result :=
       switch a
@@ -524,7 +521,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match non-list with tuple patterns", ->
+  should "match non-list with tuple patterns" ->
     var a: any = :foo
     result :=
       switch a
@@ -537,7 +534,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match list with tuple patterns", ->
+  should "match list with tuple patterns" ->
     var a: any = [1, 6, 9, 20]
     result :=
       switch a
@@ -550,7 +547,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple", ->
+  should "match tuple" ->
     var a: any = %[1, 6, 9, 20]
     result :=
       switch a
@@ -563,7 +560,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match word tuple", ->
+  should "match word tuple" ->
     var a: any = %['foo', 'bar']
     result :=
       switch a
@@ -576,7 +573,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list with word tuple", ->
+  should "match list with word tuple" ->
     var a: any = ['foo', 'bar']
     result :=
       switch a
@@ -589,7 +586,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match symbol tuple", ->
+  should "match symbol tuple" ->
     var a: any = %[:foo, :bar]
     result :=
       switch a
@@ -602,7 +599,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list with symbol tuple", ->
+  should "match list with symbol tuple" ->
     var a: any = [:foo, :bar]
     result :=
       switch a
@@ -615,7 +612,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match hex tuple", ->
+  should "match hex tuple" ->
     var a: any = %[0xfe, 0x4]
     result :=
       switch a
@@ -628,7 +625,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list with hex tuple", ->
+  should "match list with hex tuple" ->
     var a: any = [0xfe, 0x4]
     result :=
       switch a
@@ -641,7 +638,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match bin tuple", ->
+  should "match bin tuple" ->
     var a: any = %[0b11, 0b10]
     result :=
       switch a
@@ -654,7 +651,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match list with bin tuple", ->
+  should "match list with bin tuple" ->
     var a: any = [0b11, 0b10]
     result :=
       switch a
@@ -667,7 +664,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match empty tuple", ->
+  should "match empty tuple" ->
     var a: any = %[]
     result :=
       switch a
@@ -680,7 +677,7 @@ describe "switch expression", ->
     assert! result == :c
   end
 
-  should "match tuple with rest elements", ->
+  should "match tuple with rest elements" ->
     var a: any = %[1, 6, 9, 20]
     b :=
       switch a
@@ -693,7 +690,7 @@ describe "switch expression", ->
     assert! b == [6, 9]
   end
 
-  should "match tuple with unnamed rest elements", ->
+  should "match tuple with unnamed rest elements" ->
     var a: any = %[1, 6, 9, 20]
     result :=
       switch a
@@ -707,7 +704,7 @@ describe "switch expression", ->
     assert! result == :e
   end
 
-  should "match nested tuples", ->
+  should "match nested tuples" ->
     var a: any = %[1, 6, %[17, 43, %[71, 28]], 20]
     result :=
       switch a
@@ -720,7 +717,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match empty map", ->
+  should "match empty map" ->
     var a: any = {}
     result :=
       switch a
@@ -733,7 +730,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match map", ->
+  should "match map" ->
     var a: any = { 1 => 5.5, foo: "bar", "baz" => 12.5 }
     result :=
       switch a
@@ -746,7 +743,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match map with record", ->
+  should "match map with record" ->
     var a: any = { 1 => 5.5, foo: "bar", "baz" => 12.5 }
     result :=
       switch a
@@ -759,7 +756,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match nested maps", ->
+  should "match nested maps" ->
     var a: any = { 1 => 5.5, foo: ["bar", 5, 4, { elo: "mordo" }], "baz" => 12.5 }
     result :=
       switch a
@@ -772,7 +769,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match empty record", ->
+  should "match empty record" ->
     var a: any = %{}
     result :=
       switch a
@@ -785,7 +782,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match record", ->
+  should "match record" ->
     var a: any = %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
     result :=
       switch a
@@ -798,7 +795,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match record with map", ->
+  should "match record with map" ->
     var a: any = %{ 1 => 5.5, foo: "bar", "baz" => 12.5 }
     result :=
       switch a
@@ -811,7 +808,7 @@ describe "switch expression", ->
     assert! result == nil
   end
 
-  should "match nested records", ->
+  should "match nested records" ->
     var a: any = %{ 1 => 5.5, foo: ["bar", 5, 4, %{ elo: "mordo" }], "baz" => 12.5 }
     result :=
       switch a
@@ -824,7 +821,7 @@ describe "switch expression", ->
     assert! result == :d
   end
 
-  should "match object", ->
+  should "match object" ->
     var a: any = "foo bar"
     res :=
       switch a
@@ -837,7 +834,7 @@ describe "switch expression", ->
     assert! res == ["FOO BAR", 7]
   end
 
-  should "match inferred object", ->
+  should "match inferred object" ->
     a := "foo bar"
     res :=
       switch a

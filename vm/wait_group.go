@@ -7,7 +7,7 @@ import (
 // Std::WaitGroup
 func initWaitGroup() {
 	// Instance methods
-	c := &value.WaitGroupClass.MethodContainer
+	c := value.WaitGroupClass
 	Def(
 		c,
 		"#init",

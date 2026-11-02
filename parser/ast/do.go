@@ -72,6 +72,27 @@ func (n *DoExpressionNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *DoExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	catches, err := traverseMapSlice(n.Catches, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	finally, err := traverseMapSlice(n.Finally, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewDoExpressionNode(n.loc, body, catches, finally)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *DoExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoExpressionNode)
@@ -104,6 +125,39 @@ func (n *DoExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *DoExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) ||
+		len(n.Catches) != len(o.Catches) ||
+		len(n.Finally) != len(o.Finally) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	for i, catch := range n.Catches {
+		if !catch.LaxEqual(value.Ref(o.Catches[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Finally {
+		if !stmt.LaxEqual(value.Ref(o.Finally[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -279,6 +333,31 @@ func (n *CatchNode) traverse(parent Node, enter func(node, parent Node) Traverse
 	return leave(n, parent)
 }
 
+func (n *CatchNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	pattern, err := n.Pattern.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var stackTraceVar IdentifierNode
+	if n.StackTraceVar != nil {
+		mapped, err := n.StackTraceVar.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		stackTraceVar = mapped.(IdentifierNode)
+	}
+
+	newNode := NewCatchNode(n.loc, pattern.(PatternNode), stackTraceVar, body)
+
+	return fn(newNode, parent)
+}
+
 func (n *CatchNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CatchNode)
 	if !ok {
@@ -307,6 +386,36 @@ func (n *CatchNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *CatchNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CatchNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Pattern.LaxEqual(value.Ref(o.Pattern)) {
+		return false
+	}
+
+	if n.StackTraceVar == o.StackTraceVar {
+	} else if n.StackTraceVar == nil || o.StackTraceVar == nil {
+		return false
+	} else if !n.StackTraceVar.LaxEqual(value.Ref(o.StackTraceVar)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *CatchNode) String() string {

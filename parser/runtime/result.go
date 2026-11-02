@@ -9,7 +9,7 @@ import (
 // Std::Elk::Parser::Result
 func initResult() {
 	// Instance methods
-	c := &value.ElkParserResultClass.MethodContainer
+	c := value.ElkParserResultClass
 	vm.Def(
 		c,
 		"ast",

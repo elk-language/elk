@@ -17,6 +17,7 @@ func initResult(env *types.GlobalEnvironment) {
 	result := env.StdSubtypeClass(symbol.C_Result).Singleton()
 
 	vm.DefMacro(
+		env,
 		result,
 		`Expands to a pattern that matches successful Result values
 
@@ -77,6 +78,7 @@ Example:
 	)
 
 	vm.DefMacro(
+		env,
 		result,
 		`Expands to a pattern that matches failure Result values
 
@@ -137,6 +139,7 @@ Example:
 	)
 
 	vm.DefMacro(
+		env,
 		result,
 		`Converts the result of a method call to a Result.
 Catches any errors and wraps them in a Result.
@@ -159,7 +162,7 @@ Example:
 		},
 		exprNode,
 		func(v *vm.Thread, args []value.Value) (returnVal value.Value, err value.Value) {
-			expr := args[1].AsReference().(ast.ExpressionNode)
+			expr := args[2].AsReference().(ast.ExpressionNode)
 
 			stdResult := ast.NewConstantLookupNode(
 				position.ZeroLocation,

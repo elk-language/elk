@@ -52,6 +52,26 @@ func (n *WhileExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *WhileExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	var cond ExpressionNode
+	if n.Condition != nil {
+		mapped, err := n.Condition.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		cond = mapped.(ExpressionNode)
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewWhileExpressionNode(n.loc, cond, then)
+
+	return fn(newNode, parent)
+}
+
 func (n *WhileExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WhileExpressionNode)
 	if !ok {
@@ -66,6 +86,26 @@ func (n *WhileExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ThenBody {
 		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WhileExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WhileExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Condition.LaxEqual(value.Ref(o.Condition)) ||
+		len(n.ThenBody) != len(o.ThenBody) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
 			return false
 		}
 	}

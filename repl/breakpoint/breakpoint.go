@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/repl/prompt"
@@ -24,12 +26,15 @@ func init() {
 }
 
 type evaluator struct {
-	thread          *vm.Thread
-	elkTypechecker  *checker.Checker
-	checkerContext  *checker.BreakpointContext
-	compilerContext *compiler.BytecodeBreakpointContext
-	sourceMap       map[string]string
-	inputIndex      int
+	thread                  *vm.Thread
+	elkTypechecker          *checker.Checker
+	checkerContext          *checker.BreakpointContext
+	compilerContext         *compiler.BytecodeBreakpointContext
+	sourceMap               map[string]string
+	inputIndex              int
+	prompt                  *goprompt.Prompt
+	underscoreVariableIndex int
+	prepend                 []ast.StatementNode
 }
 
 func (e *evaluator) sourceName() string {
@@ -49,6 +54,21 @@ func (e *evaluator) addSource(input string) string {
 	return sourceName
 }
 
+var helpBanner = `
+Elk Breakpoint Help
+===================
+`
+
+var commandsHelp = `
+Available Commands:
+  :continue, :c           Exit the breakpoint and continue code execution
+  :quit, :q, exit         Exit the program
+  :help, :h, help         Print this help message
+  :variables, :v          Inspect the currently available variables
+  :stack, :s              Inspect the values on the VM's stack
+  :disassemble, :disasm   Disassemble the bytecode and print it
+`
+
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
@@ -57,16 +77,25 @@ func (e *evaluator) evaluate(input string) {
 	var dl diagnostic.DiagnosticList
 
 	switch input {
-	case ":c", ":continue", ":q", ":quit":
+	case ":c", ":continue", ":q", ":quit", "exit":
 		fmt.Println()
 		return
 	case ":s", ":stack":
 		e.thread.InspectValueStack()
 		return
+	case ":disassemble", ":disasm":
+		e.thread.Bytecode().DisassembleStdout()
+		return
 	case ":v", ":variables":
 		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
+	case ":h", ":help", "help":
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
+		return
 	default:
-		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input)
+		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input, e.deepCopyPrepend())
 	}
 
 	if dl != nil {
@@ -84,13 +113,64 @@ func (e *evaluator) evaluate(input string) {
 		}
 	}
 
-	value, runtimeErr := e.thread.InterpretBreakpoint(fn)
+	programNode, ok := e.elkTypechecker.ASTCache.Get(sourceName)
+	if ok {
+		using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
+		e.prepend = e.usingToPrepend(using)
+	}
+
+	startTime := value.TimeNow()
+	val, runtimeErr := e.thread.InterpretBreakpoint(fn)
 	if !runtimeErr.IsUndefined() {
 		e.thread.PrintError()
 		e.thread.ResetError()
 		return
 	}
-	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
+	duration := value.TimeSince(startTime)
+	fmt.Printf("=> %s\n", lexer.Colorize(val.Inspect()))
+	fmt.Printf("?: %s\n\n", duration.String())
+}
+
+func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
+	if len(using) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(using))
+
+	for i, usingElement := range using {
+		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
+		copy.SetType(nil)
+
+		result[i] = ast.NewExpressionStatementNode(
+			copy.Location(),
+			copy,
+		)
+	}
+
+	return result
+}
+
+func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
+	if len(e.prepend) < 1 {
+		return nil
+	}
+
+	result := make([]ast.StatementNode, len(e.prepend))
+
+	for i, statement := range e.prepend {
+		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
+	}
+
+	return result
+}
+
+func printHelp() {
+	fmt.Print(helpBanner)
+	fmt.Print(prompt.KeyBindsHelp)
+	fmt.Println()
+	fmt.Print(commandsHelp)
+	fmt.Println()
 }
 
 func exitChecker(input string, breakline bool) bool {
@@ -101,7 +181,7 @@ func exitChecker(input string, breakline bool) bool {
 	switch input {
 	case ":c", ":continue":
 		return true
-	case ":q", ":quit":
+	case ":q", ":quit", "exit":
 		os.Exit(0)
 		return true
 	default:
@@ -111,33 +191,52 @@ func exitChecker(input string, breakline bool) bool {
 
 type BreakpointHandler struct{}
 
-func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value) {
-	Run(thread, context.AsReference().(*compiler.BytecodeBreakpointContext))
+func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value) error {
+	return Run(thread, context.AsReference().(*compiler.BytecodeBreakpointContext))
 }
 
-// Start the REPL.
-func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) {
-	prompt.Run(
-		executor(thread, context),
+func NewPrompt(executor goprompt.Executor) (*goprompt.Prompt, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	breakpointHistoryFilePath := filepath.Join(cwd, ".elk_breakpoint_history")
+	p := prompt.New(
+		executor,
 		goprompt.WithPrefix("!> "),
 		goprompt.WithPrefixTextColor(goprompt.Yellow),
 		goprompt.WithExitChecker(exitChecker),
+		goprompt.WithFSHistory(breakpointHistoryFilePath),
 	)
+	return p, nil
 }
 
-func executor(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) goprompt.Executor {
+// Start the REPL.
+func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) error {
+	eval := newEvaluator(thread, context)
+	p, err := NewPrompt(eval.evaluate)
+	if err != nil {
+		return err
+	}
+
+	eval.prompt = p
+	p.Run()
+	return nil
+}
+
+func newEvaluator(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) *evaluator {
 	typechecker := checker.NewBreakpointChecker(context)
 
 	printLocation(context.Location)
 
-	eval := &evaluator{
+	return &evaluator{
 		thread:          thread,
 		elkTypechecker:  typechecker,
 		checkerContext:  context.TypecheckerContext.(*checker.BreakpointContext),
 		compilerContext: context,
 		sourceMap:       make(map[string]string),
 	}
-	return eval.evaluate
 }
 
 func printLocation(loc *position.Location) {
@@ -184,6 +283,9 @@ func printLocation(loc *position.Location) {
 	currentLine = loc.StartPos.Line
 
 	for {
+		if endCursor >= len(source) {
+			break
+		}
 		if endCursor == len(source)-1 || source[endCursor] == '\n' {
 			lines[currentLine] += string(source[startCursor : endCursor+1])
 

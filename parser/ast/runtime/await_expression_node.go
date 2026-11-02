@@ -8,7 +8,7 @@ import (
 )
 
 func initAwaitExpressionNode() {
-	c := &value.AwaitExpressionNodeClass.MethodContainer
+	c := value.AwaitExpressionNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -71,6 +71,17 @@ func initAwaitExpressionNode() {
 			self := args[0].MustReference().(*ast.AwaitExpressionNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.AwaitExpressionNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

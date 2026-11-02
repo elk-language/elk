@@ -4,8 +4,10 @@
 	It is an unordered immutable collection of key-value pairs.
 	A record is an immutable map.
 ]##
-noinit sealed primitive class ::Std::HashRecord[Key, Value]
+sealed primitive class ::Std::HashRecord[Key, Value]
 	include Record[Key, Value]
+
+	init(*entries: Pair[Key, Value]); end
 
 	##[
 		Returns the number of key-value pairs present in the record.
@@ -23,6 +25,7 @@ noinit sealed primitive class ::Std::HashRecord[Key, Value]
 		and another given record.
 	]##
 	sealed pure def +[K, V](other: Record[K, V]): HashRecord[Key | K, Value | V]; end
+	alias merge +
 
 	##[
 		Check whether the given `pair` is present in this record.
@@ -83,6 +86,23 @@ noinit sealed primitive class ::Std::HashRecord[Key, Value]
 		over each element of the record.
 	]##
 	pure def iter: Iterator[Key, Value]; end
+
+	##[
+		Returns self.
+	]##
+	def to_hash_record: HashRecord[Key, Value]; end
+
+	##[
+		Returns a new `Std::Sync::HashMap`
+		with the same elements.
+	]##
+	def to_sync_hash_map: Sync::HashMap[Key, Value]; end
+
+	##[
+		Returns a new `Std::HashMap`
+		with the same elements.
+	]##
+	def to_hash_map: HashMap[Key, Value]; end
 
 	sealed primitive class Iterator[Key, Value]
 		include ::Std::ResettableIterator::Base[Pair[Key, Value]]

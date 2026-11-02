@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"iter"
+
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type NativeReadChannel[V ValueInterface] <-chan V
@@ -38,11 +40,11 @@ func (ch NativeReadChannel[V]) NativeChannelAny() any {
 	return (<-chan V)(ch)
 }
 
-func (ch NativeReadChannel[V]) TransformToValue(v any) Value {
+func (ch NativeReadChannel[V]) TransformAnyToValue(v any) Value {
 	panic("not a transformer channel")
 }
 
-func (ch NativeReadChannel[V]) TransformFromValue(v Value) any {
+func (ch NativeReadChannel[V]) TransformFromValueToAny(v Value) any {
 	panic("not a transformer channel")
 }
 
@@ -97,7 +99,7 @@ func (ch NativeReadChannel[V]) PopCtx(ctx context.Context) (v Value, err Value) 
 func (ch NativeReadChannel[V]) NextValue() (Value, Value) {
 	next, ok := <-ch
 	if !ok {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	return next.ToValue(), Undefined
@@ -107,7 +109,7 @@ func (ch NativeReadChannel[V]) NextValueCtx(ctx context.Context) (Value, Value) 
 	select {
 	case next, ok := <-ch:
 		if !ok {
-			return Undefined, stopIterationSymbol.ToValue()
+			return Undefined, S(symbol.L_stop_iteration).ToValue()
 		}
 		return next.ToValue(), Undefined
 	case <-ctx.Done():

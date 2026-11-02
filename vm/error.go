@@ -7,7 +7,7 @@ import (
 // Std::Error
 func initError() {
 	// Instance methods
-	c := &value.ErrorClass.MethodContainer
+	c := value.ErrorClass
 	Def(
 		c,
 		"#init",

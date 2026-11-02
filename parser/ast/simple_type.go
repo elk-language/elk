@@ -34,6 +34,12 @@ func (n *BoolLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *BoolLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewBoolLiteralNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoolLiteralNode)
 	if !ok {
@@ -41,6 +47,15 @@ func (n *BoolLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *BoolLiteralNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*BoolLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return true
 }
 
 func (n *BoolLiteralNode) String() string {
@@ -108,12 +123,26 @@ func (n *VoidTypeNode) traverse(parent Node, enter func(node, parent Node) Trave
 	return leave(n, parent)
 }
 
+func (n *VoidTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewVoidTypeNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *VoidTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*VoidTypeNode)
 	if !ok {
 		return false
 	}
 	return n.loc.Equal(o.loc)
+}
+
+func (n *VoidTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*VoidTypeNode)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (n *VoidTypeNode) String() string {
@@ -177,12 +206,26 @@ func (n *NeverTypeNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *NeverTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewNeverTypeNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *NeverTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NeverTypeNode)
 	if !ok {
 		return false
 	}
 	return n.loc.Equal(o.loc)
+}
+
+func (n *NeverTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*NeverTypeNode)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (n *NeverTypeNode) String() string {
@@ -250,12 +293,26 @@ func (n *AnyTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *AnyTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewAnyTypeNode(n.loc)
+
+	return fn(newNode, parent)
+}
+
 func (n *AnyTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*AnyTypeNode)
 	if !ok {
 		return false
 	}
 	return n.loc.Equal(o.loc)
+}
+
+func (n *AnyTypeNode) LaxEqual(other value.Value) bool {
+	_, ok := other.SafeAsReference().(*AnyTypeNode)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (n *AnyTypeNode) String() string {

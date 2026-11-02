@@ -7,7 +7,7 @@ import (
 // Std::ROMutex
 func initROMutex() {
 	// Instance methods
-	c := &value.ROMutexClass.MethodContainer
+	c := value.ROMutexClass
 	Def(
 		c,
 		"#init",

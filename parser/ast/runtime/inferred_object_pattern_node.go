@@ -8,17 +8,20 @@ import (
 )
 
 func initInferredObjectPatternNode() {
-	c := &value.InferredObjectPatternNodeClass.MethodContainer
+	c := value.InferredObjectPatternNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argAttributes []ast.PatternNode
 			if !args[1].IsUndefined() {
-				argAttributesTuple := args[1].AsReference().(value.ArrayTuple)
-				argAttributes = value.TransformArrayTupleIntoNativeArrayTuple(argAttributesTuple, func(v value.Value) ast.PatternNode {
+				argAttributesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.PatternNode {
 					return v.AsReference().(ast.PatternNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argAttributes = argAttributesTuple.ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -65,6 +68,17 @@ func initInferredObjectPatternNode() {
 			self := args[0].MustReference().(*ast.InferredObjectPatternNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.InferredObjectPatternNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

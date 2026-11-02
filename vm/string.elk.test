@@ -1,492 +1,489 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "String", ->
-	context "rjust", ->
-		should "return self when equal length", ->
+describe "String" ->
+	context "rjust" ->
+		should "return self when equal length" ->
 			s := "foo".rjust(3, ` `)
 			assert! s == "foo"
 		end
 
-		should "return self when greater length", ->
+		should "return self when greater length" ->
 			s := "foobar".rjust(3, ` `)
 			assert! s == "foobar"
 		end
 
-		should "apply space padding when smaller length", ->
+		should "apply space padding when smaller length" ->
 			s := "foo".rjust(10, ` `)
 			assert! s == "       foo"
 		end
 
-		should "apply dash padding when smaller length", ->
+		should "apply dash padding when smaller length" ->
 			s := "foo".rjust(10, `-`)
 			assert! s == "-------foo"
 		end
 	end
 
-	context "ljust", ->
-		should "return self when equal length", ->
+	context "ljust" ->
+		should "return self when equal length" ->
 			s := "foo".ljust(3, ` `)
 			assert! s == "foo"
 		end
 
-		should "return self when greater length", ->
+		should "return self when greater length" ->
 			s := "foobar".ljust(3, ` `)
 			assert! s == "foobar"
 		end
 
-		should "apply space padding when smaller length", ->
+		should "apply space padding when smaller length" ->
 			s := "foo".ljust(10, ` `)
 			assert! s == "foo       "
 		end
 
-		should "apply dash padding when smaller length", ->
+		should "apply dash padding when smaller length" ->
 			s := "foo".ljust(10, `-`)
 			assert! s == "foo-------"
 		end
 	end
 
-	context "+", ->
-		should "add a string", ->
+	context "+" ->
+		should "add a string" ->
 			s := "foo" + "bar"
 			assert! s == "foobar"
 		end
 
-		should "add a char", ->
+		should "add a char" ->
 			s := "foo" + `b`
 			assert! s == "foob"
 		end
 	end
 
-	context "-", ->
-		should "delete a string suffix", ->
+	context "-" ->
+		should "delete a string suffix" ->
 			s := "foobar" - "bar"
 			assert! s == "foo"
 		end
 
-		should "not delete a nonexistent suffix", ->
+		should "not delete a nonexistent suffix" ->
 			s := "foo" - "bar"
 			assert! s == "foo"
 		end
 
-		should "delete a char suffix", ->
+		should "delete a char suffix" ->
 			s := "foobar" - `r`
 			assert! s == "fooba"
 		end
 
-		should "not delete a nonexistent char suffix", ->
+		should "not delete a nonexistent char suffix" ->
 			s := "foobar" - `l`
 			assert! s == "foobar"
 		end
 	end
 
-	context "*", ->
-		should "return a repeated string", ->
+	context "*" ->
+		should "return a repeated string" ->
 			s := "foo" * 3
 			assert! s == "foofoofoo"
 		end
 
-		should "return an empty string when multiplied by zero", ->
+		should "return an empty string when multiplied by zero" ->
 			s := "foo" * 0
 			assert! s == ""
 		end
 
-		should "return an empty string when multiplied by zero", ->
+		should "return an empty string when multiplied by zero" ->
 			assert_throws! "foo" * -1 match OutOfRangeError(message: "repeat count cannot be negative: -1")
 		end
 	end
 
-	context "<=>", ->
-		should "return 1 when higher codepoint", ->
+	context "<=>" ->
+		should "return 1 when higher codepoint" ->
 			s := "abcd" <=> "abcc"
 			assert! s == 1
 		end
 
-		should "return 0 when the other string is identical", ->
+		should "return 0 when the other string is identical" ->
 			s := "abcd" <=> "abcd"
 			assert! s == 0
 		end
 
-		should "return -1 when lower codepoint", ->
+		should "return -1 when lower codepoint" ->
 			s := "abcd" <=> "abce"
 			assert! s == -1
 		end
 	end
 
-	context "<=", ->
-		should "return true when higher codepoint", ->
+	context "<=" ->
+		should "return true when higher codepoint" ->
 			s := "abcd" <= "abce"
 			assert! s == true
 		end
 
-		should "return true when the other string is identical", ->
+		should "return true when the other string is identical" ->
 			s := "abcd" <= "abcd"
 			assert! s == true
 		end
 
-		should "return false when lower codepoint", ->
+		should "return false when lower codepoint" ->
 			s := "abcd" <= "abcc"
 			assert! s == false
 		end
 	end
 
-	context "<", ->
-		should "return true when higher codepoint", ->
+	context "<" ->
+		should "return true when higher codepoint" ->
 			s := "abcd" < "abce"
 			assert! s == true
 		end
 
-		should "return false when the other string is identical", ->
+		should "return false when the other string is identical" ->
 			s := "abcd" < "abcd"
 			assert! s == false
 		end
 
-		should "return false when lower codepoint", ->
+		should "return false when lower codepoint" ->
 			s := "abcd" < "abcc"
 			assert! s == false
 		end
 	end
 
-	context ">=", ->
-		should "return false when higher codepoint", ->
+	context ">=" ->
+		should "return false when higher codepoint" ->
 			s := "abcd" >= "abce"
 			assert! s == false
 		end
 
-		should "return true when the other string is identical", ->
+		should "return true when the other string is identical" ->
 			s := "abcd" >= "abcd"
 			assert! s == true
 		end
 
-		should "return true when lower codepoint", ->
+		should "return true when lower codepoint" ->
 			s := "abcd" >= "abcc"
 			assert! s == true
 		end
 	end
 
-	context ">", ->
-		should "return false when higher codepoint", ->
+	context ">" ->
+		should "return false when higher codepoint" ->
 			s := "abcd" > "abce"
 			assert! s == false
 		end
 
-		should "return false when the other string is identical", ->
+		should "return false when the other string is identical" ->
 			s := "abcd" > "abcd"
 			assert! s == false
 		end
 
-		should "return true when lower codepoint", ->
+		should "return true when lower codepoint" ->
 			s := "abcd" > "abcc"
 			assert! s == true
 		end
 	end
 
-	context "==", ->
-		should "return true when identical", ->
+	context "==" ->
+		should "return true when identical" ->
 			s := "abcd" == "abcd"
 			assert! s == true
 		end
 
-		should "return false when different", ->
+		should "return false when different" ->
 			a := "abcd"
 			s := a == "abce"
 			assert! s == false
 		end
 	end
 
-	context "grapheme_at", ->
-		should "return the second grapheme in a string", ->
+	context "grapheme_at" ->
+		should "return the second grapheme in a string" ->
 			c := "ą🇵🇱źć".grapheme_at(1)
 			assert! c == "🇵🇱"
 		end
 
-		should "return the second multibyte grapheme", ->
+		should "return the second multibyte grapheme" ->
 			c := "ąęźć".grapheme_at(1)
 			assert! c == "ę"
 		end
 
-		should "return the second single byte grapheme", ->
+		should "return the second single byte grapheme" ->
 			s := "abcd".grapheme_at(1)
 			assert! s == "b"
 		end
 
-		should "throw an error when index is out of range", ->
+		should "throw an error when index is out of range" ->
 			assert_throws! "abcd".grapheme_at(10) match Std::IndexError(message: "index 10 out of range: -4...4")
 		end
 
-		should "throw an error when index is out of range in a multibyte string", ->
+		should "throw an error when index is out of range in a multibyte string" ->
 			assert_throws! "gęślą".grapheme_at(10) match Std::IndexError(message: "index 10 out of range: -5...5")
 		end
 
-		should "throw an error when index is out of range in a string with grapheme clusters", ->
+		should "throw an error when index is out of range in a string with grapheme clusters" ->
 			assert_throws! "🇵🇱gęślą".grapheme_at(10) match Std::IndexError(message: "index 10 out of range: -6...6")
 		end
 	end
 
-	context "char_at", ->
-		should "return the second multibyte char in a grapheme cluster", ->
+	context "char_at" ->
+		should "return the second multibyte char in a grapheme cluster" ->
 			c := "ą🇵🇱źć".char_at(1)
 			assert! c == `🇵`
 		end
 
-		should "return the second multibyte char", ->
+		should "return the second multibyte char" ->
 			c := "ąęźć".char_at(1)
 			assert! c == `ę`
 		end
 
-		should "return the second single byte char", ->
+		should "return the second single byte char" ->
 			s := "abcd".char_at(1)
 			assert! s == `b`
 		end
 
-		should "throw an error when index is out of range", ->
+		should "throw an error when index is out of range" ->
 			assert_throws! "abcd".char_at(10) match Std::IndexError(message: "index 10 out of range: -4...4")
 		end
 
-		should "throw an error when index is out of range in a multibyte string", ->
+		should "throw an error when index is out of range in a multibyte string" ->
 			assert_throws! "gęślą".char_at(10) match Std::IndexError(message: "index 10 out of range: -5...5")
 		end
 
-		should "throw an error when index is out of range in a string with grapheme clusters", ->
+		should "throw an error when index is out of range in a string with grapheme clusters" ->
 			assert_throws! "🇵🇱gęślą".char_at(10) match Std::IndexError(message: "index 10 out of range: -7...7")
 		end
 	end
 
-	context "byte_at", ->
-		should "return the second byte in a grapheme cluster", ->
+	context "byte_at" ->
+		should "return the second byte in a grapheme cluster" ->
 			c := "🇵🇱ęźć".byte_at(1)
 			assert! c == 159u8
 		end
 
-		should "return the second byte in a multibyte string", ->
+		should "return the second byte in a multibyte string" ->
 			c := "ąęźć".byte_at(1)
 			assert! c == 133u8
 		end
 
-		should "return the second single byte char", ->
+		should "return the second single byte char" ->
 			s := "abcd".byte_at(1)
 			assert! s == 98u8
 		end
 
-		should "throw an error when index is out of range", ->
+		should "throw an error when index is out of range" ->
 			assert_throws! "abcd".byte_at(10) match Std::IndexError(message: "index 10 out of range: -4...4")
 		end
 
-		should "throw an error when index is out of range in a multibyte string", ->
+		should "throw an error when index is out of range in a multibyte string" ->
 			assert_throws! "gęślą".byte_at(15) match Std::IndexError(message: "index 15 out of range: -8...8")
 		end
 
-		should "throw an error when index is out of range in a string with grapheme clusters", ->
+		should "throw an error when index is out of range in a string with grapheme clusters" ->
 			assert_throws! "🇵🇱gęślą".byte_at(25) match Std::IndexError(message: "index 25 out of range: -16...16")
 		end
 	end
 
-	context "uppercase", ->
-		should "return a new string with all letters in uppercase", ->
+	context "uppercase" ->
+		should "return a new string with all letters in uppercase" ->
 			c := "zażółć gęślą jaźń".uppercase
 			assert! c == "ZAŻÓŁĆ GĘŚLĄ JAŹŃ"
 		end
 
-		should "not change uppercase letters", ->
+		should "not change uppercase letters" ->
 			c := "FOO bar".uppercase
 			assert! c == "FOO BAR"
 		end
 	end
 
-	context "lowercase", ->
-		should "return a new string with all letters in lowercase", ->
+	context "lowercase" ->
+		should "return a new string with all letters in lowercase" ->
 			c := "ZAŻÓŁĆ GĘŚLĄ JAŹŃ".lowercase
 			assert! c == "zażółć gęślą jaźń"
 		end
 
-		should "not change lowercase letters", ->
+		should "not change lowercase letters" ->
 			c := "FOO bar".lowercase
 			assert! c == "foo bar"
 		end
 	end
 
-	context "length", ->
-		should "return the count of multibyte chars", ->
+	context "length" ->
+		should "return the count of multibyte chars" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ".length == 17
 		end
 
-		should "return the count of multibyte chars in graphemes", ->
+		should "return the count of multibyte chars in graphemes" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ 🇵🇱".length == 20
 		end
 	end
 
-	context "byte_count", ->
-		should "return the count of bytes in multibyte chars", ->
+	context "byte_count" ->
+		should "return the count of bytes in multibyte chars" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ".byte_count == 26
 		end
 
-		should "return the count of bytes in graphemes", ->
+		should "return the count of bytes in graphemes" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ 🇵🇱".byte_count == 35
 		end
 	end
 
-	context "grapheme_count", ->
-		should "return the count of graphemes in a string with multibyte chars", ->
+	context "grapheme_count" ->
+		should "return the count of graphemes in a string with multibyte chars" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ".grapheme_count == 17
 		end
 
-		should "return the count of graphemes in a string with grapheme clusters", ->
+		should "return the count of graphemes in a string with grapheme clusters" ->
 			assert! "ZAŻÓŁĆ GĘŚLĄ JAŹŃ 🇵🇱".grapheme_count == 19
 		end
 	end
 
-	context "to_symbol", ->
-		should "convert to a symbol", ->
+	context "to_symbol" ->
+		should "convert to a symbol" ->
 			assert! "foo".to_symbol == :foo
 		end
 
-		should "convert to a symbol with unconventional characters", ->
+		should "convert to a symbol with unconventional characters" ->
 			assert! "zażółć gęślą jaźń".to_symbol == :"zażółć gęślą jaźń"
 		end
 	end
 
-	context "to_int", ->
-		should "throw an error for negative base", ->
+	context "to_int" ->
+		should "throw an error for negative base" ->
 			assert_throws! "123".to_int(-2) match Std::FormatError(message: "invalid integer base -2")
 		end
 
-		should "throw an error for base < 2", ->
+		should "throw an error for base < 2" ->
 			assert_throws! "123".to_int(1) match Std::FormatError(message: "invalid integer base 1")
 		end
 
-		should "throw an error for base > 36", ->
+		should "throw an error for base > 36" ->
 			assert_throws! "123".to_int(37) match Std::FormatError(message: "invalid integer base 37")
 		end
 
-		should "convert to a valid int in base 36", ->
+		should "convert to a valid int in base 36" ->
 			assert! "123z".to_int(36) == 49391
 		end
 
-		context "base 10", ->
-			should "convert to a valid int", ->
+		context "base 10" ->
+			should "convert to a valid int" ->
 				assert! "123".to_int == 123
 			end
 
-			should "throw an error for invalid char", ->
+			should "throw an error for invalid char" ->
 				assert_throws! "1b".to_int match Std::FormatError(message: "illegal characters in integer (base 10): b")
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "123".to_int(10) == 123
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "1b".to_int(10) match Std::FormatError(message: "illegal characters in integer (base 10): b")
 				end
 			end
 		end
 
-		context "base 2", ->
-			context "prefix", ->
-				should "convert to a valid int", ->
+		context "base 2" ->
+			context "prefix" ->
+				should "convert to a valid int" ->
 					assert! "0b1010".to_int == 10
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "0b102".to_int match Std::FormatError(message: "illegal characters in integer (base 2): 2")
 				end
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "1010".to_int(2) == 10
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "102".to_int(2) match Std::FormatError(message: "illegal characters in integer (base 2): 2")
 				end
 			end
 		end
 
-		context "base 4", ->
-			context "prefix", ->
-				should "convert to a valid int", ->
+		context "base 4" ->
+			context "prefix" ->
+				should "convert to a valid int" ->
 					assert! "0q23".to_int == 11
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "0q14".to_int match Std::FormatError(message: "illegal characters in integer (base 4): 4")
 				end
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "12".to_int(4) == 6
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "14".to_int(4) match Std::FormatError(message: "illegal characters in integer (base 4): 4")
 				end
 			end
 		end
 
-		context "base 8", ->
-			context "prefix", ->
-				should "convert to a valid int", ->
+		context "base 8" ->
+			context "prefix" ->
+				should "convert to a valid int" ->
 					assert! "0o17".to_int == 15
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "0o19".to_int match Std::FormatError(message: "illegal characters in integer (base 8): 9")
 				end
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "17".to_int(8) == 15
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "19".to_int(8) match Std::FormatError(message: "illegal characters in integer (base 8): 9")
 				end
 			end
 		end
 
-		context "base 12", ->
-			context "prefix", ->
-				should "convert to a valid int", ->
+		context "base 12" ->
+			context "prefix" ->
+				should "convert to a valid int" ->
 					assert! "0d1a".to_int == 22
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "0d1c".to_int match Std::FormatError(message: "illegal characters in integer (base 12): c")
 				end
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "1a".to_int(12) == 22
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "1c".to_int(12) match Std::FormatError(message: "illegal characters in integer (base 12): c")
 				end
 			end
 		end
 
-		context "base 16", ->
-			context "prefix", ->
-				should "convert to a valid int", ->
+		context "base 16" ->
+			context "prefix" ->
+				should "convert to a valid int" ->
 					assert! "0x1f".to_int == 31
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "0xffg56".to_int match Std::FormatError(message: "illegal characters in integer (base 16): g")
 				end
 			end
 
-			context "argument", ->
-				should "convert to a valid int", ->
+			context "argument" ->
+				should "convert to a valid int" ->
 					assert! "1f".to_int(16) == 31
 				end
 
-				should "throw an error for invalid char", ->
+				should "throw an error for invalid char" ->
 					assert_throws! "ffg56".to_int(16) match Std::FormatError(message: "illegal characters in integer (base 16): g")
 				end
 			end
@@ -494,24 +491,24 @@ describe "String", ->
 
 	end
 
-	context "to_string", ->
-		should "return self", ->
+	context "to_string" ->
+		should "return self" ->
 			assert! "foo".to_string == "foo"
 		end
 	end
 
-	context "is_empty", ->
-		should "return true if empty", ->
+	context "is_empty" ->
+		should "return true if empty" ->
 			assert! "".is_empty == true
 		end
 
-		should "return false if not empty", ->
+		should "return false if not empty" ->
 			assert! "foo".is_empty == false
 		end
 	end
 
-	context "iter", ->
-		should "iterate over every char", ->
+	context "iter" ->
+		should "iterate over every char" ->
 			assert_stdout("`z`\n`a`\n`ż`\n`ó`\n`ł`\n`ć`\n`🇵`\n`🇱`\n") ->
 				for ch in "zażółć🇵🇱"
 					puts ch.inspect
@@ -520,8 +517,8 @@ describe "String", ->
 		end
 	end
 
-	context "byte_iter", ->
-		should "iterate over every byte", ->
+	context "byte_iter" ->
+		should "iterate over every byte" ->
 			assert_stdout("122u8\n97u8\n197u8\n188u8\n195u8\n179u8\n197u8\n130u8\n196u8\n135u8\n240u8\n159u8\n135u8\n181u8\n240u8\n159u8\n135u8\n177u8\n") ->
 				for ch in "zażółć🇵🇱".byte_iter
 					puts ch.inspect
@@ -530,8 +527,8 @@ describe "String", ->
 		end
 	end
 
-	context "grapheme_iter", ->
-		should "iterate over every grapheme", ->
+	context "grapheme_iter" ->
+		should "iterate over every grapheme" ->
 			assert_stdout("\"z\"\n\"a\"\n\"ż\"\n\"ó\"\n\"ł\"\n\"ć\"\n\"🇵🇱\"\n") ->
 				for ch in "zażółć🇵🇱".grapheme_iter
 					puts ch.inspect

@@ -6,7 +6,7 @@ import (
 )
 
 func initIdentifierNode() {
-	c := &value.IdentifierNodeMixin.MethodContainer
+	c := value.IdentifierNodeMixin
 	vm.Def(
 		c,
 		"to_ast_ident_node",

@@ -3,9 +3,11 @@ package value
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/indent"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's ArrayListOfValue value
@@ -14,15 +16,24 @@ type ArrayListOfValue []Value
 var _ ArrayList = &ArrayListOfValue{}
 
 func NormalizeArrayIndex(index, length int) (int, Value) {
-	if index >= length || index < -length {
+	i, ok := NormalizeArrayIndexOk(index, length)
+	if !ok {
 		return 0, Ref(NewIndexOutOfRangeError(fmt.Sprint(index), length))
+	}
+
+	return i, Undefined
+}
+
+func NormalizeArrayIndexOk(index, length int) (int, bool) {
+	if index >= length || index < -length {
+		return 0, false
 	}
 
 	if index < 0 {
 		index = length + index
 	}
 
-	return index, Undefined
+	return index, true
 }
 
 func ArrayListOfValueConstructor(class *Class) Value {
@@ -53,6 +64,29 @@ func NewArrayListOfValueWithElementsAndTotalCapacity(capacity int, elements ...V
 
 func (l *ArrayListOfValue) NewArrayList(capacity int) ArrayList {
 	return NewArrayListOfValue(capacity)
+}
+
+func (l *ArrayListOfValue) Clone() *ArrayListOfValue {
+	newList := NewArrayListOfValue(l.Capacity())
+	newList.Append(*l...)
+	return newList
+}
+
+func (l *ArrayListOfValue) ToArrayListOfValue() *ArrayListOfValue {
+	return l
+}
+
+func (l *ArrayListOfValue) ToArrayList() ArrayList {
+	return l.ToArrayListOfValue()
+}
+
+func (l *ArrayListOfValue) ToArrayTuple() ArrayTuple {
+	tuple := ArrayTupleOfValue(slices.Clone(*l))
+	return &tuple
+}
+
+func (l *ArrayListOfValue) ToSyncArrayList() SyncArrayList {
+	return &SyncArrayListOfValue{List: l.Clone()}
 }
 
 func (l *ArrayListOfValue) CloneArrayList(capacity int) ArrayList {
@@ -216,20 +250,46 @@ func (l *ArrayListOfValue) Capacity() int {
 	return cap(*l)
 }
 
-func (l *ArrayListOfValue) RemoveAtErr(index int) Value {
-	index, err := NormalizeArrayIndex(index, l.Length())
+// RemoveAtRange removes the elements s[i..j] in place
+func (l *ArrayListOfValue) RemoveAtRange(i, j int) {
+	*l = slices.Delete(*l, i, j+1)
+}
+
+// RemoveAtRangeErr removes the elements s[i..j] in place with index normalisation
+func (l *ArrayListOfValue) RemoveAtRangeErr(i, j int) (err Value) {
+	i, err = NormalizeArrayIndex(i, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+	j, err = NormalizeArrayIndex(j, l.Length())
 	if !err.IsUndefined() {
 		return err
 	}
 
-	l.RemoveAt(index)
+	l.RemoveAtRange(i, j)
 	return Undefined
 }
 
 func (l *ArrayListOfValue) RemoveAt(i int) {
-	s := *l
-	copy(s[i:], s[i+1:])
-	*l = s[:len(s)-1]
+	*l = slices.Delete(*l, i, i+1)
+}
+
+func (l *ArrayListOfValue) RemoveAtVal(indexVal Value) Value {
+	index, ok := ToGoInt(indexVal)
+	if !ok {
+		if index == -1 {
+			return Ref(NewIndexOutOfRangeError(indexVal.Inspect(), len(*l)))
+		}
+		return Ref(NewCoerceError(IntClass, indexVal.Class()))
+	}
+
+	i, err := NormalizeArrayIndex(index, l.Length())
+	if !err.IsUndefined() {
+		return err
+	}
+
+	l.RemoveAt(i)
+	return Undefined
 }
 
 func (l *ArrayListOfValue) LeftCapacity() int {
@@ -269,6 +329,17 @@ func GetFromSlice[V any](collection *[]V, index int) (ret V, err Value) {
 	return (*collection)[index], Undefined
 }
 
+// Get an element under the given index.
+func GetFromSliceOk[V any](collection *[]V, index int) (ret V, ok bool) {
+	l := len(*collection)
+	index, ok = NormalizeArrayIndexOk(index, l)
+	if !ok {
+		return ret, false
+	}
+
+	return (*collection)[index], true
+}
+
 // Set an element under the given index.
 func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 	index, err = NormalizeArrayIndex(index, len(*collection))
@@ -283,6 +354,11 @@ func SetInSlice[V any](collection *[]V, index int, val V) (err Value) {
 // Get an element under the given index.
 func (l *ArrayListOfValue) Get(index int) (Value, Value) {
 	return GetFromSlice((*[]Value)(l), index)
+}
+
+// Get an element under the given index.
+func (l *ArrayListOfValue) GetOk(index int) (Value, bool) {
+	return GetFromSliceOk((*[]Value)(l), index)
 }
 
 // Get an element under the given index without bounds checking
@@ -313,6 +389,26 @@ func (l *ArrayListOfValue) SubscriptInt(key int) (Value, Value) {
 	return l.Get(key)
 }
 
+// Get an element under the given index, returns nil
+// when out of range.
+func (t *ArrayListOfValue) TryAtVal(key Value) (Value, Value) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return Nil, Undefined
+		}
+		return Undefined, Ref(NewCoerceError(IntClass, key.Class()))
+	}
+
+	val, ok := t.GetOk(i)
+	if !ok {
+		return Nil, Undefined
+	}
+	return val, Undefined
+}
+
 // Set an element under the given index.
 func (l *ArrayListOfValue) Set(index int, val Value) Value {
 	return SetInSlice((*[]Value)(l), index, val)
@@ -324,7 +420,7 @@ func (l *ArrayListOfValue) SetAt(index int, val Value) {
 }
 
 func (l *ArrayListOfValue) SetAtVal(index int, val Value) Value {
-	l.SetAtVal(index, val)
+	l.SetAt(index, val)
 	return Undefined
 }
 
@@ -348,36 +444,54 @@ func (l *ArrayListOfValue) SubscriptSetInt(key int, val Value) Value {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
-	if other.IsReference() {
-		switch o := other.AsReference().(type) {
-		case *ArrayListOfValue:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return &newList, Undefined
-		case *ArrayTupleOfValue:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
-			copy(newList, *l)
-			newList = append(newList, *o...)
-			return &newList, Undefined
-		case ArrayTuple:
-			newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
-			copy(newList, *l)
+func (l *ArrayListOfValue) ConcatOk(other Value) (*ArrayListOfValue, bool) {
+	switch o := other.SafeAsReference().(type) {
+	case *ArrayListOfValue:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return &newList, true
+	case *ArrayTupleOfValue:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+len(*o))
+		copy(newList, *l)
+		newList = append(newList, *o...)
+		return &newList, true
+	case Tuple:
+		newList := make(ArrayListOfValue, len(*l), len(*l)+o.Length())
+		copy(newList, *l)
 
-			for i, element := range o.Elements() {
-				newList[len(*l)+i] = element
-			}
-
-			return &newList, Undefined
+		for i, element := range o.Elements() {
+			newList[len(*l)+i] = element
 		}
+
+		return &newList, true
+	default:
+		return nil, false
+	}
+}
+
+// Concatenate another value with this list, creating a new list, and return the result.
+// If the operation is illegal an error will be returned.
+func (l *ArrayListOfValue) Concat(other Value) (*ArrayListOfValue, Value) {
+	result, ok := l.ConcatOk(other)
+	if !ok {
+		return nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
 	}
 
-	return nil, Ref(Errorf(TypeErrorClass, "cannot concat %s with list %s", other.Inspect(), l.Inspect()))
+	return result, Undefined
 }
 
 func (l *ArrayListOfValue) ConcatVal(other Value) (Value, Value) {
 	return RefErr(l.Concat(other))
+}
+
+func (l *ArrayListOfValue) ConcatValOk(other Value) (Value, bool) {
+	result, ok := l.ConcatOk(other)
+	if !ok {
+		return Undefined, false
+	}
+
+	return result.ToValue(), true
 }
 
 // Repeat the content of this list n times and return a new list containing the result.
@@ -561,11 +675,9 @@ func (*ArrayListOfValueIterator) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-var stopIterationSymbol = ToSymbol("stop_iteration")
-
 func (l *ArrayListOfValueIterator) NextValue() (Value, Value) {
 	if l.Index >= l.ArrayList.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*l.ArrayList)[l.Index]

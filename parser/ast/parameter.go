@@ -121,6 +121,35 @@ func (n *FormalParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *FormalParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewFormalParameterNode(n.loc, name.(IdentifierNode), typ, init, n.Kind)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if the given FormalParameterNode is equal to another value.
 func (n *FormalParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*FormalParameterNode)
@@ -147,6 +176,33 @@ func (n *FormalParameterNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *FormalParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*FormalParameterNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) || n.Kind != o.Kind {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
 }
 
 // String returns a string representation of the FormalParameterNode.
@@ -295,6 +351,42 @@ func (n *MethodParameterNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *MethodParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewMethodParameterNode(
+		n.loc,
+		name.(IdentifierNode),
+		n.SetInstanceVariable,
+		typ,
+		init,
+		n.Kind,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodParameterNode)
 	if !ok {
@@ -317,6 +409,31 @@ func (n *MethodParameterNode) Equal(other value.Value) bool {
 
 	return n.loc.Equal(o.loc) &&
 		n.Name.Equal(value.Ref(o.Name)) &&
+		n.SetInstanceVariable == o.SetInstanceVariable &&
+		n.Kind == o.Kind
+}
+
+func (n *MethodParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
 		n.SetInstanceVariable == o.SetInstanceVariable &&
 		n.Kind == o.Kind
 }
@@ -465,6 +582,26 @@ func (n *SignatureParameterNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *SignatureParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	newNode := NewSignatureParameterNode(n.loc, name.(IdentifierNode), typ, n.Optional, n.Kind)
+
+	return fn(newNode, parent)
+}
+
 func (n *SignatureParameterNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SignatureParameterNode)
 	if !ok {
@@ -482,6 +619,24 @@ func (n *SignatureParameterNode) Equal(other value.Value) bool {
 		n.Optional == o.Optional &&
 		n.Kind == o.Kind &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SignatureParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SignatureParameterNode)
+	if !ok {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.Optional == o.Optional &&
+		n.Kind == o.Kind
 }
 
 func (n *SignatureParameterNode) String() string {
@@ -619,6 +774,35 @@ func (n *AttributeParameterNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *AttributeParameterNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewAttributeParameterNode(n.loc, name.(IdentifierNode), typ, init)
+
+	return fn(newNode, parent)
+}
+
 func (*AttributeParameterNode) IsStatic() bool {
 	return false
 }
@@ -660,6 +844,33 @@ func (n *AttributeParameterNode) Equal(other value.Value) bool {
 	} else if n.Initialiser == nil || o.Initialiser == nil {
 		return false
 	} else if !n.Initialiser.Equal(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
+}
+
+func (n *AttributeParameterNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeParameterNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Name.LaxEqual(value.Ref(o.Name)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
 		return false
 	}
 

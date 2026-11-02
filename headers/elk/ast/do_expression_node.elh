@@ -12,9 +12,9 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      body: ArrayTuple[StatementNode] = loop; end,
-      catches: ArrayTuple[CatchNode] = loop; end,
-      finally_body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
+      catches: Tuple[CatchNode] = loop; end,
+      finally_body: Tuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 
@@ -22,5 +22,7 @@ module Std::Elk::AST
     pure def catches: ArrayTuple[CatchNode]; end
     pure def finally_body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

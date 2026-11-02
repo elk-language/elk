@@ -80,6 +80,17 @@ func (n *UsingAllEntryNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *UsingAllEntryNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	namespace, err := n.Namespace.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUsingAllEntryNode(n.loc, namespace.(UsingEntryNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
 	if !ok {
@@ -88,6 +99,15 @@ func (n *UsingAllEntryNode) Equal(other value.Value) bool {
 
 	return n.Namespace.Equal(value.Ref(o.Namespace)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UsingAllEntryNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingAllEntryNode)
+	if !ok {
+		return false
+	}
+
+	return n.Namespace.LaxEqual(value.Ref(o.Namespace))
 }
 
 func (n *UsingAllEntryNode) String() string {
@@ -142,16 +162,16 @@ func NewUsingAllEntryNode(loc *position.Location, namespace UsingEntryNode) *Usi
 
 // Represents a using entry node with subentries eg. `Foo::{Bar, baz}`, `A::B::C::{lol, foo as epic, Gro as Moe}`
 type UsingEntryWithSubentriesNode struct {
-	NodeBase
+	TypedNodeBase
 	Namespace  UsingEntryNode
 	Subentries []UsingSubentryNode
 }
 
 func (n *UsingEntryWithSubentriesNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Namespace:  n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
-		Subentries: SpliceSlice(n.Subentries, loc, args, unquote),
+		TypedNodeBase: TypedNodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Namespace:     n.Namespace.splice(loc, args, unquote).(UsingEntryNode),
+		Subentries:    SpliceSlice(n.Subentries, loc, args, unquote),
 	}
 }
 
@@ -180,6 +200,22 @@ func (n *UsingEntryWithSubentriesNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
+func (n *UsingEntryWithSubentriesNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	namespace, err := n.Namespace.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	subentries, err := traverseMapSlice(n.Subentries, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUsingEntryWithSubentriesNode(n.loc, namespace.(UsingEntryNode), subentries)
+
+	return fn(newNode, parent)
+}
+
 func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingEntryWithSubentriesNode)
 	if !ok {
@@ -194,6 +230,26 @@ func (n *UsingEntryWithSubentriesNode) Equal(other value.Value) bool {
 
 	for i, subentry := range n.Subentries {
 		if !subentry.Equal(value.Ref(o.Subentries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UsingEntryWithSubentriesNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingEntryWithSubentriesNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Subentries) != len(o.Subentries) ||
+		!n.Namespace.LaxEqual(value.Ref(o.Namespace)) {
+		return false
+	}
+
+	for i, subentry := range n.Subentries {
+		if !subentry.LaxEqual(value.Ref(o.Subentries[i])) {
 			return false
 		}
 	}
@@ -226,9 +282,9 @@ func (*UsingEntryWithSubentriesNode) IsStatic() bool {
 // Create a new using all entry node eg. `Foo::*`, `A::B::C::*`
 func NewUsingEntryWithSubentriesNode(loc *position.Location, namespace UsingEntryNode, subentries []UsingSubentryNode) *UsingEntryWithSubentriesNode {
 	return &UsingEntryWithSubentriesNode{
-		NodeBase:   NodeBase{loc: loc},
-		Namespace:  namespace,
-		Subentries: subentries,
+		TypedNodeBase: TypedNodeBase{loc: loc},
+		Namespace:     namespace,
+		Subentries:    subentries,
 	}
 }
 
@@ -308,6 +364,17 @@ func (n *UsingExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *UsingExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	consts, err := traverseMapSlice(n.Entries, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUsingExpressionNode(n.loc, consts)
+
+	return fn(newNode, parent)
+}
+
 func (n *UsingExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingExpressionNode)
 	if !ok {
@@ -321,6 +388,25 @@ func (n *UsingExpressionNode) Equal(other value.Value) bool {
 
 	for i, entry := range n.Entries {
 		if !entry.Equal(value.Ref(o.Entries[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UsingExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Entries) != len(o.Entries) {
+		return false
+	}
+
+	for i, entry := range n.Entries {
+		if !entry.LaxEqual(value.Ref(o.Entries[i])) {
 			return false
 		}
 	}
@@ -442,6 +528,22 @@ func (n *UsingSubentryAsNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *UsingSubentryAsNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	target, err := n.Target.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	as, err := n.AsName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUsingSubentryAsNode(n.loc, target.(IdentifierNode), as.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *UsingSubentryAsNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UsingSubentryAsNode)
 	if !ok {
@@ -451,6 +553,16 @@ func (n *UsingSubentryAsNode) Equal(other value.Value) bool {
 	return n.Target.Equal(value.Ref(o.Target)) &&
 		n.AsName.Equal(value.Ref(o.AsName)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UsingSubentryAsNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UsingSubentryAsNode)
+	if !ok {
+		return false
+	}
+
+	return n.Target.LaxEqual(value.Ref(o.Target)) &&
+		n.AsName.LaxEqual(value.Ref(o.AsName))
 }
 
 func (n *UsingSubentryAsNode) String() string {
@@ -530,6 +642,12 @@ func (n *MacroNameNode) traverse(parent Node, enter func(node, parent Node) Trav
 	return leave(n, parent)
 }
 
+func (n *MacroNameNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewMacroNameNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *MacroNameNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MacroNameNode)
 	if !ok {
@@ -538,6 +656,15 @@ func (n *MacroNameNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *MacroNameNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MacroNameNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *MacroNameNode) String() string {

@@ -6,11 +6,13 @@ module Std::Elk::AST
     include PatternNode
 
     init(
-      elements: ArrayTuple[PatternNode] = loop; end,
+      elements: Tuple[PatternNode] = loop; end,
       location: FS::Location = loop; end
     ); end
 
     pure def elements: ArrayTuple[PatternNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

@@ -76,6 +76,35 @@ func (n *CallableTypeNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *CallableTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var retType TypeNode
+	if n.ReturnType != nil {
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		retType = mapped.(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
+	}
+
+	newNode := NewCallableTypeNode(n.loc, params, retType, throwType, n.IsClosure, n.IsPure)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *CallableTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CallableTypeNode)
@@ -108,6 +137,39 @@ func (n *CallableTypeNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) && n.IsClosure == o.IsClosure && n.IsPure == o.IsPure
+}
+
+func (n *CallableTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallableTypeNode)
+	if !ok {
+		return false
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	return n.IsClosure == o.IsClosure && n.IsPure == o.IsPure
 }
 
 // Return a string representation of the node.

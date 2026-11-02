@@ -7,8 +7,8 @@ module Std::Elk::AST
 
     init(
       constant: ExpressionNode,
-      type_parameters: ArrayTuple[TypeParameterNode] = loop; end,
-      body: ArrayTuple[StructBodyStatementNode] = loop; end,
+      type_parameters: Tuple[TypeParameterNode] = loop; end,
+      body: Tuple[StructBodyStatementNode] = loop; end,
       is_immutable: bool = false,
       doc_comment: String = "",
       location: FS::Location = loop; end,
@@ -20,5 +20,7 @@ module Std::Elk::AST
     pure def type_parameters: ArrayTuple[TypeParameterNode]; end
     pure def body: ArrayTuple[StructBodyStatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

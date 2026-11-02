@@ -2366,6 +2366,148 @@ func TestMethodCalls(t *testing.T) {
 			},
 		},
 
+		"infer receiver in method argument": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				def baz(col: Color)
+					println "col: #col"
+				end
+				baz(.red)
+			`,
+		},
+		"infer receiver in local definition": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				var color: Color = .red
+			`,
+		},
+		"infer receiver in switch case": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color.red
+				switch color
+				case == .green
+					println "green"
+				end
+			`,
+		},
+		"infer receiver in binary operator": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color.red
+				color == .blue
+			`,
+		},
+		"cannot infer without context": {
+			input: `
+				class Color
+					singleton
+						def red(): %self
+							new(255u8, 0u8, 0u8)
+						end
+
+						def green(): %self
+							new(0u8, 255u8, 0u8)
+						end
+
+						def blue(): %self
+							new(0u8, 0u8, 255u8)
+						end
+					end
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				.red
+			`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L("<main>", P(351, 23, 5), P(354, 23, 8)), "receiver is impossible to infer"),
+			},
+		},
+
 		"missing required argument": {
 			input: `
 				module Foo
@@ -3260,21 +3402,15 @@ func TestGenericMethodCalls(t *testing.T) {
 				var a: 9 = HashMap::[String, Int]().map_pairs() |pair| -> Pair(1u8, 1.2)
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(39, 2, 39)), "cannot instantiate class `Std::HashMap` marked as `noinit`"),
-				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(pair: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
-				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(76, 2, 76)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|pair: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(76, 2, 76)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"infer type parameter from closure's return type with different param names": {
 			input: `
-				var a: 9 = HashMap::[String, Int]().map_pairs() |p| -> Pair(1u8, 1.2)
+				var a: 9 = HashMap::[String, Int]().map_pairs() |p| -> 1u8 => 1.2
 			`,
 			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(39, 2, 39)), "cannot instantiate class `Std::HashMap` marked as `noinit`"),
-				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]` does not implement callable `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]`:\n\n  - incorrect implementation of `call`\n      is:        `def call(p: Std::Pair[Std::String, Std::Int]): exact Std::Pair[Std::UInt8, Std::Float]`\n      should be: `def call(pair: Std::Pair[Std::String, Std::Int]): Std::Pair[K, V]`\n"),
-				diagnostic.NewFailure(L("<main>", P(53, 2, 53), P(73, 2, 73)), "expected type `|pair: Std::Pair[Std::String, Std::Int]|: Std::Pair[K, V]` for parameter `fn` in call to `Std::HashMap.:map_pairs`, got type `%|p: Std::Pair[Std::String, Std::Int]|: exact Std::Pair[Std::UInt8, Std::Float]`"),
-				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(73, 2, 73)), "type `Std::HashMap[any, any]` cannot be assigned to type `9`"),
+				diagnostic.NewFailure(L("<main>", P(16, 2, 16), P(69, 2, 69)), "type `Std::HashMap[Std::UInt8, Std::Float]` cannot be assigned to type `9`"),
 			},
 		},
 		"call a generic method with explicit type arguments": {
@@ -3629,6 +3765,23 @@ func TestInitDefinition(t *testing.T) {
 
 func TestConstructorCall(t *testing.T) {
 	tests := testTable{
+		"infer class in local assignment": {
+			input: `
+				class Color
+					const RED: Color = new(255u8, 0u8, 0u8)
+					const GREEN: Color = new(0u8, 255u8, 0u8)
+					const BLUE: Color = new(0u8, 0u8, 255u8)
+
+					getter red: UInt8
+					getter green: UInt8
+					getter blue: UInt8
+					init(@red, @green, @blue); end
+				end
+
+				color := Color::RED
+				color = new(89u8, 12u8, 202u8)
+			`,
+		},
 		"instantiate a class without a constructor": {
 			input: `
 				class Foo; end

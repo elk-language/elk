@@ -6,6 +6,615 @@ import (
 	"github.com/elk-language/elk/position/diagnostic"
 )
 
+func TestGoSelectExpression(t *testing.T) {
+	tests := goTestTable{
+		"multiple channel reads": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("#init")     // #init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym3 = value.ToSymbol("inspect")   // inspect
+var fn_method1 vm.NativeFunction       // Std::Value.:inspect
+var sym4 = value.ToSymbol("println@1") // println@1
+var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l1 value.Value // var ch2: Std::Channel[Std::Int]
+	_ = l1
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 value.AnyChannel
+	_ = t4
+	var t5 *vm.SelectResult
+	_ = t5
+	var l2 value.Value // var v: void
+	_ = l2
+	var l3 value.Value // var v: void
+	_ = l3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = (l1).AsReference().(value.AnyChannel)
+	t5 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t4.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+	})
+	if t5.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t5.Err)
+	}
+	switch t5.ChosenCaseIndex {
+	case 0:
+		l2 = (t5.Result(t3)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l2
+		callFrame.SetNativeLineNumber(7)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 1:
+		l3 = (t5.Result(t4)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l3
+		callFrame.SetNativeLineNumber(9)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch2: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"channel read pattern": {
+			input: `
+				ch1 := Channel::[Int](5)
+
+				select
+				case var @{value} = <<ch1
+					println("ch1: #{value}")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("#init")  // #init
+var fn_method0 vm.NativeFunction    // Std::Channel.:#init
+var sym3 = value.ToSymbol("value")  // value
+var fn_method1 vm.NativeFunction    // Std::Result.:value
+var cc_main_1 = &vm.CallCache{}
+var sym4 = value.ToSymbol("println@1") // println@1
+var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 *vm.SelectResult
+	_ = t4
+	var t5 value.Result
+	_ = t5
+	var t6 value.Bool
+	_ = t6
+	var l1 value.Value // var value: Std::Int?
+	_ = l1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ResultClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+	})
+	if t4.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t4.Err)
+	}
+	switch t4.ChosenCaseIndex {
+	case 0:
+		t5 = t4.Result(t3)
+		t6 = value.True
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = (t5).ToValue()
+		callFrame.SetNativeLineNumber(5)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: value
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = t1
+		if !(t6) {
+			thread.CaptureStackTrace()
+			thread.Panic((value.NewPatternNotMatchedInVariableDeclarationError()).ToValue())
+		}
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l1
+		callFrame.SetNativeLineNumber(6)
+		t1, err = thread.CallMethodByNameWithCache(value.S(symbol.L_inspect), &cc_main_1, t2...) // receiver: Std::Int?, name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"channel send": {
+			input: `
+				ch := Channel::[Int](5)
+
+				select
+				case ch << 5
+					println("sent")
+				end
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("#init")     // #init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method1 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 *vm.SelectResult
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Send: reflect.ValueOf(value.NormaliseSentValueToChannel(t3, (value.SmallInt(5)).ToValue())),
+			Dir:  reflect.SelectSend,
+		},
+	})
+	if t4.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t4.Err)
+	}
+	switch t4.ChosenCaseIndex {
+	case 0:
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("sent")).ToValue()
+		callFrame.SetNativeLineNumber(6)
+		_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"a_few_cases_and_else": {
+			input: `
+				ch1 := Channel::[Int](5)
+				ch2 := Channel::[Int](5)
+
+				select
+				case v := <<ch1
+					println("ch1: #{v}")
+				case v := <<ch2
+					println("ch2: #{v}")
+				else
+					println("no match")
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+	"reflect"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("#init")     // #init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym3 = value.ToSymbol("inspect")   // inspect
+var fn_method1 vm.NativeFunction       // Std::Value.:inspect
+var sym4 = value.ToSymbol("println@1") // println@1
+var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 value.Value // var ch1: Std::Channel[Std::Int]
+	_ = l0
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var l1 value.Value // var ch2: Std::Channel[Std::Int]
+	_ = l1
+	var t3 value.AnyChannel
+	_ = t3
+	var t4 value.AnyChannel
+	_ = t4
+	var t5 *vm.SelectResult
+	_ = t5
+	var l2 value.Value // var v: void
+	_ = l2
+	var l3 value.Value // var v: void
+	_ = l3
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ChannelClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc((value.ValueClass).LookupMethod(sym3))
+	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(2)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l0 = t1
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = value.ChannelClass.CreateInstance()
+	t2[1] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	l1 = t1
+	t3 = (l0).AsReference().(value.AnyChannel)
+	t4 = (l1).AsReference().(value.AnyChannel)
+	t5 = vm.DoSelect([]reflect.SelectCase{
+		{
+			Chan: reflect.ValueOf(thread.Aborter.Context().Done()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t3.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Chan: reflect.ValueOf(t4.NativeChannelAny()),
+			Dir:  reflect.SelectRecv,
+		},
+		{
+			Dir: reflect.SelectDefault,
+		},
+	})
+	if t5.Err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(t5.Err)
+	}
+	switch t5.ChosenCaseIndex {
+	case 0:
+		l2 = (t5.Result(t3)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l2
+		callFrame.SetNativeLineNumber(7)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch1: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 1:
+		l3 = (t5.Result(t4)).ToValue()
+		t2 = value.ResizeNativeArgs(t2, 2)
+		t2[0] = l3
+		callFrame.SetNativeLineNumber(9)
+		t1, err = fn_method1(thread, t2) // receiver: Std::Result[Std::Int, Std::Channel::ClosedError], name: inspect
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("ch2: ") + (t1).AsString()).ToValue()
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	case 2:
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("no match")).ToValue()
+		callFrame.SetNativeLineNumber(11)
+		_, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
 func TestGoGoExpression(t *testing.T) {
 	tests := goTestTable{
 		"with a single expression": {
@@ -14,6 +623,7 @@ func TestGoGoExpression(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -26,11 +636,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("<closure>")
-var sym3 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -56,7 +666,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
 		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: Std::Thread, loc: <main>:1:1
@@ -69,7 +679,7 @@ func main() { // loc: <main>
 			var err value.Value
 			_ = err
 
-			callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+			callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
 			defer thread.PopNativeCallFrame()
 			t2 = value.ResizeNativeArgs(t2, 3)
 			t2[0] = (value.KernelModule).ToValue()
@@ -94,6 +704,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -106,11 +717,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("<closure>")
-var sym3 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -140,7 +751,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = vm.NewNativeClosure(
 		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: Std::Thread, loc: <main>:1:6
@@ -153,7 +764,7 @@ func main() { // loc: <main>
 			var err value.Value
 			_ = err
 
-			callFrame = thread.AddNativeCallFrame(sym2, sym1, 1)
+			callFrame = thread.AddNativeCallFrame(sym1, sym2, 1)
 			defer thread.PopNativeCallFrame()
 			t2 = value.ResizeNativeArgs(t2, 3)
 			t2[0] = (value.KernelModule).ToValue()
@@ -185,6 +796,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
@@ -197,11 +809,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("<closure>")
-var sym3 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -229,7 +841,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	{
@@ -245,7 +857,7 @@ func main() { // loc: <main>
 				var t2 value.Value
 				_ = t2
 
-				callFrame = thread.AddNativeCallFrame(sym2, sym1, 3)
+				callFrame = thread.AddNativeCallFrame(sym1, sym2, 3)
 				defer thread.PopNativeCallFrame()
 				t1 = value.ResizeNativeArgs(t1, 3)
 				t1[0] = (value.KernelModule).ToValue()
@@ -296,6 +908,7 @@ func TestGoForInExpression(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -307,10 +920,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -342,21 +955,25 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.SmallInt(0)
 	for {
-		if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(20)))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = (l0).ToValue()
-		callFrame.SetNativeLineNumber(3)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l0 := l0
+
+			if !(value.Bool((l0).LessThanSmallInt(value.SmallInt(20)))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = (l0).ToValue()
+			callFrame.SetNativeLineNumber(3)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l0++
 	}
@@ -374,6 +991,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -385,10 +1003,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -422,22 +1040,26 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(20)).ToValue()
 	l1 = value.SmallInt(0).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, l0))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l1
-		callFrame.SetNativeLineNumber(4)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, l0))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l1
+			callFrame.SetNativeLineNumber(4)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l1 = value.IncrementInt(l1)
 	}
@@ -454,6 +1076,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -465,10 +1088,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -500,21 +1123,25 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanEqualInts(l0, (value.SmallInt(20)).ToValue()))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l0
-		callFrame.SetNativeLineNumber(3)
-		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l0 := l0
+
+			if !(value.Bool(value.LessThanEqualInts(l0, (value.SmallInt(20)).ToValue()))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l0
+			callFrame.SetNativeLineNumber(3)
+			t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l0 = value.IncrementInt(l0)
 	}
@@ -532,6 +1159,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -543,15 +1171,15 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 var range0 = value.NewClosedRange((value.SmallInt(5)).ToValue(), (value.SmallInt(20)).ToValue())
-var sym2 = value.ToSymbol("end")
-var fn_method0 vm.NativeFunction // Std::ClosedRange.:end
-var sym3 = value.ToSymbol("start")
-var fn_method1 vm.NativeFunction // Std::ClosedRange.:start
-var sym4 = value.ToSymbol("println@1")
-var fn_method2 vm.NativeFunction // Std::Kernel::println@1
+var sym2 = value.ToSymbol("start")     // start
+var fn_method0 vm.NativeFunction       // Std::ClosedRange.:start
+var sym3 = value.ToSymbol("end")       // end
+var fn_method1 vm.NativeFunction       // Std::ClosedRange.:end
+var sym4 = value.ToSymbol("println@1") // println@1
+var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -571,14 +1199,14 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 *value.ClosedRange // var r: Std::ClosedRange[Std::Int]
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t1 value.Value
 	_ = t1
 	var t2 []value.Value
 	_ = t2
 	var err value.Value
 	_ = err
+	var l1 value.Value // var i: Std::Int
+	_ = l1
 	var t3 value.Value
 	_ = t3
 	var self value.Value
@@ -589,37 +1217,41 @@ func main() { // loc: <main>
 	fn_method1 = vm.MethodToFunc((value.ClosedRangeClass).LookupMethod(sym3))
 	fn_method2 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = range0
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (l0).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: end
+	t1, err = fn_method0(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: start
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
 	}
-	t2 = value.ResizeNativeArgs(t2, 2)
-	t2[0] = (l0).ToValue()
-	t3, err = fn_method1(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: start
-	if err.IsNotUndefined() {
-		thread.CaptureStackTrace()
-		thread.Panic(err)
-	}
-	l1 = t3
+	l1 = t1
 	for {
-		if !(value.Bool(value.LessThanEqualInts(l1, t1))) {
-			break
-		}
-		t2 = value.ResizeNativeArgs(t2, 3)
-		t2[0] = (value.KernelModule).ToValue()
-		t2[1] = l1
-		callFrame.SetNativeLineNumber(4)
-		t1, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
-		if err.IsNotUndefined() {
-			thread.CaptureStackTrace()
-			thread.Panic(err)
+		{
+			l1 := l1
+
+			t2 = value.ResizeNativeArgs(t2, 2)
+			t2[0] = (l0).ToValue()
+			t1, err = fn_method1(thread, t2) // receiver: Std::ClosedRange[Std::Int], name: end
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
+			if !(value.Bool(value.LessThanEqualInts(l1, t1))) {
+				break
+			}
+			t2 = value.ResizeNativeArgs(t2, 3)
+			t2[0] = (value.KernelModule).ToValue()
+			t2[1] = l1
+			callFrame.SetNativeLineNumber(4)
+			t3, err = fn_method2(thread, t2) // receiver: Std::Kernel, name: println@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				thread.Panic(err)
+			}
 		}
 		l1 = value.IncrementInt(l1)
 	}
@@ -636,6 +1268,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -647,10 +1280,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -672,8 +1305,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -682,9 +1313,12 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -709,6 +1343,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -720,16 +1355,16 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
 var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue())
 var arrtuple2 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue())
 var arrtuple3 = value.NewNativeArrayTupleWithElements[*value.ArrayTupleOfValue](0, arrtuple0, arrtuple1, arrtuple2)
-var sym2 = value.ToSymbol("length")
-var fn_method0 vm.NativeFunction // Std::ArrayTuple.:length
-var sym3 = value.ToSymbol("println@1")
-var fn_method1 vm.NativeFunction // Std::Kernel::println@1
+var sym2 = value.ToSymbol("length")    // length
+var fn_method0 vm.NativeFunction       // Std::ArrayTuple.:length
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method1 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -757,10 +1392,8 @@ func main() { // loc: <main>
 	_ = t3
 	var t4 value.SmallInt
 	_ = t4
-	var l0 value.Value // var a: Std::Int
-	_ = l0
-	var l1 value.Value // var b: Std::Int
-	_ = l1
+	var t5 value.Value
+	_ = t5
 	var self value.Value
 	_ = self
 
@@ -768,9 +1401,14 @@ func main() { // loc: <main>
 	fn_method0 = vm.MethodToFunc((value.ArrayTupleClass).LookupMethod(sym2))
 	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (arrtuple3).ToValue()) {
+		var l0 value.Value // var a: Std::Int
+		_ = l0
+		var l1 value.Value // var b: Std::Int
+		_ = l1
+
 		t2 = value.True
 		if !(value.Bool(value.IsA(t1, value.TupleMixin))) {
 			t2 = value.False
@@ -795,12 +1433,12 @@ func main() { // loc: <main>
 			thread.Panic(err)
 		}
 		l0 = t1
-		t1, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(1)))
+		t5, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(1)))
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		l1 = t1
+		l1 = t5
 	lbl1:
 		if !(t2) {
 			thread.CaptureStackTrace()
@@ -830,6 +1468,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -841,10 +1480,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -866,8 +1505,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -876,10 +1513,13 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -910,6 +1550,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -921,11 +1562,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
-var sym3 = value.ToSymbol("foo")
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
+var sym3 = value.ToSymbol("foo")       // foo
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -947,8 +1588,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -957,10 +1596,13 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -992,6 +1634,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1003,10 +1646,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1030,8 +1673,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1040,11 +1681,14 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l1 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1076,6 +1720,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1087,10 +1732,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1112,8 +1757,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1122,10 +1765,13 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		t2 = value.ResizeNativeArgs(t2, 3)
 		t2[0] = (value.KernelModule).ToValue()
@@ -1156,6 +1802,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1167,10 +1814,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1192,8 +1839,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1202,10 +1847,13 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
 			continue loop0
@@ -1234,6 +1882,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1245,10 +1894,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1270,8 +1919,6 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var i: Std::Int
-	_ = l0
 	var t2 []value.Value
 	_ = t2
 	var self value.Value
@@ -1280,10 +1927,13 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
 		l0 = t1
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(2)).ToValue())) {
 			continue loop0
@@ -1314,6 +1964,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1325,10 +1976,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println")
-var fn_method0 vm.NativeFunction // Std::Kernel::println
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("println") // println
+var fn_method0 vm.NativeFunction     // Std::Kernel::println
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1350,12 +2001,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -1364,13 +2011,19 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 	loop1:
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				t1 = value.Nil
@@ -1403,6 +2056,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1414,10 +2068,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println")
-var fn_method0 vm.NativeFunction // Std::Kernel::println
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("println") // println
+var fn_method0 vm.NativeFunction     // Std::Kernel::println
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1439,12 +2093,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -1453,13 +2103,19 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				break loop0
@@ -1491,6 +2147,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1502,10 +2159,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println")
-var fn_method0 vm.NativeFunction // Std::Kernel::println
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("println") // println
+var fn_method0 vm.NativeFunction     // Std::Kernel::println
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1527,12 +2184,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -1541,13 +2194,19 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 	loop1:
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				t1 = value.Nil
@@ -1580,6 +2239,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1591,10 +2251,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println")
-var fn_method0 vm.NativeFunction // Std::Kernel::println
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("println") // println
+var fn_method0 vm.NativeFunction     // Std::Kernel::println
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1616,12 +2276,8 @@ func main() { // loc: <main>
 	_ = t1
 	var err value.Value
 	_ = err
-	var l0 value.Value // var c: Std::String
-	_ = l0
 	var t2 value.Value
 	_ = t2
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var t3 []value.Value
 	_ = t3
 	var self value.Value
@@ -1630,13 +2286,19 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 loop0:
 	for t1, err = range vm.Iterate(thread, (value.NewNativeArrayListWithElements[value.String](0, value.String("a"), value.String("b"), value.String("c"), value.String("d"))).ToValue()) {
+		var l0 value.Value // var c: Std::String
+		_ = l0
+
 		l0 = t1
 		t1 = value.Nil
 		for t2, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue(), (value.SmallInt(5)).ToValue())).ToValue()) {
+			var l1 value.Value // var i: Std::Int
+			_ = l1
+
 			l1 = t2
 			if value.Bool(value.GreaterThanInts(l1, (value.SmallInt(2)).ToValue())) {
 				continue loop0
@@ -1672,6 +2334,7 @@ func TestGoReturnExpression(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -1683,10 +2346,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("to_string")
-var fn_method0 vm.NativeFunction // Std::Int.:to_string
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("to_string") // to_string
+var fn_method0 vm.NativeFunction       // Std::Int.:to_string
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -1716,7 +2379,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t2 = value.ResizeNativeArgs(t2, 2)
 	t2[0] = (value.SmallInt(5)).ToValue()
@@ -1732,344 +2395,17 @@ func main() { // loc: <main>
 				diagnostic.NewWarning(L(P(7, 1, 8), P(17, 1, 18)), "values returned in void context will be ignored"),
 			},
 		},
-		// TODO: return in methods, in namespace bodies
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			goCompilerTest(tc, t)
-		})
-	}
-}
-
-// func TestBytecodeAwaitExpression(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"await in a synchronous context": {
-// 			input: "await timeout(2.seconds)",
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.GET_CONST8), 0,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.CALL_METHOD8), 1,
-// 					byte(bytecode.UNDEFINED),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.AWAIT_SYNC),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(23, 1, 24)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 10),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 				},
-// 			),
-// 		},
-// 		"await in an asynchronous context": {
-// 			input: `
-// 				async def foo
-// 					await timeout(2.seconds)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(56, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(4, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(56, 4, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								value.ToSymbol("foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.PROMISE),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.CALL_METHOD8), 0,
-// 									byte(bytecode.UNDEFINED),
-// 									byte(bytecode.CALL_SELF8), 1,
-// 									byte(bytecode.AWAIT),
-// 									byte(bytecode.AWAIT_RESULT),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(55, 4, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 2),
-// 									bytecode.NewLineInfo(4, 1),
-// 									bytecode.NewLineInfo(3, 8),
-// 									bytecode.NewLineInfo(4, 1),
-// 								},
-// 								1,
-// 								1,
-// 								[]value.Value{
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"await_sync in an asynchronous context": {
-// 			input: `
-// 				async def foo
-// 					await_sync timeout(2.seconds)
-// 				end
-// 			`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.EXEC),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(61, 4, 8)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 					bytecode.NewLineInfo(4, 2),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(vm.NewBytecodeFunctionNoParams(
-// 						methodDefinitionsSymbol,
-// 						[]byte{
-// 							byte(bytecode.GET_CONST8), 0,
-// 							byte(bytecode.GET_SINGLETON),
-// 							byte(bytecode.LOAD_VALUE_1),
-// 							byte(bytecode.LOAD_VALUE_2),
-// 							byte(bytecode.DEF_METHOD),
-// 							byte(bytecode.POP),
-// 							byte(bytecode.NIL),
-// 							byte(bytecode.RETURN),
-// 						},
-// 						L(P(0, 1, 1), P(61, 4, 8)),
-// 						bytecode.LineInfoList{
-// 							bytecode.NewLineInfo(1, 7),
-// 							bytecode.NewLineInfo(4, 2),
-// 						},
-// 						[]value.Value{
-// 							value.ToSymbol("Std::Kernel").ToValue(),
-// 							value.Ref(vm.NewBytecodeFunction(
-// 								value.ToSymbol("foo"),
-// 								[]byte{
-// 									byte(bytecode.GET_LOCAL_1),
-// 									byte(bytecode.PROMISE),
-// 									byte(bytecode.RETURN),
-// 									byte(bytecode.INT_2),
-// 									byte(bytecode.CALL_METHOD8), 0,
-// 									byte(bytecode.UNDEFINED),
-// 									byte(bytecode.CALL_SELF8), 1,
-// 									byte(bytecode.AWAIT_SYNC),
-// 									byte(bytecode.RETURN),
-// 								},
-// 								L(P(5, 2, 5), P(60, 4, 7)),
-// 								bytecode.LineInfoList{
-// 									bytecode.NewLineInfo(2, 2),
-// 									bytecode.NewLineInfo(4, 1),
-// 									bytecode.NewLineInfo(3, 7),
-// 									bytecode.NewLineInfo(4, 1),
-// 								},
-// 								1,
-// 								1,
-// 								[]value.Value{
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("seconds"), 0)),
-// 									value.Ref(vm.NewCallSiteInfo(value.ToSymbol("timeout"), 2)),
-// 								},
-// 							)),
-// 							value.ToSymbol("foo").ToValue(),
-// 						},
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
-
-// func TestBytecodeModifierForIn(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"iterate": {
-// 			input: `println(i) for i in [1, 2, 3]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 2,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.COPY),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 10,
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.GET_CONST8), 1,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 14,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(28, 1, 29)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 22),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayList{
-// 						value.SmallInt(1).ToValue(),
-// 						value.SmallInt(2).ToValue(),
-// 						value.SmallInt(3).ToValue(),
-// 					}),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(vm.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 		"with a pattern": {
-// 			input: `println(a + b) for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.PREP_LOCALS8), 3,
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.GET_ITERATOR),
-// 					byte(bytecode.SET_LOCAL_1),
-// 					byte(bytecode.GET_LOCAL_1),
-// 					byte(bytecode.FOR_IN_BUILTIN), 0, 56,
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.LOAD_VALUE_1),
-// 					byte(bytecode.IS_A),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 33,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.CALL_METHOD8), 2,
-// 					byte(bytecode.INT_2),
-// 					byte(bytecode.EQUAL_INT),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 24,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.INT_0),
-// 					byte(bytecode.SUBSCRIPT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_2),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.POP_SKIP_ONE),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 13,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.INT_1),
-// 					byte(bytecode.SUBSCRIPT),
-// 					byte(bytecode.DUP),
-// 					byte(bytecode.SET_LOCAL_3),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.POP_SKIP_ONE),
-// 					byte(bytecode.JUMP_UNLESS_NP), 0, 2,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.TRUE),
-// 					byte(bytecode.JUMP_IF), 0, 2,
-// 					byte(bytecode.LOAD_VALUE_3),
-// 					byte(bytecode.THROW),
-// 					byte(bytecode.POP),
-// 					byte(bytecode.GET_CONST8), 4,
-// 					byte(bytecode.GET_LOCAL_2),
-// 					byte(bytecode.GET_LOCAL_3),
-// 					byte(bytecode.ADD_INT),
-// 					byte(bytecode.CALL_METHOD8), 5,
-// 					byte(bytecode.POP),
-// 					byte(bytecode.LOOP), 0, 60,
-// 					byte(bytecode.NIL),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(57, 1, 58)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 67),
-// 				},
-// 				[]value.Value{
-// 					value.Ref(&value.ArrayTuple{
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(1).ToValue(),
-// 							value.SmallInt(2).ToValue(),
-// 						}),
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(3).ToValue(),
-// 							value.SmallInt(4).ToValue(),
-// 						}),
-// 						value.Ref(&value.ArrayTuple{
-// 							value.SmallInt(5).ToValue(),
-// 							value.SmallInt(6).ToValue(),
-// 						}),
-// 					}),
-// 					value.Ref(value.TupleMixin),
-// 					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("length"), 0)),
-// 					value.Ref(value.NewError(
-// 						value.PatternNotMatchedErrorClass,
-// 						"assigned value does not match the pattern defined in for in loop",
-// 					)),
-// 					value.ToSymbol("Std::Kernel").ToValue(),
-// 					value.Ref(vm.NewCallSiteInfo(
-// 						value.ToSymbol("println@1"),
-// 						1,
-// 					)),
-// 				},
-// 			),
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }
-
-func TestGoIfExpression(t *testing.T) {
-	tests := goTestTable{
-		"resolve static condition with empty then and else": {
-			input: `a := if false; end`,
+		"return in method body": {
+			input: `
+				def foo: String
+					return 5.to_string
+				end
+			`,
 			want: `package main
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2081,8 +2417,693 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym3 = value.ToSymbol("main") // main
+
+var sym0 = value.ToSymbol("Std::Kernel::foo") // Std::Kernel::foo
+var sym1 = value.ToSymbol("<main>")           // <main>
+var sym2 = value.ToSymbol("to_string")        // to_string
+var fn_method1 vm.NativeFunction              // Std::Int.:to_string
+func fn_method0(thread *vm.Thread, self value.Value) (result value.String, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 2)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.SmallInt(5)).ToValue()
+	callFrame.SetNativeLineNumber(3)
+	t1, err = fn_method1(thread, t2) // receiver: Std::Int, name: to_string
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		return result, err
+	}
+	return (t1).AsString(), value.Undefined
+	return result, value.Undefined
+
+}
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym3, 1)
+	defer thread.PopNativeCallFrame()
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		result, err := fn_method0(thread, args[0])
+		return (result).ToValue(), err
+	})
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoAwaitExpression(t *testing.T) {
+	tests := goTestTable{
+		"await in a synchronous context": {
+			input: "await timeout(2.seconds)",
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("seconds") // seconds
+var fn_method0 vm.NativeFunction     // Std::Int.:seconds
+var sym3 = value.ToSymbol("timeout") // timeout
+var fn_method1 vm.NativeFunction     // Std::Kernel::timeout
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.IntClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 2)
+	t2[0] = (value.SmallInt(2)).ToValue()
+	t1, err = fn_method0(thread, t2) // receiver: Std::Int, name: seconds
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 4)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = t1
+	t2[2] = value.Undefined
+	t3, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: timeout
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t1, t4, err = ((t3).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+}
+`,
+		},
+		"await in an asynchronous context": {
+			input: `
+				async def foo
+					await timeout(2.seconds)
+					println "foo"
+				end
+
+				foo().await
+				println "end"
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym5 = value.ToSymbol("main")   // main
+var sym6 = value.ToSymbol("<main>") // <main>
+var sym7 = value.ToSymbol("foo")    // foo
+var fn_method1 vm.NativeFunction    // Std::Kernel::println@1
+
+var sym0 = value.ToSymbol("Std::Int")    // Std::Int
+var sym1 = value.ToSymbol("seconds")     // seconds
+var sym2 = value.ToSymbol("Std::Kernel") // Std::Kernel
+var sym3 = value.ToSymbol("timeout")     // timeout
+var sym4 = value.ToSymbol("println@1")   // println@1
+var fn_method0 *vm.BytecodeFunction      // method: Std::Kernel::foo, loc: <main>:2:5
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym6, sym5, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = value.Undefined
+	callFrame.SetNativeLineNumber(7)
+	t1, err = thread.CallBytecodeMethod(fn_method0, t2...) // receiver: Std::Kernel, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t3, t4, err = ((t1).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = (value.String("end")).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.PROMISE),
+			byte(bytecode.RETURN),
+			byte(bytecode.SELF),
+			byte(bytecode.INT_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x00,
+			byte(bytecode.UNDEFINED),
+			byte(bytecode.CALL_METHOD_NT8), 0x01,
+			byte(bytecode.AWAIT),
+			byte(bytecode.AWAIT_RESULT),
+			byte(bytecode.POP),
+			byte(bytecode.SELF),
+			byte(bytecode.LOAD_VALUE_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x03,
+			byte(bytecode.RETURN),
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(74, 5, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(1),
+		vm.BytecodeFunctionWithOptionalParameters(1),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 2),
+			bytecode.NewLineInfo(5, 1),
+			bytecode.NewLineInfo(3, 10),
+			bytecode.NewLineInfo(4, 4),
+			bytecode.NewLineInfo(5, 1),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+			(value.String("foo")).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+		),
+	)
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+		},
+		"await_sync in an asynchronous context": {
+			input: `
+				async def foo
+					await_sync timeout(2.seconds)
+					println "foo"
+				end
+
+				foo().await
+				println "end"
+			`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	"github.com/elk-language/elk/bytecode"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym5 = value.ToSymbol("main")   // main
+var sym6 = value.ToSymbol("<main>") // <main>
+var sym7 = value.ToSymbol("foo")    // foo
+var fn_method1 vm.NativeFunction    // Std::Kernel::println@1
+
+var sym0 = value.ToSymbol("Std::Int")    // Std::Int
+var sym1 = value.ToSymbol("seconds")     // seconds
+var sym2 = value.ToSymbol("Std::Kernel") // Std::Kernel
+var sym3 = value.ToSymbol("timeout")     // timeout
+var sym4 = value.ToSymbol("println@1")   // println@1
+var fn_method0 *vm.BytecodeFunction      // method: Std::Kernel::foo, loc: <main>:2:5
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var t2 []value.Value
+	_ = t2
+	var err value.Value
+	_ = err
+	var t3 value.Value
+	_ = t3
+	var t4 *value.StackTrace
+	_ = t4
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+
+	methodDefinitions()
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym4))
+
+	callFrame = thread.AddNativeCallFrame(sym6, sym5, 1)
+	defer thread.PopNativeCallFrame()
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = value.Undefined
+	callFrame.SetNativeLineNumber(7)
+	t1, err = thread.CallBytecodeMethod(fn_method0, t2...) // receiver: Std::Kernel, name: foo
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+	t3, t4, err = ((t1).AsReference().(*vm.Promise)).AwaitSync()
+	if err.IsNotUndefined() {
+		thread.CaptureStackTracePrepend(t4)
+		thread.Panic(err)
+	}
+	t2 = value.ResizeNativeArgs(t2, 3)
+	t2[0] = (value.KernelModule).ToValue()
+	t2[1] = (value.String("end")).ToValue()
+	callFrame.SetNativeLineNumber(8)
+	_, err = fn_method1(thread, t2) // receiver: Std::Kernel, name: println@1
+	if err.IsNotUndefined() {
+		thread.CaptureStackTrace()
+		thread.Panic(err)
+	}
+}
+
+func methodDefinitions() {
+	var class *value.Class
+	_ = class
+
+	class = (value.KernelModule).SingletonClass() // Std::Kernel
+	fn_method0 = vm.NewBytecodeFunctionWithOptions(
+		vm.BytecodeFunctionWithInstructions([]byte{
+			byte(bytecode.GET_LOCAL_1),
+			byte(bytecode.PROMISE),
+			byte(bytecode.RETURN),
+			byte(bytecode.SELF),
+			byte(bytecode.INT_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x00,
+			byte(bytecode.UNDEFINED),
+			byte(bytecode.CALL_METHOD_NT8), 0x01,
+			byte(bytecode.AWAIT_SYNC),
+			byte(bytecode.POP),
+			byte(bytecode.SELF),
+			byte(bytecode.LOAD_VALUE_2),
+			byte(bytecode.CALL_METHOD_NT8), 0x03,
+			byte(bytecode.RETURN),
+		}),
+		vm.BytecodeFunctionWithLocation(position.NewLocation("<main>", position.NewSpan(position.New(5, 2, 5), position.New(79, 5, 7)))),
+		vm.BytecodeFunctionWithUpvalueCount(0),
+		vm.BytecodeFunctionWithStringName("Std::Kernel::foo"),
+		vm.BytecodeFunctionWithParameters(1),
+		vm.BytecodeFunctionWithOptionalParameters(1),
+		vm.BytecodeFunctionWithLineInfoListVar(
+			bytecode.NewLineInfo(2, 2),
+			bytecode.NewLineInfo(5, 1),
+			bytecode.NewLineInfo(3, 9),
+			bytecode.NewLineInfo(4, 4),
+			bytecode.NewLineInfo(5, 1),
+		),
+		vm.BytecodeFunctionWithValuesVar(
+			(vm.NewNativeCallSiteInfo((value.GetClass(sym0)).GetMethod(sym1).(*vm.NativeMethod), 0)).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym3).(*vm.NativeMethod), 2)).ToValue(),
+			(value.String("foo")).ToValue(),
+			(vm.NewNativeCallSiteInfo((value.GetSingletonClass(sym2)).GetMethod(sym4).(*vm.NativeMethod), 1)).ToValue(),
+		),
+	)
+	vm.DefBytecode(class, "foo", fn_method0)
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoModifierForIn(t *testing.T) {
+	tests := goTestTable{
+		"iterate": {
+			input: `println(i) for i in [1, 2, 3]`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 []value.Value
+	_ = t2
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (value.NewArrayListOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue(), (value.SmallInt(3)).ToValue())).ToValue()) {
+		var l0 value.Value // var i: Std::Int
+		_ = l0
+
+		l0 = t1
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = l0
+		t1, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+		"with a pattern": {
+			input: `println(a + b) for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var arrtuple0 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(1)).ToValue(), (value.SmallInt(2)).ToValue())
+var arrtuple1 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(3)).ToValue(), (value.SmallInt(4)).ToValue())
+var arrtuple2 = value.NewArrayTupleOfValueWithElements(0, (value.SmallInt(5)).ToValue(), (value.SmallInt(6)).ToValue())
+var arrtuple3 = value.NewNativeArrayTupleWithElements[*value.ArrayTupleOfValue](0, arrtuple0, arrtuple1, arrtuple2)
+var sym2 = value.ToSymbol("length")    // length
+var fn_method0 vm.NativeFunction       // Std::ArrayTuple.:length
+var sym3 = value.ToSymbol("println@1") // println@1
+var fn_method1 vm.NativeFunction       // Std::Kernel::println@1
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var t1 value.Value
+	_ = t1
+	var err value.Value
+	_ = err
+	var t2 value.Bool
+	_ = t2
+	var t3 []value.Value
+	_ = t3
+	var t4 value.SmallInt
+	_ = t4
+	var t5 value.Value
+	_ = t5
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc((value.ArrayTupleClass).LookupMethod(sym2))
+	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	for t1, err = range vm.Iterate(thread, (arrtuple3).ToValue()) {
+		var l0 value.Value // var a: Std::Int
+		_ = l0
+		var l1 value.Value // var b: Std::Int
+		_ = l1
+
+		t2 = value.True
+		if !(value.Bool(value.IsA(t1, value.TupleMixin))) {
+			t2 = value.False
+			goto lbl1
+		}
+		t3 = value.ResizeNativeArgs(t3, 2)
+		t3[0] = t1
+		t1, err = fn_method0(thread, t3) // receiver: Std::ArrayTuple[Std::Int], name: length
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		t4 = value.SmallInt((t1).AsInt())
+		if t4 != 2 {
+			t2 = value.False
+			goto lbl1
+		}
+		t1, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(0)))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l0 = t1
+		t5, err = ((t1).AsReference().(value.ArrayTuple)).SubscriptInt(int(value.SmallInt(1)))
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+		l1 = t5
+	lbl1:
+		if !(t2) {
+			thread.CaptureStackTrace()
+			thread.Panic((value.NewPatternNotMatchedInForInLoopError()).ToValue())
+		}
+		t3 = value.ResizeNativeArgs(t3, 3)
+		t3[0] = (value.KernelModule).ToValue()
+		t3[1] = value.AddInts(l0, l1)
+		t1, err = fn_method1(thread, t3) // receiver: Std::Kernel, name: println@1
+		if err.IsNotUndefined() {
+			thread.CaptureStackTrace()
+			thread.Panic(err)
+		}
+	}
+}
+`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoIfExpression(t *testing.T) {
+	tests := goTestTable{
+		"resolve static condition with empty then and else": {
+			input: `a := if false; end`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2106,7 +3127,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 }
@@ -2121,6 +3142,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2132,8 +3154,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2161,7 +3183,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.True
 	if l0 {
@@ -2183,6 +3205,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2194,8 +3217,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2219,7 +3242,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(10)).ToValue()
 }
@@ -2238,6 +3261,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2249,8 +3273,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2274,7 +3298,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 }
@@ -2296,6 +3320,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2307,8 +3332,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2332,7 +3357,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 }
@@ -2353,6 +3378,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2364,8 +3390,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2389,7 +3415,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
@@ -2409,6 +3435,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2420,8 +3447,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2449,7 +3476,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
@@ -2475,6 +3502,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2486,8 +3514,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2511,7 +3539,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
@@ -2535,6 +3563,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2546,8 +3575,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2575,7 +3604,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
@@ -2603,6 +3632,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2614,8 +3644,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2641,7 +3671,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.False
@@ -2666,6 +3696,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2677,8 +3708,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2702,7 +3733,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.Float(10.5)).ToValue()
 	if value.Truthy(l0) {
@@ -2727,6 +3758,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2738,8 +3770,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2767,7 +3799,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Truthy(l0) {
@@ -2795,6 +3827,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2806,8 +3839,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2833,7 +3866,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.6)
 	if value.Bool((l0).LessThanEqualFloat(value.Float(2))) {
@@ -2863,6 +3896,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2874,8 +3908,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2905,7 +3939,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Float(5.6)
 	if value.Bool((l0).LessThanEqualFloat(value.Float(2))) {
@@ -2939,6 +3973,7 @@ func TestGoUnlessExpression(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -2950,8 +3985,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -2975,7 +4010,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 }
@@ -2990,6 +4025,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3001,8 +4037,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3030,7 +4066,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.True
 	if !(l0) {
@@ -3052,6 +4088,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3063,8 +4100,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3088,7 +4125,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(10)).ToValue()
 }
@@ -3107,6 +4144,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3118,8 +4156,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3143,7 +4181,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 }
@@ -3165,6 +4203,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3176,8 +4215,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3201,7 +4240,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 }
@@ -3222,6 +4261,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3233,8 +4273,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3258,7 +4298,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Falsy(l0) {
@@ -3278,6 +4318,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3289,8 +4330,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3318,7 +4359,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Falsy(l0) {
@@ -3344,6 +4385,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3355,8 +4397,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3380,7 +4422,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Falsy(l0) {
@@ -3404,6 +4446,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3415,8 +4458,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3444,7 +4487,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Falsy(l0) {
@@ -3472,6 +4515,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3483,8 +4527,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3510,7 +4554,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	l1 = value.False
@@ -3536,6 +4580,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3547,8 +4592,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3576,7 +4621,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	if value.Falsy(l0) {
@@ -3726,6 +4771,7 @@ func TestGoLoopExpression(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3737,8 +4783,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3760,9 +4806,10 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -3778,6 +4825,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3789,8 +4837,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3814,10 +4862,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -3836,6 +4885,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3847,8 +4897,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3872,11 +4922,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		continue loop0
 	}
@@ -3899,6 +4950,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3910,8 +4962,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3935,11 +4987,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		continue loop0
 	}
@@ -3966,6 +5019,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -3977,8 +5031,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -3998,21 +5052,23 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				continue loop1
 			}
@@ -4046,6 +5102,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4057,8 +5114,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4078,20 +5135,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				continue loop0
 			}
@@ -4124,6 +5183,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4135,9 +5195,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bar")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bar")    // bar
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4161,20 +5221,22 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				continue loop0
@@ -4204,6 +5266,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4215,8 +5278,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4240,11 +5303,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -4265,6 +5329,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4276,8 +5341,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4301,11 +5366,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -4331,6 +5397,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4342,8 +5409,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4363,21 +5430,23 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break loop1
 			}
@@ -4407,6 +5476,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4418,8 +5488,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4439,20 +5509,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break loop0
 			}
@@ -4485,6 +5557,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4496,9 +5569,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bar")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bar")    // bar
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4522,21 +5595,23 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -4567,6 +5642,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4578,8 +5654,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4607,11 +5683,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -4642,6 +5719,7 @@ func TestGoLogicalOrOperator(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4653,8 +5731,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4680,7 +5758,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l1 = l0
@@ -4700,6 +5778,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4711,8 +5790,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4738,7 +5817,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	l1 = value.True
@@ -4757,6 +5836,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4768,8 +5848,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4797,7 +5877,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.String("foo")).ToValue()
 	t1 = l0
@@ -4817,6 +5897,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4828,8 +5909,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4855,7 +5936,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l1 = l0
@@ -4878,6 +5959,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4889,8 +5971,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4922,7 +6004,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.String("foo")).ToValue()
 	l1 = (value.SmallInt(5)).ToValue()
@@ -4958,6 +6040,7 @@ func TestGoLogicalAndOperator(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -4969,8 +6052,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -4996,7 +6079,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l1 = value.True
@@ -5015,6 +6098,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5026,8 +6110,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5053,7 +6137,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	l1 = l0
@@ -5073,6 +6157,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5084,8 +6169,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5113,7 +6198,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.String("foo")).ToValue()
 	t1 = l0
@@ -5134,6 +6219,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5145,8 +6231,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5178,7 +6264,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.String("foo")).ToValue()
 	l1 = (value.SmallInt(5)).ToValue()
@@ -5214,6 +6300,7 @@ func TestGoNilCoalescingOperator(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5225,8 +6312,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5252,7 +6339,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l1 = l0
@@ -5272,6 +6359,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5283,8 +6371,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5310,7 +6398,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.Nil
 	l1 = value.True
@@ -5329,6 +6417,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5340,8 +6429,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5367,7 +6456,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.String("foo")
 	l1 = l0
@@ -5390,6 +6479,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5401,8 +6491,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5434,7 +6524,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.String("foo")).ToValue()
 	l1 = (value.SmallInt(5)).ToValue()
@@ -5470,6 +6560,7 @@ func TestGoNumericFor(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5481,8 +6572,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5508,9 +6599,10 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -5524,6 +6616,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5535,8 +6628,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5558,9 +6651,10 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 	}
 }
 `,
@@ -5576,6 +6670,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5587,8 +6682,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5612,10 +6707,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -5632,6 +6728,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5643,8 +6740,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5672,10 +6769,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -5693,6 +6791,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5704,8 +6803,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5729,11 +6828,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			break loop0
@@ -5754,6 +6854,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5765,8 +6866,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5794,12 +6895,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			t1 = value.Nil
@@ -5822,6 +6924,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5833,8 +6936,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5858,11 +6961,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
 			break loop0
@@ -5883,6 +6987,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5894,8 +6999,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5919,16 +7024,23 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-	loop1:
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				continue loop1
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						goto cnt1
+					}
+				cnt1:
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -5946,6 +7058,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -5957,8 +7070,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -5982,16 +7095,23 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
-loop0:
 	for {
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				continue loop0
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						goto cnt0
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		cnt0:
 		}
 	}
 }
@@ -6009,6 +7129,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6020,8 +7141,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6045,16 +7166,23 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-	loop1:
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				break loop1
+		{
+			l0 := l0
+
+		loop1:
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						break loop1
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -6072,6 +7200,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6083,8 +7212,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6108,16 +7237,23 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
-		for {
-			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-				break loop0
+		{
+			l0 := l0
+
+			for {
+				{
+
+					if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+						break loop0
+					}
+				}
+				l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 			}
-			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
 	}
 }
@@ -6135,6 +7271,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6146,8 +7283,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6171,14 +7308,18 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
-		if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
-			break loop0
+		{
+			l0 := l0
+
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+			if value.Bool(value.GreaterThanInts(l0, (value.SmallInt(10)).ToValue())) {
+				break loop0
+			}
 		}
 	}
 }
@@ -6194,6 +7335,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6205,8 +7347,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6230,11 +7372,15 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		{
+			l0 := l0
+
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
+		}
 	}
 }
 `,
@@ -6249,6 +7395,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6260,8 +7407,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6285,14 +7432,18 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l0 := l0
+
+			if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		}
-		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 	}
 }
 `,
@@ -6307,6 +7458,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6318,8 +7470,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6347,16 +7499,20 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = value.Nil
 	l1 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+			t1 = l1
 		}
-		l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
-		t1 = l1
 	}
 	l0 = t1
 }
@@ -6373,6 +7529,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6384,8 +7541,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6411,15 +7568,19 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	l1 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l1 := l1
+
+			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, l1)
 		}
-		l0 = value.AddInts(l0, l1)
 		l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
 	}
 }
@@ -6436,6 +7597,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6447,8 +7609,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6478,17 +7640,21 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	l2 = (value.SmallInt(0)).ToValue()
 	for {
-		if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
-			break
+		{
+			l2 := l2
+
+			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
+				break
+			}
+			l0 = value.AddInts(l0, l2)
+			t1 = l0
 		}
-		l0 = value.AddInts(l0, l2)
-		t1 = l0
 		l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
 	}
 	l1 = t1
@@ -6515,6 +7681,7 @@ func TestGoModifierWhile(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6526,8 +7693,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6551,10 +7718,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
@@ -6574,6 +7742,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6585,8 +7754,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6610,10 +7779,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
@@ -6634,6 +7804,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6645,8 +7816,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6670,11 +7841,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -6698,6 +7870,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6709,8 +7882,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6738,12 +7911,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -6769,6 +7943,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6780,8 +7955,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6805,11 +7980,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -6834,6 +8010,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6845,8 +8022,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6874,11 +8051,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -6908,6 +8086,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6919,8 +8098,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -6940,24 +8119,26 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
-	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
-				continue loop1
+				goto cnt1
 			}
 			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		cnt1:
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -6985,6 +8166,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -6996,8 +8178,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7017,28 +8199,30 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
-loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
-				continue loop0
+				goto cnt0
 			}
 			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
 		}
+	cnt0:
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -7062,6 +8246,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7073,8 +8258,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7094,20 +8279,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop1
 			}
@@ -7139,6 +8326,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7150,8 +8338,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7171,20 +8359,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop0
 			}
@@ -7216,6 +8406,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7227,9 +8418,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bar")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bar")    // bar
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7253,24 +8444,26 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -7300,6 +8493,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7311,10 +8505,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7342,9 +8536,10 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -7371,6 +8566,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7382,10 +8578,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7403,8 +8599,10 @@ func main() { // loc: <main>
 
 	var callFrame *vm.CallFrame
 	_ = callFrame
-	var t1 []value.Value
+	var t1 value.Bool
 	_ = t1
+	var t2 []value.Value
+	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -7413,19 +8611,24 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
+	t1 = value.False
 	for {
-		t1 = value.ResizeNativeArgs(t1, 3)
-		t1[0] = (value.KernelModule).ToValue()
-		t1[1] = (value.String("foo")).ToValue()
+
+		if t1 {
+			break
+		}
+		t1 = value.True
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		break
 	}
 }
 `,
@@ -7455,6 +8658,7 @@ func TestGoWhile(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7466,8 +8670,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7491,10 +8695,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -7514,6 +8719,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7525,8 +8731,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7554,11 +8760,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -7581,6 +8788,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7592,8 +8800,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7617,11 +8825,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -7645,6 +8854,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7656,8 +8866,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7685,12 +8895,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -7716,6 +8927,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7727,8 +8939,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7752,11 +8964,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -7780,6 +8993,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7791,8 +9005,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7816,11 +9030,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -7844,6 +9059,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7855,8 +9071,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7884,11 +9100,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -7919,6 +9136,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -7930,8 +9148,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -7951,16 +9169,17 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -7968,6 +9187,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -7996,6 +9216,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8007,8 +9228,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8028,23 +9249,25 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -8073,6 +9296,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8084,9 +9308,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bump")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bump")   // bump
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8110,20 +9334,21 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8131,6 +9356,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -8163,6 +9389,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8174,8 +9401,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8195,16 +9422,17 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8212,6 +9440,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -8241,6 +9470,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8252,8 +9482,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8273,23 +9503,25 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if !(value.Bool(value.LessThanInts(l1, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -8318,6 +9550,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8329,9 +9562,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bump")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bump")   // bump
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8355,20 +9588,21 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8376,6 +9610,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if !(value.Bool(value.LessThanInts(l2, (value.SmallInt(5)).ToValue()))) {
 				break
 			}
@@ -8401,6 +9636,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8412,8 +9648,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8437,10 +9673,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if !(value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue()))) {
 			break
 		}
@@ -8458,6 +9695,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8469,10 +9707,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8500,9 +9738,10 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -8529,6 +9768,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8540,8 +9780,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8563,7 +9803,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 }
 `,
@@ -8592,6 +9832,7 @@ func TestGoModifierUntil(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8603,8 +9844,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8628,10 +9869,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
@@ -8649,6 +9891,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8660,8 +9903,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8689,11 +9932,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		t1 = l0
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
@@ -8715,6 +9959,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8726,8 +9971,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8751,10 +9996,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
@@ -8775,6 +10021,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8786,8 +10033,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8811,11 +10058,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -8839,6 +10087,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8850,8 +10099,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8879,12 +10128,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -8910,6 +10160,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8921,8 +10172,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -8946,11 +10197,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -8974,6 +10226,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -8985,8 +10238,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9014,11 +10267,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -9048,6 +10302,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9059,8 +10314,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9080,24 +10335,26 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
-	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
-				continue loop1
+				goto cnt1
 			}
 			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
+		cnt1:
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -9125,6 +10382,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9136,8 +10394,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9157,28 +10415,30 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
-loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
-				continue loop0
+				goto cnt0
 			}
 			l1 = value.AddInts(l1, (value.SmallInt(1)).ToValue())
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
 		}
+	cnt0:
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -9202,6 +10462,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9213,9 +10474,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bar")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bar")    // bar
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9239,27 +10500,28 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
-loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
-				continue loop0
+				goto cnt0
 			}
 			l2 = value.AddInts(l2, (value.SmallInt(1)).ToValue())
 			t2 = l2
@@ -9268,6 +10530,7 @@ loop0:
 			}
 		}
 		t1 = t2
+	cnt0:
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -9292,6 +10555,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9303,8 +10567,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9324,20 +10588,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop1
 			}
@@ -9369,6 +10635,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9380,8 +10647,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9401,20 +10668,22 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l1, l0), (value.SmallInt(8)).ToValue())) {
 				break loop0
 			}
@@ -9446,6 +10715,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9457,9 +10727,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bar")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bar")    // bar
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9483,24 +10753,26 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanInts(value.AddInts(l2, l0), (value.SmallInt(8)).ToValue())) {
 				t1 = (sym2).ToValue()
 				break loop0
@@ -9530,6 +10802,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9541,10 +10814,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9572,9 +10845,10 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -9601,6 +10875,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9612,10 +10887,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9633,8 +10908,10 @@ func main() { // loc: <main>
 
 	var callFrame *vm.CallFrame
 	_ = callFrame
-	var t1 []value.Value
+	var t1 value.Bool
 	_ = t1
+	var t2 []value.Value
+	_ = t2
 	var err value.Value
 	_ = err
 	var self value.Value
@@ -9643,19 +10920,24 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
+	t1 = value.False
 	for {
-		t1 = value.ResizeNativeArgs(t1, 3)
-		t1[0] = (value.KernelModule).ToValue()
-		t1[1] = (value.String("foo")).ToValue()
+
+		if t1 {
+			break
+		}
+		t1 = value.True
+		t2 = value.ResizeNativeArgs(t2, 3)
+		t2[0] = (value.KernelModule).ToValue()
+		t2[1] = (value.String("foo")).ToValue()
 		callFrame.SetNativeLineNumber(3)
-		_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: println@1
+		_, err = fn_method0(thread, t2) // receiver: Std::Kernel, name: println@1
 		if err.IsNotUndefined() {
 			thread.CaptureStackTrace()
 			thread.Panic(err)
 		}
-		break
 	}
 }
 `,
@@ -9685,6 +10967,7 @@ func TestGoUntil(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9696,8 +10979,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9721,10 +11004,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -9745,6 +11029,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9756,8 +11041,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9781,11 +11066,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -9809,6 +11095,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9820,8 +11107,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9849,12 +11136,13 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.Nil
@@ -9880,6 +11168,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9891,8 +11180,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9916,11 +11205,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -9944,6 +11234,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -9955,8 +11246,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -9980,11 +11271,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			break loop0
@@ -10008,6 +11300,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10019,8 +11312,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10048,11 +11341,12 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		if value.Bool(value.LessThanInts(l0, (value.SmallInt(5)).ToValue())) {
 			t1 = value.True
@@ -10082,6 +11376,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10093,8 +11388,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10114,16 +11409,17 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -10131,6 +11427,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -10159,6 +11456,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10170,8 +11468,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10191,23 +11489,25 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -10236,6 +11536,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10247,8 +11548,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10268,16 +11569,17 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -10285,6 +11587,7 @@ func main() { // loc: <main>
 		l1 = (value.SmallInt(0)).ToValue()
 	loop1:
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -10313,6 +11616,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10324,8 +11628,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10345,23 +11649,25 @@ func main() { // loc: <main>
 	_ = callFrame
 	var l0 value.Value // var j: Std::Int
 	_ = l0
-	var l1 value.Value // var i: Std::Int
-	_ = l1
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 loop0:
 	for {
+		var l1 value.Value // var i: Std::Int
+		_ = l1
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
 		l0 = value.AddInts(l0, (value.SmallInt(1)).ToValue())
 		l1 = (value.SmallInt(0)).ToValue()
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l1, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -10390,6 +11696,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10401,9 +11708,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("bump")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("bump")   // bump
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10427,20 +11734,21 @@ func main() { // loc: <main>
 	_ = l1
 	var t1 value.Value
 	_ = t1
-	var l2 value.Value // var i: Std::Int
-	_ = l2
 	var t2 value.Value
 	_ = t2
 	var self value.Value
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	t1 = value.Nil
 loop0:
 	for {
+		var l2 value.Value // var i: Std::Int
+		_ = l2
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -10448,6 +11756,7 @@ loop0:
 		l2 = (value.SmallInt(0)).ToValue()
 		t2 = value.Nil
 		for {
+
 			if value.Bool(value.GreaterThanEqualInts(l2, (value.SmallInt(5)).ToValue())) {
 				break
 			}
@@ -10473,6 +11782,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10484,8 +11794,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10509,10 +11819,11 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(0)).ToValue()
 	for {
+
 		if value.Bool(value.GreaterThanEqualInts(l0, (value.SmallInt(5)).ToValue())) {
 			break
 		}
@@ -10530,6 +11841,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10541,10 +11853,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10572,9 +11884,10 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	for {
+
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
 		t1[1] = (value.String("foo")).ToValue()
@@ -10601,6 +11914,7 @@ func main() { // loc: <main>
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10612,8 +11926,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10635,13 +11949,79 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 }
 `,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewWarning(L(P(11, 2, 11), P(14, 2, 14)), "this loop will never execute since type `true` is truthy"),
 				diagnostic.NewWarning(L(P(21, 3, 6), P(35, 3, 20)), "unreachable code"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			goCompilerTest(tc, t)
+		})
+	}
+}
+
+func TestGoThrow(t *testing.T) {
+	tests := goTestTable{
+		"with a value": {
+			input: `throw unchecked :foo`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("foo")    // foo
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	thread.CaptureStackTrace()
+	thread.Panic((sym2).ToValue())
+}
+`,
+		},
+		"without a value": {
+			input: `throw`,
+			err: diagnostic.DiagnosticList{
+				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
 			},
 		},
 	}
@@ -10669,6 +12049,7 @@ func TestGoCatch(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10680,9 +12061,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("foo")    // foo
 var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
@@ -10717,7 +12098,7 @@ func main() { // loc: <main>
 	_ = self
 
 	self = value.Ref(value.GlobalObject)
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	thread.CaptureStackTrace()
 	err = (sym2).ToValue()
@@ -10764,6 +12145,7 @@ lbl3:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10775,11 +12157,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("foo")
-var sym3 = value.ToSymbol("puts@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::puts@1
+var sym0 = value.ToSymbol("main")   // main
+var sym1 = value.ToSymbol("<main>") // <main>
+var sym2 = value.ToSymbol("foo")    // foo
+var sym3 = value.ToSymbol("puts@1") // puts@1
+var fn_method0 vm.NativeFunction    // Std::Kernel::puts@1
 var cc_main_1 = &vm.CallCache{}
 
 func main() { // loc: <main>
@@ -10814,7 +12196,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	thread.CaptureStackTrace()
 	err = (sym2).ToValue()
@@ -10874,6 +12256,7 @@ lbl3:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10885,10 +12268,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -10918,7 +12301,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = (value.KernelModule).ToValue()
@@ -10969,6 +12352,7 @@ lbl3:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -10980,10 +12364,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11015,7 +12399,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = (value.SmallInt(5)).ToValue()
 	t1 = value.ResizeNativeArgs(t1, 3)
@@ -11093,6 +12477,7 @@ lbl3:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11104,10 +12489,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11139,11 +12524,12 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}
@@ -11244,6 +12630,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11255,10 +12642,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11290,11 +12677,12 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}
@@ -11385,6 +12773,7 @@ lbl6:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11396,10 +12785,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::println@1
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("println@1") // println@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::println@1
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11431,11 +12820,12 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	l0 = value.True
 loop0:
 	for {
+
 		if !(l0) {
 			break
 		}
@@ -11535,6 +12925,7 @@ loop0:
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11546,21 +12937,22 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")
+var sym4 = value.ToSymbol("main") // main
 var cc_main_1 = &vm.CallCache{}
 
-var sym0 = value.ToSymbol("Std::Kernel::foo")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("println@1")
-var fn_method1 vm.NativeFunction // Std::Kernel::println@1
-var sym3 = value.ToSymbol("foo")
-
+var sym0 = value.ToSymbol("Std::Kernel::foo") // Std::Kernel::foo
+var sym1 = value.ToSymbol("<main>")           // <main>
+var sym2 = value.ToSymbol("println@1")        // println@1
+var fn_method1 vm.NativeFunction              // Std::Kernel::println@1
+var sym3 = value.ToSymbol("foo")              // foo
 func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Std::Kernel::foo, loc: <main>:2:5
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var t1 []value.Value
 	_ = t1
 
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 2)
+	defer thread.PopNativeCallFrame()
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = self
 	t1[1] = (value.String("foo")).ToValue()
@@ -11608,7 +13000,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	fn_method1 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym4, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym4, 1)
 	defer thread.PopNativeCallFrame()
 	_, err = fn_method0(thread, (value.KernelModule).ToValue()) // receiver: Std::Kernel, name: foo
 	if err.IsNotUndefined() {
@@ -11675,7 +13067,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = (value.KernelModule).SingletonClass() // Std::Kernel
-	vm.Def(&class.MethodContainer, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "foo", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})
@@ -11693,6 +13085,183 @@ func methodDefinitions() {
 
 func TestGoDefer(t *testing.T) {
 	tests := goTestTable{
+		"defer in closure": {
+			input: `
+				fn := ->
+					puts "1. open file"
+					defer puts "2. close file"
+
+					puts "3. open TCP socket"
+					defer puts "4. close TCP socket"
+
+					throw "unexpected error"
+				end
+`,
+			want: `package main
+
+import (
+	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
+)
+
+var _ = symbol.C_Value
+var _ = vm.New
+var _ = value.Truthy
+
+func init() { elk.InitNative() }
+
+var sym0 = value.ToSymbol("main")      // main
+var sym1 = value.ToSymbol("<main>")    // <main>
+var sym2 = value.ToSymbol("<closure>") // <closure>
+var sym3 = value.ToSymbol("puts@1")    // puts@1
+var fn_method0 vm.NativeFunction       // Std::Kernel::puts@1
+var sym4 = value.ToSymbol("<defer>")   // <defer>
+
+func main() { // loc: <main>
+	thread := vm.New()
+	_ = thread
+
+	defer func() {
+		switch r := recover().(type) {
+		case value.Value:
+			thread.Exit(r)
+		case nil:
+		default:
+			panic(r)
+		}
+	}()
+
+	var callFrame *vm.CallFrame
+	_ = callFrame
+	var l0 vm.Closure // var fn: %||: never ! "unexpected error"
+	_ = l0
+	var t1 *vm.NativeClosure
+	_ = t1
+	var self value.Value
+	_ = self
+
+	self = value.Ref(value.GlobalObject)
+	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym3))
+
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
+	defer thread.PopNativeCallFrame()
+	t1 = vm.NewNativeClosure(
+		func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) { // name: fn_cl0, sig: %||: never ! "unexpected error", loc: <main>:2:11
+			var deferFns []func(*vm.Thread) value.Value
+			_ = deferFns
+			var err value.Value
+			_ = err
+			var callFrame *vm.CallFrame
+			_ = callFrame
+			var t1 []value.Value
+			_ = t1
+			var t2 func(*vm.Thread) value.Value
+			_ = t2
+			var t3 value.Value
+			_ = t3
+			var t4 value.Value
+			_ = t4
+
+			callFrame = thread.AddNativeCallFrame(sym1, sym2, 2)
+			defer thread.PopNativeCallFrame()
+			t1 = value.ResizeNativeArgs(t1, 3)
+			t1[0] = (value.KernelModule).ToValue()
+			t1[1] = (value.String("1. open file")).ToValue()
+			callFrame.SetNativeLineNumber(3)
+			_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				goto lbl1
+			}
+			t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:4:6
+				var callFrame *vm.CallFrame
+				_ = callFrame
+				var t1 []value.Value
+				_ = t1
+				var err value.Value
+				_ = err
+
+				callFrame = thread.AddNativeCallFrame(sym1, sym4, 4)
+				defer thread.PopNativeCallFrame()
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = (value.String("2. close file")).ToValue()
+				_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return err
+				}
+				return value.Undefined
+			}
+			deferFns = append(deferFns, t2)
+			t1 = value.ResizeNativeArgs(t1, 3)
+			t1[0] = (value.KernelModule).ToValue()
+			t1[1] = (value.String("3. open TCP socket")).ToValue()
+			callFrame.SetNativeLineNumber(6)
+			_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+			if err.IsNotUndefined() {
+				thread.CaptureStackTrace()
+				goto lbl1
+			}
+			t2 = func(thread *vm.Thread) value.Value { // defer, loc: <main>:7:6
+				var callFrame *vm.CallFrame
+				_ = callFrame
+				var t1 []value.Value
+				_ = t1
+				var err value.Value
+				_ = err
+
+				callFrame = thread.AddNativeCallFrame(sym1, sym4, 7)
+				defer thread.PopNativeCallFrame()
+				t1 = value.ResizeNativeArgs(t1, 3)
+				t1[0] = (value.KernelModule).ToValue()
+				t1[1] = (value.String("4. close TCP socket")).ToValue()
+				_, err = fn_method0(thread, t1) // receiver: Std::Kernel, name: puts@1
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return err
+				}
+				return value.Undefined
+			}
+			deferFns = append(deferFns, t2)
+			thread.CaptureStackTrace()
+			err = (value.String("unexpected error")).ToValue()
+			goto lbl1
+			t3 = value.Nil
+			for i := len(deferFns) - 1; i >= 0; i-- {
+				fn := deferFns[i]
+				err = fn(thread)
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+			}
+			goto lbl3
+		lbl1:
+			t4 = err
+			for i := len(deferFns) - 1; i >= 0; i-- {
+				fn := deferFns[i]
+				err = fn(thread)
+				if err.IsNotUndefined() {
+					thread.CaptureStackTrace()
+					return value.Undefined, err
+				}
+			}
+			return value.Undefined, t4
+		lbl3:
+			return t3, value.Undefined
+		},
+		0,
+		position.NewLocation("<main>", position.NewSpan(position.New(11, 2, 11), position.New(11, 2, 11))),
+	)
+	l0 = t1
+}
+`,
+		},
 		"multiple defer": {
 			input: `
 				puts "1. open file"
@@ -11705,6 +13274,7 @@ func TestGoDefer(t *testing.T) {
 
 import (
 	"github.com/elk-language/elk"
+	_ "github.com/elk-language/elk/ini"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
@@ -11716,11 +13286,11 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")
-var sym1 = value.ToSymbol("<main>")
-var sym2 = value.ToSymbol("puts@1")
-var fn_method0 vm.NativeFunction // Std::Kernel::puts@1
-var sym3 = value.ToSymbol("<defer>")
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("puts@1")  // puts@1
+var fn_method0 vm.NativeFunction     // Std::Kernel::puts@1
+var sym3 = value.ToSymbol("<defer>") // <defer>
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -11754,7 +13324,7 @@ func main() { // loc: <main>
 	self = value.Ref(value.GlobalObject)
 	fn_method0 = vm.MethodToFunc(((value.KernelModule).SingletonClass()).LookupMethod(sym2))
 
-	callFrame = thread.AddNativeCallFrame(sym0, sym1, 1)
+	callFrame = thread.AddNativeCallFrame(sym1, sym0, 1)
 	defer thread.PopNativeCallFrame()
 	t1 = value.ResizeNativeArgs(t1, 3)
 	t1[0] = (value.KernelModule).ToValue()
@@ -11773,7 +13343,7 @@ func main() { // loc: <main>
 		var err value.Value
 		_ = err
 
-		callFrame = thread.AddNativeCallFrame(sym3, sym1, 3)
+		callFrame = thread.AddNativeCallFrame(sym1, sym3, 3)
 		defer thread.PopNativeCallFrame()
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
@@ -11803,7 +13373,7 @@ func main() { // loc: <main>
 		var err value.Value
 		_ = err
 
-		callFrame = thread.AddNativeCallFrame(sym3, sym1, 6)
+		callFrame = thread.AddNativeCallFrame(sym1, sym3, 6)
 		defer thread.PopNativeCallFrame()
 		t1 = value.ResizeNativeArgs(t1, 3)
 		t1[0] = (value.KernelModule).ToValue()
@@ -11848,38 +13418,3 @@ lbl3:
 		})
 	}
 }
-
-// func TestBytecodeThrow(t *testing.T) {
-// 	tests := bytecodeTestTable{
-// 		"with a value": {
-// 			input: `throw unchecked :foo`,
-// 			want: vm.NewBytecodeFunctionNoParams(
-// 				mainSymbol,
-// 				[]byte{
-// 					byte(bytecode.LOAD_VALUE_0),
-// 					byte(bytecode.THROW),
-// 					byte(bytecode.RETURN),
-// 				},
-// 				L(P(0, 1, 1), P(19, 1, 20)),
-// 				bytecode.LineInfoList{
-// 					bytecode.NewLineInfo(1, 3),
-// 				},
-// 				[]value.Value{
-// 					value.ToSymbol("foo").ToValue(),
-// 				},
-// 			),
-// 		},
-// 		"without a value": {
-// 			input: `throw`,
-// 			err: diagnostic.DiagnosticList{
-// 				diagnostic.NewFailure(L(P(0, 1, 1), P(4, 1, 5)), "thrown value of type `Std::Error` must be caught"),
-// 			},
-// 		},
-// 	}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			bytecodeCompilerTest(tc, t)
-// 		})
-// 	}
-// }

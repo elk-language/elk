@@ -42,6 +42,17 @@ func (n *RestPatternNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *RestPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	ident, err := n.Identifier.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewRestPatternNode(n.loc, ident.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *RestPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*RestPatternNode)
 	if !ok {
@@ -50,6 +61,15 @@ func (n *RestPatternNode) Equal(other value.Value) bool {
 
 	return n.Identifier.Equal(value.Ref(o.Identifier)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *RestPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*RestPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Identifier.LaxEqual(value.Ref(o.Identifier))
 }
 
 func (n *RestPatternNode) String() string {

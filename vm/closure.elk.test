@@ -1,0 +1,178 @@
+describe "Closure" ->
+	should "use a variable from outer context" ->
+		x := "outside"
+		fn := -> println(x)
+
+		expected := "outside\n"
+		assert_stdout(expected) ->
+			fn.()
+		end
+	end
+
+	should "use an upvalue through 2 frames" ->
+		func1 := ->
+			x := "outside"
+			func2 := ->
+				func3 := -> println(x)
+				func3.()
+			end
+			func2.()
+		end
+
+		expected := "outside\n"
+		assert_stdout(expected) ->
+			func1.()
+		end
+	end
+
+	should "close an upvalue" ->
+		fn := || ->
+			x := "outside"
+			Pair(
+				-> println(x),
+				|v: String| -> x = v,
+			)
+		end
+		var Pair(key: show, value: set) = fn()
+
+		expected := "outside\nnew value\n"
+		assert_stdout(expected) ->
+			show()
+			set("new value")
+			show()
+		end
+	end
+
+	should "handle upvalues in for in loops" ->
+		var closures: List[||: void] = []
+		for i in 1...2
+			closures << -> println i
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in modifier for in loops" ->
+		var closures: List[||: void] = []
+		(closures << -> println i) for i in 1...2
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in fornum loops" ->
+		var closures: List[||: void] = []
+		fornum i := 1; i <= 2; i++
+			closures << -> println i
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in body of a fornum loop" ->
+		var closures: List[||: void] = []
+		fornum i := 1; i <= 2; i++
+			j := i
+			closures << -> println j
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in a while loop" ->
+		var closures: List[||: void] = []
+		i := 1
+		while i <= 2
+			j := i
+			closures << -> println j
+			i++
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in a do while loop" ->
+		var closures: List[||: void] = []
+		i := 1
+		do
+			j := i
+			closures << -> println j
+			i++
+		end while i <= 2
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in a loop" ->
+		var closures: List[||: void] = []
+		i := 1
+		loop
+			break if i > 2
+			j := i
+			closures << -> println j
+			i++
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle upvalues in an until loop" ->
+		var closures: List[||: void] = []
+		i := 1
+		until i > 2
+			j := i
+			closures << -> println j
+			i++
+		end
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+	should "handle an upvalue in a do until loop" ->
+		var closures: List[||: void] = []
+		i := 1
+		do
+			j := i
+			closures << -> println j
+			i++
+		end until i > 2
+
+		expected := "1\n2\n"
+		assert_stdout(expected) ->
+			closures[0].()
+			closures[1].()
+		end
+	end
+
+end

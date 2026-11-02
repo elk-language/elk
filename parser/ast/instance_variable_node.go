@@ -49,6 +49,12 @@ func (n *PublicInstanceVariableNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *PublicInstanceVariableNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewPublicInstanceVariableNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *PublicInstanceVariableNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PublicInstanceVariableNode)
 	if !ok {
@@ -57,6 +63,15 @@ func (n *PublicInstanceVariableNode) Equal(other value.Value) bool {
 
 	return n.Value != o.Value ||
 		!n.loc.Equal(o.loc)
+}
+
+func (n *PublicInstanceVariableNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PublicInstanceVariableNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value != o.Value
 }
 
 func (n *PublicInstanceVariableNode) String() string {

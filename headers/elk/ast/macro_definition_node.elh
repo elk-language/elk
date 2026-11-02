@@ -7,9 +7,9 @@ module Std::Elk::AST
 
     init(
       name: IdentifierNode,
-      parameters: ArrayTuple[ParameterNode] = loop; end,
+      parameters: Tuple[ParameterNode] = loop; end,
       return_type: TypeNode? = nil,
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       is_sealed: bool = false,
       doc_comment: String = "",
       location: FS::Location = loop; end,
@@ -26,5 +26,7 @@ module Std::Elk::AST
       Whether the method is sealed eg. `sealed def foo; end`
     ]##
     pure def is_sealed: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

@@ -12,6 +12,11 @@ import (
 // Parent class for all exceptions.
 var ErrorClass *Class
 
+// ::Std::NotImplementedErrorClass
+//
+// Thrown when the functionality is not implemented.
+var NotImplementedErrorClass *Class
+
 // ::Std::ExecutionAbortedError
 //
 // Thrown when the execution was aborted/interrupted.
@@ -669,6 +674,10 @@ func initError() {
 	UnexpectedNilErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("UnexpectedNilError", Ref(UnexpectedNilErrorClass))
 	RegisterNativeClass("Std::UnexpectedNilError", "value.UnexpectedNilErrorClass")
+
+	NotImplementedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
+	StdModule.AddConstantString("NotImplementedError", Ref(NotImplementedErrorClass))
+	RegisterNativeClass("Std::NotImplementedError", "value.NotImplementedErrorClass")
 
 	ExecutionAbortedErrorClass = NewClassWithOptions(ClassWithSuperclass(ErrorClass))
 	StdModule.AddConstantString("ExecutionAbortedError", Ref(ExecutionAbortedErrorClass))

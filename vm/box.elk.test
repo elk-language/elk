@@ -1,9 +1,6 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "Box", ->
-	context "init", ->
-		should "create a new box", ->
+describe "Box" ->
+	context "init" ->
+		should "create a new box" ->
 			b := Box(3)
 			assert! b <<: Box
 			assert! b.get == 3
@@ -13,8 +10,8 @@ describe "Box", ->
 		end
 	end
 
-	context "get", ->
-		should "return the stored value", ->
+	context "get" ->
+		should "return the stored value" ->
 			b := Box(3)
 			assert! b.get == 3
 
@@ -23,8 +20,8 @@ describe "Box", ->
 		end
 	end
 
-	context "to_box", ->
-		should "return self", ->
+	context "to_box" ->
+		should "return self" ->
 			b := Box(3)
 			v := b.to_box
 			assert! v <<: Box
@@ -33,8 +30,8 @@ describe "Box", ->
 		end
 	end
 
-	context "to_immutable_box", ->
-		should "convert to an immutable box", ->
+	context "to_immutable_box" ->
+		should "convert to an immutable box" ->
 			b := Box(3)
 			v := b.to_immutable_box
 			assert! v <<: ImmutableBox
@@ -42,8 +39,8 @@ describe "Box", ->
 		end
 	end
 
-	context "set", ->
-		should "overwrite the stored value", ->
+	context "set" ->
+		should "overwrite the stored value" ->
 			b := Box(3)
 			assert! b.get == 3
 
@@ -52,16 +49,16 @@ describe "Box", ->
 		end
 	end
 
-	context "address", ->
-		should "return the raw address as UInt", ->
+	context "address" ->
+		should "return the raw address as UInt" ->
 			b := Box(3)
 			addr := b.address
 			assert! addr <<: UInt
 		end
 	end
 
-	context "to_immutable_box", ->
-		should "return an immutable box", ->
+	context "to_immutable_box" ->
+		should "return an immutable box" ->
 			b := Box(3)
 			c := b.to_immutable_box
 			assert! c <<: ImmutableBox

@@ -16,5 +16,7 @@ module Std::Elk::AST
     pure def end: ExpressionNode; end
     pure def op: Elk::Token; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

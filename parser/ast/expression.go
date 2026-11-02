@@ -6,6 +6,7 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
+func (InferredExpressionNode) expressionNode()             {}
 func (*InvalidNode) expressionNode()                       {}
 func (*UnhygienicNode) expressionNode()                    {}
 func (*TypeExpressionNode) expressionNode()                {}

@@ -27,6 +27,11 @@ func NewModulePlaceholder(name string) *ModulePlaceholder {
 	}
 }
 
+func IsModulePlaceholder(namespace Namespace) bool {
+	_, ok := namespace.(*ModulePlaceholder)
+	return ok
+}
+
 func (m *ModulePlaceholder) Copy() *ModulePlaceholder {
 	return &ModulePlaceholder{
 		Module: m.Module,
@@ -60,6 +65,10 @@ func NewNamespacePlaceholder(name string) *NamespacePlaceholder {
 		Locations: concurrent.NewSlice[*position.Location](),
 		Namespace: NewModulePlaceholder(name),
 	}
+}
+
+func (p *NamespacePlaceholder) IsResolved() bool {
+	return !IsModulePlaceholder(p.Namespace)
 }
 
 func (p *NamespacePlaceholder) ToNonLiteral(env *GlobalEnvironment) Type {

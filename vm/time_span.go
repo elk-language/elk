@@ -7,7 +7,7 @@ import (
 // Std::TimeSpan
 func initTimeSpan() {
 	// Class methods
-	c := &value.TimeSpanClass.SingletonClass().MethodContainer
+	c := value.TimeSpanClass.SingletonClass()
 	Def(
 		c,
 		"parse",
@@ -19,7 +19,7 @@ func initTimeSpan() {
 	)
 
 	// Instance methods
-	c = &value.TimeSpanClass.MethodContainer
+	c = value.TimeSpanClass
 	Def(
 		c,
 		"#init",

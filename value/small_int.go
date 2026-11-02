@@ -9,6 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Elk's SmallInt value
@@ -1558,7 +1559,7 @@ func (*SmallIntIterator) InstanceVariables() *InstanceVariables {
 
 func (l *SmallIntIterator) Next() (Value, Value) {
 	if l.Counter >= l.Int {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := l.Counter

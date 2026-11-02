@@ -50,6 +50,22 @@ func (n *UntilExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *UntilExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cond, err := n.Condition.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUntilExpressionNode(n.loc, cond.(ExpressionNode), then)
+
+	return fn(newNode, parent)
+}
+
 func (n *UntilExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UntilExpressionNode)
 	if !ok {
@@ -64,6 +80,26 @@ func (n *UntilExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ThenBody {
 		if !stmt.Equal(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UntilExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UntilExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		!n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
 			return false
 		}
 	}

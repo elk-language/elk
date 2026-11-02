@@ -86,6 +86,40 @@ func (n *ClosureLiteralNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *ClosureLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	params, err := traverseMapSlice(n.Parameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var retType TypeNode
+	if n.ReturnType != nil {
+		mapped, err := n.ReturnType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		retType = mapped.(TypeNode)
+	}
+
+	var throwType TypeNode
+	if n.ThrowType != nil {
+		mapped, err := n.ThrowType.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		throwType = mapped.(TypeNode)
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewClosureLiteralNode(n.loc, params, retType, throwType, body, n.Lambda, n.Pure)
+
+	return fn(newNode, parent)
+}
+
 func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ClosureLiteralNode)
 	if !ok {
@@ -124,6 +158,46 @@ func (n *ClosureLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc) && n.Lambda == o.Lambda && n.Pure == o.Pure
+}
+
+func (n *ClosureLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ClosureLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Parameters) != len(o.Parameters) ||
+		len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	if n.ReturnType == o.ReturnType {
+	} else if n.ReturnType == nil || o.ReturnType == nil {
+		return false
+	} else if !n.ReturnType.LaxEqual(value.Ref(o.ReturnType)) {
+		return false
+	}
+
+	if n.ThrowType == o.ThrowType {
+	} else if n.ThrowType == nil || o.ThrowType == nil {
+		return false
+	} else if !n.ThrowType.LaxEqual(value.Ref(o.ThrowType)) {
+		return false
+	}
+
+	for i, param := range n.Parameters {
+		if !param.LaxEqual(value.Ref(o.Parameters[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return n.Lambda == o.Lambda && n.Pure == o.Pure
 }
 
 func (n *ClosureLiteralNode) String() string {

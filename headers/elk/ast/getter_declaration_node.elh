@@ -8,7 +8,7 @@ module Std::Elk::AST
     const PURE_FLAG: UInt8
 
     init(
-      entries: ArrayTuple[ParameterNode],
+      entries: Tuple[ParameterNode],
       flags: UInt8 = 0u8,
       doc_comment: String = "",
       location: FS::Location = loop; end,
@@ -20,5 +20,7 @@ module Std::Elk::AST
     pure def flags: UInt8; end
 
     pure def is_pure: bool; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

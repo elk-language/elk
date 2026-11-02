@@ -55,6 +55,22 @@ func (n *NewExpressionNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *NewExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNewExpressionNode(n.loc, posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 func (n *NewExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NewExpressionNode)
 	if !ok {
@@ -78,6 +94,32 @@ func (n *NewExpressionNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *NewExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NewExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}
@@ -255,6 +297,38 @@ func (n *GenericConstructorCallNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *GenericConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	class, err := n.ClassNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewGenericConstructorCallNode(
+		n.loc,
+		class.(ComplexConstantNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if the given GenericConstructorCallNode is equal to another value.
 func (n *GenericConstructorCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericConstructorCallNode)
@@ -291,6 +365,43 @@ func (n *GenericConstructorCallNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *GenericConstructorCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.LaxEqual(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // String returns a string representation of the GenericConstructorCallNode.
@@ -487,6 +598,27 @@ func (n *ConstructorCallNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *ConstructorCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	class, err := n.ClassNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewConstructorCallNode(n.loc, class.(ComplexConstantNode), posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstructorCallNode)
@@ -516,6 +648,36 @@ func (n *ConstructorCallNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ConstructorCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstructorCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.ClassNode.LaxEqual(value.Ref(o.ClassNode)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -676,6 +838,22 @@ func (n *AttributeAccessNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *AttributeAccessNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	attrName, err := n.AttributeName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewAttributeAccessNode(n.loc, recv.(ExpressionNode), attrName.(IdentifierNode))
+
+	return fn(newNode, parent)
+}
+
 func (*AttributeAccessNode) IsStatic() bool {
 	return false
 }
@@ -717,6 +895,16 @@ func (n *AttributeAccessNode) Equal(other value.Value) bool {
 	return n.Span().Equal(o.Span()) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.AttributeName.Equal(value.Ref(o.AttributeName))
+}
+
+func (n *AttributeAccessNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*AttributeAccessNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.AttributeName.LaxEqual(value.Ref(o.AttributeName))
 }
 
 func (n *AttributeAccessNode) String() string {
@@ -792,6 +980,22 @@ func (n *SubscriptExpressionNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *SubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SubscriptExpressionNode)
 	if !ok {
@@ -801,6 +1005,16 @@ func (n *SubscriptExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
+}
+
+func (n *SubscriptExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SubscriptExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Key.LaxEqual(value.Ref(o.Key))
 }
 
 func (n *SubscriptExpressionNode) String() string {
@@ -916,6 +1130,22 @@ func (n *NilSafeSubscriptExpressionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *NilSafeSubscriptExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNilSafeSubscriptExpressionNode(n.loc, recv.(ExpressionNode), key.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NilSafeSubscriptExpressionNode)
 	if !ok {
@@ -925,6 +1155,16 @@ func (n *NilSafeSubscriptExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Key.Equal(value.Ref(o.Key))
+}
+
+func (n *NilSafeSubscriptExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NilSafeSubscriptExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Key.LaxEqual(value.Ref(o.Key))
 }
 
 func (n *NilSafeSubscriptExpressionNode) String() string {
@@ -1048,6 +1288,34 @@ func (n *CallNode) traverse(parent Node, enter func(node, parent Node) TraverseO
 	return leave(n, parent)
 }
 
+func (n *CallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewCallNode(n.loc, recv.(ExpressionNode), n.NilSafe, posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
+func (n *CallNode) OpType() token.Type {
+	if n.NilSafe {
+		return token.QUESTION_DOT
+	}
+	return token.DOT
+}
+
 func (n *CallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*CallNode)
 	if !ok {
@@ -1080,6 +1348,40 @@ func (n *CallNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *CallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*CallNode)
+	if !ok {
+		return false
+	}
+
+	if n.NilSafe != o.NilSafe {
+		return false
+	}
+
+	if !n.Receiver.LaxEqual(value.Ref(o.Receiver)) {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *CallNode) String() string {
@@ -1281,6 +1583,45 @@ func (n *GenericMethodCallNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *GenericMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewGenericMethodCallNode(
+		n.loc,
+		recv.(ExpressionNode),
+		n.Op,
+		methodName.(IdentifierNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if the given GenericMethodCallNode is equal to another value.
 func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericMethodCallNode)
@@ -1315,6 +1656,45 @@ func (n *GenericMethodCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GenericMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) ||
+		!n.Receiver.LaxEqual(value.Ref(o.Receiver)) ||
+		!n.Op.LaxEqual(o.Op) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}
@@ -1543,6 +1923,39 @@ func (n *MethodCallNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *MethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	recv, err := n.Receiver.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewMethodCallNode(
+		n.loc,
+		recv.(ExpressionNode),
+		n.Op,
+		methodName.(IdentifierNode),
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *MethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*MethodCallNode)
 	if !ok {
@@ -1570,6 +1983,34 @@ func (n *MethodCallNode) Equal(other value.Value) bool {
 		n.Receiver.Equal(value.Ref(o.Receiver)) &&
 		n.Op.Equal(o.Op) &&
 		n.MethodName.Equal(value.Ref(o.MethodName))
+}
+
+func (n *MethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*MethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return n.Receiver.LaxEqual(value.Ref(o.Receiver)) &&
+		n.Op.LaxEqual(o.Op) &&
+		n.MethodName.LaxEqual(value.Ref(o.MethodName))
 }
 
 func (n *MethodCallNode) String() string {
@@ -1759,6 +2200,27 @@ func (n *ReceiverlessMethodCallNode) traverse(parent Node, enter func(node, pare
 	return leave(n, parent)
 }
 
+func (n *ReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewReceiverlessMethodCallNode(n.loc, methodName.(IdentifierNode), posArgs, namedArgs)
+
+	return fn(newNode, parent)
+}
+
 func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
 	if !ok {
@@ -1780,6 +2242,33 @@ func (n *ReceiverlessMethodCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ReceiverlessMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ReceiverlessMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) {
+		return false
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}
@@ -1963,6 +2452,38 @@ func (n *GenericReceiverlessMethodCallNode) traverse(parent Node, enter func(nod
 	return leave(n, parent)
 }
 
+func (n *GenericReceiverlessMethodCallNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	methodName, err := n.MethodName.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	typeArgs, err := traverseMapSlice(n.TypeArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	posArgs, err := traverseMapSlice(n.PositionalArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	namedArgs, err := traverseMapSlice(n.NamedArguments, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewGenericReceiverlessMethodCallNode(
+		n.loc,
+		methodName.(IdentifierNode),
+		typeArgs,
+		posArgs,
+		namedArgs,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if the given GenericReceiverlessMethodCallNode is equal to another value.
 func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericReceiverlessMethodCallNode)
@@ -1994,6 +2515,43 @@ func (n *GenericReceiverlessMethodCallNode) Equal(other value.Value) bool {
 
 	for i, arg := range n.NamedArguments {
 		if !arg.Equal(value.Ref(o.NamedArguments[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GenericReceiverlessMethodCallNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericReceiverlessMethodCallNode)
+	if !ok {
+		return false
+	}
+
+	if !n.MethodName.LaxEqual(value.Ref(o.MethodName)) {
+		return false
+	}
+
+	if len(n.TypeArguments) != len(o.TypeArguments) ||
+		len(n.NamedArguments) != len(o.NamedArguments) ||
+		len(n.PositionalArguments) != len(o.PositionalArguments) {
+		return false
+	}
+
+	for i, arg := range n.TypeArguments {
+		if !arg.LaxEqual(value.Ref(o.TypeArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.PositionalArguments {
+		if !arg.LaxEqual(value.Ref(o.PositionalArguments[i])) {
+			return false
+		}
+	}
+
+	for i, arg := range n.NamedArguments {
+		if !arg.LaxEqual(value.Ref(o.NamedArguments[i])) {
 			return false
 		}
 	}

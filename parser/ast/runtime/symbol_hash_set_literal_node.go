@@ -8,17 +8,20 @@ import (
 )
 
 func initSymbolHashSetLiteralNode() {
-	c := &value.SymbolHashSetLiteralNodeClass.MethodContainer
+	c := value.SymbolHashSetLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argElements []ast.SymbolCollectionContentNode
 			if !args[1].IsUndefined() {
-				argElementsTuple := args[1].AsReference().(value.ArrayTuple)
-				argElements = value.TransformArrayTupleIntoNativeArrayTuple(argElementsTuple, func(v value.Value) ast.SymbolCollectionContentNode {
+				argElementsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) ast.SymbolCollectionContentNode {
 					return v.AsReference().(ast.SymbolCollectionContentNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argElements = argElementsTuple.ToSlice()
 			}
 
 			var argCapacity ast.ExpressionNode
@@ -83,6 +86,17 @@ func initSymbolHashSetLiteralNode() {
 			self := args[0].MustReference().(*ast.SymbolHashSetLiteralNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.SymbolHashSetLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

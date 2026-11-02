@@ -1,9 +1,6 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
-describe "Weak", ->
-	context "init", ->
-		should "create from a box", ->
+describe "Weak" ->
+	context "init" ->
+		should "create from a box" ->
 			a := Box(3)
 			w := Weak(a)
 			assert! w <<: Weak
@@ -13,7 +10,7 @@ describe "Weak", ->
 			assert! b.must.get == 3
 		end
 
-		should "create from an immutable box", ->
+		should "create from an immutable box" ->
 			a := ImmutableBox(3)
 			w := Weak(a)
 			assert! w <<: Weak
@@ -23,7 +20,7 @@ describe "Weak", ->
 			assert! b.must.get == 3
 		end
 
-		should "create from a local box", ->
+		should "create from a local box" ->
 			a := 3
 			b := &a
 			w := Weak(b)
@@ -35,8 +32,8 @@ describe "Weak", ->
 		end
 	end
 
-	context "to_immutable_box", ->
-		should "return a box when the object is alive", ->
+	context "to_immutable_box" ->
+		should "return a box when the object is alive" ->
 			a := Box(3)
 			w := Weak(a)
 			assert! w <<: Weak
@@ -46,7 +43,7 @@ describe "Weak", ->
 			assert! b.must.get == 3
 		end
 
-		should "return nil when the object is gced", ->
+		should "return nil when the object is gced" ->
 			a := Box(3)
 			w := Weak(a)
 
@@ -57,8 +54,8 @@ describe "Weak", ->
 		end
 	end
 
-	context "to_box", ->
-		should "return a box when the object is alive", ->
+	context "to_box" ->
+		should "return a box when the object is alive" ->
 			a := Box(3)
 			w := Weak(a)
 			assert! w <<: Weak
@@ -68,7 +65,7 @@ describe "Weak", ->
 			assert! b.must.get == 3
 		end
 
-		should "return nil when the object is gced", ->
+		should "return nil when the object is gced" ->
 			a := Box(3)
 			w := Weak(a)
 

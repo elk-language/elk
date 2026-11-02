@@ -6,11 +6,13 @@ module Std::Elk::AST
     include ExpressionNode
 
     init(
-      elements: ArrayTuple[ExpressionNode] = loop; end,
+      elements: Tuple[ExpressionNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 
     pure def elements: ArrayTuple[ExpressionNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

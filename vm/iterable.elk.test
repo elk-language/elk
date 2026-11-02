@@ -1,6 +1,3 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
 class IterableBaseTestObject[V, E = never]
 	include Iterable::Base[V, E]
 
@@ -29,460 +26,460 @@ class IterableBaseTestObjectWithErr
 	end
 end
 
-describe "Iterable", ->
-	describe "Base", ->
-		context "contains", ->
-			should "return true when the element exists", ->
+describe "Iterable" ->
+	describe "Base" ->
+		context "contains" ->
+			should "return true when the element exists" ->
 				obj := IterableBaseTestObject((1...10).iter)
 				assert! obj.contains(5) == true
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.contains(5) match "Error during iteration!"
 			end
 
-			should "return false when the element does not exist", ->
+			should "return false when the element does not exist" ->
 				obj := IterableBaseTestObject((1...10).iter)
 				assert! obj.contains(15) == false
 			end
 		end
 
-		context "is_empty", ->
-			should "return true when no element", ->
+		context "is_empty" ->
+			should "return true when no element" ->
 				obj := IterableBaseTestObject([].iter)
 				assert! obj.is_empty == true
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.is_empty match "Error during iteration!"
 			end
 
-			should "return false when elements exist", ->
+			should "return false when elements exist" ->
 				obj := IterableBaseTestObject(5.iter)
 				assert! obj.is_empty == false
 			end
 		end
 
-		context "first", ->
-			should "return the first yielded element", ->
+		context "first" ->
+			should "return the first yielded element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert! obj.first == 4
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.first match "Error during iteration!"
 			end
 
-			should "throw an error when no objects where yielded", ->
+			should "throw an error when no objects where yielded" ->
 				obj := IterableBaseTestObject([].iter)
 				assert_throws! obj.first match Iterable::NotFoundError(message: "cannot get first element of `IterableBaseTestObject{}`")
 			end
 		end
 
-		context "try_first", ->
-			should "return the first yielded element", ->
+		context "try_first" ->
+			should "return the first yielded element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert! obj.try_first == 4
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.try_first match "Error during iteration!"
 			end
 
-			should "return nil when no objects where yielded", ->
+			should "return nil when no objects where yielded" ->
 				obj := IterableBaseTestObject([].iter)
 				assert! obj.try_first == nil
 			end
 		end
 
-		context "last", ->
-			should "return the last yielded element", ->
+		context "last" ->
+			should "return the last yielded element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert! obj.last == 10
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.last match "Error during iteration!"
 			end
 
-			should "throw an error when no objects where yielded", ->
+			should "throw an error when no objects where yielded" ->
 				obj := IterableBaseTestObject([].iter)
 				assert_throws! obj.last match Iterable::NotFoundError(message: "cannot get last element of `IterableBaseTestObject{}`")
 			end
 		end
 
-		context "try_last", ->
-			should "return the last yielded element", ->
+		context "try_last" ->
+			should "return the last yielded element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert! obj.try_last == 10
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.try_last match "Error during iteration!"
 			end
 
-			should "return nil when no objects where yielded", ->
+			should "return nil when no objects where yielded" ->
 				obj := IterableBaseTestObject([].iter)
 				assert! obj.try_last == nil
 			end
 		end
 
-		context "map", ->
-			should "create an ArrayList with transformed elements", ->
+		context "map" ->
+			should "create an ArrayList with transformed elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.map |v| -> v * 2
 				assert! result == [8, 10, 12, 14, 16, 18, 20]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.map |v| -> v * 2) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.map |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "filter", ->
-			should "create an ArrayList with matching elements", ->
+		context "filter" ->
+			should "create an ArrayList with matching elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.filter |v| -> v.is_even
 				assert! result == [4, 6, 8, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.filter |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.filter |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "length", ->
-			should "return the count of elements", ->
+		context "length" ->
+			should "return the count of elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.length
 				assert! result == 7
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.length match "Error during iteration!"
 			end
 		end
 
-		context "count", ->
-			should "return the count of matching elements", ->
+		context "count" ->
+			should "return the count of matching elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.count |v| -> v.is_even
 				assert! result == 4
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.count |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.count |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "reject", ->
-			should "create an ArrayList with non-matching elements", ->
+		context "reject" ->
+			should "create an ArrayList with non-matching elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.reject |v| -> v.is_even
 				assert! result == [5, 7, 9]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.reject |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.reject |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "any", ->
-			should "return true if multiple elements match", ->
+		context "any" ->
+			should "return true if multiple elements match" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.any |v| -> v.is_even
 				assert! result == true
 			end
 
-			should "return true if one element matches", ->
+			should "return true if one element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.any |v| -> v == 5
 				assert! result == true
 			end
 
-			should "return false if no elements match", ->
+			should "return false if no elements match" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.any |v| -> v == 15
 				assert! result == false
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.any |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.any |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "every", ->
-			should "return true if all elements match", ->
+		context "every" ->
+			should "return true if all elements match" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.every |v| -> v > 2
 				assert! result == true
 			end
 
-			should "return false if multiple elements match", ->
+			should "return false if multiple elements match" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.every |v| -> v.is_even
 				assert! result == false
 			end
 
-			should "return false if one element matches", ->
+			should "return false if one element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.every |v| -> v == 5
 				assert! result == false
 			end
 
-			should "return false if no elements match", ->
+			should "return false if no elements match" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.every |v| -> v == 15
 				assert! result == false
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.every |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.every |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "find", ->
-			should "return the first matching element", ->
+		context "find" ->
+			should "return the first matching element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.find |v| -> v.is_odd
 				assert! result == 5
 			end
 
-			should "throw an error when no element matches", ->
+			should "throw an error when no element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.find |v| -> v > 20) match Iterable::NotFoundError(message: "could not find element of `IterableBaseTestObject{}`"))
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.find |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.find |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "try_find", ->
-			should "return the first matching element", ->
+		context "try_find" ->
+			should "return the first matching element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.try_find |v| -> v.is_odd
 				assert! result == 5
 			end
 
-			should "return nil when no element matches", ->
+			should "return nil when no element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.try_find |v| -> v > 20
 				assert! result == nil
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.try_find |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.try_find |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "index_of", ->
-			should "return the index of the first matching element", ->
+		context "index_of" ->
+			should "return the index of the first matching element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.index_of(6)
 				assert! result == 2
 			end
 
-			should "return -1 when no element matches", ->
+			should "return -1 when no element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.index_of(20)
 				assert! result == -1
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.index_of(9) match "Error during iteration!"
 			end
 		end
 
-		context "find_index", ->
-			should "return the index of the first matching element", ->
+		context "find_index" ->
+			should "return the index of the first matching element" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.find_index |v| -> v.is_odd
 				assert! result == 1
 			end
 
-			should "return -1 when no element matches", ->
+			should "return -1 when no element matches" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.find_index |v| -> v > 20
 				assert! result == -1
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.find_index |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.find_index |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "drop", ->
-			should "create an ArrayList with all elements when count is zero", ->
+		context "drop" ->
+			should "create an ArrayList with all elements when count is zero" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.drop(0)
 				assert! result == [4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "create an ArrayList without first 3 elements", ->
+			should "create an ArrayList without first 3 elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.drop(3)
 				assert! result == [7, 8, 9, 10]
 			end
 
-			should "create an empty ArrayList when drop count is higher that the number of elements", ->
+			should "create an empty ArrayList when drop count is higher that the number of elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.drop(30)
 				assert! result == []
 			end
 
-			should "throw an error when count is negative", ->
+			should "throw an error when count is negative" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.drop(-30) match OutOfRangeError(message: "tried to drop a negative amount of values `-30` from an iterable")
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.drop(10) match "Error during iteration!"
 			end
 		end
 
-		context "drop_while", ->
-			should "create an ArrayList with all elements after encountering a non-matching one", ->
+		context "drop_while" ->
+			should "create an ArrayList with all elements after encountering a non-matching one" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.drop_while |v| -> v < 6 || v > 8
 				assert! result == [6, 7, 8, 9, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.drop_while |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.drop_while |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "take", ->
-			should "create an empty ArrayList when count is zero", ->
+		context "take" ->
+			should "create an empty ArrayList when count is zero" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.take(0)
 				assert! result == []
 			end
 
-			should "create an ArrayList with first 3 elements", ->
+			should "create an ArrayList with first 3 elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.take(3)
 				assert! result == [4, 5, 6]
 			end
 
-			should "create an ArrayList with all elements when drop count is higher that the number of elements", ->
+			should "create an ArrayList with all elements when drop count is higher that the number of elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.take(30)
 				assert! result == [4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "throw an error when count is negative", ->
+			should "throw an error when count is negative" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.take(-30) match OutOfRangeError(message: "tried to take a negative amount of values `-30` from an iterable")
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.take(10) match "Error during iteration!"
 			end
 		end
 
-		context "take_while", ->
-			should "create an ArrayList with all elements prior to encountering a non-matching one", ->
+		context "take_while" ->
+			should "create an ArrayList with all elements prior to encountering a non-matching one" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.take_while |v| -> v != 7
 				assert! result == [4, 5, 6]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.take_while |v| -> v.is_even) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				assert_throws! ((obj.take_while |v| -> throw "Foo") match "Foo")
 			end
 		end
 
-		context "reduce", ->
-			should "sum all elements", ->
+		context "reduce" ->
+			should "sum all elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.reduce |a, b| -> a + b
 				assert! result == 49
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.reduce |a, b| -> a + b) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((1...3).iter)
 				assert_throws! do
 					obj.reduce |a, b| -> throw "Deliberate error"
@@ -490,44 +487,44 @@ describe "Iterable", ->
 			end
 		end
 
-		context "fold", ->
-			should "multiply all elements with an initial value of the same type" , ->
+		context "fold" ->
+			should "multiply all elements with an initial value of the same type"  ->
 				obj := IterableBaseTestObject((4...7).iter)
 				result := obj.fold 2, |a, b| -> a * b
 				assert! result == 1680
 			end
 
-			should "multiply all elements with an initial value of another type" , ->
+			should "multiply all elements with an initial value of another type"  ->
 				obj := IterableBaseTestObject((4...7).iter)
 				result := obj.fold 2.5, |a, b| -> a * b.to_float
 				assert! result == 2100.0
 			end
 
-			should "sum all elements with initial value", ->
+			should "sum all elements with initial value" ->
 				obj := IterableBaseTestObject((1...5).iter)
 				result := obj.fold 10, |a, b| -> a + b
 				assert! result == 25
 			end
 
-			should "work with empty iterable - returns initial value", ->
+			should "work with empty iterable - returns initial value" ->
 				var arr: ArrayList[Int] = []
 				obj := IterableBaseTestObject(arr.iter)
 				result := obj.fold 42, |a, b| -> a + b
 				assert! result == 42
 			end
 
-			should "return the correct value when folding with subtraction", ->
+			should "return the correct value when folding with subtraction" ->
 				obj := IterableBaseTestObject((3...6).iter)
 				result := obj.fold 20, |a, b| -> a - b
 				assert! result == 2
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! ((obj.fold 1, |a, b| -> a + b) match "Error during iteration!")
 			end
 
-			should "throw an error from closure", ->
+			should "throw an error from closure" ->
 				obj := IterableBaseTestObject((1...3).iter)
 				assert_throws! do
 					obj.fold 0, |a, b| -> throw "Deliberate error"
@@ -535,53 +532,53 @@ describe "Iterable", ->
 			end
 		end
 
-		context "to_list", ->
-			should "create a list with all elements", ->
+		context "to_list" ->
+			should "create a list with all elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.to_list
 				assert! result == [4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.to_list match "Error during iteration!"
 			end
 		end
 
-		context "to_tuple", ->
-			should "create a tuple with all elements", ->
+		context "to_tuple" ->
+			should "create a tuple with all elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.to_tuple
 				assert! result == %[4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.to_tuple match "Error during iteration!"
 			end
 		end
 
-		context "to_immutable_collection", ->
-			should "create a tuple with all elements", ->
+		context "to_immutable_collection" ->
+			should "create a tuple with all elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.to_immutable_collection
 				assert! result == %[4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.to_immutable_collection match "Error during iteration!"
 			end
 		end
 
-		context "to_collection", ->
-			should "create a list with all elements", ->
+		context "to_collection" ->
+			should "create a list with all elements" ->
 				obj := IterableBaseTestObject((4...10).iter)
 				result := obj.to_collection
 				assert! result == [4, 5, 6, 7, 8, 9, 10]
 			end
 
-			should "throw an error during iteration", ->
+			should "throw an error during iteration" ->
 				obj := IterableBaseTestObjectWithErr()
 				assert_throws! obj.to_collection match "Error during iteration!"
 			end

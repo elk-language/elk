@@ -59,6 +59,26 @@ func (n *NamedCallArgumentNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *NamedCallArgumentNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	name, err := n.Name.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewNamedCallArgumentNode(
+		n.loc,
+		name.(IdentifierNode),
+		val.(ExpressionNode),
+	)
+
+	return fn(newNode, parent)
+}
+
 func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
 	if !ok {
@@ -68,6 +88,16 @@ func (n *NamedCallArgumentNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Name.Equal(value.Ref(o.Name)) &&
 		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *NamedCallArgumentNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*NamedCallArgumentNode)
+	if !ok {
+		return false
+	}
+
+	return n.Name.LaxEqual(value.Ref(o.Name)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *NamedCallArgumentNode) String() string {

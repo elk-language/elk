@@ -10,6 +10,90 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestPairLiteral(t *testing.T) {
+	tests := testTable{
+		"has lower precedence that arithmetic": {
+			input: `"foo" * 3 => 5 + 2`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(17, 1, 18))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(17, 1, 18))),
+						ast.NewKeyValueExpressionNode(
+							L(S(P(0, 1, 1), P(17, 1, 18))),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(8, 1, 9))),
+								T(L(S(P(6, 1, 7), P(6, 1, 7))), token.STAR),
+								ast.NewDoubleQuotedStringLiteralNode(L(S(P(0, 1, 1), P(4, 1, 5))), "foo"),
+								ast.NewIntLiteralNode(L(S(P(8, 1, 9), P(8, 1, 9))), "3"),
+							),
+							ast.NewBinaryExpressionNode(
+								L(S(P(13, 1, 14), P(17, 1, 18))),
+								T(L(S(P(15, 1, 16), P(15, 1, 16))), token.PLUS),
+								ast.NewIntLiteralNode(L(S(P(13, 1, 14), P(13, 1, 14))), "5"),
+								ast.NewIntLiteralNode(L(S(P(17, 1, 18), P(17, 1, 18))), "2"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"has lower precedence that comparison": {
+			input: `foo > 3 => b < 10`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(16, 1, 17))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(16, 1, 17))),
+						ast.NewKeyValueExpressionNode(
+							L(S(P(0, 1, 1), P(16, 1, 17))),
+							ast.NewBinaryExpressionNode(
+								L(S(P(0, 1, 1), P(6, 1, 7))),
+								T(L(S(P(4, 1, 5), P(4, 1, 5))), token.GREATER),
+								ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+								ast.NewIntLiteralNode(L(S(P(6, 1, 7), P(6, 1, 7))), "3"),
+							),
+							ast.NewBinaryExpressionNode(
+								L(S(P(11, 1, 12), P(16, 1, 17))),
+								T(L(S(P(13, 1, 14), P(13, 1, 14))), token.LESS),
+								ast.NewPublicIdentifierNode(L(S(P(11, 1, 12), P(11, 1, 12))), "b"),
+								ast.NewIntLiteralNode(L(S(P(15, 1, 16), P(16, 1, 17))), "10"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence that assignment": {
+			input: `a = "foo" => .25`,
+			want: ast.NewProgramNode(
+				L(S(P(0, 1, 1), P(15, 1, 16))),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						L(S(P(0, 1, 1), P(15, 1, 16))),
+						ast.NewAssignmentExpressionNode(
+							L(S(P(0, 1, 1), P(15, 1, 16))),
+							T(L(S(P(2, 1, 3), P(2, 1, 3))), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(0, 1, 1))), "a"),
+							ast.NewKeyValueExpressionNode(
+								L(S(P(4, 1, 5), P(15, 1, 16))),
+								ast.NewDoubleQuotedStringLiteralNode(L(S(P(4, 1, 5), P(8, 1, 9))), "foo"),
+								ast.NewFloatLiteralNode(L(S(P(13, 1, 14), P(15, 1, 16))), "0.25"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestFloatLiteral(t *testing.T) {
 	tests := testTable{
 		"can have underscores": {
@@ -4168,24 +4252,6 @@ func TestHashSetLiteral(t *testing.T) {
 					),
 				},
 			),
-		},
-		"cannot have explicit indices": {
-			input: "^[.1, 'foo', 10 => :bar, baz => baz + 5]",
-			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(39, 1, 40))),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						L(S(P(16, 1, 17), P(39, 1, 40))),
-						ast.NewInvalidNode(
-							L(S(P(16, 1, 17), P(17, 1, 18))),
-							T(L(S(P(16, 1, 17), P(17, 1, 18))), token.THICK_ARROW),
-						),
-					),
-				},
-			),
-			err: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(S(P(16, 1, 17), P(17, 1, 18))), "unexpected =>, expected ]"),
-			},
 		},
 		"can span multiple lines": {
 			input: "^[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n]",

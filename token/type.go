@@ -56,7 +56,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 // a range value eg. `...2`
 func (t Type) IsValidAsEndInRangeLiteral() bool {
 	switch t {
-	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+	case COLON_COLON, BANG, TILDE, LBRACE, LPAREN, LBRACKET, DOLLAR_IDENTIFIER, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE,
 		RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL, FLOAT, FLOAT32, FLOAT64,
 		NIL, FALSE, TRUE, LOOP, ENUM,
@@ -77,7 +77,7 @@ func (t Type) IsValidAsEndInRangePattern() bool {
 	switch t {
 	case RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		FLOAT, FLOAT32, FLOAT64, NIL, FALSE, TRUE, MINUS, PLUS,
-		PUBLIC_CONSTANT, PRIVATE_CONSTANT, SCOPE_RES_OP:
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, COLON_COLON:
 		return true
 	}
 
@@ -281,7 +281,8 @@ const (
 	LBRACKET               // Left bracket `[`
 	QUESTION_LBRACKET      // Safe access `?[`
 	RBRACKET               // Right bracket `]`
-	SCOPE_RES_OP           // Scope resolution operator `::`
+	DOT_COLON_COLON        // Inferred scope resolution operator `.::`
+	COLON_COLON            // Scope resolution operator `::`
 	COLON_COLON_LBRACKET   // Colon, colon, left bracket `::[`
 	DOT_COLON              // Dot colon `.:`
 	CLOSED_RANGE_OP        // Closed range operator `...`
@@ -694,7 +695,8 @@ var tokenNames = [...]string{
 	AT_LBRACE:            "@{",
 	PLUS_PLUS:            "++",
 	MINUS_MINUS:          "--",
-	SCOPE_RES_OP:         "::",
+	DOT_COLON_COLON:      ".::",
+	COLON_COLON:          "::",
 	COLON_COLON_LBRACKET: "::[",
 	DOT_COLON:            ".:",
 	CLOSED_RANGE_OP:      "...",

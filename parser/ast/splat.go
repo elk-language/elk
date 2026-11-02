@@ -42,6 +42,17 @@ func (n *DoubleSplatExpressionNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *DoubleSplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewDoubleSplatExpressionNode(n.loc, val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
@@ -51,6 +62,15 @@ func (n *DoubleSplatExpressionNode) Equal(other value.Value) bool {
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *DoubleSplatExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*DoubleSplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 // Return a string representation of the node.
@@ -144,6 +164,17 @@ func (n *SplatExpressionNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *SplatExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSplatExpressionNode(n.loc, val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SplatExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SplatExpressionNode)
 	if !ok {
@@ -152,6 +183,15 @@ func (n *SplatExpressionNode) Equal(other value.Value) bool {
 
 	return n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SplatExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SplatExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *SplatExpressionNode) String() string {

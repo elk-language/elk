@@ -8,16 +8,18 @@ import (
 )
 
 func initAliasDeclarationNode() {
-	c := &value.AliasDeclarationNodeClass.MethodContainer
+	c := value.AliasDeclarationNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 
-			arg0Tuple := args[1].AsReference().(value.ArrayTuple)
-			arg0 := value.TransformArrayTupleIntoNativeArrayTuple(arg0Tuple, func(v value.Value) *ast.AliasDeclarationEntry {
+			arg0, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) *ast.AliasDeclarationEntry {
 				return (*ast.AliasDeclarationEntry)(v.Pointer())
 			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
 
 			var argLoc *position.Location
 			if args[2].IsUndefined() {
@@ -63,6 +65,17 @@ func initAliasDeclarationNode() {
 			self := args[0].MustReference().(*ast.AliasDeclarationNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.AliasDeclarationNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

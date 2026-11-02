@@ -44,6 +44,17 @@ func (n *BoxTypeNode) traverse(parent Node, enter func(node, parent Node) Traver
 	return leave(n, parent)
 }
 
+func (n *BoxTypeNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	typ, err := n.TypeNode.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewBoxTypeNode(n.loc, typ.(TypeNode), n.Immutable)
+
+	return fn(newNode, parent)
+}
+
 // Equal checks if this node equals the other node.
 func (n *BoxTypeNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BoxTypeNode)
@@ -54,6 +65,16 @@ func (n *BoxTypeNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Immutable == o.Immutable &&
 		n.TypeNode.Equal(value.Ref(o.TypeNode))
+}
+
+func (n *BoxTypeNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BoxTypeNode)
+	if !ok {
+		return false
+	}
+
+	return n.Immutable == o.Immutable &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode))
 }
 
 // String returns the string representation of this node.

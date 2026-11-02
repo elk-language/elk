@@ -10,7 +10,7 @@ import (
 // ::Std::ClosedRange
 func initClosedRange() {
 	// Instance methods
-	c := &value.ClosedRangeClass.MethodContainer
+	c := value.ClosedRangeClass
 	Def(
 		c,
 		"iter",
@@ -120,7 +120,7 @@ func initClosedRange() {
 // ::Std::ClosedRange::Iterator
 func initClosedRangeIterator() {
 	// Instance methods
-	c := &value.ClosedRangeIteratorClass.MethodContainer
+	c := value.ClosedRangeIteratorClass
 	Def(
 		c,
 		"next",
@@ -214,8 +214,8 @@ func ClosedRangeIteratorAll(vm *Thread, i *value.ClosedRangeIterator) iter.Seq2[
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := ClosedRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

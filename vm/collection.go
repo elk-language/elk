@@ -8,7 +8,7 @@ import (
 // Std::Collection::Base
 func initCollection() {
 	// Instance methods
-	c := &value.CollectionBaseMixin.MethodContainer
+	c := value.CollectionBaseMixin
 
 	Def(
 		c,

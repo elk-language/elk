@@ -7,7 +7,7 @@ import (
 // Std::RWMutex
 func initRWMutex() {
 	// Instance methods
-	c := &value.RWMutexClass.MethodContainer
+	c := value.RWMutexClass
 	Def(
 		c,
 		"lock",

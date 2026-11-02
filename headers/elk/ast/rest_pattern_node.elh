@@ -8,5 +8,7 @@ module Std::Elk::AST
     init(identifier: IdentifierNode, location: FS::Location = loop; end); end
     pure def identifier: IdentifierNode; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

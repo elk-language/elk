@@ -56,6 +56,22 @@ func (n *ExtendWhereBlockExpressionNode) traverse(parent Node, enter func(node, 
 	return leave(n, parent)
 }
 
+func (n *ExtendWhereBlockExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	where, err := traverseMapSlice(n.Where, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewExtendWhereBlockExpressionNode(n.loc, body, where)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ExtendWhereBlockExpressionNode)
@@ -81,6 +97,32 @@ func (n *ExtendWhereBlockExpressionNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ExtendWhereBlockExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ExtendWhereBlockExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) ||
+		len(n.Where) != len(o.Where) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	for i, param := range n.Where {
+		if !param.LaxEqual(value.Ref(o.Where[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.

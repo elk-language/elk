@@ -5,8 +5,17 @@ import (
 	"github.com/elk-language/elk/value/symbol"
 )
 
+type MacroAppendExpressionKind uint8
+
+const (
+	MacroAppendExpressionZeroKind MacroAppendExpressionKind = iota
+	MacroAppendExpressionEndOfFileKind
+	MacroAppendExpressionEndOfNamespaceKind
+)
+
 type Checker interface {
 	Env() *GlobalEnvironment
+	HasNativeGoCompiler() bool
 	IsSubtype(a, b Type) bool
 	IsNilable(typ Type) bool
 	IsNotNilable(typ Type) bool
@@ -37,4 +46,5 @@ type Checker interface {
 	SelfType() Type
 	GetMethod(typ Type, name symbol.Symbol, errSpan *position.Location) *Method
 	ResolveGenericParent(namespace Namespace, targetParent Namespace) *Generic
+	RegisterMacroAppendExpression(loc *position.Location, key string, kind MacroAppendExpressionKind, expr AstNode)
 }

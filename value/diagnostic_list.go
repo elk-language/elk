@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/position/diagnostic"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 var DiagnosticListIteratorClass *Class // ::Std::DiagnosticList::Iterator
@@ -280,7 +281,7 @@ func (*DiagnosticListIterator) InstanceVariables() *InstanceVariables {
 
 func (l *DiagnosticListIterator) Next() (Value, Value) {
 	if l.Index >= l.DiagnosticList.Length() {
-		return Undefined, stopIterationSymbol.ToValue()
+		return Undefined, S(symbol.L_stop_iteration).ToValue()
 	}
 
 	next := (*l.DiagnosticList)[l.Index]

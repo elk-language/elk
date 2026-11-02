@@ -58,6 +58,27 @@ func (n *UnlessExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *UnlessExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cond, err := n.Condition.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	then, err := traverseMapSlice(n.ThenBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := traverseMapSlice(n.ElseBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewUnlessExpressionNode(n.loc, cond.(ExpressionNode), then, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
 	if !ok {
@@ -79,6 +100,33 @@ func (n *UnlessExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ElseBody {
 		if !stmt.Equal(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *UnlessExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UnlessExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.ThenBody) != len(o.ThenBody) ||
+		len(n.ElseBody) != len(o.ElseBody) ||
+		!n.Condition.LaxEqual(value.Ref(o.Condition)) {
+		return false
+	}
+
+	for i, stmt := range n.ThenBody {
+		if !stmt.LaxEqual(value.Ref(o.ThenBody[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.LaxEqual(value.Ref(o.ElseBody[i])) {
 			return false
 		}
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func initCharLiteralNode() {
-	c := &value.CharLiteralNodeClass.MethodContainer
+	c := value.CharLiteralNodeClass
 	vm.Def(
 		c,
 		"#init",
@@ -67,6 +67,17 @@ func initCharLiteralNode() {
 
 	vm.Def(
 		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.CharLiteralNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
 		"to_string",
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*ast.CharLiteralNode)
@@ -74,7 +85,7 @@ func initCharLiteralNode() {
 		},
 	)
 
-	c = &value.CharClass.MethodContainer
+	c = value.CharClass
 	vm.Def(
 		c,
 		"to_ast_node",

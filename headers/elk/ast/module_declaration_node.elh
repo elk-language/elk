@@ -7,7 +7,7 @@ module Std::Elk::AST
 
     init(
       constant: ExpressionNode,
-      body: ArrayTuple[StatementNode] = loop; end,
+      body: Tuple[StatementNode] = loop; end,
       doc_comment: String = "",
       location: FS::Location = loop; end,
     ); end
@@ -16,5 +16,7 @@ module Std::Elk::AST
     pure def constant: ExpressionNode?; end
     pure def body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

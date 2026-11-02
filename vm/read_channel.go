@@ -7,7 +7,7 @@ import (
 // ::Std::ReadChannel
 func initReadChannel() {
 	// Singleton methods
-	c := &value.ReadChannelClass.SingletonClass().MethodContainer
+	c := value.ReadChannelClass.SingletonClass()
 	Def(
 		c,
 		"closed",
@@ -19,7 +19,7 @@ func initReadChannel() {
 	)
 
 	// Instance methods
-	c = &value.ReadChannelClass.MethodContainer
+	c = value.ReadChannelClass
 	Def(
 		c,
 		"capacity",

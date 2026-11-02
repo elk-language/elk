@@ -20,4 +20,31 @@ module Std::Debug
     Returns the name of the native type of the value.
   ]##
   pure def inspect_native_type(value: any): String; end
+
+  ##[
+    Prints the disassembly of the current
+    bytecode method.
+
+    Throws an unchecked error when the current method
+    does not have bytecode (is native).
+  ]##
+  pure def inspect_current_bytecode; end
+
+  ##[
+    Prints the disassembly of the parent
+    bytecode method.
+
+    Throws an unchecked error when the parent method
+    does not have bytecode (is native).
+  ]##
+  pure def inspect_parent_bytecode; end
+
+  ##[
+    Prints the disassembly of the current
+    bytecode method.
+
+    Throws an unchecked error when the current method
+    does not have bytecode (is native).
+  ]##
+  pure def inspect_bytecode(method: Closure); end
 end

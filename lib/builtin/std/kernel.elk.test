@@ -1,6 +1,3 @@
-using Std::Test::Assertions::*
-using Std::Test::*
-
 module LibBuiltinKernelTest
   mixin Foo
     def foo_instance: String

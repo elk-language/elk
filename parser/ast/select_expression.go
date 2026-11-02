@@ -61,6 +61,22 @@ func (n *SelectExpressionNode) traverse(parent Node, enter func(node, parent Nod
 	return leave(n, parent)
 }
 
+func (n *SelectExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	cases, err := traverseMapSlice(n.Cases, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	els, err := traverseMapSlice(n.ElseBody, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSelectExpressionNode(n.loc, cases, els)
+
+	return fn(newNode, parent)
+}
+
 func (n *SelectExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelectExpressionNode)
 	if !ok {
@@ -81,6 +97,32 @@ func (n *SelectExpressionNode) Equal(other value.Value) bool {
 
 	for i, stmt := range n.ElseBody {
 		if !stmt.Equal(value.Ref(o.ElseBody[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SelectExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SelectExpressionNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Cases) != len(o.Cases) ||
+		len(n.ElseBody) != len(o.ElseBody) {
+		return false
+	}
+
+	for i, c := range n.Cases {
+		if !c.LaxEqual(value.Ref(o.Cases[i])) {
+			return false
+		}
+	}
+
+	for i, stmt := range n.ElseBody {
+		if !stmt.LaxEqual(value.Ref(o.ElseBody[i])) {
 			return false
 		}
 	}
@@ -219,6 +261,22 @@ func (n *SelectCaseNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *SelectCaseNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := traverseMapSlice(n.Body, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSelectCaseNode(n.loc, expr.(ExpressionNode), body)
+
+	return fn(newNode, parent)
+}
+
 func (n *SelectCaseNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SelectCaseNode)
 	if !ok {
@@ -240,6 +298,29 @@ func (n *SelectCaseNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *SelectCaseNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SelectCaseNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Expression.LaxEqual(value.Ref(o.Expression)) {
+		return false
+	}
+
+	if len(n.Body) != len(o.Body) {
+		return false
+	}
+
+	for i, stmt := range n.Body {
+		if !stmt.LaxEqual(value.Ref(o.Body[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (n *SelectCaseNode) String() string {

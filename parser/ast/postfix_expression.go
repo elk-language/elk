@@ -45,6 +45,17 @@ func (n *PostfixExpressionNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *PostfixExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	expr, err := n.Expression.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewPostfixExpressionNode(n.loc, n.Op, expr.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
 	if !ok {
@@ -54,6 +65,16 @@ func (n *PostfixExpressionNode) Equal(other value.Value) bool {
 	return n.Op.Equal(o.Op) &&
 		n.Expression.Equal(value.Ref(o.Expression)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *PostfixExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*PostfixExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Expression.LaxEqual(value.Ref(o.Expression))
 }
 
 func (n *PostfixExpressionNode) String() string {

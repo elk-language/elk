@@ -9,7 +9,7 @@ module Std::Elk::AST
       initialiser: ExpressionNode? = nil,
       condition: ExpressionNode? = nil,
       increment: ExpressionNode? = nil,
-      then_body: ArrayTuple[StatementNode] = loop; end,
+      then_body: Tuple[StatementNode] = loop; end,
       location: FS::Location = loop; end,
     ); end
 
@@ -18,5 +18,7 @@ module Std::Elk::AST
     pure def increment: ExpressionNode?; end
     pure def then_body: ArrayTuple[StatementNode]; end
     pure def location: FS::Location; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

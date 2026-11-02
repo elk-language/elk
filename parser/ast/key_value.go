@@ -52,6 +52,22 @@ func (n *KeyValueExpressionNode) traverse(parent Node, enter func(node, parent N
 	return leave(n, parent)
 }
 
+func (n *KeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewKeyValueExpressionNode(n.loc, key.(ExpressionNode), val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
 	if !ok {
@@ -61,6 +77,16 @@ func (n *KeyValueExpressionNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Key.Equal(value.Ref(o.Key)) &&
 		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *KeyValueExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(value.Ref(o.Key)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *KeyValueExpressionNode) String() string {
@@ -159,6 +185,17 @@ func (n *SymbolKeyValueExpressionNode) traverse(parent Node, enter func(node, pa
 	return leave(n, parent)
 }
 
+func (n *SymbolKeyValueExpressionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSymbolKeyValueExpressionNode(n.loc, n.Key, val.(ExpressionNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValueExpressionNode)
 	if !ok {
@@ -168,6 +205,16 @@ func (n *SymbolKeyValueExpressionNode) Equal(other value.Value) bool {
 	return n.Key != o.Key &&
 		n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SymbolKeyValueExpressionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValueExpressionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key != o.Key &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *SymbolKeyValueExpressionNode) String() string {
@@ -263,6 +310,22 @@ func (n *SymbolKeyValuePatternNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *SymbolKeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSymbolKeyValuePatternNode(n.loc, key.(IdentifierNode), val.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
 	if !ok {
@@ -272,6 +335,16 @@ func (n *SymbolKeyValuePatternNode) Equal(other value.Value) bool {
 	return n.Key.Equal(o.Key.ToValue()) &&
 		n.Value.Equal(value.Ref(o.Value)) &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *SymbolKeyValuePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolKeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(o.Key.ToValue()) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *SymbolKeyValuePatternNode) String() string {
@@ -367,6 +440,22 @@ func (n *KeyValuePatternNode) traverse(parent Node, enter func(node, parent Node
 	return leave(n, parent)
 }
 
+func (n *KeyValuePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	key, err := n.Key.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	val, err := n.Value.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewKeyValuePatternNode(n.loc, key.(LiteralPatternNode), val.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *KeyValuePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*KeyValuePatternNode)
 	if !ok {
@@ -376,6 +465,16 @@ func (n *KeyValuePatternNode) Equal(other value.Value) bool {
 	return n.loc.Equal(o.loc) &&
 		n.Key.Equal(value.Ref(o.Key)) &&
 		n.Value.Equal(value.Ref(o.Value))
+}
+
+func (n *KeyValuePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*KeyValuePatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Key.LaxEqual(value.Ref(o.Key)) &&
+		n.Value.LaxEqual(value.Ref(o.Value))
 }
 
 func (n *KeyValuePatternNode) String() string {

@@ -9,11 +9,11 @@ import (
 )
 
 func initGenericMethodCallNode() {
-	c := &value.GenericMethodCallNodeClass.MethodContainer
+	c := value.GenericMethodCallNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argLoc *position.Location
 			if args[7].IsUndefined() {
 				argLoc = position.ZeroLocation
@@ -24,10 +24,13 @@ func initGenericMethodCallNode() {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argName := args[2].MustReference().(ast.IdentifierNode)
 
-			argTypeArgsTuple := args[3].AsReference().(value.ArrayTuple)
-			argTypeArgs := value.TransformArrayTupleIntoNativeArrayTuple(argTypeArgsTuple, func(v value.Value) ast.TypeNode {
+			argTypeArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.TypeNode {
 				return v.AsReference().(ast.TypeNode)
-			}).ToSlice()
+			})
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			argTypeArgs := argTypeArgsTuple.ToSlice()
 
 			var argOp *token.Token
 			if args[4].IsUndefined() {
@@ -38,18 +41,24 @@ func initGenericMethodCallNode() {
 
 			var argPosArgs []ast.ExpressionNode
 			if !args[5].IsUndefined() {
-				argPosArgsTuple := args[5].AsReference().(value.ArrayTuple)
-				argPosArgs = value.TransformArrayTupleIntoNativeArrayTuple(argPosArgsTuple, func(v value.Value) ast.ExpressionNode {
+				argPosArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[5], func(v value.Value) ast.ExpressionNode {
 					return v.AsReference().(ast.ExpressionNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argPosArgs = argPosArgsTuple.ToSlice()
 			}
 
 			var argNamedArgs []ast.NamedArgumentNode
 			if !args[6].IsUndefined() {
-				argNamedArgsTuple := args[6].AsReference().(value.ArrayTuple)
-				argNamedArgs = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgsTuple, func(v value.Value) ast.NamedArgumentNode {
+				argNamedArgsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[6], func(v value.Value) ast.NamedArgumentNode {
 					return v.AsReference().(ast.NamedArgumentNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argNamedArgs = argNamedArgsTuple.ToSlice()
 			}
 
 			self := ast.NewGenericMethodCallNode(
@@ -148,6 +157,17 @@ func initGenericMethodCallNode() {
 			self := args[0].MustReference().(*ast.GenericMethodCallNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.GenericMethodCallNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

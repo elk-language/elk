@@ -10,7 +10,7 @@ import (
 // ::Std::EndlessClosedRange
 func initEndlessClosedRange() {
 	// Instance methods
-	c := &value.EndlessClosedRangeClass.MethodContainer
+	c := value.EndlessClosedRangeClass
 	Def(
 		c,
 		"iter",
@@ -119,7 +119,7 @@ func initEndlessClosedRange() {
 // ::Std::EndlessClosedRange::Iterator
 func initEndlessClosedRangeIterator() {
 	// Instance methods
-	c := &value.EndlessClosedRangeIteratorClass.MethodContainer
+	c := value.EndlessClosedRangeIteratorClass
 	Def(
 		c,
 		"next",
@@ -186,8 +186,8 @@ func EndlessClosedRangeIteratorAll(vm *Thread, i *value.EndlessClosedRangeIterat
 	return func(yield func(value.Value, value.Value) bool) {
 		for {
 			element, err := EndlessClosedRangeIteratorNext(vm, i)
-			if err.IsInlineSymbol() {
-				if element.AsInlineSymbol() == value.S(symbol.L_stop_iteration) {
+			if err.IsSymbol() {
+				if element.AsSymbol() == value.S(symbol.L_stop_iteration) {
 					break
 				}
 			}

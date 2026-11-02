@@ -10,7 +10,7 @@ import (
 
 // ::Std::Kernel
 func initKernel() {
-	c := &value.KernelModule.SingletonClass().MethodContainer
+	c := value.KernelModule.SingletonClass()
 	Def(
 		c,
 		"exit",

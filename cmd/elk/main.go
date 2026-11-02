@@ -17,10 +17,16 @@ import (
 	"github.com/elk-language/elk/info/banner"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/repl"
+	"github.com/elk-language/elk/repl/prompt"
+	"github.com/elk-language/elk/sh"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	elk.InitGlobalEnvironment()
+}
 
 // Main entry point to the interpreter.
 func main() {
@@ -57,7 +63,10 @@ func replCommand() *cobra.Command {
 		Short: "Start an interactive Elk session",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			repl.Run(context.Background(), opts)
+			err := repl.Run(context.Background(), opts)
+			if err != nil {
+				panic(fmt.Sprintf("repl error: %s", err))
+			}
 		},
 	}
 
@@ -103,7 +112,7 @@ func compileCommand() *cobra.Command {
 				compileMain()
 				return
 			}
-			compileFile(args[0])
+			compileFile(args[0], bitfield.BitField16{})
 		},
 	}
 }
@@ -111,6 +120,7 @@ func compileCommand() *cobra.Command {
 // Build the `elk test` command.
 func testCommand() *cobra.Command {
 	var (
+		native   bool
 		mainFile string
 		grep     string
 		paths    []string
@@ -121,11 +131,12 @@ func testCommand() *cobra.Command {
 		Short: "Run Elk tests",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			runTest(mainFile, grep, paths)
+			runTest(mainFile, grep, paths, native)
 		},
 	}
 
 	flags := cmd.Flags()
+	flags.BoolVarP(&native, "native", "n", false, "use the native flag to transpile the tests to Go and run them natively")
 	flags.StringVar(&mainFile, "main", "main.elk.test", "specify the main test file that loads tests")
 	flags.StringVar(&grep, "grep", "", "test name filter regex pattern")
 	flags.StringSliceVarP(&paths, "path", "p", []string{}, "test file name glob with an optional line number")
@@ -146,7 +157,7 @@ func runFile(fileName string) {
 		os.Exit(1)
 	}
 
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16{}, nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag), nil)
 	if diagnostics != nil {
 		fmt.Println()
 
@@ -180,13 +191,15 @@ func runMain() {
 }
 
 // Attempt to compile the given file.
-func compileFile(fileName string) {
+func compileFile(fileName string, flags bitfield.BitField16) string {
 	info.CurrentMode = info.NativeMode
-	_, err := elk.CompileFile(fileName)
+	binPath, err := elk.CompileFile(fileName, flags)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
+
+	return binPath
 }
 
 // Attempt to compile the main file in the current working directory
@@ -197,10 +210,10 @@ func compileMain() {
 	}
 
 	mainPath := path.Join(cwd, "main.elk")
-	compileFile(mainPath)
+	compileFile(mainPath, bitfield.BitField16{})
 }
 
-func runTest(main string, grep string, paths []string) {
+func runTest(main string, grep string, paths []string, native bool) {
 	if grep != "" {
 		regexFilter, err := test.NewRegexFilter(grep)
 		if err != nil {
@@ -217,7 +230,11 @@ func runTest(main string, grep string, paths []string) {
 		}
 		test.RegisterFilter(pathFilter)
 	}
-	runTestFile(main)
+	if native {
+		compileTestFile(main)
+	} else {
+		runTestFile(main)
+	}
 }
 
 func runTestFile(fileName string) {
@@ -227,8 +244,15 @@ func runTestFile(fileName string) {
 		testExt.RuntimeInit()
 	}
 
-	report := test.Run()
-	if report == nil || report.Status() != test.TEST_SUCCESS {
-		os.Exit(1)
-	}
+	test.MustRun()
+}
+
+func compileTestFile(fileName string) {
+	var binPath string
+	spinner := prompt.NewSpinner(os.Stdout, "compiling")
+	spinner.Run(func(prompt.SpinnerCaptureData) error {
+		binPath = compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
+		return nil
+	})
+	sh.Sh(binPath)
 }

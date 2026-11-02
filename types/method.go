@@ -151,7 +151,7 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type AstNode interface {
-	position.SpanInterface
+	position.LocationInterface
 }
 
 const (
@@ -493,7 +493,7 @@ func (m *Method) SetAbstract(abstract bool) *Method {
 }
 
 func (m *Method) IsDefinable() bool {
-	if m.IsCompiled() || m.IsMacro() {
+	if m.IsCompiled() || m.IsMacro() || m.IsNative() {
 		return false
 	}
 

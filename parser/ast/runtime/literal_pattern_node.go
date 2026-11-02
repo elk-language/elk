@@ -6,7 +6,7 @@ import (
 )
 
 func initLiteralPatternNode() {
-	c := &value.LiteralPatternNodeMixin.MethodContainer
+	c := value.LiteralPatternNodeMixin
 	vm.Def(
 		c,
 		"to_ast_pattern_expr_node",

@@ -50,6 +50,22 @@ func (n *BinaryPatternNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *BinaryPatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	left, err := n.Left.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := n.Right.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewBinaryPatternNode(n.loc, n.Op, left.(PatternNode), right.(PatternNode))
+
+	return fn(newNode, parent)
+}
+
 func (n *BinaryPatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinaryPatternNode)
 	if !ok {
@@ -60,6 +76,17 @@ func (n *BinaryPatternNode) Equal(other value.Value) bool {
 		n.Op.Equal(o.Op) &&
 		n.Left.Equal(value.Ref(o.Left)) &&
 		n.Right.Equal(value.Ref(o.Right))
+}
+
+func (n *BinaryPatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinaryPatternNode)
+	if !ok {
+		return false
+	}
+
+	return n.Op.LaxEqual(o.Op) &&
+		n.Left.LaxEqual(value.Ref(o.Left)) &&
+		n.Right.LaxEqual(value.Ref(o.Right))
 }
 
 func (n *BinaryPatternNode) String() string {

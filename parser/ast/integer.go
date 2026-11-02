@@ -36,6 +36,12 @@ func (n *IntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tra
 	return leave(n, parent)
 }
 
+func (n *IntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewIntLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *IntLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*IntLiteralNode)
 	if !ok {
@@ -44,6 +50,15 @@ func (n *IntLiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *IntLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*IntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *IntLiteralNode) String() string {
@@ -113,6 +128,12 @@ func (n *Int64LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *Int64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewInt64LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int64LiteralNode)
 	if !ok {
@@ -121,6 +142,15 @@ func (n *Int64LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *Int64LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Int64LiteralNode) String() string {
@@ -191,6 +221,12 @@ func (n *UIntLiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *UIntLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUIntLiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UIntLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UIntLiteralNode)
 	if !ok {
@@ -199,6 +235,15 @@ func (n *UIntLiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UIntLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UIntLiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UIntLiteralNode) String() string {
@@ -269,6 +314,12 @@ func (n *UInt64LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *UInt64LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUInt64LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UInt64LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UInt64LiteralNode)
 	if !ok {
@@ -277,6 +328,15 @@ func (n *UInt64LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt64LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt64LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt64LiteralNode) String() string {
@@ -347,6 +407,12 @@ func (n *Int32LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *Int32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewInt32LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int32LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int32LiteralNode)
 	if !ok {
@@ -355,6 +421,15 @@ func (n *Int32LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *Int32LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Int32LiteralNode) String() string {
@@ -421,6 +496,12 @@ func (n *UInt32LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *UInt32LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUInt32LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UInt32LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UInt32LiteralNode)
 	if !ok {
@@ -429,6 +510,15 @@ func (n *UInt32LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt32LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt32LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt32LiteralNode) String() string {
@@ -499,6 +589,12 @@ func (n *Int16LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *Int16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewInt16LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int16LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int16LiteralNode)
 	if !ok {
@@ -507,6 +603,15 @@ func (n *Int16LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *Int16LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Int16LiteralNode) String() string {
@@ -577,6 +682,12 @@ func (n *UInt16LiteralNode) traverse(parent Node, enter func(node, parent Node) 
 	return leave(n, parent)
 }
 
+func (n *UInt16LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUInt16LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UInt16LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UInt16LiteralNode)
 	if !ok {
@@ -585,6 +696,15 @@ func (n *UInt16LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt16LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt16LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt16LiteralNode) String() string {
@@ -655,6 +775,12 @@ func (n *Int8LiteralNode) traverse(parent Node, enter func(node, parent Node) Tr
 	return leave(n, parent)
 }
 
+func (n *Int8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewInt8LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *Int8LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*Int8LiteralNode)
 	if !ok {
@@ -663,6 +789,15 @@ func (n *Int8LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *Int8LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*Int8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *Int8LiteralNode) String() string {
@@ -733,6 +868,12 @@ func (n *UInt8LiteralNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *UInt8LiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	newNode := NewUInt8LiteralNode(n.loc, n.Value)
+
+	return fn(newNode, parent)
+}
+
 func (n *UInt8LiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*UInt8LiteralNode)
 	if !ok {
@@ -741,6 +882,15 @@ func (n *UInt8LiteralNode) Equal(other value.Value) bool {
 
 	return n.Value == o.Value &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *UInt8LiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*UInt8LiteralNode)
+	if !ok {
+		return false
+	}
+
+	return n.Value == o.Value
 }
 
 func (n *UInt8LiteralNode) String() string {

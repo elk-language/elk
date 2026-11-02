@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/bubbles v0.21.0
 	github.com/charmbracelet/bubbletea v1.3.6
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/elk-language/go-prompt v1.3.1
+	github.com/elk-language/go-prompt v1.6.5
 	github.com/fatih/color v1.15.0
 	github.com/google/go-cmp v0.6.0
 	github.com/iancoleman/strcase v0.3.0

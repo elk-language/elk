@@ -8,27 +8,33 @@ import (
 )
 
 func initReceiverlessMethodCallNode() {
-	c := &value.ReceiverlessMethodCallNodeClass.MethodContainer
+	c := value.ReceiverlessMethodCallNodeClass
 	vm.Def(
 		c,
 		"#init",
-		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argMethodName := args[1].MustReference().(ast.IdentifierNode)
 
 			var argPositionalArguments []ast.ExpressionNode
 			if !args[2].IsUndefined() {
-				argPositionalArgumentsTuple := args[2].AsReference().(value.ArrayTuple)
-				argPositionalArguments = value.TransformArrayTupleIntoNativeArrayTuple(argPositionalArgumentsTuple, func(v value.Value) ast.ExpressionNode {
+				argPositionalArgumentsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[2], func(v value.Value) ast.ExpressionNode {
 					return v.AsReference().(ast.ExpressionNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argPositionalArguments = argPositionalArgumentsTuple.ToSlice()
 			}
 
 			var argNamedArguments []ast.NamedArgumentNode
 			if !args[3].IsUndefined() {
-				argNamedArgumentsTuple := args[3].AsReference().(value.ArrayTuple)
-				argNamedArguments = value.TransformArrayTupleIntoNativeArrayTuple(argNamedArgumentsTuple, func(v value.Value) ast.NamedArgumentNode {
+				argNamedArgumentsTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[3], func(v value.Value) ast.NamedArgumentNode {
 					return v.AsReference().(ast.NamedArgumentNode)
-				}).ToSlice()
+				})
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+				argNamedArguments = argNamedArgumentsTuple.ToSlice()
 			}
 
 			var argLoc *position.Location
@@ -98,6 +104,17 @@ func initReceiverlessMethodCallNode() {
 			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
 			other := args[1]
 			return value.BoolVal(self.Equal(other)), value.Undefined
+		},
+		vm.DefWithParameters(1),
+	)
+
+	vm.Def(
+		c,
+		"=~",
+		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustReference().(*ast.ReceiverlessMethodCallNode)
+			other := args[1]
+			return value.BoolVal(self.LaxEqual(other)), value.Undefined
 		},
 		vm.DefWithParameters(1),
 	)

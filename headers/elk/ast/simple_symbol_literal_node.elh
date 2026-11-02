@@ -14,5 +14,7 @@ module Std::Elk::AST
     pure def to_symbol: Symbol; end
 
     pure def to_ast_ident_node: IdentifierNode; end
+    pure def ==(other: any): bool; end
+    pure def =~(other: any): bool; end
   end
 end

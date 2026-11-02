@@ -59,8 +59,6 @@ func init() {
 	)
 }
 
-var stopIterationSymbol = value.ToSymbol("stop_iteration")
-
 type Option func(*Thread) // constructor option function
 
 // Assign an aborter to the thread
@@ -106,7 +104,7 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 	if value.IsA(err, value.ElkTypeCheckerErrorClass) {
 		errObj := (*value.Object)(err.Pointer())
 		c.Fprint(stderr, "Error! Uncaught error ")
-		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
+		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name()))
 		fmt.Fprint(stderr, ": ")
 		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
 
@@ -116,7 +114,7 @@ func PrintError(stderr io.Writer, stackTrace *value.StackTrace, err value.Value)
 	} else if value.IsA(err, value.ErrorClass) {
 		errObj := (*value.Object)(err.Pointer())
 		c.Fprint(stderr, "Error! Uncaught error ")
-		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name))
+		fmt.Fprint(stderr, lexer.Colorize(errObj.Class().Name()))
 		fmt.Fprint(stderr, ": ")
 		fmt.Fprintln(stderr, lexer.ColorizeEmbellishedText(errObj.Message().AsString().String()))
 	} else {

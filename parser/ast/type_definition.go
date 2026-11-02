@@ -60,6 +60,37 @@ func (n *GenericTypeDefinitionNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *GenericTypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	typeVars, err := traverseMapSlice(n.TypeParameters, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	newNode := NewGenericTypeDefinitionNode(
+		n.loc,
+		n.DocComment(),
+		constant.(ComplexConstantNode),
+		typeVars,
+		typ,
+	)
+
+	return fn(newNode, parent)
+}
+
 // Equal compares this node to another value for equality.
 func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
@@ -80,6 +111,31 @@ func (n *GenericTypeDefinitionNode) Equal(other value.Value) bool {
 
 	for i, param := range n.TypeParameters {
 		if !param.Equal(value.Ref(o.TypeParameters[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *GenericTypeDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*GenericTypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) ||
+		!n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) ||
+		n.DocComment() != o.DocComment() {
+		return false
+	}
+
+	if len(n.TypeParameters) != len(o.TypeParameters) {
+		return false
+	}
+
+	for i, param := range n.TypeParameters {
+		if !param.LaxEqual(value.Ref(o.TypeParameters[i])) {
 			return false
 		}
 	}
@@ -222,6 +278,26 @@ func (n *TypeDefinitionNode) traverse(parent Node, enter func(node, parent Node)
 	return leave(n, parent)
 }
 
+func (n *TypeDefinitionNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	newNode := NewTypeDefinitionNode(n.loc, n.DocComment(), constant.(ComplexConstantNode), typ)
+
+	return fn(newNode, parent)
+}
+
 func (n *TypeDefinitionNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TypeDefinitionNode)
 	if !ok {
@@ -232,6 +308,17 @@ func (n *TypeDefinitionNode) Equal(other value.Value) bool {
 		n.TypeNode.Equal(value.Ref(o.TypeNode)) &&
 		n.comment == o.comment &&
 		n.loc.Equal(o.loc)
+}
+
+func (n *TypeDefinitionNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TypeDefinitionNode)
+	if !ok {
+		return false
+	}
+
+	return n.Constant.LaxEqual(value.Ref(o.Constant)) &&
+		n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) &&
+		n.comment == o.comment
 }
 
 func (n *TypeDefinitionNode) String() string {

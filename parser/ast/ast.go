@@ -311,12 +311,15 @@ type Node interface {
 	SetType(types.Type)
 	SkipTypechecking() bool
 	Equal(value.Value) bool
+	// Equal ignoring source locations.
+	LaxEqual(value.Value) bool
 	String() string
 	// Return the type of the AST node object
 	// for use in macros
 	MacroType(*types.GlobalEnvironment) types.Type
 	splice(loc *position.Location, args *[]Node, unquote bool) Node
 	traverse(parent Node, enter func(node, parent Node) TraverseOption, leave func(node, parent Node) TraverseOption) TraverseOption
+	traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error)
 }
 
 // Create a deep copy of the AST node
@@ -339,6 +342,10 @@ func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave fun
 		leave = noopTraverse
 	}
 	node.traverse(nil, enter, leave)
+}
+
+func TraverseMap(node Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	return node.traverseMap(nil, fn)
 }
 
 func Iter(node Node) iter.Seq[Node] {
@@ -372,6 +379,23 @@ func SpliceSlice[N Node](slice []N, loc *position.Location, args *[]Node, unquot
 	}
 
 	return result
+}
+
+func traverseMapSlice[N Node](slice []N, parent Node, fn func(node, parent Node) (Node, error)) ([]N, error) {
+	if slice == nil {
+		return nil, nil
+	}
+
+	result := make([]N, len(slice))
+	for i, node := range slice {
+		mapped, err := node.traverseMap(parent, fn)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = mapped.(N)
+	}
+
+	return result, nil
 }
 
 type DocCommentableNode interface {
@@ -517,6 +541,63 @@ func (n *NodeBase) Inspect() string {
 }
 
 func (n *NodeBase) Error() string {
+	return n.Inspect()
+}
+
+// Base AST node without a location.
+type AbsentNodeBase struct{}
+
+func (AbsentNodeBase) Type(globalEnv *types.GlobalEnvironment) types.Type {
+	return types.Void{}
+}
+
+func (AbsentNodeBase) SetType(types.Type) {}
+
+func (AbsentNodeBase) SkipTypechecking() bool {
+	return false
+}
+
+func (AbsentNodeBase) Span() *position.Span {
+	return nil
+}
+
+func (AbsentNodeBase) SetSpan(span *position.Span) {}
+
+func (n AbsentNodeBase) Location() *position.Location {
+	return nil
+}
+
+func (n AbsentNodeBase) SetLocation(loc *position.Location) {}
+
+func (n AbsentNodeBase) Class() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) DirectClass() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) SingletonClass() *value.Class {
+	return nil
+}
+
+func (n AbsentNodeBase) InstanceVariables() *value.InstanceVariables {
+	return nil
+}
+
+func (n AbsentNodeBase) Copy() value.Reference {
+	return n
+}
+
+func (n AbsentNodeBase) ToValue() value.Value {
+	return value.Ref(n)
+}
+
+func (n AbsentNodeBase) Inspect() string {
+	return fmt.Sprintf("Std::Node{}")
+}
+
+func (n AbsentNodeBase) Error() string {
 	return n.Inspect()
 }
 

@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -8,7 +10,26 @@ import (
 // ::Std::ArrayList
 func initArrayList() {
 	// Instance methods
-	c := &value.ArrayListClass.MethodContainer
+	c := value.ArrayListClass
+	Def(
+		c,
+		"#init",
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(*value.ArrayListOfValue)
+			entries := args[1]
+
+			for entry, err := range Iterate(thread, entries) {
+				if err.IsNotUndefined() {
+					return value.Undefined, err
+				}
+
+				self.AppendVal(entry)
+			}
+
+			return self.ToValue(), value.Undefined
+		},
+		DefWithParameters(1),
+	)
 	Def(
 		c,
 		"iter",
@@ -16,6 +37,29 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			iterator := self.IterList()
 			return iterator.ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			return args[0], value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_array_tuple",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			return self.ToArrayTuple().ToValue(), value.Undefined
+		},
+	)
+	Def(
+		c,
+		"to_sync_array_list",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			return self.ToSyncArrayList().ToValue(), value.Undefined
 		},
 	)
 	Def(
@@ -75,6 +119,18 @@ func initArrayList() {
 		DefWithParameters(1),
 	)
 	Alias(c, "at", "[]")
+
+	Def(
+		c,
+		"try_at",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			other := args[1]
+			return self.TryAtVal(other)
+		},
+		DefWithParameters(1),
+	)
+
 	Def(
 		c,
 		"[]=",
@@ -93,10 +149,10 @@ func initArrayList() {
 	Def(
 		c,
 		"+",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
 			other := args[1]
-			return self.ConcatVal(other)
+			return ArrayListConcat(thread, self, other)
 		},
 		DefWithParameters(1),
 	)
@@ -117,7 +173,7 @@ func initArrayList() {
 			self := args[0].AsReference().(value.ArrayList)
 			switch other := args[1].SafeAsReference().(type) {
 			case value.ArrayList:
-				equal, err := ArrayTupleEqual(vm, self, other)
+				equal, err := TupleEqual(vm, self, other)
 				if !err.IsUndefined() {
 					return value.Undefined, err
 				}
@@ -133,22 +189,13 @@ func initArrayList() {
 		"=~",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
-			switch other := args[1].SafeAsReference().(type) {
-			case value.ArrayList:
-				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			case value.ArrayTuple:
-				equal, err := ArrayTupleEqual(vm, self, other)
-				if !err.IsUndefined() {
-					return value.Undefined, err
-				}
-				return value.BoolVal(equal), value.Undefined
-			default:
-				return value.False.ToValue(), value.Undefined
+			other := args[1]
+			eq, err := TupleLaxEqualValue(vm, self, other)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
 			}
+
+			return value.Bool(eq).ToValue(), value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -219,8 +266,22 @@ func initArrayList() {
 		"remove_at",
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(value.ArrayList)
-			val := args[1].AsInt()
-			return value.Nil, self.RemoveAtErr(val)
+			val := args[1]
+			return value.Nil, self.RemoveAtVal(val)
+		},
+		DefWithParameters(1),
+	)
+	Def(
+		c,
+		"remove_at_range",
+		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].AsReference().(value.ArrayList)
+			rng := args[1]
+			err := value.ArrayListInterfaceRemoveAtRange(self, rng)
+			if err.IsNotUndefined() {
+				return value.Undefined, err
+			}
+			return value.Nil, value.Undefined
 		},
 		DefWithParameters(1),
 	)
@@ -318,7 +379,7 @@ func initArrayList() {
 // ::Std::ArrayList::Iterator
 func initArrayListIterator() {
 	// Instance methods
-	c := &value.ArrayListIteratorClass.MethodContainer
+	c := value.ArrayListIteratorClass
 	Def(
 		c,
 		"next",
@@ -343,4 +404,62 @@ func initArrayListIterator() {
 			return args[0], value.Undefined
 		},
 	)
+}
+
+func ArrayListConcat(thread *Thread, l value.ArrayList, other value.Value) (value.Value, value.Value) {
+	switch l := l.(type) {
+	case *value.ArrayListOfValue:
+		return value.RefErr(ArrayListOfValueConcat(thread, l, other))
+	case value.ArrayList:
+		return ArrayListInterfaceConcat(thread, l, other)
+	default:
+		panic(fmt.Sprintf("invalid arraylist type for concat: %T", l))
+	}
+}
+
+func ArrayListOfValueConcat(thread *Thread, l *value.ArrayListOfValue, other value.Value) (*value.ArrayListOfValue, value.Value) {
+	result, ok := l.ConcatOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+
+	newList := make(value.ArrayListOfValue, len(*l), len(*l))
+	copy(newList, *l)
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return nil, err
+		}
+
+		newList[len(*l)+i] = element
+		i++
+	}
+
+	return &newList, value.Undefined
+}
+
+func ArrayListInterfaceConcat(thread *Thread, l value.ArrayList, other value.Value) (value.Value, value.Value) {
+	result, ok := l.ConcatValOk(other)
+	if ok {
+		return result, value.Undefined
+	}
+
+	length := l.Length()
+	newList := make(value.ArrayListOfValue, length, length)
+	for i, element := range l.Elements() {
+		newList[i] = element
+	}
+
+	i := 0
+	for element, err := range Iterate(thread, other) {
+		if err.IsNotUndefined() {
+			return value.Undefined, err
+		}
+
+		newList[length+i] = element
+		i++
+	}
+
+	return (&newList).ToValue(), value.Undefined
 }

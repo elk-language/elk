@@ -47,6 +47,17 @@ func (n *ArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent No
 	return leave(n, parent)
 }
 
+func (n *ArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (t *ArrayTupleLiteralNode) IsStatic() bool {
 	if t.static == staticUnset {
 		if isExpressionSliceStatic(t.Elements) {
@@ -95,6 +106,25 @@ func (n *ArrayTupleLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *ArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -205,6 +235,17 @@ func (n *WordArrayTupleLiteralNode) traverse(parent Node, enter func(node, paren
 	return leave(n, parent)
 }
 
+func (n *WordArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewWordArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
 	if !ok {
@@ -218,6 +259,25 @@ func (n *WordArrayTupleLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *WordArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*WordArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -343,6 +403,17 @@ func (n *SymbolArrayTupleLiteralNode) traverse(parent Node, enter func(node, par
 	return leave(n, parent)
 }
 
+func (n *SymbolArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewSymbolArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *SymbolArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*SymbolArrayTupleLiteralNode)
@@ -357,6 +428,25 @@ func (n *SymbolArrayTupleLiteralNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *SymbolArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*SymbolArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -483,6 +573,17 @@ func (n *HexArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *HexArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewHexArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
@@ -501,6 +602,25 @@ func (n *HexArrayTupleLiteralNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *HexArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*HexArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
@@ -622,6 +742,17 @@ func (n *BinArrayTupleLiteralNode) traverse(parent Node, enter func(node, parent
 	return leave(n, parent)
 }
 
+func (n *BinArrayTupleLiteralNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewBinArrayTupleLiteralNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*BinArrayTupleLiteralNode)
 	if !ok {
@@ -641,6 +772,28 @@ func (n *BinArrayTupleLiteralNode) Equal(other value.Value) bool {
 			continue
 		}
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *BinArrayTupleLiteralNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*BinArrayTupleLiteralNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if element == o.Elements[i] {
+			continue
+		}
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}
@@ -767,6 +920,17 @@ func (n *TuplePatternNode) traverse(parent Node, enter func(node, parent Node) T
 	return leave(n, parent)
 }
 
+func (n *TuplePatternNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	elements, err := traverseMapSlice(n.Elements, n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode := NewTuplePatternNode(n.loc, elements)
+
+	return fn(newNode, parent)
+}
+
 func (n *TuplePatternNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*TuplePatternNode)
 	if !ok {
@@ -780,6 +944,25 @@ func (n *TuplePatternNode) Equal(other value.Value) bool {
 
 	for i, element := range n.Elements {
 		if !element.Equal(value.Ref(o.Elements[i])) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (n *TuplePatternNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*TuplePatternNode)
+	if !ok {
+		return false
+	}
+
+	if len(n.Elements) != len(o.Elements) {
+		return false
+	}
+
+	for i, element := range n.Elements {
+		if !element.LaxEqual(value.Ref(o.Elements[i])) {
 			return false
 		}
 	}

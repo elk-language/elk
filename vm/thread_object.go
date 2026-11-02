@@ -49,7 +49,7 @@ func (vm *Thread) State() State {
 // Std::Thread
 func initThread() {
 	// Instance methods
-	c := &value.ThreadClass.MethodContainer
+	c := value.ThreadClass
 
 	Def(
 		c,

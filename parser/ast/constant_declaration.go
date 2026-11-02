@@ -72,6 +72,35 @@ func (n *ConstantDeclarationNode) traverse(parent Node, enter func(node, parent 
 	return leave(n, parent)
 }
 
+func (n *ConstantDeclarationNode) traverseMap(parent Node, fn func(node, parent Node) (Node, error)) (Node, error) {
+	constant, err := n.Constant.traverseMap(n, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	var typ TypeNode
+	if n.TypeNode != nil {
+		mapped, err := n.TypeNode.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		typ = mapped.(TypeNode)
+	}
+
+	var init ExpressionNode
+	if n.Initialiser != nil {
+		mapped, err := n.Initialiser.traverseMap(n, fn)
+		if err != nil {
+			return nil, err
+		}
+		init = mapped.(ExpressionNode)
+	}
+
+	newNode := NewConstantDeclarationNode(n.loc, n.DocComment(), constant.(ExpressionNode), typ, init)
+
+	return fn(newNode, parent)
+}
+
 // Check if this node equals another node.
 func (n *ConstantDeclarationNode) Equal(other value.Value) bool {
 	o, ok := other.SafeAsReference().(*ConstantDeclarationNode)
@@ -102,6 +131,37 @@ func (n *ConstantDeclarationNode) Equal(other value.Value) bool {
 	}
 
 	return n.loc.Equal(o.loc)
+}
+
+func (n *ConstantDeclarationNode) LaxEqual(other value.Value) bool {
+	o, ok := other.SafeAsReference().(*ConstantDeclarationNode)
+	if !ok {
+		return false
+	}
+
+	if n.DocComment() != o.DocComment() {
+		return false
+	}
+
+	if !n.Constant.LaxEqual(value.Ref(o.Constant)) {
+		return false
+	}
+
+	if n.TypeNode == o.TypeNode {
+	} else if n.TypeNode == nil || o.TypeNode == nil {
+		return false
+	} else if !n.TypeNode.LaxEqual(value.Ref(o.TypeNode)) {
+		return false
+	}
+
+	if n.Initialiser == o.Initialiser {
+	} else if n.Initialiser == nil || o.Initialiser == nil {
+		return false
+	} else if !n.Initialiser.LaxEqual(value.Ref(o.Initialiser)) {
+		return false
+	}
+
+	return true
 }
 
 // Return a string representation of the node.
