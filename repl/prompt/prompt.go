@@ -40,6 +40,10 @@ func Run(executor goprompt.Executor, opts ...goprompt.Option) {
 			goprompt.WithKeyBindMode(goprompt.CustomOverrideEmacsKeyBind),
 			goprompt.WithKeyBind(
 				goprompt.KeyBind{
+					Key: goprompt.ControlO,
+					Fn:  insertNewline,
+				},
+				goprompt.KeyBind{
 					Key: goprompt.AltRight,
 					Fn:  cursorRight,
 				},
@@ -65,6 +69,11 @@ func Run(executor goprompt.Executor, opts ...goprompt.Option) {
 		opts...,
 	)
 	p.Run()
+}
+
+func insertNewline(p *goprompt.Prompt) bool {
+	p.Buffer().NewLine(p.UserInputColumns(), p.TerminalRows(), false)
+	return true
 }
 
 func cursorRight(p *goprompt.Prompt) bool {
@@ -225,6 +234,12 @@ func executeOnEnter(pr *goprompt.Prompt, indentSize int) (indent int, execute bo
 		}
 		if p.IsIncomplete() {
 			return indent, false
+		}
+
+		lastChar, _ := utf8.DecodeLastRuneInString(currentLine)
+		switch lastChar {
+		case ';', '\\':
+			return 0, false
 		}
 
 		return 0, true
