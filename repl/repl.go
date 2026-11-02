@@ -551,7 +551,7 @@ func Run(ctx context.Context, opts *Options) error {
 		return err
 	}
 
-	replHistoryFilePath := filepath.Join(elkDir, ".repl-history")
+	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
 	prompt.Run(
 		eval.executor,
 		goprompt.WithExitChecker(exitChecker),
