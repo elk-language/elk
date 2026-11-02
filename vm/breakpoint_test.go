@@ -76,7 +76,7 @@ func TestBreakpointInGoReadsCapturedVariables(t *testing.T) {
 			vm.BREAKPOINT_HANDLER = breakpointFunc(func(thread *vm.Thread, ctx value.Value) error {
 				context := ctx.AsReference().(*compiler.BytecodeBreakpointContext)
 				typechecker := checker.NewBreakpointChecker(context)
-				fn, dl := typechecker.CheckBreakpointSource("<bp>", tc.expr)
+				fn, dl := typechecker.CheckBreakpointSource("<bp>", tc.expr, nil)
 				if dl != nil && dl.IsFailure() {
 					gotErr = dl.Error()
 					return nil
