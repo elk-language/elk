@@ -40,6 +40,7 @@ type evaluator struct {
 	elkTypechecker *checker.Checker
 	goTypechecker  *types.GoTypechecker
 	prepend        []ast.StatementNode
+	prompt         *goprompt.Prompt
 }
 
 func (e *evaluator) sourceName() string {
@@ -138,7 +139,10 @@ func (e *evaluator) evaluate(input string) {
 	case ":v", ":variables":
 		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
@@ -251,7 +255,10 @@ func (e *evaluator) parse(input string) {
 		fmt.Println()
 		return
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 	}
@@ -297,7 +304,10 @@ func (e *evaluator) disassemble(input string) {
 	case ":v", ":variables":
 		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
@@ -335,7 +345,10 @@ func (e *evaluator) transpile(input string) {
 		fmt.Println()
 		return
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 	}
@@ -387,7 +400,10 @@ func (e *evaluator) native(input string) {
 		fmt.Println()
 		return
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 	}
@@ -435,7 +451,10 @@ func (e *evaluator) typecheck(input string) {
 		fmt.Println()
 		return
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 	}
@@ -484,7 +503,10 @@ func (e *evaluator) expand(input string) {
 		fmt.Println()
 		return
 	case ":h", ":help", "help":
-		fmt.Print(helpMessage)
+		printHelp()
+		return
+	case ":clear", "clear":
+		e.prompt.ClearScreen()
 		return
 	default:
 	}
@@ -552,26 +574,38 @@ func Run(ctx context.Context, opts *Options) error {
 	}
 
 	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
-	prompt.Run(
+	eval.prompt = prompt.New(
 		eval.executor,
 		goprompt.WithExitChecker(exitChecker),
 		goprompt.WithFSHistory(replHistoryFilePath),
 	)
+	eval.prompt.Run()
 
 	return nil
 }
 
-var helpMessage = `
+var helpBanner = `
 Elk REPL Help
+=============
+`
 
+var commandsHelp = `
 Available Commands:
   :quit, :q, exit         Exit the program
   :help, :h, help         Print this help message
   :variables, :v          Inspect the currently available variables
   :stack, :s              Inspect the values on the VM's stack
   :disassemble, :disasm   Disassemble the bytecode of the previous input and print it
-
+  :clear, clear           Clear the screen
 `
+
+func printHelp() {
+	fmt.Print(helpBanner)
+	fmt.Print(prompt.KeyBindsHelp)
+	fmt.Println()
+	fmt.Print(commandsHelp)
+	fmt.Println()
+}
 
 func exitChecker(input string, breakline bool) bool {
 	if !breakline {
