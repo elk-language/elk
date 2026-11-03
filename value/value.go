@@ -6,6 +6,7 @@ import (
 	"iter"
 	"math"
 	"strings"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/elk-language/elk/value/symbol"
@@ -559,6 +560,20 @@ func (v Value) AsReference() Reference {
 
 func (v Value) Pointer() unsafe.Pointer {
 	return v.ptr
+}
+
+// AtomicPointer does a atomic read of the pointer within Value.
+// This method is unsafe.
+func (v *Value) AtomicPointer() unsafe.Pointer {
+	return atomic.LoadPointer(&v.ptr)
+}
+
+// StoreAtomicPointer stores a new pointer in this Value.
+// This method is unsafe. The new pointer must point to
+// a value of the same type as the one that is already stored
+// within this Value.
+func (v *Value) StoreAtomicPointer(ptr unsafe.Pointer) {
+	atomic.StorePointer(&v.ptr, ptr)
 }
 
 func (v Value) MustReference() Reference {
