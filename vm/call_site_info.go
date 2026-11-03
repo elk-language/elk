@@ -2,6 +2,8 @@ package vm
 
 import (
 	"fmt"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/elk-language/elk/value"
 )
@@ -19,7 +21,11 @@ type CallCache struct {
 }
 
 func LookupMethodInCache(class *value.Class, name value.Symbol, cacheLoc **CallCache) value.Method {
-	cache := *cacheLoc
+	// The pointer sits in a package-level variable shared by goroutines.
+	// The load and the store are atomic so a reader that sees the new cache
+	// also sees every entry written into it.
+	loc := (*unsafe.Pointer)(unsafe.Pointer(cacheLoc))
+	cache := (*CallCache)(atomic.LoadPointer(loc))
 	for i := range len(cache.Entries) {
 		cacheEntry := cache.Entries[i]
 		if cacheEntry.Class == class {
@@ -27,14 +33,16 @@ func LookupMethodInCache(class *value.Class, name value.Symbol, cacheLoc **CallC
 		}
 		if cacheEntry.Class == nil {
 			method := class.LookupMethod(name)
-			newEntries := cache.Entries
-			newEntries[i] = CallCacheEntry{
+			var entries [3]CallCacheEntry
+			for j := range i {
+				entries[j] = cache.Entries[j]
+			}
+			entries[i] = CallCacheEntry{
 				Class:  class,
 				Method: method,
 			}
-			*cacheLoc = &CallCache{
-				Entries: newEntries,
-			}
+			published := &CallCache{Entries: entries}
+			atomic.StorePointer(loc, unsafe.Pointer(published))
 			return method
 		}
 	}

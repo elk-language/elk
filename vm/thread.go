@@ -1881,16 +1881,22 @@ func (vm *Thread) lookupMethod(class *value.Class, callInfo *CallSiteInfo, index
 		}
 		if cacheEntry.Class == nil {
 			method := class.LookupMethod(callInfo.Name)
-			newCache := callInfo.Cache
-			newCache[i] = CallCacheEntry{
+			name := callInfo.Name
+			argCount := callInfo.ArgumentCount
+			var cache [3]CallCacheEntry
+			for j := range i {
+				cache[j] = callInfo.Cache[j]
+			}
+			cache[i] = CallCacheEntry{
 				Class:  class,
 				Method: method,
 			}
-			vm.bytecode.Values[index] = value.Ref(&CallSiteInfo{
-				Name:          callInfo.Name,
-				ArgumentCount: callInfo.ArgumentCount,
-				Cache:         newCache,
-			})
+			published := &CallSiteInfo{
+				Name:          name,
+				ArgumentCount: argCount,
+				Cache:         cache,
+			}
+			vm.bytecode.Values[index].StoreAtomicPointer(unsafe.Pointer(published))
 			return method
 		}
 	}
@@ -2134,7 +2140,7 @@ func (vm *Thread) opInstantiate(args int) (err value.Value) {
 
 // Call the `opCall` method with an explicit receiver
 func (vm *Thread) opCall(callInfoIndex int) (err value.Value) {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*CallSiteInfo)
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].AtomicPointer())
 
 	self := vm.spAdd(-callInfo.ArgumentCount - 1).SafeAsReference()
 	switch self := self.(type) {
@@ -2188,7 +2194,7 @@ func (vm *Thread) callBytecodeClosure(closure *BytecodeClosure, callInfo *CallSi
 
 // Call a method with tail call optimisation
 func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
-	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].AtomicPointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2212,7 +2218,7 @@ func (vm *Thread) opCallMethodTCO(callInfoIndex int) (err value.Value) {
 
 // Call a method
 func (vm *Thread) opCallMethod(callInfoIndex int) (err value.Value) {
-	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].Pointer())
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].AtomicPointer())
 
 	selfPtr := vm.spAdd(-callInfo.ArgumentCount - 1)
 	self := *selfPtr
@@ -2610,7 +2616,7 @@ func (vm *Thread) opGetIterator() {
 
 // Get the next element of an iterator
 func (vm *Thread) opNext(callInfoIndex int) value.Value {
-	callInfo := vm.bytecode.Values[callInfoIndex].AsReference().(*CallSiteInfo)
+	callInfo := (*CallSiteInfo)(vm.bytecode.Values[callInfoIndex].AtomicPointer())
 	iterator := vm.peek()
 
 	method := vm.lookupMethod(iterator.DirectClass(), callInfo, callInfoIndex)
