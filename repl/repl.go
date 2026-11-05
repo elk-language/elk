@@ -44,6 +44,7 @@ type evaluator struct {
 	goTypechecker             *compilerTypes.GoTypechecker
 	prepend                   []ast.StatementNode
 	prompt                    *goprompt.Prompt
+	completer                 goprompt.Completer
 	lastCompletionSource      string
 	lastCompletionProgramNode *ast.ProgramNode
 }
@@ -290,11 +291,6 @@ func (e *evaluator) disassemble(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
 
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
-
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
 
@@ -460,10 +456,6 @@ func (e *evaluator) typecheck(input string) {
 	default:
 	}
 
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
 	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
@@ -512,10 +504,6 @@ func (e *evaluator) expand(input string) {
 	default:
 	}
 
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
 	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
 	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
 	e.prepend = e.usingToPrepend(using)
@@ -555,7 +543,7 @@ func (e *evaluator) lex(input string) {
 }
 
 // Handles autocomplete
-func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	source := doc.Text
 	var programNode *ast.ProgramNode
 	if e.lastCompletionSource == source && e.lastCompletionProgramNode != nil {
@@ -601,12 +589,6 @@ func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Sug
 		return
 	}
 
-	log("narrowestNode: %s", narrowestNode.Inspect())
-	if narrowestMethodCallNode != nil {
-		log(", narrowestMethodNode: %s", narrowestMethodCallNode.Inspect())
-	}
-	log("\n")
-
 	var receiverNode ast.ExpressionNode
 	var nameNode ast.IdentifierNode
 	switch n := narrowestMethodCallNode.(type) {
@@ -642,8 +624,6 @@ func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Sug
 		startChar = pstrings.RuneNumber(cursorOffset)
 		endChar = pstrings.RuneNumber(cursorOffset)
 	}
-
-	log("startChar: %d, endChar: %d\n", startChar, endChar)
 
 	for name, method := range e.elkTypechecker.MethodsInNamespace(receiverNamespace) {
 		if strings.Contains(name.String(), currentName) {
@@ -733,6 +713,7 @@ func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 		ctx:          ctx,
 		inspectStack: opts.InspectStack,
 		sourceMap:    make(map[string]string),
+		completer:    goprompt.NoopCompleter,
 	}
 	eval.setExecutor(opts)
 	return eval
@@ -745,6 +726,11 @@ func (e *evaluator) setExecutor(opts *Options) {
 		return
 	}
 	if opts.Disassemble {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetREPL(true)
+		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
+
+		e.completer = e.complete
 		e.executor = e.disassemble
 		info.CurrentMode = info.ReplDisassemble
 		return
@@ -771,11 +757,19 @@ func (e *evaluator) setExecutor(opts *Options) {
 		return
 	}
 	if opts.Typecheck {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetREPL(true)
+
+		e.completer = e.complete
 		e.executor = e.typecheck
 		info.CurrentMode = info.ReplTypecheck
 		return
 	}
 	if opts.Expand {
+		e.elkTypechecker = checker.New()
+		e.elkTypechecker.SetREPL(true)
+
+		e.completer = e.complete
 		e.executor = e.expand
 		info.CurrentMode = info.ReplExpand
 		return
@@ -786,6 +780,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 	e.vm = vm.New()
 	e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
 
+	e.completer = e.complete
 	e.executor = e.evaluate
 	info.CurrentMode = info.ReplInterpretMode
 }

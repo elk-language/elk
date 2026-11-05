@@ -474,9 +474,6 @@ func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (co
 
 // Used in the REPL to typecheck the input for autocomplete
 func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.ProgramNode) diagnostic.DiagnosticList {
-	c.ASTCache.Set(sourceName, node)
-
-	prevReplAutocomplete := c.IsREPLAutocomplete()
 	c.SetREPLAutocomplete(true)
 
 	origEnv := c.runtimeEnv
@@ -513,7 +510,7 @@ func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.Prog
 	c.methodScopesCopyCache = nil
 	c.constantScopesCopyCache = nil
 
-	c.SetREPLAutocomplete(prevReplAutocomplete)
+	c.SetREPLAutocomplete(false)
 
 	return c.Errors.DiagnosticList
 }
@@ -765,7 +762,7 @@ func (c *Checker) compileMethods(methodCompiler compiler.Compiler, offset int, l
 
 // Whether the typechecker should compile the checked code
 func (c *Checker) shouldCompile() bool {
-	return !c.IsHeader() && c.compiler != nil && !c.Errors.IsFailure()
+	return !c.IsHeader() && !c.IsREPLAutocomplete() && c.compiler != nil && !c.Errors.IsFailure()
 }
 
 func (c *Checker) shouldCompileMacro() bool {
@@ -774,7 +771,7 @@ func (c *Checker) shouldCompileMacro() bool {
 
 // Create a new compiler that will define all methods
 func (c *Checker) initMethodCompiler(location *position.Location) (compiler.Compiler, int) {
-	if c.IsHeader() || c.Errors.IsFailure() {
+	if c.IsHeader() || c.IsREPLAutocomplete() || c.Errors.IsFailure() {
 		return nil, 0
 	}
 	return c.compiler.InitMethodCompiler(location)
@@ -801,7 +798,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
-	if c.IsHeader() {
+	if c.IsHeader() || c.IsREPLAutocomplete() {
 		return
 	}
 
