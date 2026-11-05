@@ -735,6 +735,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered, mutable collection\nof unique elements.", true, symbol.ToSymbol("Set"), env)
 			_ = namespace
 		}
+		namespace.TryDefineClass("Represents the number of bytes.", false, true, true, true, false, symbol.ToSymbol("Size"), objectClass, env)
 		{
 			namespace := namespace.TryDefineClass("Represents the state of the call stack at some point in time.", false, true, true, true, false, symbol.ToSymbol("StackTrace"), objectClass, env)
 			namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("Iterator"), objectClass, env)
@@ -8611,10 +8612,14 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol(">="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Bool", env), Never{})
 				namespace.DefineMethod("Returns an integer shifted right by `other` positions, or left if `other` is negative.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol(">>"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("Performs bitwise XOR.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("^"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` bytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("byte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` bytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("bytes"), nil, nil, NameToType("Std::Size", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` centuries.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("centuries"), nil, nil, NameToType("Std::Date::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` centuries.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("century"), nil, nil, NameToType("Std::Date::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` days.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("day"), nil, nil, NameToType("Std::Date::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` days.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("days"), nil, nil, NameToType("Std::Date::Span", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` gigabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("gigabyte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` gigabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("gigabytes"), nil, nil, NameToType("Std::Size", env), Never{})
 				namespace.DefineMethod("Calculates a hash of the int.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("hash"), nil, nil, NameToType("Std::UInt64", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` hours.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("hour"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` hours.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("hours"), nil, nil, NameToType("Std::Time::Span", env), Never{})
@@ -8622,6 +8627,10 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns `true` when the integer is even.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_even"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns `true` when the integer is odd.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_odd"), nil, nil, Bool{}, Never{})
 				namespace.DefineMethod("Returns an iterator that\niterates over every integer from `0` to `self`.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("iter"), nil, nil, NameToType("Std::Int::Iterator", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` kilobytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kilobyte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` kilobytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kilobytes"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` megabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("megabyte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` megabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("megabytes"), nil, nil, NameToType("Std::Size", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` microseconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("microsecond"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` microseconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("microseconds"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` millenia.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("millenia"), nil, nil, NameToType("Std::Date::Span", env), Never{})
@@ -8634,8 +8643,12 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Returns the duration equivalent to `self` months.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("months"), nil, nil, NameToType("Std::Date::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` nanoseconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("nanosecond"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` nanoseconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("nanoseconds"), nil, nil, NameToType("Std::Time::Span", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` petabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("petabyte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` petabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("petabytes"), nil, nil, NameToType("Std::Size", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` seconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("second"), nil, nil, NameToType("Std::Time::Span", env), Never{})
 				namespace.DefineMethod("Returns the duration equivalent to `self` seconds.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("seconds"), nil, nil, NameToType("Std::Time::Span", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` terabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("terabyte"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("Returns the size equivalent to `self` terabytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("terabytes"), nil, nil, NameToType("Std::Size", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("times"), nil, []*Parameter{NewParameter(symbol.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("call"), nil, []*Parameter{NewParameter(symbol.ToSymbol("i"), NameToType("Std::Int", env), NormalParameterKind, false)}, Void{}, Never{}, false), NormalParameterKind, false)}, Void{}, Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_ast_expr_node"), nil, nil, NameToType("Std::Elk::AST::IntLiteralNode", env), Never{})
 				namespace.DefineMethod("Returns the AST Node that represents the same value.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_ast_node"), nil, nil, NameToType("Std::Elk::AST::IntLiteralNode", env), Never{})
@@ -10498,6 +10511,56 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("Iterates over the elements of this set,\nyielding them to the given closure.\n\nReturns a new Set that consists of the elements returned\nby the given closure.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("map"), []*TypeParameter{NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(symbol.ToSymbol("fn"), NewCallableWithMethod("", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("call"), nil, []*Parameter{NewParameter(symbol.ToSymbol("element"), NameToType("Std::Set::Val", env), NormalParameterKind, false)}, NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), false), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT), INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NewTypeParameter(symbol.ToSymbol("E"), NewTypeParamNamespace("Type Parameter Container of map", true), Never{}, Any{}, nil, INVARIANT))
 				namespace.DefineMethod("Adds the given value to the set.\n\nReturns `false` if the value is already present in the set.\nOtherwise returns `true`.", 0|METHOD_ABSTRACT_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("value"), NameToType("Std::Set::Val", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("Return the union of both sets.\n\nCreate a new set containing all the elements\npresent in `self` and `other`.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("|"), []*TypeParameter{NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT)}, []*Parameter{NewParameter(symbol.ToSymbol("other"), NewGeneric(NameToType("Std::ImmutableSet", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT), COVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), NormalParameterKind, false)}, NewGeneric(NameToType("Std::Set", env).(*Mixin), NewTypeArguments(TypeArgumentMap{symbol.ToSymbol("Val"): NewTypeArgument(NewUnion(NameToType("Std::Set::Val", env), NewTypeParameter(symbol.ToSymbol("V"), NewTypeParamNamespace("Type Parameter Container of +", true), Never{}, Any{}, nil, INVARIANT)), INVARIANT)}, []symbol.Symbol{symbol.ToSymbol("Val")})), Never{})
+
+				// Define constants
+
+				// Define instance variables
+			}
+			{
+				namespace := namespace.MustSubtypeString("Size").(*Class)
+
+				_ = namespace
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*@1"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*@2"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("*@3"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("+"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("+@"), nil, nil, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("-"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG, symbol.ToSymbol("-@"), nil, nil, NameToType("Std::Size", env), Never{})
+				method = namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::CoercibleNumeric", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{}, namespace))
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/@1"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Int", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/@2"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Float", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("/@3"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::BigFloat", env), NormalParameterKind, false)}, NameToType("Std::Size", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("<"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("<="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("<=>"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol(">"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol(">="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
+				namespace.DefineMethod("Returns the amount of full bytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("bytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full gigabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("gigabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of bytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_bytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of gigabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_gigabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of kilobytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_kilobytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of megabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_megabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of petabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_petabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of terabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_terabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the amount of full kilobytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("kilobytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full megabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("megabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full petabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("petabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full terabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("terabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the size in the format \"1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes\".", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
 

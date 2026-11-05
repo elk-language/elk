@@ -330,6 +330,42 @@ sealed noinit primitive class ::Std::Int < Value
 	]##
 	pure def iter: Iterator; end
 
+	##[
+		Returns the size equivalent to `self` bytes.
+	]##
+	pure def bytes: Size; end
+	alias byte bytes
+
+	##[
+		Returns the size equivalent to `self` kilobytes.
+	]##
+	pure def kilobytes: Size; end
+	alias kilobyte kilobytes
+
+	##[
+		Returns the size equivalent to `self` megabytes.
+	]##
+	pure def megabytes: Size; end
+	alias megabyte megabytes
+
+	##[
+		Returns the size equivalent to `self` gigabytes.
+	]##
+	pure def gigabytes: Size; end
+	alias gigabyte gigabytes
+
+	##[
+		Returns the size equivalent to `self` terabytes.
+	]##
+	pure def terabytes: Size; end
+	alias terabyte terabytes
+
+	##[
+		Returns the size equivalent to `self` petabytes.
+	]##
+	pure def petabytes: Size; end
+	alias petabyte petabytes
+
 	class Iterator
 		include ::Std::Iterator::Base[Int]
 
