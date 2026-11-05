@@ -144,6 +144,7 @@ const (
 	conditionFlag            // checked expression is a part of an if/unless condition
 	definedMacrosFlag        // indicates that the typechecker has defined some macros
 	replFlag                 // indicates the typechecker should check and compiler code incrementally (REPL)
+	replAutocompleteFlag     // indicates the typechecker is used for autocomplete in the REPL
 	hasDeferFlag             // indicates that defer is used in the current context eg. a function
 	readonlyTypecheckingFlag // indicates that no state of the typechecker should be modified during typechecking
 )
@@ -254,6 +255,18 @@ func NewMacroChecker() *Checker {
 
 func (c *Checker) SelfType() types.Type {
 	return c.selfType
+}
+
+func (c *Checker) IsREPLAutocomplete() bool {
+	return c.flags.HasFlag(replAutocompleteFlag)
+}
+
+func (c *Checker) SetREPLAutocomplete(val bool) {
+	if val {
+		c.flags.SetFlag(replAutocompleteFlag)
+	} else {
+		c.flags.UnsetFlag(replAutocompleteFlag)
+	}
 }
 
 func (c *Checker) IsHeader() bool {
@@ -413,6 +426,17 @@ func (c *Checker) CheckSourceREPL(sourceName string, source string, prepend []as
 	return c.CheckProgramREPL(sourceName, ast)
 }
 
+// Used in the REPL to typecheck the input for autocomplete
+func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, prepend []ast.StatementNode) *ast.ProgramNode {
+	ast, _ := parser.Parse(sourceName, source)
+	if len(prepend) > 0 {
+		ast.Body = append(prepend, ast.Body...)
+	}
+
+	c.CheckProgramREPLAutocomplete(sourceName, ast)
+	return ast
+}
+
 // Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (compiler.Compiler, diagnostic.DiagnosticList) {
 	c.ASTCache.Set(sourceName, node)
@@ -446,6 +470,52 @@ func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (co
 		return nil, c.Errors.DiagnosticList
 	}
 	return compiler, c.Errors.DiagnosticList
+}
+
+// Used in the REPL to typecheck the input for autocomplete
+func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.ProgramNode) diagnostic.DiagnosticList {
+	c.ASTCache.Set(sourceName, node)
+
+	prevReplAutocomplete := c.IsREPLAutocomplete()
+	c.SetREPLAutocomplete(true)
+
+	origEnv := c.runtimeEnv
+	origLocalEnv := c.localEnvs
+	origConstantScopes := c.constantScopes
+	origMethodScopes := c.methodScopes
+
+	// copy the global environment (classes, modules, mixins, methods, constants etc)
+	// to restore it in case of errors
+	envCopy := c.runtimeEnv.DeepCopyEnv()
+	localEnvsCopy := c.deepCopyLocalEnvs(c.runtimeEnv, envCopy)
+	constantScopesCopy := c.deepCopyConstantScopes(c.runtimeEnv, envCopy)
+	methodScopesCopy := c.deepCopyMethodScopes(c.runtimeEnv, envCopy)
+	c.methodScopesCopyCache = nil
+	c.constantScopesCopyCache = nil
+
+	c.setRuntimeGlobalEnv(envCopy)
+	c.localEnvs = localEnvsCopy
+	c.constantScopes = constantScopesCopy
+	c.methodScopes = methodScopesCopy
+
+	c.Filename = sourceName
+	c.methodBodyChecks = nil
+	c.macroChecks = nil
+	c.signatureChecks = ds.NewOrderedMap[string, *[]signatureCheckEntry]()
+	c.setDefinedMacros(false)
+	c.CheckProgram(node)
+
+	// restore the previous global environment
+	c.setRuntimeGlobalEnv(origEnv)
+	c.localEnvs = origLocalEnv
+	c.constantScopes = origConstantScopes
+	c.methodScopes = origMethodScopes
+	c.methodScopesCopyCache = nil
+	c.constantScopesCopyCache = nil
+
+	c.SetREPLAutocomplete(prevReplAutocomplete)
+
+	return c.Errors.DiagnosticList
 }
 
 // Used in the REPL to typecheck and compile the input to bytecode

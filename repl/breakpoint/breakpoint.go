@@ -173,22 +173,6 @@ func printHelp() {
 	fmt.Println()
 }
 
-func exitChecker(input string, breakline bool) bool {
-	if !breakline {
-		return false
-	}
-
-	switch input {
-	case ":c", ":continue":
-		return true
-	case ":q", ":quit", "exit":
-		os.Exit(0)
-		return true
-	default:
-		return false
-	}
-}
-
 type BreakpointHandler struct{}
 
 func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value) error {
@@ -206,7 +190,6 @@ func NewPrompt(executor goprompt.Executor) (*goprompt.Prompt, error) {
 		executor,
 		goprompt.WithPrefix("!> "),
 		goprompt.WithPrefixTextColor(goprompt.Yellow),
-		goprompt.WithExitChecker(exitChecker),
 		goprompt.WithFSHistory(breakpointHistoryFilePath),
 	)
 	return p, nil
