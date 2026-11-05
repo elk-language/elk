@@ -1820,10 +1820,15 @@ methodCallLoop:
 			p.updateErrorMode(true)
 			p.indentedSection = false
 			errTok := p.advance()
-			return ast.NewInvalidNode(
-				errTok.Location(),
-				errTok,
+			receiver = ast.NewAttributeAccessNode(
+				location,
+				receiver,
+				ast.NewInvalidNode(
+					errTok.Location(),
+					errTok,
+				),
 			)
+			continue
 		}
 
 		switch p.lookahead.Type {

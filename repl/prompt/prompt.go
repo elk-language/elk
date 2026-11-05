@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"os"
 	"strings"
 	"unicode/utf8"
 
@@ -31,12 +32,29 @@ func (l *Lexer) Next() (goprompt.Token, bool) {
 	return t, true
 }
 
+func exitChecker(input string, breakline bool) bool {
+	if !breakline {
+		return false
+	}
+
+	switch input {
+	case ":c", ":continue":
+		return true
+	case ":q", ":quit", "exit":
+		os.Exit(0)
+		return true
+	default:
+		return false
+	}
+}
+
 func New(executor goprompt.Executor, opts ...goprompt.Option) *goprompt.Prompt {
 	opts = append(
 		[]goprompt.Option{
 			goprompt.WithLexer(&Lexer{}),
 			goprompt.WithExecuteOnEnterCallback(executeOnEnter),
 			goprompt.WithPrefix(">> "),
+			goprompt.WithExitChecker(exitChecker),
 			goprompt.WithKeyBindMode(goprompt.CustomOverrideEmacsKeyBind),
 			goprompt.WithKeyBind(
 				goprompt.KeyBind{
@@ -398,6 +416,9 @@ func executeOnEnter(pr *goprompt.Prompt, indentSize int) (indent int, execute bo
 	doc := pr.Buffer().Document()
 	var input string
 	if doc.OnLastLine() {
+		if strings.HasSuffix(doc.Text, ";;") {
+			return 0, true
+		}
 		input = doc.Text
 	} else {
 		input = doc.TextBeforeCursor()

@@ -29,6 +29,7 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
+	pstrings "github.com/elk-language/go-prompt/strings"
 )
 
 type evaluator struct {
@@ -558,6 +559,11 @@ func (e *evaluator) lex(input string) {
 	fmt.Println()
 }
 
+// Handles autocomplete
+func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	return
+}
+
 type Options struct {
 	Disassemble  bool
 	Transpile    bool
@@ -581,8 +587,8 @@ func Run(ctx context.Context, opts *Options) error {
 	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
 	eval.prompt = prompt.New(
 		eval.executor,
-		goprompt.WithExitChecker(exitChecker),
 		goprompt.WithFSHistory(replHistoryFilePath),
+		goprompt.WithCompleter(eval.completer),
 	)
 	eval.prompt.Run()
 
@@ -610,20 +616,6 @@ func printHelp() {
 	fmt.Println()
 	fmt.Print(commandsHelp)
 	fmt.Println()
-}
-
-func exitChecker(input string, breakline bool) bool {
-	if !breakline {
-		return false
-	}
-
-	switch input {
-	case ":q", ":quit", "exit":
-		os.Exit(0)
-		return true
-	default:
-		return false
-	}
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {
