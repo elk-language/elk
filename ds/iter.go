@@ -4,6 +4,33 @@ import (
 	"iter"
 )
 
+// Collect values from iter.Seq2 into a slice
+func CollectValSeq2[K, V any](seq iter.Seq2[K, V]) []V {
+	result := make([]V, 0, 5)
+	for _, v := range seq {
+		result = append(result, v)
+	}
+	return result
+}
+
+// Collect keys from iter.Seq2 into a slice
+func CollectKeySeq2[K, V any](seq iter.Seq2[K, V]) []K {
+	result := make([]K, 0, 5)
+	for k := range seq {
+		result = append(result, k)
+	}
+	return result
+}
+
+// Collect keys from iter.Seq2 into a map
+func CollectSeq2[K comparable, V any](seq iter.Seq2[K, V]) map[K]V {
+	result := make(map[K]V, 5)
+	for k, v := range seq {
+		result[k] = v
+	}
+	return result
+}
+
 // Map elements of one slice and create a new slice
 // with those mapped values.
 func MapSlice[T, R any](input []T, f func(T) R) []R {

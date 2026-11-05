@@ -39,6 +39,14 @@ func (s *Span) Equal(other *Span) bool {
 		s.EndPos.Equal(other.EndPos)
 }
 
+func (s *Span) ByteCount() int {
+	return s.EndPos.ByteOffset - s.StartPos.ByteOffset + 1
+}
+
+func (s *Span) ByteIsWithin(byteOffset int) bool {
+	return s.StartPos.ByteOffset <= byteOffset && s.EndPos.ByteOffset >= byteOffset
+}
+
 func (s *Span) Span() *Span {
 	return s
 }

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -33,16 +34,18 @@ import (
 )
 
 type evaluator struct {
-	executor       goprompt.Executor
-	ctx            context.Context
-	vm             *vm.Thread
-	inspectStack   bool
-	sourceMap      map[string]string
-	inputIndex     int
-	elkTypechecker *checker.Checker
-	goTypechecker  *compilerTypes.GoTypechecker
-	prepend        []ast.StatementNode
-	prompt         *goprompt.Prompt
+	executor                  goprompt.Executor
+	ctx                       context.Context
+	vm                        *vm.Thread
+	inspectStack              bool
+	sourceMap                 map[string]string
+	inputIndex                int
+	elkTypechecker            *checker.Checker
+	goTypechecker             *compilerTypes.GoTypechecker
+	prepend                   []ast.StatementNode
+	prompt                    *goprompt.Prompt
+	lastCompletionSource      string
+	lastCompletionProgramNode *ast.ProgramNode
 }
 
 func (e *evaluator) sourceName() string {
@@ -117,14 +120,6 @@ func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
-
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-		e.vm = vm.New()
-
-		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
-	}
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -561,8 +556,123 @@ func (e *evaluator) lex(input string) {
 
 // Handles autocomplete
 func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	source := doc.Text
+	var programNode *ast.ProgramNode
+	if e.lastCompletionSource == source && e.lastCompletionProgramNode != nil {
+		programNode = e.lastCompletionProgramNode
+	} else {
+		programNode = e.elkTypechecker.CheckSourceREPLAutocomplete("<repl>", source, e.deepCopyPrepend())
+	}
+	e.elkTypechecker.ClearErrors()
+
+	cursorOffset := int(doc.CursorByteOffset())
+
+	var narrowestNode ast.Node
+	var narrowestMethodCallNode ast.Node
+	ast.Traverse(
+		programNode,
+		func(node, parent ast.Node) ast.TraverseOption {
+			loc := node.Location()
+			if cursorOffset < loc.StartPos.ByteOffset || cursorOffset-1 > loc.EndPos.ByteOffset {
+				return ast.TraverseSkip
+			}
+
+			if narrowestNode == nil {
+				narrowestNode = node
+				if ast.IsMethodCallNode(node) {
+					narrowestMethodCallNode = node
+				}
+				return ast.TraverseContinue
+			}
+
+			if node.Location().ByteCount() <= narrowestNode.Location().ByteCount() {
+				narrowestNode = node
+				if ast.IsMethodCallNode(node) {
+					narrowestMethodCallNode = node
+				}
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	if narrowestNode == nil {
+		return
+	}
+
+	log("narrowestNode: %s", narrowestNode.Inspect())
+	if narrowestMethodCallNode != nil {
+		log(", narrowestMethodNode: %s", narrowestMethodCallNode.Inspect())
+	}
+	log("\n")
+
+	var receiverNode ast.ExpressionNode
+	var nameNode ast.IdentifierNode
+	switch n := narrowestMethodCallNode.(type) {
+	case *ast.AttributeAccessNode:
+		receiverNode = n.Receiver
+		nameNode = n.AttributeName
+	case *ast.MethodCallNode:
+		receiverNode = n.Receiver
+		nameNode = n.MethodName
+	default:
+		return
+	}
+
+	receiverType := e.elkTypechecker.ToNonLiteral(e.elkTypechecker.TypeOf(receiverNode), true)
+	receiverNamespace, ok := receiverType.(types.Namespace)
+	if !ok {
+		return
+	}
+
+	var currentName string
+	switch n := nameNode.(type) {
+	case *ast.PublicIdentifierNode:
+		currentName = n.Value
+	case *ast.PrivateIdentifierNode:
+		currentName = n.Value
+	}
+
+	nameLocation := nameNode.Location()
+	if nameLocation.ByteIsWithin(cursorOffset - 1) {
+		startChar = pstrings.RuneNumber(nameLocation.StartPos.RuneOffset(source))
+		endChar = pstrings.RuneNumber(nameLocation.EndPos.RuneOffset(source)) + 1
+	} else {
+		startChar = pstrings.RuneNumber(cursorOffset)
+		endChar = pstrings.RuneNumber(cursorOffset)
+	}
+
+	log("startChar: %d, endChar: %d\n", startChar, endChar)
+
+	for name, method := range e.elkTypechecker.MethodsInNamespace(receiverNamespace) {
+		if strings.Contains(name.String(), currentName) {
+			suggestions = append(
+				suggestions,
+				goprompt.Suggest{
+					Text:        name.String(),
+					Description: method.DocComment,
+				},
+			)
+		}
+	}
+
 	return
 }
+
+// For debugging
+func log(format string, a ...any) {
+	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(fmt.Sprintf("error opening file: %v", err))
+	}
+	defer f.Close()
+	if _, err := fmt.Fprintf(f, format+"\n", a...); err != nil {
+		panic(err)
+	}
+}
+
+var _ = log
 
 type Options struct {
 	Disassemble  bool
@@ -670,6 +780,11 @@ func (e *evaluator) setExecutor(opts *Options) {
 		info.CurrentMode = info.ReplExpand
 		return
 	}
+
+	e.elkTypechecker = checker.New()
+	e.elkTypechecker.SetREPL(true)
+	e.vm = vm.New()
+	e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
 
 	e.executor = e.evaluate
 	info.CurrentMode = info.ReplInterpretMode

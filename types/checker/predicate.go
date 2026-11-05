@@ -207,7 +207,7 @@ func (c *Checker) intersectsWithInterface(a types.Type, b types.Namespace, typeA
 
 	// is a non-instantiated generic class/mixin
 
-	for _, abstractMethod := range c.methodsInNamespace(b) {
+	for _, abstractMethod := range c.MethodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(aNamespace, abstractMethod.Name)
 		if method == nil || !c.checkMethodCompatibilityForInterfaceIntersection(abstractMethod, method, nil, typeArgs) {
 			return false
@@ -261,7 +261,7 @@ func (c *Checker) classCanIntersectWithMixin(a *types.Class, b *types.Mixin) boo
 		return false
 	}
 
-	for mixinMethodName, mixinMethod := range c.methodsInNamespace(b) {
+	for mixinMethodName, mixinMethod := range c.MethodsInNamespace(b) {
 		classMethod := c.GetMethod(a, mixinMethodName, nil)
 		if classMethod == nil && mixinMethod.IsAbstract() && !a.IsAbstract() {
 			return false
@@ -286,7 +286,7 @@ func (c *Checker) canIntersectWithInterfaceOrMixin(a types.Type, b types.Namespa
 		return true
 	}
 
-	for ifaceMethodName, ifaceMethod := range c.methodsInNamespace(b) {
+	for ifaceMethodName, ifaceMethod := range c.MethodsInNamespace(b) {
 		bMethod := c.GetMethod(a, ifaceMethodName, nil)
 		if bMethod == nil {
 			continue
@@ -1121,7 +1121,7 @@ func (c *Checker) isImplicitSubtypeOfInterface(a types.Namespace, b types.Namesp
 	c.checkAllMethodSignaturesOfNamespace(b)
 
 abstractLoop:
-	for _, abstractMethod := range c.methodsInNamespace(b) {
+	for _, abstractMethod := range c.MethodsInNamespace(b) {
 		method := c.resolveMethodInNamespace(a, abstractMethod.Name)
 		if method == nil {
 			incorrectMethods = append(incorrectMethods, methodOverride{

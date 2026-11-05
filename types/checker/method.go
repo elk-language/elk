@@ -3017,7 +3017,7 @@ func (c *Checker) GetMethod(typ types.Type, name symbol.Symbol, errSpan *positio
 }
 
 // Iterates over every method of the namespace, resolving type parameters.
-func (c *Checker) methodsInNamespace(namespace types.Namespace) iter.Seq2[symbol.Symbol, *types.Method] {
+func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol.Symbol, *types.Method] {
 	return func(yield func(name symbol.Symbol, method *types.Method) bool) {
 		var generics []*types.Generic
 		seenMethods := make(ds.Set[symbol.Symbol])
