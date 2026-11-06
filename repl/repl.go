@@ -553,7 +553,8 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	}
 	e.elkTypechecker.ClearErrors()
 
-	cursorOffset := int(doc.CursorByteOffset())
+	cursorRuneOffset := doc.CursorRuneOffset()
+	cursorByteOffset := doc.CursorByteOffset()
 
 	var narrowestNode ast.Node
 	var narrowestMethodCallNode ast.Node
@@ -561,7 +562,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		programNode,
 		func(node, parent ast.Node) ast.TraverseOption {
 			loc := node.Location()
-			if cursorOffset < loc.StartPos.ByteOffset || cursorOffset-1 > loc.EndPos.ByteOffset {
+			if cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
 				return ast.TraverseSkip
 			}
 
@@ -617,12 +618,16 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	}
 
 	nameLocation := nameNode.Location()
-	if nameLocation.ByteIsWithin(cursorOffset - 1) {
+	if nameLocation.ByteIsWithin(int(cursorByteOffset - 1)) {
 		startChar = pstrings.RuneNumber(nameLocation.StartPos.RuneOffset(source))
 		endChar = pstrings.RuneNumber(nameLocation.EndPos.RuneOffset(source)) + 1
+		truncate := nameLocation.EndPos.ByteOffset - int(cursorByteOffset) + 1
+		if truncate > 0 {
+			currentName = currentName[:len(currentName)-truncate]
+		}
 	} else {
-		startChar = pstrings.RuneNumber(cursorOffset)
-		endChar = pstrings.RuneNumber(cursorOffset)
+		startChar = pstrings.RuneNumber(cursorRuneOffset)
+		endChar = pstrings.RuneNumber(cursorRuneOffset)
 	}
 
 	for name, method := range e.elkTypechecker.MethodsInNamespace(receiverNamespace) {
