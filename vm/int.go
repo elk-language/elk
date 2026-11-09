@@ -995,13 +995,13 @@ func initInt() {
 			self := args[0]
 			if self.IsSmallInt() {
 				newSize := value.Size(self.AsSmallInt())
-				return value.ToValueErr(newSize, value.Undefined)
+				return newSize.ToValue(), value.Undefined
 			}
 
 			switch s := self.AsReference().(type) {
 			case *value.BigInt:
 				newSize := value.Size(s.ToGoBigInt().Int64())
-				return value.ToValueErr(newSize, value.Undefined)
+				return newSize.ToValue(), value.Undefined
 			}
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
