@@ -121,4 +121,5 @@ func InitGlobalEnvironment() {
 	initSyncHashSetIterator()
 	initSyncOrderedHashSet()
 	initSyncOrderedHashSetIterator()
+	initSize()
 }

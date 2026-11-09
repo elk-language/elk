@@ -187,4 +187,5 @@ func InitGlobalEnvironment() {
 	initDateTime()
 	initDateTimeSpan()
 	initTimezone()
+	initSize()
 }

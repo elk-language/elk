@@ -987,6 +987,82 @@ func initInt() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
+
+	Def(
+		c,
+		"bytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			if self.IsSmallInt() {
+				newSize := value.Size(self.AsSmallInt())
+				return newSize.ToValue(), value.Undefined
+			}
+
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				newSize := value.Size(s.ToGoBigInt().Int64())
+				return newSize.ToValue(), value.Undefined
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
+		},
+	)
+	Alias(c, "byte", "bytes")
+
+	Def(
+		c,
+		"kilobytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			base := value.Kilobyte
+			return value.ToValueErr(base.MultiplyInt(self))
+		},
+	)
+	Alias(c, "kilobyte", "kilobytes")
+
+	Def(
+		c,
+		"megabytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			base := value.Megabyte
+			return value.ToValueErr(base.MultiplyInt(self))
+		},
+	)
+	Alias(c, "megabyte", "megabytes")
+
+	Def(
+		c,
+		"gigabytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			base := value.Gigabyte
+			return value.ToValueErr(base.MultiplyInt(self))
+		},
+	)
+	Alias(c, "gigabyte", "gigabytes")
+
+	Def(
+		c,
+		"terabytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			base := value.Terabyte
+			return value.ToValueErr(base.MultiplyInt(self))
+		},
+	)
+	Alias(c, "terabyte", "terabytes")
+
+	Def(
+		c,
+		"petabytes",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			base := value.Petabyte
+			return value.ToValueErr(base.MultiplyInt(self))
+		},
+	)
+	Alias(c, "petabyte", "petabytes")
+
 }
 
 // ::Std::Int::Iterator
