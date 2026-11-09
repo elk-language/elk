@@ -39,15 +39,7 @@ func TestSize_InBytes(t *testing.T) {
 		},
 		"handles complex values": {
 			s:    8*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(72092795598278656), // ? what
-		},
-		"what1": {
-			s:    4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(72092795598278656), // ? what
-		},
-		"what2": {
-			s:    -8*value.Byte + 4*value.Kilobyte + 8*value.Megabyte + 16*value.Gigabyte + 32*value.Terabyte + 64*value.Petabyte,
-			want: value.Float(72092795598278656), // ? what
+			want: value.Float(72092795598278656),
 		},
 	}
 

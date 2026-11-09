@@ -204,8 +204,8 @@ func (s Size) Multiply(other Value) (Size, Value) {
 }
 
 func (s Size) MultiplyBigInt(other *BigInt) (Size, Value) {
-	newSize := big.NewInt(int64(s))
-	result := ToElkBigInt(newSize.Mul(newSize, other.ToGoBigInt()))
+	newBig := big.NewInt(int64(s))
+	result := ToElkBigInt(newBig.Mul(newBig, other.ToGoBigInt()))
 	return Size(result.ToSmallInt()), Undefined
 }
 

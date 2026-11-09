@@ -992,8 +992,18 @@ func initInt() {
 		c,
 		"bytes",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsSize()
-			return self.ToValue(), value.Undefined
+			self := args[0]
+			if self.IsSmallInt() {
+				newSize := value.Size(self.AsSmallInt())
+				return value.ToValueErr(newSize, value.Undefined)
+			}
+
+			switch s := self.AsReference().(type) {
+			case *value.BigInt:
+				newSize := value.Size(s.ToGoBigInt().Int64())
+				return value.ToValueErr(newSize, value.Undefined)
+			}
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %s", self.Inspect()))
 		},
 	)
 	Alias(c, "byte", "bytes")
