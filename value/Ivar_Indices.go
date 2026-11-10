@@ -32,7 +32,7 @@ func (n IvarIndices) GetNameOk(index int) (s Symbol, ok bool) {
 	return s, ok
 }
 
-func (n *IvarIndices) Copy() Reference {
+func (n *IvarIndices) CopyReference() Reference {
 	return n
 }
 

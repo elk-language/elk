@@ -49,7 +49,7 @@ func (*NativeClosure) SingletonClass() *value.Class {
 	return nil
 }
 
-func (c *NativeClosure) Copy() value.Reference {
+func (c *NativeClosure) CopyReference() value.Reference {
 	return c
 }
 

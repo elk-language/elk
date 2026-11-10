@@ -47,7 +47,7 @@ func (*Path) SingletonClass() *Class {
 	return nil
 }
 
-func (p *Path) Copy() Reference {
+func (p *Path) CopyReference() Reference {
 	return p
 }
 

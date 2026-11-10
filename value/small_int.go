@@ -1534,7 +1534,7 @@ func (*SmallIntIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *SmallIntIterator) Copy() Reference {
+func (l *SmallIntIterator) CopyReference() Reference {
 	return &SmallIntIterator{
 		Int:     l.Int,
 		Counter: l.Counter,

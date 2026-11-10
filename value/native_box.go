@@ -28,7 +28,7 @@ func (b *NativeBox[T]) SetValue(v Value) {
 	*b.ptr = v.ToInterface().(T)
 }
 
-func (b *NativeBox[T]) Copy() Reference {
+func (b *NativeBox[T]) CopyReference() Reference {
 	return &NativeBox[T]{
 		ptr: b.ptr,
 	}

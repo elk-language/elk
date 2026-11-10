@@ -110,7 +110,7 @@ func (h *HashSetOfValue) ToSyncHashSet() SyncHashSet {
 	return &SyncHashSetOfValue{Set: h.Clone()}
 }
 
-func (h *HashSetOfValue) Copy() value.Reference {
+func (h *HashSetOfValue) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -304,7 +304,7 @@ func (*HashSetOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *HashSetOfValueIterator) Copy() value.Reference {
+func (h *HashSetOfValueIterator) CopyReference() value.Reference {
 	return &HashSetOfValueIterator{
 		HashSet: h.HashSet,
 		index:   h.index,
@@ -875,7 +875,7 @@ func (deletedHashSetValueType) Inspect() string {
 func (deletedHashSetValueType) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
-func (e deletedHashSetValueType) Copy() value.Reference {
+func (e deletedHashSetValueType) CopyReference() value.Reference {
 	return e
 }
 func (e deletedHashSetValueType) ToValue() value.Value {

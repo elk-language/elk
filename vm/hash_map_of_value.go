@@ -293,7 +293,7 @@ func (h *HashMapOfValue) ToSyncHashMap() SyncHashMap {
 	return &SyncHashMapOfValue{Map: h.Clone()}
 }
 
-func (h *HashMapOfValue) Copy() value.Reference {
+func (h *HashMapOfValue) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -442,7 +442,7 @@ func (*HashMapOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *HashMapOfValueIterator) Copy() value.Reference {
+func (h *HashMapOfValueIterator) CopyReference() value.Reference {
 	return &HashMapOfValueIterator{
 		HashMap:  h.HashMap,
 		Index:    h.Index,

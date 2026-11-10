@@ -29,7 +29,7 @@ type DateTime struct {
 	native time.Time
 }
 
-func (t *DateTime) Copy() Reference {
+func (t *DateTime) CopyReference() Reference {
 	newT := *t
 	return &newT
 }

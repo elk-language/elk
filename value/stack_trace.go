@@ -13,7 +13,7 @@ var StackTraceIteratorClass *Class // ::Std::StackTrace::Iterator
 
 type StackTrace []CallFrame
 
-func (s *StackTrace) Copy() Reference {
+func (s *StackTrace) CopyReference() Reference {
 	return s
 }
 
@@ -113,7 +113,7 @@ func (*StackTraceIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (s *StackTraceIterator) Copy() Reference {
+func (s *StackTraceIterator) CopyReference() Reference {
 	return &StackTraceIterator{
 		StackTrace: s.StackTrace,
 		Index:      s.Index,

@@ -25,7 +25,7 @@ type BreakpointContext struct {
 
 var _ value.Reference = &BreakpointContext{}
 
-func (c *BreakpointContext) Copy() value.Reference {
+func (c *BreakpointContext) CopyReference() value.Reference {
 	return &BreakpointContext{
 		selfType:       c.selfType,
 		runtimeEnv:     c.runtimeEnv,

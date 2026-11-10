@@ -410,7 +410,7 @@ func (h NativeKeyHashRecord[K]) ToSyncHashMap() SyncHashMap {
 	}
 }
 
-func (h NativeKeyHashRecord[K]) Copy() value.Reference {
+func (h NativeKeyHashRecord[K]) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -547,7 +547,7 @@ func (h *NativeKeyHashRecordIterator[K]) Error() string {
 	return h.Inspect()
 }
 
-func (h *NativeKeyHashRecordIterator[K]) Copy() value.Reference {
+func (h *NativeKeyHashRecordIterator[K]) CopyReference() value.Reference {
 	return &NativeKeyHashRecordIterator[K]{
 		HashRecord: h.HashRecord,
 		index:      h.index,

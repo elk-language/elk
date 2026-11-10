@@ -70,7 +70,7 @@ func (*NativeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (n *NativeMethod) Copy() value.Reference {
+func (n *NativeMethod) CopyReference() value.Reference {
 	return n
 }
 

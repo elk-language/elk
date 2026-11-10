@@ -163,7 +163,7 @@ func (h *NativeHashSet[V]) Clone() *NativeHashSet[V] {
 	}
 }
 
-func (h *NativeHashSet[V]) Copy() value.Reference {
+func (h *NativeHashSet[V]) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -563,7 +563,7 @@ func (*NativeHashSetIterator[V]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *NativeHashSetIterator[V]) Copy() value.Reference {
+func (h *NativeHashSetIterator[V]) CopyReference() value.Reference {
 	return &NativeHashSetIterator[V]{
 		HashSet: h.HashSet,
 		index:   h.index,

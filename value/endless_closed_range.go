@@ -17,7 +17,7 @@ func NewEndlessClosedRange(start Value) *EndlessClosedRange {
 	}
 }
 
-func (r *EndlessClosedRange) Copy() Reference {
+func (r *EndlessClosedRange) CopyReference() Reference {
 	return r
 }
 
@@ -99,7 +99,7 @@ func (r *EndlessClosedRangeIterator) Error() string {
 	return r.Inspect()
 }
 
-func (r *EndlessClosedRangeIterator) Copy() Reference {
+func (r *EndlessClosedRangeIterator) CopyReference() Reference {
 	return &EndlessClosedRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,

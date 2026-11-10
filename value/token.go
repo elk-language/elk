@@ -30,7 +30,7 @@ func (*Token) SingletonClass() *Class {
 	return nil
 }
 
-func (t *Token) Copy() Reference {
+func (t *Token) CopyReference() Reference {
 	return t
 }
 

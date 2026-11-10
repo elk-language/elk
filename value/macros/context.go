@@ -54,7 +54,7 @@ func (c *Context) ToValue() value.Value {
 	return value.Ref(c)
 }
 
-func (c *Context) Copy() value.Reference {
+func (c *Context) CopyReference() value.Reference {
 	return &Context{
 		TypeChecker: c.TypeChecker,
 		Namespace:   c.Namespace,

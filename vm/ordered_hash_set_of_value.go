@@ -125,7 +125,7 @@ func (h *OrderedHashSetOfValue) ToSyncOrderedHashSet() SyncOrderedHashSet {
 	return &SyncOrderedHashSetOfValue{Set: h.Clone()}
 }
 
-func (h *OrderedHashSetOfValue) Copy() value.Reference {
+func (h *OrderedHashSetOfValue) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -400,7 +400,7 @@ func (*OrderedHashSetOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *OrderedHashSetOfValueIterator) Copy() value.Reference {
+func (h *OrderedHashSetOfValueIterator) CopyReference() value.Reference {
 	return &OrderedHashSetOfValueIterator{
 		HashSet:  h.HashSet,
 		index:    h.index,

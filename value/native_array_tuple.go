@@ -134,7 +134,7 @@ func (*NativeArrayTuple[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (t *NativeArrayTuple[T]) Copy() Reference {
+func (t *NativeArrayTuple[T]) CopyReference() Reference {
 	return t
 }
 
@@ -503,7 +503,7 @@ func (*NativeArrayTupleIterator[T]) SingletonClass() *Class {
 	return nil
 }
 
-func (t *NativeArrayTupleIterator[T]) Copy() Reference {
+func (t *NativeArrayTupleIterator[T]) CopyReference() Reference {
 	return &NativeArrayTupleIterator[T]{
 		ArrayTuple: t.ArrayTuple,
 		Index:      t.Index,

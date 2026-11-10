@@ -122,7 +122,7 @@ func (*UpvalueBox) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (v *UpvalueBox) Copy() value.Reference {
+func (v *UpvalueBox) CopyReference() value.Reference {
 	return v
 }
 
@@ -222,7 +222,7 @@ func (*ImmutableUpvalueBox) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (v *ImmutableUpvalueBox) Copy() value.Reference {
+func (v *ImmutableUpvalueBox) CopyReference() value.Reference {
 	return v
 }
 

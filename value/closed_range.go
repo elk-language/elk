@@ -19,7 +19,7 @@ func NewClosedRange(start, end Value) *ClosedRange {
 	}
 }
 
-func (r *ClosedRange) Copy() Reference {
+func (r *ClosedRange) CopyReference() Reference {
 	return r
 }
 
@@ -98,7 +98,7 @@ func (*ClosedRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *ClosedRangeIterator) Copy() Reference {
+func (r *ClosedRangeIterator) CopyReference() Reference {
 	return &ClosedRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,

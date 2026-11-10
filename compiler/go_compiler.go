@@ -38,7 +38,7 @@ func (c *GoSourceMethod) SetNamespace(namespace *value.Class)       {}
 func (c *GoSourceMethod) MethodBody()                               {}
 func (c *GoSourceMethod) Name() value.Symbol                        { return value.ToSymbol(c.goName) }
 func (*GoSourceMethod) Class() *value.Class                         { return nil }
-func (*GoSourceMethod) Copy() value.Reference                       { return nil }
+func (*GoSourceMethod) CopyReference() value.Reference              { return nil }
 func (*GoSourceMethod) DirectClass() *value.Class                   { return nil }
 func (*GoSourceMethod) Error() string                               { return "" }
 func (*GoSourceMethod) Inspect() string                             { return "" }

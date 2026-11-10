@@ -18,7 +18,7 @@ type BytecodeBreakpointContext struct {
 
 var _ value.Reference = &BytecodeBreakpointContext{}
 
-func (c *BytecodeBreakpointContext) Copy() value.Reference {
+func (c *BytecodeBreakpointContext) CopyReference() value.Reference {
 	return &BytecodeBreakpointContext{
 		lastLocalIndex:     c.lastLocalIndex,
 		maxLocalIndex:      c.maxLocalIndex,

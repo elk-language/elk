@@ -123,7 +123,7 @@ func (l *SyncNativeArrayList[T]) Clone() *SyncNativeArrayList[T] {
 	}
 }
 
-func (l *SyncNativeArrayList[T]) Copy() Reference {
+func (l *SyncNativeArrayList[T]) CopyReference() Reference {
 	return l.Clone()
 }
 
@@ -521,7 +521,7 @@ func (i *SyncNativeArrayListIterator[T]) ToValue() Value {
 	return Ref(i)
 }
 
-func (l *SyncNativeArrayListIterator[T]) Copy() Reference {
+func (l *SyncNativeArrayListIterator[T]) CopyReference() Reference {
 	return &SyncNativeArrayListIterator[T]{
 		ArrayList: l.ArrayList,
 		Index:     l.Index,

@@ -65,7 +65,7 @@ func (*ArrayTupleOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (t *ArrayTupleOfValue) Copy() Reference {
+func (t *ArrayTupleOfValue) CopyReference() Reference {
 	return t
 }
 
@@ -475,7 +475,7 @@ func (*ArrayTupleOfValueIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (t *ArrayTupleOfValueIterator) Copy() Reference {
+func (t *ArrayTupleOfValueIterator) CopyReference() Reference {
 	return &ArrayTupleOfValueIterator{
 		ArrayTuple: t.ArrayTuple,
 		Index:      t.Index,

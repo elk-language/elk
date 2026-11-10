@@ -58,7 +58,7 @@ func (*ImmutableBoxOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (b *ImmutableBoxOfValue) Copy() Reference {
+func (b *ImmutableBoxOfValue) CopyReference() Reference {
 	return b
 }
 

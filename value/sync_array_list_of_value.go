@@ -94,7 +94,7 @@ func (*SyncArrayListOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (l *SyncArrayListOfValue) Copy() Reference {
+func (l *SyncArrayListOfValue) CopyReference() Reference {
 	return &SyncArrayListOfValue{
 		List: l.List.Clone(),
 	}
@@ -546,7 +546,7 @@ func (*SyncArrayListOfValueIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *SyncArrayListOfValueIterator) Copy() Reference {
+func (l *SyncArrayListOfValueIterator) CopyReference() Reference {
 	return &SyncArrayListOfValueIterator{
 		ArrayList: l.ArrayList,
 		Index:     l.Index,

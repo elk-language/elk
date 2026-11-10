@@ -63,7 +63,7 @@ func (ch *NativeTransformerChannel[V]) IsTransformerChannel() bool {
 	return true
 }
 
-func (ch *NativeTransformerChannel[V]) Copy() Reference {
+func (ch *NativeTransformerChannel[V]) CopyReference() Reference {
 	return ch
 }
 

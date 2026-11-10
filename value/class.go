@@ -286,7 +286,7 @@ func (c *Class) ToValue() Value {
 	return Ref(c)
 }
 
-func (c *Class) Copy() Reference {
+func (c *Class) CopyReference() Reference {
 	newClass := &Class{
 		ConstantContainer: ConstantContainer{
 			constants: maps.Clone(c.constants),

@@ -76,7 +76,7 @@ func ModuleConstructor(class *Class) Value {
 	})
 }
 
-func (m *Module) Copy() Reference {
+func (m *Module) CopyReference() Reference {
 	newConstants := maps.Clone(m.constants)
 	newInstanceVariables := slices.Clone(m.instanceVariables)
 

@@ -475,7 +475,7 @@ func (h *NativeKeyHashMap[K]) ToSyncHashMap() SyncHashMap {
 	return &SyncNativeKeyHashMap[K]{Map: h.Clone()}
 }
 
-func (h *NativeKeyHashMap[K]) Copy() value.Reference {
+func (h *NativeKeyHashMap[K]) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -610,7 +610,7 @@ func (*NativeKeyHashMapIterator[K]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *NativeKeyHashMapIterator[K]) Copy() value.Reference {
+func (h *NativeKeyHashMapIterator[K]) CopyReference() value.Reference {
 	return &NativeKeyHashMapIterator[K]{
 		HashMap:  h.HashMap,
 		index:    h.index,

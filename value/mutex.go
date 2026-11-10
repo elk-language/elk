@@ -21,7 +21,7 @@ func MutexConstructor(class *Class) Value {
 	return Ref(NewMutex())
 }
 
-func (m *Mutex) Copy() Reference {
+func (m *Mutex) CopyReference() Reference {
 	return NewMutex()
 }
 

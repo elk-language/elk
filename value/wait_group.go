@@ -15,7 +15,7 @@ func WaitGroupConstructor(class *Class) Value {
 	return Ref(&WaitGroup{})
 }
 
-func (w *WaitGroup) Copy() Reference {
+func (w *WaitGroup) CopyReference() Reference {
 	return &WaitGroup{}
 }
 

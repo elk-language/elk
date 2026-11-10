@@ -108,7 +108,7 @@ func (s *Select) ToValue() value.Value {
 	return value.Ref(s)
 }
 
-func (s *Select) Copy() value.Reference {
+func (s *Select) CopyReference() value.Reference {
 	return &Select{
 		Cases: s.Cases,
 	}

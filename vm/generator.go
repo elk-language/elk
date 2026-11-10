@@ -53,7 +53,7 @@ func (*Generator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (c *Generator) Copy() value.Reference {
+func (c *Generator) CopyReference() value.Reference {
 	return c
 }
 

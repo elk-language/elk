@@ -33,7 +33,7 @@ func (*Timezone) SingletonClass() *Class {
 	return nil
 }
 
-func (t *Timezone) Copy() Reference {
+func (t *Timezone) CopyReference() Reference {
 	return t
 }
 

@@ -16,7 +16,7 @@ func MakeNativeReadChannel[V ValueInterface](size int) NativeReadChannel[V] {
 	return make(NativeReadChannel[V], size)
 }
 
-func (ch NativeReadChannel[V]) Copy() Reference {
+func (ch NativeReadChannel[V]) CopyReference() Reference {
 	return ch
 }
 

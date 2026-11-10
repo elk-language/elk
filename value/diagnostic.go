@@ -27,7 +27,7 @@ func (*Diagnostic) SingletonClass() *Class {
 	return nil
 }
 
-func (d *Diagnostic) Copy() Reference {
+func (d *Diagnostic) CopyReference() Reference {
 	return d
 }
 

@@ -27,7 +27,7 @@ func (*Span) SingletonClass() *Class {
 	return nil
 }
 
-func (s *Span) Copy() Reference {
+func (s *Span) CopyReference() Reference {
 	return s
 }
 

@@ -247,7 +247,7 @@ func (*HashRecordOfValue) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *HashRecordOfValue) Copy() value.Reference {
+func (h *HashRecordOfValue) CopyReference() value.Reference {
 	return h
 }
 
@@ -399,7 +399,7 @@ func (h *HashRecordOfValueIterator) Error() string {
 	return h.Inspect()
 }
 
-func (h *HashRecordOfValueIterator) Copy() value.Reference {
+func (h *HashRecordOfValueIterator) CopyReference() value.Reference {
 	return &HashRecordOfValueIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,

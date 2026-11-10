@@ -66,7 +66,7 @@ func (t Time) ToDateTimeValue() DateTime {
 	return ToElkDateTimeValue(goTime)
 }
 
-func (t Time) Copy() Reference {
+func (t Time) CopyReference() Reference {
 	return t
 }
 

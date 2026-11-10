@@ -79,7 +79,7 @@ func (*CallSiteInfo) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (c *CallSiteInfo) Copy() value.Reference {
+func (c *CallSiteInfo) CopyReference() value.Reference {
 	return &CallSiteInfo{
 		Name:          c.Name,
 		ArgumentCount: c.ArgumentCount,
@@ -147,7 +147,7 @@ func (*BytecodeCallSiteInfo) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (c *BytecodeCallSiteInfo) Copy() value.Reference {
+func (c *BytecodeCallSiteInfo) CopyReference() value.Reference {
 	return &BytecodeCallSiteInfo{
 		Method:        c.Method,
 		ArgumentCount: c.ArgumentCount,
@@ -212,7 +212,7 @@ func (*NativeCallSiteInfo) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (c *NativeCallSiteInfo) Copy() value.Reference {
+func (c *NativeCallSiteInfo) CopyReference() value.Reference {
 	return &NativeCallSiteInfo{
 		Method:        c.Method,
 		ArgumentCount: c.ArgumentCount,

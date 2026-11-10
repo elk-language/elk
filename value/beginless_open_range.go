@@ -16,7 +16,7 @@ func NewBeginlessOpenRange(end Value) *BeginlessOpenRange {
 	}
 }
 
-func (r *BeginlessOpenRange) Copy() Reference {
+func (r *BeginlessOpenRange) CopyReference() Reference {
 	return r
 }
 

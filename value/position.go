@@ -27,7 +27,7 @@ func (*Position) SingletonClass() *Class {
 	return nil
 }
 
-func (p *Position) Copy() Reference {
+func (p *Position) CopyReference() Reference {
 	return p
 }
 

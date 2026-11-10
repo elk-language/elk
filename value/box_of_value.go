@@ -61,7 +61,7 @@ func (*BoxOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (b *BoxOfValue) Copy() Reference {
+func (b *BoxOfValue) CopyReference() Reference {
 	return b
 }
 

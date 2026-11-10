@@ -17,7 +17,7 @@ func NewEndlessOpenRange(start Value) *EndlessOpenRange {
 	}
 }
 
-func (r *EndlessOpenRange) Copy() Reference {
+func (r *EndlessOpenRange) CopyReference() Reference {
 	return r
 }
 
@@ -95,7 +95,7 @@ func (*EndlessOpenRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *EndlessOpenRangeIterator) Copy() Reference {
+func (r *EndlessOpenRangeIterator) CopyReference() Reference {
 	return &EndlessOpenRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,
