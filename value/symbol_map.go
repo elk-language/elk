@@ -29,7 +29,7 @@ func (s SymbolMap) InstanceVariables() *InstanceVariables {
 	return nil
 }
 
-func (s SymbolMap) Copy() Reference {
+func (s SymbolMap) CopyReference() Reference {
 	return maps.Clone(s)
 }
 

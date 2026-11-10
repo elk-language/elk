@@ -21,7 +21,7 @@ func RWMutexConstructor(class *Class) Value {
 	return Ref(NewRWMutex())
 }
 
-func (m *RWMutex) Copy() Reference {
+func (m *RWMutex) CopyReference() Reference {
 	return NewRWMutex()
 }
 

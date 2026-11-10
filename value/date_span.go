@@ -32,7 +32,7 @@ func (d DateSpan) IsZero() bool {
 	return d.months == 0 && d.days == 0
 }
 
-func (d DateSpan) Copy() Reference {
+func (d DateSpan) CopyReference() Reference {
 	return d
 }
 

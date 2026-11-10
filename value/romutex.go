@@ -21,7 +21,7 @@ func ROMutexConstructor(class *Class) Value {
 	return Ref(NewROMutex(nil))
 }
 
-func (m *ROMutex) Copy() Reference {
+func (m *ROMutex) CopyReference() Reference {
 	return NewROMutex(m.RWMutex)
 }
 

@@ -423,7 +423,7 @@ func (*BigFloat) SingletonClass() *Class {
 	return nil
 }
 
-func (f *BigFloat) Copy() Reference {
+func (f *BigFloat) CopyReference() Reference {
 	return f
 }
 

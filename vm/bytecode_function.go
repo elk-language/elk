@@ -88,7 +88,7 @@ func (*BytecodeFunction) SingletonClass() *value.Class {
 	return nil
 }
 
-func (b *BytecodeFunction) Copy() value.Reference {
+func (b *BytecodeFunction) CopyReference() value.Reference {
 	return b
 }
 

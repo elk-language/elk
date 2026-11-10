@@ -32,7 +32,7 @@ func (*DiagnosticList) SingletonClass() *Class {
 	return nil
 }
 
-func (d *DiagnosticList) Copy() Reference {
+func (d *DiagnosticList) CopyReference() Reference {
 	newList := make(DiagnosticList, len(*d))
 	copy(newList, *d)
 	return &newList
@@ -256,7 +256,7 @@ func (*DiagnosticListIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *DiagnosticListIterator) Copy() Reference {
+func (l *DiagnosticListIterator) CopyReference() Reference {
 	return &DiagnosticListIterator{
 		DiagnosticList: l.DiagnosticList,
 		Index:          l.Index,

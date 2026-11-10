@@ -50,7 +50,7 @@ func InterfaceConstructor(class *Class) Value {
 	return Ref(NewInterface())
 }
 
-func (i *Interface) Copy() Reference {
+func (i *Interface) CopyReference() Reference {
 	newConstants := make(SymbolMap, len(i.constants))
 	maps.Copy(newConstants, i.constants)
 

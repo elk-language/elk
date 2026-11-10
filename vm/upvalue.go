@@ -96,7 +96,7 @@ func (*Upvalue) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (u *Upvalue) Copy() value.Reference {
+func (u *Upvalue) CopyReference() value.Reference {
 	return &Upvalue{
 		slot:   u.slot,
 		closed: u.closed,

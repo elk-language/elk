@@ -13,7 +13,7 @@ func MakeWriteNativeChannel[V ValueInterface](size int) NativeWriteChannel[V] {
 	return make(NativeWriteChannel[V], size)
 }
 
-func (ch NativeWriteChannel[V]) Copy() Reference {
+func (ch NativeWriteChannel[V]) CopyReference() Reference {
 	return ch
 }
 

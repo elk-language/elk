@@ -113,7 +113,7 @@ func (h *SyncHashSetOfValue) IterSyncSet() value.NativeResettableIterator {
 	return NewSyncHashSetOfValueIterator(h)
 }
 
-func (h *SyncHashSetOfValue) Copy() value.Reference {
+func (h *SyncHashSetOfValue) CopyReference() value.Reference {
 	h.Lock()
 	defer h.Unlock()
 
@@ -326,7 +326,7 @@ func (*SyncHashSetOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *SyncHashSetOfValueIterator) Copy() value.Reference {
+func (h *SyncHashSetOfValueIterator) CopyReference() value.Reference {
 	return &SyncHashSetOfValueIterator{
 		HashSet:  h.HashSet,
 		index:    h.index,

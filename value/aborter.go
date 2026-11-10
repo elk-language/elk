@@ -42,7 +42,7 @@ func NewAborter(ctx context.Context, cancel context.CancelFunc) *Aborter {
 	}
 }
 
-func (a *Aborter) Copy() Reference {
+func (a *Aborter) CopyReference() Reference {
 	return NewAborter(
 		a.ctx,
 		a.cancel,

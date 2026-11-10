@@ -17,7 +17,7 @@ func NewWriteChannelOfValue(size int) *WriteChannelOfValue {
 	}
 }
 
-func (ch *WriteChannelOfValue) Copy() Reference {
+func (ch *WriteChannelOfValue) CopyReference() Reference {
 	return NewWriteChannelOfValue(ch.Length())
 }
 

@@ -110,7 +110,7 @@ func (*Promise) SingletonClass() *value.Class {
 	return nil
 }
 
-func (p *Promise) Copy() value.Reference {
+func (p *Promise) CopyReference() value.Reference {
 	return p
 }
 

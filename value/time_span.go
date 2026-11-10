@@ -259,7 +259,7 @@ func (t TimeSpan) Native() time.Duration {
 	return time.Duration(t)
 }
 
-func (t TimeSpan) Copy() Reference {
+func (t TimeSpan) CopyReference() Reference {
 	return t
 }
 

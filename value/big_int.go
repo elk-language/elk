@@ -1415,7 +1415,7 @@ func (i *BigInt) Error() string {
 	return i.Inspect()
 }
 
-func (i *BigInt) Copy() Reference {
+func (i *BigInt) CopyReference() Reference {
 	return i
 }
 
@@ -1664,7 +1664,7 @@ func (*BigIntIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *BigIntIterator) Copy() Reference {
+func (l *BigIntIterator) CopyReference() Reference {
 	return &BigIntIterator{
 		Int:     l.Int,
 		Counter: l.Counter,

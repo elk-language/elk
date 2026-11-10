@@ -27,7 +27,7 @@ func (c *CallFrame) IsSentinel() bool {
 	return c.TailCallCounter == -1
 }
 
-func (c *CallFrame) Copy() Reference {
+func (c *CallFrame) CopyReference() Reference {
 	return c
 }
 

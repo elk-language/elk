@@ -20,7 +20,7 @@ func OnceConstructor(class *Class) Value {
 	return Ref(NewOnce())
 }
 
-func (o *Once) Copy() Reference {
+func (o *Once) CopyReference() Reference {
 	return NewOnce()
 }
 

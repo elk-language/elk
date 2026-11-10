@@ -99,7 +99,7 @@ func (s Size) Error() string {
 	return s.Inspect()
 }
 
-func (s Size) Copy() Reference {
+func (s Size) CopyReference() Reference {
 	return s
 }
 

@@ -61,7 +61,7 @@ func (*GetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (g *GetterMethod) Copy() value.Reference {
+func (g *GetterMethod) CopyReference() value.Reference {
 	return g
 }
 

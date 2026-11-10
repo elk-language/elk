@@ -60,7 +60,7 @@ func (*BytecodeClosure) SingletonClass() *value.Class {
 	return nil
 }
 
-func (c *BytecodeClosure) Copy() value.Reference {
+func (c *BytecodeClosure) CopyReference() value.Reference {
 	return c
 }
 

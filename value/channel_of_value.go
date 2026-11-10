@@ -40,7 +40,7 @@ func (ch *ChannelOfValue) ToWriteChannelOfValue() *WriteChannelOfValue {
 	}
 }
 
-func (ch *ChannelOfValue) Copy() Reference {
+func (ch *ChannelOfValue) CopyReference() Reference {
 	return NewChannelOfValue(ch.Length())
 }
 

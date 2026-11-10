@@ -485,7 +485,7 @@ func (h *OrderedNativeKeyHashRecord[K]) ToSyncOrderedHashMap() SyncOrderedHashMa
 	return &SyncOrderedNativeKeyHashMap[K]{Map: h.ToOrderedNativeKeyHashMap()}
 }
 
-func (h *OrderedNativeKeyHashRecord[K]) Copy() value.Reference {
+func (h *OrderedNativeKeyHashRecord[K]) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -618,7 +618,7 @@ func (*OrderedNativeKeyHashRecordIterator[K]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *OrderedNativeKeyHashRecordIterator[K]) Copy() value.Reference {
+func (h *OrderedNativeKeyHashRecordIterator[K]) CopyReference() value.Reference {
 	return &OrderedNativeKeyHashRecordIterator[K]{
 		HashRecord: h.HashRecord,
 		index:      h.index,

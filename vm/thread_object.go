@@ -30,7 +30,7 @@ func (vm *Thread) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (vm *Thread) Copy() value.Reference {
+func (vm *Thread) CopyReference() value.Reference {
 	return vm
 }
 
@@ -80,7 +80,7 @@ func initThread() {
 		"copy",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*Thread)(args[0].Pointer())
-			return value.Ref(self.Copy()), value.Undefined
+			return value.Ref(self.CopyReference()), value.Undefined
 		},
 	)
 

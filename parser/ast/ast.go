@@ -465,7 +465,7 @@ func (t *TypedNodeBase) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (t *TypedNodeBase) Copy() value.Reference {
+func (t *TypedNodeBase) CopyReference() value.Reference {
 	return t
 }
 
@@ -528,7 +528,7 @@ func (n *NodeBase) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (n *NodeBase) Copy() value.Reference {
+func (n *NodeBase) CopyReference() value.Reference {
 	return n
 }
 
@@ -585,7 +585,7 @@ func (n AbsentNodeBase) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (n AbsentNodeBase) Copy() value.Reference {
+func (n AbsentNodeBase) CopyReference() value.Reference {
 	return n
 }
 

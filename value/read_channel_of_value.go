@@ -20,7 +20,7 @@ func NewReadChannelOfValue(size int) *ReadChannelOfValue {
 	}
 }
 
-func (ch *ReadChannelOfValue) Copy() Reference {
+func (ch *ReadChannelOfValue) CopyReference() Reference {
 	return NewReadChannelOfValue(ch.Length())
 }
 

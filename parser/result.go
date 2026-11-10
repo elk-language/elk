@@ -51,7 +51,7 @@ func (r *Result) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (r *Result) Copy() value.Reference {
+func (r *Result) CopyReference() value.Reference {
 	return &Result{
 		AST:         r.AST,
 		Diagnostics: r.Diagnostics,

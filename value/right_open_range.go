@@ -19,7 +19,7 @@ func NewRightOpenRange(start, end Value) *RightOpenRange {
 	}
 }
 
-func (r *RightOpenRange) Copy() Reference {
+func (r *RightOpenRange) CopyReference() Reference {
 	return r
 }
 
@@ -98,7 +98,7 @@ func (*RightOpenRangeIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (r *RightOpenRangeIterator) Copy() Reference {
+func (r *RightOpenRangeIterator) CopyReference() Reference {
 	return &RightOpenRangeIterator{
 		Range:          r.Range,
 		CurrentElement: r.CurrentElement,

@@ -59,7 +59,7 @@ func (r Result) Ok() bool {
 	return r.ok
 }
 
-func (r Result) Copy() Reference {
+func (r Result) CopyReference() Reference {
 	return r
 }
 

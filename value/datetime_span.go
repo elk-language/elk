@@ -51,7 +51,7 @@ func (d *DateTimeSpan) Dup() *DateTimeSpan {
 	}
 }
 
-func (d *DateTimeSpan) Copy() Reference {
+func (d *DateTimeSpan) CopyReference() Reference {
 	return d.Dup()
 }
 

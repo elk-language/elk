@@ -27,7 +27,7 @@ func (*Location) SingletonClass() *Class {
 	return nil
 }
 
-func (l *Location) Copy() Reference {
+func (l *Location) CopyReference() Reference {
 	return l
 }
 

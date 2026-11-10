@@ -397,7 +397,7 @@ func (*OrderedHashRecordOfValue) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *OrderedHashRecordOfValue) Copy() value.Reference {
+func (h *OrderedHashRecordOfValue) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -538,7 +538,7 @@ func (*OrderedHashRecordOfValueIterator) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *OrderedHashRecordOfValueIterator) Copy() value.Reference {
+func (h *OrderedHashRecordOfValueIterator) CopyReference() value.Reference {
 	return &OrderedHashRecordOfValueIterator{
 		HashRecord: h.HashRecord,
 		Index:      h.Index,

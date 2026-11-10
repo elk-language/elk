@@ -32,7 +32,7 @@ func (*SyncDiagnosticList) SingletonClass() *Class {
 	return nil
 }
 
-func (d *SyncDiagnosticList) Copy() Reference {
+func (d *SyncDiagnosticList) CopyReference() Reference {
 	return &SyncDiagnosticList{
 		DiagnosticList: slices.Clone(d.DiagnosticList),
 	}
@@ -323,7 +323,7 @@ func (*SyncDiagnosticListIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *SyncDiagnosticListIterator) Copy() Reference {
+func (l *SyncDiagnosticListIterator) CopyReference() Reference {
 	return &SyncDiagnosticListIterator{
 		SyncDiagnosticList: l.SyncDiagnosticList,
 		Index:              l.Index,

@@ -30,7 +30,7 @@ func (*Lexer) SingletonClass() *Class {
 	return nil
 }
 
-func (l *Lexer) Copy() Reference {
+func (l *Lexer) CopyReference() Reference {
 	return l
 }
 

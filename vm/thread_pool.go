@@ -94,7 +94,7 @@ func (*ThreadPool) SingletonClass() *value.Class {
 	return nil
 }
 
-func (t *ThreadPool) Copy() value.Reference {
+func (t *ThreadPool) CopyReference() value.Reference {
 	return t
 }
 

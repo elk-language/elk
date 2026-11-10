@@ -34,7 +34,7 @@ func (String) SingletonClass() *Class {
 	return nil
 }
 
-func (s String) Copy() Reference {
+func (s String) CopyReference() Reference {
 	return s
 }
 
@@ -677,7 +677,7 @@ func (*StringCharIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (s *StringCharIterator) Copy() Reference {
+func (s *StringCharIterator) CopyReference() Reference {
 	return &StringCharIterator{
 		String:     s.String,
 		ByteOffset: s.ByteOffset,
@@ -750,7 +750,7 @@ func (s *StringByteIterator) Error() string {
 	return s.Inspect()
 }
 
-func (s *StringByteIterator) Copy() Reference {
+func (s *StringByteIterator) CopyReference() Reference {
 	return &StringByteIterator{
 		String:     s.String,
 		ByteOffset: s.ByteOffset,
@@ -822,7 +822,7 @@ func (s *StringGraphemeIterator) Error() string {
 	return s.Inspect()
 }
 
-func (s *StringGraphemeIterator) Copy() Reference {
+func (s *StringGraphemeIterator) CopyReference() Reference {
 	return &StringGraphemeIterator{
 		String: s.String,
 		Rest:   s.Rest,

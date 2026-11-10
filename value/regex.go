@@ -69,7 +69,7 @@ func (*Regex) DirectClass() *Class {
 	return RegexClass
 }
 
-func (r *Regex) Copy() Reference {
+func (r *Regex) CopyReference() Reference {
 	return r
 }
 

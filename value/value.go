@@ -216,7 +216,7 @@ func (v Value) Inspect() string {
 
 func (v Value) Copy() Value {
 	if v.IsReference() {
-		return Ref(v.AsReference().Copy())
+		return Ref(v.AsReference().CopyReference())
 	}
 
 	return v

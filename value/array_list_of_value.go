@@ -124,7 +124,7 @@ func (*ArrayListOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (l *ArrayListOfValue) Copy() Reference {
+func (l *ArrayListOfValue) CopyReference() Reference {
 	if l == nil {
 		return l
 	}
@@ -652,7 +652,7 @@ func (*ArrayListOfValueIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *ArrayListOfValueIterator) Copy() Reference {
+func (l *ArrayListOfValueIterator) CopyReference() Reference {
 	return &ArrayListOfValueIterator{
 		ArrayList: l.ArrayList,
 		Index:     l.Index,

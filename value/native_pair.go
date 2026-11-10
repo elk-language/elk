@@ -92,7 +92,7 @@ func (*NativePair[K, V]) SingletonClass() *Class {
 	return nil
 }
 
-func (p *NativePair[K, V]) Copy() Reference {
+func (p *NativePair[K, V]) CopyReference() Reference {
 	return p
 }
 
@@ -221,7 +221,7 @@ func (*NativePairIterator[K, V]) SingletonClass() *Class {
 	return nil
 }
 
-func (l *NativePairIterator[K, V]) Copy() Reference {
+func (l *NativePairIterator[K, V]) CopyReference() Reference {
 	return &NativePairIterator[K, V]{
 		Pair:  l.Pair,
 		Index: l.Index,

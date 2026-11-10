@@ -32,7 +32,7 @@ func (ch NativeChannel[V]) ToNativeReadChannel() NativeReadChannel[V] {
 	return (chan V)(ch)
 }
 
-func (ch NativeChannel[V]) Copy() Reference {
+func (ch NativeChannel[V]) CopyReference() Reference {
 	return ch
 }
 

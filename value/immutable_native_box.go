@@ -20,7 +20,7 @@ func (b *ImmutableNativeBox[T]) GetValue() Value {
 	return b.Get().ToValue()
 }
 
-func (b *ImmutableNativeBox[T]) Copy() Reference {
+func (b *ImmutableNativeBox[T]) CopyReference() Reference {
 	return &ImmutableNativeBox[T]{
 		ptr: b.ptr,
 	}

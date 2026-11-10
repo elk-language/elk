@@ -14,7 +14,7 @@ func NewNative(value any) *Native {
 	}
 }
 
-func (n *Native) Copy() Reference {
+func (n *Native) CopyReference() Reference {
 	return n
 }
 

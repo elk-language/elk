@@ -475,7 +475,7 @@ func (h *SyncOrderedNativeHashMap[K, V]) Clone() *SyncOrderedNativeHashMap[K, V]
 	}
 }
 
-func (h *SyncOrderedNativeHashMap[K, V]) Copy() value.Reference {
+func (h *SyncOrderedNativeHashMap[K, V]) CopyReference() value.Reference {
 	return h.Clone()
 }
 
@@ -619,7 +619,7 @@ func (*SyncOrderedNativeHashMapIterator[K, V]) SingletonClass() *value.Class {
 	return nil
 }
 
-func (h *SyncOrderedNativeHashMapIterator[K, V]) Copy() value.Reference {
+func (h *SyncOrderedNativeHashMapIterator[K, V]) CopyReference() value.Reference {
 	return &SyncOrderedNativeHashMapIterator[K, V]{
 		HashMap:  h.HashMap,
 		index:    h.index,

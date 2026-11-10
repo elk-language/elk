@@ -90,7 +90,7 @@ func ObjectConstructor(class *Class) Value {
 	})
 }
 
-func (o *Object) Copy() Reference {
+func (o *Object) CopyReference() Reference {
 	newObject := &Object{
 		class:             o.class,
 		instanceVariables: slices.Clone(o.instanceVariables),

@@ -16,7 +16,7 @@ func NewBeginlessClosedRange(end Value) *BeginlessClosedRange {
 	}
 }
 
-func (r *BeginlessClosedRange) Copy() Reference {
+func (r *BeginlessClosedRange) CopyReference() Reference {
 	return r
 }
 

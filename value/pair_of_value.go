@@ -67,7 +67,7 @@ func (*PairOfValue) SingletonClass() *Class {
 	return nil
 }
 
-func (p *PairOfValue) Copy() Reference {
+func (p *PairOfValue) CopyReference() Reference {
 	return p
 }
 
@@ -188,7 +188,7 @@ func (*PairOfValueIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *PairOfValueIterator) Copy() Reference {
+func (l *PairOfValueIterator) CopyReference() Reference {
 	return &PairOfValueIterator{
 		Pair:  l.Pair,
 		Index: l.Index,

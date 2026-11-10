@@ -86,7 +86,7 @@ func (p *Parser) InstanceVariables() *value.InstanceVariables {
 	return nil
 }
 
-func (p *Parser) Copy() value.Reference {
+func (p *Parser) CopyReference() value.Reference {
 	return p
 }
 
