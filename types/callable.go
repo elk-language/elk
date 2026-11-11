@@ -74,6 +74,10 @@ func IsClosure(namespace Namespace) bool {
 	return c.IsClosure
 }
 
+func (c *Callable) Declaration() *position.Location {
+	return nil
+}
+
 func (c *Callable) Declarations() []*position.Location {
 	return nil
 }
@@ -81,6 +85,12 @@ func (c *Callable) Declarations() []*position.Location {
 func (c *Callable) AppendDeclaration(*position.Location) {
 	panic("cannot append declarations to a callable")
 }
+
+func (c *Callable) Uses() []*position.Location {
+	return nil
+}
+
+func (c *Callable) AppendUse(*position.Location) {}
 
 func (c *Callable) Name() string {
 	return "callable"

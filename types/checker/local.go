@@ -13,9 +13,11 @@ import (
 // Represents a single local variable or local value
 type local struct {
 	typ                        types.Type
+	declaration                *position.Location
 	shadowOf                   *local
 	envIndex                   int
 	conditionalSpecialisations []*local // specialisation of this local in conditional branches, used for determining if the local has been initialised
+	uses                       []*position.Location
 	initialised                bool
 	singleAssignment           bool
 }
@@ -23,12 +25,23 @@ type local struct {
 func (l *local) copy() *local {
 	return &local{
 		typ:                        l.typ,
+		declaration:                l.declaration,
 		initialised:                l.initialised,
 		singleAssignment:           l.singleAssignment,
 		shadowOf:                   l.shadowOf,
+		uses:                       l.uses,
 		conditionalSpecialisations: l.conditionalSpecialisations,
 		envIndex:                   l.envIndex,
 	}
+}
+
+func (l *local) AppendUse(loc *position.Location) {
+	if l.isShadow() {
+		l.shadowOf.AppendUse(loc)
+		return
+	}
+
+	l.uses = append(l.uses, loc)
 }
 
 func (l *local) deepCloneConditionalSpecialisationsForBreakpoint(localMapping map[*local]*local) []*local {
@@ -56,6 +69,8 @@ func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
 		shadowOf:                   newShadowOf,
 		conditionalSpecialisations: l.deepCloneConditionalSpecialisationsForBreakpoint(localMapping),
 		envIndex:                   l.envIndex,
+		declaration:                l.declaration,
+		uses:                       l.uses,
 	}
 	localMapping[l] = newLocal
 	return newLocal
@@ -123,8 +138,9 @@ func (l *local) setInitialised() {
 	l.shadowOf.setInitialised()
 }
 
-func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
+func newLocal(typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
 	return &local{
+		declaration:      declaration,
 		typ:              typ,
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
@@ -351,9 +367,9 @@ func (c *Checker) addLocal(name string, l *local) {
 	env.addLocal(symbol.ToSymbol(name), l)
 }
 
-func (c *Checker) DefineLocal(name string, typ types.Type, initialised bool, singleAssignment bool) {
+func (c *Checker) DefineLocal(name string, typ types.Type, initialised bool, singleAssignment bool, location *position.Location) {
 	env := c.currentLocalEnv()
-	l := newLocal(typ, initialised, singleAssignment)
+	l := newLocal(typ, initialised, singleAssignment, location)
 	env.addLocal(symbol.ToSymbol(name), l)
 }
 

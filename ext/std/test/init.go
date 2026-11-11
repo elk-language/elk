@@ -28,8 +28,8 @@ func RuntimeInit() {
 
 func typecheckerInit(checker types.Checker) {
 	env := checker.Env()
-	testModule := env.Std().DefineModule("", symbol.C_Test, env)
-	assertionsMixin := testModule.DefineMixin("", false, symbol.ToSymbol("Assertions"), env)
+	testModule := env.Std().DefineModule("", symbol.C_Test, env, nil)
+	assertionsMixin := testModule.DefineMixin("", false, symbol.ToSymbol("Assertions"), env, nil)
 	expressionNodeMixin := env.ExpressionNode()
 
 	n := assertionsMixin.Singleton()

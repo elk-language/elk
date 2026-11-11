@@ -24,8 +24,11 @@ type Namespace interface {
 	Type
 	Name() string
 	DocComment() string
+	Declaration() *position.Location
 	Declarations() []*position.Location
 	AppendDeclaration(*position.Location)
+	Uses() []*position.Location
+	AppendUse(*position.Location)
 	SetDocComment(string)
 	AppendDocComment(string)
 	Parent() Namespace

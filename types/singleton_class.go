@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -9,6 +10,26 @@ import (
 type SingletonClass struct {
 	AttachedObject Namespace
 	Class
+}
+
+func (c *SingletonClass) Declaration() *position.Location {
+	return c.AttachedObject.Declaration()
+}
+
+func (c *SingletonClass) Declarations() []*position.Location {
+	return c.AttachedObject.Declarations()
+}
+
+func (c *SingletonClass) Uses() []*position.Location {
+	return c.AttachedObject.Uses()
+}
+
+func (c *SingletonClass) AppendUse(loc *position.Location) {
+	c.AttachedObject.AppendUse(loc)
+}
+
+func (c *SingletonClass) AppendDeclaration(loc *position.Location) {
+	c.AttachedObject.AppendDeclaration(loc)
 }
 
 func (c *SingletonClass) SetParent(parent Namespace) {

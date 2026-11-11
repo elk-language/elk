@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 )
 
 // Value used to decide what whether to skip the subtypes of a type,
@@ -24,6 +25,11 @@ type Type interface {
 	IsLiteral() bool
 	inspect() string
 	traverse(parent Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) TraverseOption
+}
+
+type TypeWithUses interface {
+	Type
+	AppendUse(*position.Location)
 }
 
 func noopTraverse(typ, parent Type) TraverseOption { return TraverseContinue }

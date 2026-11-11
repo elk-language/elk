@@ -909,16 +909,16 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 		switch c.mode {
 		case valuePatternMode:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal(varType, true, true)
+			local = newLocal(varType, true, true, location)
 		case nilableValuePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal(varType, true, true)
+			local = newLocal(varType, true, true, location)
 		case nilablePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal(varType, true, false)
+			local = newLocal(varType, true, false, location)
 		default:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal(varType, true, false)
+			local = newLocal(varType, true, false, location)
 		}
 		c.addLocal(name, local)
 		return patternType

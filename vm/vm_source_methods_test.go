@@ -209,12 +209,12 @@ func TestVMSource_Alias(t *testing.T) {
 		"add an alias to a builtin method in Std::Int": {
 			source: `
 				sealed primitive noinit class ::Std::Int < Value
-					alias add +
+					alias str to_string
 				end
 
-				3.add(4)
+				3.str
 			`,
-			wantStackTop: value.SmallInt(7).ToValue(),
+			wantStackTop: value.String("3").ToValue(),
 		},
 		"add an alias to a nonexistent method": {
 			source: `

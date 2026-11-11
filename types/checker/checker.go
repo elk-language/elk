@@ -4455,7 +4455,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
 				catchNode.StackTraceVar.SetType(stackTraceType)
-				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true))
+				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true, catchNode.StackTraceVar.Location()))
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
@@ -6321,7 +6321,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ty
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string, identLocation *position.Location) ast.ExpressionNode {
 	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		closure,
@@ -6342,7 +6342,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	)
 	closure.Body = method
 
-	local := newLocal(closure, true, false)
+	local := newLocal(closure, true, false, identLocation)
 	c.addLocal(name, local)
 
 	returnTypeNode, throwTypeNode := c.checkMethod(
@@ -6552,7 +6552,7 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 		return c.checkAssignment(node)
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
+	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Left.Location(), node.Location(), false)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6567,7 +6567,7 @@ func (c *Checker) checkShortValueDeclaration(node *ast.AssignmentExpressionNode)
 		name = left.Value
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), true)
+	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Left.Location(), node.Location(), true)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6873,7 +6873,9 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *ast.PublicConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6887,7 +6889,9 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *ast.PrivateConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -6956,10 +6960,13 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	if len(constant.FullName) > 0 {
-		fullName = constant.FullName
+	var constantType types.Type
+	if constant != nil {
+		if len(constant.FullName) > 0 {
+			fullName = constant.FullName
+		}
+		constantType = constant.Type
 	}
-	constantType := constant.Type
 	if !ok && !firstCall {
 		placeholder := types.NewNamespacePlaceholder(fullName)
 		placeholder.Locations.Push(node.Right.Location())
@@ -7039,7 +7046,9 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -7053,7 +7062,9 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
@@ -7149,23 +7160,23 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
 			node.SetType(types.Untyped{})
 			return nil, nil, ""
 		}
+		leftContainerType = leftConstant.Type
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
 			node.SetType(types.Untyped{})
 			return nil, nil, ""
 		}
+		leftContainerType = leftConstant.Type
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
@@ -7229,7 +7240,10 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	constantType := constant.Type
+	var constantType types.Type
+	if ok {
+		constantType = constant.Type
+	}
 	if !ok && !firstCall {
 		c.addUndefinedNamespaceError(rightName, node.Right.Location())
 		node.SetType(types.Untyped{})
@@ -8204,6 +8218,7 @@ func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local,
 		return nil, types.Untyped{}
 	}
 
+	local.AppendUse(loc)
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}
@@ -8543,6 +8558,7 @@ func (c *Checker) checkLocalDeclaration(
 	name string,
 	initialiser ast.ExpressionNode,
 	typeNode ast.TypeNode,
+	identLocation *position.Location,
 	location *position.Location,
 	singleAssignment bool,
 ) (
@@ -8568,14 +8584,14 @@ func (c *Checker) checkLocalDeclaration(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment))
+			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment, identLocation))
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(declaredType, false, singleAssignment))
+		c.addLocal(name, newLocal(declaredType, false, singleAssignment, identLocation))
 		return initialiser, declaredTypeNode, types.Void{}
 	}
 
@@ -8588,6 +8604,7 @@ func (c *Checker) checkLocalDeclaration(
 			init := c.checkClosureLiteralNodeInVariableDeclaration(
 				initClosure,
 				name,
+				identLocation,
 			)
 			actualType := c.typeOfGuardVoid(init)
 			if !singleAssignment {
@@ -8601,7 +8618,7 @@ func (c *Checker) checkLocalDeclaration(
 		if !singleAssignment {
 			actualType = c.ToNonLiteral(actualType, false)
 		}
-		local := newLocal(actualType, true, singleAssignment)
+		local := newLocal(actualType, true, singleAssignment, identLocation)
 		c.addLocal(name, local)
 		return init, nil, actualType
 	}
@@ -8611,7 +8628,7 @@ func (c *Checker) checkLocalDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(declaredType, true, singleAssignment)
+	local := newLocal(declaredType, true, singleAssignment, identLocation)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -9118,6 +9135,7 @@ func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,
+		node.Name.Location(),
 		node.Location(),
 		false,
 	)
@@ -9136,6 +9154,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,
+		node.Name.Location(),
 		node.Location(),
 		true,
 	)

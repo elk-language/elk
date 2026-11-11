@@ -63,6 +63,7 @@ type NamespaceBase struct {
 	docComment        string
 	name              string
 	declarations      []*position.Location
+	uses              []*position.Location
 	constants         ConstantMap
 	subtypes          ConstantMap
 	instanceVariables InstanceVariableMap
@@ -94,6 +95,14 @@ func (c *NamespaceBase) Declarations() []*position.Location {
 
 func (c *NamespaceBase) AppendDeclaration(decl *position.Location) {
 	c.declarations = append(c.declarations, decl)
+}
+
+func (c *NamespaceBase) Uses() []*position.Location {
+	return c.uses
+}
+
+func (c *NamespaceBase) AppendUse(decl *position.Location) {
+	c.uses = append(c.uses, decl)
 }
 
 func (c *NamespaceBase) DocComment() string {

@@ -51,6 +51,10 @@ func (t *TypeParamNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Typ
 	return newNamespace
 }
 
+func (t *TypeParamNamespace) Declaration() *position.Location {
+	return nil
+}
+
 func (t *TypeParamNamespace) Declarations() []*position.Location {
 	return nil
 }
@@ -58,6 +62,12 @@ func (t *TypeParamNamespace) Declarations() []*position.Location {
 func (t *TypeParamNamespace) AppendDeclaration(*position.Location) {
 	panic("cannot append declarations in a type param namespace")
 }
+
+func (t *TypeParamNamespace) Uses() []*position.Location {
+	return nil
+}
+
+func (t *TypeParamNamespace) AppendUse(*position.Location) {}
 
 func (t *TypeParamNamespace) Name() string {
 	return ""

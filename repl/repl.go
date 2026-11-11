@@ -167,7 +167,7 @@ func (e *evaluator) evaluate(input string) {
 	e.prepend = e.usingToPrepend(using)
 
 	resultType := e.elkTypechecker.TypeOf(programNode)
-	e.elkTypechecker.DefineLocal("_", resultType, true, true)
+	e.elkTypechecker.DefineLocal("_", resultType, true, true, nil)
 
 	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
@@ -781,7 +781,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 	if opts.Disassemble {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetREPL(true)
-		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
+		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true, nil)
 
 		e.completer = e.complete
 		e.executor = e.disassemble
@@ -831,7 +831,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 	e.elkTypechecker = checker.New()
 	e.elkTypechecker.SetREPL(true)
 	e.vm = vm.New()
-	e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
+	e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true, nil)
 
 	e.completer = e.complete
 	e.executor = e.evaluate
