@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -62,8 +63,8 @@ func NewConstant(docComment string, fullName string, typ Type, declaration *posi
 type NamespaceBase struct {
 	docComment        string
 	name              string
-	declarations      []*position.Location
-	uses              []*position.Location
+	declarations      concurrent.Slice[*position.Location]
+	uses              concurrent.Slice[*position.Location]
 	constants         ConstantMap
 	subtypes          ConstantMap
 	instanceVariables InstanceVariableMap
@@ -82,27 +83,28 @@ func MakeNamespaceBase(docComment, name string) NamespaceBase {
 }
 
 func (c *NamespaceBase) Declaration() *position.Location {
-	if len(c.declarations) == 0 {
+	if c.declarations.Len() == 0 {
 		return nil
 	}
 
-	return c.declarations[0]
+	l, _ := c.declarations.Get(0)
+	return l
 }
 
-func (c *NamespaceBase) Declarations() []*position.Location {
-	return c.declarations
+func (c *NamespaceBase) Declarations() *concurrent.Slice[*position.Location] {
+	return &c.declarations
 }
 
 func (c *NamespaceBase) AppendDeclaration(decl *position.Location) {
-	c.declarations = append(c.declarations, decl)
+	c.declarations.Push(decl)
 }
 
-func (c *NamespaceBase) Uses() []*position.Location {
-	return c.uses
+func (c *NamespaceBase) Uses() *concurrent.Slice[*position.Location] {
+	return &c.uses
 }
 
 func (c *NamespaceBase) AppendUse(decl *position.Location) {
-	c.uses = append(c.uses, decl)
+	c.uses.Push(decl)
 }
 
 func (c *NamespaceBase) DocComment() string {

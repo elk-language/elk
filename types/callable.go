@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -78,7 +79,7 @@ func (c *Callable) Declaration() *position.Location {
 	return nil
 }
 
-func (c *Callable) Declarations() []*position.Location {
+func (c *Callable) Declarations() *concurrent.Slice[*position.Location] {
 	return nil
 }
 
@@ -86,7 +87,7 @@ func (c *Callable) AppendDeclaration(*position.Location) {
 	panic("cannot append declarations to a callable")
 }
 
-func (c *Callable) Uses() []*position.Location {
+func (c *Callable) Uses() *concurrent.Slice[*position.Location] {
 	return nil
 }
 

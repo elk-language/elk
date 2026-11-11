@@ -24,7 +24,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.DefineSubtype(symbol.ToSymbol("AnyFloat"), NewNamedType("", "Std::AnyFloat", NewUnion(NameToType("Std::Float", env), NameToType("Std::Float64", env), NameToType("Std::Float32", env), NameToType("Std::BigFloat", env)), position.NewLocation("%ELKPATH%/headers/anyfloat.elh", position.NewSpan(position.New(0, 1, 1), position.New(59, 1, 60)))))
 		namespace.DefineSubtype(symbol.ToSymbol("AnyInt"), NewNamedType("", "Std::AnyInt", NewUnion(NameToType("Std::Int", env), NameToType("Std::Int64", env), NameToType("Std::Int32", env), NameToType("Std::Int16", env), NameToType("Std::Int8", env), NameToType("Std::UInt64", env), NameToType("Std::UInt32", env), NameToType("Std::UInt16", env), NameToType("Std::UInt8", env), NameToType("Std::UInt", env)), position.NewLocation("%ELKPATH%/headers/anyint.elh", position.NewSpan(position.New(0, 1, 1), position.New(97, 1, 98)))))
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, false, symbol.ToSymbol("ArrayList"), objectClass, env, position.NewLocation("%ELKPATH%/headers/array_list.elh", position.NewSpan(position.New(131, 7, 1), position.New(5657, 246, 3))))
+			namespace := namespace.TryDefineClass("A dynamically resizable list data structure backed\nby an array.\n\nIt is an ordered collection of integer indexed values.", false, true, true, false, false, symbol.ToSymbol("ArrayList"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -32,7 +32,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, false, symbol.ToSymbol("ArrayTuple"), objectClass, env, position.NewLocation("%ELKPATH%/headers/array_tuple.elh", position.NewSpan(position.New(151, 7, 1), position.New(3370, 135, 3))))
+			namespace := namespace.TryDefineClass("A tuple data structure backed by an array.\n\nIt is an ordered, immutable collection of integer indexed values.\nA tuple is an immutable list.", false, true, true, false, false, symbol.ToSymbol("ArrayTuple"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -48,13 +48,13 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, false, symbol.ToSymbol("BigFloat"), objectClass, env, position.NewLocation("%ELKPATH%/headers/big_float.elh", position.NewSpan(position.New(705, 17, 1), position.New(5377, 216, 3))))
+			namespace := namespace.TryDefineClass("Represents a multi-precision floating point number (a fraction like `1.2`, `0.1`).\n\n```\nsign × mantissa × 2**exponent\n```\n\nwith 0.5 <= mantissa < 1.0, and MinExp <= exponent <= MaxExp.\nA `BigFloat` may also be zero (+0, -0) or infinite (+Inf, -Inf).\nAll BigFloats are ordered.\n\nBy setting the desired precision to 24 or 53,\n`BigFloat` operations produce the same results as the corresponding float32 or float64 IEEE-754 arithmetic for operands that\ncorrespond to normal (i.e., not denormal) `Float`, `Float32` and `Float64` numbers.\nExponent underflow and overflow lead to a `0` or an Infinity for different values than IEEE-754 because `BigFloat` exponents have a much larger range.", false, true, true, true, false, symbol.ToSymbol("BigFloat"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a big float.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, false, symbol.ToSymbol("Bool"), objectClass, env, position.NewLocation("%ELKPATH%/headers/bool.elh", position.NewSpan(position.New(97, 5, 1), position.New(149, 6, 3))))
+		namespace.TryDefineClass("Represents boolean values.\nThere are only two instances of `Bool`, `true` and `false`.", false, true, true, true, false, symbol.ToSymbol("Bool"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, false, symbol.ToSymbol("Box"), objectClass, env, position.NewLocation("%ELKPATH%/headers/box.elh", position.NewSpan(position.New(69, 4, 1), position.New(390, 21, 3))))
+			namespace := namespace.TryDefineClass("Box wraps another value, it's a pointer to another `Value`.", false, true, true, false, false, symbol.ToSymbol("Box"), objectClass, env, nil)
 			_ = namespace
 		}
 		namespace.DefineSubtype(symbol.ToSymbol("Byte"), NewNamedType("", "Std::Byte", NameToType("Std::UInt8", env), position.NewLocation("%ELKPATH%/headers/byte.elh", position.NewSpan(position.New(0, 1, 1), position.New(24, 1, 25)))))
@@ -64,8 +64,8 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Thrown when trying to pop, push or close a closed channel.", false, true, false, false, false, symbol.ToSymbol("ClosedError"), objectClass, env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, false, symbol.ToSymbol("Char"), objectClass, env, position.NewLocation("%ELKPATH%/headers/char.elh", position.NewSpan(position.New(49, 4, 1), position.New(2834, 133, 3))))
-		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, false, symbol.ToSymbol("Class"), objectClass, env, position.NewLocation("%ELKPATH%/headers/class.elh", position.NewSpan(position.New(64, 4, 1), position.New(483, 21, 3))))
+		namespace.TryDefineClass("Represents a single Unicode code point.", false, true, true, true, false, symbol.ToSymbol("Char"), objectClass, env, nil)
+		namespace.TryDefineClass("`Class` is a metaclass, it's the class of all classes.", false, false, false, true, false, symbol.ToSymbol("Class"), objectClass, env, nil)
 		namespace.TryDefineInterface("Represents a resource that can be closed.", symbol.ToSymbol("Closable"), env, nil)
 		{
 			namespace := namespace.TryDefineClass("Represents a closed range from `start` to `end` *[start, end]*", false, true, true, true, false, symbol.ToSymbol("ClosedRange"), objectClass, env, nil)
@@ -119,7 +119,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		{
 			namespace := namespace.TryDefineModule("Contains utilities for dealing with Elk\nsource code.", symbol.ToSymbol("Elk"), env, nil)
 			{
-				namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", symbol.ToSymbol("AST"), env, position.NewLocation("%ELKPATH%/headers/elk/ast/alias_declaration_entry.elh", position.NewSpan(position.New(0, 1, 1), position.New(462, 15, 3))))
+				namespace := namespace.TryDefineModule("Contains the definitions of all\nElk AST (Abstract Syntax Tree) node types.", symbol.ToSymbol("AST"), env, nil)
 				namespace.TryDefineClass("A single alias entry eg. `new_name old_name`", false, true, true, false, false, symbol.ToSymbol("AliasDeclarationEntry"), objectClass, env, nil)
 				namespace.TryDefineClass("Represents a new alias declaration eg. `alias push append, add plus`", false, true, true, false, false, symbol.ToSymbol("AliasDeclarationNode"), objectClass, env, nil)
 				namespace.TryDefineClass("`any` type.", false, true, true, false, false, symbol.ToSymbol("AnyTypeNode"), objectClass, env, nil)
@@ -488,7 +488,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("A base class for most errors in Elk stdlib.", false, false, false, false, false, symbol.ToSymbol("Error"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineModule("Contains types used for interacting\n with the file system.", symbol.ToSymbol("FS"), env, position.NewLocation("%ELKPATH%/headers/fs/location.elh", position.NewSpan(position.New(0, 1, 1), position.New(447, 21, 3))))
+			namespace := namespace.TryDefineModule("Contains types used for interacting\n with the file system.", symbol.ToSymbol("FS"), env, nil)
 			namespace.TryDefineClass("Represents the position of a piece of text in a file.\n\nIt is made up of a path and a span.", false, true, true, false, false, symbol.ToSymbol("Location"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("Represents a file system path.\nPaths are immutable and safe to use by multiple threads.", false, true, true, false, false, symbol.ToSymbol("Path"), objectClass, env, nil)
@@ -497,21 +497,21 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			_ = namespace
 		}
-		namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("False"), objectClass, env, position.NewLocation("%ELKPATH%/headers/false.elh", position.NewSpan(position.New(0, 1, 1), position.New(417, 17, 3))))
+		namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("False"), objectClass, env, nil)
 		namespace.DefineSubtype(symbol.ToSymbol("Falsy"), NewNamedType("", "Std::Falsy", NewUnion(Nil{}, False{}), position.NewLocation("%ELKPATH%/headers/falsy.elh", position.NewSpan(position.New(0, 1, 1), position.New(31, 1, 32)))))
 		namespace.TryDefineClass("", false, false, false, false, false, symbol.ToSymbol("FileSystemError"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, true, false, symbol.ToSymbol("Float"), objectClass, env, position.NewLocation("%ELKPATH%/headers/float.elh", position.NewSpan(position.New(159, 7, 1), position.New(6199, 275, 3))))
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits on 64 bit platforms\nand 32 bit on 32 bit platforms.", false, true, true, true, false, symbol.ToSymbol("Float"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, symbol.ToSymbol("Float32"), objectClass, env, position.NewLocation("%ELKPATH%/headers/float32.elh", position.NewSpan(position.New(107, 6, 1), position.New(3270, 171, 3))))
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, symbol.ToSymbol("Float32"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float32.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, symbol.ToSymbol("Float64"), objectClass, env, position.NewLocation("%ELKPATH%/headers/float64.elh", position.NewSpan(position.New(107, 6, 1), position.New(3270, 171, 3))))
+			namespace := namespace.TryDefineClass("Represents a floating point number (a fraction like `1.2`, `0.1`).\n\nThis float type has 64 bits.", false, true, true, true, false, symbol.ToSymbol("Float64"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a float64.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
@@ -522,7 +522,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Thrown when an invalid glob pattern has been encountered.", false, false, false, false, false, symbol.ToSymbol("GlobError"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, false, symbol.ToSymbol("HashMap"), objectClass, env, position.NewLocation("%ELKPATH%/headers/hash_map.elh", position.NewSpan(position.New(150, 7, 1), position.New(3471, 142, 3))))
+			namespace := namespace.TryDefineClass("A dynamically resizable map data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of key-value pairs.", false, true, true, false, false, symbol.ToSymbol("HashMap"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -530,7 +530,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, false, symbol.ToSymbol("HashRecord"), objectClass, env, position.NewLocation("%ELKPATH%/headers/hash_record.elh", position.NewSpan(position.New(171, 7, 1), position.New(3025, 123, 3))))
+			namespace := namespace.TryDefineClass("A record data structure backed by an array with a hashing algorithm.\n\nIt is an unordered immutable collection of key-value pairs.\nA record is an immutable map.", false, true, true, false, false, symbol.ToSymbol("HashRecord"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -538,7 +538,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, false, symbol.ToSymbol("HashSet"), objectClass, env, position.NewLocation("%ELKPATH%/headers/hash_set.elh", position.NewSpan(position.New(148, 7, 1), position.New(2761, 131, 3))))
+			namespace := namespace.TryDefineClass("A dynamically resizable set data structure backed\nby an array with a hashing algorithm.\n\nIt is an unordered collection of unique values.", false, true, true, false, false, symbol.ToSymbol("HashSet"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -569,32 +569,32 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		namespace.TryDefineClass("Thrown when an index in array/string access is out of range.", false, false, false, false, false, symbol.ToSymbol("IndexError"), objectClass, env, nil)
 		namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a human readable string\nthat represents the structure of the value.", symbol.ToSymbol("Inspectable"), env, nil)
 		{
-			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, false, symbol.ToSymbol("Int"), objectClass, env, position.NewLocation("%ELKPATH%/headers/int.elh", position.NewSpan(position.New(175, 7, 1), position.New(8246, 385, 3))))
+			namespace := namespace.TryDefineClass("Represents an integer (a whole number like `1`, `2`, `3`, `-5`, `0`).\n\nThis integer type is automatically resized so\nit can hold an arbitrarily large/small number.", false, true, true, true, false, symbol.ToSymbol("Int"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to an integer.", symbol.ToSymbol("Convertible"), env, nil)
 			namespace.TryDefineClass("", false, false, false, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, false, symbol.ToSymbol("Int16"), objectClass, env, position.NewLocation("%ELKPATH%/headers/int16.elh", position.NewSpan(position.New(99, 4, 1), position.New(5521, 275, 3))))
+			namespace := namespace.TryDefineClass("Represents a signed 16 bit integer (a whole number like `1i16`, `2i16`, `-3i16`, `0i16`).", false, true, true, true, false, symbol.ToSymbol("Int16"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int16.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, false, symbol.ToSymbol("Int32"), objectClass, env, position.NewLocation("%ELKPATH%/headers/int32.elh", position.NewSpan(position.New(99, 4, 1), position.New(5531, 275, 3))))
+			namespace := namespace.TryDefineClass("Represents a signed 32 bit integer (a whole number like `1i32`, `2i32`, `-3i32`, `0i32`).", false, true, true, true, false, symbol.ToSymbol("Int32"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int32.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, false, symbol.ToSymbol("Int64"), objectClass, env, position.NewLocation("%ELKPATH%/headers/int64.elh", position.NewSpan(position.New(99, 4, 1), position.New(5548, 274, 3))))
+			namespace := namespace.TryDefineClass("Represents a signed 64 bit integer (a whole number like `1i64`, `2i64`, `-3i64`, `0i64`).", false, true, true, true, false, symbol.ToSymbol("Int64"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int64.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, true, false, symbol.ToSymbol("Int8"), objectClass, env, position.NewLocation("%ELKPATH%/headers/int8.elh", position.NewSpan(position.New(94, 4, 1), position.New(5431, 274, 3))))
+			namespace := namespace.TryDefineClass("Represents a signed 8 bit integer (a whole number like `1i8`, `2i8`, `-3i8`, `0i8`).", false, true, true, true, false, symbol.ToSymbol("Int8"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, false, symbol.ToSymbol("Interface"), objectClass, env, position.NewLocation("%ELKPATH%/headers/interface.elh", position.NewSpan(position.New(53, 4, 1), position.New(169, 9, 3))))
+		namespace.TryDefineClass("`Interface` is the class of all interfaces.", false, false, false, true, false, symbol.ToSymbol("Interface"), objectClass, env, nil)
 		namespace.TryDefineClass("Thrown when encountering a nonexistent timezone.", false, false, false, false, false, symbol.ToSymbol("InvalidTimezoneError"), objectClass, env, nil)
 		{
 			namespace := namespace.TryDefineInterface("Represents a value that can be iterated over in a `for` loop and implement\nmany useful methods.", symbol.ToSymbol("Iterable"), env, nil)
@@ -621,7 +621,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			}
 			_ = namespace
 		}
-		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", symbol.ToSymbol("Kernel"), env, position.NewLocation("%ELKPATH%/headers/kernel.elh", position.NewSpan(position.New(64, 4, 1), position.New(1161, 44, 3))))
+		namespace.TryDefineModule("Contains builtin global functions like `println` etc.", symbol.ToSymbol("Kernel"), env, nil)
 		{
 			namespace := namespace.TryDefineClass("Represents a left-open range from `start` to `end` *(start, end]*", false, true, true, true, false, symbol.ToSymbol("LeftOpenRange"), objectClass, env, nil)
 			{
@@ -631,7 +631,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineMixin("Represents an ordered, mutable collection\nof elements indexed by integers starting at `0`.", true, symbol.ToSymbol("List"), env, position.NewLocation("%ELKPATH%/headers/list.elh", position.NewSpan(position.New(101, 5, 1), position.New(1061, 42, 3))))
+			namespace := namespace.TryDefineMixin("Represents an ordered, mutable collection\nof elements indexed by integers starting at `0`.", true, symbol.ToSymbol("List"), env, nil)
 			_ = namespace
 		}
 		namespace.TryDefineInterface("Represents a resource that can be locked and unlocked.", symbol.ToSymbol("Lockable"), env, nil)
@@ -645,9 +645,9 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("Method"), objectClass, env, nil)
-		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, true, false, symbol.ToSymbol("Mixin"), objectClass, env, position.NewLocation("%ELKPATH%/headers/mixin.elh", position.NewSpan(position.New(45, 4, 1), position.New(153, 9, 3))))
-		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, false, symbol.ToSymbol("Module"), objectClass, env, position.NewLocation("%ELKPATH%/headers/module.elh", position.NewSpan(position.New(47, 4, 1), position.New(157, 9, 3))))
-		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, false, symbol.ToSymbol("Nil"), objectClass, env, position.NewLocation("%ELKPATH%/headers/nil.elh", position.NewSpan(position.New(36, 4, 1), position.New(1935, 110, 3))))
+		namespace.TryDefineClass("`Mixin` is the class of all mixins.", false, false, false, true, false, symbol.ToSymbol("Mixin"), objectClass, env, nil)
+		namespace.TryDefineClass("`Module` is the class of all modules.", false, false, false, true, false, symbol.ToSymbol("Module"), objectClass, env, nil)
+		namespace.TryDefineClass("Represents an empty value.", false, true, true, true, false, symbol.ToSymbol("Nil"), objectClass, env, nil)
 		namespace.TryDefineClass("", false, false, false, false, true, symbol.ToSymbol("Object"), objectClass, env, nil)
 		namespace.TryDefineClass("Thrown when another thread tried to execute\nan open closure.\n\nAn open closure captures variables that still live\non the stack of the thread that created it.", false, false, false, false, false, symbol.ToSymbol("OpenClosureError"), objectClass, env, nil)
 		{
@@ -684,7 +684,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 		}
 		namespace.TryDefineClass("Thrown when a numeric value is too large or too small to be used in a particular setting.", false, false, false, false, false, symbol.ToSymbol("OutOfRangeError"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, false, false, symbol.ToSymbol("Pair"), objectClass, env, position.NewLocation("%ELKPATH%/headers/pair.elh", position.NewSpan(position.New(70, 5, 1), position.New(1752, 78, 3))))
+			namespace := namespace.TryDefineClass("A `Pair` represents a 2-element tuple,\nor a key-value pair.", false, true, true, false, false, symbol.ToSymbol("Pair"), objectClass, env, nil)
 			{
 				namespace := namespace.TryDefineClass("", false, true, true, false, false, symbol.ToSymbol("Iterator"), objectClass, env, nil)
 				_ = namespace
@@ -712,7 +712,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace := namespace.TryDefineMixin("Represents an unordered immutable collection of key-value pairs.\nA record is an immutable map.", true, symbol.ToSymbol("Record"), env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, false, symbol.ToSymbol("Regex"), objectClass, env, position.NewLocation("%ELKPATH%/headers/regex.elh", position.NewSpan(position.New(103, 5, 1), position.New(906, 38, 3))))
+		namespace.TryDefineClass("A `Regex` represents regular expression that can be used\nto match a pattern against strings.", false, true, true, false, false, symbol.ToSymbol("Regex"), objectClass, env, nil)
 		{
 			namespace := namespace.TryDefineInterface("An interface that represents iterators that can be reset.", symbol.ToSymbol("ResettableIterator"), env, nil)
 			{
@@ -745,7 +745,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("String"), objectClass, env, position.NewLocation("%ELKPATH%/headers/string.elh", position.NewSpan(position.New(0, 1, 1), position.New(5868, 279, 3))))
+			namespace := namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("String"), objectClass, env, nil)
 			namespace.TryDefineClass("Iterates over all bytes of a `String`.", false, true, true, false, false, symbol.ToSymbol("ByteIterator"), objectClass, env, nil)
 			namespace.TryDefineClass("Iterates over all unicode code points of a `String`.", false, true, true, false, false, symbol.ToSymbol("CharIterator"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a string.", symbol.ToSymbol("Convertible"), env, nil)
@@ -754,7 +754,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Represents the position of a piece of text in a string.\n\nIt is made up of two positions, start position\n(position of the first character) and end position (position of the last character).", false, true, true, false, false, symbol.ToSymbol("Span"), objectClass, env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, false, symbol.ToSymbol("Symbol"), objectClass, env, position.NewLocation("%ELKPATH%/headers/symbol.elh", position.NewSpan(position.New(272, 12, 1), position.New(1450, 63, 3))))
+		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, false, symbol.ToSymbol("Symbol"), objectClass, env, nil)
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", symbol.ToSymbol("Sync"), env, nil)
 			{
@@ -817,39 +817,39 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			_ = namespace
 		}
 		namespace.TryDefineClass("Represents a timezone from the IANA Timezone database.", false, true, true, false, false, symbol.ToSymbol("Timezone"), objectClass, env, nil)
-		namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("True"), objectClass, env, position.NewLocation("%ELKPATH%/headers/true.elh", position.NewSpan(position.New(0, 1, 1), position.New(415, 17, 3))))
+		namespace.TryDefineClass("", false, true, true, true, false, symbol.ToSymbol("True"), objectClass, env, nil)
 		namespace.DefineSubtype(symbol.ToSymbol("Truthy"), NewNamedType("", "Std::Truthy", NewNot(NewNamedType("", "Std::Falsy", NewUnion(Nil{}, False{}), position.NewLocation("%ELKPATH%/headers/falsy.elh", position.NewSpan(position.New(0, 1, 1), position.New(31, 1, 32))))), position.NewLocation("%ELKPATH%/headers/truthy.elh", position.NewSpan(position.New(0, 1, 1), position.New(27, 1, 28)))))
 		{
-			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, symbol.ToSymbol("Tuple"), env, position.NewLocation("%ELKPATH%/headers/tuple.elh", position.NewSpan(position.New(103, 5, 1), position.New(2690, 94, 3))))
+			namespace := namespace.TryDefineMixin("Represents an ordered, immutable collection\nof elements indexed by integers starting at `0`.", true, symbol.ToSymbol("Tuple"), env, nil)
 			_ = namespace
 		}
 		namespace.TryDefineClass("Thrown when there is a type mismatch.", false, false, false, false, false, symbol.ToSymbol("TypeError"), objectClass, env, nil)
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, false, symbol.ToSymbol("UInt"), objectClass, env, position.NewLocation("%ELKPATH%/headers/uint.elh", position.NewSpan(position.New(153, 5, 1), position.New(4484, 233, 3))))
+			namespace := namespace.TryDefineClass("Represents an unsigned integer (a positive whole number like `1u`, `2u`, `3u`, `0u`).\nIs 64 bit on a 64 bit system, 32 bit on a 32 bit system.", false, true, true, true, false, symbol.ToSymbol("UInt"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, false, symbol.ToSymbol("UInt16"), objectClass, env, position.NewLocation("%ELKPATH%/headers/uint16.elh", position.NewSpan(position.New(110, 4, 1), position.New(4500, 233, 3))))
+			namespace := namespace.TryDefineClass("Represents an unsigned 16 bit integer (a positive whole number like `1u16`, `2u16`, `3u16`, `0u16`).", false, true, true, true, false, symbol.ToSymbol("UInt16"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint16.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, true, false, symbol.ToSymbol("UInt32"), objectClass, env, position.NewLocation("%ELKPATH%/headers/uint32.elh", position.NewSpan(position.New(110, 4, 1), position.New(4508, 232, 3))))
+			namespace := namespace.TryDefineClass("Represents an unsigned 32 bit integer (a positive whole number like `1u32`, `2u32`, `3u32`, `0u32`).", false, true, true, true, false, symbol.ToSymbol("UInt32"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint32.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, false, symbol.ToSymbol("UInt64"), objectClass, env, position.NewLocation("%ELKPATH%/headers/uint64.elh", position.NewSpan(position.New(110, 4, 1), position.New(4526, 232, 3))))
+			namespace := namespace.TryDefineClass("Represents an unsigned 64 bit integer (a positive whole number like `1u64`, `2u64`, `3u64`, `0u64`).", false, true, true, true, false, symbol.ToSymbol("UInt64"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a int8.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
 		{
-			namespace := namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, false, symbol.ToSymbol("UInt8"), objectClass, env, position.NewLocation("%ELKPATH%/headers/uint8.elh", position.NewSpan(position.New(105, 4, 1), position.New(4445, 233, 3))))
+			namespace := namespace.TryDefineClass("Represents an unsigned 8 bit integer (a positive whole number like `1u8`, `2u8`, `3u8`, `0u8`).", false, true, true, true, false, symbol.ToSymbol("UInt8"), objectClass, env, nil)
 			namespace.TryDefineInterface("Values that conform to this interface\ncan be converted to a uint8.", symbol.ToSymbol("Convertible"), env, nil)
 			_ = namespace
 		}
-		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, true, symbol.ToSymbol("Value"), nil, env, position.NewLocation("%ELKPATH%/headers/value.elh", position.NewSpan(position.New(64, 5, 1), position.New(956, 47, 3))))
+		namespace.TryDefineClass("`Value` is the superclass class of all\nElk classes.", false, false, true, false, true, symbol.ToSymbol("Value"), nil, env, nil)
 		{
 			namespace := namespace.TryDefineClass("A weak pointer that does not prevent garbage collection of its target.\n\nA weak pointer has to be converted to a `Box` (a strong pointer)\nto access and/or modify the value it references (`Weak.:to_box`, `Weak.:to_immutable_box`).\nThese conversion methods will return `nil` if the object has already been garbage collected.", false, true, true, false, false, symbol.ToSymbol("Weak"), objectClass, env, nil)
 			_ = namespace

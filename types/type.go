@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
 )
@@ -29,7 +30,18 @@ type Type interface {
 
 type TypeWithUses interface {
 	Type
+	Uses() *concurrent.Slice[*position.Location]
 	AppendUse(*position.Location)
+}
+
+type TypeWithDeclaration interface {
+	Type
+	Declaration() *position.Location
+}
+
+type TypeWithDeclarationAndUses interface {
+	TypeWithDeclaration
+	TypeWithUses
 }
 
 func noopTraverse(typ, parent Type) TraverseOption { return TraverseContinue }

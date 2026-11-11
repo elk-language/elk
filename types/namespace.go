@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/ivar"
@@ -25,9 +26,9 @@ type Namespace interface {
 	Name() string
 	DocComment() string
 	Declaration() *position.Location
-	Declarations() []*position.Location
+	Declarations() *concurrent.Slice[*position.Location]
 	AppendDeclaration(*position.Location)
-	Uses() []*position.Location
+	Uses() *concurrent.Slice[*position.Location]
 	AppendUse(*position.Location)
 	SetDocComment(string)
 	AppendDocComment(string)

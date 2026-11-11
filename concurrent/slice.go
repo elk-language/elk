@@ -7,6 +7,10 @@ type Slice[V any] struct {
 	mu    sync.RWMutex
 }
 
+func MakeSlice[V any]() Slice[V] {
+	return Slice[V]{}
+}
+
 func NewSlice[V any]() *Slice[V] {
 	return &Slice[V]{}
 }

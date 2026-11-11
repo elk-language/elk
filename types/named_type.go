@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -10,7 +11,10 @@ type NamedType struct {
 	Name        string
 	Type        Type
 	declaration *position.Location
+	uses        concurrent.Slice[*position.Location]
 }
+
+var _ TypeWithDeclarationAndUses = &NamedType{}
 
 func NewNamedType(docComment string, name string, typ Type, decl *position.Location) *NamedType {
 	return &NamedType{
@@ -40,6 +44,14 @@ func (n *NamedType) DocComment() string {
 
 func (n *NamedType) Declaration() *position.Location {
 	return n.declaration
+}
+
+func (n *NamedType) Uses() *concurrent.Slice[*position.Location] {
+	return &n.uses
+}
+
+func (c *NamedType) AppendUse(decl *position.Location) {
+	c.uses.Push(decl)
 }
 
 func (*NamedType) IsLiteral() bool {
