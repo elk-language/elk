@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk/env"
 	"github.com/elk-language/elk/lexer/colorizer"
 	"github.com/fatih/color"
 )
@@ -130,6 +131,26 @@ func (l *Location) RelFilename() string {
 	}
 
 	return relPath
+}
+
+// Returns the filename where the ELKPATH is
+// replaced by `%ELKPATH%/`
+func (l *Location) PlaceholderElkPathFilename() string {
+	if strings.HasPrefix(l.FilePath, env.ELKPATH) {
+		return filepath.Join("%ELKPATH%", l.FilePath[len(env.ELKPATH):])
+	}
+
+	return l.FilePath
+}
+
+// Returns the filename where the `%ELKPATH%` is
+// replaced by env.ELKPATH
+func (l *Location) ReplacedElkPathFilename() string {
+	if strings.HasPrefix(l.FilePath, "%ELKPATH%") {
+		return filepath.Join(env.ELKPATH, l.FilePath[len(env.ELKPATH)+1:])
+	}
+
+	return l.FilePath
 }
 
 func (l *Location) Equal(other *Location) bool {

@@ -87,10 +87,10 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 		NamespaceBase: MakeNamespaceBase("", "Std"),
 		native:        true,
 	}
-	rootModule.DefineConstant(symbol.C_Root, rootModule)
+	rootModule.DefineConstant("", symbol.C_Root, rootModule, nil)
 	rootModule.DefineSubtype(symbol.C_Root, rootModule)
 
-	rootModule.DefineConstant(symbol.C_Std, stdModule)
+	rootModule.DefineConstant("", symbol.C_Std, stdModule, nil)
 	rootModule.DefineSubtype(symbol.C_Std, stdModule)
 
 	valueClass := &Class{
@@ -118,80 +118,80 @@ func NewGlobalEnvironmentWithoutHeaders() *GlobalEnvironment {
 	stdModule.DefineSubtype(symbol.C_Class, classClass)
 
 	valueClass.singleton = NewSingletonClass(valueClass, classClass)
-	stdModule.DefineConstant(symbol.C_Value, valueClass.singleton)
+	stdModule.DefineConstant("", symbol.C_Value, valueClass.singleton, nil)
 
 	objectClass.singleton = NewSingletonClass(objectClass, classClass)
-	stdModule.DefineConstant(symbol.C_Object, objectClass.singleton)
+	stdModule.DefineConstant("", symbol.C_Object, objectClass.singleton, nil)
 
 	classClass.singleton = NewSingletonClass(classClass, classClass)
-	stdModule.DefineConstant(symbol.C_Class, classClass.singleton)
+	stdModule.DefineConstant("", symbol.C_Class, classClass.singleton, nil)
 
 	// -- End of Bootstrapping --
 
-	moduleClass := stdModule.DefineClass("", false, false, false, true, false, symbol.C_Module, objectClass, env)
+	moduleClass := stdModule.DefineClass("", false, false, false, true, false, symbol.C_Module, objectClass, env, nil)
 	rootModule.parent = moduleClass
 	stdModule.parent = moduleClass
 
-	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Mixin, objectClass, env)
-	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Interface, objectClass, env)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Mixin, objectClass, env, nil)
+	stdModule.DefineClass("", false, false, false, true, false, symbol.C_Interface, objectClass, env, nil)
 
-	stdModule.DefineModule("", symbol.C_Kernel, env)
+	stdModule.DefineModule("", symbol.C_Kernel, env, nil)
 
-	boxClass := stdModule.DefineClass("", false, true, true, false, false, symbol.C_Box, objectClass, env)
+	boxClass := stdModule.DefineClass("", false, true, true, false, false, symbol.C_Box, objectClass, env, nil)
 	// Set up type parameters
 	var typeParam *TypeParameter
 	typeParams := make([]*TypeParameter, 1)
-	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), boxClass, Never{}, Any{}, nil, INVARIANT)
+	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), boxClass, Never{}, Any{}, nil, INVARIANT, nil)
 	typeParams[0] = typeParam
 	boxClass.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
-	boxClass.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
+	boxClass.DefineConstant("", symbol.ToSymbol("Val"), NoValue{}, nil)
 	boxClass.SetTypeParameters(typeParams)
 
-	boolClass := stdModule.DefineClass("", false, true, true, true, false, symbol.C_Bool, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_True, boolClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_False, boolClass, env)
+	boolClass := stdModule.DefineClass("", false, true, true, true, false, symbol.C_Bool, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_True, boolClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_False, boolClass, env, nil)
 
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Nil, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_String, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Symbol, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Char, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_BigFloat, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt64, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt32, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt16, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt8, valueClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt, valueClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_ArrayList, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_ArrayTuple, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashMap, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashRecord, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashSet, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Regex, objectClass, env)
-	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Method, objectClass, env)
-	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Pair, objectClass, env)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Nil, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_String, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Symbol, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Char, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_BigFloat, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float64, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Float32, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int64, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int32, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int16, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Int8, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt64, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt32, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt16, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt8, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_UInt, valueClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_ArrayList, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_ArrayTuple, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashMap, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashRecord, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_HashSet, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Regex, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, true, false, symbol.C_Method, objectClass, env, nil)
+	stdModule.DefineClass("", false, true, true, false, false, symbol.C_Pair, objectClass, env, nil)
 
-	tupleMixin := stdModule.DefineMixin("", true, symbol.C_Tuple, env)
+	tupleMixin := stdModule.DefineMixin("", true, symbol.C_Tuple, env, nil)
 	typeParams = make([]*TypeParameter, 1)
-	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), tupleMixin, Never{}, Any{}, nil, COVARIANT)
+	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), tupleMixin, Never{}, Any{}, nil, COVARIANT, nil)
 	typeParams[0] = typeParam
 	tupleMixin.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
-	tupleMixin.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
+	tupleMixin.DefineConstant("", symbol.ToSymbol("Val"), NoValue{}, nil)
 	tupleMixin.SetTypeParameters(typeParams)
 
-	listMixin := stdModule.DefineMixin("", true, symbol.C_List, env)
+	listMixin := stdModule.DefineMixin("", true, symbol.C_List, env, nil)
 	typeParams = make([]*TypeParameter, 1)
-	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), listMixin, Never{}, Any{}, nil, INVARIANT)
+	typeParam = NewTypeParameter(symbol.ToSymbol("Val"), listMixin, Never{}, Any{}, nil, INVARIANT, nil)
 	typeParams[0] = typeParam
 	listMixin.DefineSubtype(symbol.ToSymbol("Val"), typeParam)
-	listMixin.DefineConstant(symbol.ToSymbol("Val"), NoValue{})
+	listMixin.DefineConstant("", symbol.ToSymbol("Val"), NoValue{}, nil)
 	listMixin.SetTypeParameters(typeParams)
 
 	env.Init = false
@@ -443,7 +443,7 @@ func setupHelperTypes(env *GlobalEnvironment) {
 	ElkTokenConstant, _ := env.StdSubtypeModule(symbol.C_Elk).Subtype(symbol.C_Token)
 	ElkTokenClass := ElkTokenConstant.Type.(*Class)
 	for _, tokenName := range token.Types() {
-		ElkTokenClass.DefineConstant(symbol.ToSymbol(tokenName), UInt16)
+		ElkTokenClass.DefineConstant("", symbol.ToSymbol(tokenName), UInt16, nil)
 	}
 }
 

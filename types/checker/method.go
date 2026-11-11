@@ -2462,7 +2462,7 @@ func (c *Checker) declareMethodWithBase(
 			typeParams = append(typeParams, t)
 			typeParamNode.SetType(t)
 			typeParamMod.DefineSubtype(t.Name, t)
-			typeParamMod.DefineConstant(t.Name, types.NoValue{})
+			typeParamMod.DefineConstant("", t.Name, types.NoValue{}, nil)
 		}
 	}
 

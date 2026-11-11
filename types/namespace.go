@@ -8,6 +8,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -23,6 +24,8 @@ type Namespace interface {
 	Type
 	Name() string
 	DocComment() string
+	Declarations() []*position.Location
+	AppendDeclaration(*position.Location)
 	SetDocComment(string)
 	AppendDocComment(string)
 	Parent() Namespace
@@ -42,14 +45,14 @@ type Namespace interface {
 	SetTypeParameters([]*TypeParameter)
 
 	Constants() ConstantMap
-	Constant(name symbol.Symbol) (Constant, bool)
-	ConstantString(name string) (Constant, bool)
-	DefineConstant(name symbol.Symbol, val Type)
-	DefineConstantWithFullName(name symbol.Symbol, fullName string, val Type)
+	Constant(name symbol.Symbol) (*Constant, bool)
+	ConstantString(name string) (*Constant, bool)
+	DefineConstant(docComment string, name symbol.Symbol, val Type, declaration *position.Location)
+	DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration *position.Location)
 
 	Subtypes() ConstantMap
-	Subtype(name symbol.Symbol) (Constant, bool)
-	SubtypeString(name string) (Constant, bool)
+	Subtype(name symbol.Symbol) (*Constant, bool)
+	SubtypeString(name string) (*Constant, bool)
 	MustSubtype(name symbol.Symbol) Type
 	MustSubtypeString(name string) Type
 	DefineSubtype(name symbol.Symbol, val Type)
@@ -66,10 +69,10 @@ type Namespace interface {
 	InstanceVariableString(name string) *InstanceVariable
 	DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable)
 
-	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment) *Class
-	DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Module
-	DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment) *Mixin
-	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment) *Interface
+	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration *position.Location) *Class
+	DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Module
+	DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Mixin
+	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface
 }
 
 func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {
@@ -83,9 +86,12 @@ func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *
 func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironment) ConstantMap {
 	newConstants := make(ConstantMap, len(constants))
 	for constName, constant := range constants {
-		newConstants[constName] = Constant{
-			FullName: constant.FullName,
-			Type:     DeepCopyEnv(constant.Type, oldEnv, newEnv),
+		newConstants[constName] = &Constant{
+			FullName:    constant.FullName,
+			Type:        DeepCopyEnv(constant.Type, oldEnv, newEnv),
+			docComment:  constant.docComment,
+			uses:        slices.Clone(constant.uses),
+			declaration: constant.declaration,
 		}
 	}
 	return newConstants
@@ -749,8 +755,8 @@ func DirectlyImplementedInterfaces(namespace Namespace) iter.Seq[Namespace] {
 }
 
 // Iterate over every subtype
-func AllSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
-	return func(yield func(name symbol.Symbol, constant Constant) bool) {
+func AllSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, *Constant] {
+	return func(yield func(name symbol.Symbol, constant *Constant) bool) {
 		for name, typ := range namespace.Subtypes() {
 			if !yield(name, typ) {
 				break
@@ -760,8 +766,8 @@ func AllSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
 }
 
 // Iterate over every subtype, sorted by name
-func SortedSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
-	return func(yield func(name symbol.Symbol, constant Constant) bool) {
+func SortedSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, *Constant] {
+	return func(yield func(name symbol.Symbol, constant *Constant) bool) {
 		subtypes := namespace.Subtypes()
 		names := symbol.SortKeys(subtypes)
 
@@ -775,8 +781,8 @@ func SortedSubtypes(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
 }
 
 // Iterate over every constant that is not a subtype
-func AllConstants(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
-	return func(yield func(name symbol.Symbol, constant Constant) bool) {
+func AllConstants(namespace Namespace) iter.Seq2[symbol.Symbol, *Constant] {
+	return func(yield func(name symbol.Symbol, constant *Constant) bool) {
 		for name, typ := range namespace.Constants() {
 			if _, ok := namespace.Subtype(name); ok {
 				continue
@@ -790,8 +796,8 @@ func AllConstants(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
 }
 
 // Iterate over every constant that is not a subtype, sorted by name
-func SortedConstants(namespace Namespace) iter.Seq2[symbol.Symbol, Constant] {
-	return func(yield func(name symbol.Symbol, constant Constant) bool) {
+func SortedConstants(namespace Namespace) iter.Seq2[symbol.Symbol, *Constant] {
+	return func(yield func(name symbol.Symbol, constant *Constant) bool) {
 		constants := namespace.Constants()
 		names := symbol.SortKeys(constants)
 		for _, name := range names {

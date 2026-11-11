@@ -73,18 +73,24 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, n
 func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantPlaceholder, subtype, constant types.Type) {
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     constant,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		constant,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 
 	placeholder.Sibling.Replaced = true
 	subtypeContainer := placeholder.Sibling.Container
 	usingSubtype := subtypeContainer[placeholder.AsName]
-	subtypeContainer[placeholder.AsName] = types.Constant{
-		FullName: usingSubtype.FullName,
-		Type:     subtype,
-	}
+	subtypeContainer[placeholder.AsName] = types.NewConstant(
+		usingSubtype.DocComment(),
+		usingSubtype.FullName,
+		subtype,
+		usingSubtype.Declaration(),
+		usingSubtype.Uses(),
+	)
 }
 
 func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type, isNative bool) {
@@ -109,10 +115,13 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 	placeholder = placeholder.Sibling
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     newType,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		newType,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 }
 
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
@@ -129,8 +138,8 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 		c.addRedeclaredConstantError(fullConstantName, node.Constant.Location())
 	}
 
-	namedType := types.NewNamedType(fullConstantName, nil)
-	container.DefineConstant(constantName, types.NoValue{})
+	namedType := types.NewNamedType(node.DocComment(), fullConstantName, nil, node.Location())
+	container.DefineConstant("", constantName, types.NoValue{}, nil)
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -165,7 +174,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 		nil,
 		nil,
 	)
-	container.DefineConstant(constantName, types.NoValue{})
+	container.DefineConstant("", constantName, types.NoValue{}, nil)
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -232,7 +241,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
-		typeParamMod.DefineConstant(t.Name, types.NoValue{})
+		typeParamMod.DefineConstant("", t.Name, types.NoValue{}, nil)
 	}
 
 	prevMode := c.mode
@@ -656,7 +665,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
-				namespace.DefineConstant(t.Name, types.NoValue{})
+				namespace.DefineConstant("", t.Name, types.NoValue{}, nil)
 				c.finishCheckingTypeParameterNode(t, varNode)
 			}
 
@@ -1036,6 +1045,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		upperType,
 		def,
 		variance,
+		node.Location(),
 	)
 }
 
@@ -1057,6 +1067,7 @@ func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, name
 		nil,
 		nil,
 		variance,
+		node.Location(),
 	)
 }
 

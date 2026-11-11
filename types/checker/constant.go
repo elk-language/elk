@@ -87,10 +87,13 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     newType,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		newType,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 }
 
 func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
@@ -140,7 +143,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			typ = declaredType
 		}
 
-		container.DefineConstant(constantName, typ)
+		container.DefineConstant(node.DocComment(), constantName, typ, node.Location())
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
 		if c.shouldCompile() {
@@ -160,7 +163,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	declaredType := c.TypeOf(node.TypeNode)
-	container.DefineConstant(constantName, declaredType)
+	container.DefineConstant(node.DocComment(), constantName, declaredType, node.Location())
 	node.SetType(declaredType)
 	c.registerConstantCheck(fullConstantName, constantName, container, node)
 	c.replaceConstantPlaceholder(constant, declaredType)

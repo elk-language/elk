@@ -76,7 +76,7 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 	singletonConstantPath := GetConstantPath(fullConstantName)
 	parentNamespace := DeepCopyNamespacePath(singletonConstantPath[:len(singletonConstantPath)-1], oldEnv, newEnv)
 	singletonConstantName := singletonConstantPath[len(singletonConstantPath)-1]
-	parentNamespace.DefineConstant(symbol.ToSymbol(singletonConstantName), newSingleton)
+	parentNamespace.DefineConstant("", symbol.ToSymbol(singletonConstantName), newSingleton, nil)
 
 	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
 	newSingleton.instanceVariables = InstanceVariablesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)

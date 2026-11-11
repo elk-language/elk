@@ -542,6 +542,16 @@ func (e *evaluator) lex(input string) {
 	fmt.Println()
 }
 
+func isMethodCallNode(node ast.Node) bool {
+	switch node.(type) {
+	case *ast.MethodCallNode, *ast.ReceiverlessMethodCallNode,
+		*ast.AttributeAccessNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Handles autocomplete
 func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	source := doc.Text
@@ -553,7 +563,6 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	}
 	e.elkTypechecker.ClearErrors()
 
-	cursorRuneOffset := doc.CursorRuneOffset()
 	cursorByteOffset := doc.CursorByteOffset()
 
 	var narrowestNode ast.Node
@@ -568,7 +577,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 			if narrowestNode == nil {
 				narrowestNode = node
-				if ast.IsMethodCallNode(node) {
+				if isMethodCallNode(node) {
 					narrowestMethodCallNode = node
 				}
 				return ast.TraverseContinue
@@ -576,7 +585,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 			if node.Location().ByteCount() <= narrowestNode.Location().ByteCount() {
 				narrowestNode = node
-				if ast.IsMethodCallNode(node) {
+				if isMethodCallNode(node) {
 					narrowestMethodCallNode = node
 				}
 			}
@@ -590,18 +599,54 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		return
 	}
 
-	var receiverNode ast.ExpressionNode
-	var nameNode ast.IdentifierNode
 	switch n := narrowestMethodCallNode.(type) {
 	case *ast.AttributeAccessNode:
-		receiverNode = n.Receiver
-		nameNode = n.AttributeName
+		return e.completeMethodCall(doc, n.Receiver, n.AttributeName)
 	case *ast.MethodCallNode:
-		receiverNode = n.Receiver
-		nameNode = n.MethodName
+		return e.completeMethodCall(doc, n.Receiver, n.MethodName)
+	case *ast.ReceiverlessMethodCallNode:
+		return e.completeFunction(doc, n.MethodName)
+	}
+
+	switch n := narrowestNode.(type) {
+	case *ast.ConstantLookupNode:
+		return e.completeConstantLookup(doc, n)
+	case *ast.PublicConstantNode:
+		return e.completeConstant(doc, n.Value)
+	case *ast.PrivateConstantNode:
+		return e.completeConstant(doc, n.Value)
+	case *ast.ReceiverlessMethodCallNode:
+		return e.completeFunction(doc, n.MethodName)
+	case *ast.PublicIdentifierNode:
+		return e.completeLocalOrFunction(doc, n.Value)
+	case *ast.PrivateIdentifierNode:
+		return e.completeLocalOrFunction(doc, n.Value)
 	default:
 		return
 	}
+}
+
+func (e *evaluator) completeConstant(doc goprompt.Document, name string) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.ConstantLookupNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	source := doc.Text
+	cursorRuneOffset := doc.CursorRuneOffset()
+	cursorByteOffset := doc.CursorByteOffset()
 
 	receiverType := e.elkTypechecker.ToNonLiteral(e.elkTypechecker.TypeOf(receiverNode), true)
 	receiverNamespace, ok := receiverType.(types.Namespace)
@@ -626,11 +671,14 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 			currentName = currentName[:len(currentName)-truncate]
 		}
 	} else {
-		startChar = pstrings.RuneNumber(cursorRuneOffset)
-		endChar = pstrings.RuneNumber(cursorRuneOffset)
+		startChar = cursorRuneOffset
+		endChar = cursorRuneOffset
 	}
 
 	for name, method := range e.elkTypechecker.MethodsInNamespace(receiverNamespace) {
+		if method.IsOverload() {
+			continue
+		}
 		if strings.Contains(name.String(), currentName) {
 			suggestions = append(
 				suggestions,
@@ -642,7 +690,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		}
 	}
 
-	return
+	return suggestions, startChar, endChar
 }
 
 // For debugging

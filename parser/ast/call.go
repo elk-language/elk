@@ -11,16 +11,6 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func IsMethodCallNode(node Node) bool {
-	switch node.(type) {
-	case *MethodCallNode, *ReceiverlessMethodCallNode,
-		*AttributeAccessNode:
-		return true
-	default:
-		return false
-	}
-}
-
 // Represents a new expression eg. `new(123)`
 type NewExpressionNode struct {
 	TypedNodeBase

@@ -1,16 +1,23 @@
 package types
 
-import "github.com/elk-language/elk/value/symbol"
+import (
+	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value/symbol"
+)
 
 type NamedType struct {
-	Name string
-	Type Type
+	docComment  string
+	Name        string
+	Type        Type
+	declaration *position.Location
 }
 
-func NewNamedType(name string, typ Type) *NamedType {
+func NewNamedType(docComment string, name string, typ Type, decl *position.Location) *NamedType {
 	return &NamedType{
-		Name: name,
-		Type: typ,
+		docComment:  docComment,
+		Name:        name,
+		Type:        typ,
+		declaration: decl,
 	}
 }
 
@@ -27,6 +34,14 @@ func (n *NamedType) ToNonLiteral(env *GlobalEnvironment) Type {
 	return n
 }
 
+func (n *NamedType) DocComment() string {
+	return n.docComment
+}
+
+func (n *NamedType) Declaration() *position.Location {
+	return n.declaration
+}
+
 func (*NamedType) IsLiteral() bool {
 	return false
 }
@@ -37,8 +52,10 @@ func (n *NamedType) inspect() string {
 
 func (n *NamedType) Copy() *NamedType {
 	return &NamedType{
-		Name: n.Name,
-		Type: n.Type,
+		docComment:  n.docComment,
+		Name:        n.Name,
+		Type:        n.Type,
+		declaration: n.declaration,
 	}
 }
 
@@ -48,7 +65,9 @@ func (n *NamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamedType {
 	}
 
 	newType := &NamedType{
-		Name: n.Name,
+		docComment:  n.docComment,
+		Name:        n.Name,
+		declaration: n.declaration,
 	}
 
 	classConstantPath := GetConstantPath(n.Name)

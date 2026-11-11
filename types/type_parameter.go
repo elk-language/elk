@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -43,12 +44,13 @@ var varianceString = []string{
 }
 
 type TypeParameter struct {
-	Name       symbol.Symbol
-	Namespace  Namespace
-	LowerBound Type
-	UpperBound Type
-	Default    Type
-	Variance   Variance
+	declaration *position.Location
+	Name        symbol.Symbol
+	Namespace   Namespace
+	LowerBound  Type
+	UpperBound  Type
+	Default     Type
+	Variance    Variance
 }
 
 // Returns the default inferred type for the type parameter
@@ -72,13 +74,22 @@ func (t *TypeParameter) traverse(parent Type, enter func(node, parent Type) Trav
 	}
 }
 
+func (t *TypeParameter) DocComment() string {
+	return ""
+}
+
+func (t *TypeParameter) Declaration() *position.Location {
+	return t.declaration
+}
+
 func (t *TypeParameter) Copy() *TypeParameter {
 	return &TypeParameter{
-		Name:       t.Name,
-		Namespace:  t.Namespace,
-		LowerBound: t.LowerBound,
-		UpperBound: t.UpperBound,
-		Variance:   t.Variance,
+		declaration: t.declaration,
+		Name:        t.Name,
+		Namespace:   t.Namespace,
+		LowerBound:  t.LowerBound,
+		UpperBound:  t.UpperBound,
+		Variance:    t.Variance,
 	}
 }
 
@@ -103,14 +114,15 @@ func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypePara
 	return newTypeParam
 }
 
-func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance) *TypeParameter {
+func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance, decl *position.Location) *TypeParameter {
 	return &TypeParameter{
-		Name:       name,
-		Namespace:  namespace,
-		LowerBound: lowerBound,
-		UpperBound: upperBound,
-		Default:    def,
-		Variance:   variance,
+		declaration: decl,
+		Name:        name,
+		Namespace:   namespace,
+		LowerBound:  lowerBound,
+		UpperBound:  upperBound,
+		Default:     def,
+		Variance:    variance,
 	}
 }
 
