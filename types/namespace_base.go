@@ -48,6 +48,7 @@ func (c *Constant) Uses() []*position.Location {
 
 func (c *Constant) AppendUse(loc ...*position.Location) {
 	c.uses = append(c.uses, loc...)
+	AppendUseToType(c.Type, loc...)
 }
 
 func NewConstant(docComment string, fullName string, typ Type, declaration *position.Location, uses []*position.Location) *Constant {
@@ -103,8 +104,8 @@ func (c *NamespaceBase) Uses() *concurrent.Slice[*position.Location] {
 	return &c.uses
 }
 
-func (c *NamespaceBase) AppendUse(decl *position.Location) {
-	c.uses.Push(decl)
+func (c *NamespaceBase) AppendUse(decl ...*position.Location) {
+	c.uses.Append(decl...)
 }
 
 func (c *NamespaceBase) DocComment() string {

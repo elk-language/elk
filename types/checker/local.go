@@ -35,13 +35,13 @@ func (l *local) copy() *local {
 	}
 }
 
-func (l *local) AppendUse(loc *position.Location) {
+func (l *local) AppendUse(loc ...*position.Location) {
 	if l.isShadow() {
-		l.shadowOf.AppendUse(loc)
+		l.shadowOf.AppendUse(loc...)
 		return
 	}
 
-	l.uses = append(l.uses, loc)
+	l.uses = append(l.uses, loc...)
 }
 
 func (l *local) deepCloneConditionalSpecialisationsForBreakpoint(localMapping map[*local]*local) []*local {

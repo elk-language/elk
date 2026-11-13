@@ -50,8 +50,8 @@ func (n *NamedType) Uses() *concurrent.Slice[*position.Location] {
 	return &n.uses
 }
 
-func (c *NamedType) AppendUse(decl *position.Location) {
-	c.uses.Push(decl)
+func (c *NamedType) AppendUse(decl ...*position.Location) {
+	c.uses.Append(decl...)
 }
 
 func (*NamedType) IsLiteral() bool {

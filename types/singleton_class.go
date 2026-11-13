@@ -25,8 +25,8 @@ func (c *SingletonClass) Uses() *concurrent.Slice[*position.Location] {
 	return c.AttachedObject.Uses()
 }
 
-func (c *SingletonClass) AppendUse(loc *position.Location) {
-	c.AttachedObject.AppendUse(loc)
+func (c *SingletonClass) AppendUse(loc ...*position.Location) {
+	c.AttachedObject.AppendUse(loc...)
 }
 
 func (c *SingletonClass) AppendDeclaration(loc *position.Location) {

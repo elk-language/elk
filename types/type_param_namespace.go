@@ -68,7 +68,7 @@ func (t *TypeParamNamespace) Uses() *concurrent.Slice[*position.Location] {
 	return nil
 }
 
-func (t *TypeParamNamespace) AppendUse(*position.Location) {}
+func (t *TypeParamNamespace) AppendUse(...*position.Location) {}
 
 func (t *TypeParamNamespace) Name() string {
 	return ""

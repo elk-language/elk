@@ -29,7 +29,7 @@ type Namespace interface {
 	Declarations() *concurrent.Slice[*position.Location]
 	AppendDeclaration(*position.Location)
 	Uses() *concurrent.Slice[*position.Location]
-	AppendUse(*position.Location)
+	AppendUse(...*position.Location)
 	SetDocComment(string)
 	AppendDocComment(string)
 	Parent() Namespace

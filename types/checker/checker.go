@@ -7362,7 +7362,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, location *positi
 }
 
 // Get the type with the given name
-func (c *Checker) resolveType(name string, location *position.Location) (types.Type, string) {
+func (c *Checker) resolveType(name string, location *position.Location) (*types.Constant, string) {
 	for _, constScope := range ds.ReverseSlice(c.constantScopes) {
 		constant, ok := constScope.container.SubtypeString(name)
 		if !ok {
@@ -7387,7 +7387,7 @@ func (c *Checker) resolveType(name string, location *position.Location) (types.T
 		}
 
 		if c.checkIfTypeParameterIsAllowed(constant.Type, location) {
-			return constant.Type, fullName
+			return constant, fullName
 		}
 		return nil, fullName
 	}
@@ -7475,7 +7475,7 @@ func (c *Checker) getInstanceVariable(name symbol.Symbol) (*types.InstanceVariab
 	return typ, container
 }
 
-func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
+func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (*types.Constant, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
@@ -7485,14 +7485,32 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 			leftContainerType = c.TypeOf(l)
 			leftContainerName = l.Value
 		} else {
-			leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+			constant, name := c.resolveType(l.Value, l.Location())
+			if constant == nil {
+				leftContainerName = name
+			} else {
+				leftContainerName = name
+				leftContainerType = constant.Type
+			}
 		}
 	case *ast.PrivateConstantNode:
-		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+		constant, name := c.resolveType(l.Value, l.Location())
+		if constant == nil {
+			leftContainerName = name
+		} else {
+			leftContainerName = name
+			leftContainerType = constant.Type
+		}
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
+		constant, name := c.resolveConstantLookupType(l)
+		if constant == nil {
+			leftContainerName = name
+		} else {
+			leftContainerName = name
+			leftContainerType = constant.Type
+		}
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
@@ -7557,9 +7575,9 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Location()) {
-		return types.Untyped{}, typeName
+		return nil, typeName
 	}
-	return subtype.Type, typeName
+	return subtype, typeName
 }
 
 func (c *Checker) getConstantLookupTypeForMacro(node *ast.ConstantLookupNode) types.Type {
@@ -7818,8 +7836,13 @@ func (c *Checker) resolveGenericType(typ types.Type, location *position.Location
 }
 
 func (c *Checker) checkSimpleConstantType(name string, location *position.Location) types.Type {
-	typ, _ := c.resolveType(name, location)
-	return c.resolveGenericType(typ, location)
+	constant, _ := c.resolveType(name, location)
+	if constant == nil {
+		return types.Untyped{}
+	}
+
+	constant.AppendUse(location)
+	return c.resolveGenericType(constant.Type, location)
 }
 
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) *ast.PublicConstantNode {

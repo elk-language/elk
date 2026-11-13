@@ -91,7 +91,7 @@ func (c *Callable) Uses() *concurrent.Slice[*position.Location] {
 	return nil
 }
 
-func (c *Callable) AppendUse(*position.Location) {}
+func (c *Callable) AppendUse(...*position.Location) {}
 
 func (c *Callable) Name() string {
 	return "callable"

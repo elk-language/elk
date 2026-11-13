@@ -31,7 +31,7 @@ type Type interface {
 type TypeWithUses interface {
 	Type
 	Uses() *concurrent.Slice[*position.Location]
-	AppendUse(*position.Location)
+	AppendUse(...*position.Location)
 }
 
 type TypeWithDeclaration interface {
@@ -254,4 +254,13 @@ func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {
 	}
 
 	return nil
+}
+
+func AppendUseToType(typ Type, loc ...*position.Location) {
+	typeWithUses, ok := typ.(TypeWithUses)
+	if !ok {
+		return
+	}
+
+	typeWithUses.AppendUse(loc...)
 }
