@@ -56,12 +56,12 @@ func newTypeDefinitionChecks() *typeDefinitionChecks {
 
 type typeDefinitionCheckEntry struct {
 	filename       string
-	constantScopes []constantScope
+	constantScopes []*constantScope
 	node           ast.ExpressionNode
 	isNative       bool
 }
 
-func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, node ast.ExpressionNode, isNative bool) *typeDefinitionCheckEntry {
+func newTypeDefinitionCheckEntry(filename string, constScopes []*constantScope, node ast.ExpressionNode, isNative bool) *typeDefinitionCheckEntry {
 	return &typeDefinitionCheckEntry{
 		filename:       filename,
 		constantScopes: constScopes,
@@ -217,7 +217,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name), false)
-	c.pushConstScope(makeConstantScope(typeParamMod))
+	c.pushConstScope(newConstantScope(typeParamMod, node.Span()))
 
 	var defaultSeen bool
 	for _, typeParamNode := range node.TypeParameters {
@@ -253,7 +253,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	namedType.TypeParameters = typeParams
 
 	c.mode = prevMode
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 
 	return true
 }
@@ -590,7 +590,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(iface))
+	c.pushConstScope(newLocalConstantScope(iface, node.Span()))
 
 	typeParams := c.checkNamespaceTypeParameters(
 		iface.Checked,
@@ -604,7 +604,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 	}
 	iface.Checked = true
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
@@ -612,7 +612,7 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(mixin))
+	c.pushConstScope(newLocalConstantScope(mixin, node.Span()))
 
 	typeParams := c.checkNamespaceTypeParameters(
 		mixin.Checked,
@@ -626,7 +626,7 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	}
 	mixin.Checked = true
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkNamespaceTypeParameters(
@@ -723,8 +723,8 @@ func (c *Checker) checkSuperclassForMacro(node *ast.ClassDeclarationNode) {
 	if !ok || class.Checked {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(class))
-	defer c.popConstScope()
+	c.pushConstScope(newLocalConstantScope(class, node.Span()))
+	defer c.popConstScope(node.Span().EndPos)
 
 	var superclassType types.Type
 	var superclass types.Namespace
@@ -769,7 +769,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode, isNative
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(class))
+	c.pushConstScope(newLocalConstantScope(class, node.Span()))
 	typeParams := c.checkNamespaceTypeParameters(
 		class.Checked,
 		node.TypeParameters,
@@ -871,7 +871,7 @@ superclassSwitch:
 		c.compiler.CompileClassInheritance(class, position.DefaultLocation)
 	}
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {

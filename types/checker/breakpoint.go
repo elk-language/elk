@@ -18,8 +18,8 @@ type BreakpointContext struct {
 	runtimeEnv     *types.GlobalEnvironment
 	macroEnv       *types.GlobalEnvironment
 	localEnvs      []*localEnvironment
-	constantScopes []constantScope
-	methodScopes   []methodScope
+	constantScopes []*constantScope
+	methodScopes   []*methodScope
 	value.ValueBase
 }
 

@@ -164,20 +164,18 @@ type Checker struct {
 	Filename                   string                                    // name of the current source file
 	Errors                     *diagnostic.SyncDiagnosticList            // list of typechecking errors
 	ASTCache                   *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
+	LSPData                    *LSPData
 	runtimeEnv                 *types.GlobalEnvironment
 	macroEnv                   *types.GlobalEnvironment
-	flags                      bitfield.BitField16
-	phase                      phase
-	mode                       mode
 	returnType                 types.Type
 	throwType                  types.Type
 	selfType                   types.Type // the type of self
 	macroAppendExpressionSlice []*macroAppendExpression
 	macroAppendExpressionMap   map[string]*macroAppendExpression
-	constantScopes             []constantScope
-	constantScopesCopyCache    []constantScope
-	methodScopes               []methodScope
-	methodScopesCopyCache      []methodScope
+	constantScopes             []*constantScope
+	constantScopesCopyCache    []*constantScope
+	methodScopes               []*methodScope
+	methodScopesCopyCache      []*methodScope
 	catchScopes                []catchScope
 	localEnvs                  []*localEnvironment                            // stack of local environments containing variable and value declarations
 	loops                      []*loop                                        // list of loops the current expression falls under
@@ -197,6 +195,9 @@ type Checker struct {
 	compiler                   compiler.Compiler
 	output                     io.Writer
 	threadPool                 *vm.ThreadPool
+	flags                      bitfield.BitField16
+	phase                      phase
+	mode                       mode
 }
 
 // Instantiate a new Checker instance.
@@ -576,14 +577,14 @@ func (c *Checker) setRuntimeGlobalEnv(newEnv *types.GlobalEnvironment) {
 }
 
 func (c *Checker) resetRuntimeScopes() {
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
 	}
 	c.constantScopesCopyCache = nil
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 }
@@ -595,16 +596,16 @@ func (c *Checker) setMacroGlobalEnv(newEnv *types.GlobalEnvironment) {
 }
 
 func (c *Checker) resetMacroScopes() {
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
-		makeUsingConstantScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
+		newUsingConstantScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module), nil),
 	}
 	c.constantScopesCopyCache = nil
 
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 }
@@ -613,16 +614,16 @@ func (c *Checker) doWithMacroScopes(fn func()) {
 	prevConstScopes := c.constantScopes
 	prevMethodScopes := c.methodScopes
 
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
-		makeUsingConstantScope(c.StdAST()),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
+		newUsingConstantScope(c.StdAST(), nil),
 	}
 	c.constantScopesCopyCache = nil
 
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 
@@ -1302,9 +1303,10 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	module, ok := c.TypeOf(node).(*types.Module)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(module))
-		c.pushMethodScope(makeLocalMethodScope(module))
-		c.pushIsolatedLocalEnv(node.Span())
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(module, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(module, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = module
 	} else {
 		c.selfType = types.Untyped{}
@@ -1329,8 +1331,8 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1344,9 +1346,10 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(class, node.Constant.Location())
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv(node.Span())
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(class, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = class.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1371,8 +1374,8 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1386,9 +1389,10 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(mixin, node.Constant.Location())
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
-		c.pushIsolatedLocalEnv(node.Span())
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(mixin, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(mixin, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = mixin.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1413,8 +1417,8 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1427,9 +1431,10 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(iface))
-		c.pushMethodScope(makeLocalMethodScope(iface))
-		c.pushIsolatedLocalEnv(node.Span())
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(iface, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(iface, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = iface.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1454,8 +1459,8 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1468,9 +1473,10 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	class, ok := c.TypeOf(node).(*types.SingletonClass)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv(node.Span())
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(class, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = c.runtimeEnv.StdSubtype(symbol.C_Class)
 	} else {
 		c.selfType = types.Untyped{}
@@ -1495,8 +1501,8 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -6358,7 +6364,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	return node
 }
@@ -6398,7 +6404,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	return node
 }
@@ -8221,7 +8227,7 @@ func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode
 		node.Location(),
 	)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	callable.Body = method
 	node.SetType(callable)
@@ -9624,13 +9630,14 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 
 	prevMode := c.mode
 	c.mode = moduleMode
-	c.pushConstScope(makeLocalConstantScope(module))
-	c.pushMethodScope(makeLocalMethodScope(module))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(module, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(module, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9675,13 +9682,14 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 
 	prevMode := c.mode
 	c.mode = classMode
-	c.pushConstScope(makeLocalConstantScope(class))
-	c.pushMethodScope(makeLocalMethodScope(class))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(class, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(class, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9722,13 +9730,14 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 
 	prevMode := c.mode
 	c.mode = mixinMode
-	c.pushConstScope(makeLocalConstantScope(mixin))
-	c.pushMethodScope(makeLocalMethodScope(mixin))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(mixin, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(mixin, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9765,13 +9774,14 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 
 	prevMode := c.mode
 	c.mode = interfaceMode
-	c.pushConstScope(makeLocalConstantScope(iface))
-	c.pushMethodScope(makeLocalMethodScope(iface))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(iface, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(iface, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9848,13 +9858,14 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 
 	prevMode := c.mode
 	c.mode = singletonMode
-	c.pushConstScope(makeLocalConstantScope(singleton))
-	c.pushMethodScope(makeLocalMethodScope(singleton))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(singleton, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(singleton, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9976,7 +9987,8 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 	case *ast.UsingEntryWithSubentriesNode:
 		return c.checkUsingEntryWithSubentriesForNamespace(n)
 	case *ast.ConstantAsNode:
-		usingNamespace := c.getUsingBufferNamespace()
+		scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+		usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 		n.Constant = c.checkUsingConstantLookupEntryNodeForNamespace(n.Constant, n.AsName)
 		n.SetType(usingNamespace)
 		return n
@@ -9990,7 +10002,8 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 }
 
 func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntryWithSubentriesNode) ast.UsingEntryNode {
-	usingNamespace := c.getUsingBufferNamespace()
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 	node.SetType(usingNamespace)
 
 	for _, subentry := range node.Subentries {
@@ -10029,7 +10042,8 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	} else {
 		newConstantSymbol = symbol.ToSymbol(asName)
 	}
-	usingNamespace := c.getUsingBufferNamespace()
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 	node.SetType(usingNamespace)
 
 	switch n := constant.(type) {
@@ -10134,12 +10148,14 @@ func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.Using
 			return node
 		}
 	}
-	c.pushConstScope(makeUsingConstantScope(namespace))
+
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	c.pushConstScope(newUsingConstantScope(namespace, scopeSpan))
 	singleton := namespace.Singleton()
 	if singleton == nil {
-		c.pushMethodScope(makeUsingMethodScope(namespace))
+		c.pushMethodScope(newUsingMethodScope(namespace, scopeSpan))
 	} else {
-		c.pushMethodScope(makeUsingMethodScope(singleton))
+		c.pushMethodScope(newUsingMethodScope(singleton, scopeSpan))
 	}
 	return node
 }

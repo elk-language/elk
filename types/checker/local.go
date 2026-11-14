@@ -78,6 +78,7 @@ func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
 
 func (l *local) createShadow() *local {
 	return &local{
+		declaration:      l.declaration,
 		typ:              l.typ,
 		initialised:      l.initialised,
 		singleAssignment: l.singleAssignment,
@@ -358,6 +359,9 @@ func (c *Checker) pushMacroBoundaryLocalEnv(span *position.Span) *localEnvironme
 func (c *Checker) pushLocalEnv(env *localEnvironment) *localEnvironment {
 	env.index = len(c.localEnvs)
 	c.localEnvs = append(c.localEnvs, env)
+	if c.LSPData != nil {
+		c.LSPData.localEnvs.Push(env)
+	}
 	return env
 }
 

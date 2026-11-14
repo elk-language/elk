@@ -53,8 +53,8 @@ type constantDefinitionCheck struct {
 	state             constState
 	constName         symbol.Symbol
 	filename          string
-	constantScopes    []constantScope
-	methodScopes      []methodScope
+	constantScopes    []*constantScope
+	methodScopes      []*methodScope
 	referencedMethods []*types.Method
 	node              *ast.ConstantDeclarationNode
 	namespace         types.Namespace

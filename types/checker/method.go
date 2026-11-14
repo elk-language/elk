@@ -33,8 +33,8 @@ func (c *Checker) checkAllMethodSignaturesOfNamespace(namespace types.Namespace)
 }
 
 type signatureCheckEntry struct {
-	constantScopes []constantScope
-	methodScopes   []methodScope
+	constantScopes []*constantScope
+	methodScopes   []*methodScope
 	selfType       types.Type
 	flags          bitfield.BitField16
 	mode           mode
@@ -251,7 +251,7 @@ func (c *Checker) checkUsingMethodLookupEntryNode(receiverNode ast.ExpressionNod
 		newMethodSymbol = symbol.ToSymbol(methodName)
 	}
 
-	usingNamespace := c.getUsingBufferNamespace()
+	usingNamespace := c.getUsingBufferNamespace(location.Span)
 
 	method := namespace.MethodString(methodName)
 	if method != nil {
@@ -290,23 +290,23 @@ func (c *Checker) resolveUsingEntry(entry ast.UsingEntryNode, pushPlaceholderLoc
 func (c *Checker) resolveUsingNamespace(typ types.Type, loc *position.Location, pushPlaceholderLocation bool) {
 	switch t := typ.(type) {
 	case *types.Module:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t))
+		c.pushConstScope(newUsingConstantScope(t, loc.Span))
+		c.pushMethodScope(newUsingMethodScope(t, loc.Span))
 	case *types.Mixin:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
+		c.pushConstScope(newUsingConstantScope(t, loc.Span))
+		c.pushMethodScope(newUsingMethodScope(t.Singleton(), loc.Span))
 	case *types.Class:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
+		c.pushConstScope(newUsingConstantScope(t, loc.Span))
+		c.pushMethodScope(newUsingMethodScope(t.Singleton(), loc.Span))
 	case *types.Interface:
-		c.pushConstScope(makeUsingConstantScope(t))
-		c.pushMethodScope(makeUsingMethodScope(t.Singleton()))
+		c.pushConstScope(newUsingConstantScope(t, loc.Span))
+		c.pushMethodScope(newUsingMethodScope(t.Singleton(), loc.Span))
 	case *types.NamespacePlaceholder:
 		if t.IsResolved() {
 			c.resolveUsingNamespace(t.Namespace, loc, pushPlaceholderLocation)
 		} else {
-			c.pushConstScope(makeUsingConstantScope(t))
-			c.pushMethodScope(makeUsingMethodScope(t))
+			c.pushConstScope(newUsingConstantScope(t, loc.Span))
+			c.pushMethodScope(newUsingMethodScope(t, loc.Span))
 			if pushPlaceholderLocation {
 				t.Locations.Push(loc)
 			}
@@ -315,16 +315,16 @@ func (c *Checker) resolveUsingNamespace(typ types.Type, loc *position.Location, 
 		if c.enclosingScopeIsAUsingBuffer() {
 			return
 		}
-		c.pushConstScope(makeUsingBufferConstantScope(t))
-		c.pushMethodScope(makeUsingBufferMethodScope(t))
+		c.pushConstScope(newUsingBufferConstantScope(t, loc.Span))
+		c.pushMethodScope(newUsingBufferMethodScope(t, loc.Span))
 	}
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNode) {
 	class, ok := c.TypeOf(node).(*types.Class)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
+		c.pushConstScope(newLocalConstantScope(class, node.Span()))
+		c.pushMethodScope(newLocalMethodScope(class, node.Span()))
 	}
 
 	previousMode := c.mode
@@ -337,8 +337,8 @@ func (c *Checker) hoistMethodDefinitionsWithinClass(node *ast.ClassDeclarationNo
 
 	if ok {
 		c.registerNamespaceWithIvars(class, node.Location())
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 	}
 }
 
@@ -374,8 +374,8 @@ func (c *Checker) registerNamespaceWithIvars(namespace types.NamespaceWithIvarIn
 func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclarationNode) {
 	module, ok := c.TypeOf(node).(*types.Module)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(module))
-		c.pushMethodScope(makeLocalMethodScope(module))
+		c.pushConstScope(newLocalConstantScope(module, node.Span()))
+		c.pushMethodScope(newLocalMethodScope(module, node.Span()))
 	}
 
 	previousMode := c.mode
@@ -388,16 +388,16 @@ func (c *Checker) hoistMethodDefinitionsWithinModule(node *ast.ModuleDeclaration
 
 	if ok {
 		c.registerNamespaceWithIvars(module, node.Location())
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 	}
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNode) {
 	mixin, ok := c.TypeOf(node).(*types.Mixin)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
+		c.pushConstScope(newLocalConstantScope(mixin, node.Span()))
+		c.pushMethodScope(newLocalMethodScope(mixin, node.Span()))
 	}
 
 	previousMode := c.mode
@@ -409,16 +409,16 @@ func (c *Checker) hoistMethodDefinitionsWithinMixin(node *ast.MixinDeclarationNo
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 	}
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDeclarationNode) {
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(iface))
-		c.pushMethodScope(makeLocalMethodScope(iface))
+		c.pushConstScope(newLocalConstantScope(iface, node.Span()))
+		c.pushMethodScope(newLocalMethodScope(iface, node.Span()))
 	}
 
 	previousMode := c.mode
@@ -430,8 +430,8 @@ func (c *Checker) hoistMethodDefinitionsWithinInterface(node *ast.InterfaceDecla
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 	}
 }
 
@@ -442,8 +442,8 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 		return
 	}
 
-	c.pushConstScope(makeLocalConstantScope(singleton))
-	c.pushMethodScope(makeLocalMethodScope(singleton))
+	c.pushConstScope(newLocalConstantScope(singleton, expr.Span()))
+	c.pushMethodScope(newLocalMethodScope(singleton, expr.Span()))
 
 	previousMode := c.mode
 	previousSelf := c.selfType
@@ -454,15 +454,15 @@ func (c *Checker) hoistMethodDefinitionsWithinSingleton(expr *ast.SingletonBlock
 	c.selfType = previousSelf
 
 	c.registerNamespaceWithIvars(singleton, expr.Location())
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(expr.Span().EndPos)
+	c.popLocalMethodScope(expr.Span().EndPos)
 }
 
 func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
 	namespace, ok := c.TypeOf(node).(*types.MixinWithWhere)
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(namespace))
-		c.pushMethodScope(makeLocalMethodScope(namespace))
+		c.pushConstScope(newLocalConstantScope(namespace, node.Span()))
+		c.pushMethodScope(newLocalMethodScope(namespace, node.Span()))
 	}
 
 	previousMode := c.mode
@@ -471,8 +471,8 @@ func (c *Checker) hoistMethodDefinitionsWithinExtendWhere(node *ast.ExtendWhereB
 	c.setMode(previousMode)
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 	}
 }
 
@@ -510,7 +510,7 @@ func (c *Checker) checkUsingExpressionForMethods(node *ast.UsingExpressionNode) 
 
 func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWithSubentriesNode) {
 	if !node.SkipTypechecking() {
-		usingNamespace := c.getUsingBufferNamespace()
+		usingNamespace := c.getUsingBufferNamespace(node.Span())
 		node.SetType(usingNamespace)
 	}
 
@@ -559,7 +559,7 @@ func (c *Checker) checkSignatureOfMethodDefinition(node *ast.MethodDefinitionNod
 	node.SetType(method)
 	c.registerMethodBodyCheck(method, node)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 }
 
@@ -586,15 +586,15 @@ func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSign
 		node.Location(),
 	)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	node.SetType(method)
 }
 
 func (c *Checker) newMethodChecker(
 	funcName string,
-	constScopes []constantScope,
-	methodScopes []methodScope,
+	constScopes []*constantScope,
+	methodScopes []*methodScope,
 	selfType,
 	returnType,
 	throwType types.Type,
@@ -647,8 +647,8 @@ func (c *Checker) checkMethodPlaceholders() {
 
 type methodBodyCheckEntry struct {
 	method         *types.Method
-	constantScopes []constantScope
-	methodScopes   []methodScope
+	constantScopes []*constantScope
+	methodScopes   []*methodScope
 	node           *ast.MethodDefinitionNode
 	headerMode     bool
 }
@@ -803,7 +803,7 @@ func (c *Checker) declareMethodForGetter(node *ast.AttributeParameterNode, docCo
 		methodNode,
 	)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 }
 
@@ -904,7 +904,7 @@ func (c *Checker) declareMethodForSetter(node *ast.AttributeParameterNode, docCo
 		methodNode,
 	)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 }
 
@@ -2451,7 +2451,7 @@ func (c *Checker) declareMethodWithBase(
 	if len(typeParamNodes) > 0 {
 		typeParams = make([]*types.TypeParameter, 0, len(typeParamNodes))
 		typeParamMod = types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", name), true)
-		c.pushConstScope(makeConstantScope(typeParamMod))
+		c.pushConstScope(newConstantScope(typeParamMod, location.Span))
 		for _, typeParamNode := range typeParamNodes {
 			node, ok := typeParamNode.(*ast.VariantTypeParameterNode)
 			if !ok {
