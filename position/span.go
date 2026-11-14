@@ -12,6 +12,13 @@ type Span struct {
 	EndPos   *Position
 }
 
+func (s *Span) Copy() *Span {
+	return &Span{
+		StartPos: s.StartPos,
+		EndPos:   s.EndPos,
+	}
+}
+
 // Create a new Span.
 func NewSpan(startPos, endPos *Position) *Span {
 	return &Span{

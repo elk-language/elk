@@ -164,6 +164,7 @@ const (
 type localEnvironment struct {
 	parent *localEnvironment
 	locals map[symbol.Symbol]*local
+	span   *position.Span
 	index  int
 	typ    localEnvType
 }
@@ -174,6 +175,7 @@ func (l *localEnvironment) copy() *localEnvironment {
 		locals: l.locals,
 		index:  l.index,
 		typ:    l.typ,
+		span:   l.span,
 	}
 }
 
@@ -199,6 +201,7 @@ func (l *localEnvironment) deepCloneForBreakpoint(envMapping map[*localEnvironme
 		locals: l.deepCloneLocalsForBreakpoint(localMapping),
 		index:  l.index,
 		typ:    l.typ,
+		span:   l.span,
 	}
 	envMapping[l] = newEnv
 	return newEnv
@@ -247,11 +250,12 @@ func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, *
 	}
 }
 
-func newLocalEnvironment(parent *localEnvironment, typ localEnvType) *localEnvironment {
+func newLocalEnvironment(parent *localEnvironment, typ localEnvType, span *position.Span) *localEnvironment {
 	return &localEnvironment{
 		parent: parent,
 		locals: make(map[symbol.Symbol]*local),
 		typ:    typ,
+		span:   span,
 	}
 }
 
@@ -315,8 +319,8 @@ func (c *Checker) uninitialisedLocals() iter.Seq2[symbol.Symbol, *local] {
 	}
 }
 
-func (c *Checker) pushConditionalLocalEnv(couldBeExhaustive bool) {
-	env := c.pushNestedLocalEnv(conditionalLocalEnvType)
+func (c *Checker) pushConditionalLocalEnv(couldBeExhaustive bool, span *position.Span) {
+	env := c.pushNestedLocalEnv(conditionalLocalEnvType, span)
 
 	for name, local := range c.uninitialisedLocals() {
 		specialisation := local.createConditionalSpecialisation(couldBeExhaustive)
@@ -339,16 +343,16 @@ func (c *Checker) popLocalEnv() {
 	c.localEnvs = c.localEnvs[:len(c.localEnvs)-1]
 }
 
-func (c *Checker) pushNestedLocalEnv(typ localEnvType) *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), typ))
+func (c *Checker) pushNestedLocalEnv(typ localEnvType, span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), typ, span))
 }
 
-func (c *Checker) pushIsolatedLocalEnv() *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(nil, defaultLocalEnvType))
+func (c *Checker) pushIsolatedLocalEnv(span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(nil, defaultLocalEnvType, span))
 }
 
-func (c *Checker) pushMacroBoundaryLocalEnv() *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), macroBoundaryLocalEnvType))
+func (c *Checker) pushMacroBoundaryLocalEnv(span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), macroBoundaryLocalEnvType, span))
 }
 
 func (c *Checker) pushLocalEnv(env *localEnvironment) *localEnvironment {

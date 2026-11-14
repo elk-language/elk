@@ -105,6 +105,17 @@ func NewLocationWithParent(filename string, span *Span, parent *Location) *Locat
 	}
 }
 
+func (l *Location) Root() *Location {
+	currentLocation := l
+	for {
+		if currentLocation.Parent == nil {
+			return currentLocation
+		}
+
+		currentLocation = currentLocation.Parent
+	}
+}
+
 func (l *Location) Copy() *Location {
 	return &Location{
 		Span:     l.Span,

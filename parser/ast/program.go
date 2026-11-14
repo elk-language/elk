@@ -27,11 +27,16 @@ const (
 	CHECKED_EXPRESSIONS
 )
 
+type LSPData interface {
+	LSPData()
+}
+
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
 	TypedNodeBase
 	Body        []StatementNode
 	ImportPaths []string
+	LSPData     LSPData
 	State       ProgramState
 	HasDefer    bool
 	IsBuiltin   bool

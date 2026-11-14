@@ -303,6 +303,7 @@ const (
 // Every node type implements this interface.
 type Node interface {
 	position.LocationInterface
+	position.SpanInterface
 	value.Reference
 	IsStatic() bool // Value is known at compile-time
 	// Return the static type of the value represented

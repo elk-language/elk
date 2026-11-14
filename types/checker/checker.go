@@ -208,7 +208,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		mode:       topLevelMode,
 		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, defaultLocalEnvType),
+			newLocalEnvironment(nil, defaultLocalEnvType, nil),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
@@ -654,7 +654,7 @@ func (c *Checker) checkNamespacePlaceholders() {
 }
 
 func (c *Checker) resetLocalEnvs() {
-	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, defaultLocalEnvType)}
+	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, defaultLocalEnvType, nil)}
 }
 
 func (c *Checker) initExtensions() {
@@ -973,7 +973,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		if c.shouldCompile() {
 			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(importedAst.Span())
 		c.checkExpressionsInFile(importPath, importedAst)
 		c.popLocalEnv()
 
@@ -1304,7 +1304,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(module))
 		c.pushMethodScope(makeLocalMethodScope(module))
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(node.Span())
 		c.selfType = module
 	} else {
 		c.selfType = types.Untyped{}
@@ -1346,7 +1346,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.checkAbstractMethods(class, node.Constant.Location())
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(node.Span())
 		c.selfType = class.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1388,7 +1388,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		c.checkAbstractMethods(mixin, node.Constant.Location())
 		c.pushConstScope(makeLocalConstantScope(mixin))
 		c.pushMethodScope(makeLocalMethodScope(mixin))
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(node.Span())
 		c.selfType = mixin.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1429,7 +1429,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(iface))
 		c.pushMethodScope(makeLocalMethodScope(iface))
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(node.Span())
 		c.selfType = iface.Singleton()
 	} else {
 		c.selfType = types.Untyped{}
@@ -1470,7 +1470,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	if ok {
 		c.pushConstScope(makeLocalConstantScope(class))
 		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(node.Span())
 		c.selfType = c.runtimeEnv.StdSubtype(symbol.C_Class)
 	} else {
 		c.selfType = types.Untyped{}
@@ -2563,11 +2563,11 @@ func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueT
 }
 
 func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ThenExpression.Location().Span)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	var thenKeyType, thenValueType types.Type
 	switch l := node.ThenExpression.(type) {
@@ -2587,7 +2587,7 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ElseExpression.Location().Span)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	var elseKeyType, elseValueType types.Type
 	switch l := node.ElseExpression.(type) {
@@ -3519,7 +3519,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Initialiser = c.checkExpression(node.Initialiser)
 
 	node.Condition = c.checkExpression(node.Condition)
@@ -3559,7 +3559,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
@@ -3589,7 +3589,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -3599,7 +3599,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	node.ThenExpression = c.checkExpression(node.ThenExpression)
 	c.popLocalEnv()
 
@@ -3616,7 +3616,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 }
 
 func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
@@ -3625,7 +3625,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	switch then := node.ThenExpression.(type) {
 	case *ast.KeyValueExpressionNode:
 		then.Key = c.checkExpression(then.Key)
@@ -3649,7 +3649,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 }
 
 func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
 	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Location())
@@ -3657,7 +3657,7 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn C
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
@@ -3673,7 +3673,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -3688,7 +3688,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 
 	c.mode = prevMode
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
 
@@ -3762,7 +3762,7 @@ func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpression
 	}
 
 	loop := c.registerLoop(label, true)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
 	c.popLoop()
@@ -3781,7 +3781,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3815,7 +3815,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
@@ -3837,7 +3837,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 }
 
 func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3865,7 +3865,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
@@ -3888,7 +3888,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3922,7 +3922,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
@@ -3944,7 +3944,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 }
 
 func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3972,7 +3972,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
@@ -4003,18 +4003,18 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tail
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	hasElse := len(node.ElseBody) > 0
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(&node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ElseBody))
 	prevMode := c.mode
 	if types.IsNever(thenType) {
 		c.mode = mutateLocalsInNarrowing
@@ -4124,7 +4124,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 
 	prevConditionFlagValue := c.flags.HasFlag(conditionFlag)
 	c.flags.SetFlag(conditionFlag)
@@ -4135,12 +4135,12 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 
 	hasElse := len(node.ElseBody) > 0
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(&node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ElseBody))
 
 	prevMode := c.mode
 	if types.IsNever(thenType) {
@@ -4194,17 +4194,17 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 }
 
 func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ThenExpression.Span())
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ElseExpression.Span())
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	node.ElseExpression = fn(node.ElseExpression)
 	elseType := c.TypeOf(node.ElseExpression)
@@ -4244,11 +4244,11 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 }
 
 func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionTruthy)
 	node.Left = fn(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -4285,11 +4285,11 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpr
 }
 
 func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionFalsy)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -4326,11 +4326,11 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn Check
 }
 
 func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionTruthy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -4377,11 +4377,11 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 }
 
 func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionFalsy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -4442,7 +4442,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 		catchResultTypes := make([]types.Type, 0, len(node.Catches))
 
 		for _, catchNode := range node.Catches {
-			c.pushConditionalLocalEnv(false)
+			c.pushConditionalLocalEnv(false, catchNode.Span())
 			if catchNode.StackTraceVar != nil {
 				var stackTraceVarName string
 				switch s := catchNode.StackTraceVar.(type) {
@@ -4476,15 +4476,15 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	}
 
 	if hasFinally {
-		c.pushNestedLocalEnv(defaultLocalEnvType)
+		c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Finally))
 		c.checkStatements(&node.Finally, false)
 		c.popLocalEnv()
 	}
 
 	if len(node.Catches) > 0 {
-		c.pushConditionalLocalEnv(false)
+		c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.Catches))
 	} else {
-		c.pushNestedLocalEnv(defaultLocalEnvType)
+		c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Catches))
 	}
 	bodyResultType, _ := c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
@@ -4504,7 +4504,7 @@ func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.Expres
 		return node
 	}
 
-	c.pushMacroBoundaryLocalEnv()
+	c.pushMacroBoundaryLocalEnv(node.Span())
 	resultType, _ := c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
 
@@ -4648,7 +4648,7 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 
 func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionNil)
 
 	node.Right = c.checkExpression(node.Right)
@@ -4684,7 +4684,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionFalsy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -4724,7 +4724,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 
 func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionTruthy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -6428,7 +6428,7 @@ func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.Expressi
 	c.setHasDefer(false)
 
 	c.addImpureErrorIfInPureContext(node.Location())
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Body))
 	c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
 
@@ -8716,7 +8716,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, caseNode.Span())
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
 		narrowType := c.narrowToType(node.Value, patternType)
@@ -8728,7 +8728,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 	}
 
 	if hasElse {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, position.JoinSpanOfCollection(node.ElseBody))
 		c.narrowToType(node.Value, types.Any{})
 		elseType, _ := c.checkStatements(&node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
@@ -8754,7 +8754,7 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, caseNode.Span())
 		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
 		caseType, _ := c.checkStatements(&caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
@@ -8762,7 +8762,7 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 	}
 
 	if hasElse {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, position.JoinSpanOfCollection(node.ElseBody))
 		elseType, _ := c.checkStatements(&node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
 		c.popLocalEnv()

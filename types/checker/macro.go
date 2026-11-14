@@ -905,7 +905,7 @@ func (c *Checker) newMacroChecker(
 		Errors:     c.Errors,
 		flags:      c.flags,
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, defaultLocalEnvType),
+			newLocalEnvironment(nil, defaultLocalEnvType, loc.Span),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		methodCache:          concurrent.NewSlice[*types.Method](),
