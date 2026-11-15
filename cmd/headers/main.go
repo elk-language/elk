@@ -454,6 +454,10 @@ func defineMethods(buffer *bytes.Buffer, namespace types.Namespace) {
 	buffer.WriteString("\n// Define methods\n")
 
 	for methodName, method := range types.SortedOwnMethods(namespace) {
+		if method.IsRegisteredOverload() {
+			continue
+		}
+
 		isInit := methodName == symbol.S_init
 		hasOverloads := len(method.Overloads) > 0
 

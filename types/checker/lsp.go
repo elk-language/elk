@@ -1,12 +1,14 @@
 package checker
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -32,6 +34,7 @@ type Completion struct {
 func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion {
 	var result []*Completion
 
+	lowerName := strings.ToLower(name)
 	for _, localEnv := range slices.Backward(l.localEnvs.Slice) {
 		if byteOffset > 0 && localEnv.span != nil && !localEnv.span.ByteIsWithin(byteOffset) {
 			continue
@@ -44,7 +47,8 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 				continue
 			}
 			localNameString := localName.String()
-			if !strings.Contains(localNameString, name) {
+			lowerLocalName := strings.ToLower(localNameString)
+			if !strings.Contains(lowerLocalName, lowerName) {
 				continue
 			}
 
@@ -56,13 +60,83 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 		}
 	}
 
+	sortCompletions(result, lowerName)
+
 	return result
 }
 
-func (l *LSPData) GetFunctionCompletions(name string, byteOffset int) []*Completion {
+func sortCompletions(completions []*Completion, query string) {
+	slices.SortFunc(completions, func(a, b *Completion) int {
+		if c := cmp.Compare(strings.Index(strings.ToLower(a.Value), query), strings.Index(strings.ToLower(b.Value), query)); c != 0 {
+			return c
+		}
+		return cmp.Compare(len(a.Value), len(b.Value))
+	})
+}
+
+func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffset int) []*Completion {
 	var result []*Completion
 
-	// TODO
+	lowerName := strings.ToLower(name)
+	for _, methodScope := range slices.Backward(l.methodScopes.Slice) {
+		if byteOffset > 0 && methodScope.span != nil && !methodScope.span.ByteIsWithin(byteOffset) {
+			continue
+		}
+		switch methodScope.kind {
+		case scopeUsingBufferKind, scopeUsingKind:
+		default:
+			continue
+		}
+
+		for methodName, method := range checker.MethodsInNamespace(methodScope.container) {
+			if method.IsRegisteredOverload() {
+				continue
+			}
+
+			methodNameString := methodName.String()
+			lowerMethodName := strings.ToLower(methodNameString)
+			if !strings.Contains(lowerMethodName, lowerName) {
+				continue
+			}
+			result = append(result, &Completion{
+				Value:       methodNameString,
+				Description: method.DocComment,
+			})
+		}
+	}
+
+	sortCompletions(result, lowerName)
+
+	return result
+}
+
+func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*Completion {
+	var result []*Completion
+
+	lowerName := strings.ToLower(name)
+
+	receiverType = c.ToNonLiteral(receiverType, true)
+	receiverNamespace, ok := receiverType.(types.Namespace)
+	if !ok {
+		return nil
+	}
+
+	for name, method := range c.MethodsInNamespace(receiverNamespace) {
+		if method.IsRegisteredOverload() {
+			continue
+		}
+		if strings.Contains(strings.ToLower(name.String()), lowerName) {
+			result = append(
+				result,
+				&Completion{
+					Value:       name.String(),
+					Description: method.DocComment,
+				},
+			)
+		}
+	}
+
+	sortCompletions(result, lowerName)
 
 	return result
 }

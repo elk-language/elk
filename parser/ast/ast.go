@@ -342,6 +342,9 @@ func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave fun
 	if leave == nil {
 		leave = noopTraverse
 	}
+	if node == nil {
+		return
+	}
 	node.traverse(nil, enter, leave)
 }
 

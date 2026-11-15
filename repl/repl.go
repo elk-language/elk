@@ -9,9 +9,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
+	"unicode"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
@@ -577,7 +577,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		programNode,
 		func(node, parent ast.Node) ast.TraverseOption {
 			loc := node.Location()
-			if cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
+			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
 				return ast.TraverseSkip
 			}
 
@@ -642,13 +642,95 @@ func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.Cons
 }
 
 func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	name := ast.IdentifierToString(nameNode)
+	cursorByteOffset := doc.CursorByteOffset()
+
+	var currentName string
+	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, nameNode.Location())
+
+	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := node.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
+	appendCompletionsToSuggestions(&suggestions, completions)
+
 	return suggestions, startChar, endChar
 }
 
 func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	currentName := name
-	source := doc.Text
+	cursorByteOffset := doc.CursorByteOffset()
+	var currentName string
+	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, loc)
 
+	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := node.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
+	appendCompletionsToSuggestions(&suggestions, completions)
+
+	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
+	appendCompletionsToSuggestions(&suggestions, completions)
+
+	return suggestions, startChar, endChar
+}
+
+func appendCompletionsToSuggestions(target *[]goprompt.Suggest, source []*checker.Completion) {
+	for _, completion := range source {
+		*target = append(*target, goprompt.Suggest{
+			Text:        completion.Value,
+			Description: normaliseSuggestionDescription(completion.Description),
+		})
+	}
+}
+
+func normaliseSuggestionDescription(desc string) string {
+	var buf bytes.Buffer
+
+	var lastChar rune
+	for _, char := range desc {
+		if unicode.IsSpace(char) {
+			goto cont
+		}
+		if unicode.IsSpace(lastChar) {
+			buf.WriteRune(' ')
+		}
+
+		buf.WriteRune(char)
+	cont:
+		lastChar = char
+	}
+
+	return buf.String()
+}
+
+func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	receiverType := e.elkTypechecker.TypeOf(receiverNode)
+
+	var currentName string
+	switch n := nameNode.(type) {
+	case *ast.PublicIdentifierNode:
+		currentName = n.Value
+	case *ast.PrivateIdentifierNode:
+		currentName = n.Value
+	}
+
+	currentName, startChar, endChar = getCompletionStartAndEnd(doc, currentName, nameNode.Location())
+
+	completions := e.elkTypechecker.GetMethodCompletions(receiverType, currentName)
+	appendCompletionsToSuggestions(&suggestions, completions)
+
+	return suggestions, startChar, endChar
+}
+
+func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.Location) (currentName string, startChar, endChar pstrings.RuneNumber) {
+	currentName = name
+	source := doc.Text
 	cursorRuneOffset := doc.CursorRuneOffset()
 	cursorByteOffset := doc.CursorByteOffset()
 
@@ -664,108 +746,7 @@ func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, 
 		endChar = cursorRuneOffset
 	}
 
-	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := node.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
-	for _, completion := range completions {
-		suggestions = append(suggestions, goprompt.Suggest{
-			Text:        completion.Value,
-			Description: normaliseSuggestionDescription(completion.Description),
-		})
-	}
-
-	return suggestions, startChar, endChar
-}
-
-func charIsNewline(char rune) bool {
-	switch char {
-	case '\n', // U+000A LINE FEED
-		'\v',     // U+000B LINE TABULATION
-		'\f',     // U+000C FORM FEED
-		'\r',     // U+000D CARRIAGE RETURN
-		'\u0085', // U+0085 NEXT LINE
-		'\u2028', // U+2028 LINE SEPARATOR
-		'\u2029': // U+2029 PARAGRAPH SEPARATOR
-		return true
-	default:
-		return false
-	}
-}
-
-func normaliseSuggestionDescription(desc string) string {
-	var buf bytes.Buffer
-
-	var lastChar rune
-	for _, char := range desc {
-		if !charIsNewline(char) && charIsNewline(lastChar) {
-			buf.WriteRune(' ')
-		}
-
-		switch char {
-		case '\t':
-			buf.WriteString("  ")
-		default:
-			buf.WriteRune(char)
-		}
-
-		lastChar = char
-	}
-
-	return buf.String()
-}
-
-func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	source := doc.Text
-	cursorRuneOffset := doc.CursorRuneOffset()
-	cursorByteOffset := doc.CursorByteOffset()
-
-	receiverType := e.elkTypechecker.ToNonLiteral(e.elkTypechecker.TypeOf(receiverNode), true)
-	receiverNamespace, ok := receiverType.(types.Namespace)
-	if !ok {
-		return
-	}
-
-	var currentName string
-	switch n := nameNode.(type) {
-	case *ast.PublicIdentifierNode:
-		currentName = n.Value
-	case *ast.PrivateIdentifierNode:
-		currentName = n.Value
-	}
-
-	nameLocation := nameNode.Location()
-	if nameLocation.ByteIsWithin(int(cursorByteOffset - 1)) {
-		startChar = pstrings.RuneNumber(nameLocation.StartPos.RuneOffset(source))
-		endChar = pstrings.RuneNumber(nameLocation.EndPos.RuneOffset(source)) + 1
-		truncate := nameLocation.EndPos.ByteOffset - int(cursorByteOffset) + 1
-		if truncate > 0 {
-			currentName = currentName[:len(currentName)-truncate]
-		}
-	} else {
-		startChar = cursorRuneOffset
-		endChar = cursorRuneOffset
-	}
-
-	for name, method := range e.elkTypechecker.MethodsInNamespace(receiverNamespace) {
-		if method.IsOverload() {
-			continue
-		}
-		if strings.Contains(name.String(), currentName) {
-			suggestions = append(
-				suggestions,
-				goprompt.Suggest{
-					Text:        name.String(),
-					Description: normaliseSuggestionDescription(method.DocComment),
-				},
-			)
-		}
-	}
-
-	return suggestions, startChar, endChar
+	return
 }
 
 // For debugging

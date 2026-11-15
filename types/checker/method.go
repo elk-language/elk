@@ -3073,7 +3073,7 @@ func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 				var whereArgs []types.Type
 				if mixinWithWhere, ok := parent.(*types.MixinWithWhere); ok {
 					whereParams = slices.Clone(mixinWithWhere.Where)
-					whereArgs = c.constructWhereArguments(whereParams)
+					whereArgs = constructWhereArguments(whereParams)
 				}
 
 				var methodCopy *types.Method
@@ -3195,7 +3195,7 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 				return nil
 			}
 			whereParams = slices.Clone(mixinWithWhere.Where)
-			whereArgs = c.constructWhereArguments(whereParams)
+			whereArgs = constructWhereArguments(whereParams)
 		}
 
 		if len(generics) < 1 {
@@ -3236,7 +3236,7 @@ func (c *Checker) resolveMethodInNamespace(namespace types.Namespace, name symbo
 	return nil
 }
 
-func (c *Checker) constructWhereArguments(whereParameters []*types.TypeParameter) []types.Type {
+func constructWhereArguments(whereParameters []*types.TypeParameter) []types.Type {
 	whereArgs := make([]types.Type, len(whereParameters))
 	for i, whereParam := range whereParameters {
 		whereArgs[i] = whereParam
