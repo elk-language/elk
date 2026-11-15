@@ -50,7 +50,7 @@ const (
 )
 
 type constantDefinitionCheck struct {
-	state             constState
+	lspData           *LSPData
 	constName         symbol.Symbol
 	filename          string
 	constantScopes    []*constantScope
@@ -58,10 +58,12 @@ type constantDefinitionCheck struct {
 	referencedMethods []*types.Method
 	node              *ast.ConstantDeclarationNode
 	namespace         types.Namespace
+	state             constState
 }
 
 func (c *Checker) registerConstantCheck(fullName string, constName symbol.Symbol, namespace types.Namespace, node *ast.ConstantDeclarationNode) {
 	c.constantChecks.m[fullName] = &constantDefinitionCheck{
+		lspData:        c.LSPData,
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
@@ -174,12 +176,14 @@ func (c *Checker) checkConstants() {
 	prevFilename := c.Filename
 	prevConstScopes := c.constantScopes
 	prevMethodScopes := c.methodScopes
+	prevLSPData := c.LSPData
 	prevPhase := c.phase
 
 	c.phase = constantCheckPhase
 	for _, constName := range c.constantChecks.order {
 		constCheck := c.constantChecks.m[constName]
 		c.Filename = constCheck.filename
+		c.LSPData = constCheck.lspData
 		c.constantScopes = constCheck.constantScopes
 		c.methodScopes = constCheck.methodScopes
 		c.checkConstantDeclaration(constName, constCheck, nil)
@@ -190,6 +194,7 @@ func (c *Checker) checkConstants() {
 	c.Filename = prevFilename
 	c.constantScopes = prevConstScopes
 	c.methodScopes = prevMethodScopes
+	c.LSPData = prevLSPData
 	c.constantChecks = newConstantDefinitionChecks()
 }
 

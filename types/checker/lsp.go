@@ -13,6 +13,12 @@ type LSPData struct {
 	constantScopes concurrent.Slice[*constantScope]
 }
 
+func (l *LSPData) LSPData() {}
+
+func NewLSPData() *LSPData {
+	return &LSPData{}
+}
+
 func (l *LSPData) sortByPosition() {
 	slices.SortFunc(l.localEnvs.Slice, func(a, b *localEnvironment) int {
 		return sortBySpan(a.span, b.span)

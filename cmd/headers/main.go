@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 	pathToMainFile := filepath.Join(workingDir, "headers", "main.elh")
-	_, errList := checker.CheckFile(pathToMainFile, env, bitfield.BitField16FromBitFlag(checker.HeaderFlag), nil)
+	_, errList := checker.CheckFile(pathToMainFile, env, bitfield.BitField32FromBitFlag(checker.HeaderFlag), nil)
 	if len(errList) > 0 {
 		fmt.Println(errList.HumanString(true, lexer.Colorizer{}))
 		os.Exit(1)

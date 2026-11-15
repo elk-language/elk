@@ -47,7 +47,7 @@ func goCompilerTest(tc goTestCase, t *testing.T) {
 		"<main>",
 		tc.input,
 		nil,
-		bitfield.BitField16FromBitFlag(checker.BuiltinImportsProcessedFlag),
+		bitfield.BitField32FromBitFlag(checker.BuiltinImportsProcessedFlag),
 		&buff,
 		vm.DefaultThreadPool,
 	)

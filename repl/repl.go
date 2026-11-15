@@ -351,7 +351,7 @@ func (e *evaluator) transpile(input string) {
 	}
 
 	var buff bytes.Buffer
-	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField16{}, &buff, vm.DefaultThreadPool)
+	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField32{}, &buff, vm.DefaultThreadPool)
 
 	if dl != nil {
 		fmt.Println()

@@ -36,7 +36,7 @@ type signatureCheckEntry struct {
 	constantScopes []*constantScope
 	methodScopes   []*methodScope
 	selfType       types.Type
-	flags          bitfield.BitField16
+	flags          bitfield.BitField32
 	mode           mode
 	node           ast.Node
 }
@@ -592,6 +592,7 @@ func (c *Checker) checkSignatureOfMethodSignatureDefinition(node *ast.MethodSign
 }
 
 func (c *Checker) newMethodChecker(
+	lspData *LSPData,
 	funcName string,
 	constScopes []*constantScope,
 	methodScopes []*methodScope,
@@ -603,6 +604,7 @@ func (c *Checker) newMethodChecker(
 	loc *position.Location,
 ) *Checker {
 	checker := &Checker{
+		LSPData:        lspData,
 		runtimeEnv:     c.runtimeEnv,
 		Filename:       loc.FilePath,
 		mode:           mode,
@@ -646,6 +648,7 @@ func (c *Checker) checkMethodPlaceholders() {
 }
 
 type methodBodyCheckEntry struct {
+	lspData        *LSPData
 	method         *types.Method
 	constantScopes []*constantScope
 	methodScopes   []*methodScope
@@ -659,6 +662,7 @@ func (c *Checker) registerMethodBodyCheck(method *types.Method, node *ast.Method
 	}
 
 	c.methodBodyChecks = append(c.methodBodyChecks, methodBodyCheckEntry{
+		lspData:        c.LSPData,
 		method:         method,
 		constantScopes: c.constantScopesCopyWithoutCache(),
 		methodScopes:   c.methodScopesCopyWithoutCache(),
@@ -686,6 +690,7 @@ func (c *Checker) checkMethodBodies() {
 			elkName := method.NamespacedName()
 
 			methodChecker := c.newMethodChecker(
+				methodCheck.lspData,
 				elkName,
 				methodCheck.constantScopes,
 				methodCheck.methodScopes,

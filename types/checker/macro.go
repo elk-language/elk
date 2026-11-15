@@ -65,10 +65,14 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 
 	prevFilename := c.Filename
 	prevIsHeader := c.IsHeader()
+	prevLSPData := c.LSPData
 	c.resetRuntimeScopes()
 
 	c.Filename = filename
 	c.setIsHeaderForPath(filename)
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+	}
 
 	c.expandTopLevelMacros(node.Body)
 
@@ -76,6 +80,7 @@ func (c *Checker) expandTopLevelMacrosInFile(filename string, node *ast.ProgramN
 
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
+	c.LSPData = prevLSPData
 
 	node.State = ast.EXPANDED_TOP_LEVEL_MACROS
 }
@@ -846,18 +851,20 @@ func (c *Checker) hoistMacroDefinition(node *ast.MacroDefinitionNode) {
 
 	macro.Node = node
 	node.SetType(macro)
-	c.registerMacroCheck(macro, node)
+	c.registerMacroCheck(c.LSPData, macro, node)
 }
 
 type macroCheckEntry struct {
-	macro *types.Method
-	node  *ast.MacroDefinitionNode
+	lspData *LSPData
+	macro   *types.Method
+	node    *ast.MacroDefinitionNode
 }
 
-func (c *Checker) registerMacroCheck(macro *types.Method, node *ast.MacroDefinitionNode) {
+func (c *Checker) registerMacroCheck(lspData *LSPData, macro *types.Method, node *ast.MacroDefinitionNode) {
 	c.macroChecks = append(c.macroChecks, macroCheckEntry{
-		macro: macro,
-		node:  node,
+		lspData: lspData,
+		macro:   macro,
+		node:    node,
 	})
 }
 
@@ -870,6 +877,7 @@ func (c *Checker) checkMacros() {
 			macro := macroCheck.macro
 			node := macroCheck.node
 			macroChecker := c.newMacroChecker(
+				macroCheck.lspData,
 				node.Location().FilePath,
 				c.StdMacro().Singleton(),
 				macro.ReturnType,
@@ -886,6 +894,7 @@ func (c *Checker) checkMacros() {
 }
 
 func (c *Checker) newMacroChecker(
+	lspData *LSPData,
 	filename string,
 	selfType,
 	returnType,
@@ -902,6 +911,7 @@ func (c *Checker) newMacroChecker(
 		selfType:   selfType,
 		returnType: returnType,
 		throwType:  throwType,
+		LSPData:    lspData,
 		Errors:     c.Errors,
 		flags:      c.flags,
 		localEnvs: []*localEnvironment{

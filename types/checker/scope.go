@@ -125,6 +125,9 @@ func (c *Checker) popLocalConstScope(pos *position.Position) {
 
 func (c *Checker) pushConstScope(constScope *constantScope) {
 	c.constantScopes = append(c.constantScopes, constScope)
+	if c.phase == expressionPhase && c.LSPData != nil {
+		c.LSPData.constantScopes.Push(constScope)
+	}
 	c.clearConstScopeCopyCache()
 }
 
@@ -280,6 +283,9 @@ func (c *Checker) popLocalMethodScope(pos *position.Position) {
 
 func (c *Checker) pushMethodScope(methodScope *methodScope) {
 	c.methodScopes = append(c.methodScopes, methodScope)
+	if c.phase == expressionPhase && c.LSPData != nil {
+		c.LSPData.methodScopes.Push(methodScope)
+	}
 	c.clearMethodScopeCopyCache()
 }
 
