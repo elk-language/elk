@@ -1,6 +1,7 @@
 package symbol
 
 import (
+	"iter"
 	"slices"
 )
 
@@ -267,4 +268,16 @@ func SortKeys[V any](m map[Symbol]V) []Symbol {
 		return 0
 	})
 	return keys
+}
+
+func SortKeysIter[V any](m map[Symbol]V) iter.Seq2[Symbol, V] {
+	return func(yield func(Symbol, V) bool) {
+		keys := SortKeys(m)
+		for _, key := range keys {
+			val := m[key]
+			if !yield(key, val) {
+				break
+			}
+		}
+	}
 }

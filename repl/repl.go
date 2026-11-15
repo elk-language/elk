@@ -118,6 +118,8 @@ func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
 	return result
 }
 
+const underscoreDocComment = "Contains the value returned by the last execution"
+
 func (e *evaluator) evaluate(input string) {
 	sourceName := e.addSource(input)
 	defer e.deleteSource(sourceName)
@@ -167,7 +169,7 @@ func (e *evaluator) evaluate(input string) {
 	e.prepend = e.usingToPrepend(using)
 
 	resultType := e.elkTypechecker.TypeOf(programNode)
-	e.elkTypechecker.DefineLocal("_", resultType, true, true, nil)
+	e.elkTypechecker.DefineLocal(underscoreDocComment, "_", resultType, true, true, nil)
 
 	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
@@ -618,9 +620,9 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	case *ast.ReceiverlessMethodCallNode:
 		return e.completeFunction(doc, n.MethodName)
 	case *ast.PublicIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value)
+		return e.completeLocalOrFunction(doc, n.Value, n.Location())
 	case *ast.PrivateIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value)
+		return e.completeLocalOrFunction(doc, n.Value, n.Location())
 	default:
 		return
 	}
@@ -639,7 +641,51 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 	return suggestions, startChar, endChar
 }
 
-func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	currentName := name
+	source := doc.Text
+
+	cursorRuneOffset := doc.CursorRuneOffset()
+	cursorByteOffset := doc.CursorByteOffset()
+
+	if loc.ByteIsWithin(int(cursorByteOffset - 1)) {
+		startChar = pstrings.RuneNumber(loc.StartPos.RuneOffset(source))
+		endChar = pstrings.RuneNumber(loc.EndPos.RuneOffset(source)) + 1
+		truncate := loc.EndPos.ByteOffset - int(cursorByteOffset) + 1
+		if truncate > 0 {
+			currentName = currentName[:len(currentName)-truncate]
+		}
+	} else {
+		startChar = cursorRuneOffset
+		endChar = cursorRuneOffset
+	}
+
+	for nodeSourceName, node := range e.elkTypechecker.ASTCache.Map {
+		if node.State == ast.FAILED_CHECK {
+			continue
+		}
+		if node.LSPData == nil {
+			continue
+		}
+
+		lspData := node.LSPData.(*checker.LSPData)
+
+		var completionByteOffset int
+		if nodeSourceName == e.elkTypechecker.Filename {
+			completionByteOffset = int(cursorByteOffset)
+		} else {
+			completionByteOffset = -1
+		}
+
+		completions := lspData.GetLocalCompletions(currentName, completionByteOffset)
+		for _, completion := range completions {
+			suggestions = append(suggestions, goprompt.Suggest{
+				Text:        completion.Value,
+				Description: completion.Description,
+			})
+		}
+	}
+
 	return suggestions, startChar, endChar
 }
 
@@ -781,7 +827,7 @@ func (e *evaluator) setExecutor(opts *Options) {
 	if opts.Disassemble {
 		e.elkTypechecker = checker.New()
 		e.elkTypechecker.SetREPL(true)
-		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true, nil)
+		e.elkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
 
 		e.completer = e.complete
 		e.executor = e.disassemble
@@ -830,8 +876,9 @@ func (e *evaluator) setExecutor(opts *Options) {
 
 	e.elkTypechecker = checker.New()
 	e.elkTypechecker.SetREPL(true)
+	e.elkTypechecker.SetLSP(true)
 	e.vm = vm.New()
-	e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true, nil)
+	e.elkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
 
 	e.completer = e.complete
 	e.executor = e.evaluate

@@ -2,11 +2,15 @@ package checker
 
 import (
 	"slices"
+	"strings"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value/symbol"
 )
 
+// LSPData contains additional typechecker
+// data used by the LSP for a particular file/program node.
 type LSPData struct {
 	localEnvs      concurrent.Slice[*localEnvironment]
 	methodScopes   concurrent.Slice[*methodScope]
@@ -17,6 +21,52 @@ func (l *LSPData) LSPData() {}
 
 func NewLSPData() *LSPData {
 	return &LSPData{}
+}
+
+type Completion struct {
+	Value       string
+	Description string
+}
+
+func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion {
+	var result []*Completion
+
+	for _, localEnv := range slices.Backward(l.localEnvs.Slice) {
+		if byteOffset > 0 && !localEnv.span.ByteIsWithin(byteOffset) {
+			continue
+		}
+
+		for localName, local := range symbol.SortKeysIter(localEnv.locals) {
+			// declaration of the variable is after the current cursor
+			// so it is not available
+			if byteOffset > 0 && byteOffset < local.declaration.Span.EndPos.ByteOffset {
+				continue
+			}
+			localNameString := localName.String()
+			if !strings.Contains(localNameString, name) {
+				continue
+			}
+
+			result = append(result, &Completion{
+				Value:       localNameString,
+				Description: local.docComment,
+			})
+		}
+	}
+
+	return result
+}
+
+func (l *LSPData) GetFunctionCompletions(name string, byteOffset int) []*Completion {
+	var result []*Completion
+
+	// TODO
+
+	return result
+}
+
+func (l *LSPData) finalise() {
+	l.sortByPosition()
 }
 
 func (l *LSPData) sortByPosition() {

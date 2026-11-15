@@ -1220,7 +1220,16 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(pName, newLocal(declaredType, true, checkedMethod.IsGenerator(), p.Name.Location()))
+			c.addLocal(
+				pName,
+				newLocal(
+					fmt.Sprintf("Method parameter `%s`", p.String()),
+					declaredType,
+					true,
+					checkedMethod.IsGenerator(),
+					p.Name.Location(),
+				),
+			)
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		case *ast.FormalParameterNode:
@@ -1243,7 +1252,16 @@ func (c *Checker) checkMethod(
 				initType := c.TypeOf(initNode)
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
-			c.addLocal(pName, newLocal(declaredType, true, false, p.Name.Location()))
+			c.addLocal(
+				pName,
+				newLocal(
+					fmt.Sprintf("Method parameter `%s`", p.String()),
+					declaredType,
+					true,
+					false,
+					p.Name.Location(),
+				),
+			)
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		default:

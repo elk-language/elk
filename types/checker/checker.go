@@ -453,6 +453,7 @@ func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, 
 
 // Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (compiler.Compiler, diagnostic.DiagnosticList) {
+	node.LSPData = NewLSPData()
 	c.ASTCache.Set(sourceName, node)
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
@@ -699,9 +700,25 @@ func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup)
 	c.SetBuiltinImportsProcessed(true)
 }
 
+func (c *Checker) populateLSPData(node *ast.ProgramNode) {
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+		for _, localEnv := range c.localEnvs {
+			c.LSPData.localEnvs.Push(localEnv)
+		}
+		for _, constScope := range c.constantScopes {
+			c.LSPData.constantScopes.Push(constScope)
+		}
+		for _, methodScope := range c.methodScopes {
+			c.LSPData.methodScopes.Push(methodScope)
+		}
+	}
+}
+
 func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
 
+	c.populateLSPData(node)
 	c.checkBuiltinImports(node, &wg)
 
 	// parse all files of the project concurrently
@@ -743,6 +760,9 @@ func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 
 	if !c.shouldCompile() {
 		return nil
+	}
+	if c.Errors.IsFailure() {
+		node.State = ast.FAILED_CHECK
 	}
 	return c.compiler
 }
@@ -1026,6 +1046,9 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		types.MacroAppendExpressionEndOfFileKind,
 	)
 	node.SetType(returnType)
+	if c.LSPData != nil {
+		c.LSPData.finalise()
+	}
 
 	node.State = ast.CHECKED_EXPRESSIONS
 	node.HasDefer = c.hasDefer()
@@ -4495,7 +4518,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
 				catchNode.StackTraceVar.SetType(stackTraceType)
-				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true, catchNode.StackTraceVar.Location()))
+				c.addLocal(stackTraceVarName, newLocal("Stack trace of the caught error.", stackTraceType, true, true, catchNode.StackTraceVar.Location()))
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
@@ -6361,7 +6384,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ty
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string, identLocation *position.Location) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(docComment string, node *ast.ClosureLiteralNode, name string, identLocation *position.Location) ast.ExpressionNode {
 	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		closure,
@@ -6382,7 +6405,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	)
 	closure.Body = method
 
-	local := newLocal(closure, true, false, identLocation)
+	local := newLocal(docComment, closure, true, false, identLocation)
 	c.addLocal(name, local)
 
 	returnTypeNode, throwTypeNode := c.checkMethod(
@@ -6592,7 +6615,7 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 		return c.checkAssignment(node)
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Left.Location(), node.Location(), false)
+	init, _, typ := c.checkLocalDeclaration("", name, node.Right, nil, node.Left.Location(), node.Location(), false)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6607,7 +6630,7 @@ func (c *Checker) checkShortValueDeclaration(node *ast.AssignmentExpressionNode)
 		name = left.Value
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Left.Location(), node.Location(), true)
+	init, _, typ := c.checkLocalDeclaration("", name, node.Right, nil, node.Left.Location(), node.Location(), true)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -8618,6 +8641,7 @@ func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceVal
 }
 
 func (c *Checker) checkLocalDeclaration(
+	docComment string,
 	name string,
 	initialiser ast.ExpressionNode,
 	typeNode ast.TypeNode,
@@ -8647,14 +8671,14 @@ func (c *Checker) checkLocalDeclaration(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment, identLocation))
+			c.addLocal(name, newLocal(docComment, types.Untyped{}, false, singleAssignment, identLocation))
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(declaredType, false, singleAssignment, identLocation))
+		c.addLocal(name, newLocal(docComment, declaredType, false, singleAssignment, identLocation))
 		return initialiser, declaredTypeNode, types.Void{}
 	}
 
@@ -8665,6 +8689,7 @@ func (c *Checker) checkLocalDeclaration(
 		initClosure, initIsClosure := initialiser.(*ast.ClosureLiteralNode)
 		if initIsClosure && !initClosure.Lambda {
 			init := c.checkClosureLiteralNodeInVariableDeclaration(
+				docComment,
 				initClosure,
 				name,
 				identLocation,
@@ -8681,7 +8706,7 @@ func (c *Checker) checkLocalDeclaration(
 		if !singleAssignment {
 			actualType = c.ToNonLiteral(actualType, false)
 		}
-		local := newLocal(actualType, true, singleAssignment, identLocation)
+		local := newLocal(docComment, actualType, true, singleAssignment, identLocation)
 		c.addLocal(name, local)
 		return init, nil, actualType
 	}
@@ -8691,7 +8716,7 @@ func (c *Checker) checkLocalDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(declaredType, true, singleAssignment, identLocation)
+	local := newLocal(docComment, declaredType, true, singleAssignment, identLocation)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -9195,6 +9220,7 @@ func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode
 	}
 
 	init, typeNode, typ := c.checkLocalDeclaration(
+		node.DocComment(),
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,
@@ -9214,6 +9240,7 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	}
 
 	init, typeNode, typ := c.checkLocalDeclaration(
+		node.DocComment(),
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,

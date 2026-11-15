@@ -25,6 +25,7 @@ const (
 
 	CHECKING_EXPRESSIONS
 	CHECKED_EXPRESSIONS
+	FAILED_CHECK
 )
 
 type LSPData interface {

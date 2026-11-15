@@ -12,6 +12,7 @@ import (
 
 // Represents a single local variable or local value
 type local struct {
+	docComment                 string
 	typ                        types.Type
 	declaration                *position.Location
 	shadowOf                   *local
@@ -24,6 +25,7 @@ type local struct {
 
 func (l *local) copy() *local {
 	return &local{
+		docComment:                 l.docComment,
 		typ:                        l.typ,
 		declaration:                l.declaration,
 		initialised:                l.initialised,
@@ -139,8 +141,9 @@ func (l *local) setInitialised() {
 	l.shadowOf.setInitialised()
 }
 
-func newLocal(typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
+func newLocal(docComment string, typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
 	return &local{
+		docComment:       docComment,
 		declaration:      declaration,
 		typ:              typ,
 		initialised:      initialised,
@@ -375,9 +378,9 @@ func (c *Checker) addLocal(name string, l *local) {
 	env.addLocal(symbol.ToSymbol(name), l)
 }
 
-func (c *Checker) DefineLocal(name string, typ types.Type, initialised bool, singleAssignment bool, location *position.Location) {
+func (c *Checker) DefineLocal(docComment, name string, typ types.Type, initialised bool, singleAssignment bool, location *position.Location) {
 	env := c.currentLocalEnv()
-	l := newLocal(typ, initialised, singleAssignment, location)
+	l := newLocal(docComment, typ, initialised, singleAssignment, location)
 	env.addLocal(symbol.ToSymbol(name), l)
 }
 
