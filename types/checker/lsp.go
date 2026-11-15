@@ -98,9 +98,11 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 			if !strings.Contains(lowerMethodName, lowerName) {
 				continue
 			}
+
+			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
 			result = append(result, &Completion{
 				Value:       methodNameString,
-				Description: method.DocComment,
+				Description: doc,
 			})
 		}
 	}
@@ -126,11 +128,12 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 			continue
 		}
 		if strings.Contains(strings.ToLower(name.String()), lowerName) {
+			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
 			result = append(
 				result,
 				&Completion{
 					Value:       name.String(),
-					Description: method.DocComment,
+					Description: doc,
 				},
 			)
 		}
