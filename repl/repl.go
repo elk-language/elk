@@ -49,8 +49,10 @@ type evaluator struct {
 	lastCompletionProgramNode *ast.ProgramNode
 }
 
+const sourceNamePrefix = "<repl:"
+
 func (e *evaluator) sourceName() string {
-	return fmt.Sprintf("<repl:%d>", e.inputIndex)
+	return fmt.Sprintf("%s%d>", sourceNamePrefix, e.inputIndex)
 }
 
 func (e *evaluator) deleteSource(sourceName string) {
@@ -554,6 +556,8 @@ func isMethodCallNode(node ast.Node) bool {
 	}
 }
 
+const completionSourceName = "<completion>"
+
 // Handles autocomplete
 func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	source := doc.Text
@@ -561,7 +565,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	if e.lastCompletionSource == source && e.lastCompletionProgramNode != nil {
 		programNode = e.lastCompletionProgramNode
 	} else {
-		programNode = e.elkTypechecker.CheckSourceREPLAutocomplete("<repl>", source, e.deepCopyPrepend())
+		programNode = e.elkTypechecker.CheckSourceREPLAutocomplete(completionSourceName, source, e.deepCopyPrepend())
 	}
 	e.elkTypechecker.ClearErrors()
 
@@ -660,33 +664,58 @@ func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, 
 		endChar = cursorRuneOffset
 	}
 
-	for nodeSourceName, node := range e.elkTypechecker.ASTCache.Map {
-		if node.State == ast.FAILED_CHECK {
-			continue
-		}
-		if node.LSPData == nil {
-			continue
-		}
+	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := node.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
 
-		lspData := node.LSPData.(*checker.LSPData)
-
-		var completionByteOffset int
-		if nodeSourceName == e.elkTypechecker.Filename {
-			completionByteOffset = int(cursorByteOffset)
-		} else {
-			completionByteOffset = -1
-		}
-
-		completions := lspData.GetLocalCompletions(currentName, completionByteOffset)
-		for _, completion := range completions {
-			suggestions = append(suggestions, goprompt.Suggest{
-				Text:        completion.Value,
-				Description: completion.Description,
-			})
-		}
+	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
+	for _, completion := range completions {
+		suggestions = append(suggestions, goprompt.Suggest{
+			Text:        completion.Value,
+			Description: normaliseSuggestionDescription(completion.Description),
+		})
 	}
 
 	return suggestions, startChar, endChar
+}
+
+func charIsNewline(char rune) bool {
+	switch char {
+	case '\n', // U+000A LINE FEED
+		'\v',     // U+000B LINE TABULATION
+		'\f',     // U+000C FORM FEED
+		'\r',     // U+000D CARRIAGE RETURN
+		'\u0085', // U+0085 NEXT LINE
+		'\u2028', // U+2028 LINE SEPARATOR
+		'\u2029': // U+2029 PARAGRAPH SEPARATOR
+		return true
+	default:
+		return false
+	}
+}
+
+func normaliseSuggestionDescription(desc string) string {
+	var buf bytes.Buffer
+
+	var lastChar rune
+	for _, char := range desc {
+		if !charIsNewline(char) && charIsNewline(lastChar) {
+			buf.WriteRune(' ')
+		}
+
+		switch char {
+		case '\t':
+			buf.WriteString("  ")
+		default:
+			buf.WriteRune(char)
+		}
+
+		lastChar = char
+	}
+
+	return buf.String()
 }
 
 func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
@@ -730,7 +759,7 @@ func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, name
 				suggestions,
 				goprompt.Suggest{
 					Text:        name.String(),
-					Description: method.DocComment,
+					Description: normaliseSuggestionDescription(method.DocComment),
 				},
 			)
 		}

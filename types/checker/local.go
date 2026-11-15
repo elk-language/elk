@@ -3,6 +3,7 @@ package checker
 import (
 	"fmt"
 	"iter"
+	"strings"
 
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
@@ -13,6 +14,7 @@ import (
 // Represents a single local variable or local value
 type local struct {
 	docComment                 string
+	name                       symbol.Symbol
 	typ                        types.Type
 	declaration                *position.Location
 	shadowOf                   *local
@@ -23,9 +25,25 @@ type local struct {
 	singleAssignment           bool
 }
 
+func (l *local) Inspect() string {
+	var buf strings.Builder
+
+	if l.singleAssignment {
+		buf.WriteString("val ")
+	} else {
+		buf.WriteString("var ")
+	}
+	buf.WriteString(l.name.String())
+	buf.WriteString(": ")
+	buf.WriteString(types.Inspect(l.typ))
+
+	return buf.String()
+}
+
 func (l *local) copy() *local {
 	return &local{
 		docComment:                 l.docComment,
+		name:                       l.name,
 		typ:                        l.typ,
 		declaration:                l.declaration,
 		initialised:                l.initialised,
@@ -81,6 +99,8 @@ func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
 func (l *local) createShadow() *local {
 	return &local{
 		declaration:      l.declaration,
+		docComment:       l.docComment,
+		name:             l.name,
 		typ:              l.typ,
 		initialised:      l.initialised,
 		singleAssignment: l.singleAssignment,
@@ -141,9 +161,10 @@ func (l *local) setInitialised() {
 	l.shadowOf.setInitialised()
 }
 
-func newLocal(docComment string, typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
+func newLocal(docComment string, name symbol.Symbol, typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
 	return &local{
 		docComment:       docComment,
+		name:             name,
 		declaration:      declaration,
 		typ:              typ,
 		initialised:      initialised,
@@ -373,15 +394,16 @@ func (c *Checker) currentLocalEnv() *localEnvironment {
 }
 
 // Add the local with the given name to the current local environment
-func (c *Checker) addLocal(name string, l *local) {
+func (c *Checker) addLocal(name symbol.Symbol, l *local) {
 	env := c.currentLocalEnv()
-	env.addLocal(symbol.ToSymbol(name), l)
+	env.addLocal(name, l)
 }
 
 func (c *Checker) DefineLocal(docComment, name string, typ types.Type, initialised bool, singleAssignment bool, location *position.Location) {
 	env := c.currentLocalEnv()
-	l := newLocal(docComment, typ, initialised, singleAssignment, location)
-	env.addLocal(symbol.ToSymbol(name), l)
+	nameSym := symbol.ToSymbol(name)
+	l := newLocal(docComment, nameSym, typ, initialised, singleAssignment, location)
+	env.addLocal(nameSym, l)
 }
 
 // Get the local with the specified name from the current local environment

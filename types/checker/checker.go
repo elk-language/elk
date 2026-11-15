@@ -490,6 +490,8 @@ func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (co
 // Used in the REPL to typecheck the input for autocomplete
 func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.ProgramNode) diagnostic.DiagnosticList {
 	c.SetREPLAutocomplete(true)
+	node.LSPData = NewLSPData()
+	c.ASTCache.Set(sourceName, node)
 
 	origEnv := c.runtimeEnv
 	origLocalEnv := c.localEnvs
@@ -758,11 +760,11 @@ func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
-	if !c.shouldCompile() {
-		return nil
-	}
 	if c.Errors.IsFailure() {
 		node.State = ast.FAILED_CHECK
+	}
+	if !c.shouldCompile() {
+		return nil
 	}
 	return c.compiler
 }
@@ -4518,7 +4520,18 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
 				catchNode.StackTraceVar.SetType(stackTraceType)
-				c.addLocal(stackTraceVarName, newLocal("Stack trace of the caught error.", stackTraceType, true, true, catchNode.StackTraceVar.Location()))
+				stackTraceVarNameSym := symbol.ToSymbol(stackTraceVarName)
+				c.addLocal(
+					stackTraceVarNameSym,
+					newLocal(
+						"Stack trace of the caught error.",
+						stackTraceVarNameSym,
+						stackTraceType,
+						true,
+						true,
+						catchNode.StackTraceVar.Location(),
+					),
+				)
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
@@ -6405,8 +6418,9 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(docComment string
 	)
 	closure.Body = method
 
-	local := newLocal(docComment, closure, true, false, identLocation)
-	c.addLocal(name, local)
+	nameSym := symbol.ToSymbol(name)
+	local := newLocal(docComment, nameSym, closure, true, false, identLocation)
+	c.addLocal(nameSym, local)
 
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
@@ -8653,6 +8667,7 @@ func (c *Checker) checkLocalDeclaration(
 	_typeNode ast.TypeNode,
 	typ types.Type,
 ) {
+	nameSym := symbol.ToSymbol(name)
 	if variable := c.getLocal(name); variable != nil {
 		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", name),
@@ -8671,14 +8686,34 @@ func (c *Checker) checkLocalDeclaration(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(docComment, types.Untyped{}, false, singleAssignment, identLocation))
+			c.addLocal(
+				nameSym,
+				newLocal(
+					docComment,
+					nameSym,
+					types.Untyped{},
+					false,
+					singleAssignment,
+					identLocation,
+				),
+			)
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(docComment, declaredType, false, singleAssignment, identLocation))
+		c.addLocal(
+			nameSym,
+			newLocal(
+				docComment,
+				nameSym,
+				declaredType,
+				false,
+				singleAssignment,
+				identLocation,
+			),
+		)
 		return initialiser, declaredTypeNode, types.Void{}
 	}
 
@@ -8706,8 +8741,15 @@ func (c *Checker) checkLocalDeclaration(
 		if !singleAssignment {
 			actualType = c.ToNonLiteral(actualType, false)
 		}
-		local := newLocal(docComment, actualType, true, singleAssignment, identLocation)
-		c.addLocal(name, local)
+		local := newLocal(
+			docComment,
+			nameSym,
+			actualType,
+			true,
+			singleAssignment,
+			identLocation,
+		)
+		c.addLocal(nameSym, local)
 		return init, nil, actualType
 	}
 
@@ -8716,7 +8758,14 @@ func (c *Checker) checkLocalDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(docComment, declaredType, true, singleAssignment, identLocation)
+	local := newLocal(
+		docComment,
+		nameSym,
+		declaredType,
+		true,
+		singleAssignment,
+		identLocation,
+	)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -8725,14 +8774,14 @@ func (c *Checker) checkLocalDeclaration(
 	case *ast.ClosureLiteralNode:
 		if !init.Lambda {
 			earlierInitialisation = true
-			c.addLocal(name, local)
+			c.addLocal(nameSym, local)
 		}
 	}
 
 	init := c.checkExpressionWithType(initialiser, declaredType, false)
 	actualType := c.typeOfGuardVoid(init)
 	if !earlierInitialisation {
-		c.addLocal(name, local)
+		c.addLocal(nameSym, local)
 	}
 	c.checkCanAssign(actualType, declaredType, init.Location())
 

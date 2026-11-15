@@ -904,23 +904,24 @@ func (c *Checker) checkListPattern(node *ast.ListPatternNode, typ types.Type) (*
 
 func (c *Checker) checkIdentifierPattern(name string, valueType, patternType types.Type, location *position.Location) types.Type {
 	variable := c.getLocal(name)
+	nameSym := symbol.ToSymbol(name)
 	if variable == nil {
 		var local *local
 		switch c.mode {
 		case valuePatternMode:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal("", varType, true, true, location)
+			local = newLocal("", nameSym, varType, true, true, location)
 		case nilableValuePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal("", varType, true, true, location)
+			local = newLocal("", nameSym, varType, true, true, location)
 		case nilablePatternMode:
 			varType := c.ToNilable(c.ToNonLiteral(patternType, false))
-			local = newLocal("", varType, true, false, location)
+			local = newLocal("", nameSym, varType, true, false, location)
 		default:
 			varType := c.ToNonLiteral(patternType, false)
-			local = newLocal("", varType, true, false, location)
+			local = newLocal("", nameSym, varType, true, false, location)
 		}
-		c.addLocal(name, local)
+		c.addLocal(nameSym, local)
 		return patternType
 	}
 

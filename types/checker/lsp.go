@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -32,14 +33,14 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 	var result []*Completion
 
 	for _, localEnv := range slices.Backward(l.localEnvs.Slice) {
-		if byteOffset > 0 && !localEnv.span.ByteIsWithin(byteOffset) {
+		if byteOffset > 0 && localEnv.span != nil && !localEnv.span.ByteIsWithin(byteOffset) {
 			continue
 		}
 
 		for localName, local := range symbol.SortKeysIter(localEnv.locals) {
 			// declaration of the variable is after the current cursor
 			// so it is not available
-			if byteOffset > 0 && byteOffset < local.declaration.Span.EndPos.ByteOffset {
+			if byteOffset > 0 && local.declaration != nil && byteOffset < local.declaration.Span.EndPos.ByteOffset {
 				continue
 			}
 			localNameString := localName.String()
@@ -47,9 +48,10 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 				continue
 			}
 
+			desc := fmt.Sprintf("`%s` %s", local.Inspect(), local.docComment)
 			result = append(result, &Completion{
 				Value:       localNameString,
-				Description: local.docComment,
+				Description: desc,
 			})
 		}
 	}

@@ -1201,8 +1201,9 @@ func (c *Checker) checkMethod(
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			pName := c.identifierToName(p.Name)
+			pNameSym := symbol.ToSymbol(pName)
 			if p.SetInstanceVariable {
-				c.registerInitialisedInstanceVariable(symbol.ToSymbol(pName))
+				c.registerInitialisedInstanceVariable(pNameSym)
 			}
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
@@ -1221,9 +1222,10 @@ func (c *Checker) checkMethod(
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
 			c.addLocal(
-				pName,
+				pNameSym,
 				newLocal(
 					fmt.Sprintf("Method parameter `%s`", p.String()),
+					pNameSym,
 					declaredType,
 					true,
 					checkedMethod.IsGenerator(),
@@ -1236,6 +1238,7 @@ func (c *Checker) checkMethod(
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
 			pName := c.identifierToName(p.Name)
+			pNameSym := symbol.ToSymbol(pName)
 			declaredType = c.TypeOf(p).(*types.Parameter).Type
 			if p.TypeNode != nil {
 				declaredTypeNode = p.TypeNode
@@ -1253,9 +1256,10 @@ func (c *Checker) checkMethod(
 				c.checkCanAssign(initType, declaredType, initNode.Location())
 			}
 			c.addLocal(
-				pName,
+				pNameSym,
 				newLocal(
 					fmt.Sprintf("Method parameter `%s`", p.String()),
+					pNameSym,
 					declaredType,
 					true,
 					false,
