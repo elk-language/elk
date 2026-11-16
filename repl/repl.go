@@ -582,6 +582,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 	var narrowestParsedNode ast.Node
 	var narrowestParsedMethodCallNode ast.Node
+	var narrowestParsedConstantLookup *ast.ConstantLookupNode
 	ast.Traverse(
 		parsedProgramNode,
 		func(node, parent ast.Node) ast.TraverseOption {
@@ -595,6 +596,9 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 				if isMethodCallNode(node) {
 					narrowestParsedMethodCallNode = node
 				}
+				if n, ok := node.(*ast.ConstantLookupNode); ok {
+					narrowestParsedConstantLookup = n
+				}
 				return ast.TraverseContinue
 			}
 
@@ -602,6 +606,9 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 				narrowestParsedNode = node
 				if isMethodCallNode(node) {
 					narrowestParsedMethodCallNode = node
+				}
+				if n, ok := node.(*ast.ConstantLookupNode); ok {
+					narrowestParsedConstantLookup = n
 				}
 			}
 
@@ -646,6 +653,10 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 	if narrowestCheckedNode == nil {
 		return
+	}
+
+	if narrowestParsedConstantLookup != nil {
+		return e.completeConstantLookup(doc, narrowestParsedConstantLookup)
 	}
 
 	switch n := narrowestParsedMethodCallNode.(type) {
@@ -711,7 +722,31 @@ func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *po
 	return suggestions, startChar, endChar
 }
 
+func constantToString(constant ast.ComplexConstantNode) string {
+	switch constant := constant.(type) {
+	case *ast.PublicConstantNode:
+		return constant.Value
+	case *ast.PrivateConstantNode:
+		return constant.Value
+	}
+
+	return ""
+}
+
 func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.ConstantLookupNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	name := constantToString(node.Right)
+
+	var currentName string
+	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, node.Right.Location())
+
+	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := program.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := e.elkTypechecker.GetConstantLookupCompletions(node.Left, currentName)
+	appendCompletionsToSuggestions(&suggestions, completions)
 
 	return suggestions, startChar, endChar
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value/symbol"
@@ -242,6 +243,78 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 				},
 			)
 		}
+	}
+
+	sortCompletions(result, lowerName)
+
+	return result
+}
+
+func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode, name string) []*Completion {
+	var result []*Completion
+
+	lowerName := strings.ToLower(name)
+	namespaceNode = ast.DeepCopyGeneric(namespaceNode)
+
+	namespaceConstant, _ := c.resolveConstantSubtype(namespaceNode)
+	defer c.ClearErrors()
+
+	if c.Errors.IsFailure() {
+		return nil
+	}
+	if namespaceConstant == nil {
+		return nil
+	}
+
+	namespace, ok := namespaceConstant.Type.(types.Namespace)
+	if !ok {
+		return nil
+	}
+
+	seenConstants := ds.MakeSet[symbol.Symbol]()
+	for constantName, constant := range namespace.Subtypes() {
+		if seenConstants.Contains(constantName) {
+			continue
+		}
+
+		seenConstants.Add(constantName)
+		constantNameString := constantName.String()
+		if strings.HasPrefix(constantNameString, "#") {
+			continue
+		}
+
+		lowerConstantName := strings.ToLower(constantNameString)
+		if !strings.Contains(lowerConstantName, lowerName) {
+			continue
+		}
+
+		result = append(result, &Completion{
+			Value:       constantNameString,
+			Description: getDocForSubtype(constant),
+		})
+	}
+
+	for constantName, constant := range namespace.Constants() {
+		if seenConstants.Contains(constantName) {
+			continue
+		}
+
+		seenConstants.Add(constantName)
+		constantNameString := constantName.String()
+		if strings.HasPrefix(constantNameString, "#") {
+			continue
+		}
+
+		lowerConstantName := strings.ToLower(constantNameString)
+		if !strings.Contains(lowerConstantName, lowerName) {
+			continue
+		}
+
+		doc := fmt.Sprintf("`%s` %s", constant.Inspect(), constant.DocComment())
+		result = append(result, &Completion{
+			Value:       constantNameString,
+			Description: doc,
+		})
 	}
 
 	sortCompletions(result, lowerName)

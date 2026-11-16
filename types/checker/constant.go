@@ -330,6 +330,19 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 	}
 }
 
+func (c *Checker) resolveConstantSubtype(constantExpression ast.ExpressionNode) (*types.Constant, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolveType(constant.Value, constant.Location())
+	case *ast.PrivateConstantNode:
+		return c.resolveType(constant.Value, constant.Location())
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookupType(constant)
+	default:
+		return nil, ""
+	}
+}
+
 func (c *Checker) addInvalidValueInExpressionError(constantName string, location *position.Location) {
 	c.addFailure(
 		fmt.Sprintf("`%s` cannot be used as a value in expressions", lexer.Colorize(constantName)),
