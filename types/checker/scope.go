@@ -104,7 +104,9 @@ func (c *Checker) getUsingBufferNamespace(span *position.Span) types.Namespace {
 }
 
 func (c *Checker) popConstScope(pos *position.Position) {
-	c.constantScopes[len(c.constantScopes)-1].setEndPos(pos)
+	constScope := c.constantScopes[len(c.constantScopes)-1]
+	constScope.setEndPos(pos)
+
 	c.constantScopes = c.constantScopes[:len(c.constantScopes)-1]
 	c.clearConstScopeCopyCache()
 }
@@ -113,6 +115,7 @@ func (c *Checker) popLocalConstScope(pos *position.Position) {
 	for i := len(c.constantScopes) - 1; i >= 0; i-- {
 		constScope := c.constantScopes[i]
 		constScope.setEndPos(pos)
+
 		if constScope.kind == scopeLocalKind {
 			c.constantScopes = c.constantScopes[:i]
 			c.clearConstScopeCopyCache()

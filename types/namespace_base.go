@@ -34,6 +34,10 @@ type Constant struct {
 	uses        []*position.Location
 }
 
+func (c *Constant) Inspect() string {
+	return fmt.Sprintf("const %s: %s", c.FullName, Inspect(c.Type))
+}
+
 func (c *Constant) Declaration() *position.Location {
 	return c.declaration
 }

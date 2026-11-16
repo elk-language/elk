@@ -39,6 +39,11 @@ type TypeWithDeclaration interface {
 	Declaration() *position.Location
 }
 
+type TypeWithDocComment interface {
+	Type
+	DocComment() string
+}
+
 type TypeWithDeclarationAndUses interface {
 	TypeWithDeclaration
 	TypeWithUses

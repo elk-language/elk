@@ -441,14 +441,16 @@ func (c *Checker) CheckSourceREPL(sourceName string, source string, prepend []as
 }
 
 // Used in the REPL to typecheck the input for autocomplete
-func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, prepend []ast.StatementNode) *ast.ProgramNode {
-	ast, _ := parser.Parse(sourceName, source)
+func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, prepend []ast.StatementNode) (*ast.ProgramNode, *ast.ProgramNode) {
+	parsedNode, _ := parser.Parse(sourceName, source)
+
+	checkedNode := ast.DeepCopyGeneric(parsedNode)
 	if len(prepend) > 0 {
-		ast.Body = append(prepend, ast.Body...)
+		checkedNode.Body = append(prepend, checkedNode.Body...)
 	}
 
-	c.CheckProgramREPLAutocomplete(sourceName, ast)
-	return ast
+	c.CheckProgramREPLAutocomplete(sourceName, checkedNode)
+	return parsedNode, checkedNode
 }
 
 // Used in the REPL to typecheck and compile the input
@@ -10106,6 +10108,8 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
 	case *ast.MethodLookupNode, *ast.MethodLookupAsNode:
 		return n
+	case *ast.InvalidNode:
+		return n
 	default:
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
@@ -10145,6 +10149,10 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
 	container, constant, fullConstantName, constantName := c.resolveConstantInRoot(node)
+	if container == nil {
+		return node
+	}
+
 	originalConstantSymbol := symbol.ToSymbol(constantName)
 	var newConstantSymbol symbol.Symbol
 	if asName == "" {

@@ -34,19 +34,20 @@ import (
 )
 
 type evaluator struct {
-	executor                  goprompt.Executor
-	ctx                       context.Context
-	vm                        *vm.Thread
-	inspectStack              bool
-	sourceMap                 map[string]string
-	inputIndex                int
-	elkTypechecker            *checker.Checker
-	goTypechecker             *compilerTypes.GoTypechecker
-	prepend                   []ast.StatementNode
-	prompt                    *goprompt.Prompt
-	completer                 goprompt.Completer
-	lastCompletionSource      string
-	lastCompletionProgramNode *ast.ProgramNode
+	executor                         goprompt.Executor
+	ctx                              context.Context
+	vm                               *vm.Thread
+	inspectStack                     bool
+	sourceMap                        map[string]string
+	inputIndex                       int
+	elkTypechecker                   *checker.Checker
+	goTypechecker                    *compilerTypes.GoTypechecker
+	prepend                          []ast.StatementNode
+	prompt                           *goprompt.Prompt
+	completer                        goprompt.Completer
+	lastCompletionSource             string
+	lastCompletionParsedProgramNode  *ast.ProgramNode
+	lastCompletionCheckedProgramNode *ast.ProgramNode
 }
 
 const sourceNamePrefix = "<repl:"
@@ -561,11 +562,17 @@ const completionSourceName = "<completion>"
 // Handles autocomplete
 func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	source := doc.Text
-	var programNode *ast.ProgramNode
-	if e.lastCompletionSource == source && e.lastCompletionProgramNode != nil {
-		programNode = e.lastCompletionProgramNode
+	var parsedProgramNode *ast.ProgramNode
+	_ = parsedProgramNode
+	var checkedProgramNode *ast.ProgramNode
+	if e.lastCompletionSource == source && e.lastCompletionParsedProgramNode != nil {
+		parsedProgramNode = e.lastCompletionParsedProgramNode
+		checkedProgramNode = e.lastCompletionCheckedProgramNode
 	} else {
-		programNode = e.elkTypechecker.CheckSourceREPLAutocomplete(completionSourceName, source, e.deepCopyPrepend())
+		parsedProgramNode, checkedProgramNode = e.elkTypechecker.CheckSourceREPLAutocomplete(completionSourceName, source, e.deepCopyPrepend())
+		e.lastCompletionSource = source
+		e.lastCompletionParsedProgramNode = parsedProgramNode
+		e.lastCompletionCheckedProgramNode = checkedProgramNode
 	}
 	e.elkTypechecker.ClearErrors()
 
@@ -574,7 +581,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	var narrowestNode ast.Node
 	var narrowestMethodCallNode ast.Node
 	ast.Traverse(
-		programNode,
+		checkedProgramNode,
 		func(node, parent ast.Node) ast.TraverseOption {
 			loc := node.Location()
 			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
@@ -618,9 +625,9 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	case *ast.ConstantLookupNode:
 		return e.completeConstantLookup(doc, n)
 	case *ast.PublicConstantNode:
-		return e.completeConstant(doc, n.Value)
+		return e.completeConstant(doc, n.Value, n.Location())
 	case *ast.PrivateConstantNode:
-		return e.completeConstant(doc, n.Value)
+		return e.completeConstant(doc, n.Value, n.Location())
 	case *ast.ReceiverlessMethodCallNode:
 		return e.completeFunction(doc, n.MethodName)
 	case *ast.PublicIdentifierNode:
@@ -632,7 +639,20 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	}
 }
 
-func (e *evaluator) completeConstant(doc goprompt.Document, name string) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	cursorByteOffset := doc.CursorByteOffset()
+	var currentName string
+	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, loc)
+
+	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := node.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := lspData.GetConstantCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
+	appendCompletionsToSuggestions(&suggestions, completions)
+
 	return suggestions, startChar, endChar
 }
 
@@ -748,20 +768,6 @@ func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.
 
 	return
 }
-
-// For debugging
-func log(format string, a ...any) {
-	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		panic(fmt.Sprintf("error opening file: %v", err))
-	}
-	defer f.Close()
-	if _, err := fmt.Fprintf(f, format+"\n", a...); err != nil {
-		panic(err)
-	}
-}
-
-var _ = log
 
 type Options struct {
 	Disassemble  bool

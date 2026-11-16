@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value/symbol"
@@ -34,6 +35,7 @@ type Completion struct {
 func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion {
 	var result []*Completion
 
+	seenLocals := ds.MakeSet[symbol.Symbol]()
 	lowerName := strings.ToLower(name)
 	for _, localEnv := range slices.Backward(l.localEnvs.Slice) {
 		if byteOffset > 0 && localEnv.span != nil && !localEnv.span.ByteIsWithin(byteOffset) {
@@ -46,7 +48,16 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 			if byteOffset > 0 && local.declaration != nil && byteOffset < local.declaration.Span.EndPos.ByteOffset {
 				continue
 			}
+			if seenLocals.Contains(localName) {
+				continue
+			}
+
+			seenLocals.Add(localName)
 			localNameString := localName.String()
+			if strings.HasPrefix(localNameString, "#") {
+				continue
+			}
+
 			lowerLocalName := strings.ToLower(localNameString)
 			if !strings.Contains(lowerLocalName, lowerName) {
 				continue
@@ -78,6 +89,7 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 	var result []*Completion
 
 	lowerName := strings.ToLower(name)
+	seenMethods := ds.MakeSet[symbol.Symbol]()
 	for _, methodScope := range slices.Backward(l.methodScopes.Slice) {
 		if byteOffset > 0 && methodScope.span != nil && !methodScope.span.ByteIsWithin(byteOffset) {
 			continue
@@ -92,8 +104,16 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 			if method.IsRegisteredOverload() {
 				continue
 			}
+			if seenMethods.Contains(methodName) {
+				continue
+			}
 
+			seenMethods.Add(methodName)
 			methodNameString := methodName.String()
+			if strings.HasPrefix(methodNameString, "#") {
+				continue
+			}
+
 			lowerMethodName := strings.ToLower(methodNameString)
 			if !strings.Contains(lowerMethodName, lowerName) {
 				continue
@@ -110,6 +130,91 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 	sortCompletions(result, lowerName)
 
 	return result
+}
+
+func (l *LSPData) GetConstantCompletions(checker *Checker, name string, byteOffset int) []*Completion {
+	var result []*Completion
+
+	lowerName := strings.ToLower(name)
+
+	seenConstants := ds.MakeSet[symbol.Symbol]()
+
+	for _, constScope := range slices.Backward(l.constantScopes.Slice) {
+		switch constScope.kind {
+		case scopeUsingBufferKind, scopeUsingKind:
+		default:
+			if byteOffset > 0 && constScope.span != nil && !constScope.span.ByteIsWithin(byteOffset) {
+				continue
+			}
+		}
+
+		for constantName, constant := range constScope.container.Subtypes() {
+			if seenConstants.Contains(constantName) {
+				continue
+			}
+
+			seenConstants.Add(constantName)
+			constantNameString := constantName.String()
+			if strings.HasPrefix(constantNameString, "#") {
+				continue
+			}
+
+			lowerConstantName := strings.ToLower(constantNameString)
+			if !strings.Contains(lowerConstantName, lowerName) {
+				continue
+			}
+
+			result = append(result, &Completion{
+				Value:       constantNameString,
+				Description: getDocForSubtype(constant),
+			})
+		}
+
+		for constantName, constant := range constScope.container.Constants() {
+			if seenConstants.Contains(constantName) {
+				continue
+			}
+
+			seenConstants.Add(constantName)
+			constantNameString := constantName.String()
+			if strings.HasPrefix(constantNameString, "#") {
+				continue
+			}
+
+			lowerConstantName := strings.ToLower(constantNameString)
+			if !strings.Contains(lowerConstantName, lowerName) {
+				continue
+			}
+
+			doc := fmt.Sprintf("`%s` %s", constant.Inspect(), constant.DocComment())
+			result = append(result, &Completion{
+				Value:       constantNameString,
+				Description: doc,
+			})
+		}
+	}
+
+	sortCompletions(result, lowerName)
+
+	return result
+}
+
+func getDocForSubtype(constant *types.Constant) string {
+	typ := constant.Type
+	switch t := typ.(type) {
+	case *types.Mixin:
+		return fmt.Sprintf("Mixin `%s` %s", types.Inspect(typ), t.DocComment())
+	case *types.Interface:
+		return fmt.Sprintf("Interface `%s` %s", types.Inspect(typ), t.DocComment())
+	case *types.Module:
+		return fmt.Sprintf("Module `%s` %s", types.Inspect(typ), t.DocComment())
+	case *types.Class:
+		return fmt.Sprintf("Class `%s` %s", types.Inspect(typ), t.DocComment())
+	case types.TypeWithDocComment:
+		return fmt.Sprintf("Type `%s` %s", types.Inspect(typ), t.DocComment())
+	default:
+		return fmt.Sprintf("Type `%s` %s", types.Inspect(typ), constant.DocComment())
+	}
 }
 
 func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*Completion {
