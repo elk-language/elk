@@ -77,7 +77,9 @@ func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
 	result := make([]ast.StatementNode, len(e.prepend))
 
 	for i, statement := range e.prepend {
-		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
+		stmt := ast.DeepCopyGeneric(statement)
+		stmt.SetPrepended(true)
+		result[i] = stmt
 	}
 
 	return result
@@ -578,28 +580,28 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 	cursorByteOffset := doc.CursorByteOffset()
 
-	var narrowestNode ast.Node
-	var narrowestMethodCallNode ast.Node
+	var narrowestParsedNode ast.Node
+	var narrowestParsedMethodCallNode ast.Node
 	ast.Traverse(
-		checkedProgramNode,
+		parsedProgramNode,
 		func(node, parent ast.Node) ast.TraverseOption {
 			loc := node.Location()
 			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
 				return ast.TraverseSkip
 			}
 
-			if narrowestNode == nil {
-				narrowestNode = node
+			if narrowestParsedNode == nil {
+				narrowestParsedNode = node
 				if isMethodCallNode(node) {
-					narrowestMethodCallNode = node
+					narrowestParsedMethodCallNode = node
 				}
 				return ast.TraverseContinue
 			}
 
-			if node.Location().ByteCount() <= narrowestNode.Location().ByteCount() {
-				narrowestNode = node
+			if node.Location().ByteCount() <= narrowestParsedNode.Location().ByteCount() {
+				narrowestParsedNode = node
 				if isMethodCallNode(node) {
-					narrowestMethodCallNode = node
+					narrowestParsedMethodCallNode = node
 				}
 			}
 
@@ -608,20 +610,62 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		nil,
 	)
 
-	if narrowestNode == nil {
+	var narrowestCheckedNode ast.Node
+	var narrowestCheckedMethodCallNode ast.Node
+	ast.Traverse(
+		checkedProgramNode,
+		func(node, parent ast.Node) ast.TraverseOption {
+			if stmt, ok := node.(ast.StatementNode); ok && stmt.Prepended() {
+				return ast.TraverseSkip
+			}
+
+			loc := node.Location()
+			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
+				return ast.TraverseSkip
+			}
+
+			if narrowestCheckedNode == nil {
+				narrowestCheckedNode = node
+				if isMethodCallNode(node) {
+					narrowestCheckedMethodCallNode = node
+				}
+				return ast.TraverseContinue
+			}
+
+			if node.Location().ByteCount() <= narrowestCheckedNode.Location().ByteCount() {
+				narrowestCheckedNode = node
+				if isMethodCallNode(node) {
+					narrowestCheckedMethodCallNode = node
+				}
+			}
+
+			return ast.TraverseContinue
+		},
+		nil,
+	)
+
+	if narrowestCheckedNode == nil {
 		return
 	}
 
-	switch n := narrowestMethodCallNode.(type) {
+	switch n := narrowestParsedMethodCallNode.(type) {
 	case *ast.AttributeAccessNode:
-		return e.completeMethodCall(doc, n.Receiver, n.AttributeName)
+		receiver := getReceiverOfMethodCall(narrowestCheckedMethodCallNode)
+		if receiver == nil {
+			return
+		}
+		return e.completeMethodCall(doc, receiver, n.AttributeName)
 	case *ast.MethodCallNode:
-		return e.completeMethodCall(doc, n.Receiver, n.MethodName)
+		receiver := getReceiverOfMethodCall(narrowestCheckedMethodCallNode)
+		if receiver == nil {
+			return
+		}
+		return e.completeMethodCall(doc, receiver, n.MethodName)
 	case *ast.ReceiverlessMethodCallNode:
 		return e.completeFunction(doc, n.MethodName)
 	}
 
-	switch n := narrowestNode.(type) {
+	switch n := narrowestParsedNode.(type) {
 	case *ast.ConstantLookupNode:
 		return e.completeConstantLookup(doc, n)
 	case *ast.PublicConstantNode:
@@ -636,6 +680,17 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		return e.completeLocalOrFunction(doc, n.Value, n.Location())
 	default:
 		return
+	}
+}
+
+func getReceiverOfMethodCall(node ast.Node) ast.ExpressionNode {
+	switch n := node.(type) {
+	case *ast.AttributeAccessNode:
+		return n.Receiver
+	case *ast.MethodCallNode:
+		return n.Receiver
+	default:
+		return nil
 	}
 }
 

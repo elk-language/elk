@@ -12,7 +12,8 @@ import (
 // Represents a syntax error.
 type InvalidNode struct {
 	NodeBase
-	Token *token.Token
+	Token     *token.Token
+	prepended bool
 }
 
 func IsInvalid(node Node) bool {
@@ -22,9 +23,18 @@ func IsInvalid(node Node) bool {
 
 func (n *InvalidNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &InvalidNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Token:    n.Token.Splice(loc, unquote),
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Token:     n.Token.Splice(loc, unquote),
+		prepended: n.prepended,
 	}
+}
+
+func (n *InvalidNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *InvalidNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *InvalidNode) MacroType(env *types.GlobalEnvironment) types.Type {
