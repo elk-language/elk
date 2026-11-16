@@ -110,6 +110,7 @@ func InitGlobalEnvironment() {
 	initFloat64()
 	initFloat32()
 	initString()
+	initStringBuilder()
 	initChar()
 	initSymbol()
 	initRegex()
