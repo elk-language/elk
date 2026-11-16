@@ -758,6 +758,9 @@ func (c *Checker) isSubtype(a, b types.Type, errLoc *position.Location) bool {
 		}
 		return a.Value == b.Value && a.IsNegative() == b.IsNegative()
 	default:
+		if c.IsLSP() {
+			return false
+		}
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}
 }

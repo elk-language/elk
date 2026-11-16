@@ -2625,6 +2625,9 @@ func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueT
 	case token.UNLESS:
 		return c.checkRecordUnlessModifier(node)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
 }
@@ -2650,6 +2653,9 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		l.Value = c.checkExpression(l.Value)
 		thenValueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
 	c.popLocalEnv()
@@ -2670,6 +2676,9 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		l.Value = c.checkExpression(l.Value)
 		elseValueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
 	c.popLocalEnv()
@@ -2770,6 +2779,9 @@ func (c *Checker) checkRecordPair(node ast.ExpressionNode) (n ast.ExpressionNode
 	case *ast.DoubleSplatExpressionNode:
 		return c.checkRecordDoubleSplatExpression(p)
 	default:
+		if c.IsLSP() {
+			return node, nil, nil
+		}
 		panic(fmt.Sprintf("invalid map element node: %#v", node))
 	}
 }
@@ -2995,6 +3007,9 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode, fn CheckExpr
 	case token.UNLESS:
 		return c.checkCollectionUnlessModifier(node, fn)
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
 }
@@ -3706,6 +3721,9 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 		then.Value = c.checkExpression(then.Value)
 		valueType = c.typeOfGuardVoid(then.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element: %#v", then))
 	}
 	c.popLocalEnv()
@@ -4412,6 +4430,9 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 		l.Value = c.checkExpression(l.Value)
 		valueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
 	c.popLocalEnv()
@@ -4463,6 +4484,9 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 		l.Value = c.checkExpression(l.Value)
 		valueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
 	c.popLocalEnv()
@@ -4518,6 +4542,9 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				case *ast.PrivateIdentifierNode:
 					stackTraceVarName = s.Value
 				default:
+					if c.IsLSP() {
+						return node
+					}
 					panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
@@ -5185,6 +5212,9 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 				case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
 					iface = ivarConvertible
 				default:
+					if c.IsLSP() {
+						return ast.TraverseContinue
+					}
 					panic(fmt.Sprintf("invalid unquote kind: %d", node.Kind))
 				}
 
@@ -5666,6 +5696,9 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 			receiver.SetType(types.Self{})
 			c.checkNonNilableInstanceVariablesForSelf(loc)
 		default:
+			if c.IsLSP() {
+				return nil
+			}
 			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
 		}
 	}
@@ -6916,6 +6949,9 @@ func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (
 	case *ast.ConstantLookupNode:
 		return c.resolveTypeLookupInRoot(constant)
 	default:
+		if c.IsLSP() {
+			return
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -7068,7 +7104,12 @@ func (c *Checker) resolveConstantForNamespaceDeclaration(constantExpression ast.
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupForNamespaceDeclaration(constant)
+	case *ast.InvalidNode:
+		return nil, nil, ""
 	default:
+		if c.IsLSP() {
+			return nil, nil, ""
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -7083,6 +7124,9 @@ func (c *Checker) resolveConstantForConstantDeclaration(constantExpression ast.E
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupForConstantDeclaration(constant)
 	default:
+		if c.IsLSP() {
+			return nil, nil, ""
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -7713,6 +7757,9 @@ func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ComplexC
 		c.checkGenericConstantType(n)
 		return n
 	default:
+		if c.IsLSP() {
+			return nil
+		}
 		panic(
 			fmt.Sprintf("invalid constant type node %T", node),
 		)
@@ -7730,6 +7777,9 @@ func (c *Checker) getComplexConstantTypeForMacro(node ast.ExpressionNode) types.
 	case *ast.GenericConstantNode:
 		return c.getComplexConstantTypeForMacro(n.Constant)
 	default:
+		if c.IsLSP() {
+			return nil
+		}
 		panic(
 			fmt.Sprintf("invalid constant type node %T", node),
 		)
@@ -8088,6 +8138,9 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		negate = true
 	case token.PLUS:
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.Name()))
 	}
 
@@ -8276,6 +8329,9 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.Ty
 		node.SetType(typ)
 		return node
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic("invalid binary type expression operator")
 	}
 }
@@ -9313,7 +9369,7 @@ func extractConstantName(node ast.ExpressionNode) string {
 	case *ast.ConstantLookupNode:
 		return extractConstantNameFromLookup(n)
 	default:
-		panic(fmt.Sprintf("invalid constant node: %T", node))
+		return ""
 	}
 }
 
@@ -9324,7 +9380,7 @@ func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
 	case *ast.PrivateConstantNode:
 		return r.Value
 	default:
-		panic(fmt.Sprintf("invalid right side of constant lookup node: %T", lookup.Right))
+		return ""
 	}
 }
 
@@ -10111,6 +10167,9 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 	case *ast.InvalidNode:
 		return n
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
 }
@@ -10140,6 +10199,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 			s.SetType(c.TypeOf(newNode))
 		case *ast.PublicIdentifierNode, *ast.UsingSubentryAsNode, *ast.MacroNameNode:
 		default:
+			if c.IsLSP() {
+				return node
+			}
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}

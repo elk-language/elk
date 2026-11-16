@@ -326,7 +326,23 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		typeNode, name := c.checkGenericConstantType(constant)
 		return c.TypeOf(typeNode), name
 	default:
+		if c.IsLSP() {
+			return nil, ""
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+func (c *Checker) resolveConstant(constantExpression ast.ExpressionNode) (*types.Constant, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolvePublicConstant(constant.Value, constant.Location())
+	case *ast.PrivateConstantNode:
+		return c.resolvePrivateConstant(constant.Value, constant.Location())
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookup(constant, nil, constant.Location())
+	default:
+		return nil, ""
 	}
 }
 

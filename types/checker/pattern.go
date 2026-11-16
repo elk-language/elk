@@ -285,6 +285,9 @@ func (c *Checker) checkPattern(node ast.PatternNode, matchedType types.Type) (re
 	case *ast.UnhygienicNode:
 		return c.checkPatternUnhygienicNode(n, matchedType)
 	default:
+		if c.IsLSP() {
+			return node, nil
+		}
 		panic(fmt.Sprintf("invalid pattern node %T", node))
 	}
 }
@@ -329,6 +332,9 @@ func (c *Checker) checkBinaryPattern(node *ast.BinaryPatternNode, matchedType ty
 		node.SetType(intersection)
 		return node, c.NewNormalisedIntersection(leftCatchType, rightCatchType)
 	default:
+		if c.IsLSP() {
+			return node, nil
+		}
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", node.Op.Type.Name()))
 	}
 }
@@ -389,6 +395,9 @@ func (c *Checker) checkUnaryPattern(node *ast.UnaryExpressionNode, matchedType t
 	case token.PLUS:
 		return c.checkSimpleLiteralPattern(node, matchedType)
 	default:
+		if c.IsLSP() {
+			return node, nil
+		}
 		panic(fmt.Sprintf("invalid unary pattern operator: %s", node.Op.Type.Name()))
 	}
 }
@@ -452,6 +461,9 @@ func (c *Checker) checkAsPatternNode(node *ast.AsPatternNode, typ types.Type) (a
 	case *ast.PrivateIdentifierNode:
 		node.SetType(c.checkIdentifierPattern(name.Value, typ, patternType, name.Location()))
 	default:
+		if c.IsLSP() {
+			return node, nil
+		}
 		panic(fmt.Sprintf("invalid identifier node in pattern: %T", node.Name))
 	}
 	return node, fullyCapturedType
@@ -572,6 +584,9 @@ func (c *Checker) checkObjectPattern(node *ast.ObjectPatternNode, typ types.Type
 				allAttributesFullyCaptured = false
 			}
 		default:
+			if c.IsLSP() {
+				return node, nil
+			}
 			panic(fmt.Sprintf("invalid object pattern attribute: %T", attr))
 		}
 	}
@@ -606,6 +621,9 @@ func (c *Checker) checkInferredObjectPattern(node *ast.InferredObjectPatternNode
 				allAttributesFullyCaptured = false
 			}
 		default:
+			if c.IsLSP() {
+				return node, nil
+			}
 			panic(fmt.Sprintf("invalid inferred object pattern attribute: %T", attr))
 		}
 	}
@@ -694,6 +712,9 @@ func (c *Checker) checkMapPattern(node *ast.MapPatternNode, typ types.Type) (*as
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		default:
+			if c.IsLSP() {
+				return node, nil
+			}
 			panic(fmt.Sprintf("invalid map pattern element: %T", element))
 		}
 	}
@@ -738,6 +759,9 @@ func (c *Checker) checkRecordPattern(node *ast.RecordPatternNode, typ types.Type
 			e.Value, _ = c.checkPattern(e.Value, valueType)
 			e.SetType(valueType)
 		default:
+			if c.IsLSP() {
+				return node, nil
+			}
 			panic(fmt.Sprintf("invalid record pattern element: %T", element))
 		}
 	}

@@ -29,6 +29,8 @@ func NewLSPData() *LSPData {
 }
 
 type Completion struct {
+	Label       string
+	Identifier  string
 	Value       string
 	Description string
 }
@@ -120,9 +122,23 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 				continue
 			}
 
+			var label string
+			var value string
+			var identifier string
+			if method.IsMacro() {
+				label = methodNameString + "()"
+				identifier = methodNameString
+				value = methodNameString[:len(methodNameString)-1]
+			} else {
+				label = methodNameString + "()"
+				identifier = methodNameString
+				value = methodNameString
+			}
 			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
 			result = append(result, &Completion{
-				Value:       methodNameString,
+				Label:       label,
+				Identifier:  identifier,
+				Value:       value,
 				Description: doc,
 			})
 		}
@@ -211,6 +227,8 @@ func getDocForSubtype(constant *types.Constant) string {
 		return fmt.Sprintf("Module `%s` %s", types.Inspect(typ), t.DocComment())
 	case *types.Class:
 		return fmt.Sprintf("Class `%s` %s", types.Inspect(typ), t.DocComment())
+	case *types.TypeParameter:
+		return fmt.Sprintf("Type Parameter `%s` of `%s`", t.InspectSignature(), types.Inspect(t.Namespace))
 	case types.TypeWithDocComment:
 		return fmt.Sprintf("Type `%s` %s", types.Inspect(typ), t.DocComment())
 	default:
@@ -233,16 +251,90 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 		if method.IsRegisteredOverload() {
 			continue
 		}
-		if strings.Contains(strings.ToLower(name.String()), lowerName) {
-			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
-			result = append(
-				result,
-				&Completion{
-					Value:       name.String(),
-					Description: doc,
-				},
-			)
+		if !strings.Contains(strings.ToLower(name.String()), lowerName) {
+			continue
 		}
+
+		methodNameString := name.String()
+		doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
+
+		var label string
+		var value string
+		var identifier string
+		if method.IsMacro() {
+			label = methodNameString + "()"
+			identifier = methodNameString
+			value = methodNameString[:len(methodNameString)-1]
+		} else {
+			label = methodNameString + "()"
+			identifier = methodNameString
+			value = methodNameString
+		}
+		result = append(
+			result,
+			&Completion{
+				Label:       label,
+				Value:       value,
+				Identifier:  identifier,
+				Description: doc,
+			},
+		)
+	}
+
+	sortCompletions(result, lowerName)
+
+	return result
+}
+
+func (c *Checker) GetScopedMacroCompletions(namespaceNode ast.ExpressionNode, name string) []*Completion {
+	var result []*Completion
+
+	lowerName := strings.ToLower(name)
+	namespaceNode = ast.DeepCopyGeneric(namespaceNode)
+
+	namespaceConstant, _ := c.resolveConstant(namespaceNode)
+	defer c.ClearErrors()
+
+	if c.Errors.IsFailure() {
+		return nil
+	}
+	if namespaceConstant == nil {
+		return nil
+	}
+
+	namespace, ok := namespaceConstant.Type.(types.Namespace)
+	if !ok {
+		return nil
+	}
+
+	seenMacros := ds.MakeSet[symbol.Symbol]()
+	for name, method := range c.MethodsInNamespace(namespace) {
+		if !method.IsMacro() {
+			continue
+		}
+		if seenMacros.Contains(name) {
+			continue
+		}
+
+		seenMacros.Add(name)
+		if !strings.Contains(strings.ToLower(name.String()), lowerName) {
+			continue
+		}
+
+		methodNameString := name.String()
+		doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
+		label := methodNameString + "()"
+		identifier := methodNameString
+		value := methodNameString[:len(methodNameString)-1]
+		result = append(
+			result,
+			&Completion{
+				Label:       label,
+				Value:       value,
+				Identifier:  identifier,
+				Description: doc,
+			},
+		)
 	}
 
 	sortCompletions(result, lowerName)

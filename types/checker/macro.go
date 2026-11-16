@@ -151,6 +151,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForMacros(node *ast.UsingEntryWit
 			c.checkUsingMethodLookupEntryNode(node.Namespace, value, asName, s.Location())
 		case *ast.PublicConstantNode, *ast.PublicConstantAsNode, *ast.PublicIdentifierNode:
 		default:
+			if c.IsLSP() {
+				return
+			}
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}
@@ -470,6 +473,9 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 			runtimeArgs...,
 		)
 	default:
+		if c.IsLSP() {
+			return nil
+		}
 		panic(fmt.Sprintf("invalid compiled macro body %T for: %s", body, macro.InspectSignature(false)))
 	}
 
@@ -508,6 +514,9 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 				types.Inspect(macro),
 			)
 		default:
+			if c.IsLSP() {
+				return nil
+			}
 			panic(fmt.Sprintf("invalid expression macro result type: %T", resultNode))
 		}
 	case patternNodeType:
@@ -684,6 +693,9 @@ func (c *Checker) checkMacroArguments(
 			case *ast.DoubleSplatExpressionNode:
 				continue
 			default:
+				if c.IsLSP() {
+					return
+				}
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 
@@ -785,6 +797,9 @@ func (c *Checker) checkMacroArguments(
 					namedArg.Location(),
 				)
 			default:
+				if c.IsLSP() {
+					return
+				}
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 		}

@@ -101,6 +101,9 @@ func (c *Checker) checkSignatures(methodSignatures *[]signatureCheckEntry) {
 		case *ast.AttrDeclarationNode:
 			c.checkSignatureOfAttrDeclaration(node)
 		default:
+			if c.IsLSP() {
+				return
+			}
 			panic(fmt.Sprintf("invalid signature definition node: %T", node))
 		}
 
@@ -527,6 +530,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForMethods(node *ast.UsingEntryWi
 			c.checkUsingMethodLookupEntryNode(node.Namespace, value, asName, s.Location())
 		case *ast.PublicConstantNode, *ast.PublicConstantAsNode, *ast.MacroNameNode:
 		default:
+			if c.IsLSP() {
+				return
+			}
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}
@@ -1269,6 +1275,9 @@ func (c *Checker) checkMethod(
 			p.Initialiser = initNode
 			p.TypeNode = declaredTypeNode
 		default:
+			if c.IsLSP() {
+				return nil, nil
+			}
 			panic(fmt.Sprintf("invalid parameter type: %T", param))
 		}
 	}
@@ -1888,6 +1897,9 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 			case *ast.DoubleSplatExpressionNode:
 				continue
 			default:
+				if c.IsLSP() {
+					return
+				}
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 
@@ -2002,6 +2014,9 @@ func (c *Checker) _checkMethodArgumentsAndInferTypeArguments(
 					result,
 				)
 			default:
+				if c.IsLSP() {
+					return
+				}
 				panic(fmt.Sprintf("invalid named argument node: %T", namedArgI))
 			}
 		}
@@ -2238,6 +2253,9 @@ func (c *Checker) checkSimpleMethodCall(
 		nonNilableReceiverType := c.ToNonNilable(receiverType)
 		method = c.GetMethod(nonNilableReceiverType, methodName, location)
 	default:
+		if c.IsLSP() {
+			return
+		}
 		panic(fmt.Sprintf("invalid call operator: %#v", op))
 	}
 	if method == nil {

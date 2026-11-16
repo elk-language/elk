@@ -549,10 +549,11 @@ func (e *evaluator) lex(input string) {
 	fmt.Println()
 }
 
-func isMethodCallNode(node ast.Node) bool {
+func isLookupNode(node ast.Node) bool {
 	switch node.(type) {
 	case *ast.MethodCallNode, *ast.ReceiverlessMethodCallNode,
-		*ast.AttributeAccessNode:
+		*ast.AttributeAccessNode, *ast.ConstantLookupNode, *ast.ScopedMacroCallNode,
+		*ast.MethodLookupNode:
 		return true
 	default:
 		return false
@@ -581,8 +582,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	cursorByteOffset := doc.CursorByteOffset()
 
 	var narrowestParsedNode ast.Node
-	var narrowestParsedMethodCallNode ast.Node
-	var narrowestParsedConstantLookup *ast.ConstantLookupNode
+	var narrowestParsedLookupNode ast.Node
 	ast.Traverse(
 		parsedProgramNode,
 		func(node, parent ast.Node) ast.TraverseOption {
@@ -593,22 +593,16 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 			if narrowestParsedNode == nil {
 				narrowestParsedNode = node
-				if isMethodCallNode(node) {
-					narrowestParsedMethodCallNode = node
-				}
-				if n, ok := node.(*ast.ConstantLookupNode); ok {
-					narrowestParsedConstantLookup = n
+				if isLookupNode(node) {
+					narrowestParsedLookupNode = node
 				}
 				return ast.TraverseContinue
 			}
 
 			if node.Location().ByteCount() <= narrowestParsedNode.Location().ByteCount() {
 				narrowestParsedNode = node
-				if isMethodCallNode(node) {
-					narrowestParsedMethodCallNode = node
-				}
-				if n, ok := node.(*ast.ConstantLookupNode); ok {
-					narrowestParsedConstantLookup = n
+				if isLookupNode(node) {
+					narrowestParsedLookupNode = node
 				}
 			}
 
@@ -618,7 +612,7 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	)
 
 	var narrowestCheckedNode ast.Node
-	var narrowestCheckedMethodCallNode ast.Node
+	var narrowestCheckedLookupNode ast.Node
 	ast.Traverse(
 		checkedProgramNode,
 		func(node, parent ast.Node) ast.TraverseOption {
@@ -633,16 +627,16 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 			if narrowestCheckedNode == nil {
 				narrowestCheckedNode = node
-				if isMethodCallNode(node) {
-					narrowestCheckedMethodCallNode = node
+				if isLookupNode(node) {
+					narrowestCheckedLookupNode = node
 				}
 				return ast.TraverseContinue
 			}
 
 			if node.Location().ByteCount() <= narrowestCheckedNode.Location().ByteCount() {
 				narrowestCheckedNode = node
-				if isMethodCallNode(node) {
-					narrowestCheckedMethodCallNode = node
+				if isLookupNode(node) {
+					narrowestCheckedLookupNode = node
 				}
 			}
 
@@ -655,19 +649,21 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 		return
 	}
 
-	if narrowestParsedConstantLookup != nil {
-		return e.completeConstantLookup(doc, narrowestParsedConstantLookup)
-	}
-
-	switch n := narrowestParsedMethodCallNode.(type) {
+	switch n := narrowestParsedLookupNode.(type) {
+	case *ast.ConstantLookupNode:
+		return e.completeConstantLookup(doc, n)
+	case *ast.MethodLookupNode:
+		return e.completeMethodLookup(doc, n)
+	case *ast.ScopedMacroCallNode:
+		return e.completeScopedMacroCall(doc, n)
 	case *ast.AttributeAccessNode:
-		receiver := getReceiverOfMethodCall(narrowestCheckedMethodCallNode)
+		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
 		if receiver == nil {
 			return
 		}
 		return e.completeMethodCall(doc, receiver, n.AttributeName)
 	case *ast.MethodCallNode:
-		receiver := getReceiverOfMethodCall(narrowestCheckedMethodCallNode)
+		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
 		if receiver == nil {
 			return
 		}
@@ -677,8 +673,6 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 	}
 
 	switch n := narrowestParsedNode.(type) {
-	case *ast.ConstantLookupNode:
-		return e.completeConstantLookup(doc, n)
 	case *ast.PublicConstantNode:
 		return e.completeConstant(doc, n.Value, n.Location())
 	case *ast.PrivateConstantNode:
@@ -708,7 +702,7 @@ func getReceiverOfMethodCall(node ast.Node) ast.ExpressionNode {
 func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	cursorByteOffset := doc.CursorByteOffset()
 	var currentName string
-	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, loc)
+	currentName, startChar, endChar, _ = getCompletionStartAndEnd(doc, name, loc)
 
 	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
 	lspData := node.LSPData.(*checker.LSPData)
@@ -717,7 +711,7 @@ func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *po
 	}
 
 	completions := lspData.GetConstantCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
 
 	return suggestions, startChar, endChar
 }
@@ -737,7 +731,11 @@ func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.Cons
 	name := constantToString(node.Right)
 
 	var currentName string
-	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, node.Right.Location())
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.Right.Location())
+	if !cursorIsWithin {
+		return
+	}
 
 	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
 	lspData := program.LSPData.(*checker.LSPData)
@@ -746,7 +744,55 @@ func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.Cons
 	}
 
 	completions := e.elkTypechecker.GetConstantLookupCompletions(node.Left, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+
+	if currentName == "" {
+		completions := e.elkTypechecker.GetScopedMacroCompletions(node.Left, currentName)
+		appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	}
+
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeMethodLookup(doc goprompt.Document, node *ast.MethodLookupNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	name := ast.IdentifierToString(node.Name)
+
+	var currentName string
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.Name.Location())
+	if !cursorIsWithin {
+		return
+	}
+
+	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := program.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	return suggestions, startChar, endChar
+}
+
+func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.ScopedMacroCallNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+	name := ast.IdentifierToString(node.MacroName)
+
+	var currentName string
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.MacroName.Location())
+	if !cursorIsWithin {
+		return
+	}
+
+	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
+	lspData := program.LSPData.(*checker.LSPData)
+	if lspData == nil {
+		return
+	}
+
+	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
 
 	return suggestions, startChar, endChar
 }
@@ -756,7 +802,11 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 	cursorByteOffset := doc.CursorByteOffset()
 
 	var currentName string
-	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, nameNode.Location())
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, nameNode.Location())
+	if !cursorIsWithin {
+		return
+	}
 
 	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
 	lspData := node.LSPData.(*checker.LSPData)
@@ -765,7 +815,7 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 	}
 
 	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
 
 	return suggestions, startChar, endChar
 }
@@ -773,7 +823,11 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	cursorByteOffset := doc.CursorByteOffset()
 	var currentName string
-	currentName, startChar, endChar = getCompletionStartAndEnd(doc, name, loc)
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, loc)
+	if !cursorIsWithin {
+		return
+	}
 
 	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
 	lspData := node.LSPData.(*checker.LSPData)
@@ -782,18 +836,37 @@ func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, 
 	}
 
 	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
 
 	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
 
 	return suggestions, startChar, endChar
 }
 
-func appendCompletionsToSuggestions(target *[]goprompt.Suggest, source []*checker.Completion) {
+type completionTextField uint8
+
+const (
+	completionTextFieldValue completionTextField = iota
+	completionTextFieldLabel
+	completionTextFieldIdentifier
+)
+
+func appendCompletionsToSuggestions(target *[]goprompt.Suggest, source []*checker.Completion, completionTextField completionTextField) {
 	for _, completion := range source {
+		var text string
+		switch completionTextField {
+		case completionTextFieldValue:
+			text = completion.Value
+		case completionTextFieldLabel:
+			text = completion.Label
+		case completionTextFieldIdentifier:
+			text = completion.Identifier
+		}
+
 		*target = append(*target, goprompt.Suggest{
-			Text:        completion.Value,
+			Label:       completion.Label,
+			Text:        text,
 			Description: normaliseSuggestionDescription(completion.Description),
 		})
 	}
@@ -830,19 +903,27 @@ func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, name
 		currentName = n.Value
 	}
 
-	currentName, startChar, endChar = getCompletionStartAndEnd(doc, currentName, nameNode.Location())
+	var cursorIsWithin bool
+	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, currentName, nameNode.Location())
+	if !cursorIsWithin {
+		return
+	}
 
 	completions := e.elkTypechecker.GetMethodCompletions(receiverType, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions)
+	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
 
 	return suggestions, startChar, endChar
 }
 
-func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.Location) (currentName string, startChar, endChar pstrings.RuneNumber) {
+func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.Location) (currentName string, startChar, endChar pstrings.RuneNumber, cursorIsWithin bool) {
 	currentName = name
 	source := doc.Text
 	cursorRuneOffset := doc.CursorRuneOffset()
 	cursorByteOffset := doc.CursorByteOffset()
+
+	if name == "" {
+		cursorIsWithin = true
+	}
 
 	if loc.ByteIsWithin(int(cursorByteOffset - 1)) {
 		startChar = pstrings.RuneNumber(loc.StartPos.RuneOffset(source))
@@ -851,6 +932,10 @@ func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.
 		if truncate > 0 {
 			currentName = currentName[:len(currentName)-truncate]
 		}
+		cursorIsWithin = true
+	} else if cursorByteOffset > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
+		startChar = pstrings.RuneNumber(loc.StartPos.RuneOffset(source))
+		endChar = pstrings.RuneNumber(loc.EndPos.RuneOffset(source)) + 1
 	} else {
 		startChar = cursorRuneOffset
 		endChar = cursorRuneOffset
