@@ -186,6 +186,7 @@ type Method struct {
 	Params         []*Parameter
 	TypeParameters []*TypeParameter
 	Overloads      []*Method
+	DerivedFrom    []*Method // List of methods this method is derived from, mainly used in methods on union types
 	Base           *Method
 	ReturnType     Type
 	ThrowType      Type

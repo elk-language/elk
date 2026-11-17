@@ -3061,11 +3061,16 @@ func (c *Checker) GetMethod(typ types.Type, name symbol.Symbol, errSpan *positio
 	return c._getMethod(typ, name, errSpan, false, false)
 }
 
-// Iterates over every method of the namespace, resolving type parameters.
-func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol.Symbol, *types.Method] {
+// Iterates over every method of the namespace, resolving type parameters with the given self type
+func (c *Checker) MethodsInNamespaceWithSelf(namespace types.Namespace, self types.Type, inSelf bool) iter.Seq2[symbol.Symbol, *types.Method] {
 	return func(yield func(name symbol.Symbol, method *types.Method) bool) {
 		var generics []*types.Generic
 		seenMethods := make(ds.Set[symbol.Symbol])
+
+		var selfTypeArgMap types.TypeArgumentMap
+		if !inSelf {
+			selfTypeArgMap = c.createTypeArgumentMapWithSelf(self)
+		}
 
 		for parent := range types.Parents(namespace) {
 			if generic, ok := parent.(*types.Generic); ok {
@@ -3110,6 +3115,16 @@ func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 					}
 				}
 
+				if methodCopy != nil {
+					c.replaceTypeParametersInMethod(methodCopy, selfTypeArgMap, false)
+				} else {
+					result := c.replaceTypeParametersInMethodCopy(method, selfTypeArgMap, false)
+					if result != method {
+						methodCopy = result
+						method = result
+					}
+				}
+
 				for i := range len(whereParams) {
 					whereParam := whereParams[i]
 					whereArg := whereArgs[i]
@@ -3129,6 +3144,165 @@ func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol
 			}
 		}
 	}
+}
+
+// Iterates over every method of the namespace, resolving type parameters.
+func (c *Checker) MethodsInNamespace(namespace types.Namespace) iter.Seq2[symbol.Symbol, *types.Method] {
+	return c.MethodsInNamespaceWithSelf(namespace, namespace, false)
+}
+
+func (c *Checker) methodMapForType(typ types.Type, inSelf bool) types.MethodMap {
+	typ = c.ToNonLiteral(typ, true)
+
+	switch t := typ.(type) {
+	case types.Self:
+		return c.methodMapForType(c.selfType, true)
+	case *types.NamedType:
+		return c.methodMapForType(t.Type, inSelf)
+	case *types.TypeParameter:
+		return c.methodMapForTypeParameter(t, inSelf)
+	case *types.Generic:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Class:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.NamespacePlaceholder:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.SingletonClass:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Interface:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Callable:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.InterfaceProxy:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Module:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Mixin:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.MixinProxy:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(t, t, inSelf))
+	case *types.Intersection:
+		return c.methodMapForIntersection(t.Elements)
+	case *types.Nilable:
+		return c.methodMapForUnion([]types.Type{t.Type, types.Nil{}})
+	case *types.Union:
+		return c.methodMapForUnion(t.Elements)
+	default:
+		namespace := c.StdValue()
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(namespace, namespace, inSelf))
+	}
+}
+
+func (c *Checker) methodMapForUnion(elements []types.Type) types.MethodMap {
+	methodNameSet := ds.MakeSet[symbol.Symbol]()
+	methodMaps := make([]types.MethodMap, 0, len(elements))
+
+	for _, element := range elements {
+		methodMap := c.MethodMapForType(element)
+		methodMaps = append(methodMaps, methodMap)
+
+		for methodName := range methodMap {
+			methodNameSet.Add(methodName)
+		}
+	}
+
+	result := make(types.MethodMap)
+methodNameLoop:
+	for methodName := range methodNameSet {
+		methods := make([]*types.Method, 0, len(elements))
+
+		for _, methodMap := range methodMaps {
+			method, ok := methodMap[methodName]
+			if !ok {
+				continue methodNameLoop
+			}
+
+			methods = append(methods, method)
+		}
+
+		resolvedMethod := c.resolveMethodCollectionForUnion(methods, methodName, nil)
+		if resolvedMethod != nil {
+			result[methodName] = resolvedMethod
+		}
+	}
+
+	return result
+}
+
+func (c *Checker) methodMapForIntersection(elements []types.Type) types.MethodMap {
+	methodNameSet := ds.MakeSet[symbol.Symbol]()
+	excludedMethodNameSet := ds.MakeSet[symbol.Symbol]()
+	var methodMaps []types.MethodMap
+
+	for _, element := range elements {
+		switch e := element.(type) {
+		case *types.Not:
+			switch t := e.Type.(type) {
+			case *types.Interface:
+				for ifaceMethodName := range c.MethodsInNamespace(t) {
+					excludedMethodNameSet.Add(ifaceMethodName)
+				}
+			case *types.Mixin:
+				for mixinMethodName := range c.MethodsInNamespace(t) {
+					excludedMethodNameSet.Add(mixinMethodName)
+				}
+			}
+		default:
+			methodMaps = append(methodMaps, c.MethodMapForType(element))
+		}
+	}
+
+	for _, methodMap := range methodMaps {
+		for methodName := range methodMap {
+			if excludedMethodNameSet.Contains(methodName) {
+				continue
+			}
+
+			methodNameSet.Add(methodName)
+		}
+	}
+
+	result := make(types.MethodMap)
+	for methodName := range methodNameSet {
+		var methods []*types.Method
+
+		for _, methodMap := range methodMaps {
+			method, ok := methodMap[methodName]
+			if ok {
+				methods = append(methods, method)
+			}
+		}
+
+		resolvedMethod := c.resolveMethodCollectionForIntersection(methods, methodName, nil, nil)
+		if resolvedMethod != nil {
+			result[methodName] = resolvedMethod
+		}
+	}
+
+	return result
+}
+
+func (c *Checker) methodMapForTypeParameter(typ *types.TypeParameter, inSelf bool) types.MethodMap {
+	switch upper := typ.UpperBound.(type) {
+	case *types.Class:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	case *types.Mixin:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	case *types.Interface:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	case *types.Callable:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	case *types.SingletonClass:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	case *types.Generic:
+		return ds.CollectMap(c.MethodsInNamespaceWithSelf(upper, typ, inSelf))
+	default:
+		return c.methodMapForType(typ.UpperBound, inSelf)
+	}
+}
+
+func (c *Checker) MethodMapForType(typ types.Type) types.MethodMap {
+	return c.methodMapForType(typ, false)
 }
 
 // Iterates over every abstract method of the namespace, resolving type parameters.
@@ -3312,6 +3486,10 @@ func (c *Checker) _getMethodInNamespace(namespace types.Namespace, typ types.Typ
 }
 
 func (c *Checker) createTypeArgumentMapWithSelf(self types.Type) types.TypeArgumentMap {
+	if self == nil {
+		return nil
+	}
+
 	return types.TypeArgumentMap{
 		symbol.L_self: types.NewTypeArgument(
 			self,
@@ -3414,6 +3592,10 @@ func (c *Checker) replaceTypeParametersInMethodCopy(method *types.Method, typeAr
 }
 
 func (c *Checker) replaceTypeParametersInMethod(method *types.Method, typeArgs types.TypeArgumentMap, replaceMethodTypeParams bool) *types.Method {
+	if typeArgs == nil {
+		return method
+	}
+
 	for _, typeParam := range method.TypeParameters {
 		typeParam.LowerBound = c.replaceTypeParameters(typeParam.LowerBound, typeArgs, replaceMethodTypeParams)
 		typeParam.UpperBound = c.replaceTypeParameters(typeParam.UpperBound, typeArgs, replaceMethodTypeParams)
@@ -3604,7 +3786,6 @@ func (c *Checker) getMethodInNilable(typ *types.Nilable, name symbol.Symbol, err
 
 func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc *position.Location) *types.Method {
 	var methods []*types.Method
-	var baseMethod *types.Method
 
 	for _, element := range typ.Elements {
 		elementMethod := c.GetMethod(element, name, errLoc)
@@ -3612,19 +3793,28 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 			continue
 		}
 		methods = append(methods, elementMethod)
-		if baseMethod == nil {
-			baseMethod = elementMethod
-			continue
-		}
-		currentScore := calculateMethodBaseScore(elementMethod)
-		baseScore := calculateMethodBaseScore(baseMethod)
-		if currentScore > baseScore {
-			baseMethod = elementMethod
-		}
 	}
 
 	if len(methods) < len(typ.Elements) {
 		return nil
+	}
+
+	return c.resolveMethodCollectionForUnion(methods, name, errLoc)
+}
+
+func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, name symbol.Symbol, errLoc *position.Location) *types.Method {
+	var baseMethod *types.Method
+
+	for _, method := range methods {
+		if baseMethod == nil {
+			baseMethod = method
+			continue
+		}
+		currentScore := calculateMethodBaseScore(method)
+		baseScore := calculateMethodBaseScore(baseMethod)
+		if currentScore > baseScore {
+			baseMethod = method
+		}
 	}
 
 	returnTypes := make([]types.Type, len(methods)+1)
@@ -3658,12 +3848,12 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 	method.ThrowType = c.NewNormalisedUnion(throwTypes...)
 	method.SetPure(isPure)
 	method.Overloads = nil
+	method.DerivedFrom = methods
 	return method
 }
 
 func (c *Checker) getMethodInIntersection(typ *types.Intersection, name symbol.Symbol, errLoc *position.Location) *types.Method {
 	var methods []*types.Method
-	var baseMethod *types.Method
 
 	for _, element := range typ.Elements {
 		switch e := element.(type) {
@@ -3688,9 +3878,18 @@ func (c *Checker) getMethodInIntersection(typ *types.Intersection, name symbol.S
 				continue
 			}
 			methods = append(methods, elementMethod)
-			if baseMethod == nil || len(baseMethod.Params) > len(elementMethod.Params) || baseMethod.IsGeneric() && !elementMethod.IsGeneric() {
-				baseMethod = elementMethod
-			}
+		}
+	}
+
+	return c.resolveMethodCollectionForIntersection(methods, name, typ, errLoc)
+}
+
+func (c *Checker) resolveMethodCollectionForIntersection(methods []*types.Method, name symbol.Symbol, typ types.Type, errLoc *position.Location) *types.Method {
+	var baseMethod *types.Method
+
+	for _, method := range methods {
+		if baseMethod == nil || len(baseMethod.Params) > len(method.Params) || baseMethod.IsGeneric() && !method.IsGeneric() {
+			baseMethod = method
 		}
 	}
 
@@ -3712,7 +3911,8 @@ func (c *Checker) getMethodInIntersection(typ *types.Intersection, name symbol.S
 	}
 
 	if isCompatible {
-		return baseMethod.WithoutOverloads()
+		newMethod := baseMethod.WithoutOverloads()
+		newMethod.DerivedFrom = methods
 	}
 
 	return nil

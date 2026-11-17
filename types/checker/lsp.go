@@ -238,16 +238,9 @@ func getDocForSubtype(constant *types.Constant) string {
 
 func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*Completion {
 	var result []*Completion
-
 	lowerName := strings.ToLower(name)
 
-	receiverType = c.ToNonLiteral(receiverType, true)
-	receiverNamespace, ok := receiverType.(types.Namespace)
-	if !ok {
-		return nil
-	}
-
-	for name, method := range c.MethodsInNamespace(receiverNamespace) {
+	for name, method := range c.MethodMapForType(receiverType) {
 		if method.IsRegisteredOverload() {
 			continue
 		}
@@ -256,7 +249,22 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 		}
 
 		methodNameString := name.String()
-		doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
+		var doc string
+		if len(method.DerivedFrom) > 1 {
+			var docBuf strings.Builder
+
+			docBuf.WriteString("Method from ")
+			for i, originMethod := range method.DerivedFrom {
+				if i > 0 {
+					docBuf.WriteString(", ")
+				}
+				fmt.Fprintf(&docBuf, "`%s`", types.Inspect(originMethod.DefinedUnder))
+			}
+
+			doc = docBuf.String()
+		} else {
+			doc = fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
+		}
 
 		var label string
 		var value string

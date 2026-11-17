@@ -22,8 +22,26 @@ func CollectKeySeq2[K, V any](seq iter.Seq2[K, V]) []K {
 	return result
 }
 
+// Collect keys from iter.Seq2 into a slice of pair values
+func CollectPairValues[K comparable, V any](seq iter.Seq2[K, V]) []Pair[K, V] {
+	result := make([]Pair[K, V], 0, 5)
+	for k, v := range seq {
+		result = append(result, MakePair[K, V](k, v))
+	}
+	return result
+}
+
+// Collect keys from iter.Seq2 into a slice of pair pointers
+func CollectPairPointers[K comparable, V any](seq iter.Seq2[K, V]) []*Pair[K, V] {
+	result := make([]*Pair[K, V], 0, 5)
+	for k, v := range seq {
+		result = append(result, NewPair[K, V](k, v))
+	}
+	return result
+}
+
 // Collect keys from iter.Seq2 into a map
-func CollectSeq2[K comparable, V any](seq iter.Seq2[K, V]) map[K]V {
+func CollectMap[K comparable, V any](seq iter.Seq2[K, V]) map[K]V {
 	result := make(map[K]V, 5)
 	for k, v := range seq {
 		result[k] = v
