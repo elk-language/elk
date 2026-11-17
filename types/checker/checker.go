@@ -722,6 +722,7 @@ func (c *Checker) populateLSPData(node *ast.ProgramNode) {
 func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
 
+	c.phase = initPhase
 	c.populateLSPData(node)
 	c.checkBuiltinImports(node, &wg)
 
