@@ -3220,7 +3220,7 @@ methodNameLoop:
 			methods = append(methods, method)
 		}
 
-		resolvedMethod := c.resolveMethodCollectionForUnion(methods, methodName, nil)
+		resolvedMethod := c.resolveMethodCollectionForUnion(methods, nil)
 		if resolvedMethod != nil {
 			result[methodName] = resolvedMethod
 		}
@@ -3799,13 +3799,15 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 		return nil
 	}
 
-	return c.resolveMethodCollectionForUnion(methods, name, errLoc)
+	return c.resolveMethodCollectionForUnion(methods, errLoc)
 }
 
-func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, name symbol.Symbol, errLoc *position.Location) *types.Method {
+func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLoc *position.Location) *types.Method {
 	var baseMethod *types.Method
+	methodsSet := make(ds.Set[*types.Method], len(methods))
 
 	for _, method := range methods {
+		methodsSet.Add(method)
 		if baseMethod == nil {
 			baseMethod = method
 			continue
@@ -3815,6 +3817,11 @@ func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, name 
 		if currentScore > baseScore {
 			baseMethod = method
 		}
+	}
+
+	methods = methodsSet.ToSlice()
+	if len(methods) == 1 {
+		return methods[0].WithoutOverloads()
 	}
 
 	returnTypes := make([]types.Type, len(methods)+1)

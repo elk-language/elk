@@ -799,7 +799,6 @@ func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.Sco
 
 func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	name := ast.IdentifierToString(nameNode)
-	cursorByteOffset := doc.CursorByteOffset()
 
 	var currentName string
 	var cursorIsWithin bool
@@ -814,7 +813,7 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 		return
 	}
 
-	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
+	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
 	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
 
 	return suggestions, startChar, endChar
@@ -838,7 +837,7 @@ func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, 
 	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
 	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
 
-	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
+	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
 	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
 
 	return suggestions, startChar, endChar

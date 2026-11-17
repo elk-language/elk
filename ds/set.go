@@ -13,6 +13,10 @@ func MakeSet[V comparable](values ...V) Set[V] {
 	return set
 }
 
+func (s Set[V]) ToSlice() []V {
+	return CollectKeySeq2(maps.All(s))
+}
+
 func (s Set[V]) Copy() Set[V] {
 	return maps.Clone(s)
 }

@@ -104,7 +104,7 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 		}
 
 		for methodName, method := range checker.MethodsInNamespace(methodScope.container) {
-			if method.IsRegisteredOverload() {
+			if method.IsRegisteredOverload() || method.IsMacro() {
 				continue
 			}
 			if seenMethods.Contains(methodName) {
@@ -122,18 +122,41 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 				continue
 			}
 
-			var label string
-			var value string
-			var identifier string
-			if method.IsMacro() {
-				label = methodNameString + "()"
-				identifier = methodNameString
-				value = methodNameString[:len(methodNameString)-1]
-			} else {
-				label = methodNameString + "()"
-				identifier = methodNameString
-				value = methodNameString
+			label := methodNameString + "()"
+			identifier := methodNameString
+			value := methodNameString
+			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
+			result = append(result, &Completion{
+				Label:       label,
+				Identifier:  identifier,
+				Value:       value,
+				Description: doc,
+			})
+		}
+
+		singletonNamespace := types.SingletonMethodNamespace(methodScope.container)
+		for methodName, method := range checker.MethodsInNamespace(singletonNamespace) {
+			if !method.IsMacro() {
+				continue
 			}
+			if seenMethods.Contains(methodName) {
+				continue
+			}
+
+			seenMethods.Add(methodName)
+			methodNameString := methodName.String()
+			if strings.HasPrefix(methodNameString, "#") {
+				continue
+			}
+
+			lowerMethodName := strings.ToLower(methodNameString)
+			if !strings.Contains(lowerMethodName, lowerName) {
+				continue
+			}
+
+			label := methodNameString + "()"
+			identifier := methodNameString
+			value := methodNameString[:len(methodNameString)-1]
 			doc := fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)
 			result = append(result, &Completion{
 				Label:       label,
@@ -261,6 +284,9 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 				fmt.Fprintf(&docBuf, "`%s`", types.Inspect(originMethod.DefinedUnder))
 			}
 
+			if method.DocComment != "" {
+				fmt.Fprintf(&docBuf, ". %s", method.DocComment)
+			}
 			doc = docBuf.String()
 		} else {
 			doc = fmt.Sprintf("`%s` %s", types.Inspect(method), method.DocComment)

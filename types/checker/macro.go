@@ -272,14 +272,8 @@ func (c *Checker) resolveSingletonMacro(name symbol.Symbol) *types.Method {
 }
 
 func (c *Checker) resolveSingletonMacroForNamespace(namespace types.Namespace, name symbol.Symbol) *types.Method {
-	switch n := namespace.(type) {
-	case *types.Class:
-		namespace = n.Singleton()
-	case *types.Mixin:
-		namespace = n.Singleton()
-	case *types.Module, *types.SingletonClass, *types.UsingBufferNamespace:
-		namespace = n
-	default:
+	namespace = types.SingletonMethodNamespace(namespace)
+	if namespace == nil {
 		return nil
 	}
 

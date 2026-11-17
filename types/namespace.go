@@ -79,6 +79,19 @@ type Namespace interface {
 	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface
 }
 
+func SingletonMethodNamespace(namespace Namespace) Namespace {
+	switch n := namespace.(type) {
+	case *Class:
+		return n.Singleton()
+	case *Mixin:
+		return n.Singleton()
+	case *Module, *SingletonClass, *UsingBufferNamespace:
+		return n
+	default:
+		return nil
+	}
+}
+
 func TypeParametersDeepCopyEnv(typeParameters []*TypeParameter, oldEnv, newEnv *GlobalEnvironment) []*TypeParameter {
 	newTypeParameters := make([]*TypeParameter, len(typeParameters))
 	for name, typeParam := range typeParameters {
