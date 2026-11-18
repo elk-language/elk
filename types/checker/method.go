@@ -181,7 +181,7 @@ func (c *Checker) hoistInitDefinition(initNode *ast.InitDefinitionNode) *ast.Met
 		initNode.Location(),
 		initNode.DocComment(),
 		initNode.Flags.ToBitFlag(),
-		ast.NewPublicIdentifierNode(initNode.Location(), "#init"),
+		ast.NewPublicIdentifierNode(initNode.Location(), symbol.ReservedIdentifierName("init")),
 		nil,
 		initNode.Parameters,
 		nil,
@@ -3804,10 +3804,14 @@ func (c *Checker) getMethodInUnion(typ *types.Union, name symbol.Symbol, errLoc 
 
 func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLoc *position.Location) *types.Method {
 	var baseMethod *types.Method
-	methodsSet := make(ds.Set[*types.Method], len(methods))
+	seen := make(ds.Set[*types.Method], len(methods))
+	unique := make([]*types.Method, 0, len(methods))
 
 	for _, method := range methods {
-		methodsSet.Add(method)
+		if !seen.Contains(method) {
+			seen.Add(method)
+			unique = append(unique, method)
+		}
 		if baseMethod == nil {
 			baseMethod = method
 			continue
@@ -3819,7 +3823,7 @@ func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLo
 		}
 	}
 
-	methods = methodsSet.ToSlice()
+	methods = unique
 	if len(methods) == 1 {
 		return methods[0].WithoutOverloads()
 	}

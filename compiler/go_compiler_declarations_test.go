@@ -2988,9 +2988,9 @@ var sym4 = value.ToSymbol("main") // main
 var const0 *value.Class          // Bar
 var sym0 = value.ToSymbol("Bar") // Bar
 
-var sym1 = value.ToSymbol("Bar.:#init") // Bar.:#init
-var sym2 = value.ToSymbol("<main>")     // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#init, loc: <main>:3:6
+var sym1 = value.ToSymbol("Bar.:#__init") // Bar.:#__init
+var sym2 = value.ToSymbol("<main>")       // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#__init, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -3078,7 +3078,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Bar
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1], args[2])
 		return result, err
 	}, vm.DefWithParameters(2))
@@ -3575,7 +3575,7 @@ func TestGoDefInit(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
-				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#__init` cannot have a body because it is abstract"),
 			},
 		},
 		"define init in a method": {
@@ -3630,9 +3630,9 @@ var sym3 = value.ToSymbol("main") // main
 var const0 *value.Class          // Bar
 var sym0 = value.ToSymbol("Bar") // Bar
 
-var sym1 = value.ToSymbol("Bar.:#init") // Bar.:#init
-var sym2 = value.ToSymbol("<main>")     // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#init, loc: <main>:3:6
+var sym1 = value.ToSymbol("Bar.:#__init") // Bar.:#__init
+var sym2 = value.ToSymbol("<main>")       // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value, l1 value.Value) (result value.Value, err value.Value) { // method: Bar.:#__init, loc: <main>:3:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var l2 value.Value // var c: Std::Int
@@ -3698,7 +3698,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Bar
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1], args[2])
 		return result, err
 	}, vm.DefWithParameters(2))

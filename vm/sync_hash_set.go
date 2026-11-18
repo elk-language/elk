@@ -39,7 +39,7 @@ func initSyncHashSet() {
 	c := value.SyncHashSetClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*SyncHashSetOfValue)
 			entries := args[1]

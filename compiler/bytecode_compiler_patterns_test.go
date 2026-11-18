@@ -2029,7 +2029,7 @@ func TestBytecodeSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.Ref(value.NewClosedRange(value.SmallInt(-2).ToValue(), value.SmallInt(9).ToValue())),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("#contains"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("#__contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),
@@ -2089,7 +2089,7 @@ func TestBytecodeSwitch(t *testing.T) {
 					value.ToSymbol("Root").ToValue(),
 					value.ToSymbol("Foo").ToValue(),
 					value.ToSymbol("Bar").ToValue(),
-					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("#contains"), 1)),
+					value.Ref(vm.NewCallSiteInfo(value.ToSymbol("#__contains"), 1)),
 					value.Ref(value.String("a")),
 				},
 			),

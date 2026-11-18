@@ -5,6 +5,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -12,7 +13,7 @@ func initGenericMethodCallNode() {
 	c := value.GenericMethodCallNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			var argLoc *position.Location
 			if args[7].IsUndefined() {

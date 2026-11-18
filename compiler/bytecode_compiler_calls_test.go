@@ -3853,7 +3853,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 							value.ToSymbol("Color").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Color.:#init"),
+								value.ToSymbol("Color.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3879,7 +3879,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.ToSymbol("blue").ToValue(),
 							value.ToSymbol("green").ToValue(),
 							value.ToSymbol("red").ToValue(),
@@ -4081,7 +4081,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -4095,7 +4095,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
@@ -4177,7 +4177,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.NIL),
 									byte(bytecode.POP),
@@ -4191,7 +4191,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 						},
 					)),
 					value.ToSymbol("Foo").ToValue(),
@@ -4209,7 +4209,7 @@ func TestBytecodeInstantiate(t *testing.T) {
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(
 					L(P(83, 5, 27), P(86, 5, 30)),
-					"duplicated argument `b` in call to `Foo.:#init`",
+					"duplicated argument `b` in call to `Foo.:#__init`",
 				),
 			},
 		},
@@ -4720,7 +4720,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 								value.ToSymbol("Color").ToValue(),
 								value.Ref(vm.NewBytecodeFunction(
 									nil,
-									value.ToSymbol("Color.:#init"),
+									value.ToSymbol("Color.:#__init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
 										byte(bytecode.DUP),
@@ -4746,7 +4746,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									0,
 									nil,
 								)),
-								value.ToSymbol("#init").ToValue(),
+								value.ToSymbol("#__init").ToValue(),
 								value.ToSymbol("blue").ToValue(),
 								value.ToSymbol("green").ToValue(),
 								value.ToSymbol("red").ToValue(),
@@ -4988,7 +4988,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 								value.ToSymbol("Color").ToValue(),
 								value.Ref(vm.NewBytecodeFunction(
 									nil,
-									value.ToSymbol("Color.:#init"),
+									value.ToSymbol("Color.:#__init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
 										byte(bytecode.DUP),
@@ -5014,7 +5014,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									0,
 									nil,
 								)),
-								value.ToSymbol("#init").ToValue(),
+								value.ToSymbol("#__init").ToValue(),
 								value.ToSymbol("blue").ToValue(),
 								value.ToSymbol("green").ToValue(),
 								value.ToSymbol("red").ToValue(),
@@ -5249,7 +5249,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 								value.ToSymbol("Color").ToValue(),
 								value.Ref(vm.NewBytecodeFunction(
 									nil,
-									value.ToSymbol("Color.:#init"),
+									value.ToSymbol("Color.:#__init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
 										byte(bytecode.DUP),
@@ -5275,7 +5275,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									0,
 									nil,
 								)),
-								value.ToSymbol("#init").ToValue(),
+								value.ToSymbol("#__init").ToValue(),
 								value.ToSymbol("blue").ToValue(),
 								value.ToSymbol("green").ToValue(),
 								value.ToSymbol("red").ToValue(),
@@ -5498,7 +5498,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 								value.ToSymbol("Color").ToValue(),
 								value.Ref(vm.NewBytecodeFunction(
 									nil,
-									value.ToSymbol("Color.:#init"),
+									value.ToSymbol("Color.:#__init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
 										byte(bytecode.DUP),
@@ -5524,7 +5524,7 @@ func TestBytecodeCallMethod(t *testing.T) {
 									0,
 									nil,
 								)),
-								value.ToSymbol("#init").ToValue(),
+								value.ToSymbol("#__init").ToValue(),
 								value.ToSymbol("blue").ToValue(),
 								value.ToSymbol("green").ToValue(),
 								value.ToSymbol("red").ToValue(),

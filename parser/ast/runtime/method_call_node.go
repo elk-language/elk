@@ -5,6 +5,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -12,7 +13,7 @@ func initMethodCallNode() {
 	c := value.MethodCallNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argReceiver := args[1].MustReference().(ast.ExpressionNode)
 			argOp := (*token.Token)(args[2].MustReference().(*value.Token))

@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::String::Position
@@ -11,7 +12,7 @@ func initPosition() {
 
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Position)(args[0].Pointer())
 

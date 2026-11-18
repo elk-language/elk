@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::Time
@@ -41,7 +42,7 @@ func initTime() {
 	c = value.TimeClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(vm *Thread, args []value.Value) (returnVal value.Value, err value.Value) {
 			var hour int
 			if !args[1].IsUndefined() {

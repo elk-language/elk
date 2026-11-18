@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::Box
@@ -10,7 +11,7 @@ func initBox() {
 	c := value.BoxClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.BoxOfValue)(args[0].Pointer())
 			v := args[1]

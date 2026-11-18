@@ -731,7 +731,7 @@ func (c *GoCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, name valu
 	var mode goMode
 	if node.IsSetter() {
 		mode = setterMethodGoCompilerMode
-	} else if identifierToName(node.Name) == "#init" {
+	} else if identifierToName(node.Name) == symbol.ReservedIdentifierName("init") {
 		mode = initMethodGoCompilerMode
 	} else {
 		mode = methodGoCompilerMode
@@ -760,7 +760,7 @@ func (c *GoCompiler) CompileBytecodeMethodBody(node *ast.MethodDefinitionNode, n
 	var mode bytecodeCompilerMode
 	if node.IsSetter() {
 		mode = setterMethodBytecodeCompilerMode
-	} else if identifierToName(node.Name) == "#init" {
+	} else if identifierToName(node.Name) == symbol.ReservedIdentifierName("init") {
 		mode = initMethodBytecodeCompilerMode
 	} else {
 		mode = methodBytecodeCompilerMode
@@ -3415,7 +3415,7 @@ func (c *GoCompiler) compileRangePatternNode(node *ast.RangeLiteralNode, val *go
 		rangeType,
 		types.Bool{},
 		"value.S(symbol.S_contains)",
-		"#contains",
+		symbol.ReservedIdentifierName("contains"),
 		[]*goValue{
 			rangeVal,
 			val,
@@ -7732,7 +7732,7 @@ func (c *GoCompiler) compileConstructorCall(method *types.Method, class *goValue
 		instance,
 		instance.elkType,
 		typ,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		posArgs,
 		loc,
 		valueIsIgnored,

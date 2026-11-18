@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::FS::Path
@@ -11,7 +12,7 @@ func initPath() {
 
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Path)(args[0].Pointer())
 			str := (string)(args[1].MustReference().(value.String))

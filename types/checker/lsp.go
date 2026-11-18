@@ -57,7 +57,7 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 
 			seenLocals.Add(localName)
 			localNameString := localName.String()
-			if strings.HasPrefix(localNameString, "#") {
+			if symbol.IsReservedIdentifierName(localNameString) {
 				continue
 			}
 
@@ -113,7 +113,7 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 
 			seenMethods.Add(methodName)
 			methodNameString := methodName.String()
-			if strings.HasPrefix(methodNameString, "#") {
+			if symbol.IsReservedIdentifierName(methodNameString) {
 				continue
 			}
 
@@ -145,7 +145,7 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 
 			seenMethods.Add(methodName)
 			methodNameString := methodName.String()
-			if strings.HasPrefix(methodNameString, "#") {
+			if symbol.IsReservedIdentifierName(methodNameString) {
 				continue
 			}
 
@@ -195,7 +195,7 @@ func (l *LSPData) GetConstantCompletions(checker *Checker, name string, byteOffs
 
 			seenConstants.Add(constantName)
 			constantNameString := constantName.String()
-			if strings.HasPrefix(constantNameString, "#") {
+			if symbol.IsReservedIdentifierName(constantNameString) {
 				continue
 			}
 
@@ -217,7 +217,7 @@ func (l *LSPData) GetConstantCompletions(checker *Checker, name string, byteOffs
 
 			seenConstants.Add(constantName)
 			constantNameString := constantName.String()
-			if strings.HasPrefix(constantNameString, "#") {
+			if symbol.IsReservedIdentifierName(constantNameString) {
 				continue
 			}
 
@@ -405,7 +405,7 @@ func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode,
 
 		seenConstants.Add(constantName)
 		constantNameString := constantName.String()
-		if strings.HasPrefix(constantNameString, "#") {
+		if symbol.IsReservedIdentifierName(constantNameString) {
 			continue
 		}
 
@@ -427,7 +427,7 @@ func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode,
 
 		seenConstants.Add(constantName)
 		constantNameString := constantName.String()
-		if strings.HasPrefix(constantNameString, "#") {
+		if symbol.IsReservedIdentifierName(constantNameString) {
 			continue
 		}
 

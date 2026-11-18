@@ -2788,18 +2788,18 @@ func (c *Checker) checkRecordPair(node ast.ExpressionNode) (n ast.ExpressionNode
 }
 
 func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressionNode) (n ast.ExpressionNode, keyType, valueType types.Type) {
-	// transform `{ baz: 1, **foo, bar: 2 }` into `{ baz: 1, #key => #val for Pair(key: #key, value: #val) in foo, bar: 2 }`
-	keyIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#key")
-	valIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#val")
+	// transform `{ baz: 1, **foo, bar: 2 }` into `{ baz: 1, #__key => #__val for Pair(key: #__key, value: #__val) in foo, bar: 2 }`
+	keyIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("key"))
+	valIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("val"))
 
-	// #key => #val
+	// #__key => #__val
 	thenNode := ast.NewKeyValueExpressionNode(
 		node.Location(),
 		keyIdentNode,
 		valIdentNode,
 	)
 
-	// Pair(key: #key, value: #val)
+	// Pair(key: #__key, value: #__val)
 	patternNode := ast.NewObjectPatternNode(
 		node.Location(),
 		ast.NewPublicConstantNode(node.Location(), "Pair"),
@@ -2817,7 +2817,7 @@ func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressi
 		},
 	)
 
-	// #key => #val for Pair(key: #key, value: #val) in foo
+	// #__key => #__val for Pair(key: #__key, value: #__val) in foo
 	newNode := ast.NewModifierForInNode(
 		node.Location(),
 		thenNode,
@@ -2944,9 +2944,9 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
 		typ = nil
 	}
-	comparable := c.Std(symbol.C_Comparable).(*types.Interface)
+	comp := c.Std(symbol.C_Comparable).(*types.Interface)
 	valueType := c.NewNormalisedUnion(valueTypes...)
-	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
+	comparableValueType := types.NewGenericWithTypeArgs(comp, valueType)
 
 	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
@@ -3044,8 +3044,8 @@ func (c *Checker) checkTupleElement(node ast.ExpressionNode) ast.ExpressionNode 
 }
 
 func (c *Checker) checkCollectionSplatExpression(node *ast.SplatExpressionNode) ast.ExpressionNode {
-	// transform `[1, *foo, 2]` into `[1, #e for #e in foo, 2]`
-	elementIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#e")
+	// transform `[1, *foo, 2]` into `[1, #__e for #__e in foo, 2]`
+	elementIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("e"))
 	newNode := ast.NewModifierForInNode(
 		node.Location(),
 		elementIdentNode,

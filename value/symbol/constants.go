@@ -143,22 +143,22 @@ var (
 
 // special symbols
 var (
-	S_empty                    = ToSymbol("")                          // empty symbol
-	S_splice                   = ToSymbol("#splice")                   // #splice
-	S_init                     = ToSymbol("#init")                     // #init
-	S_contains                 = ToSymbol("#contains")                 // #contains
-	S_BuiltinAddable           = ToSymbol("#BuiltinAddable")           // #BuiltinAddable
-	S_BuiltinSubtractable      = ToSymbol("#BuiltinSubtractable")      // #BuiltinSubtractable
-	S_BuiltinMultipliable      = ToSymbol("#BuiltinMultipliable")      // #BuiltinMultipliable
-	S_BuiltinDividable         = ToSymbol("#BuiltinDividable")         // #BuiltinDividable
-	S_BuiltinNumeric           = ToSymbol("#BuiltinNumeric")           // #BuiltinNumeric
-	S_BuiltinInt               = ToSymbol("#BuiltinInt")               // #BuiltinInt
-	S_BuiltinLogicBitshiftable = ToSymbol("#BuiltinLogicBitshiftable") // #BuiltinLogicBitshiftable
-	S_BuiltinEquatable         = ToSymbol("#BuiltinEquatable")         // #BuiltinEquatable
-	S_BuiltinIterable          = ToSymbol("#BuiltinIterable")          // #BuiltinIterable
-	S_BuiltinIterator          = ToSymbol("#BuiltinIterator")          // #BuiltinIterator
-	S_BuiltinIncrementable     = ToSymbol("#BuiltinIncrementable")     // #BuiltinIncrementable
-	S_BuiltinSubscriptable     = ToSymbol("#BuiltinSubscriptable")     // #BuiltinSubscriptable
+	S_empty                    = ToSymbol("")                                                 // empty symbol
+	S_splice                   = ToSymbol(ReservedIdentifierName("splice"))                   // #__splice
+	S_init                     = ToSymbol(ReservedIdentifierName("init"))                     // #__init
+	S_contains                 = ToSymbol(ReservedIdentifierName("contains"))                 // #__contains
+	S_BuiltinAddable           = ToSymbol(ReservedIdentifierName("BuiltinAddable"))           // #__BuiltinAddable
+	S_BuiltinSubtractable      = ToSymbol(ReservedIdentifierName("BuiltinSubtractable"))      // #__BuiltinSubtractable
+	S_BuiltinMultipliable      = ToSymbol(ReservedIdentifierName("BuiltinMultipliable"))      // #__BuiltinMultipliable
+	S_BuiltinDividable         = ToSymbol(ReservedIdentifierName("BuiltinDividable"))         // #__BuiltinDividable
+	S_BuiltinNumeric           = ToSymbol(ReservedIdentifierName("BuiltinNumeric"))           // #__BuiltinNumeric
+	S_BuiltinInt               = ToSymbol(ReservedIdentifierName("BuiltinInt"))               // #__BuiltinInt
+	S_BuiltinLogicBitshiftable = ToSymbol(ReservedIdentifierName("BuiltinLogicBitshiftable")) // #__BuiltinLogicBitshiftable
+	S_BuiltinEquatable         = ToSymbol(ReservedIdentifierName("BuiltinEquatable"))         // #__BuiltinEquatable
+	S_BuiltinIterable          = ToSymbol(ReservedIdentifierName("BuiltinIterable"))          // #__BuiltinIterable
+	S_BuiltinIterator          = ToSymbol(ReservedIdentifierName("BuiltinIterator"))          // #__BuiltinIterator
+	S_BuiltinIncrementable     = ToSymbol(ReservedIdentifierName("BuiltinIncrementable"))     // #__BuiltinIncrementable
+	S_BuiltinSubscriptable     = ToSymbol(ReservedIdentifierName("BuiltinSubscriptable"))     // #__BuiltinSubscriptable
 )
 
 var (

@@ -2565,7 +2565,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Bar.:#init"),
+								value.ToSymbol("Bar.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2587,7 +2587,7 @@ func TestBytecodeDefMethod(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
 								value.ToSymbol("Bar.:foo"),
@@ -3105,7 +3105,7 @@ func TestBytecodeDefInit(t *testing.T) {
 			`,
 			err: diagnostic.DiagnosticList{
 				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "init definitions cannot appear outside of classes"),
-				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#init` cannot have a body because it is abstract"),
+				diagnostic.NewFailure(L(P(24, 3, 6), P(37, 3, 19)), "method `#__init` cannot have a body because it is abstract"),
 			},
 		},
 		"define init in a method": {
@@ -3203,7 +3203,7 @@ func TestBytecodeDefInit(t *testing.T) {
 							value.ToSymbol("Bar").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Bar.:#init"),
+								value.ToSymbol("Bar.:#__init"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.INT_5),
@@ -3226,7 +3226,7 @@ func TestBytecodeDefInit(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 						},
 					)),
 				},

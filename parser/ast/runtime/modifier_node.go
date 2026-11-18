@@ -5,6 +5,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -12,7 +13,7 @@ func initModifierNode() {
 	c := value.ModifierNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argModifier := (*token.Token)(args[1].MustReference().(*value.Token))
 			argLeft := args[2].MustReference().(ast.ExpressionNode)

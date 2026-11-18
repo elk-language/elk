@@ -3,6 +3,7 @@ package vm
 import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::String::Span
@@ -12,7 +13,7 @@ func initSpan() {
 
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Span)(args[0].Pointer())
 			startPos := (*value.Position)(args[1].Pointer())

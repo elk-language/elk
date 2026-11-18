@@ -53,7 +53,7 @@ func initSyncOrderedHashSet() {
 	c := value.SyncOrderedHashSetClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*SyncOrderedHashSetOfValue)
 			entries := args[1]
