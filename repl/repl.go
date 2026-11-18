@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"slices"
+	"strings"
 	"syscall"
 	"time"
 	"unicode"
@@ -563,9 +564,40 @@ func isLookupNode(node ast.Node) bool {
 
 const completionSourceName = "<completion>"
 
+func (e *evaluator) completeCommands(source string, suggestions *[]goprompt.Suggest) (startChar, endChar pstrings.RuneNumber) {
+	if len(source) > 0 && len(source) < 15 && !strings.ContainsAny(source, " \n\r\t\v") {
+		lowerSource := strings.ToLower(source)
+
+		var found bool
+	commandLoop:
+		for _, command := range commands {
+			for _, commandName := range command.names {
+				lowerCommandName := strings.ToLower(commandName)
+				if strings.Contains(lowerCommandName, lowerSource) {
+					*suggestions = append(*suggestions, goprompt.Suggest{
+						Text:        commandName,
+						Description: normaliseSuggestionDescription(command.description),
+					})
+					found = true
+					continue commandLoop
+				}
+			}
+		}
+
+		if found {
+			return 0, pstrings.RuneCountInString(source)
+		}
+	}
+
+	return 0, 0
+}
+
 // Handles autocomplete
 func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	source := doc.Text
+
+	startChar, endChar = e.completeCommands(doc.Text, &suggestions)
+
 	var parsedProgramNode *ast.ProgramNode
 	_ = parsedProgramNode
 	var checkedProgramNode *ast.ProgramNode
@@ -652,38 +684,38 @@ func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Sugg
 
 	switch n := narrowestParsedLookupNode.(type) {
 	case *ast.ConstantLookupNode:
-		return e.completeConstantLookup(doc, n)
+		return e.completeConstantLookup(doc, n, &suggestions)
 	case *ast.MethodLookupNode:
-		return e.completeMethodLookup(doc, n)
+		return e.completeMethodLookup(doc, n, &suggestions)
 	case *ast.ScopedMacroCallNode:
-		return e.completeScopedMacroCall(doc, n)
+		return e.completeScopedMacroCall(doc, n, &suggestions)
 	case *ast.AttributeAccessNode:
 		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
 		if receiver == nil {
 			return
 		}
-		return e.completeMethodCall(doc, receiver, n.AttributeName)
+		return e.completeMethodCall(doc, receiver, n.AttributeName, &suggestions)
 	case *ast.MethodCallNode:
 		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
 		if receiver == nil {
 			return
 		}
-		return e.completeMethodCall(doc, receiver, n.MethodName)
+		return e.completeMethodCall(doc, receiver, n.MethodName, &suggestions)
 	case *ast.ReceiverlessMethodCallNode:
-		return e.completeFunction(doc, n.MethodName)
+		return e.completeFunction(doc, n.MethodName, &suggestions)
 	}
 
 	switch n := narrowestParsedNode.(type) {
 	case *ast.PublicConstantNode:
-		return e.completeConstant(doc, n.Value, n.Location())
+		return e.completeConstant(doc, n.Value, n.Location(), &suggestions)
 	case *ast.PrivateConstantNode:
-		return e.completeConstant(doc, n.Value, n.Location())
+		return e.completeConstant(doc, n.Value, n.Location(), &suggestions)
 	case *ast.ReceiverlessMethodCallNode:
-		return e.completeFunction(doc, n.MethodName)
+		return e.completeFunction(doc, n.MethodName, &suggestions)
 	case *ast.PublicIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value, n.Location())
+		return e.completeLocalOrFunction(doc, n.Value, n.Location(), &suggestions)
 	case *ast.PrivateIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value, n.Location())
+		return e.completeLocalOrFunction(doc, n.Value, n.Location(), &suggestions)
 	default:
 		return
 	}
@@ -700,7 +732,7 @@ func getReceiverOfMethodCall(node ast.Node) ast.ExpressionNode {
 	}
 }
 
-func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *position.Location, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	cursorByteOffset := doc.CursorByteOffset()
 	var currentName string
 	currentName, startChar, endChar, _ = getCompletionStartAndEnd(doc, name, loc)
@@ -712,9 +744,9 @@ func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *po
 	}
 
 	completions := lspData.GetConstantCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
 func constantToString(constant ast.ComplexConstantNode) string {
@@ -728,7 +760,7 @@ func constantToString(constant ast.ComplexConstantNode) string {
 	return ""
 }
 
-func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.ConstantLookupNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.ConstantLookupNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	name := constantToString(node.Right)
 
 	var currentName string
@@ -745,17 +777,17 @@ func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.Cons
 	}
 
 	completions := e.elkTypechecker.GetConstantLookupCompletions(node.Left, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 
 	if currentName == "" {
 		completions := e.elkTypechecker.GetScopedMacroCompletions(node.Left, currentName)
-		appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+		appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 	}
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
-func (e *evaluator) completeMethodLookup(doc goprompt.Document, node *ast.MethodLookupNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeMethodLookup(doc goprompt.Document, node *ast.MethodLookupNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	name := ast.IdentifierToString(node.Name)
 
 	var currentName string
@@ -772,11 +804,11 @@ func (e *evaluator) completeMethodLookup(doc goprompt.Document, node *ast.Method
 	}
 
 	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
-	return suggestions, startChar, endChar
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
+	return *suggestions, startChar, endChar
 }
 
-func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.ScopedMacroCallNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.ScopedMacroCallNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	name := ast.IdentifierToString(node.MacroName)
 
 	var currentName string
@@ -793,12 +825,12 @@ func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.Sco
 	}
 
 	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
-func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	name := ast.IdentifierToString(nameNode)
 
 	var currentName string
@@ -815,12 +847,12 @@ func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.Identif
 	}
 
 	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldLabel)
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
-func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	cursorByteOffset := doc.CursorByteOffset()
 	var currentName string
 	var cursorIsWithin bool
@@ -836,12 +868,12 @@ func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, 
 	}
 
 	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 
 	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldLabel)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldLabel)
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
 type completionTextField uint8
@@ -900,7 +932,7 @@ func normaliseSuggestionDescription(desc string) string {
 	return buf.String()
 }
 
-func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
+func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
 	receiverType := e.elkTypechecker.TypeOf(receiverNode)
 
 	var currentName string
@@ -918,9 +950,9 @@ func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, name
 	}
 
 	completions := e.elkTypechecker.GetMethodCompletions(receiverType, currentName)
-	appendCompletionsToSuggestions(&suggestions, completions, completionTextFieldValue)
+	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
 
-	return suggestions, startChar, endChar
+	return *suggestions, startChar, endChar
 }
 
 func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.Location) (currentName string, startChar, endChar pstrings.RuneNumber, cursorIsWithin bool) {
@@ -988,21 +1020,43 @@ Elk REPL Help
 =============
 `
 
-var commandsHelp = `
-Available Commands:
-  :quit, :q, exit         Exit the program
-  :help, :h, help         Print this help message
-  :variables, :v          Inspect the currently available variables
-  :stack, :s              Inspect the values on the VM's stack
-  :disassemble, :disasm   Disassemble the bytecode of the previous input and print it
-  :clear, clear           Clear the screen
-`
+type command struct {
+	names       []string
+	description string
+}
+
+var commands = []command{
+	{names: []string{":quit", ":q", "exit"}, description: "Exit the program"},
+	{names: []string{":help", ":h", "help"}, description: "Print the help message"},
+	{names: []string{":variables", ":v"}, description: "Inspect the currently available variables"},
+	{names: []string{":stack", ":s"}, description: "Inspect the values on the VM's stack"},
+	{names: []string{":disassemble", ":disasm"}, description: "Disassemble the bytecode of the previous input and print it"},
+	{names: []string{":clear", "clear"}, description: "Clear the screen"},
+}
+
+func renderCommandsHelp(commands []command) string {
+	nameLists := make([]string, len(commands))
+	width := 0
+	for i, cmd := range commands {
+		nameLists[i] = strings.Join(cmd.names, ", ")
+		if n := len(nameLists[i]); n > width {
+			width = n
+		}
+	}
+
+	var buf strings.Builder
+	buf.WriteString("\nAvailable Commands:\n")
+	for i, cmd := range commands {
+		fmt.Fprintf(&buf, "  %-*s   %s\n", width, nameLists[i], cmd.description)
+	}
+	return buf.String()
+}
 
 func printHelp() {
 	fmt.Print(helpBanner)
 	fmt.Print(prompt.KeyBindsHelp)
 	fmt.Println()
-	fmt.Print(commandsHelp)
+	fmt.Print(renderCommandsHelp(commands))
 	fmt.Println()
 }
 
