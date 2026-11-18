@@ -9,11 +9,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"slices"
-	"strings"
 	"syscall"
 	"time"
-	"unicode"
 
 	"github.com/elk-language/elk"
 	"github.com/elk-language/elk/bitfield"
@@ -32,79 +29,14 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
-	pstrings "github.com/elk-language/go-prompt/strings"
 )
 
 type evaluator struct {
-	executor                         goprompt.Executor
-	ctx                              context.Context
-	vm                               *vm.Thread
-	inspectStack                     bool
-	sourceMap                        map[string]string
-	inputIndex                       int
-	elkTypechecker                   *checker.Checker
-	goTypechecker                    *compilerTypes.GoTypechecker
-	prepend                          []ast.StatementNode
-	prompt                           *goprompt.Prompt
-	completer                        goprompt.Completer
-	lastCompletionSource             string
-	lastCompletionParsedProgramNode  *ast.ProgramNode
-	lastCompletionCheckedProgramNode *ast.ProgramNode
-}
-
-const sourceNamePrefix = "<repl:"
-
-func (e *evaluator) sourceName() string {
-	return fmt.Sprintf("%s%d>", sourceNamePrefix, e.inputIndex)
-}
-
-func (e *evaluator) deleteSource(sourceName string) {
-	if e.elkTypechecker != nil && !e.elkTypechecker.DefinedMacros() {
-		delete(e.sourceMap, sourceName)
-	}
-}
-
-func (e *evaluator) addSource(input string) string {
-	sourceName := e.sourceName()
-	e.inputIndex++
-	e.sourceMap[sourceName] = input
-	return sourceName
-}
-
-func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
-	if len(e.prepend) < 1 {
-		return nil
-	}
-
-	result := make([]ast.StatementNode, len(e.prepend))
-
-	for i, statement := range e.prepend {
-		stmt := ast.DeepCopyGeneric(statement)
-		stmt.SetPrepended(true)
-		result[i] = stmt
-	}
-
-	return result
-}
-
-func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
-	if len(using) < 1 {
-		return nil
-	}
-
-	result := make([]ast.StatementNode, len(using))
-
-	for i, usingElement := range using {
-		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
-		copy.SetType(nil)
-
-		result[i] = ast.NewExpressionStatementNode(
-			copy.Location(),
-			copy,
-		)
-	}
-
-	return result
+	prompt.Evaluator
+	ctx           context.Context
+	vm            *vm.Thread
+	inspectStack  bool
+	goTypechecker *compilerTypes.GoTypechecker
 }
 
 func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
@@ -128,8 +60,8 @@ func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
 const underscoreDocComment = "Contains the value returned by the last execution"
 
 func (e *evaluator) evaluate(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -148,35 +80,35 @@ func (e *evaluator) evaluate(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+		fn, dl = e.ElkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	default:
-		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+		fn, dl = e.ElkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.DeepCopyPrepend())
 	}
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
-	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
-	e.prepend = e.usingToPrepend(using)
+	programNode, _ := e.ElkTypechecker.ASTCache.Get(sourceName)
+	using := e.ElkTypechecker.ExtractTopLevelUsing(programNode)
+	e.Prepend = e.UsingToPrepend(using)
 
-	resultType := e.elkTypechecker.TypeOf(programNode)
-	e.elkTypechecker.DefineLocal(underscoreDocComment, "_", resultType, true, true, nil)
+	resultType := e.ElkTypechecker.TypeOf(programNode)
+	e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", resultType, true, true, nil)
 
 	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
@@ -258,8 +190,8 @@ func (e *evaluator) evaluate(input string) {
 
 // parses the input and prints it to the output
 func (e *evaluator) parse(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -269,7 +201,7 @@ func (e *evaluator) parse(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
@@ -282,7 +214,7 @@ func (e *evaluator) parse(input string) {
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -297,8 +229,8 @@ func (e *evaluator) parse(input string) {
 
 // compiles the input to bytecode and dumps it to the output
 func (e *evaluator) disassemble(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -308,31 +240,31 @@ func (e *evaluator) disassemble(input string) {
 		fmt.Println()
 		return
 	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+		fn, dl = e.ElkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	case ":h", ":help", "help":
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
-		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+		fn, dl = e.ElkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.DeepCopyPrepend())
 	}
 
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -343,8 +275,8 @@ func (e *evaluator) disassemble(input string) {
 
 // compiles the input to Go source code and dumps it to the output
 func (e *evaluator) transpile(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -354,7 +286,7 @@ func (e *evaluator) transpile(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
@@ -365,7 +297,7 @@ func (e *evaluator) transpile(input string) {
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -398,8 +330,8 @@ func (e *evaluator) transpile(input string) {
 
 // compiles the input to Go source code and executes it
 func (e *evaluator) native(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -409,7 +341,7 @@ func (e *evaluator) native(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
@@ -419,7 +351,7 @@ func (e *evaluator) native(input string) {
 		if dl, ok := errors.AsType[diagnostic.DiagnosticList](err); ok {
 			fmt.Println()
 
-			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 			if err != nil {
 				panic(err)
 			}
@@ -449,8 +381,8 @@ func compileRunNative(sourceName, input string) error {
 
 // parses, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -460,16 +392,16 @@ func (e *evaluator) typecheck(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
 
-	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	_, dl := e.ElkTypechecker.CheckSourceREPL(sourceName, input, e.Prepend)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
-	for _, ast := range e.elkTypechecker.ASTCache.Map {
+	for _, ast := range e.ElkTypechecker.ASTCache.Map {
 		if ast.IsBuiltin {
 			continue
 		}
@@ -479,14 +411,14 @@ func (e *evaluator) typecheck(input string) {
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -497,8 +429,8 @@ func (e *evaluator) typecheck(input string) {
 
 // parses, typechecks, expands macros and prints the AST to the output
 func (e *evaluator) expand(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -508,32 +440,32 @@ func (e *evaluator) expand(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
 
-	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	_, dl := e.ElkTypechecker.CheckSourceREPL(sourceName, input, e.Prepend)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	ast, ok := e.elkTypechecker.ASTCache.GetUnsafe(sourceName)
+	ast, ok := e.ElkTypechecker.ASTCache.GetUnsafe(sourceName)
 	if !ok {
 		panic(fmt.Sprintf("cannot get AST of %s in REPL", sourceName))
 	}
@@ -549,439 +481,6 @@ func (e *evaluator) lex(input string) {
 		fmt.Printf("%s\n", lexer.Colorize(t.Inspect()))
 	}
 	fmt.Println()
-}
-
-func isLookupNode(node ast.Node) bool {
-	switch node.(type) {
-	case *ast.MethodCallNode, *ast.ReceiverlessMethodCallNode,
-		*ast.AttributeAccessNode, *ast.ConstantLookupNode, *ast.ScopedMacroCallNode,
-		*ast.MethodLookupNode:
-		return true
-	default:
-		return false
-	}
-}
-
-const completionSourceName = "<completion>"
-
-func (e *evaluator) completeCommands(source string, suggestions *[]goprompt.Suggest) (startChar, endChar pstrings.RuneNumber) {
-	if len(source) > 0 && len(source) < 15 && !strings.ContainsAny(source, " \n\r\t\v") {
-		lowerSource := strings.ToLower(source)
-
-		var found bool
-	commandLoop:
-		for _, command := range commands {
-			for _, commandName := range command.names {
-				lowerCommandName := strings.ToLower(commandName)
-				if strings.Contains(lowerCommandName, lowerSource) {
-					*suggestions = append(*suggestions, goprompt.Suggest{
-						Text:        commandName,
-						Description: normaliseSuggestionDescription(command.description),
-					})
-					found = true
-					continue commandLoop
-				}
-			}
-		}
-
-		if found {
-			return 0, pstrings.RuneCountInString(source)
-		}
-	}
-
-	return 0, 0
-}
-
-// Handles autocomplete
-func (e *evaluator) complete(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	source := doc.Text
-
-	startChar, endChar = e.completeCommands(doc.Text, &suggestions)
-
-	var parsedProgramNode *ast.ProgramNode
-	_ = parsedProgramNode
-	var checkedProgramNode *ast.ProgramNode
-	if e.lastCompletionSource == source && e.lastCompletionParsedProgramNode != nil {
-		parsedProgramNode = e.lastCompletionParsedProgramNode
-		checkedProgramNode = e.lastCompletionCheckedProgramNode
-	} else {
-		parsedProgramNode, checkedProgramNode = e.elkTypechecker.CheckSourceREPLAutocomplete(completionSourceName, source, e.deepCopyPrepend())
-		e.lastCompletionSource = source
-		e.lastCompletionParsedProgramNode = parsedProgramNode
-		e.lastCompletionCheckedProgramNode = checkedProgramNode
-	}
-	e.elkTypechecker.ClearErrors()
-
-	cursorByteOffset := doc.CursorByteOffset()
-
-	var narrowestParsedNode ast.Node
-	var narrowestParsedLookupNode ast.Node
-	ast.Traverse(
-		parsedProgramNode,
-		func(node, parent ast.Node) ast.TraverseOption {
-			loc := node.Location()
-			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
-				return ast.TraverseSkip
-			}
-
-			if narrowestParsedNode == nil {
-				narrowestParsedNode = node
-				if isLookupNode(node) {
-					narrowestParsedLookupNode = node
-				}
-				return ast.TraverseContinue
-			}
-
-			if node.Location().ByteCount() <= narrowestParsedNode.Location().ByteCount() {
-				narrowestParsedNode = node
-				if isLookupNode(node) {
-					narrowestParsedLookupNode = node
-				}
-			}
-
-			return ast.TraverseContinue
-		},
-		nil,
-	)
-
-	var narrowestCheckedNode ast.Node
-	var narrowestCheckedLookupNode ast.Node
-	ast.Traverse(
-		checkedProgramNode,
-		func(node, parent ast.Node) ast.TraverseOption {
-			if stmt, ok := node.(ast.StatementNode); ok && stmt.Prepended() {
-				return ast.TraverseSkip
-			}
-
-			loc := node.Location()
-			if loc == nil || cursorByteOffset < pstrings.ByteNumber(loc.StartPos.ByteOffset) || cursorByteOffset-1 > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
-				return ast.TraverseSkip
-			}
-
-			if narrowestCheckedNode == nil {
-				narrowestCheckedNode = node
-				if isLookupNode(node) {
-					narrowestCheckedLookupNode = node
-				}
-				return ast.TraverseContinue
-			}
-
-			if node.Location().ByteCount() <= narrowestCheckedNode.Location().ByteCount() {
-				narrowestCheckedNode = node
-				if isLookupNode(node) {
-					narrowestCheckedLookupNode = node
-				}
-			}
-
-			return ast.TraverseContinue
-		},
-		nil,
-	)
-
-	if narrowestCheckedNode == nil {
-		return
-	}
-
-	switch n := narrowestParsedLookupNode.(type) {
-	case *ast.ConstantLookupNode:
-		return e.completeConstantLookup(doc, n, &suggestions)
-	case *ast.MethodLookupNode:
-		return e.completeMethodLookup(doc, n, &suggestions)
-	case *ast.ScopedMacroCallNode:
-		return e.completeScopedMacroCall(doc, n, &suggestions)
-	case *ast.AttributeAccessNode:
-		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
-		if receiver == nil {
-			return
-		}
-		return e.completeMethodCall(doc, receiver, n.AttributeName, &suggestions)
-	case *ast.MethodCallNode:
-		receiver := getReceiverOfMethodCall(narrowestCheckedLookupNode)
-		if receiver == nil {
-			return
-		}
-		return e.completeMethodCall(doc, receiver, n.MethodName, &suggestions)
-	case *ast.ReceiverlessMethodCallNode:
-		return e.completeFunction(doc, n.MethodName, &suggestions)
-	}
-
-	switch n := narrowestParsedNode.(type) {
-	case *ast.PublicConstantNode:
-		return e.completeConstant(doc, n.Value, n.Location(), &suggestions)
-	case *ast.PrivateConstantNode:
-		return e.completeConstant(doc, n.Value, n.Location(), &suggestions)
-	case *ast.ReceiverlessMethodCallNode:
-		return e.completeFunction(doc, n.MethodName, &suggestions)
-	case *ast.PublicIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value, n.Location(), &suggestions)
-	case *ast.PrivateIdentifierNode:
-		return e.completeLocalOrFunction(doc, n.Value, n.Location(), &suggestions)
-	default:
-		return
-	}
-}
-
-func getReceiverOfMethodCall(node ast.Node) ast.ExpressionNode {
-	switch n := node.(type) {
-	case *ast.AttributeAccessNode:
-		return n.Receiver
-	case *ast.MethodCallNode:
-		return n.Receiver
-	default:
-		return nil
-	}
-}
-
-func (e *evaluator) completeConstant(doc goprompt.Document, name string, loc *position.Location, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	cursorByteOffset := doc.CursorByteOffset()
-	var currentName string
-	currentName, startChar, endChar, _ = getCompletionStartAndEnd(doc, name, loc)
-
-	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := node.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := lspData.GetConstantCompletions(e.elkTypechecker, currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-
-	return *suggestions, startChar, endChar
-}
-
-func constantToString(constant ast.ComplexConstantNode) string {
-	switch constant := constant.(type) {
-	case *ast.PublicConstantNode:
-		return constant.Value
-	case *ast.PrivateConstantNode:
-		return constant.Value
-	}
-
-	return ""
-}
-
-func (e *evaluator) completeConstantLookup(doc goprompt.Document, node *ast.ConstantLookupNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	name := constantToString(node.Right)
-
-	var currentName string
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.Right.Location())
-	if !cursorIsWithin {
-		return
-	}
-
-	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := program.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := e.elkTypechecker.GetConstantLookupCompletions(node.Left, currentName)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-
-	if currentName == "" {
-		completions := e.elkTypechecker.GetScopedMacroCompletions(node.Left, currentName)
-		appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-	}
-
-	return *suggestions, startChar, endChar
-}
-
-func (e *evaluator) completeMethodLookup(doc goprompt.Document, node *ast.MethodLookupNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	name := ast.IdentifierToString(node.Name)
-
-	var currentName string
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.Name.Location())
-	if !cursorIsWithin {
-		return
-	}
-
-	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := program.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-	return *suggestions, startChar, endChar
-}
-
-func (e *evaluator) completeScopedMacroCall(doc goprompt.Document, node *ast.ScopedMacroCallNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	name := ast.IdentifierToString(node.MacroName)
-
-	var currentName string
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, node.MacroName.Location())
-	if !cursorIsWithin {
-		return
-	}
-
-	program, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := program.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := e.elkTypechecker.GetScopedMacroCompletions(node.Receiver, currentName)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-
-	return *suggestions, startChar, endChar
-}
-
-func (e *evaluator) completeFunction(doc goprompt.Document, nameNode ast.IdentifierNode, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	name := ast.IdentifierToString(nameNode)
-
-	var currentName string
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, nameNode.Location())
-	if !cursorIsWithin {
-		return
-	}
-
-	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := node.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldLabel)
-
-	return *suggestions, startChar, endChar
-}
-
-func (e *evaluator) completeLocalOrFunction(doc goprompt.Document, name string, loc *position.Location, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	cursorByteOffset := doc.CursorByteOffset()
-	var currentName string
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, name, loc)
-	if !cursorIsWithin {
-		return
-	}
-
-	node, _ := e.elkTypechecker.ASTCache.GetUnsafe(completionSourceName)
-	lspData := node.LSPData.(*checker.LSPData)
-	if lspData == nil {
-		return
-	}
-
-	completions := lspData.GetLocalCompletions(currentName, int(cursorByteOffset))
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-
-	completions = lspData.GetFunctionCompletions(e.elkTypechecker, currentName, 0)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldLabel)
-
-	return *suggestions, startChar, endChar
-}
-
-type completionTextField uint8
-
-const (
-	completionTextFieldValue completionTextField = iota
-	completionTextFieldLabel
-	completionTextFieldIdentifier
-)
-
-func appendCompletionsToSuggestions(target *[]goprompt.Suggest, source []*checker.Completion, completionTextField completionTextField) {
-	for _, completion := range source {
-		var text string
-		switch completionTextField {
-		case completionTextFieldValue:
-			text = completion.Value
-		case completionTextFieldLabel:
-			text = completion.Label
-		case completionTextFieldIdentifier:
-			text = completion.Identifier
-		}
-
-		alreadyPresent := slices.ContainsFunc(*target, func(suggest goprompt.Suggest) bool {
-			return suggest.Label == completion.Label
-		})
-
-		if alreadyPresent {
-			continue
-		}
-
-		*target = append(*target, goprompt.Suggest{
-			Label:       completion.Label,
-			Text:        text,
-			Description: normaliseSuggestionDescription(completion.Description),
-		})
-	}
-}
-
-func normaliseSuggestionDescription(desc string) string {
-	var buf bytes.Buffer
-
-	var lastChar rune
-	for _, char := range desc {
-		if unicode.IsSpace(char) {
-			goto cont
-		}
-		if unicode.IsSpace(lastChar) {
-			buf.WriteRune(' ')
-		}
-
-		buf.WriteRune(char)
-	cont:
-		lastChar = char
-	}
-
-	return buf.String()
-}
-
-func (e *evaluator) completeMethodCall(doc goprompt.Document, receiverNode, nameNode ast.Node, suggestions *[]goprompt.Suggest) (s []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	receiverType := e.elkTypechecker.TypeOf(receiverNode)
-
-	var currentName string
-	switch n := nameNode.(type) {
-	case *ast.PublicIdentifierNode:
-		currentName = n.Value
-	case *ast.PrivateIdentifierNode:
-		currentName = n.Value
-	}
-
-	var cursorIsWithin bool
-	currentName, startChar, endChar, cursorIsWithin = getCompletionStartAndEnd(doc, currentName, nameNode.Location())
-	if !cursorIsWithin {
-		return
-	}
-
-	completions := e.elkTypechecker.GetMethodCompletions(receiverType, currentName)
-	appendCompletionsToSuggestions(suggestions, completions, completionTextFieldValue)
-
-	return *suggestions, startChar, endChar
-}
-
-func getCompletionStartAndEnd(doc goprompt.Document, name string, loc *position.Location) (currentName string, startChar, endChar pstrings.RuneNumber, cursorIsWithin bool) {
-	currentName = name
-	source := doc.Text
-	cursorRuneOffset := doc.CursorRuneOffset()
-	cursorByteOffset := doc.CursorByteOffset()
-
-	if name == "" {
-		cursorIsWithin = true
-	}
-
-	if loc.ByteIsWithin(int(cursorByteOffset - 1)) {
-		startChar = pstrings.RuneNumber(loc.StartPos.RuneOffset(source))
-		endChar = pstrings.RuneNumber(loc.EndPos.RuneOffset(source)) + 1
-		truncate := loc.EndPos.ByteOffset - int(cursorByteOffset) + 1
-		if truncate > 0 {
-			currentName = currentName[:len(currentName)-truncate]
-		}
-		cursorIsWithin = true
-	} else if cursorByteOffset > pstrings.ByteNumber(loc.EndPos.ByteOffset) {
-		startChar = pstrings.RuneNumber(loc.StartPos.RuneOffset(source))
-		endChar = pstrings.RuneNumber(loc.EndPos.RuneOffset(source)) + 1
-	} else {
-		startChar = cursorRuneOffset
-		endChar = cursorRuneOffset
-	}
-
-	return
 }
 
 type Options struct {
@@ -1005,12 +504,11 @@ func Run(ctx context.Context, opts *Options) error {
 	}
 
 	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
-	eval.prompt = prompt.New(
-		eval.executor,
+	eval.Prompt = prompt.New(
+		&eval.Evaluator,
 		goprompt.WithFSHistory(replHistoryFilePath),
-		goprompt.WithCompleter(eval.completer),
 	)
-	eval.prompt.Run()
+	eval.Prompt.Run()
 
 	return nil
 }
@@ -1020,52 +518,17 @@ Elk REPL Help
 =============
 `
 
-type command struct {
-	names       []string
-	description string
-}
-
-var commands = []command{
-	{names: []string{":quit", ":q", "exit"}, description: "Exit the program"},
-	{names: []string{":help", ":h", "help"}, description: "Print the help message"},
-	{names: []string{":variables", ":v"}, description: "Inspect the currently available variables"},
-	{names: []string{":stack", ":s"}, description: "Inspect the values on the VM's stack"},
-	{names: []string{":disassemble", ":disasm"}, description: "Disassemble the bytecode of the previous input and print it"},
-	{names: []string{":clear", "clear"}, description: "Clear the screen"},
-}
-
-func renderCommandsHelp(commands []command) string {
-	nameLists := make([]string, len(commands))
-	width := 0
-	for i, cmd := range commands {
-		nameLists[i] = strings.Join(cmd.names, ", ")
-		if n := len(nameLists[i]); n > width {
-			width = n
-		}
-	}
-
-	var buf strings.Builder
-	buf.WriteString("\nAvailable Commands:\n")
-	for i, cmd := range commands {
-		fmt.Fprintf(&buf, "  %-*s   %s\n", width, nameLists[i], cmd.description)
-	}
-	return buf.String()
-}
-
 func printHelp() {
-	fmt.Print(helpBanner)
-	fmt.Print(prompt.KeyBindsHelp)
-	fmt.Println()
-	fmt.Print(renderCommandsHelp(commands))
-	fmt.Println()
+	prompt.PrintHelp(helpBanner, prompt.Commands)
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 	eval := &evaluator{
+		Commands:     prompt.Commands,
 		ctx:          ctx,
 		inspectStack: opts.InspectStack,
-		sourceMap:    make(map[string]string),
-		completer:    goprompt.NoopCompleter,
+		SourceMap:    make(map[string]string),
+		Completer:    goprompt.NoopCompleter,
 	}
 	eval.setExecutor(opts)
 	return eval
@@ -1073,17 +536,17 @@ func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 
 func (e *evaluator) setExecutor(opts *Options) {
 	if opts.Lex {
-		e.executor = e.lex
+		e.Executor = e.lex
 		info.CurrentMode = info.ReplLex
 		return
 	}
 	if opts.Disassemble {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-		e.elkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
+		e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
 
-		e.completer = e.complete
-		e.executor = e.disassemble
+		e.Completer = e.Complete
+		e.Executor = e.disassemble
 		info.CurrentMode = info.ReplDisassemble
 		return
 	}
@@ -1094,46 +557,46 @@ func (e *evaluator) setExecutor(opts *Options) {
 		}
 
 		e.goTypechecker = checker
-		e.executor = e.transpile
+		e.Executor = e.transpile
 		info.CurrentMode = info.ReplTranspile
 		return
 	}
 	if opts.Native {
-		e.executor = e.native
+		e.Executor = e.native
 		info.CurrentMode = info.ReplNative
 		return
 	}
 	if opts.Parse {
-		e.executor = e.parse
+		e.Executor = e.parse
 		info.CurrentMode = info.ReplParse
 		return
 	}
 	if opts.Typecheck {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
 
-		e.completer = e.complete
-		e.executor = e.typecheck
+		e.Completer = e.Complete
+		e.Executor = e.typecheck
 		info.CurrentMode = info.ReplTypecheck
 		return
 	}
 	if opts.Expand {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
 
-		e.completer = e.complete
-		e.executor = e.expand
+		e.Completer = e.Complete
+		e.Executor = e.expand
 		info.CurrentMode = info.ReplExpand
 		return
 	}
 
-	e.elkTypechecker = checker.New()
-	e.elkTypechecker.SetREPL(true)
-	e.elkTypechecker.SetLSP(true)
+	e.ElkTypechecker = checker.New()
+	e.ElkTypechecker.SetREPL(true)
+	e.ElkTypechecker.SetLSP(true)
 	e.vm = vm.New()
-	e.elkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
+	e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
 
-	e.completer = e.complete
-	e.executor = e.evaluate
+	e.Completer = e.Complete
+	e.Executor = e.evaluate
 	info.CurrentMode = info.ReplInterpretMode
 }

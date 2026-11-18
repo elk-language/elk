@@ -79,6 +79,24 @@ type Namespace interface {
 	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface
 }
 
+func IsSingletonMacroContainerType(namespace Type) bool {
+	switch namespace.(type) {
+	case *Module, *SingletonClass, *UsingBufferNamespace:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsSingletonMacroContainerNamespace(namespace Namespace) bool {
+	switch namespace.(type) {
+	case *Module, *SingletonClass, *UsingBufferNamespace:
+		return true
+	default:
+		return false
+	}
+}
+
 func SingletonMethodNamespace(namespace Namespace) Namespace {
 	switch n := namespace.(type) {
 	case *Class:

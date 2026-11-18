@@ -298,8 +298,14 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 	var result []*Completion
 	lowerName := strings.ToLower(name)
 
+	receiverType = c.ToNonLiteral(receiverType, true)
+	isSingletonContainer := types.IsSingletonMacroContainerType(receiverType)
+
 	for name, method := range c.MethodMapForType(receiverType) {
 		if method.IsRegisteredOverload() {
+			continue
+		}
+		if isSingletonContainer && method.IsMacro() {
 			continue
 		}
 		if !strings.Contains(strings.ToLower(name.String()), lowerName) {

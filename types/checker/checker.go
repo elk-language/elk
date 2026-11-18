@@ -677,6 +677,10 @@ func (c *Checker) resetLocalEnvs() {
 }
 
 func (c *Checker) initExtensions() {
+	if c.extensions == nil {
+		return
+	}
+
 	c.runtimeEnv.Init = true
 	for _, extension := range c.extensions.Slice {
 		extension.Init(c)
