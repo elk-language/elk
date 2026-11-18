@@ -3,6 +3,7 @@ package runtime
 import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -11,7 +12,7 @@ func initKernel() {
 	c := value.KernelModule.SingletonClass()
 	vm.Def(
 		c,
-		"#splice",
+		symbol.ReservedIdentifierName("splice"),
 		func(vm *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			baseNode := args[1].AsReference().(ast.Node)
 

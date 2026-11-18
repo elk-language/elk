@@ -42,7 +42,7 @@ func initEndlessClosedRange() {
 	// otherwise `false` will be returned
 	Def(
 		c,
-		"#contains",
+		symbol.ReservedIdentifierName("contains"),
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.EndlessClosedRange)
 			other := args[1]

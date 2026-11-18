@@ -557,7 +557,7 @@ func identifierToName(node ast.IdentifierNode) string {
 	}
 }
 
-const deferStackVarName = "#_defer_stack"
+var deferStackVarName = symbol.ReservedIdentifierName("defer_stack")
 
 func (c *BytecodeCompiler) compileWithDefer(body func(), loc *position.Location) {
 	if !c.hasDefer {
@@ -958,7 +958,7 @@ func (c *BytecodeCompiler) CompileMethodBody(node *ast.MethodDefinitionNode, nam
 	var mode bytecodeCompilerMode
 	if node.IsSetter() {
 		mode = setterMethodBytecodeCompilerMode
-	} else if identifierToName(node.Name) == "#init" {
+	} else if identifierToName(node.Name) == symbol.ReservedIdentifierName("init") {
 		mode = initMethodBytecodeCompilerMode
 	} else {
 		mode = methodBytecodeCompilerMode
@@ -2532,7 +2532,7 @@ func (c *BytecodeCompiler) compileForInAsNumericFor(
 func (c *BytecodeCompiler) compileForInIntAsNumericFor(label string, inExpression ast.ExpressionNode, then func(), paramExpr ast.ExpressionNode, paramName string, collectionLiteral bool, location *position.Location) bool {
 	c.enterScope("", defaultBytecodeScopeType)
 
-	intVarName := fmt.Sprintf("#!forInt%d", len(c.scopes))
+	intVarName := symbol.ReservedIdentifierName(fmt.Sprintf("forInt%d", len(c.scopes)))
 
 	c.compileNodeWithResult(inExpression)
 	intVar := c.defineLocal(intVarName, location)
@@ -2587,8 +2587,8 @@ func (c *BytecodeCompiler) compileForInRangeAsNumericFor(label string, inExpress
 
 	c.enterScope("", defaultBytecodeScopeType)
 
-	rangeVarName := fmt.Sprintf("#!forRange%d", len(c.scopes))
-	rangeEndVarName := fmt.Sprintf("#!forRangeEnd%d", len(c.scopes))
+	rangeVarName := symbol.ReservedIdentifierName(fmt.Sprintf("forRange%d", len(c.scopes)))
+	rangeEndVarName := symbol.ReservedIdentifierName(fmt.Sprintf("forRangeEnd%d", len(c.scopes)))
 
 	initVal := ast.NewMethodCallNode(
 		location,
@@ -2839,7 +2839,7 @@ func (c *BytecodeCompiler) compileForIn(
 		)
 	}
 
-	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
+	iteratorVarName := symbol.ReservedIdentifierName(fmt.Sprintf("forIn%d", len(c.scopes)))
 	iteratorVar := c.defineLocal(iteratorVarName, location)
 	c.emitSetLocalPop(location.StartPos.Line, iteratorVar.index)
 
@@ -4466,7 +4466,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 
 	var lengthVar *bytecodeLocal
 	if elementBeforeRestCount != -1 {
-		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), location)
+		lengthVar = c.defineLocal(symbol.ReservedIdentifierName(fmt.Sprintf("listPatternLength%d", c.patternNesting)), location)
 		c.emitSetLocalNoPop(location.StartPos.Line, lengthVar.index)
 	}
 
@@ -4501,7 +4501,7 @@ func (c *BytecodeCompiler) listOrTuplePattern(typ types.Type, location *position
 	}
 
 	if elementBeforeRestCount != -1 {
-		iteratorVar := c.defineLocal(fmt.Sprintf("#!listPatternIterator%d", c.patternNesting), location)
+		iteratorVar := c.defineLocal(symbol.ReservedIdentifierName(fmt.Sprintf("listPatternIterator%d", c.patternNesting)), location)
 
 		if restVariableName != "" {
 			// adjust the length variable
@@ -8407,12 +8407,12 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 		var callInfo *vm.CallSiteInfo
 		if immutable {
 			callInfo = vm.NewCallSiteInfo(
-				value.ToSymbol("#immutable_box_of_ivar_index"),
+				value.ToSymbol(symbol.ReservedIdentifierName("immutable_box_of_ivar_index")),
 				1,
 			)
 		} else {
 			callInfo = vm.NewCallSiteInfo(
-				value.ToSymbol("#box_of_ivar_index"),
+				value.ToSymbol(symbol.ReservedIdentifierName("box_of_ivar_index")),
 				1,
 			)
 		}
@@ -8423,12 +8423,12 @@ func (c *BytecodeCompiler) compileBoxOfInstanceVariable(node *ast.BoxOfExpressio
 		var callInfo *vm.CallSiteInfo
 		if immutable {
 			callInfo = vm.NewCallSiteInfo(
-				value.ToSymbol("#immutable_box_of_ivar_name"),
+				value.ToSymbol(symbol.ReservedIdentifierName("immutable_box_of_ivar_name")),
 				1,
 			)
 		} else {
 			callInfo = vm.NewCallSiteInfo(
-				value.ToSymbol("#box_of_ivar_name"),
+				value.ToSymbol(symbol.ReservedIdentifierName("box_of_ivar_name")),
 				1,
 			)
 		}

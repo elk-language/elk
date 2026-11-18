@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::Date
@@ -41,7 +42,7 @@ func initDate() {
 	c = value.DateClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var argYear int
 			if !args[1].IsUndefined() {

@@ -329,7 +329,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								value.ToSymbol("Color").ToValue(),
 								value.Ref(vm.NewBytecodeFunction(
 									nil,
-									value.ToSymbol("Color.:#init"),
+									value.ToSymbol("Color.:#__init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL_1),
 										byte(bytecode.DUP),
@@ -355,7 +355,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 									0,
 									nil,
 								)),
-								value.ToSymbol("#init").ToValue(),
+								value.ToSymbol("#__init").ToValue(),
 								value.ToSymbol("blue").ToValue(),
 								value.ToSymbol("green").ToValue(),
 								value.ToSymbol("red").ToValue(),
@@ -544,7 +544,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 							value.ToSymbol("Color").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Color.:#init"),
+								value.ToSymbol("Color.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -570,7 +570,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.ToSymbol("blue").ToValue(),
 							value.ToSymbol("green").ToValue(),
 							value.ToSymbol("red").ToValue(),
@@ -733,7 +733,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 							value.ToSymbol("Color").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Color.:#init"),
+								value.ToSymbol("Color.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -759,7 +759,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.ToSymbol("blue").ToValue(),
 							value.ToSymbol("green").ToValue(),
 							value.ToSymbol("red").ToValue(),
@@ -940,7 +940,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 							value.ToSymbol("Color").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Color.:#init"),
+								value.ToSymbol("Color.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -966,7 +966,7 @@ func TestBytecodeGetConstant(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.ToSymbol("blue").ToValue(),
 							value.ToSymbol("green").ToValue(),
 							value.ToSymbol("red").ToValue(),

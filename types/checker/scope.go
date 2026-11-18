@@ -3,6 +3,7 @@ package checker
 import (
 	"slices"
 
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/types"
 )
 
@@ -17,39 +18,66 @@ const (
 
 type constantScope struct {
 	container types.Namespace
+	span      *position.Span
 	kind      scopeKind
 }
 
-func makeUsingConstantScope(container types.Namespace) constantScope {
-	return constantScope{
+func (c *constantScope) setEndPos(pos *position.Position) {
+	if c.span == nil {
+		return
+	}
+	if pos == nil {
+		return
+	}
+
+	newSpan := c.span.Copy()
+	newSpan.EndPos = pos
+	c.span = newSpan
+}
+
+func newUsingConstantScope(container types.Namespace, span *position.Span) *constantScope {
+	return &constantScope{
 		container: container,
+		span:      span,
 		kind:      scopeUsingKind,
 	}
 }
 
-func makeUsingBufferConstantScope(container types.Namespace) constantScope {
-	return constantScope{
+func newUsingBufferConstantScope(container types.Namespace, span *position.Span) *constantScope {
+	return &constantScope{
 		container: container,
+		span:      span,
 		kind:      scopeUsingBufferKind,
 	}
 }
 
-func makeLocalConstantScope(container types.Namespace) constantScope {
-	return constantScope{
+func newLocalConstantScope(container types.Namespace, span *position.Span) *constantScope {
+	return &constantScope{
 		container: container,
+		span:      span,
 		kind:      scopeLocalKind,
 	}
 }
 
-func makeConstantScope(container types.Namespace) constantScope {
-	return constantScope{
+func newConstantScope(container types.Namespace, span *position.Span) *constantScope {
+	return &constantScope{
 		container: container,
+		span:      span,
 	}
 }
 
-func (c *Checker) deepCopyConstantScopes(oldEnv, newEnv *types.GlobalEnvironment) []constantScope {
-	var newConstantScopes []constantScope
+func (m *constantScope) Copy() *constantScope {
+	return &constantScope{
+		container: m.container,
+		span:      m.span,
+		kind:      m.kind,
+	}
+}
+
+func (c *Checker) deepCopyConstantScopes(oldEnv, newEnv *types.GlobalEnvironment) []*constantScope {
+	var newConstantScopes []*constantScope
 	for _, constantScope := range c.constantScopes {
+		constantScope = constantScope.Copy()
 		constantScope.container = types.DeepCopyEnv(constantScope.container, oldEnv, newEnv).(types.Namespace)
 		newConstantScopes = append(newConstantScopes, constantScope)
 	}
@@ -62,9 +90,9 @@ func (c *Checker) enclosingScopeIsAUsingBuffer() bool {
 	return scope.kind == scopeUsingBufferKind
 }
 
-func (c *Checker) getUsingBufferNamespace() types.Namespace {
+func (c *Checker) getUsingBufferNamespace(span *position.Span) types.Namespace {
 	if len(c.constantScopes) == 0 {
-		return c.createUsingBufferNamespace()
+		return c.createUsingBufferNamespace(span)
 	}
 
 	scope := c.enclosingConstScope()
@@ -72,17 +100,22 @@ func (c *Checker) getUsingBufferNamespace() types.Namespace {
 		return scope.container
 	}
 
-	return c.createUsingBufferNamespace()
+	return c.createUsingBufferNamespace(span)
 }
 
-func (c *Checker) popConstScope() {
+func (c *Checker) popConstScope(pos *position.Position) {
+	constScope := c.constantScopes[len(c.constantScopes)-1]
+	constScope.setEndPos(pos)
+
 	c.constantScopes = c.constantScopes[:len(c.constantScopes)-1]
 	c.clearConstScopeCopyCache()
 }
 
-func (c *Checker) popLocalConstScope() {
+func (c *Checker) popLocalConstScope(pos *position.Position) {
 	for i := len(c.constantScopes) - 1; i >= 0; i-- {
 		constScope := c.constantScopes[i]
+		constScope.setEndPos(pos)
+
 		if constScope.kind == scopeLocalKind {
 			c.constantScopes = c.constantScopes[:i]
 			c.clearConstScopeCopyCache()
@@ -93,8 +126,11 @@ func (c *Checker) popLocalConstScope() {
 	panic("no local constant scopes!")
 }
 
-func (c *Checker) pushConstScope(constScope constantScope) {
+func (c *Checker) pushConstScope(constScope *constantScope) {
 	c.constantScopes = append(c.constantScopes, constScope)
+	if c.phase == expressionPhase && c.LSPData != nil {
+		c.LSPData.constantScopes.Push(constScope)
+	}
 	c.clearConstScopeCopyCache()
 }
 
@@ -102,7 +138,7 @@ func (c *Checker) clearConstScopeCopyCache() {
 	c.constantScopesCopyCache = nil
 }
 
-func (c *Checker) constantScopesCopy() []constantScope {
+func (c *Checker) constantScopesCopy() []*constantScope {
 	if c.constantScopesCopyCache != nil {
 		return c.constantScopesCopyCache
 	}
@@ -110,14 +146,14 @@ func (c *Checker) constantScopesCopy() []constantScope {
 	return c.constantScopesCopyWithoutCache()
 }
 
-func (c *Checker) constantScopesCopyWithoutCache() []constantScope {
-	scopesCopy := make([]constantScope, len(c.constantScopes))
+func (c *Checker) constantScopesCopyWithoutCache() []*constantScope {
+	scopesCopy := make([]*constantScope, len(c.constantScopes))
 	copy(scopesCopy, c.constantScopes)
 	c.constantScopesCopyCache = scopesCopy
 	return scopesCopy
 }
 
-func (c *Checker) currentConstScope() constantScope {
+func (c *Checker) currentConstScope() *constantScope {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		if constScope.kind == scopeLocalKind {
@@ -128,7 +164,7 @@ func (c *Checker) currentConstScope() constantScope {
 	panic("no local constant scopes!")
 }
 
-func (c *Checker) enclosingConstScope() constantScope {
+func (c *Checker) enclosingConstScope() *constantScope {
 	if len(c.constantScopes) < 1 {
 		panic("no local constant scopes!")
 	}
@@ -137,12 +173,35 @@ func (c *Checker) enclosingConstScope() constantScope {
 
 type methodScope struct {
 	container types.Namespace
+	span      *position.Span
 	kind      scopeKind
 }
 
-func (c *Checker) deepCopyMethodScopes(oldEnv, newEnv *types.GlobalEnvironment) []methodScope {
-	var newMethodScopes []methodScope
+func (m *methodScope) Copy() *methodScope {
+	return &methodScope{
+		container: m.container,
+		span:      m.span,
+		kind:      m.kind,
+	}
+}
+
+func (m *methodScope) setEndPos(pos *position.Position) {
+	if m.span == nil {
+		return
+	}
+	if pos == nil {
+		return
+	}
+
+	newSpan := m.span.Copy()
+	newSpan.EndPos = pos
+	m.span = newSpan
+}
+
+func (c *Checker) deepCopyMethodScopes(oldEnv, newEnv *types.GlobalEnvironment) []*methodScope {
+	var newMethodScopes []*methodScope
 	for _, methodScope := range c.methodScopes {
+		methodScope = methodScope.Copy()
 		methodScope.container = types.DeepCopyEnv(methodScope.container, oldEnv, newEnv).(types.Namespace)
 		newMethodScopes = append(newMethodScopes, methodScope)
 	}
@@ -150,41 +209,45 @@ func (c *Checker) deepCopyMethodScopes(oldEnv, newEnv *types.GlobalEnvironment) 
 	return newMethodScopes
 }
 
-func makeUsingMethodScope(container types.Namespace) methodScope {
-	return methodScope{
+func newUsingMethodScope(container types.Namespace, span *position.Span) *methodScope {
+	return &methodScope{
 		container: container,
 		kind:      scopeUsingKind,
+		span:      span,
 	}
 }
 
-func makeUsingBufferMethodScope(container types.Namespace) methodScope {
-	return methodScope{
+func newUsingBufferMethodScope(container types.Namespace, span *position.Span) *methodScope {
+	return &methodScope{
 		container: container,
 		kind:      scopeUsingBufferKind,
+		span:      span,
 	}
 }
 
-func makeLocalMethodScope(container types.Namespace) methodScope {
-	return methodScope{
+func newLocalMethodScope(container types.Namespace, span *position.Span) *methodScope {
+	return &methodScope{
 		container: container,
 		kind:      scopeLocalKind,
+		span:      span,
 	}
 }
 
-func makeMethodScope(container types.Namespace) methodScope {
-	return methodScope{
+func newMethodScope(container types.Namespace, span *position.Span) *methodScope {
+	return &methodScope{
 		container: container,
+		span:      span,
 	}
 }
 
-func (c *Checker) createUsingBufferNamespace() types.Namespace {
+func (c *Checker) createUsingBufferNamespace(span *position.Span) types.Namespace {
 	mod := types.NewUsingBufferNamespace()
-	c.pushConstScope(makeUsingBufferConstantScope(mod))
-	c.pushMethodScope(makeUsingBufferMethodScope(mod))
+	c.pushConstScope(newUsingBufferConstantScope(mod, span))
+	c.pushMethodScope(newUsingBufferMethodScope(mod, span))
 	return mod
 }
 
-func (c *Checker) methodScopesCopy() []methodScope {
+func (c *Checker) methodScopesCopy() []*methodScope {
 	if c.methodScopesCopyCache != nil {
 		return c.methodScopesCopyCache
 	}
@@ -194,7 +257,7 @@ func (c *Checker) methodScopesCopy() []methodScope {
 	return scopesCopy
 }
 
-func (c *Checker) methodScopesCopyWithoutCache() []methodScope {
+func (c *Checker) methodScopesCopyWithoutCache() []*methodScope {
 	return slices.Clone(c.methodScopes)
 }
 
@@ -207,9 +270,10 @@ func (c *Checker) popMethodScope() {
 	c.clearMethodScopeCopyCache()
 }
 
-func (c *Checker) popLocalMethodScope() {
+func (c *Checker) popLocalMethodScope(pos *position.Position) {
 	for i := len(c.methodScopes) - 1; i >= 0; i-- {
 		methodScope := c.methodScopes[i]
+		methodScope.setEndPos(pos)
 		if methodScope.kind == scopeLocalKind {
 			c.methodScopes = c.methodScopes[:i]
 			c.clearMethodScopeCopyCache()
@@ -220,12 +284,15 @@ func (c *Checker) popLocalMethodScope() {
 	panic("no local method scopes!")
 }
 
-func (c *Checker) pushMethodScope(methodScope methodScope) {
+func (c *Checker) pushMethodScope(methodScope *methodScope) {
 	c.methodScopes = append(c.methodScopes, methodScope)
+	if c.phase == expressionPhase && c.LSPData != nil {
+		c.LSPData.methodScopes.Push(methodScope)
+	}
 	c.clearMethodScopeCopyCache()
 }
 
-func (c *Checker) currentMethodScope() methodScope {
+func (c *Checker) currentMethodScope() *methodScope {
 	for i := range len(c.methodScopes) {
 		methodScope := c.methodScopes[len(c.methodScopes)-i-1]
 		if methodScope.kind == scopeLocalKind {

@@ -1913,13 +1913,31 @@ func TestScopedMacroCall(t *testing.T) {
 		"cannot have a private name": {
 			input: "Foo::_foo!()",
 			want: ast.NewProgramNode(
-				L(S(P(0, 1, 1), P(8, 1, 9))),
+				L(S(P(0, 1, 1), P(11, 1, 12))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(5, 1, 6), P(8, 1, 9))),
-						ast.NewInvalidNode(
-							L(S(P(5, 1, 6), P(8, 1, 9))),
-							V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_foo"),
+						L(S(P(0, 1, 1), P(11, 1, 12))),
+						ast.NewConstructorCallNode(
+							L(S(P(0, 1, 1), P(11, 1, 12))),
+							ast.NewConstantLookupNode(
+								L(S(P(0, 1, 1), P(8, 1, 9))),
+								ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+								ast.NewInvalidNode(
+									L(S(P(5, 1, 6), P(8, 1, 9))),
+									V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_foo"),
+								),
+							),
+							[]ast.ExpressionNode{
+								ast.NewUnaryExpressionNode(
+									L(S(P(9, 1, 10), P(11, 1, 12))),
+									T(L(S(P(9, 1, 10), P(9, 1, 10))), token.BANG),
+									ast.NewInvalidNode(
+										L(S(P(11, 1, 12), P(11, 1, 12))),
+										T(L(S(P(11, 1, 12), P(11, 1, 12))), token.RPAREN),
+									),
+								),
+							},
+							nil,
 						),
 					),
 				},
@@ -1930,8 +1948,12 @@ func TestScopedMacroCall(t *testing.T) {
 					Message:  "unexpected PRIVATE_IDENTIFIER, expected a public constant or method name",
 				},
 				&diagnostic.Diagnostic{
-					Location: L(S(P(9, 1, 10), P(9, 1, 10))),
-					Message:  "unexpected !, expected a statement separator `\\n`, `;`",
+					Location: L(S(P(11, 1, 12), P(11, 1, 12))),
+					Message:  "unexpected ), expected an expression",
+				},
+				&diagnostic.Diagnostic{
+					Location: L(S(P(12, 1, 13), P(11, 1, 12))),
+					Message:  "unexpected END_OF_FILE, expected )",
 				},
 			},
 		},

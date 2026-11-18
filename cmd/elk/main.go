@@ -112,7 +112,7 @@ func compileCommand() *cobra.Command {
 				compileMain()
 				return
 			}
-			compileFile(args[0], bitfield.BitField16{})
+			compileFile(args[0], bitfield.BitField32{})
 		},
 	}
 }
@@ -157,7 +157,7 @@ func runFile(fileName string) {
 		os.Exit(1)
 	}
 
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag), nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField32FromBitFlag(checker.TestSuiteFlag), nil)
 	if diagnostics != nil {
 		fmt.Println()
 
@@ -191,7 +191,7 @@ func runMain() {
 }
 
 // Attempt to compile the given file.
-func compileFile(fileName string, flags bitfield.BitField16) string {
+func compileFile(fileName string, flags bitfield.BitField32) string {
 	info.CurrentMode = info.NativeMode
 	binPath, err := elk.CompileFile(fileName, flags)
 	if err != nil {
@@ -210,7 +210,7 @@ func compileMain() {
 	}
 
 	mainPath := path.Join(cwd, "main.elk")
-	compileFile(mainPath, bitfield.BitField16{})
+	compileFile(mainPath, bitfield.BitField32{})
 }
 
 func runTest(main string, grep string, paths []string, native bool) {
@@ -251,7 +251,7 @@ func compileTestFile(fileName string) {
 	var binPath string
 	spinner := prompt.NewSpinner(os.Stdout, "compiling")
 	spinner.Run(func(prompt.SpinnerCaptureData) error {
-		binPath = compileFile(fileName, bitfield.BitField16FromBitFlag(checker.TestSuiteFlag))
+		binPath = compileFile(fileName, bitfield.BitField32FromBitFlag(checker.TestSuiteFlag))
 		return nil
 	})
 	sh.Sh(binPath)

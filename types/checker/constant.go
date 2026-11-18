@@ -50,18 +50,20 @@ const (
 )
 
 type constantDefinitionCheck struct {
-	state             constState
+	lspData           *LSPData
 	constName         symbol.Symbol
 	filename          string
-	constantScopes    []constantScope
-	methodScopes      []methodScope
+	constantScopes    []*constantScope
+	methodScopes      []*methodScope
 	referencedMethods []*types.Method
 	node              *ast.ConstantDeclarationNode
 	namespace         types.Namespace
+	state             constState
 }
 
 func (c *Checker) registerConstantCheck(fullName string, constName symbol.Symbol, namespace types.Namespace, node *ast.ConstantDeclarationNode) {
 	c.constantChecks.m[fullName] = &constantDefinitionCheck{
+		lspData:        c.LSPData,
 		constantScopes: c.constantScopesCopy(),
 		methodScopes:   c.methodScopesCopy(),
 		node:           node,
@@ -87,10 +89,13 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     newType,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		newType,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 }
 
 func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
@@ -140,7 +145,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			typ = declaredType
 		}
 
-		container.DefineConstant(constantName, typ)
+		container.DefineConstant(node.DocComment(), constantName, typ, node.Location())
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
 		if c.shouldCompile() {
@@ -160,7 +165,7 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	declaredType := c.TypeOf(node.TypeNode)
-	container.DefineConstant(constantName, declaredType)
+	container.DefineConstant(node.DocComment(), constantName, declaredType, node.Location())
 	node.SetType(declaredType)
 	c.registerConstantCheck(fullConstantName, constantName, container, node)
 	c.replaceConstantPlaceholder(constant, declaredType)
@@ -171,12 +176,14 @@ func (c *Checker) checkConstants() {
 	prevFilename := c.Filename
 	prevConstScopes := c.constantScopes
 	prevMethodScopes := c.methodScopes
+	prevLSPData := c.LSPData
 	prevPhase := c.phase
 
 	c.phase = constantCheckPhase
 	for _, constName := range c.constantChecks.order {
 		constCheck := c.constantChecks.m[constName]
 		c.Filename = constCheck.filename
+		c.LSPData = constCheck.lspData
 		c.constantScopes = constCheck.constantScopes
 		c.methodScopes = constCheck.methodScopes
 		c.checkConstantDeclaration(constName, constCheck, nil)
@@ -187,6 +194,7 @@ func (c *Checker) checkConstants() {
 	c.Filename = prevFilename
 	c.constantScopes = prevConstScopes
 	c.methodScopes = prevMethodScopes
+	c.LSPData = prevLSPData
 	c.constantChecks = newConstantDefinitionChecks()
 }
 
@@ -268,8 +276,14 @@ func (c *Checker) checkConstantDeclaration(name string, check *constantDefinitio
 }
 
 func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
-	typ, name := c.resolveConstantLookupType(node)
-	typ = c.resolveGenericType(typ, node.Location())
+	constant, name := c.resolveConstantLookupType(node)
+	var typ types.Type
+	if constant == nil {
+		typ = types.Untyped{}
+	} else {
+		typ = c.resolveGenericType(constant.Type, node.Location())
+		constant.AppendUse(node.Right.Location())
+	}
 
 	newNode := ast.NewPublicConstantNode(
 		node.Location(),
@@ -285,16 +299,63 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		if constant.SkipTypechecking() {
 			return c.TypeOf(constant), constant.Value
 		}
+		constantType, name := c.resolveType(constant.Value, constant.Location())
+		if constantType == nil {
+			return types.Untyped{}, name
+		} else {
+			constantType.AppendUse(constant.Location())
+			return constantType.Type, name
+		}
+	case *ast.PrivateConstantNode:
+		constantType, name := c.resolveType(constant.Value, constant.Location())
+		if constantType == nil {
+			return types.Untyped{}, name
+		} else {
+			constantType.AppendUse(constant.Location())
+			return constantType.Type, name
+		}
+	case *ast.ConstantLookupNode:
+		constantType, name := c.resolveConstantLookupType(constant)
+		if constantType == nil {
+			return types.Untyped{}, name
+		} else {
+			constantType.AppendUse(constant.Location())
+			return constantType.Type, name
+		}
+	case *ast.GenericConstantNode:
+		typeNode, name := c.checkGenericConstantType(constant)
+		return c.TypeOf(typeNode), name
+	default:
+		if c.IsLSP() {
+			return nil, ""
+		}
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+func (c *Checker) resolveConstant(constantExpression ast.ExpressionNode) (*types.Constant, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolvePublicConstant(constant.Value, constant.Location())
+	case *ast.PrivateConstantNode:
+		return c.resolvePrivateConstant(constant.Value, constant.Location())
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookup(constant, nil, constant.Location())
+	default:
+		return nil, ""
+	}
+}
+
+func (c *Checker) resolveConstantSubtype(constantExpression ast.ExpressionNode) (*types.Constant, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
 		return c.resolveType(constant.Value, constant.Location())
 	case *ast.PrivateConstantNode:
 		return c.resolveType(constant.Value, constant.Location())
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupType(constant)
-	case *ast.GenericConstantNode:
-		typeNode, name := c.checkGenericConstantType(constant)
-		return c.TypeOf(typeNode), name
 	default:
-		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+		return nil, ""
 	}
 }
 
@@ -320,7 +381,7 @@ func (c *Checker) normaliseConstantType(typ types.Type, name string) (types.Type
 	return typ, name
 }
 
-func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.Type, location *position.Location) (types.Type, string) {
+func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.Type, location *position.Location) (*types.Constant, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
@@ -338,14 +399,26 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.
 			leftContainerType = c.TypeOf(l)
 			leftContainerName = l.Value
 		} else {
-			leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Location())
+			constant, constantName := c.resolvePublicConstant(l.Value, l.Location())
+			leftContainerName = constantName
+			if constant != nil {
+				leftContainerType = constant.Type
+			}
 		}
 	case *ast.PrivateConstantNode:
-		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Location())
+		constant, constantName := c.resolvePrivateConstant(l.Value, l.Location())
+		leftContainerName = constantName
+		if constant != nil {
+			leftContainerType = constant.Type
+		}
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookup(l, typ, location)
+		constant, constantName := c.resolveConstantLookup(l, typ, location)
+		leftContainerName = constantName
+		if constant != nil {
+			leftContainerType = constant.Type
+		}
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid constant node %T", node),
@@ -408,13 +481,13 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.
 	}
 
 	if !c.checkConstantIfNecessary(constantName, node.Right.Location()) {
-		return types.Untyped{}, constantName
+		return nil, constantName
 	}
-	return constant.Type, constantName
+	return constant, constantName
 }
 
 // Get the type of the public constant with the given name
-func (c *Checker) resolvePublicConstant(name string, location *position.Location) (types.Type, string) {
+func (c *Checker) resolvePublicConstant(name string, location *position.Location) (*types.Constant, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant, ok := constScope.container.ConstantString(name)
@@ -436,7 +509,7 @@ func (c *Checker) resolvePublicConstant(name string, location *position.Location
 			c.addInvalidValueInExpressionError(fullName, location)
 			return nil, fullName
 		}
-		return constant.Type, fullName
+		return constant, fullName
 
 	}
 
@@ -448,7 +521,7 @@ func (c *Checker) resolvePublicConstant(name string, location *position.Location
 }
 
 // Get the type of the private constant with the given name
-func (c *Checker) resolvePrivateConstant(name string, location *position.Location) (types.Type, string) {
+func (c *Checker) resolvePrivateConstant(name string, location *position.Location) (*types.Constant, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		if constScope.kind != scopeLocalKind {
@@ -473,7 +546,7 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 			c.addInvalidValueInExpressionError(fullName, location)
 			return nil, fullName
 		}
-		return constant.Type, fullName
+		return constant, fullName
 
 	}
 
@@ -524,12 +597,20 @@ func (c *Checker) inferConstantLookupNamespace(currentNamespace ast.ExpressionNo
 }
 
 func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferredType types.Type) *ast.PublicConstantNode {
-	typ, name := c.normaliseConstantType(c.resolveConstantLookup(node, inferredType, node.Location()))
+	constant, name := c.resolveConstantLookup(node, inferredType, node.Location())
 
-	if typ == nil {
+	var typ types.Type
+	if constant == nil {
 		typ = types.Untyped{}
 	} else {
-		c.addToConstantCache(symbol.ToSymbol(name))
+		normalisedType, name := c.normaliseConstantType(constant.Type, name)
+		typ = normalisedType
+		if typ == nil {
+			typ = types.Untyped{}
+		} else {
+			c.addToConstantCache(symbol.ToSymbol(name))
+		}
+		constant.AppendUse(node.Right.Location())
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -541,12 +622,20 @@ func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferred
 }
 
 func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.PublicConstantNode {
-	typ, name := c.normaliseConstantType(c.resolvePublicConstant(node.Value, node.Location()))
+	constant, name := c.resolvePublicConstant(node.Value, node.Location())
+	if constant == nil {
+		node.Value = name
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	typ, name := c.normaliseConstantType(constant.Type, name)
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {
 		c.addToConstantCache(symbol.ToSymbol(name))
 	}
+	constant.AppendUse(node.Location())
 
 	node.Value = name
 	node.SetType(typ)
@@ -554,12 +643,20 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 }
 
 func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
-	typ, name := c.normaliseConstantType(c.resolvePrivateConstant(node.Value, node.Location()))
+	constant, name := c.resolvePrivateConstant(node.Value, node.Location())
+	if constant == nil {
+		node.Value = name
+		node.SetType(types.Untyped{})
+		return node
+	}
+
+	typ, name := c.normaliseConstantType(constant.Type, name)
 	if typ == nil {
 		typ = types.Untyped{}
 	} else {
 		c.addToConstantCache(symbol.ToSymbol(name))
 	}
+	constant.AppendUse(node.Location())
 
 	node.Value = name
 	node.SetType(typ)

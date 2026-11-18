@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type assumption uint8
@@ -88,7 +89,7 @@ func (c *Checker) narrowLocalToType(name string, localType, typ types.Type) type
 
 	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
-		c.addLocal(name, local)
+		c.addLocal(symbol.ToSymbol(name), local)
 	}
 	narrowedType := c.NewNormalisedIntersection(localType, typ)
 	local.typ = narrowedType
@@ -134,7 +135,7 @@ func (c *Checker) narrowLocalExcludeType(name string, localType, typ types.Type)
 
 	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
-		c.addLocal(name, local)
+		c.addLocal(symbol.ToSymbol(name), local)
 	}
 	narrowedType := c.differenceType(localType, typ)
 	local.typ = narrowedType
@@ -378,7 +379,7 @@ func (c *Checker) narrowToIntersectWith(node ast.ExpressionNode, typ types.Type)
 
 	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
-		c.addLocal(localName, local)
+		c.addLocal(symbol.ToSymbol(localName), local)
 	}
 	local.typ = c.NewNormalisedIntersection(local.typ, typ)
 }
@@ -411,7 +412,7 @@ func (c *Checker) narrowIsA(left, right ast.ExpressionNode, assume assumption) {
 
 	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
-		c.addLocal(localName, local)
+		c.addLocal(symbol.ToSymbol(localName), local)
 	}
 	switch assume {
 	case assumptionTruthy:
@@ -459,7 +460,7 @@ func (c *Checker) narrowInstanceOf(left, right ast.ExpressionNode, assume assump
 
 	if localCtx.env != c.currentLocalEnv() {
 		local = local.createShadow()
-		c.addLocal(localName, local)
+		c.addLocal(symbol.ToSymbol(localName), local)
 	}
 	switch assume {
 	case assumptionTruthy:
@@ -487,7 +488,7 @@ func (c *Checker) narrowLocal(name string, localType types.Type, assume assumpti
 
 	if localCtx.env != c.currentLocalEnv() && c.mode != mutateLocalsInNarrowing {
 		local = local.createShadow()
-		c.addLocal(name, local)
+		c.addLocal(symbol.ToSymbol(name), local)
 	}
 	switch assume {
 	case assumptionTruthy:

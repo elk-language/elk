@@ -13,7 +13,7 @@ func initSyncArrayList() {
 	c := value.SyncArrayListClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*value.SyncArrayListOfValue)
 			entries := args[1]

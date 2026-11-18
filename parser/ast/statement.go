@@ -15,6 +15,8 @@ import (
 // Usually its an expression optionally terminated with a newline or a semicolon.
 type StatementNode interface {
 	Node
+	SetPrepended(bool)
+	Prepended() bool
 	statementNode()
 }
 
@@ -30,13 +32,23 @@ func (*PatternStatementNode) statementNode()    {}
 type ExpressionStatementNode struct {
 	NodeBase
 	Expression ExpressionNode
+	prepended  bool
 }
 
 func (n *ExpressionStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ExpressionStatementNode{
 		NodeBase:   NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Expression: n.Expression.splice(loc, args, unquote).(ExpressionNode),
+		prepended:  n.prepended,
 	}
+}
+
+func (n *ExpressionStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *ExpressionStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *ExpressionStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
@@ -145,12 +157,22 @@ func NewExpressionStatementNodeI(loc *position.Location, expr ExpressionNode) St
 // Represents an empty statement eg. a statement with only a semicolon or a newline.
 type EmptyStatementNode struct {
 	NodeBase
+	prepended bool
 }
 
 func (n *EmptyStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &EmptyStatementNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		prepended: n.prepended,
 	}
+}
+
+func (n *EmptyStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *EmptyStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *EmptyStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
@@ -230,16 +252,26 @@ func NewEmptyStatementNode(loc *position.Location) *EmptyStatementNode {
 // Represents an import statement eg. `import "./foo/bar.elk"`
 type ImportStatementNode struct {
 	NodeBase
-	Path    StringLiteralNode
-	FsPaths []string // resolved file system paths
+	Path      StringLiteralNode
+	FsPaths   []string // resolved file system paths
+	prepended bool
 }
 
 func (n *ImportStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ImportStatementNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Path:     n.Path,
-		FsPaths:  n.FsPaths,
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Path:      n.Path,
+		FsPaths:   n.FsPaths,
+		prepended: n.prepended,
 	}
+}
+
+func (n *ImportStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *ImportStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *ImportStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
@@ -337,13 +369,23 @@ func NewImportStatementNode(loc *position.Location, path StringLiteralNode) *Imp
 type ParameterStatementNode struct {
 	NodeBase
 	Parameter ParameterNode
+	prepended bool
 }
 
 func (n *ParameterStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &ParameterStatementNode{
 		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
 		Parameter: n.Parameter.splice(loc, args, unquote).(ParameterNode),
+		prepended: n.prepended,
 	}
+}
+
+func (n *ParameterStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *ParameterStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *ParameterStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
@@ -452,14 +494,24 @@ func NewParameterStatementNodeI(loc *position.Location, param ParameterNode) Str
 // Type optionally terminated with a newline or a semicolon.
 type TypeStatementNode struct {
 	NodeBase
-	TypeNode TypeNode
+	TypeNode  TypeNode
+	prepended bool
 }
 
 func (n *TypeStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &TypeStatementNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		TypeNode: n.TypeNode.splice(loc, args, unquote).(TypeNode),
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		TypeNode:  n.TypeNode.splice(loc, args, unquote).(TypeNode),
+		prepended: n.prepended,
 	}
+}
+
+func (n *TypeStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *TypeStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *TypeStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {
@@ -560,14 +612,24 @@ func NewTypeStatementNode(loc *position.Location, typeNode TypeNode) *TypeStatem
 // Pattern optionally terminated with a newline or a semicolon.
 type PatternStatementNode struct {
 	NodeBase
-	Pattern PatternNode
+	Pattern   PatternNode
+	prepended bool
 }
 
 func (n *PatternStatementNode) splice(loc *position.Location, args *[]Node, unquote bool) Node {
 	return &PatternStatementNode{
-		NodeBase: NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
-		Pattern:  n.Pattern.splice(loc, args, unquote).(PatternNode),
+		NodeBase:  NodeBase{loc: position.SpliceLocation(loc, n.loc, unquote)},
+		Pattern:   n.Pattern.splice(loc, args, unquote).(PatternNode),
+		prepended: n.prepended,
 	}
+}
+
+func (n *PatternStatementNode) Prepended() bool {
+	return n.prepended
+}
+
+func (n *PatternStatementNode) SetPrepended(t bool) {
+	n.prepended = t
 }
 
 func (n *PatternStatementNode) MacroType(env *types.GlobalEnvironment) types.Type {

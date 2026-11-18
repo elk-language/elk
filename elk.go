@@ -151,7 +151,7 @@ func CompileSource(sourceName, source string) (binPath string, err error) {
 		sourceName,
 		source,
 		nil,
-		bitfield.BitField16FromBitFlag(checker.MeasureTimeFlag),
+		bitfield.BitField32FromBitFlag(checker.MeasureTimeFlag),
 		&buffer,
 		nil,
 	)
@@ -162,7 +162,7 @@ func CompileSource(sourceName, source string) (binPath string, err error) {
 	)
 }
 
-func CompileFile(fileName string, flags bitfield.BitField16) (binPath string, err error) {
+func CompileFile(fileName string, flags bitfield.BitField32) (binPath string, err error) {
 	absFileName, err := filepath.Abs(fileName)
 	if err != nil {
 		return "", fmt.Errorf("could not find file `%s`", fileName)
@@ -184,7 +184,7 @@ func CompileFile(fileName string, flags bitfield.BitField16) (binPath string, er
 // Interpret the given file.
 // Panics when the file does not compile.
 func Interpret(fileName string) (result value.Value, stackTrace *value.StackTrace, err value.Value) {
-	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField16{}, nil)
+	bytecode, diagnostics := checker.CheckFile(fileName, nil, bitfield.BitField32{}, nil)
 	if diagnostics != nil {
 		fmt.Println()
 

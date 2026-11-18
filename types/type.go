@@ -5,7 +5,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 )
 
 // Value used to decide what whether to skip the subtypes of a type,
@@ -24,6 +26,27 @@ type Type interface {
 	IsLiteral() bool
 	inspect() string
 	traverse(parent Type, enter func(typ, parent Type) TraverseOption, leave func(typ, parent Type) TraverseOption) TraverseOption
+}
+
+type TypeWithUses interface {
+	Type
+	Uses() *concurrent.Slice[*position.Location]
+	AppendUse(...*position.Location)
+}
+
+type TypeWithDeclaration interface {
+	Type
+	Declaration() *position.Location
+}
+
+type TypeWithDocComment interface {
+	Type
+	DocComment() string
+}
+
+type TypeWithDeclarationAndUses interface {
+	TypeWithDeclaration
+	TypeWithUses
 }
 
 func noopTraverse(typ, parent Type) TraverseOption { return TraverseContinue }
@@ -236,4 +259,13 @@ func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {
 	}
 
 	return nil
+}
+
+func AppendUseToType(typ Type, loc ...*position.Location) {
+	typeWithUses, ok := typ.(TypeWithUses)
+	if !ok {
+		return
+	}
+
+	typeWithUses.AppendUse(loc...)
 }

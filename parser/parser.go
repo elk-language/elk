@@ -2282,7 +2282,11 @@ func (p *Parser) constantOrMethodLookup() ast.ExpressionNode {
 
 			p.errorExpected("a public constant or method name")
 			tok := p.advance()
-			return ast.NewInvalidNode(tok.Location(), tok)
+			return ast.NewConstantLookupNode(
+				left.Location().Join(tok.Location()),
+				left,
+				ast.NewInvalidNode(tok.Location(), tok),
+			)
 		}
 
 		break

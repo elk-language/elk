@@ -4,6 +4,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -11,7 +12,7 @@ func initConstantAsNode() {
 	c := value.ConstantAsNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			arg0 := args[1].MustReference().(ast.ComplexConstantNode)
 			arg1 := (string)(args[2].MustReference().(value.String))

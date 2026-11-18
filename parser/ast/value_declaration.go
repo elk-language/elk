@@ -13,6 +13,7 @@ import (
 // Represents a value declaration eg. `val foo: String`
 type ValueDeclarationNode struct {
 	TypedNodeBase
+	DocCommentableNodeBase
 	Name        IdentifierNode // name of the value
 	TypeNode    TypeNode       // type of the value
 	Initialiser ExpressionNode // value assigned to the value

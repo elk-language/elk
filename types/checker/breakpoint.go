@@ -5,6 +5,7 @@ import (
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/concurrent"
+	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
@@ -18,8 +19,8 @@ type BreakpointContext struct {
 	runtimeEnv     *types.GlobalEnvironment
 	macroEnv       *types.GlobalEnvironment
 	localEnvs      []*localEnvironment
-	constantScopes []constantScope
-	methodScopes   []methodScope
+	constantScopes []*constantScope
+	methodScopes   []*methodScope
 	value.ValueBase
 }
 
@@ -90,19 +91,23 @@ func (c *Checker) DumpVariablesForREPL(sourceName string, loc *position.Location
 func NewBreakpointChecker(context *compiler.BytecodeBreakpointContext) *Checker {
 	checkerContext := context.TypecheckerContext.(*BreakpointContext)
 	c := &Checker{
-		Filename:       context.Location.FilePath,
-		selfType:       checkerContext.selfType,
-		returnType:     types.Void{},
-		throwType:      types.Any{},
-		mode:           methodMode,
-		Errors:         new(diagnostic.SyncDiagnosticList),
-		localEnvs:      deepCloneLocalEnvsForBreakpoint(checkerContext.localEnvs),
-		constantScopes: slices.Clone(checkerContext.constantScopes),
-		methodScopes:   slices.Clone(checkerContext.methodScopes),
-		ASTCache:       concurrent.NewMap[string, *ast.ProgramNode](),
-		macroEnv:       checkerContext.macroEnv,
-		runtimeEnv:     checkerContext.runtimeEnv,
-		threadPool:     vm.DefaultThreadPool,
+		Filename:             context.Location.FilePath,
+		selfType:             checkerContext.selfType,
+		returnType:           types.Void{},
+		throwType:            types.Any{},
+		mode:                 methodMode,
+		Errors:               new(diagnostic.SyncDiagnosticList),
+		localEnvs:            deepCloneLocalEnvsForBreakpoint(checkerContext.localEnvs),
+		constantScopes:       slices.Clone(checkerContext.constantScopes),
+		methodScopes:         slices.Clone(checkerContext.methodScopes),
+		typeDefinitionChecks: newTypeDefinitionChecks(),
+		constantChecks:       newConstantDefinitionChecks(),
+		signatureChecks:      ds.NewOrderedMap[string, *[]signatureCheckEntry](),
+		methodCache:          concurrent.NewSlice[*types.Method](),
+		ASTCache:             concurrent.NewMap[string, *ast.ProgramNode](),
+		macroEnv:             checkerContext.macroEnv,
+		runtimeEnv:           checkerContext.runtimeEnv,
+		threadPool:           vm.DefaultThreadPool,
 	}
 
 	c.compiler = compiler.CreateBreakpointCompiler(c, context, c.Errors)

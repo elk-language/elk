@@ -39,8 +39,8 @@ func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")      // main
 var sym1 = value.ToSymbol("<main>")    // <main>
-var sym2 = value.ToSymbol("#init")     // #init
-var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym2 = value.ToSymbol("#__init")   // #__init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#__init
 var sym3 = value.ToSymbol("inspect")   // inspect
 var fn_method1 vm.NativeFunction       // Std::Value.:inspect
 var sym4 = value.ToSymbol("println@1") // println@1
@@ -96,7 +96,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(2)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -106,7 +106,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -199,12 +199,12 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym0 = value.ToSymbol("main")   // main
-var sym1 = value.ToSymbol("<main>") // <main>
-var sym2 = value.ToSymbol("#init")  // #init
-var fn_method0 vm.NativeFunction    // Std::Channel.:#init
-var sym3 = value.ToSymbol("value")  // value
-var fn_method1 vm.NativeFunction    // Std::Result.:value
+var sym0 = value.ToSymbol("main")    // main
+var sym1 = value.ToSymbol("<main>")  // <main>
+var sym2 = value.ToSymbol("#__init") // #__init
+var fn_method0 vm.NativeFunction     // Std::Channel.:#__init
+var sym3 = value.ToSymbol("value")   // value
+var fn_method1 vm.NativeFunction     // Std::Result.:value
 var cc_main_1 = &vm.CallCache{}
 var sym4 = value.ToSymbol("println@1") // println@1
 var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
@@ -257,7 +257,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(2)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -343,8 +343,8 @@ func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")      // main
 var sym1 = value.ToSymbol("<main>")    // <main>
-var sym2 = value.ToSymbol("#init")     // #init
-var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym2 = value.ToSymbol("#__init")   // #__init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#__init
 var sym3 = value.ToSymbol("println@1") // println@1
 var fn_method1 vm.NativeFunction       // Std::Kernel::println@1
 
@@ -389,7 +389,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(2)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -459,8 +459,8 @@ func init() { elk.InitNative() }
 
 var sym0 = value.ToSymbol("main")      // main
 var sym1 = value.ToSymbol("<main>")    // <main>
-var sym2 = value.ToSymbol("#init")     // #init
-var fn_method0 vm.NativeFunction       // Std::Channel.:#init
+var sym2 = value.ToSymbol("#__init")   // #__init
+var fn_method0 vm.NativeFunction       // Std::Channel.:#__init
 var sym3 = value.ToSymbol("inspect")   // inspect
 var fn_method1 vm.NativeFunction       // Std::Value.:inspect
 var sym4 = value.ToSymbol("println@1") // println@1
@@ -516,7 +516,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(2)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -526,7 +526,7 @@ func main() { // loc: <main>
 	t2[0] = value.ChannelClass.CreateInstance()
 	t2[1] = (value.SmallInt(5)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Channel[Std::Int], name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

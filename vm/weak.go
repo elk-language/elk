@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::Weak
@@ -10,7 +11,7 @@ func initWeak() {
 	c := value.WeakClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			switch box := args[1].AsReference().(type) {
 			case *value.BoxOfValue:

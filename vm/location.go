@@ -3,6 +3,7 @@ package vm
 import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::FS::Location
@@ -12,7 +13,7 @@ func initLocation() {
 
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Location)(args[0].Pointer())
 			path := (*value.Path)(args[1].Pointer())

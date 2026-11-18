@@ -4,6 +4,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -11,7 +12,7 @@ func initSelectExpressionNode() {
 	c := value.SelectExpressionNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 			argCasesTuple, err := vm.TransformTupleValueIntoNativeArrayTuple(thread, args[1], func(v value.Value) *ast.SelectCaseNode {
 				return v.AsReference().(*ast.SelectCaseNode)

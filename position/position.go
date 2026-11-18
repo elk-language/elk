@@ -5,6 +5,7 @@ package position
 
 import (
 	"fmt"
+	"unicode/utf8"
 )
 
 // Represents something that can be positioned.
@@ -40,6 +41,26 @@ func (p *Position) Equal(other *Position) bool {
 	return p.ByteOffset == other.ByteOffset &&
 		p.Line == other.Line &&
 		p.Column == other.Column
+}
+
+func (p *Position) RuneOffset(source string) int {
+	byteOffset := 0
+	runeOffset := 0
+	for {
+		if byteOffset >= p.ByteOffset {
+			return runeOffset
+		}
+
+		_, runeBytes := utf8.DecodeRuneInString(source)
+		if runeBytes == 0 {
+			break
+		}
+
+		byteOffset += runeBytes
+		runeOffset++
+	}
+
+	return runeOffset
 }
 
 // Retrieve the position, used in interfaces.

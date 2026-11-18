@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/diagnostic"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -15,7 +16,7 @@ func initDiagnostic() {
 
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.Diagnostic)(args[0].Pointer())
 

@@ -3,6 +3,7 @@ package checker
 import (
 	"fmt"
 	"iter"
+	"strings"
 
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/position"
@@ -12,23 +13,55 @@ import (
 
 // Represents a single local variable or local value
 type local struct {
+	docComment                 string
+	name                       symbol.Symbol
 	typ                        types.Type
+	declaration                *position.Location
 	shadowOf                   *local
 	envIndex                   int
 	conditionalSpecialisations []*local // specialisation of this local in conditional branches, used for determining if the local has been initialised
+	uses                       []*position.Location
 	initialised                bool
 	singleAssignment           bool
 }
 
+func (l *local) Inspect() string {
+	var buf strings.Builder
+
+	if l.singleAssignment {
+		buf.WriteString("val ")
+	} else {
+		buf.WriteString("var ")
+	}
+	buf.WriteString(l.name.String())
+	buf.WriteString(": ")
+	buf.WriteString(types.Inspect(l.typ))
+
+	return buf.String()
+}
+
 func (l *local) copy() *local {
 	return &local{
+		docComment:                 l.docComment,
+		name:                       l.name,
 		typ:                        l.typ,
+		declaration:                l.declaration,
 		initialised:                l.initialised,
 		singleAssignment:           l.singleAssignment,
 		shadowOf:                   l.shadowOf,
+		uses:                       l.uses,
 		conditionalSpecialisations: l.conditionalSpecialisations,
 		envIndex:                   l.envIndex,
 	}
+}
+
+func (l *local) AppendUse(loc ...*position.Location) {
+	if l.isShadow() {
+		l.shadowOf.AppendUse(loc...)
+		return
+	}
+
+	l.uses = append(l.uses, loc...)
 }
 
 func (l *local) deepCloneConditionalSpecialisationsForBreakpoint(localMapping map[*local]*local) []*local {
@@ -56,6 +89,8 @@ func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
 		shadowOf:                   newShadowOf,
 		conditionalSpecialisations: l.deepCloneConditionalSpecialisationsForBreakpoint(localMapping),
 		envIndex:                   l.envIndex,
+		declaration:                l.declaration,
+		uses:                       l.uses,
 	}
 	localMapping[l] = newLocal
 	return newLocal
@@ -63,6 +98,9 @@ func (l *local) deepCloneForBreakpoint(localMapping map[*local]*local) *local {
 
 func (l *local) createShadow() *local {
 	return &local{
+		declaration:      l.declaration,
+		docComment:       l.docComment,
+		name:             l.name,
 		typ:              l.typ,
 		initialised:      l.initialised,
 		singleAssignment: l.singleAssignment,
@@ -123,8 +161,11 @@ func (l *local) setInitialised() {
 	l.shadowOf.setInitialised()
 }
 
-func newLocal(typ types.Type, initialised, singleAssignment bool) *local {
+func newLocal(docComment string, name symbol.Symbol, typ types.Type, initialised, singleAssignment bool, declaration *position.Location) *local {
 	return &local{
+		docComment:       docComment,
+		name:             name,
+		declaration:      declaration,
 		typ:              typ,
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
@@ -148,6 +189,7 @@ const (
 type localEnvironment struct {
 	parent *localEnvironment
 	locals map[symbol.Symbol]*local
+	span   *position.Span
 	index  int
 	typ    localEnvType
 }
@@ -158,6 +200,24 @@ func (l *localEnvironment) copy() *localEnvironment {
 		locals: l.locals,
 		index:  l.index,
 		typ:    l.typ,
+		span:   l.span,
+	}
+}
+
+// Iterates over every local accessible to this local env and its parents
+func (l *localEnvironment) allLocals() iter.Seq2[symbol.Symbol, *local] {
+	return func(yield func(name symbol.Symbol, local *local) bool) {
+		currentEnv := l
+
+		for currentEnv != nil {
+			for localName, local := range currentEnv.locals {
+				if !yield(localName, local) {
+					return
+				}
+			}
+
+			currentEnv = currentEnv.parent
+		}
 	}
 }
 
@@ -183,6 +243,7 @@ func (l *localEnvironment) deepCloneForBreakpoint(envMapping map[*localEnvironme
 		locals: l.deepCloneLocalsForBreakpoint(localMapping),
 		index:  l.index,
 		typ:    l.typ,
+		span:   l.span,
 	}
 	envMapping[l] = newEnv
 	return newEnv
@@ -231,11 +292,12 @@ func (l *localEnvironment) resolveLocal(name string, unhygienic bool) (*local, *
 	}
 }
 
-func newLocalEnvironment(parent *localEnvironment, typ localEnvType) *localEnvironment {
+func newLocalEnvironment(parent *localEnvironment, typ localEnvType, span *position.Span) *localEnvironment {
 	return &localEnvironment{
 		parent: parent,
 		locals: make(map[symbol.Symbol]*local),
 		typ:    typ,
+		span:   span,
 	}
 }
 
@@ -299,8 +361,8 @@ func (c *Checker) uninitialisedLocals() iter.Seq2[symbol.Symbol, *local] {
 	}
 }
 
-func (c *Checker) pushConditionalLocalEnv(couldBeExhaustive bool) {
-	env := c.pushNestedLocalEnv(conditionalLocalEnvType)
+func (c *Checker) pushConditionalLocalEnv(couldBeExhaustive bool, span *position.Span) {
+	env := c.pushNestedLocalEnv(conditionalLocalEnvType, span)
 
 	for name, local := range c.uninitialisedLocals() {
 		specialisation := local.createConditionalSpecialisation(couldBeExhaustive)
@@ -323,21 +385,24 @@ func (c *Checker) popLocalEnv() {
 	c.localEnvs = c.localEnvs[:len(c.localEnvs)-1]
 }
 
-func (c *Checker) pushNestedLocalEnv(typ localEnvType) *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), typ))
+func (c *Checker) pushNestedLocalEnv(typ localEnvType, span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), typ, span))
 }
 
-func (c *Checker) pushIsolatedLocalEnv() *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(nil, defaultLocalEnvType))
+func (c *Checker) pushIsolatedLocalEnv(span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(nil, defaultLocalEnvType, span))
 }
 
-func (c *Checker) pushMacroBoundaryLocalEnv() *localEnvironment {
-	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), macroBoundaryLocalEnvType))
+func (c *Checker) pushMacroBoundaryLocalEnv(span *position.Span) *localEnvironment {
+	return c.pushLocalEnv(newLocalEnvironment(c.currentLocalEnv(), macroBoundaryLocalEnvType, span))
 }
 
 func (c *Checker) pushLocalEnv(env *localEnvironment) *localEnvironment {
 	env.index = len(c.localEnvs)
 	c.localEnvs = append(c.localEnvs, env)
+	if c.LSPData != nil {
+		c.LSPData.localEnvs.Push(env)
+	}
 	return env
 }
 
@@ -346,15 +411,16 @@ func (c *Checker) currentLocalEnv() *localEnvironment {
 }
 
 // Add the local with the given name to the current local environment
-func (c *Checker) addLocal(name string, l *local) {
+func (c *Checker) addLocal(name symbol.Symbol, l *local) {
 	env := c.currentLocalEnv()
-	env.addLocal(symbol.ToSymbol(name), l)
+	env.addLocal(name, l)
 }
 
-func (c *Checker) DefineLocal(name string, typ types.Type, initialised bool, singleAssignment bool) {
+func (c *Checker) DefineLocal(docComment, name string, typ types.Type, initialised bool, singleAssignment bool, location *position.Location) {
 	env := c.currentLocalEnv()
-	l := newLocal(typ, initialised, singleAssignment)
-	env.addLocal(symbol.ToSymbol(name), l)
+	nameSym := symbol.ToSymbol(name)
+	l := newLocal(docComment, nameSym, typ, initialised, singleAssignment, location)
+	env.addLocal(nameSym, l)
 }
 
 // Get the local with the specified name from the current local environment

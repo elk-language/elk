@@ -4,6 +4,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -11,7 +12,7 @@ func initSetPatternNode() {
 	c := value.SetPatternNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *vm.Thread, args []value.Value) (result value.Value, err value.Value) {
 
 			var argElements []ast.PatternNode

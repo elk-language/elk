@@ -1796,7 +1796,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -1814,7 +1814,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -1940,7 +1940,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -1958,7 +1958,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2084,7 +2084,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2102,7 +2102,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2227,7 +2227,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2245,7 +2245,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2370,7 +2370,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2388,7 +2388,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2513,7 +2513,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2531,7 +2531,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2656,7 +2656,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2674,7 +2674,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2799,7 +2799,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2817,7 +2817,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -2942,7 +2942,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -2960,7 +2960,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3085,7 +3085,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3103,7 +3103,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3228,7 +3228,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3246,7 +3246,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3371,7 +3371,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3389,7 +3389,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3514,7 +3514,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3532,7 +3532,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3657,7 +3657,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3675,7 +3675,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
@@ -3800,7 +3800,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 							value.ToSymbol("Foo").ToValue(),
 							value.Ref(vm.NewBytecodeFunction(
 								nil,
-								value.ToSymbol("Foo.:#init"),
+								value.ToSymbol("Foo.:#__init"),
 								[]byte{
 									byte(bytecode.GET_LOCAL_1),
 									byte(bytecode.DUP),
@@ -3818,7 +3818,7 @@ func TestBytecodeComplexAssignmentInstanceVariables(t *testing.T) {
 								0,
 								nil,
 							)),
-							value.ToSymbol("#init").ToValue(),
+							value.ToSymbol("#__init").ToValue(),
 							value.Ref(vm.NewBytecodeFunctionNoParams(
 								nil,
 								value.ToSymbol("Foo.:foo"),
