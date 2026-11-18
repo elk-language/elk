@@ -12,6 +12,13 @@ type Span struct {
 	EndPos   *Position
 }
 
+func (s *Span) Copy() *Span {
+	return &Span{
+		StartPos: s.StartPos,
+		EndPos:   s.EndPos,
+	}
+}
+
 // Create a new Span.
 func NewSpan(startPos, endPos *Position) *Span {
 	return &Span{
@@ -37,6 +44,14 @@ func (s *Span) Equal(other *Span) bool {
 	}
 	return s.StartPos.Equal(other.StartPos) &&
 		s.EndPos.Equal(other.EndPos)
+}
+
+func (s *Span) ByteCount() int {
+	return s.EndPos.ByteOffset - s.StartPos.ByteOffset + 1
+}
+
+func (s *Span) ByteIsWithin(byteOffset int) bool {
+	return s.StartPos.ByteOffset <= byteOffset && s.EndPos.ByteOffset >= byteOffset
 }
 
 func (s *Span) Span() *Span {

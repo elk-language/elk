@@ -4042,7 +4042,7 @@ func main() { // loc: <main>
 	t3[0] = (range0).ToValue()
 	t3[1] = l0
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #contains
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #__contains
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -4142,7 +4142,7 @@ func main() { // loc: <main>
 	t3[0] = (value.NewClosedRange((const0).ToValue(), (const1).NegateVal())).ToValue()
 	t3[1] = l0
 	callFrame.SetNativeLineNumber(6)
-	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #contains
+	t2, err = thread.CallMethodByNameWithCache(value.S(symbol.S_contains), &cc_main_1, t3...) // receiver: Std::Int, name: #__contains
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)

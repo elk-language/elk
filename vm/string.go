@@ -208,7 +208,7 @@ func initString() {
 	Def(
 		c,
 		"byte_count",
-		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(value.String)
 			return value.SmallInt(self.ByteCount()).ToValue(), value.Undefined
 		},

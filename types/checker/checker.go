@@ -37,7 +37,7 @@ import (
 )
 
 // Check the types of Elk source code ang generate bytecode
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of Elk source code and generate Go source
-func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+func CheckSourceNative(sourceName string, source string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func CheckSourceNative(sourceName string, source string, globalEnv *types.Global
 }
 
 // Check the types of an Elk AST and generate bytecode
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	checker := newChecker(sourceName, globalEnv, flags, nil, threadPool, false)
 	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
@@ -67,8 +67,8 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 }
 
 // Check the types of an Elk AST and generate Go source
-func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(sourceName, globalEnv, bitfield.BitField16FromBitFlag(flags.ToBitFlag()|GoCompilerFlag), output, threadPool, false)
+func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(sourceName, globalEnv, bitfield.BitField32FromBitFlag(flags.ToBitFlag()|GoCompilerFlag), output, threadPool, false)
 	cmp := checker.CheckProgram(ast)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -78,7 +78,7 @@ func CheckASTNative(sourceName string, ast *ast.ProgramNode, globalEnv *types.Gl
 }
 
 // Check the types of an Elk file and generate bytecode
-func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
+func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, threadPool *vm.ThreadPool) (*vm.BytecodeFunction, diagnostic.DiagnosticList) {
 	checker := newChecker(fileName, globalEnv, flags, nil, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
@@ -88,8 +88,8 @@ func CheckFile(fileName string, globalEnv *types.GlobalEnvironment, flags bitfie
 }
 
 // Check the types of an Elk file and generate Go source
-func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
-	checker := newChecker(fileName, globalEnv, bitfield.BitField16FromBitFlag(GoCompilerFlag|flags.ToBitFlag()), output, threadPool, false)
+func CheckFileNative(fileName string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, output io.Writer, threadPool *vm.ThreadPool) (*compiler.GoCompiler, diagnostic.DiagnosticList) {
+	checker := newChecker(fileName, globalEnv, bitfield.BitField32FromBitFlag(GoCompilerFlag|flags.ToBitFlag()), output, threadPool, false)
 	cmp := checker.checkFile(fileName)
 	if cmp == nil {
 		return nil, checker.Errors.DiagnosticList
@@ -131,9 +131,10 @@ const (
 )
 
 const (
-	HeaderFlag    bitfield.BitFlag16 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
+	HeaderFlag    bitfield.BitFlag32 = 1 << iota // whether the currently checked file is an Elk header file `.elh`
 	TestSuiteFlag                                // the checked code is part of a test suite
 	TestFileFlag                                 // the checked code is a test file
+	LSPFlag                                      // gather additional data for the LSP
 	GoCompilerFlag
 	BuiltinImportsProcessedFlag // indicates that builtin imports do not need to be processed
 	MeasureTimeFlag
@@ -164,20 +165,18 @@ type Checker struct {
 	Filename                   string                                    // name of the current source file
 	Errors                     *diagnostic.SyncDiagnosticList            // list of typechecking errors
 	ASTCache                   *concurrent.Map[string, *ast.ProgramNode] // stores the ASTs of parsed source code files
+	LSPData                    *LSPData
 	runtimeEnv                 *types.GlobalEnvironment
 	macroEnv                   *types.GlobalEnvironment
-	flags                      bitfield.BitField16
-	phase                      phase
-	mode                       mode
 	returnType                 types.Type
 	throwType                  types.Type
 	selfType                   types.Type // the type of self
 	macroAppendExpressionSlice []*macroAppendExpression
 	macroAppendExpressionMap   map[string]*macroAppendExpression
-	constantScopes             []constantScope
-	constantScopesCopyCache    []constantScope
-	methodScopes               []methodScope
-	methodScopesCopyCache      []methodScope
+	constantScopes             []*constantScope
+	constantScopesCopyCache    []*constantScope
+	methodScopes               []*methodScope
+	methodScopesCopyCache      []*methodScope
 	catchScopes                []catchScope
 	localEnvs                  []*localEnvironment                            // stack of local environments containing variable and value declarations
 	loops                      []*loop                                        // list of loops the current expression falls under
@@ -197,10 +196,13 @@ type Checker struct {
 	compiler                   compiler.Compiler
 	output                     io.Writer
 	threadPool                 *vm.ThreadPool
+	flags                      bitfield.BitField32
+	phase                      phase
+	mode                       mode
 }
 
 // Instantiate a new Checker instance.
-func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField16, output io.Writer, threadPool *vm.ThreadPool, macro bool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfield.BitField32, output io.Writer, threadPool *vm.ThreadPool, macro bool) *Checker {
 	c := &Checker{
 		Filename:   filename,
 		returnType: types.Void{},
@@ -208,7 +210,7 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 		mode:       topLevelMode,
 		Errors:     new(diagnostic.SyncDiagnosticList),
 		localEnvs: []*localEnvironment{
-			newLocalEnvironment(nil, defaultLocalEnvType),
+			newLocalEnvironment(nil, defaultLocalEnvType, nil),
 		},
 		typeDefinitionChecks: newTypeDefinitionChecks(),
 		constantChecks:       newConstantDefinitionChecks(),
@@ -242,15 +244,15 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, flags bitfi
 
 // Instantiate a new Checker instance.
 func New() *Checker {
-	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, false)
+	return newChecker("", nil, bitfield.BitField32{}, nil, vm.DefaultThreadPool, false)
 }
 
-func NewWithFlags(flags bitfield.BitField16) *Checker {
+func NewWithFlags(flags bitfield.BitField32) *Checker {
 	return newChecker("", nil, flags, nil, vm.DefaultThreadPool, false)
 }
 
 func NewMacroChecker() *Checker {
-	return newChecker("", nil, bitfield.BitField16{}, nil, vm.DefaultThreadPool, true)
+	return newChecker("", nil, bitfield.BitField32{}, nil, vm.DefaultThreadPool, true)
 }
 
 func (c *Checker) SelfType() types.Type {
@@ -294,6 +296,18 @@ func (c *Checker) SetREPL(val bool) {
 		c.flags.SetFlag(replFlag)
 	} else {
 		c.flags.UnsetFlag(replFlag)
+	}
+}
+
+func (c *Checker) IsLSP() bool {
+	return c.flags.HasFlag(LSPFlag)
+}
+
+func (c *Checker) SetLSP(val bool) {
+	if val {
+		c.flags.SetFlag(LSPFlag)
+	} else {
+		c.flags.UnsetFlag(LSPFlag)
 	}
 }
 
@@ -427,18 +441,21 @@ func (c *Checker) CheckSourceREPL(sourceName string, source string, prepend []as
 }
 
 // Used in the REPL to typecheck the input for autocomplete
-func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, prepend []ast.StatementNode) *ast.ProgramNode {
-	ast, _ := parser.Parse(sourceName, source)
+func (c *Checker) CheckSourceREPLAutocomplete(sourceName string, source string, prepend []ast.StatementNode) (*ast.ProgramNode, *ast.ProgramNode) {
+	parsedNode, _ := parser.Parse(sourceName, source)
+
+	checkedNode := ast.DeepCopyGeneric(parsedNode)
 	if len(prepend) > 0 {
-		ast.Body = append(prepend, ast.Body...)
+		checkedNode.Body = append(prepend, checkedNode.Body...)
 	}
 
-	c.CheckProgramREPLAutocomplete(sourceName, ast)
-	return ast
+	c.CheckProgramREPLAutocomplete(sourceName, checkedNode)
+	return parsedNode, checkedNode
 }
 
 // Used in the REPL to typecheck and compile the input
 func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (compiler.Compiler, diagnostic.DiagnosticList) {
+	node.LSPData = NewLSPData()
 	c.ASTCache.Set(sourceName, node)
 
 	// copy the global environment (classes, modules, mixins, methods, constants etc)
@@ -474,10 +491,9 @@ func (c *Checker) CheckProgramREPL(sourceName string, node *ast.ProgramNode) (co
 
 // Used in the REPL to typecheck the input for autocomplete
 func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.ProgramNode) diagnostic.DiagnosticList {
-	c.ASTCache.Set(sourceName, node)
-
-	prevReplAutocomplete := c.IsREPLAutocomplete()
 	c.SetREPLAutocomplete(true)
+	node.LSPData = NewLSPData()
+	c.ASTCache.Set(sourceName, node)
 
 	origEnv := c.runtimeEnv
 	origLocalEnv := c.localEnvs
@@ -513,7 +529,7 @@ func (c *Checker) CheckProgramREPLAutocomplete(sourceName string, node *ast.Prog
 	c.methodScopesCopyCache = nil
 	c.constantScopesCopyCache = nil
 
-	c.SetREPLAutocomplete(prevReplAutocomplete)
+	c.SetREPLAutocomplete(false)
 
 	return c.Errors.DiagnosticList
 }
@@ -579,14 +595,14 @@ func (c *Checker) setRuntimeGlobalEnv(newEnv *types.GlobalEnvironment) {
 }
 
 func (c *Checker) resetRuntimeScopes() {
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
 	}
 	c.constantScopesCopyCache = nil
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 }
@@ -598,16 +614,16 @@ func (c *Checker) setMacroGlobalEnv(newEnv *types.GlobalEnvironment) {
 }
 
 func (c *Checker) resetMacroScopes() {
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
-		makeUsingConstantScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module)),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
+		newUsingConstantScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Elk).MustSubtype(symbol.C_AST).(*types.Module), nil),
 	}
 	c.constantScopesCopyCache = nil
 
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 }
@@ -616,16 +632,16 @@ func (c *Checker) doWithMacroScopes(fn func()) {
 	prevConstScopes := c.constantScopes
 	prevMethodScopes := c.methodScopes
 
-	c.constantScopes = []constantScope{
-		makeConstantScope(c.runtimeEnv.Std()),
-		makeLocalConstantScope(c.runtimeEnv.Root),
-		makeUsingConstantScope(c.StdAST()),
+	c.constantScopes = []*constantScope{
+		newConstantScope(c.runtimeEnv.Std(), nil),
+		newLocalConstantScope(c.runtimeEnv.Root, nil),
+		newUsingConstantScope(c.StdAST(), nil),
 	}
 	c.constantScopesCopyCache = nil
 
-	c.methodScopes = []methodScope{
-		makeLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
-		makeUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel)),
+	c.methodScopes = []*methodScope{
+		newLocalMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
+		newUsingMethodScope(c.runtimeEnv.StdSubtypeModule(symbol.C_Kernel), nil),
 	}
 	c.methodScopesCopyCache = nil
 
@@ -657,10 +673,14 @@ func (c *Checker) checkNamespacePlaceholders() {
 }
 
 func (c *Checker) resetLocalEnvs() {
-	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, defaultLocalEnvType)}
+	c.localEnvs = []*localEnvironment{newLocalEnvironment(nil, defaultLocalEnvType, nil)}
 }
 
 func (c *Checker) initExtensions() {
+	if c.extensions == nil {
+		return
+	}
+
 	c.runtimeEnv.Init = true
 	for _, extension := range c.extensions.Slice {
 		extension.Init(c)
@@ -688,9 +708,26 @@ func (c *Checker) checkBuiltinImports(node *ast.ProgramNode, wg *sync.WaitGroup)
 	c.SetBuiltinImportsProcessed(true)
 }
 
+func (c *Checker) populateLSPData(node *ast.ProgramNode) {
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+		for _, localEnv := range c.localEnvs {
+			c.LSPData.localEnvs.Push(localEnv)
+		}
+		for _, constScope := range c.constantScopes {
+			c.LSPData.constantScopes.Push(constScope)
+		}
+		for _, methodScope := range c.methodScopes {
+			c.LSPData.methodScopes.Push(methodScope)
+		}
+	}
+}
+
 func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	var wg sync.WaitGroup
 
+	c.phase = initPhase
+	c.populateLSPData(node)
 	c.checkBuiltinImports(node, &wg)
 
 	// parse all files of the project concurrently
@@ -730,6 +767,9 @@ func (c *Checker) CheckProgram(node *ast.ProgramNode) compiler.Compiler {
 	c.phase = expressionPhase
 	c.checkExpressionsInFile(c.Filename, node)
 
+	if c.Errors.IsFailure() {
+		node.State = ast.FAILED_CHECK
+	}
 	if !c.shouldCompile() {
 		return nil
 	}
@@ -765,7 +805,7 @@ func (c *Checker) compileMethods(methodCompiler compiler.Compiler, offset int, l
 
 // Whether the typechecker should compile the checked code
 func (c *Checker) shouldCompile() bool {
-	return !c.IsHeader() && c.compiler != nil && !c.Errors.IsFailure()
+	return !c.IsHeader() && !c.IsREPLAutocomplete() && c.compiler != nil && !c.Errors.IsFailure()
 }
 
 func (c *Checker) shouldCompileMacro() bool {
@@ -774,7 +814,7 @@ func (c *Checker) shouldCompileMacro() bool {
 
 // Create a new compiler that will define all methods
 func (c *Checker) initMethodCompiler(location *position.Location) (compiler.Compiler, int) {
-	if c.IsHeader() || c.Errors.IsFailure() {
+	if c.IsHeader() || c.IsREPLAutocomplete() || c.Errors.IsFailure() {
 		return nil, 0
 	}
 	return c.compiler.InitMethodCompiler(location)
@@ -801,7 +841,7 @@ func (c *Checker) initMacroCompiler(location *position.Location) {
 // Create a new compiler and emit bytecode
 // that creates all classes/mixins/modules/interfaces
 func (c *Checker) initGlobalEnvCompiler(location *position.Location) {
-	if c.IsHeader() {
+	if c.IsHeader() || c.IsREPLAutocomplete() {
 		return
 	}
 
@@ -909,14 +949,19 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacrosInFile(filename string, node
 
 	prevFilename := c.Filename
 	prevIsHeader := c.IsHeader()
+	prevLSPData := c.LSPData
 
 	c.Filename = filename
 	c.setIsHeaderForPath(filename)
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+	}
 
 	c.hoistNamespaceDefinitionsAndMacros(node.Body)
 
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
+	c.LSPData = prevLSPData
 	c.runtimeEnv.Init = false
 	c.resetRuntimeScopes()
 
@@ -943,14 +988,19 @@ func (c *Checker) hoistMethodDefinitionsInFile(filename string, node *ast.Progra
 	c.resetRuntimeScopes()
 	prevFilename := c.Filename
 	prevIsHeader := c.IsHeader()
+	prevLSPData := c.LSPData
 
 	c.Filename = filename
 	c.setIsHeaderForPath(filename)
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+	}
 
 	c.hoistMethodDefinitions(node.Body)
 
 	c.Filename = prevFilename
 	c.SetHeader(prevIsHeader)
+	c.LSPData = prevLSPData
 	c.runtimeEnv.Init = false
 
 	node.State = ast.CHECKED_METHODS
@@ -976,7 +1026,8 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		if c.shouldCompile() {
 			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
-		c.pushIsolatedLocalEnv()
+		c.pushIsolatedLocalEnv(importedAst.Span())
+		c.declareSpecialLocals()
 		c.checkExpressionsInFile(importPath, importedAst)
 		c.popLocalEnv()
 
@@ -986,10 +1037,17 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	}
 
 	c.resetRuntimeScopes()
+
 	prevFilename := c.Filename
 	c.Filename = filename
+
 	prevHasDefer := c.hasDefer()
 	c.setHasDefer(false)
+
+	prevLSPData := c.LSPData
+	if node.LSPData != nil {
+		c.LSPData = node.LSPData.(*LSPData)
+	}
 
 	returnType, _ := c.checkStatementsWithAppendMacros(
 		&node.Body,
@@ -998,6 +1056,9 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 		types.MacroAppendExpressionEndOfFileKind,
 	)
 	node.SetType(returnType)
+	if c.LSPData != nil {
+		c.LSPData.finalise()
+	}
 
 	node.State = ast.CHECKED_EXPRESSIONS
 	node.HasDefer = c.hasDefer()
@@ -1007,6 +1068,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 	}
 	c.Filename = prevFilename
 	c.setHasDefer(prevHasDefer)
+	c.LSPData = prevLSPData
 }
 
 func (c *Checker) checkImportsForFile(fileName string, program *ast.ProgramNode, wg *sync.WaitGroup) {
@@ -1107,6 +1169,9 @@ func (c *Checker) checkImportPath(importPath string, wg *sync.WaitGroup, loc *po
 		}
 
 		ast.IsBuiltin = builtin
+		if c.IsLSP() {
+			ast.LSPData = NewLSPData()
+		}
 		c.checkImportsForFile(importPath, ast, wg)
 	})
 }
@@ -1305,10 +1370,12 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	module, ok := c.TypeOf(node).(*types.Module)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(module))
-		c.pushMethodScope(makeLocalMethodScope(module))
-		c.pushIsolatedLocalEnv()
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(module, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(module, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = module
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1332,8 +1399,8 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1347,10 +1414,12 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(class, node.Constant.Location())
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv()
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(class, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = class.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1374,8 +1443,8 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1389,10 +1458,12 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	previousSelf := c.selfType
 	if ok {
 		c.checkAbstractMethods(mixin, node.Constant.Location())
-		c.pushConstScope(makeLocalConstantScope(mixin))
-		c.pushMethodScope(makeLocalMethodScope(mixin))
-		c.pushIsolatedLocalEnv()
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(mixin, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(mixin, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = mixin.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1416,8 +1487,8 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1430,10 +1501,12 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	iface, ok := c.TypeOf(node).(*types.Interface)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(iface))
-		c.pushMethodScope(makeLocalMethodScope(iface))
-		c.pushIsolatedLocalEnv()
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(iface, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(iface, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = iface.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1457,8 +1530,8 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -1471,10 +1544,12 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	class, ok := c.TypeOf(node).(*types.SingletonClass)
 	previousSelf := c.selfType
 	if ok {
-		c.pushConstScope(makeLocalConstantScope(class))
-		c.pushMethodScope(makeLocalMethodScope(class))
-		c.pushIsolatedLocalEnv()
+		bodySpan := position.JoinSpanOfCollection(node.Body)
+		c.pushConstScope(newLocalConstantScope(class, bodySpan))
+		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
+		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = c.runtimeEnv.StdSubtype(symbol.C_Class)
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1498,8 +1573,8 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 	c.selfType = previousSelf
 
 	if ok {
-		c.popLocalConstScope()
-		c.popLocalMethodScope()
+		c.popLocalConstScope(node.Span().EndPos)
+		c.popLocalMethodScope(node.Span().EndPos)
 		c.popLocalEnv()
 	}
 }
@@ -2561,16 +2636,19 @@ func (c *Checker) checkModifierInRecord(node *ast.ModifierNode) (keyType, valueT
 	case token.UNLESS:
 		return c.checkRecordUnlessModifier(node)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
 }
 
 func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ThenExpression.Location().Span)
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	var thenKeyType, thenValueType types.Type
 	switch l := node.ThenExpression.(type) {
@@ -2586,11 +2664,14 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		l.Value = c.checkExpression(l.Value)
 		thenValueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ElseExpression.Location().Span)
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	var elseKeyType, elseValueType types.Type
 	switch l := node.ElseExpression.(type) {
@@ -2606,6 +2687,9 @@ func (c *Checker) checkRecordIfElseModifier(node *ast.ModifierIfElseNode) (keyTy
 		l.Value = c.checkExpression(l.Value)
 		elseValueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.ThenExpression))
 	}
 	c.popLocalEnv()
@@ -2706,23 +2790,26 @@ func (c *Checker) checkRecordPair(node ast.ExpressionNode) (n ast.ExpressionNode
 	case *ast.DoubleSplatExpressionNode:
 		return c.checkRecordDoubleSplatExpression(p)
 	default:
+		if c.IsLSP() {
+			return node, nil, nil
+		}
 		panic(fmt.Sprintf("invalid map element node: %#v", node))
 	}
 }
 
 func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressionNode) (n ast.ExpressionNode, keyType, valueType types.Type) {
-	// transform `{ baz: 1, **foo, bar: 2 }` into `{ baz: 1, #key => #val for Pair(key: #key, value: #val) in foo, bar: 2 }`
-	keyIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#key")
-	valIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#val")
+	// transform `{ baz: 1, **foo, bar: 2 }` into `{ baz: 1, #__key => #__val for Pair(key: #__key, value: #__val) in foo, bar: 2 }`
+	keyIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("key"))
+	valIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("val"))
 
-	// #key => #val
+	// #__key => #__val
 	thenNode := ast.NewKeyValueExpressionNode(
 		node.Location(),
 		keyIdentNode,
 		valIdentNode,
 	)
 
-	// Pair(key: #key, value: #val)
+	// Pair(key: #__key, value: #__val)
 	patternNode := ast.NewObjectPatternNode(
 		node.Location(),
 		ast.NewPublicConstantNode(node.Location(), "Pair"),
@@ -2740,7 +2827,7 @@ func (c *Checker) checkRecordDoubleSplatExpression(node *ast.DoubleSplatExpressi
 		},
 	)
 
-	// #key => #val for Pair(key: #key, value: #val) in foo
+	// #__key => #__val for Pair(key: #__key, value: #__val) in foo
 	newNode := ast.NewModifierForInNode(
 		node.Location(),
 		thenNode,
@@ -2867,9 +2954,9 @@ func (c *Checker) checkRangeLiteralNodeWithType(node *ast.RangeLiteralNode, typ 
 	if typ != nil && !c.IsTheSameNamespace(typ.Namespace, rangeClass) && !c.isSubtype(c.StdRange(), typ.Namespace, nil) {
 		typ = nil
 	}
-	comparable := c.Std(symbol.C_Comparable).(*types.Interface)
+	comp := c.Std(symbol.C_Comparable).(*types.Interface)
 	valueType := c.NewNormalisedUnion(valueTypes...)
-	comparableValueType := types.NewGenericWithTypeArgs(comparable, valueType)
+	comparableValueType := types.NewGenericWithTypeArgs(comp, valueType)
 
 	if typ != nil && c.isSubtype(valueType, typ.TypeArguments.Get(0).Type, nil) {
 		node.SetType(typ)
@@ -2931,6 +3018,9 @@ func (c *Checker) checkModifierInCollection(node *ast.ModifierNode, fn CheckExpr
 	case token.UNLESS:
 		return c.checkCollectionUnlessModifier(node, fn)
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid collection modifier: %#v", node.Modifier))
 	}
 }
@@ -2964,8 +3054,8 @@ func (c *Checker) checkTupleElement(node ast.ExpressionNode) ast.ExpressionNode 
 }
 
 func (c *Checker) checkCollectionSplatExpression(node *ast.SplatExpressionNode) ast.ExpressionNode {
-	// transform `[1, *foo, 2]` into `[1, #e for #e in foo, 2]`
-	elementIdentNode := ast.NewPublicIdentifierNode(node.Location(), "#e")
+	// transform `[1, *foo, 2]` into `[1, #__e for #__e in foo, 2]`
+	elementIdentNode := ast.NewPublicIdentifierNode(node.Location(), symbol.ReservedIdentifierName("e"))
 	newNode := ast.NewModifierForInNode(
 		node.Location(),
 		elementIdentNode,
@@ -3522,7 +3612,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Initialiser = c.checkExpression(node.Initialiser)
 
 	node.Condition = c.checkExpression(node.Condition)
@@ -3562,7 +3652,7 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
@@ -3592,7 +3682,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -3602,7 +3692,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	node.ThenExpression = c.checkExpression(node.ThenExpression)
 	c.popLocalEnv()
 
@@ -3619,7 +3709,7 @@ func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.Modif
 }
 
 func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
@@ -3628,7 +3718,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	switch then := node.ThenExpression.(type) {
 	case *ast.KeyValueExpressionNode:
 		then.Key = c.checkExpression(then.Key)
@@ -3642,6 +3732,9 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 		then.Value = c.checkExpression(then.Value)
 		valueType = c.typeOfGuardVoid(then.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element: %#v", then))
 	}
 	c.popLocalEnv()
@@ -3652,7 +3745,7 @@ func (c *Checker) checkRecordForInModifier(node *ast.ModifierForInNode) (keyType
 }
 
 func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.InExpression = c.checkExpression(node.InExpression)
 	inType := c.TypeOf(node.InExpression)
 	returnType, throwType := c.checkIsIterable(inType, node.InExpression.Location())
@@ -3660,7 +3753,7 @@ func (c *Checker) checkCollectionForInModifier(node *ast.ModifierForInNode, fn C
 
 	node.Pattern, _ = c.checkPattern(node.Pattern, returnType)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.ThenExpression.Span())
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
@@ -3676,7 +3769,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	loop := c.registerLoop(label, true)
 
 	node.InExpression = c.checkExpression(node.InExpression)
@@ -3691,7 +3784,7 @@ func (c *Checker) checkForInExpressionNode(label string, node *ast.ForInExpressi
 
 	c.mode = prevMode
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
 
@@ -3765,7 +3858,7 @@ func (c *Checker) checkLoopExpressionNode(label string, node *ast.LoopExpression
 	}
 
 	loop := c.registerLoop(label, true)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
 	c.popLoop()
@@ -3784,7 +3877,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3818,7 +3911,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
@@ -3840,7 +3933,7 @@ func (c *Checker) checkUntilExpressionNode(label string, node *ast.UntilExpressi
 }
 
 func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3868,7 +3961,7 @@ func (c *Checker) checkUntilModifierNode(label string, node *ast.ModifierNode) a
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
@@ -3891,7 +3984,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
@@ -3925,7 +4018,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 	}
 	loop := c.registerLoop(label, endless)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(&node.ThenBody, false)
 	c.popLocalEnv()
@@ -3947,7 +4040,7 @@ func (c *Checker) checkWhileExpressionNode(label string, node *ast.WhileExpressi
 }
 
 func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) ast.ExpressionNode {
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
@@ -3975,7 +4068,7 @@ func (c *Checker) checkWhileModifierNode(label string, node *ast.ModifierNode) a
 	}
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	loop := c.registerLoop(label, endless)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.TypeOf(node.Left)
@@ -4006,18 +4099,18 @@ func (c *Checker) checkUnlessExpressionNode(node *ast.UnlessExpressionNode, tail
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
 	hasElse := len(node.ElseBody) > 0
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	thenType, _ := c.checkStatements(&node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ElseBody))
 	prevMode := c.mode
 	if types.IsNever(thenType) {
 		c.mode = mutateLocalsInNarrowing
@@ -4127,7 +4220,7 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 		return node
 	}
 
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 
 	prevConditionFlagValue := c.flags.HasFlag(conditionFlag)
 	c.flags.SetFlag(conditionFlag)
@@ -4138,12 +4231,12 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 
 	hasElse := len(node.ElseBody) > 0
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ThenBody))
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	thenType, _ := c.checkStatements(&node.ThenBody, tailPosition)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(hasElse)
+	c.pushConditionalLocalEnv(hasElse, position.JoinSpanOfCollection(node.ElseBody))
 
 	prevMode := c.mode
 	if types.IsNever(thenType) {
@@ -4197,17 +4290,17 @@ func (c *Checker) checkIfExpressionNode(node *ast.IfExpressionNode, tailPosition
 }
 
 func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Condition = c.checkExpression(node.Condition)
 	conditionType := c.typeOfGuardVoid(node.Condition)
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ThenExpression.Span())
 	c.narrowCondition(node.Condition, assumptionTruthy)
 	node.ThenExpression = fn(node.ThenExpression)
 	thenType := c.TypeOf(node.ThenExpression)
 	c.popLocalEnv()
 
-	c.pushConditionalLocalEnv(true)
+	c.pushConditionalLocalEnv(true, node.ElseExpression.Span())
 	c.narrowCondition(node.Condition, assumptionFalsy)
 	node.ElseExpression = fn(node.ElseExpression)
 	elseType := c.TypeOf(node.ElseExpression)
@@ -4247,11 +4340,11 @@ func (c *Checker) checkCollectionIfElseModifier(node *ast.ModifierIfElseNode, fn
 }
 
 func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionTruthy)
 	node.Left = fn(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -4288,11 +4381,11 @@ func (c *Checker) checkCollectionIfModifier(node *ast.ModifierNode, fn CheckExpr
 }
 
 func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn CheckExpressionFunc) ast.ExpressionNode {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionFalsy)
 	node.Left = c.checkExpression(node.Left)
 	thenType := c.typeOfGuardVoid(node.Left)
@@ -4329,11 +4422,11 @@ func (c *Checker) checkCollectionUnlessModifier(node *ast.ModifierNode, fn Check
 }
 
 func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionTruthy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -4348,6 +4441,9 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 		l.Value = c.checkExpression(l.Value)
 		valueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
 	c.popLocalEnv()
@@ -4380,11 +4476,11 @@ func (c *Checker) checkRecordIfModifier(node *ast.ModifierNode) (keyType, valueT
 }
 
 func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, valueType types.Type) {
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, node.Span())
 	node.Right = c.checkExpression(node.Right)
 	conditionType := c.typeOfGuardVoid(node.Right)
 
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Left.Span())
 	c.narrowCondition(node.Right, assumptionFalsy)
 	switch l := node.Left.(type) {
 	case *ast.KeyValueExpressionNode:
@@ -4399,6 +4495,9 @@ func (c *Checker) checkRecordUnlessModifier(node *ast.ModifierNode) (keyType, va
 		l.Value = c.checkExpression(l.Value)
 		valueType = c.TypeOf(l.Value)
 	default:
+		if c.IsLSP() {
+			return nil, nil
+		}
 		panic(fmt.Sprintf("invalid record element node: %#v", node.Left))
 	}
 	c.popLocalEnv()
@@ -4445,7 +4544,7 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 		catchResultTypes := make([]types.Type, 0, len(node.Catches))
 
 		for _, catchNode := range node.Catches {
-			c.pushConditionalLocalEnv(false)
+			c.pushConditionalLocalEnv(false, catchNode.Span())
 			if catchNode.StackTraceVar != nil {
 				var stackTraceVarName string
 				switch s := catchNode.StackTraceVar.(type) {
@@ -4454,11 +4553,25 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 				case *ast.PrivateIdentifierNode:
 					stackTraceVarName = s.Value
 				default:
+					if c.IsLSP() {
+						return node
+					}
 					panic(fmt.Sprintf("invalid stack trace variable name in catch: %T", catchNode.StackTraceVar))
 				}
 				stackTraceType := c.Std(symbol.C_StackTrace)
 				catchNode.StackTraceVar.SetType(stackTraceType)
-				c.addLocal(stackTraceVarName, newLocal(stackTraceType, true, true))
+				stackTraceVarNameSym := symbol.ToSymbol(stackTraceVarName)
+				c.addLocal(
+					stackTraceVarNameSym,
+					newLocal(
+						"Stack trace of the caught error.",
+						stackTraceVarNameSym,
+						stackTraceType,
+						true,
+						true,
+						catchNode.StackTraceVar.Location(),
+					),
+				)
 			}
 			var fullyCaughtType types.Type
 			catchNode.Pattern, fullyCaughtType = c.checkPattern(catchNode.Pattern, types.Any{})
@@ -4479,15 +4592,15 @@ func (c *Checker) checkDoExpressionNode(node *ast.DoExpressionNode) ast.Expressi
 	}
 
 	if hasFinally {
-		c.pushNestedLocalEnv(defaultLocalEnvType)
+		c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Finally))
 		c.checkStatements(&node.Finally, false)
 		c.popLocalEnv()
 	}
 
 	if len(node.Catches) > 0 {
-		c.pushConditionalLocalEnv(false)
+		c.pushConditionalLocalEnv(false, position.JoinSpanOfCollection(node.Catches))
 	} else {
-		c.pushNestedLocalEnv(defaultLocalEnvType)
+		c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Catches))
 	}
 	bodyResultType, _ := c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
@@ -4507,7 +4620,7 @@ func (c *Checker) checkMacroBoundaryNode(node *ast.MacroBoundaryNode) ast.Expres
 		return node
 	}
 
-	c.pushMacroBoundaryLocalEnv()
+	c.pushMacroBoundaryLocalEnv(node.Span())
 	resultType, _ := c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
 
@@ -4651,7 +4764,7 @@ func (c *Checker) checkLogicalExpression(node *ast.LogicalExpressionNode) ast.Ex
 
 func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionNil)
 
 	node.Right = c.checkExpression(node.Right)
@@ -4687,7 +4800,7 @@ func (c *Checker) checkNilCoalescingOperator(node *ast.LogicalExpressionNode) as
 
 func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionFalsy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -4727,7 +4840,7 @@ func (c *Checker) checkLogicalOr(node *ast.LogicalExpressionNode) ast.Expression
 
 func (c *Checker) checkLogicalAnd(node *ast.LogicalExpressionNode) ast.ExpressionNode {
 	node.Left = c.checkExpression(node.Left)
-	c.pushConditionalLocalEnv(false)
+	c.pushConditionalLocalEnv(false, node.Right.Span())
 	c.narrowCondition(node.Left, assumptionTruthy)
 
 	node.Right = c.checkExpression(node.Right)
@@ -5110,6 +5223,9 @@ func (c *Checker) checkQuoteExpressionNode(node *ast.QuoteExpressionNode) *ast.Q
 				case ast.UNQUOTE_INSTANCE_VARIABLE_KIND:
 					iface = ivarConvertible
 				default:
+					if c.IsLSP() {
+						return ast.TraverseContinue
+					}
 					panic(fmt.Sprintf("invalid unquote kind: %d", node.Kind))
 				}
 
@@ -5371,7 +5487,7 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 		}
 
 		var incompatibleMethods []methodOverride
-		for name, includedMethod := range c.methodsInNamespace(includedMixin) {
+		for name, includedMethod := range c.MethodsInNamespace(includedMixin) {
 			superMethod := c.resolveMethodInNamespace(parentOfMixin, name)
 			if !c.checkMethodCompatibility(superMethod, includedMethod, nil, true, false, true) {
 				incompatibleMethods = append(incompatibleMethods, methodOverride{
@@ -5591,6 +5707,9 @@ func (c *Checker) getReceiverlessMethodReceiver(methodName string, method *types
 			receiver.SetType(types.Self{})
 			c.checkNonNilableInstanceVariablesForSelf(loc)
 		default:
+			if c.IsLSP() {
+				return nil
+			}
 			panic(fmt.Sprintf("unexpected method namespace returned from getReceiverlessMethod: %T", under))
 		}
 	}
@@ -6324,7 +6443,7 @@ func (c *Checker) checkGenericMethodCallNode(node *ast.GenericMethodCallNode, ty
 	return node
 }
 
-func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.ClosureLiteralNode, name string) ast.ExpressionNode {
+func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(docComment string, node *ast.ClosureLiteralNode, name string, identLocation *position.Location) ast.ExpressionNode {
 	closure := types.NewCallable(nil, true)
 	method, mod := c.declareMethod(
 		closure,
@@ -6345,8 +6464,9 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	)
 	closure.Body = method
 
-	local := newLocal(closure, true, false)
-	c.addLocal(name, local)
+	nameSym := symbol.ToSymbol(name)
+	local := newLocal(docComment, nameSym, closure, true, false, identLocation)
+	c.addLocal(nameSym, local)
 
 	returnTypeNode, throwTypeNode := c.checkMethod(
 		closure,
@@ -6361,7 +6481,7 @@ func (c *Checker) checkClosureLiteralNodeInVariableDeclaration(node *ast.Closure
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	return node
 }
@@ -6401,7 +6521,7 @@ func (c *Checker) checkClosureLiteralNodeWithBase(node *ast.ClosureLiteralNode, 
 	node.ThrowType = throwTypeNode
 	node.SetType(closure)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	return node
 }
@@ -6431,7 +6551,7 @@ func (c *Checker) checkGoExpressionNode(node *ast.GoExpressionNode) ast.Expressi
 	c.setHasDefer(false)
 
 	c.addImpureErrorIfInPureContext(node.Location())
-	c.pushNestedLocalEnv(defaultLocalEnvType)
+	c.pushNestedLocalEnv(defaultLocalEnvType, position.JoinSpanOfCollection(node.Body))
 	c.checkStatements(&node.Body, false)
 	c.popLocalEnv()
 
@@ -6555,7 +6675,7 @@ func (c *Checker) checkShortVariableDeclaration(node *ast.AssignmentExpressionNo
 		return c.checkAssignment(node)
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), false)
+	init, _, typ := c.checkLocalDeclaration("", name, node.Right, nil, node.Left.Location(), node.Location(), false)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6570,7 +6690,7 @@ func (c *Checker) checkShortValueDeclaration(node *ast.AssignmentExpressionNode)
 		name = left.Value
 	}
 
-	init, _, typ := c.checkLocalDeclaration(name, node.Right, nil, node.Location(), true)
+	init, _, typ := c.checkLocalDeclaration("", name, node.Right, nil, node.Left.Location(), node.Location(), true)
 	node.Right = init
 	node.SetType(typ)
 	return node
@@ -6840,6 +6960,9 @@ func (c *Checker) resolveConstantInRoot(constantExpression ast.ExpressionNode) (
 	case *ast.ConstantLookupNode:
 		return c.resolveTypeLookupInRoot(constant)
 	default:
+		if c.IsLSP() {
+			return
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -6876,28 +6999,32 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	case *ast.PublicConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
 	case *ast.PrivateConstantNode:
 		namespace := c.runtimeEnv.Root
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -6959,16 +7086,19 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	if len(constant.FullName) > 0 {
-		fullName = constant.FullName
+	var constantType types.Type
+	if constant != nil {
+		if len(constant.FullName) > 0 {
+			fullName = constant.FullName
+		}
+		constantType = constant.Type
 	}
-	constantType := constant.Type
 	if !ok && !firstCall {
 		placeholder := types.NewNamespacePlaceholder(fullName)
 		placeholder.Locations.Push(node.Right.Location())
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
-		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
+		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), nil)
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
 	}
@@ -6985,7 +7115,12 @@ func (c *Checker) resolveConstantForNamespaceDeclaration(constantExpression ast.
 		return c.resolveSimpleConstantForSetter(constant.Value)
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupForNamespaceDeclaration(constant)
+	case *ast.InvalidNode:
+		return nil, nil, ""
 	default:
+		if c.IsLSP() {
+			return nil, nil, ""
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -7000,6 +7135,9 @@ func (c *Checker) resolveConstantForConstantDeclaration(constantExpression ast.E
 	case *ast.ConstantLookupNode:
 		return c.resolveConstantLookupForConstantDeclaration(constant)
 	default:
+		if c.IsLSP() {
+			return nil, nil, ""
+		}
 		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
 	}
 }
@@ -7042,28 +7180,32 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
+		if leftConstant != nil {
+			leftContainerType = leftConstant.Type
+		}
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			placeholder := types.NewNamespacePlaceholder(leftContainerName)
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant(symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil))
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -7125,13 +7267,17 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	constantType := constant.Type
+
+	var constantType types.Type
+	if ok {
+		constantType = constant.Type
+	}
 	if !ok && !firstCall {
 		placeholder := types.NewNamespacePlaceholder(constantName)
 		placeholder.Locations.Push(node.Right.Location())
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
-		leftContainer.DefineConstant(rightSymbol, types.NewSingletonClass(placeholder, nil))
+		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), nil)
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
 
@@ -7148,23 +7294,23 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 	case *ast.PublicConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
 			node.SetType(types.Untyped{})
 			return nil, nil, ""
 		}
+		leftContainerType = leftConstant.Type
 	case *ast.PrivateConstantNode:
 		namespace := c.currentConstScope().container
 		leftConstant, ok := namespace.ConstantString(l.Value)
-		leftContainerType = leftConstant.Type
 		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if !ok {
 			c.addUndefinedNamespaceError(leftContainerName, l.Location())
 			node.SetType(types.Untyped{})
 			return nil, nil, ""
 		}
+		leftContainerType = leftConstant.Type
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
@@ -7228,7 +7374,10 @@ func (c *Checker) _resolveConstantLookupForConstantDeclaration(node *ast.Constan
 
 	rightSymbol := symbol.ToSymbol(rightName)
 	constant, ok := leftContainer.Constant(rightSymbol)
-	constantType := constant.Type
+	var constantType types.Type
+	if ok {
+		constantType = constant.Type
+	}
 	if !ok && !firstCall {
 		c.addUndefinedNamespaceError(rightName, node.Right.Location())
 		node.SetType(types.Untyped{})
@@ -7243,7 +7392,7 @@ func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, 
 	namespace := c.currentConstScope().container
 	constant, ok := namespace.ConstantString(name)
 	var fullName string
-	if len(constant.FullName) > 0 {
+	if ok && len(constant.FullName) > 0 {
 		fullName = constant.FullName
 	} else {
 		fullName = types.MakeFullConstantName(namespace.Name(), name)
@@ -7347,7 +7496,7 @@ func (c *Checker) checkIfTypeParameterIsAllowed(typ types.Type, location *positi
 }
 
 // Get the type with the given name
-func (c *Checker) resolveType(name string, location *position.Location) (types.Type, string) {
+func (c *Checker) resolveType(name string, location *position.Location) (*types.Constant, string) {
 	for _, constScope := range ds.ReverseSlice(c.constantScopes) {
 		constant, ok := constScope.container.SubtypeString(name)
 		if !ok {
@@ -7372,7 +7521,7 @@ func (c *Checker) resolveType(name string, location *position.Location) (types.T
 		}
 
 		if c.checkIfTypeParameterIsAllowed(constant.Type, location) {
-			return constant.Type, fullName
+			return constant, fullName
 		}
 		return nil, fullName
 	}
@@ -7460,7 +7609,7 @@ func (c *Checker) getInstanceVariable(name symbol.Symbol) (*types.InstanceVariab
 	return typ, container
 }
 
-func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
+func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (*types.Constant, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
@@ -7470,14 +7619,32 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 			leftContainerType = c.TypeOf(l)
 			leftContainerName = l.Value
 		} else {
-			leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+			constant, name := c.resolveType(l.Value, l.Location())
+			if constant == nil {
+				leftContainerName = name
+			} else {
+				leftContainerName = name
+				leftContainerType = constant.Type
+			}
 		}
 	case *ast.PrivateConstantNode:
-		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Location())
+		constant, name := c.resolveType(l.Value, l.Location())
+		if constant == nil {
+			leftContainerName = name
+		} else {
+			leftContainerName = name
+			leftContainerType = constant.Type
+		}
 	case nil:
 		leftContainerType = c.runtimeEnv.Root
 	case *ast.ConstantLookupNode:
-		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
+		constant, name := c.resolveConstantLookupType(l)
+		if constant == nil {
+			leftContainerName = name
+		} else {
+			leftContainerName = name
+			leftContainerType = constant.Type
+		}
 	default:
 		c.addFailure(
 			fmt.Sprintf("invalid type node %T", node),
@@ -7542,9 +7709,9 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	}
 
 	if !c.checkTypeIfNecessary(typeName, node.Right.Location()) {
-		return types.Untyped{}, typeName
+		return nil, typeName
 	}
-	return subtype.Type, typeName
+	return subtype, typeName
 }
 
 func (c *Checker) getConstantLookupTypeForMacro(node *ast.ConstantLookupNode) types.Type {
@@ -7601,6 +7768,9 @@ func (c *Checker) checkComplexConstantType(node ast.ExpressionNode) ast.ComplexC
 		c.checkGenericConstantType(n)
 		return n
 	default:
+		if c.IsLSP() {
+			return nil
+		}
 		panic(
 			fmt.Sprintf("invalid constant type node %T", node),
 		)
@@ -7618,6 +7788,9 @@ func (c *Checker) getComplexConstantTypeForMacro(node ast.ExpressionNode) types.
 	case *ast.GenericConstantNode:
 		return c.getComplexConstantTypeForMacro(n.Constant)
 	default:
+		if c.IsLSP() {
+			return nil
+		}
 		panic(
 			fmt.Sprintf("invalid constant type node %T", node),
 		)
@@ -7803,8 +7976,13 @@ func (c *Checker) resolveGenericType(typ types.Type, location *position.Location
 }
 
 func (c *Checker) checkSimpleConstantType(name string, location *position.Location) types.Type {
-	typ, _ := c.resolveType(name, location)
-	return c.resolveGenericType(typ, location)
+	constant, _ := c.resolveType(name, location)
+	if constant == nil {
+		return types.Untyped{}
+	}
+
+	constant.AppendUse(location)
+	return c.resolveGenericType(constant.Type, location)
 }
 
 func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) *ast.PublicConstantNode {
@@ -7971,6 +8149,9 @@ func (c *Checker) checkUnaryTypeNode(node *ast.UnaryTypeNode) ast.TypeNode {
 		negate = true
 	case token.PLUS:
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid unary type operator: %s", node.Op.Type.Name()))
 	}
 
@@ -8159,6 +8340,9 @@ func (c *Checker) checkBinaryTypeExpressionNode(node *ast.BinaryTypeNode) ast.Ty
 		node.SetType(typ)
 		return node
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic("invalid binary type expression operator")
 	}
 }
@@ -8183,7 +8367,7 @@ func (c *Checker) checkCallableTypeNode(node *ast.CallableTypeNode) ast.TypeNode
 		node.Location(),
 	)
 	if mod != nil {
-		c.popConstScope()
+		c.popConstScope(node.Span().EndPos)
 	}
 	callable.Body = method
 	node.SetType(callable)
@@ -8203,6 +8387,7 @@ func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local,
 		return nil, types.Untyped{}
 	}
 
+	local.AppendUse(loc)
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}
@@ -8539,9 +8724,11 @@ func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceVal
 }
 
 func (c *Checker) checkLocalDeclaration(
+	docComment string,
 	name string,
 	initialiser ast.ExpressionNode,
 	typeNode ast.TypeNode,
+	identLocation *position.Location,
 	location *position.Location,
 	singleAssignment bool,
 ) (
@@ -8549,6 +8736,7 @@ func (c *Checker) checkLocalDeclaration(
 	_typeNode ast.TypeNode,
 	typ types.Type,
 ) {
+	nameSym := symbol.ToSymbol(name)
 	if variable := c.getLocal(name); variable != nil {
 		c.addFailure(
 			fmt.Sprintf("cannot redeclare local `%s`", name),
@@ -8567,14 +8755,34 @@ func (c *Checker) checkLocalDeclaration(
 				fmt.Sprintf("cannot declare a local without a type `%s`", name),
 				location,
 			)
-			c.addLocal(name, newLocal(types.Untyped{}, false, singleAssignment))
+			c.addLocal(
+				nameSym,
+				newLocal(
+					docComment,
+					nameSym,
+					types.Untyped{},
+					false,
+					singleAssignment,
+					identLocation,
+				),
+			)
 			return initialiser, typeNode, types.Untyped{}
 		}
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(typeNode)
 		declaredType := c.TypeOf(declaredTypeNode)
-		c.addLocal(name, newLocal(declaredType, false, singleAssignment))
+		c.addLocal(
+			nameSym,
+			newLocal(
+				docComment,
+				nameSym,
+				declaredType,
+				false,
+				singleAssignment,
+				identLocation,
+			),
+		)
 		return initialiser, declaredTypeNode, types.Void{}
 	}
 
@@ -8585,8 +8793,10 @@ func (c *Checker) checkLocalDeclaration(
 		initClosure, initIsClosure := initialiser.(*ast.ClosureLiteralNode)
 		if initIsClosure && !initClosure.Lambda {
 			init := c.checkClosureLiteralNodeInVariableDeclaration(
+				docComment,
 				initClosure,
 				name,
+				identLocation,
 			)
 			actualType := c.typeOfGuardVoid(init)
 			if !singleAssignment {
@@ -8600,8 +8810,15 @@ func (c *Checker) checkLocalDeclaration(
 		if !singleAssignment {
 			actualType = c.ToNonLiteral(actualType, false)
 		}
-		local := newLocal(actualType, true, singleAssignment)
-		c.addLocal(name, local)
+		local := newLocal(
+			docComment,
+			nameSym,
+			actualType,
+			true,
+			singleAssignment,
+			identLocation,
+		)
+		c.addLocal(nameSym, local)
 		return init, nil, actualType
 	}
 
@@ -8610,7 +8827,14 @@ func (c *Checker) checkLocalDeclaration(
 	declaredTypeNode := c.checkTypeNode(typeNode)
 	declaredType := c.TypeOf(declaredTypeNode)
 
-	local := newLocal(declaredType, true, singleAssignment)
+	local := newLocal(
+		docComment,
+		nameSym,
+		declaredType,
+		true,
+		singleAssignment,
+		identLocation,
+	)
 
 	var earlierInitialisation bool
 	// if the value assigned is a closure literal
@@ -8619,14 +8843,14 @@ func (c *Checker) checkLocalDeclaration(
 	case *ast.ClosureLiteralNode:
 		if !init.Lambda {
 			earlierInitialisation = true
-			c.addLocal(name, local)
+			c.addLocal(nameSym, local)
 		}
 	}
 
 	init := c.checkExpressionWithType(initialiser, declaredType, false)
 	actualType := c.typeOfGuardVoid(init)
 	if !earlierInitialisation {
-		c.addLocal(name, local)
+		c.addLocal(nameSym, local)
 	}
 	c.checkCanAssign(actualType, declaredType, init.Location())
 
@@ -8675,7 +8899,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, caseNode.Span())
 		caseNode.Pattern, _ = c.checkPattern(caseNode.Pattern, valueType)
 		patternType := c.TypeOf(caseNode.Pattern)
 		narrowType := c.narrowToType(node.Value, patternType)
@@ -8687,7 +8911,7 @@ func (c *Checker) checkSwitchExpressionNode(node *ast.SwitchExpressionNode, tail
 	}
 
 	if hasElse {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, position.JoinSpanOfCollection(node.ElseBody))
 		c.narrowToType(node.Value, types.Any{})
 		elseType, _ := c.checkStatements(&node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
@@ -8713,7 +8937,7 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 
 	var returnTypes []types.Type
 	for _, caseNode := range node.Cases {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, caseNode.Span())
 		caseNode.Expression = c.checkSelectCaseExpressionNode(caseNode.Expression)
 		caseType, _ := c.checkStatements(&caseNode.Body, tailPosition)
 		returnTypes = append(returnTypes, caseType)
@@ -8721,7 +8945,7 @@ func (c *Checker) checkSelectExpressionNode(node *ast.SelectExpressionNode, tail
 	}
 
 	if hasElse {
-		c.pushConditionalLocalEnv(true)
+		c.pushConditionalLocalEnv(true, position.JoinSpanOfCollection(node.ElseBody))
 		elseType, _ := c.checkStatements(&node.ElseBody, tailPosition)
 		returnTypes = append(returnTypes, elseType)
 		c.popLocalEnv()
@@ -9114,9 +9338,11 @@ func (c *Checker) checkVariableDeclarationNode(node *ast.VariableDeclarationNode
 	}
 
 	init, typeNode, typ := c.checkLocalDeclaration(
+		node.DocComment(),
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,
+		node.Name.Location(),
 		node.Location(),
 		false,
 	)
@@ -9132,9 +9358,11 @@ func (c *Checker) checkValueDeclarationNode(node *ast.ValueDeclarationNode) {
 	}
 
 	init, typeNode, typ := c.checkLocalDeclaration(
+		node.DocComment(),
 		c.identifierToName(node.Name),
 		node.Initialiser,
 		node.TypeNode,
+		node.Name.Location(),
 		node.Location(),
 		true,
 	)
@@ -9152,7 +9380,7 @@ func extractConstantName(node ast.ExpressionNode) string {
 	case *ast.ConstantLookupNode:
 		return extractConstantNameFromLookup(n)
 	default:
-		panic(fmt.Sprintf("invalid constant node: %T", node))
+		return ""
 	}
 }
 
@@ -9163,7 +9391,7 @@ func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
 	case *ast.PrivateConstantNode:
 		return r.Value
 	default:
-		panic(fmt.Sprintf("invalid right side of constant lookup node: %T", lookup.Right))
+		return ""
 	}
 }
 
@@ -9176,6 +9404,7 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 
 		switch t := constantType.(type) {
 		case *types.Module:
+			t.AppendDeclaration(location)
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -9187,8 +9416,9 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Methods(),
 				c.runtimeEnv,
 			)
+			module.AppendDeclaration(location)
 			t.Namespace = module
-			namespace.DefineConstant(constantName, module)
+			namespace.DefineConstant(docComment, constantName, module, location)
 			namespace.DefineSubtype(constantName, module)
 			return module
 		case *types.ConstantPlaceholder:
@@ -9197,21 +9427,26 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				fullConstantName,
 				c.runtimeEnv,
 			)
+			module.AppendDeclaration(location)
 			c.replaceSimpleNamespacePlaceholder(t, module, module)
-			namespace.DefineConstant(constantName, module)
+			namespace.DefineConstant(docComment, constantName, module, location)
 			namespace.DefineSubtype(constantName, module)
 			return module
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+			module := types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+			module.AppendDeclaration(location)
+			return module
 		}
 	}
 
 	if namespace == nil {
-		return types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+		module := types.NewModule(docComment, fullConstantName, c.runtimeEnv)
+		module.AppendDeclaration(location)
+		return module
 	}
 
-	return namespace.DefineModule(docComment, constantName, c.runtimeEnv)
+	return namespace.DefineModule(docComment, constantName, c.runtimeEnv, location)
 }
 
 func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
@@ -9264,14 +9499,15 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
+			class.AppendDeclaration(location)
 			classSingleton := class.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
-			namespace.DefineConstant(constantName, class.Singleton())
+			namespace.DefineConstant(docComment, constantName, class.Singleton(), location)
 			namespace.DefineSubtype(constantName, class)
 			return class
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewClass(
+			class := types.NewClass(
 				docComment,
 				abstract,
 				sealed,
@@ -9282,6 +9518,8 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
+			class.AppendDeclaration(location)
+			return class
 		}
 
 		switch t := constantType.(type) {
@@ -9297,6 +9535,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 					location,
 				)
 			}
+			t.AppendDeclaration(location)
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -9312,13 +9551,14 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				t.Methods(),
 				c.runtimeEnv,
 			)
+			class.AppendDeclaration(location)
 			t.Namespace = class
-			namespace.DefineConstant(constantName, class.Singleton())
+			namespace.DefineConstant(docComment, constantName, class.Singleton(), location)
 			namespace.DefineSubtype(constantName, class)
 			return class
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewClass(
+			class := types.NewClass(
 				docComment,
 				abstract,
 				sealed,
@@ -9329,11 +9569,13 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
+			class.AppendDeclaration(location)
+			return class
 		}
 	}
 
 	if namespace == nil {
-		return types.NewClass(
+		class := types.NewClass(
 			docComment,
 			abstract,
 			sealed,
@@ -9344,6 +9586,8 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 			nil,
 			c.runtimeEnv,
 		)
+		class.AppendDeclaration(location)
+		return class
 	}
 
 	return namespace.DefineClass(
@@ -9356,6 +9600,7 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 		constantName,
 		nil,
 		c.runtimeEnv,
+		location,
 	)
 }
 
@@ -9564,13 +9809,14 @@ func (c *Checker) hoistModuleDeclarationWithFunc(node *ast.ModuleDeclarationNode
 
 	prevMode := c.mode
 	c.mode = moduleMode
-	c.pushConstScope(makeLocalConstantScope(module))
-	c.pushMethodScope(makeLocalMethodScope(module))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(module, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(module, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9615,13 +9861,14 @@ func (c *Checker) hoistClassDeclarationWithFunc(node *ast.ClassDeclarationNode, 
 
 	prevMode := c.mode
 	c.mode = classMode
-	c.pushConstScope(makeLocalConstantScope(class))
-	c.pushMethodScope(makeLocalMethodScope(class))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(class, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(class, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9662,13 +9909,14 @@ func (c *Checker) hoistMixinDeclarationWithFunc(node *ast.MixinDeclarationNode, 
 
 	prevMode := c.mode
 	c.mode = mixinMode
-	c.pushConstScope(makeLocalConstantScope(mixin))
-	c.pushMethodScope(makeLocalMethodScope(mixin))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(mixin, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(mixin, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9705,13 +9953,14 @@ func (c *Checker) hoistInterfaceDeclarationWithFunc(node *ast.InterfaceDeclarati
 
 	prevMode := c.mode
 	c.mode = interfaceMode
-	c.pushConstScope(makeLocalConstantScope(iface))
-	c.pushMethodScope(makeLocalMethodScope(iface))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(iface, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(iface, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9788,13 +10037,14 @@ func (c *Checker) hoistSingletonDeclarationWithFunc(node *ast.SingletonBlockExpr
 
 	prevMode := c.mode
 	c.mode = singletonMode
-	c.pushConstScope(makeLocalConstantScope(singleton))
-	c.pushMethodScope(makeLocalMethodScope(singleton))
+	bodySpan := position.JoinSpanOfCollection(node.Body)
+	c.pushConstScope(newLocalConstantScope(singleton, bodySpan))
+	c.pushMethodScope(newLocalMethodScope(singleton, bodySpan))
 
 	fn(node.Body)
 
-	c.popLocalConstScope()
-	c.popLocalMethodScope()
+	c.popLocalConstScope(node.Span().EndPos)
+	c.popLocalMethodScope(node.Span().EndPos)
 	c.mode = prevMode
 }
 
@@ -9916,7 +10166,8 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 	case *ast.UsingEntryWithSubentriesNode:
 		return c.checkUsingEntryWithSubentriesForNamespace(n)
 	case *ast.ConstantAsNode:
-		usingNamespace := c.getUsingBufferNamespace()
+		scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+		usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 		n.Constant = c.checkUsingConstantLookupEntryNodeForNamespace(n.Constant, n.AsName)
 		n.SetType(usingNamespace)
 		return n
@@ -9924,13 +10175,19 @@ func (c *Checker) checkUsingEntryNodeForNamespaces(node ast.UsingEntryNode) ast.
 		return c.checkUsingConstantLookupEntryNodeForNamespace(n, "")
 	case *ast.MethodLookupNode, *ast.MethodLookupAsNode:
 		return n
+	case *ast.InvalidNode:
+		return n
 	default:
+		if c.IsLSP() {
+			return node
+		}
 		panic(fmt.Sprintf("invalid using entry node: %T", node))
 	}
 }
 
 func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntryWithSubentriesNode) ast.UsingEntryNode {
-	usingNamespace := c.getUsingBufferNamespace()
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 	node.SetType(usingNamespace)
 
 	for _, subentry := range node.Subentries {
@@ -9953,6 +10210,9 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 			s.SetType(c.TypeOf(newNode))
 		case *ast.PublicIdentifierNode, *ast.UsingSubentryAsNode, *ast.MacroNameNode:
 		default:
+			if c.IsLSP() {
+				return node
+			}
 			panic(fmt.Sprintf("invalid using subentry node: %T", subentry))
 		}
 	}
@@ -9962,6 +10222,10 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
 	container, constant, fullConstantName, constantName := c.resolveConstantInRoot(node)
+	if container == nil {
+		return node
+	}
+
 	originalConstantSymbol := symbol.ToSymbol(constantName)
 	var newConstantSymbol symbol.Symbol
 	if asName == "" {
@@ -9969,21 +10233,22 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	} else {
 		newConstantSymbol = symbol.ToSymbol(asName)
 	}
-	usingNamespace := c.getUsingBufferNamespace()
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 	node.SetType(usingNamespace)
 
 	switch n := constant.(type) {
 	case *types.SingletonClass:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constant, nil)
 		return node
 	case *types.Module:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constant, nil)
 		return node
 	case types.Namespace:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, n.Singleton())
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, n.Singleton(), nil)
 		return node
 	default:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
@@ -10013,8 +10278,8 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	container.DefineSubtype(originalConstantSymbol, placeholderType)
 	usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, placeholderType)
 
-	container.DefineConstant(originalConstantSymbol, placeholderConstant)
-	usingNamespace.DefineConstantWithFullName(newConstantSymbol, fullConstantName, placeholderConstant)
+	container.DefineConstant("", originalConstantSymbol, placeholderConstant, nil)
+	usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, placeholderConstant, nil)
 
 	return node
 }
@@ -10050,7 +10315,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 	placeholder.Locations.Push(location)
 	c.registerPlaceholderNamespace(placeholder)
 	parentNamespace.DefineSubtype(symbol.ToSymbol(constName), placeholder)
-	parentNamespace.DefineConstant(symbol.ToSymbol(constName), types.NewSingletonClass(placeholder, nil))
+	parentNamespace.DefineConstant("", symbol.ToSymbol(constName), types.NewSingletonClass(placeholder, nil), nil)
 	return placeholder
 }
 
@@ -10074,12 +10339,14 @@ func (c *Checker) checkUsingAllEntryNode(node *ast.UsingAllEntryNode) *ast.Using
 			return node
 		}
 	}
-	c.pushConstScope(makeUsingConstantScope(namespace))
+
+	scopeSpan := position.NewSpan(node.Location().EndPos, node.Location().EndPos)
+	c.pushConstScope(newUsingConstantScope(namespace, scopeSpan))
 	singleton := namespace.Singleton()
 	if singleton == nil {
-		c.pushMethodScope(makeUsingMethodScope(namespace))
+		c.pushMethodScope(newUsingMethodScope(namespace, scopeSpan))
 	} else {
-		c.pushMethodScope(makeUsingMethodScope(singleton))
+		c.pushMethodScope(newUsingMethodScope(singleton, scopeSpan))
 	}
 	return node
 }
@@ -10113,14 +10380,17 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				fullConstantName,
 				c.runtimeEnv,
 			)
+			mixin.AppendDeclaration(location)
 			mixinSingleton := mixin.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
-			namespace.DefineConstant(constantName, mixinSingleton)
+			namespace.DefineConstant(docComment, constantName, mixinSingleton, location)
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			mixin.AppendDeclaration(location)
+			return mixin
 		}
 
 		switch t := constantType.(type) {
@@ -10136,6 +10406,7 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					location,
 				)
 			}
+			t.AppendDeclaration(location)
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -10149,21 +10420,26 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Methods(),
 				c.runtimeEnv,
 			)
+			mixin.AppendDeclaration(location)
 			t.Namespace = mixin
-			namespace.DefineConstant(constantName, mixin.Singleton())
+			namespace.DefineConstant(docComment, constantName, mixin.Singleton(), location)
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+			mixin.AppendDeclaration(location)
+			return mixin
 		}
 	}
 
 	if namespace == nil {
-		return types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+		mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
+		mixin.AppendDeclaration(location)
+		return mixin
 	}
 
-	return namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv)
+	return namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv, location)
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName symbol.Symbol, location *position.Location) *types.Interface {
@@ -10177,19 +10453,23 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fullConstantName,
 				c.runtimeEnv,
 			)
+			iface.AppendDeclaration(location)
 			ifaceSingleton := iface.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
-			namespace.DefineConstant(constantName, ifaceSingleton)
+			namespace.DefineConstant(docComment, constantName, ifaceSingleton, location)
 			namespace.DefineSubtype(constantName, iface)
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			iface.AppendDeclaration(location)
+			return iface
 		}
 
 		switch t := constantType.(type) {
 		case *types.Interface:
 			t.AppendDocComment(docComment)
+			t.AppendDeclaration(location)
 			return t
 		case *types.NamespacePlaceholder:
 			iface := types.NewInterfaceWithDetails(
@@ -10200,17 +10480,22 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Methods(),
 				c.runtimeEnv,
 			)
+			iface.AppendDeclaration(location)
 			t.Namespace = iface
-			namespace.DefineConstant(constantName, iface.Singleton())
+			namespace.DefineConstant(docComment, constantName, iface.Singleton(), location)
 			namespace.DefineSubtype(constantName, iface)
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
-			return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+			iface.AppendDeclaration(location)
+			return iface
 		}
 	} else if namespace == nil {
-		return types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+		iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
+		iface.AppendDeclaration(location)
+		return iface
 	} else {
-		return namespace.DefineInterface(docComment, constantName, c.runtimeEnv)
+		return namespace.DefineInterface(docComment, constantName, c.runtimeEnv, location)
 	}
 }

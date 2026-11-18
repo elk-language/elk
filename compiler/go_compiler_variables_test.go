@@ -303,9 +303,9 @@ var sym4 = value.ToSymbol("main") // main
 var const0 *value.Class          // Foo
 var sym0 = value.ToSymbol("Foo") // Foo
 
-var sym1 = value.ToSymbol("Foo.:#init") // Foo.:#init
-var sym2 = value.ToSymbol("<main>")     // <main>
-func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:#init, loc: <main>:4:6
+var sym1 = value.ToSymbol("Foo.:#__init") // Foo.:#__init
+var sym2 = value.ToSymbol("<main>")       // <main>
+func fn_method0(thread *vm.Thread, self value.Value) (result value.Value, err value.Value) { // method: Foo.:#__init, loc: <main>:4:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 	var t1 value.Value
@@ -394,7 +394,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Foo
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0])
 		return result, err
 	})

@@ -303,6 +303,7 @@ const (
 // Every node type implements this interface.
 type Node interface {
 	position.LocationInterface
+	position.SpanInterface
 	value.Reference
 	IsStatic() bool // Value is known at compile-time
 	// Return the static type of the value represented
@@ -327,6 +328,11 @@ func DeepCopy(node Node) Node {
 	return Splice(node, nil, nil)
 }
 
+// Create a deep copy of the AST node
+func DeepCopyGeneric[N Node](node N) N {
+	return Splice(node, nil, nil).(N)
+}
+
 // Create a copy of AST replacing consecutive unquote nodes with the given arguments
 func Splice(node Node, loc *position.Location, args *[]Node) Node {
 	return node.splice(loc, args, false)
@@ -340,6 +346,9 @@ func Traverse(node Node, enter func(node, parent Node) TraverseOption, leave fun
 	}
 	if leave == nil {
 		leave = noopTraverse
+	}
+	if node == nil {
+		return
 	}
 	node.traverse(nil, enter, leave)
 }

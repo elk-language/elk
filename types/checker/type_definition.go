@@ -56,12 +56,12 @@ func newTypeDefinitionChecks() *typeDefinitionChecks {
 
 type typeDefinitionCheckEntry struct {
 	filename       string
-	constantScopes []constantScope
+	constantScopes []*constantScope
 	node           ast.ExpressionNode
 	isNative       bool
 }
 
-func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, node ast.ExpressionNode, isNative bool) *typeDefinitionCheckEntry {
+func newTypeDefinitionCheckEntry(filename string, constScopes []*constantScope, node ast.ExpressionNode, isNative bool) *typeDefinitionCheckEntry {
 	return &typeDefinitionCheckEntry{
 		filename:       filename,
 		constantScopes: constScopes,
@@ -73,18 +73,24 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []constantScope, n
 func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantPlaceholder, subtype, constant types.Type) {
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     constant,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		constant,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 
 	placeholder.Sibling.Replaced = true
 	subtypeContainer := placeholder.Sibling.Container
 	usingSubtype := subtypeContainer[placeholder.AsName]
-	subtypeContainer[placeholder.AsName] = types.Constant{
-		FullName: usingSubtype.FullName,
-		Type:     subtype,
-	}
+	subtypeContainer[placeholder.AsName] = types.NewConstant(
+		usingSubtype.DocComment(),
+		usingSubtype.FullName,
+		subtype,
+		usingSubtype.Declaration(),
+		usingSubtype.Uses(),
+	)
 }
 
 func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type, isNative bool) {
@@ -109,10 +115,13 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 	placeholder = placeholder.Sibling
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.Constant{
-		FullName: usingConst.FullName,
-		Type:     newType,
-	}
+	placeholder.Container[placeholder.AsName] = types.NewConstant(
+		usingConst.DocComment(),
+		usingConst.FullName,
+		newType,
+		usingConst.Declaration(),
+		usingConst.Uses(),
+	)
 }
 
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
@@ -129,8 +138,8 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 		c.addRedeclaredConstantError(fullConstantName, node.Constant.Location())
 	}
 
-	namedType := types.NewNamedType(fullConstantName, nil)
-	container.DefineConstant(constantName, types.NoValue{})
+	namedType := types.NewNamedType(node.DocComment(), fullConstantName, nil, node.Location())
+	container.DefineConstant("", constantName, types.NoValue{}, nil)
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -165,7 +174,7 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 		nil,
 		nil,
 	)
-	container.DefineConstant(constantName, types.NoValue{})
+	container.DefineConstant("", constantName, types.NoValue{}, nil)
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -208,7 +217,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 
 	typeParams := make([]*types.TypeParameter, 0, len(node.TypeParameters))
 	typeParamMod := types.NewTypeParamNamespace(fmt.Sprintf("Type Parameter Container of %s", namedType.Name), false)
-	c.pushConstScope(makeConstantScope(typeParamMod))
+	c.pushConstScope(newConstantScope(typeParamMod, node.Span()))
 
 	var defaultSeen bool
 	for _, typeParamNode := range node.TypeParameters {
@@ -232,7 +241,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
-		typeParamMod.DefineConstant(t.Name, types.NoValue{})
+		typeParamMod.DefineConstant("", t.Name, types.NoValue{}, nil)
 	}
 
 	prevMode := c.mode
@@ -244,7 +253,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 	namedType.TypeParameters = typeParams
 
 	c.mode = prevMode
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 
 	return true
 }
@@ -581,7 +590,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(iface))
+	c.pushConstScope(newLocalConstantScope(iface, node.Span()))
 
 	typeParams := c.checkNamespaceTypeParameters(
 		iface.Checked,
@@ -595,7 +604,7 @@ func (c *Checker) checkInterfaceTypeParameters(node *ast.InterfaceDeclarationNod
 	}
 	iface.Checked = true
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
@@ -603,7 +612,7 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(mixin))
+	c.pushConstScope(newLocalConstantScope(mixin, node.Span()))
 
 	typeParams := c.checkNamespaceTypeParameters(
 		mixin.Checked,
@@ -617,7 +626,7 @@ func (c *Checker) checkMixinTypeParameters(node *ast.MixinDeclarationNode) {
 	}
 	mixin.Checked = true
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkNamespaceTypeParameters(
@@ -656,7 +665,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
-				namespace.DefineConstant(t.Name, types.NoValue{})
+				namespace.DefineConstant("", t.Name, types.NoValue{}, nil)
 				c.finishCheckingTypeParameterNode(t, varNode)
 			}
 
@@ -714,8 +723,8 @@ func (c *Checker) checkSuperclassForMacro(node *ast.ClassDeclarationNode) {
 	if !ok || class.Checked {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(class))
-	defer c.popConstScope()
+	c.pushConstScope(newLocalConstantScope(class, node.Span()))
+	defer c.popConstScope(node.Span().EndPos)
 
 	var superclassType types.Type
 	var superclass types.Namespace
@@ -760,7 +769,7 @@ func (c *Checker) checkClassInheritance(node *ast.ClassDeclarationNode, isNative
 	if !ok {
 		return
 	}
-	c.pushConstScope(makeLocalConstantScope(class))
+	c.pushConstScope(newLocalConstantScope(class, node.Span()))
 	typeParams := c.checkNamespaceTypeParameters(
 		class.Checked,
 		node.TypeParameters,
@@ -862,7 +871,7 @@ superclassSwitch:
 		c.compiler.CompileClassInheritance(class, position.DefaultLocation)
 	}
 
-	c.popConstScope()
+	c.popConstScope(node.Span().EndPos)
 }
 
 func (c *Checker) checkExtendWhere(node *ast.ExtendWhereBlockExpressionNode) {
@@ -1036,6 +1045,7 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		upperType,
 		def,
 		variance,
+		node.Location(),
 	)
 }
 
@@ -1057,6 +1067,7 @@ func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, name
 		nil,
 		nil,
 		variance,
+		node.Location(),
 	)
 }
 

@@ -66,7 +66,7 @@ func initValue() {
 	)
 	Def(
 		c,
-		"#box_of_ivar_index",
+		symbol.ReservedIdentifierName("box_of_ivar_index"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()
@@ -90,7 +90,7 @@ func initValue() {
 	)
 	Def(
 		c,
-		"#immutable_box_of_ivar_index",
+		symbol.ReservedIdentifierName("immutable_box_of_ivar_index"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()
@@ -114,7 +114,7 @@ func initValue() {
 	)
 	Def(
 		c,
-		"#box_of_ivar_name",
+		symbol.ReservedIdentifierName("box_of_ivar_name"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()
@@ -149,7 +149,7 @@ func initValue() {
 	)
 	Def(
 		c,
-		"#immutable_box_of_ivar_name",
+		symbol.ReservedIdentifierName("immutable_box_of_ivar_name"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			ivars := self.InstanceVariables()

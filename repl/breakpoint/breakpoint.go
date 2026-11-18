@@ -26,32 +26,11 @@ func init() {
 }
 
 type evaluator struct {
+	prompt.Evaluator
 	thread                  *vm.Thread
-	elkTypechecker          *checker.Checker
 	checkerContext          *checker.BreakpointContext
 	compilerContext         *compiler.BytecodeBreakpointContext
-	sourceMap               map[string]string
-	inputIndex              int
-	prompt                  *goprompt.Prompt
 	underscoreVariableIndex int
-	prepend                 []ast.StatementNode
-}
-
-func (e *evaluator) sourceName() string {
-	return fmt.Sprintf("<repl:%d>", e.inputIndex)
-}
-
-func (e *evaluator) deleteSource(sourceName string) {
-	if e.elkTypechecker != nil {
-		delete(e.sourceMap, sourceName)
-	}
-}
-
-func (e *evaluator) addSource(input string) string {
-	sourceName := e.sourceName()
-	e.inputIndex++
-	e.sourceMap[sourceName] = input
-	return sourceName
 }
 
 var helpBanner = `
@@ -59,19 +38,16 @@ Elk Breakpoint Help
 ===================
 `
 
-var commandsHelp = `
-Available Commands:
-  :continue, :c           Exit the breakpoint and continue code execution
-  :quit, :q, exit         Exit the program
-  :help, :h, help         Print this help message
-  :variables, :v          Inspect the currently available variables
-  :stack, :s              Inspect the values on the VM's stack
-  :disassemble, :disasm   Disassemble the bytecode and print it
-`
+var Commands = append(
+	[]prompt.Command{
+		{Names: []string{":continue", ":c"}, Description: " Exit the breakpoint and continue code execution"},
+	},
+	prompt.Commands...,
+)
 
 func (e *evaluator) evaluate(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -87,36 +63,36 @@ func (e *evaluator) evaluate(input string) {
 		e.thread.Bytecode().DisassembleStdout()
 		return
 	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
+		fn, dl = e.ElkTypechecker.DumpVariablesForBreakpoint(sourceName, e.compilerContext.Location)
 	case ":h", ":help", "help":
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
-		fn, dl = e.elkTypechecker.CheckBreakpointSource(sourceName, input, e.deepCopyPrepend())
+		fn, dl = e.ElkTypechecker.CheckBreakpointSource(sourceName, input, e.DeepCopyPrepend())
 	}
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	programNode, ok := e.elkTypechecker.ASTCache.Get(sourceName)
+	programNode, ok := e.ElkTypechecker.ASTCache.Get(sourceName)
 	if ok {
-		using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
-		e.prepend = e.usingToPrepend(using)
+		using := e.ElkTypechecker.ExtractTopLevelUsing(programNode)
+		e.Prepend = e.usingToPrepend(using)
 	}
 
 	startTime := value.TimeNow()
@@ -151,26 +127,8 @@ func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.State
 	return result
 }
 
-func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
-	if len(e.prepend) < 1 {
-		return nil
-	}
-
-	result := make([]ast.StatementNode, len(e.prepend))
-
-	for i, statement := range e.prepend {
-		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
-	}
-
-	return result
-}
-
 func printHelp() {
-	fmt.Print(helpBanner)
-	fmt.Print(prompt.KeyBindsHelp)
-	fmt.Println()
-	fmt.Print(commandsHelp)
-	fmt.Println()
+	prompt.PrintHelp(helpBanner, Commands)
 }
 
 type BreakpointHandler struct{}
@@ -179,7 +137,7 @@ func (bh BreakpointHandler) RunBreakpoint(thread *vm.Thread, context value.Value
 	return Run(thread, context.AsReference().(*compiler.BytecodeBreakpointContext))
 }
 
-func NewPrompt(executor goprompt.Executor) (*goprompt.Prompt, error) {
+func NewPrompt(evaluator *evaluator) (*goprompt.Prompt, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -187,7 +145,7 @@ func NewPrompt(executor goprompt.Executor) (*goprompt.Prompt, error) {
 
 	breakpointHistoryFilePath := filepath.Join(cwd, ".elk_breakpoint_history")
 	p := prompt.New(
-		executor,
+		&evaluator.Evaluator,
 		goprompt.WithPrefix("!> "),
 		goprompt.WithPrefixTextColor(goprompt.Yellow),
 		goprompt.WithFSHistory(breakpointHistoryFilePath),
@@ -198,12 +156,12 @@ func NewPrompt(executor goprompt.Executor) (*goprompt.Prompt, error) {
 // Start the REPL.
 func Run(thread *vm.Thread, context *compiler.BytecodeBreakpointContext) error {
 	eval := newEvaluator(thread, context)
-	p, err := NewPrompt(eval.evaluate)
+	p, err := NewPrompt(eval)
 	if err != nil {
 		return err
 	}
 
-	eval.prompt = p
+	eval.Prompt = p
 	p.Run()
 	return nil
 }
@@ -213,13 +171,17 @@ func newEvaluator(thread *vm.Thread, context *compiler.BytecodeBreakpointContext
 
 	printLocation(context.Location)
 
-	return &evaluator{
+	eval := &evaluator{
+		Commands:        Commands,
 		thread:          thread,
-		elkTypechecker:  typechecker,
+		ElkTypechecker:  typechecker,
 		checkerContext:  context.TypecheckerContext.(*checker.BreakpointContext),
 		compilerContext: context,
-		sourceMap:       make(map[string]string),
+		SourceMap:       make(map[string]string),
 	}
+	eval.Executor = eval.evaluate
+	eval.Completer = eval.Complete
+	return eval
 }
 
 func printLocation(loc *position.Location) {

@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::TimeSpan
@@ -22,7 +23,7 @@ func initTimeSpan() {
 	c = value.TimeSpanClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var hours int
 			if !args[1].IsUndefined() {

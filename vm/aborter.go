@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::Aborter
@@ -53,7 +54,7 @@ func initAborter() {
 	c = value.AborterClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			var parent *value.Aborter
 			if args[1].IsNotUndefined() {

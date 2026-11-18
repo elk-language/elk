@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/elk-language/elk/value/symbol"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
@@ -13,7 +14,7 @@ func initFloatLiteralNode() {
 	c := value.FloatLiteralNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argValue := (string)(args[1].MustReference().(value.String))
 			_, err := strconv.ParseFloat(argValue, 64)

@@ -16,6 +16,8 @@ type Mixin struct {
 	NamespaceBase
 }
 
+var _ Namespace = &Mixin{}
+
 func (m *Mixin) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(m, parent) {
 	case TraverseBreak:

@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Std::WaitGroup
@@ -10,7 +11,7 @@ func initWaitGroup() {
 	c := value.WaitGroupClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
 			self := (*value.WaitGroup)(args[0].Pointer())
 			nVal := args[1]

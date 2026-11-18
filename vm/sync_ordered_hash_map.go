@@ -54,7 +54,7 @@ func initSyncOrderedHashMap() {
 	c := value.SyncOrderedHashMapClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*SyncOrderedHashMapOfValue)
 			entries := args[1]

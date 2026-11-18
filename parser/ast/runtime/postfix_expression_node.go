@@ -5,6 +5,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -12,7 +13,7 @@ func initPostfixExpressionNode() {
 	c := value.PostfixExpressionNodeClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			argOp := (*token.Token)(args[1].MustReference().(*value.Token))
 			argExpression := args[2].MustReference().(ast.ExpressionNode)

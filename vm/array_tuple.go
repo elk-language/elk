@@ -13,7 +13,7 @@ func initArrayTuple() {
 	c := value.ArrayTupleClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*value.ArrayTupleOfValue)
 			entries := args[1]

@@ -1804,7 +1804,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(&vm.CallSiteInfo{
-										Name:          value.ToSymbol("#box_of_ivar_index"),
+										Name:          value.ToSymbol("#__box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
 								},
@@ -1943,7 +1943,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(&vm.CallSiteInfo{
-										Name:          value.ToSymbol("#box_of_ivar_index"),
+										Name:          value.ToSymbol("#__box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
 								},
@@ -2077,7 +2077,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 								},
 								[]value.Value{
 									value.Ref(&vm.CallSiteInfo{
-										Name:          value.ToSymbol("#box_of_ivar_index"),
+										Name:          value.ToSymbol("#__box_of_ivar_index"),
 										ArgumentCount: 1,
 									}),
 								},
@@ -2172,7 +2172,7 @@ func TestBytecodeInstanceVariables(t *testing.T) {
 								[]value.Value{
 									value.ToSymbol("foo").ToValue(),
 									value.Ref(&vm.CallSiteInfo{
-										Name:          value.ToSymbol("#box_of_ivar_name"),
+										Name:          value.ToSymbol("#__box_of_ivar_name"),
 										ArgumentCount: 1,
 									}),
 								},

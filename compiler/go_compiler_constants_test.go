@@ -40,9 +40,9 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym9 = value.ToSymbol("main")   // main
-var sym11 = value.ToSymbol("baz")   // baz
-var sym12 = value.ToSymbol("#init") // #init
+var sym9 = value.ToSymbol("main")     // main
+var sym11 = value.ToSymbol("baz")     // baz
+var sym12 = value.ToSymbol("#__init") // #__init
 var cc_main_1 = &vm.CallCache{}
 var sym13 = value.ToSymbol("RED") // RED
 var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
@@ -56,9 +56,9 @@ var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 var const0 *value.Class            // Color
 var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
-var sym2 = value.ToSymbol("<main>")       // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+var sym1 = value.ToSymbol("Color.:#__init") // Color.:#__init
+var sym2 = value.ToSymbol("<main>")         // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#__init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -154,7 +154,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_1, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_1, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -170,7 +170,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(255)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_2, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_2, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -186,7 +186,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(255)).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_3, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym12, &cc_main_3, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -237,7 +237,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Color
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
@@ -283,8 +283,8 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym6 = value.ToSymbol("main")  // main
-var sym8 = value.ToSymbol("#init") // #init
+var sym6 = value.ToSymbol("main")    // main
+var sym8 = value.ToSymbol("#__init") // #__init
 var cc_main_1 = &vm.CallCache{}
 var sym9 = value.ToSymbol("RED") // RED
 var const1 value.Value           // const Color::RED: Color, loc: <main>:3:6
@@ -298,9 +298,9 @@ var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 var const0 *value.Class            // Color
 var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
-var sym2 = value.ToSymbol("<main>")       // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+var sym1 = value.ToSymbol("Color.:#__init") // Color.:#__init
+var sym2 = value.ToSymbol("<main>")         // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#__init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -360,7 +360,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_1, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_1, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -376,7 +376,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(255)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_2, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_2, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -392,7 +392,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(255)).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_3, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym8, &cc_main_3, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -439,7 +439,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Color
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
@@ -481,10 +481,10 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym6 = value.ToSymbol("main")  // main
-var sym8 = value.ToSymbol("==")    // ==
-var fn_method1 vm.NativeFunction   // Std::Value.:==
-var sym9 = value.ToSymbol("#init") // #init
+var sym6 = value.ToSymbol("main")    // main
+var sym8 = value.ToSymbol("==")      // ==
+var fn_method1 vm.NativeFunction     // Std::Value.:==
+var sym9 = value.ToSymbol("#__init") // #__init
 var cc_main_1 = &vm.CallCache{}
 var sym10 = value.ToSymbol("RED") // RED
 var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
@@ -498,9 +498,9 @@ var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 var const0 *value.Class            // Color
 var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
-var sym2 = value.ToSymbol("<main>")       // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+var sym1 = value.ToSymbol("Color.:#__init") // Color.:#__init
+var sym2 = value.ToSymbol("<main>")         // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#__init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -561,7 +561,7 @@ func main() { // loc: <main>
 	t1[2] = (value.UInt8(0)).ToValue()
 	t1[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_1, t1...) // receiver: %self, name: #init
+	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_1, t1...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -577,7 +577,7 @@ func main() { // loc: <main>
 	t1[2] = (value.UInt8(255)).ToValue()
 	t1[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_2, t1...) // receiver: %self, name: #init
+	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_2, t1...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -593,7 +593,7 @@ func main() { // loc: <main>
 	t1[2] = (value.UInt8(0)).ToValue()
 	t1[3] = (value.UInt8(255)).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_3, t1...) // receiver: %self, name: #init
+	t2, err = thread.CallMethodByNameWithCache(sym9, &cc_main_3, t1...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -649,7 +649,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Color
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))
@@ -699,7 +699,7 @@ var sym8 = value.ToSymbol("==")        // ==
 var fn_method1 vm.NativeFunction       // Std::Value.:==
 var sym9 = value.ToSymbol("println@1") // println@1
 var fn_method2 vm.NativeFunction       // Std::Kernel::println@1
-var sym10 = value.ToSymbol("#init")    // #init
+var sym10 = value.ToSymbol("#__init")  // #__init
 var cc_main_1 = &vm.CallCache{}
 var sym11 = value.ToSymbol("RED") // RED
 var const1 value.Value            // const Color::RED: Color, loc: <main>:3:6
@@ -713,9 +713,9 @@ var const3 value.Value             // const Color::BLUE: Color, loc: <main>:5:6
 var const0 *value.Class            // Color
 var sym0 = value.ToSymbol("Color") // Color
 
-var sym1 = value.ToSymbol("Color.:#init") // Color.:#init
-var sym2 = value.ToSymbol("<main>")       // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#init, loc: <main>:10:6
+var sym1 = value.ToSymbol("Color.:#__init") // Color.:#__init
+var sym2 = value.ToSymbol("<main>")         // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.UInt8, l1 value.UInt8, l2 value.UInt8) (result value.Value, err value.Value) { // method: Color.:#__init, loc: <main>:10:6
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -777,7 +777,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(3)
-	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_1, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_1, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -793,7 +793,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(255)).ToValue()
 	t2[3] = (value.UInt8(0)).ToValue()
 	callFrame.SetNativeLineNumber(4)
-	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_2, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_2, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -809,7 +809,7 @@ func main() { // loc: <main>
 	t2[2] = (value.UInt8(0)).ToValue()
 	t2[3] = (value.UInt8(255)).ToValue()
 	callFrame.SetNativeLineNumber(5)
-	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_3, t2...) // receiver: %self, name: #init
+	t1, err = thread.CallMethodByNameWithCache(sym10, &cc_main_3, t2...) // receiver: %self, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -878,7 +878,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // Color
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], (args[1]).AsUInt8(), (args[2]).AsUInt8(), (args[3]).AsUInt8())
 		return result, err
 	}, vm.DefWithParameters(3))

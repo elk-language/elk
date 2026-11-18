@@ -12,7 +12,7 @@ func initError() {
 	c := value.ElkTypeCheckerErrorClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*value.Object)
 			message := args[1]

@@ -3,6 +3,7 @@ package runtime
 import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/elk-language/elk/vm"
 )
 
@@ -35,7 +36,7 @@ func initLexer() {
 	c = value.ElkLexerClass
 	vm.Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(_ *vm.Thread, args []value.Value) (value.Value, value.Value) {
 			source := string(args[1].AsReference().(value.String))
 

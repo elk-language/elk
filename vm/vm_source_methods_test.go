@@ -150,7 +150,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 				::Foo(2)
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(25, 4, 5), P(29, 4, 9)), "expected 0 arguments in call to `Foo.:#init`, got 1"),
+				diagnostic.NewFailure(L(P(25, 4, 5), P(29, 4, 9)), "expected 0 arguments in call to `Foo.:#__init`, got 1"),
 			},
 		},
 		"instantiate a class with an initialiser without arguments": {
@@ -162,7 +162,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 				::Foo()
 			`,
 			wantCompileErr: diagnostic.DiagnosticList{
-				diagnostic.NewFailure(L(P(54, 6, 5), P(58, 6, 9)), "argument `a` is missing in call to `Foo.:#init`"),
+				diagnostic.NewFailure(L(P(54, 6, 5), P(58, 6, 9)), "argument `a` is missing in call to `Foo.:#__init`"),
 			},
 		},
 		"instantiate a class with an initialiser with arguments": {
@@ -209,12 +209,12 @@ func TestVMSource_Alias(t *testing.T) {
 		"add an alias to a builtin method in Std::Int": {
 			source: `
 				sealed primitive noinit class ::Std::Int < Value
-					alias add +
+					alias str to_string
 				end
 
-				3.add(4)
+				3.str
 			`,
-			wantStackTop: value.SmallInt(7).ToValue(),
+			wantStackTop: value.String("3").ToValue(),
 		},
 		"add an alias to a nonexistent method": {
 			source: `

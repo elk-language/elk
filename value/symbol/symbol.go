@@ -10,6 +10,23 @@ import (
 	"github.com/cespare/xxhash/v2"
 )
 
+const ReservedIdentifierPrefix = "#__"
+
+// ReservedIdentifierSymbol builds a compiler-reserved identifier symbol.
+func ReservedIdentifierSymbol(name string) Symbol {
+	return ToSymbol(ReservedIdentifierName(name))
+}
+
+// ReservedIdentifierName builds a compiler-reserved identifier.
+func ReservedIdentifierName(name string) string {
+	return ReservedIdentifierPrefix + name
+}
+
+// IsReservedIdentifierName reports whether name was built with ReservedIdentifierName.
+func IsReservedIdentifierName(name string) bool {
+	return strings.HasPrefix(name, ReservedIdentifierPrefix)
+}
+
 // Numerical ID of a particular symbol.
 type Symbol int
 

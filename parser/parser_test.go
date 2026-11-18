@@ -1251,11 +1251,13 @@ func TestConstantLookup(t *testing.T) {
 				L(S(P(0, 1, 1), P(7, 1, 8))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(5, 1, 6), P(7, 1, 8))),
-						ast.NewInvalidNode(
-							L(S(P(5, 1, 6), P(7, 1, 8))), V(L(S(P(5, 1, 6), P(7, 1, 8))),
-								token.INT,
-								"123",
+						L(S(P(0, 1, 1), P(7, 1, 8))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(7, 1, 8))),
+							ast.NewPublicIdentifierNode(L(S(P(0, 1, 1), P(2, 1, 3))), "foo"),
+							ast.NewInvalidNode(
+								L(S(P(5, 1, 6), P(7, 1, 8))),
+								V(L(S(P(5, 1, 6), P(7, 1, 8))), token.INT, "123"),
 							),
 						),
 					),
@@ -1352,10 +1354,14 @@ func TestMethodLookup(t *testing.T) {
 				L(S(P(0, 1, 1), P(8, 1, 9))),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						L(S(P(5, 1, 6), P(8, 1, 9))),
-						ast.NewInvalidNode(
-							L(S(P(5, 1, 6), P(8, 1, 9))),
-							V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_bar"),
+						L(S(P(0, 1, 1), P(8, 1, 9))),
+						ast.NewConstantLookupNode(
+							L(S(P(0, 1, 1), P(8, 1, 9))),
+							ast.NewPublicConstantNode(L(S(P(0, 1, 1), P(2, 1, 3))), "Foo"),
+							ast.NewInvalidNode(
+								L(S(P(5, 1, 6), P(8, 1, 9))),
+								V(L(S(P(5, 1, 6), P(8, 1, 9))), token.PRIVATE_IDENTIFIER, "_bar"),
+							),
 						),
 					),
 				},

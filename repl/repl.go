@@ -29,71 +29,14 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	goprompt "github.com/elk-language/go-prompt"
-	pstrings "github.com/elk-language/go-prompt/strings"
 )
 
 type evaluator struct {
-	executor       goprompt.Executor
-	ctx            context.Context
-	vm             *vm.Thread
-	inspectStack   bool
-	sourceMap      map[string]string
-	inputIndex     int
-	elkTypechecker *checker.Checker
-	goTypechecker  *compilerTypes.GoTypechecker
-	prepend        []ast.StatementNode
-	prompt         *goprompt.Prompt
-}
-
-func (e *evaluator) sourceName() string {
-	return fmt.Sprintf("<repl:%d>", e.inputIndex)
-}
-
-func (e *evaluator) deleteSource(sourceName string) {
-	if e.elkTypechecker != nil && !e.elkTypechecker.DefinedMacros() {
-		delete(e.sourceMap, sourceName)
-	}
-}
-
-func (e *evaluator) addSource(input string) string {
-	sourceName := e.sourceName()
-	e.inputIndex++
-	e.sourceMap[sourceName] = input
-	return sourceName
-}
-
-func (e *evaluator) deepCopyPrepend() []ast.StatementNode {
-	if len(e.prepend) < 1 {
-		return nil
-	}
-
-	result := make([]ast.StatementNode, len(e.prepend))
-
-	for i, statement := range e.prepend {
-		result[i] = ast.DeepCopy(statement).(ast.StatementNode)
-	}
-
-	return result
-}
-
-func (e *evaluator) usingToPrepend(using []*ast.UsingExpressionNode) []ast.StatementNode {
-	if len(using) < 1 {
-		return nil
-	}
-
-	result := make([]ast.StatementNode, len(using))
-
-	for i, usingElement := range using {
-		copy := ast.DeepCopy(usingElement).(*ast.UsingExpressionNode)
-		copy.SetType(nil)
-
-		result[i] = ast.NewExpressionStatementNode(
-			copy.Location(),
-			copy,
-		)
-	}
-
-	return result
+	prompt.Evaluator
+	ctx           context.Context
+	vm            *vm.Thread
+	inspectStack  bool
+	goTypechecker *compilerTypes.GoTypechecker
 }
 
 func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
@@ -114,17 +57,11 @@ func (e *evaluator) programContainsBreakpoint(program *ast.ProgramNode) bool {
 	return result
 }
 
+const underscoreDocComment = "Contains the value returned by the last execution"
+
 func (e *evaluator) evaluate(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
-
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-		e.vm = vm.New()
-
-		e.elkTypechecker.DefineLocal("_", types.Nil{}, true, true)
-	}
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -143,35 +80,35 @@ func (e *evaluator) evaluate(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+		fn, dl = e.ElkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	default:
-		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+		fn, dl = e.ElkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.DeepCopyPrepend())
 	}
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	programNode, _ := e.elkTypechecker.ASTCache.Get(sourceName)
-	using := e.elkTypechecker.ExtractTopLevelUsing(programNode)
-	e.prepend = e.usingToPrepend(using)
+	programNode, _ := e.ElkTypechecker.ASTCache.Get(sourceName)
+	using := e.ElkTypechecker.ExtractTopLevelUsing(programNode)
+	e.Prepend = e.UsingToPrepend(using)
 
-	resultType := e.elkTypechecker.TypeOf(programNode)
-	e.elkTypechecker.DefineLocal("_", resultType, true, true)
+	resultType := e.ElkTypechecker.TypeOf(programNode)
+	e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", resultType, true, true, nil)
 
 	eval := func(spinner *prompt.Spinner, cd prompt.SpinnerCaptureData) error {
 		executionFinishedCtx, markExecutionFinished := context.WithCancel(e.ctx)
@@ -253,8 +190,8 @@ func (e *evaluator) evaluate(input string) {
 
 // parses the input and prints it to the output
 func (e *evaluator) parse(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -264,7 +201,7 @@ func (e *evaluator) parse(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
@@ -277,7 +214,7 @@ func (e *evaluator) parse(input string) {
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -292,13 +229,8 @@ func (e *evaluator) parse(input string) {
 
 // compiles the input to bytecode and dumps it to the output
 func (e *evaluator) disassemble(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
-
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	var fn *vm.BytecodeFunction
 	var dl diagnostic.DiagnosticList
@@ -308,31 +240,31 @@ func (e *evaluator) disassemble(input string) {
 		fmt.Println()
 		return
 	case ":v", ":variables":
-		fn, dl = e.elkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
+		fn, dl = e.ElkTypechecker.DumpVariablesForREPL(sourceName, position.DefaultLocation)
 	case ":h", ":help", "help":
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
-		fn, dl = e.elkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.deepCopyPrepend())
+		fn, dl = e.ElkTypechecker.CheckSourceREPLBytecode(sourceName, input, e.DeepCopyPrepend())
 	}
 
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -343,8 +275,8 @@ func (e *evaluator) disassemble(input string) {
 
 // compiles the input to Go source code and dumps it to the output
 func (e *evaluator) transpile(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -354,18 +286,18 @@ func (e *evaluator) transpile(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
 
 	var buff bytes.Buffer
-	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField16{}, &buff, vm.DefaultThreadPool)
+	cmp, dl := checker.CheckSourceNative(sourceName, input, nil, bitfield.BitField32{}, &buff, vm.DefaultThreadPool)
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
@@ -398,8 +330,8 @@ func (e *evaluator) transpile(input string) {
 
 // compiles the input to Go source code and executes it
 func (e *evaluator) native(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -409,7 +341,7 @@ func (e *evaluator) native(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
@@ -419,7 +351,7 @@ func (e *evaluator) native(input string) {
 		if dl, ok := errors.AsType[diagnostic.DiagnosticList](err); ok {
 			fmt.Println()
 
-			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+			str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 			if err != nil {
 				panic(err)
 			}
@@ -449,8 +381,8 @@ func compileRunNative(sourceName, input string) error {
 
 // parses, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -460,20 +392,16 @@ func (e *evaluator) typecheck(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
 
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
-	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	_, dl := e.ElkTypechecker.CheckSourceREPL(sourceName, input, e.Prepend)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
-	for _, ast := range e.elkTypechecker.ASTCache.Map {
+	for _, ast := range e.ElkTypechecker.ASTCache.Map {
 		if ast.IsBuiltin {
 			continue
 		}
@@ -483,14 +411,14 @@ func (e *evaluator) typecheck(input string) {
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
@@ -501,8 +429,8 @@ func (e *evaluator) typecheck(input string) {
 
 // parses, typechecks, expands macros and prints the AST to the output
 func (e *evaluator) expand(input string) {
-	sourceName := e.addSource(input)
-	defer e.deleteSource(sourceName)
+	sourceName := e.AddSource(input)
+	defer e.DeleteSource(sourceName)
 
 	switch input {
 	case ":q", ":quit", "exit":
@@ -512,36 +440,32 @@ func (e *evaluator) expand(input string) {
 		printHelp()
 		return
 	case ":clear", "clear":
-		e.prompt.ClearScreen()
+		e.Prompt.ClearScreen()
 		return
 	default:
 	}
 
-	if e.elkTypechecker == nil {
-		e.elkTypechecker = checker.New()
-		e.elkTypechecker.SetREPL(true)
-	}
-	_, dl := e.elkTypechecker.CheckSourceREPL(sourceName, input, e.prepend)
-	using, _ := e.elkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
-	e.prepend = e.usingToPrepend(using)
+	_, dl := e.ElkTypechecker.CheckSourceREPL(sourceName, input, e.Prepend)
+	using, _ := e.ElkTypechecker.ExtractTopLevelUsingFromFile(sourceName)
+	e.Prepend = e.UsingToPrepend(using)
 
 	if dl != nil {
 		fmt.Println()
 
-		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.sourceMap)
+		str, err := dl.HumanStringWithSourceMap(true, lexer.Colorizer{}, e.SourceMap)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(str)
 		isFailure := dl.IsFailure()
-		e.elkTypechecker.ClearErrors()
+		e.ElkTypechecker.ClearErrors()
 		if isFailure {
 			return
 		}
 	}
 
-	ast, ok := e.elkTypechecker.ASTCache.GetUnsafe(sourceName)
+	ast, ok := e.ElkTypechecker.ASTCache.GetUnsafe(sourceName)
 	if !ok {
 		panic(fmt.Sprintf("cannot get AST of %s in REPL", sourceName))
 	}
@@ -557,11 +481,6 @@ func (e *evaluator) lex(input string) {
 		fmt.Printf("%s\n", lexer.Colorize(t.Inspect()))
 	}
 	fmt.Println()
-}
-
-// Handles autocomplete
-func (e *evaluator) completer(doc goprompt.Document) (suggestions []goprompt.Suggest, startChar, endChar pstrings.RuneNumber) {
-	return
 }
 
 type Options struct {
@@ -585,12 +504,11 @@ func Run(ctx context.Context, opts *Options) error {
 	}
 
 	replHistoryFilePath := filepath.Join(elkDir, ".repl_history")
-	eval.prompt = prompt.New(
-		eval.executor,
+	eval.Prompt = prompt.New(
+		&eval.Evaluator,
 		goprompt.WithFSHistory(replHistoryFilePath),
-		goprompt.WithCompleter(eval.completer),
 	)
-	eval.prompt.Run()
+	eval.Prompt.Run()
 
 	return nil
 }
@@ -600,29 +518,17 @@ Elk REPL Help
 =============
 `
 
-var commandsHelp = `
-Available Commands:
-  :quit, :q, exit         Exit the program
-  :help, :h, help         Print this help message
-  :variables, :v          Inspect the currently available variables
-  :stack, :s              Inspect the values on the VM's stack
-  :disassemble, :disasm   Disassemble the bytecode of the previous input and print it
-  :clear, clear           Clear the screen
-`
-
 func printHelp() {
-	fmt.Print(helpBanner)
-	fmt.Print(prompt.KeyBindsHelp)
-	fmt.Println()
-	fmt.Print(commandsHelp)
-	fmt.Println()
+	prompt.PrintHelp(helpBanner, prompt.Commands)
 }
 
 func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 	eval := &evaluator{
+		Commands:     prompt.Commands,
 		ctx:          ctx,
 		inspectStack: opts.InspectStack,
-		sourceMap:    make(map[string]string),
+		SourceMap:    make(map[string]string),
+		Completer:    goprompt.NoopCompleter,
 	}
 	eval.setExecutor(opts)
 	return eval
@@ -630,12 +536,17 @@ func newEvaluator(ctx context.Context, opts *Options) *evaluator {
 
 func (e *evaluator) setExecutor(opts *Options) {
 	if opts.Lex {
-		e.executor = e.lex
+		e.Executor = e.lex
 		info.CurrentMode = info.ReplLex
 		return
 	}
 	if opts.Disassemble {
-		e.executor = e.disassemble
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
+		e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
+
+		e.Completer = e.Complete
+		e.Executor = e.disassemble
 		info.CurrentMode = info.ReplDisassemble
 		return
 	}
@@ -646,31 +557,46 @@ func (e *evaluator) setExecutor(opts *Options) {
 		}
 
 		e.goTypechecker = checker
-		e.executor = e.transpile
+		e.Executor = e.transpile
 		info.CurrentMode = info.ReplTranspile
 		return
 	}
 	if opts.Native {
-		e.executor = e.native
+		e.Executor = e.native
 		info.CurrentMode = info.ReplNative
 		return
 	}
 	if opts.Parse {
-		e.executor = e.parse
+		e.Executor = e.parse
 		info.CurrentMode = info.ReplParse
 		return
 	}
 	if opts.Typecheck {
-		e.executor = e.typecheck
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
+
+		e.Completer = e.Complete
+		e.Executor = e.typecheck
 		info.CurrentMode = info.ReplTypecheck
 		return
 	}
 	if opts.Expand {
-		e.executor = e.expand
+		e.ElkTypechecker = checker.New()
+		e.ElkTypechecker.SetREPL(true)
+
+		e.Completer = e.Complete
+		e.Executor = e.expand
 		info.CurrentMode = info.ReplExpand
 		return
 	}
 
-	e.executor = e.evaluate
+	e.ElkTypechecker = checker.New()
+	e.ElkTypechecker.SetREPL(true)
+	e.ElkTypechecker.SetLSP(true)
+	e.vm = vm.New()
+	e.ElkTypechecker.DefineLocal(underscoreDocComment, "_", types.Nil{}, true, true, nil)
+
+	e.Completer = e.Complete
+	e.Executor = e.evaluate
 	info.CurrentMode = info.ReplInterpretMode
 }

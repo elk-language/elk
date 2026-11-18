@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::BeginlessClosedRange
@@ -30,7 +31,7 @@ func initBeginlessClosedRange() {
 	// otherwise `false` will be returned
 	Def(
 		c,
-		"#contains",
+		symbol.ReservedIdentifierName("contains"),
 		func(vm *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].MustReference().(*value.BeginlessClosedRange)
 			other := args[1]

@@ -31,7 +31,7 @@ func initOrderedHashMap() {
 	c := value.OrderedHashMapClass
 	Def(
 		c,
-		"#init",
+		symbol.ReservedIdentifierName("init"),
 		func(thread *Thread, args []value.Value) (value.Value, value.Value) {
 			self := args[0].AsReference().(*OrderedHashMapOfValue)
 			entries := args[1]

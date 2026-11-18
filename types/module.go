@@ -16,6 +16,8 @@ type Module struct {
 	NamespaceBase
 }
 
+var _ Namespace = &Module{}
+
 func (m *Module) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(m, parent) {
 	case TraverseBreak:

@@ -610,8 +610,8 @@ var sym0 = value.ToSymbol("main")                           // main
 var sym1 = value.ToSymbol("<main>")                         // <main>
 var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
 var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")                          // #init
-var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
+var sym3 = value.ToSymbol("#__init")                        // #__init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#__init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -652,7 +652,7 @@ func main() { // loc: <main>
 	t2[1] = value.Undefined
 	t2[2] = value.Undefined
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -689,8 +689,8 @@ var sym0 = value.ToSymbol("main")                           // main
 var sym1 = value.ToSymbol("<main>")                         // <main>
 var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
 var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")                          // #init
-var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
+var sym3 = value.ToSymbol("#__init")                        // #__init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#__init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -731,7 +731,7 @@ func main() { // loc: <main>
 	t2[1] = value.Undefined
 	t2[2] = value.Undefined
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -768,8 +768,8 @@ var sym0 = value.ToSymbol("main")                           // main
 var sym1 = value.ToSymbol("<main>")                         // <main>
 var sym2 = value.ToSymbol("Std::Elk::AST::ListPatternNode") // Std::Elk::AST::ListPatternNode
 var const0 *value.Class                                     // Std::Elk::AST::ListPatternNode
-var sym3 = value.ToSymbol("#init")                          // #init
-var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#init
+var sym3 = value.ToSymbol("#__init")                        // #__init
+var fn_method0 vm.NativeFunction                            // Std::Elk::AST::ListPatternNode.:#__init
 
 func main() { // loc: <main>
 	thread := vm.New()
@@ -810,7 +810,7 @@ func main() { // loc: <main>
 	t2[1] = value.Undefined
 	t2[2] = value.Undefined
 	callFrame.SetNativeLineNumber(3)
-	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #init
+	t1, err = fn_method0(thread, t2) // receiver: Std::Elk::AST::ListPatternNode, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1376,16 +1376,16 @@ var _ = value.Truthy
 
 func init() { elk.InitNative() }
 
-var sym4 = value.ToSymbol("main")  // main
-var sym6 = value.ToSymbol("#init") // #init
+var sym4 = value.ToSymbol("main")    // main
+var sym6 = value.ToSymbol("#__init") // #__init
 var cc_main_1 = &vm.CallCache{}
 
 var const0 *value.Class                // BoxString
 var sym0 = value.ToSymbol("BoxString") // BoxString
 
-var sym1 = value.ToSymbol("BoxString.:#init") // BoxString.:#init
-var sym2 = value.ToSymbol("<main>")           // <main>
-func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: BoxString.:#init, loc: <main>:13:5
+var sym1 = value.ToSymbol("BoxString.:#__init") // BoxString.:#__init
+var sym2 = value.ToSymbol("<main>")             // <main>
+func fn_method0(thread *vm.Thread, self value.Value, l0 value.Value) (result value.Value, err value.Value) { // method: BoxString.:#__init, loc: <main>:13:5
 	var callFrame *vm.CallFrame
 	_ = callFrame
 
@@ -1432,7 +1432,7 @@ func main() { // loc: <main>
 	methodDefinitions()
 	callFrame = thread.AddNativeCallFrame(sym2, sym4, 1)
 	defer thread.PopNativeCallFrame()
-	t1, err = fn_method0(thread, const0.CreateInstance(), (value.String("foo")).ToValue()) // receiver: BoxString, name: #init
+	t1, err = fn_method0(thread, const0.CreateInstance(), (value.String("foo")).ToValue()) // receiver: BoxString, name: #__init
 	if err.IsNotUndefined() {
 		thread.CaptureStackTrace()
 		thread.Panic(err)
@@ -1482,7 +1482,7 @@ func methodDefinitions() {
 	_ = class
 
 	class = const0 // BoxString
-	vm.Def(class, "#init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
+	vm.Def(class, "#__init", func(thread *vm.Thread, args []value.Value) (value.Value, value.Value) {
 		result, err := fn_method0(thread, args[0], args[1])
 		return result, err
 	}, vm.DefWithParameters(1))
