@@ -204,6 +204,23 @@ func (l *localEnvironment) copy() *localEnvironment {
 	}
 }
 
+// Iterates over every local accessible to this local env and its parents
+func (l *localEnvironment) allLocals() iter.Seq2[symbol.Symbol, *local] {
+	return func(yield func(name symbol.Symbol, local *local) bool) {
+		currentEnv := l
+
+		for currentEnv != nil {
+			for localName, local := range currentEnv.locals {
+				if !yield(localName, local) {
+					return
+				}
+			}
+
+			currentEnv = currentEnv.parent
+		}
+	}
+}
+
 func (l *localEnvironment) deepCloneLocalsForBreakpoint(localMapping map[*local]*local) map[symbol.Symbol]*local {
 	result := make(map[symbol.Symbol]*local)
 	for name, local := range l.locals {

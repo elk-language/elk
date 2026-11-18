@@ -1366,6 +1366,7 @@ func (c *Checker) checkMethod(
 		}
 	}
 
+	c.declareSpecialLocals()
 	checkedMethod.SetHasDefer(c.hasDefer())
 
 	c.setHasDefer(prevHasDefer)
@@ -1375,6 +1376,48 @@ func (c *Checker) checkMethod(
 	c.flags = prevFlags
 	c.catchScopes = prevCatchScopes
 	return typedReturnTypeNode, typedThrowTypeNode
+}
+
+// Declare internal locals for self, return type, throw type
+func (c *Checker) declareSpecialLocals() {
+	selfSymbol := symbol.ReservedIdentifierSymbol("self")
+	c.addLocal(
+		selfSymbol,
+		newLocal(
+			"",
+			selfSymbol,
+			c.selfType,
+			true,
+			true,
+			nil,
+		),
+	)
+
+	returnTypeSymbol := symbol.ReservedIdentifierSymbol("return_type")
+	c.addLocal(
+		returnTypeSymbol,
+		newLocal(
+			"",
+			returnTypeSymbol,
+			c.returnType,
+			true,
+			true,
+			nil,
+		),
+	)
+
+	throwTypeSymbol := symbol.ReservedIdentifierSymbol("return_type")
+	c.addLocal(
+		throwTypeSymbol,
+		newLocal(
+			"",
+			throwTypeSymbol,
+			c.throwType,
+			true,
+			true,
+			nil,
+		),
+	)
 }
 
 func (c *Checker) checkSpecialMethods(name symbol.Symbol, checkedMethod *types.Method, paramNodes []ast.ParameterNode, location *position.Location) {

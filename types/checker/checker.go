@@ -1023,6 +1023,7 @@ func (c *Checker) checkExpressionsInFile(filename string, node *ast.ProgramNode)
 			c.compiler = c.compiler.InitExpressionCompiler(importedAst.Location())
 		}
 		c.pushIsolatedLocalEnv(importedAst.Span())
+		c.declareSpecialLocals()
 		c.checkExpressionsInFile(importPath, importedAst)
 		c.popLocalEnv()
 
@@ -1370,6 +1371,7 @@ func (c *Checker) checkExpressionsWithinModule(node *ast.ModuleDeclarationNode) 
 		c.pushMethodScope(newLocalMethodScope(module, bodySpan))
 		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = module
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1413,6 +1415,7 @@ func (c *Checker) checkExpressionsWithinClass(node *ast.ClassDeclarationNode) {
 		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
 		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = class.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1456,6 +1459,7 @@ func (c *Checker) checkExpressionsWithinMixin(node *ast.MixinDeclarationNode) {
 		c.pushMethodScope(newLocalMethodScope(mixin, bodySpan))
 		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = mixin.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1498,6 +1502,7 @@ func (c *Checker) checkExpressionsWithinInterface(node *ast.InterfaceDeclaration
 		c.pushMethodScope(newLocalMethodScope(iface, bodySpan))
 		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = iface.Singleton()
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(
@@ -1540,6 +1545,7 @@ func (c *Checker) checkExpressionsWithinSingleton(node *ast.SingletonBlockExpres
 		c.pushMethodScope(newLocalMethodScope(class, bodySpan))
 		c.pushIsolatedLocalEnv(bodySpan)
 		c.selfType = c.runtimeEnv.StdSubtype(symbol.C_Class)
+		c.declareSpecialLocals()
 	} else {
 		c.selfType = types.Untyped{}
 		c.addFailure(

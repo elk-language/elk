@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"syscall"
 	"time"
 	"unicode"
@@ -861,6 +862,14 @@ func appendCompletionsToSuggestions(target *[]goprompt.Suggest, source []*checke
 			text = completion.Label
 		case completionTextFieldIdentifier:
 			text = completion.Identifier
+		}
+
+		alreadyPresent := slices.ContainsFunc(*target, func(suggest goprompt.Suggest) bool {
+			return suggest.Label == completion.Label
+		})
+
+		if alreadyPresent {
+			continue
 		}
 
 		*target = append(*target, goprompt.Suggest{

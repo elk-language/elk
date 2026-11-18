@@ -35,43 +35,66 @@ type Completion struct {
 	Description string
 }
 
+func (l *LSPData) getLocalEnv(byteOffset int) *localEnvironment {
+	var narrowestLocalEnv *localEnvironment
+	for _, localEnv := range l.localEnvs.Slice {
+		if byteOffset > 0 && localEnv.span != nil && !localEnv.span.ByteIsWithin(byteOffset) {
+			continue
+		}
+
+		if narrowestLocalEnv == nil {
+			narrowestLocalEnv = localEnv
+			continue
+		}
+		if localEnv.span == nil {
+			continue
+		}
+
+		if narrowestLocalEnv.span.ByteCount() > localEnv.span.ByteCount() {
+			narrowestLocalEnv = localEnv
+			continue
+		}
+	}
+
+	return narrowestLocalEnv
+}
+
 func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion {
 	var result []*Completion
 
 	seenLocals := ds.MakeSet[symbol.Symbol]()
 	lowerName := strings.ToLower(name)
-	for _, localEnv := range slices.Backward(l.localEnvs.Slice) {
-		if byteOffset > 0 && localEnv.span != nil && !localEnv.span.ByteIsWithin(byteOffset) {
+
+	narrowestLocalEnv := l.getLocalEnv(byteOffset)
+	if narrowestLocalEnv == nil {
+		return result
+	}
+	for localName, local := range narrowestLocalEnv.allLocals() {
+		// declaration of the variable is after the current cursor
+		// so it is not available
+		if byteOffset > 0 && local.declaration != nil && byteOffset < local.declaration.Span.EndPos.ByteOffset {
+			continue
+		}
+		if seenLocals.Contains(localName) {
 			continue
 		}
 
-		for localName, local := range symbol.SortKeysIter(localEnv.locals) {
-			// declaration of the variable is after the current cursor
-			// so it is not available
-			if byteOffset > 0 && local.declaration != nil && byteOffset < local.declaration.Span.EndPos.ByteOffset {
-				continue
-			}
-			if seenLocals.Contains(localName) {
-				continue
-			}
-
-			seenLocals.Add(localName)
-			localNameString := localName.String()
-			if symbol.IsReservedIdentifierName(localNameString) {
-				continue
-			}
-
-			lowerLocalName := strings.ToLower(localNameString)
-			if !strings.Contains(lowerLocalName, lowerName) {
-				continue
-			}
-
-			desc := fmt.Sprintf("`%s` %s", local.Inspect(), local.docComment)
-			result = append(result, &Completion{
-				Value:       localNameString,
-				Description: desc,
-			})
+		seenLocals.Add(localName)
+		localNameString := localName.String()
+		if symbol.IsReservedIdentifierName(localNameString) {
+			continue
 		}
+
+		lowerLocalName := strings.ToLower(localNameString)
+		if !strings.Contains(lowerLocalName, lowerName) {
+			continue
+		}
+
+		desc := fmt.Sprintf("`%s` %s", local.Inspect(), local.docComment)
+		result = append(result, &Completion{
+			Value:       localNameString,
+			Description: desc,
+		})
 	}
 
 	sortCompletions(result, lowerName)
@@ -93,6 +116,18 @@ func (l *LSPData) GetFunctionCompletions(checker *Checker, name string, byteOffs
 
 	lowerName := strings.ToLower(name)
 	seenMethods := ds.MakeSet[symbol.Symbol]()
+
+	narrowestLocalEnv := l.getLocalEnv(byteOffset)
+	if narrowestLocalEnv != nil {
+		selfLocal := narrowestLocalEnv.getLocal(symbol.ReservedIdentifierName("self"))
+		if selfLocal != nil {
+			for _, completion := range checker.GetMethodCompletions(selfLocal.typ, name) {
+				result = append(result, completion)
+				seenMethods.Add(symbol.ToSymbol(completion.Identifier))
+			}
+		}
+	}
+
 	for _, methodScope := range slices.Backward(l.methodScopes.Slice) {
 		if byteOffset > 0 && methodScope.span != nil && !methodScope.span.ByteIsWithin(byteOffset) {
 			continue

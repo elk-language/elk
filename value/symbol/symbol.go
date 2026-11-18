@@ -12,6 +12,11 @@ import (
 
 const ReservedIdentifierPrefix = "#__"
 
+// ReservedIdentifierSymbol builds a compiler-reserved identifier symbol.
+func ReservedIdentifierSymbol(name string) Symbol {
+	return ToSymbol(ReservedIdentifierName(name))
+}
+
 // ReservedIdentifierName builds a compiler-reserved identifier.
 func ReservedIdentifierName(name string) string {
 	return ReservedIdentifierPrefix + name
