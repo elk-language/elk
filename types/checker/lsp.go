@@ -92,6 +92,7 @@ func (l *LSPData) GetLocalCompletions(name string, byteOffset int) []*Completion
 
 		desc := fmt.Sprintf("`%s` %s", local.Inspect(), local.docComment)
 		result = append(result, &Completion{
+			Label:       localNameString,
 			Value:       localNameString,
 			Description: desc,
 		})
@@ -240,6 +241,7 @@ func (l *LSPData) GetConstantCompletions(checker *Checker, name string, byteOffs
 			}
 
 			result = append(result, &Completion{
+				Label:       constantNameString,
 				Value:       constantNameString,
 				Description: getDocForSubtype(constant),
 			})
@@ -263,6 +265,7 @@ func (l *LSPData) GetConstantCompletions(checker *Checker, name string, byteOffs
 
 			doc := fmt.Sprintf("`%s` %s", constant.Inspect(), constant.DocComment())
 			result = append(result, &Completion{
+				Label:       constantNameString,
 				Value:       constantNameString,
 				Description: doc,
 			})
@@ -456,6 +459,7 @@ func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode,
 		}
 
 		result = append(result, &Completion{
+			Label:       constantNameString,
 			Value:       constantNameString,
 			Description: getDocForSubtype(constant),
 		})
@@ -479,6 +483,7 @@ func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode,
 
 		doc := fmt.Sprintf("`%s` %s", constant.Inspect(), constant.DocComment())
 		result = append(result, &Completion{
+			Label:       constantNameString,
 			Value:       constantNameString,
 			Description: doc,
 		})
