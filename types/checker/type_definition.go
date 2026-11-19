@@ -73,24 +73,26 @@ func newTypeDefinitionCheckEntry(filename string, constScopes []*constantScope, 
 func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantPlaceholder, subtype, constant types.Type) {
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.NewConstant(
+	newConstant := types.NewConstant(
 		usingConst.DocComment(),
 		usingConst.FullName,
 		constant,
 		usingConst.Declaration(),
-		usingConst.Uses(),
 	)
+	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	placeholder.Container[placeholder.AsName] = newConstant
 
 	placeholder.Sibling.Replaced = true
 	subtypeContainer := placeholder.Sibling.Container
 	usingSubtype := subtypeContainer[placeholder.AsName]
-	subtypeContainer[placeholder.AsName] = types.NewConstant(
+	newSubtype := types.NewConstant(
 		usingSubtype.DocComment(),
 		usingSubtype.FullName,
 		subtype,
 		usingSubtype.Declaration(),
-		usingSubtype.Uses(),
 	)
+	newSubtype.Uses().Slice = append(newSubtype.Uses().Slice, usingSubtype.Uses().Slice...)
+	subtypeContainer[placeholder.AsName] = newSubtype
 }
 
 func (c *Checker) registerNamespaceDeclarationCheck(name string, node ast.ExpressionNode, typ types.Type, isNative bool) {
@@ -115,13 +117,14 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 	placeholder = placeholder.Sibling
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.NewConstant(
+	newConstant := types.NewConstant(
 		usingConst.DocComment(),
 		usingConst.FullName,
 		newType,
 		usingConst.Declaration(),
-		usingConst.Uses(),
 	)
+	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	placeholder.Container[placeholder.AsName] = newConstant
 }
 
 func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {

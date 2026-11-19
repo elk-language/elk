@@ -1,6 +1,8 @@
 package types
 
 import (
+	"iter"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
@@ -60,8 +62,16 @@ func (t *TypeParamNamespace) Declarations() *concurrent.Slice[*position.Location
 	return nil
 }
 
+func (t *TypeParamNamespace) AllDeclarations() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {}
+}
+
 func (t *TypeParamNamespace) AppendDeclaration(*position.Location) {
 	panic("cannot append declarations in a type param namespace")
+}
+
+func (t *TypeParamNamespace) AllUses() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {}
 }
 
 func (t *TypeParamNamespace) Uses() *concurrent.Slice[*position.Location] {

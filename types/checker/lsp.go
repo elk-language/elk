@@ -17,9 +17,10 @@ import (
 // LSPData contains additional typechecker
 // data used by the LSP for a particular file/program node.
 type LSPData struct {
-	localEnvs      concurrent.Slice[*localEnvironment]
-	methodScopes   concurrent.Slice[*methodScope]
-	constantScopes concurrent.Slice[*constantScope]
+	localEnvs       concurrent.Slice[*localEnvironment]
+	methodScopes    concurrent.Slice[*methodScope]
+	constantScopes  concurrent.Slice[*constantScope]
+	IdentifierIndex concurrent.Slice[*IdentifierInstance]
 }
 
 func (l *LSPData) LSPData() {}
@@ -454,7 +455,7 @@ func (c *Checker) GetConstantLookupCompletions(namespaceNode ast.ExpressionNode,
 		}
 
 		lowerConstantName := strings.ToLower(constantNameString)
-		if !strings.Contains(lowerConstantName, lowerName) {
+		if lowerName != "" && !strings.Contains(lowerConstantName, lowerName) {
 			continue
 		}
 
@@ -536,4 +537,17 @@ func sortBySpan(a, b *position.Span) int {
 		return 1
 	}
 	return 0
+}
+
+// Use of an identifier at a particular source code span
+type IdentifierInstance struct {
+	Identifier types.Identifier
+	Span       *position.Span
+}
+
+func NewIdentifierInstance(ident types.Identifier, span *position.Span) *IdentifierInstance {
+	return &IdentifierInstance{
+		Identifier: ident,
+		Span:       span,
+	}
 }

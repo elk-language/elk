@@ -23,6 +23,7 @@ type NamespaceWithIvarIndices interface {
 
 type Namespace interface {
 	Type
+	Identifier
 	Name() string
 	DocComment() string
 	Declaration() *position.Location
@@ -125,7 +126,7 @@ func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironme
 			FullName:    constant.FullName,
 			Type:        DeepCopyEnv(constant.Type, oldEnv, newEnv),
 			docComment:  constant.docComment,
-			uses:        slices.Clone(constant.uses),
+			uses:        constant.uses.CloneUnsafeValue(),
 			declaration: constant.declaration,
 		}
 	}

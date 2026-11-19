@@ -6838,7 +6838,7 @@ func (c *Checker) checkLocalVariableAssignment(name string, node *ast.Assignment
 	assignedType := c.typeOfGuardVoid(node.Right)
 
 	currentVar := variable
-	var shadows []*local
+	var shadows []*Local
 	var canAssign bool
 	for ; currentVar != nil; currentVar = currentVar.shadowOf {
 		if c.isSubtype(assignedType, currentVar.typ, nil) {
@@ -8381,7 +8381,7 @@ func (c *Checker) addUninitialisedLocalError(name string, loc *position.Location
 	)
 }
 
-func (c *Checker) checkIdentifier(value string, loc *position.Location) (*local, types.Type) {
+func (c *Checker) checkIdentifier(value string, loc *position.Location) (*Local, types.Type) {
 	local, _ := c.resolveLocal(value, loc)
 	if local == nil {
 		return nil, types.Untyped{}

@@ -1,6 +1,10 @@
 package concurrent
 
-import "sync"
+import (
+	"iter"
+	"slices"
+	"sync"
+)
 
 type Slice[V any] struct {
 	Slice []V
@@ -18,6 +22,58 @@ func NewSlice[V any]() *Slice[V] {
 func NewSliceWithValues[V any](s []V) *Slice[V] {
 	return &Slice[V]{
 		Slice: s,
+	}
+}
+
+func (s *Slice[V]) All() iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		for i, val := range s.Slice {
+			if !yield(i, val) {
+				break
+			}
+		}
+	}
+}
+
+func (s *Slice[V]) Values() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		for _, val := range s.Slice {
+			if !yield(val) {
+				break
+			}
+		}
+	}
+}
+
+func (s *Slice[V]) Clone() *Slice[V] {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.CloneUnsafe()
+}
+
+func (s *Slice[V]) CloneValue() Slice[V] {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.CloneUnsafeValue()
+}
+
+func (s *Slice[V]) CloneUnsafe() *Slice[V] {
+	return &Slice[V]{
+		Slice: slices.Clone(s.Slice),
+	}
+}
+
+func (s *Slice[V]) CloneUnsafeValue() Slice[V] {
+	return Slice[V]{
+		Slice: slices.Clone(s.Slice),
 	}
 }
 

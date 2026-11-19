@@ -1,6 +1,8 @@
 package types
 
 import (
+	"iter"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
@@ -13,12 +15,20 @@ type SingletonClass struct {
 	Class
 }
 
+func (c *SingletonClass) AllDeclarations() iter.Seq[*position.Location] {
+	return c.AttachedObject.AllDeclarations()
+}
+
 func (c *SingletonClass) Declaration() *position.Location {
 	return c.AttachedObject.Declaration()
 }
 
 func (c *SingletonClass) Declarations() *concurrent.Slice[*position.Location] {
 	return c.AttachedObject.Declarations()
+}
+
+func (c *SingletonClass) AllUses() iter.Seq[*position.Location] {
+	return c.AttachedObject.AllUses()
 }
 
 func (c *SingletonClass) Uses() *concurrent.Slice[*position.Location] {

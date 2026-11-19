@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"iter"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
@@ -31,11 +32,25 @@ type Constant struct {
 	Type        Type
 	docComment  string
 	declaration *position.Location
-	uses        []*position.Location
+	uses        concurrent.Slice[*position.Location]
+}
+
+var _ Identifier = &Constant{}
+
+func (c *Constant) Name() string {
+	return c.FullName
 }
 
 func (c *Constant) Inspect() string {
 	return fmt.Sprintf("const %s: %s", c.FullName, Inspect(c.Type))
+}
+
+func (c *Constant) AllDeclarations() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {
+		if !yield(c.declaration) {
+			return
+		}
+	}
 }
 
 func (c *Constant) Declaration() *position.Location {
@@ -46,22 +61,29 @@ func (c *Constant) DocComment() string {
 	return c.docComment
 }
 
-func (c *Constant) Uses() []*position.Location {
-	return c.uses
+func (c *Constant) AllUses() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {
+		if !yield(c.declaration) {
+			return
+		}
+	}
+}
+
+func (c *Constant) Uses() *concurrent.Slice[*position.Location] {
+	return &c.uses
 }
 
 func (c *Constant) AppendUse(loc ...*position.Location) {
-	c.uses = append(c.uses, loc...)
+	c.uses.Append(loc...)
 	AppendUseToType(c.Type, loc...)
 }
 
-func NewConstant(docComment string, fullName string, typ Type, declaration *position.Location, uses []*position.Location) *Constant {
+func NewConstant(docComment string, fullName string, typ Type, declaration *position.Location) *Constant {
 	return &Constant{
 		docComment:  docComment,
 		declaration: declaration,
 		FullName:    fullName,
 		Type:        typ,
-		uses:        uses,
 	}
 }
 
@@ -96,12 +118,20 @@ func (c *NamespaceBase) Declaration() *position.Location {
 	return l
 }
 
+func (c *NamespaceBase) AllDeclarations() iter.Seq[*position.Location] {
+	return c.declarations.Values()
+}
+
 func (c *NamespaceBase) Declarations() *concurrent.Slice[*position.Location] {
 	return &c.declarations
 }
 
 func (c *NamespaceBase) AppendDeclaration(decl *position.Location) {
 	c.declarations.Push(decl)
+}
+
+func (c *NamespaceBase) AllUses() iter.Seq[*position.Location] {
+	return c.uses.Values()
 }
 
 func (c *NamespaceBase) Uses() *concurrent.Slice[*position.Location] {

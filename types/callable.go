@@ -1,6 +1,7 @@
 package types
 
 import (
+	"iter"
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
@@ -79,12 +80,20 @@ func (c *Callable) Declaration() *position.Location {
 	return nil
 }
 
+func (c *Callable) AllDeclarations() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {}
+}
+
 func (c *Callable) Declarations() *concurrent.Slice[*position.Location] {
 	return nil
 }
 
 func (c *Callable) AppendDeclaration(*position.Location) {
 	panic("cannot append declarations to a callable")
+}
+
+func (c *Callable) AllUses() iter.Seq[*position.Location] {
+	return func(yield func(*position.Location) bool) {}
 }
 
 func (c *Callable) Uses() *concurrent.Slice[*position.Location] {

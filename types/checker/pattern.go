@@ -930,7 +930,7 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 	variable := c.getLocal(name)
 	nameSym := symbol.ToSymbol(name)
 	if variable == nil {
-		var local *local
+		var local *Local
 		switch c.mode {
 		case valuePatternMode:
 			varType := c.ToNonLiteral(patternType, false)

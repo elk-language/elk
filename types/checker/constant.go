@@ -89,13 +89,14 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 
 	placeholder.Replaced = true
 	usingConst := placeholder.Container[placeholder.AsName]
-	placeholder.Container[placeholder.AsName] = types.NewConstant(
+	newConstant := types.NewConstant(
 		usingConst.DocComment(),
 		usingConst.FullName,
 		newType,
 		usingConst.Declaration(),
-		usingConst.Uses(),
 	)
+	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	placeholder.Container[placeholder.AsName] = newConstant
 }
 
 func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
