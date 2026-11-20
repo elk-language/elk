@@ -67,20 +67,53 @@ func (b *StringBuilder) ToValue() Value {
 	return Ref(b)
 }
 
-func (b *StringBuilder) Write(s) (int, error) {
+func (b *StringBuilder) Write(other Value) SmallInt {
+	if other.IsReference() {
+		switch o := other.AsReference().(type) {
+		case String:
+			return b.WriteString(o)
+		}
+	}
 
+	switch other.ValueFlag() {
+	case CHAR_FLAG:
+		return b.WriteChar(other.AsChar())
+	case UINT8_FLAG:
+		b.WriteByte(other.AsUInt8())
+		return 1
+	default:
+		return 0
+	}
 }
 
-func (b *StringBuilder) WriteChar(c Char) {
-
+func (b *StringBuilder) WriteChar(c Char) SmallInt {
+	result, _ := b.buf.WriteRune(rune(c))
+	return SmallInt(result)
 }
 
-func (b *StringBuilder) WriteByte(b) {
-
+func (b *StringBuilder) WriteByte(i UInt8) {
+	_ = b.buf.WriteByte(byte(i))
 }
 
-func (b *StringBuilder) WriteString(s String) {
+func (b *StringBuilder) WriteString(s String) SmallInt {
+	result, _ := b.buf.WriteString(s.String())
+	return SmallInt(result)
+}
 
+func (b *StringBuilder) Capacity() int {
+	return b.buf.Cap()
+}
+
+func (b *StringBuilder) Grow(n int) {
+	b.buf.Grow(n)
+}
+
+func (b *StringBuilder) Length() int {
+	return b.buf.Len()
+}
+
+func (b *StringBuilder) Reset() {
+	b.buf.Reset()
 }
 
 func initStringBuilder() {
