@@ -93,9 +93,9 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 		usingConst.DocComment(),
 		usingConst.FullName,
 		newType,
-		usingConst.Declaration(),
+		usingConst.DeclarationFile(),
 	)
-	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	newConstant.UseFiles().CopyElements(usingConst.UseFiles())
 	placeholder.Container[placeholder.AsName] = newConstant
 }
 
@@ -146,7 +146,10 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 			typ = declaredType
 		}
 
-		container.DefineConstant(node.DocComment(), constantName, typ, node.Location())
+		container.DefineConstant(node.DocComment(), constantName, typ, node.Location().FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, node.DocComment(), node.Location())
+		}
 		node.SetType(typ)
 		c.replaceConstantPlaceholder(constant, typ)
 		if c.shouldCompile() {
@@ -166,7 +169,10 @@ func (c *Checker) hoistConstantDeclaration(node *ast.ConstantDeclarationNode) {
 
 	node.TypeNode = c.checkTypeNode(node.TypeNode)
 	declaredType := c.TypeOf(node.TypeNode)
-	container.DefineConstant(node.DocComment(), constantName, declaredType, node.Location())
+	container.DefineConstant(node.DocComment(), constantName, declaredType, node.Location().FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, node.DocComment(), node.Location())
+	}
 	node.SetType(declaredType)
 	c.registerConstantCheck(fullConstantName, constantName, container, node)
 	c.replaceConstantPlaceholder(constant, declaredType)
@@ -283,7 +289,10 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 		typ = types.Untyped{}
 	} else {
 		typ = c.resolveGenericType(constant.Type, node.Location())
-		constant.AppendUse(node.Right.Location())
+		constant.AddUseFile(node.Location().FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddUse(name, node.Right.Location())
+		}
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -304,7 +313,10 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		if constantType == nil {
 			return types.Untyped{}, name
 		} else {
-			constantType.AppendUse(constant.Location())
+			constantType.AddUseFile(constant.Location().FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddUse(name, constant.Location())
+			}
 			return constantType.Type, name
 		}
 	case *ast.PrivateConstantNode:
@@ -312,7 +324,10 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		if constantType == nil {
 			return types.Untyped{}, name
 		} else {
-			constantType.AppendUse(constant.Location())
+			constantType.AddUseFile(constant.Location().FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddUse(name, constant.Location())
+			}
 			return constantType.Type, name
 		}
 	case *ast.ConstantLookupNode:
@@ -320,7 +335,10 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 		if constantType == nil {
 			return types.Untyped{}, name
 		} else {
-			constantType.AppendUse(constant.Location())
+			constantType.AddUseFile(constant.Location().FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddUse(name, constant.Location())
+			}
 			return constantType.Type, name
 		}
 	case *ast.GenericConstantNode:
@@ -611,7 +629,10 @@ func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferred
 		} else {
 			c.addToConstantCache(symbol.ToSymbol(name))
 		}
-		constant.AppendUse(node.Right.Location())
+		constant.AddUseFile(node.Right.Location().FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddUse(name, node.Right.Location())
+		}
 	}
 
 	newNode := ast.NewPublicConstantNode(
@@ -636,7 +657,10 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 	} else {
 		c.addToConstantCache(symbol.ToSymbol(name))
 	}
-	constant.AppendUse(node.Location())
+	constant.AddUseFile(node.Location().FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddUse(name, node.Location())
+	}
 
 	node.Value = name
 	node.SetType(typ)
@@ -657,7 +681,10 @@ func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.P
 	} else {
 		c.addToConstantCache(symbol.ToSymbol(name))
 	}
-	constant.AppendUse(node.Location())
+	constant.AddUseFile(node.Location().FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddUse(name, node.Location())
+	}
 
 	node.Value = name
 	node.SetType(typ)

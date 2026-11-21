@@ -7008,7 +7008,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), "")
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -7024,7 +7024,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), "")
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -7098,7 +7098,7 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 		placeholder.Locations.Push(node.Right.Location())
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
-		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), nil)
+		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), "")
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
 	}
@@ -7189,7 +7189,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), "")
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -7205,7 +7205,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 			placeholder.Locations.Push(l.Location())
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), nil)
+			namespace.DefineConstant("", symbol.ToSymbol(l.Value), types.NewSingletonClass(placeholder, nil), "")
 		} else if placeholder, ok := leftContainerType.(*types.NamespacePlaceholder); ok {
 			placeholder.Locations.Push(l.Location())
 		}
@@ -7277,7 +7277,7 @@ func (c *Checker) _resolveConstantLookupForNamespaceDeclaration(node *ast.Consta
 		placeholder.Locations.Push(node.Right.Location())
 		constantType = placeholder
 		c.registerPlaceholderNamespace(placeholder)
-		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), nil)
+		leftContainer.DefineConstant("", rightSymbol, types.NewSingletonClass(placeholder, nil), "")
 	} else if placeholder, ok := constantType.(*types.NamespacePlaceholder); ok {
 		placeholder.Locations.Push(node.Right.Location())
 
@@ -7981,7 +7981,10 @@ func (c *Checker) checkSimpleConstantType(name string, location *position.Locati
 		return types.Untyped{}
 	}
 
-	constant.AppendUse(location)
+	constant.AddUseFile(location.FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddUse(name, location)
+	}
 	return c.resolveGenericType(constant.Type, location)
 }
 
@@ -9404,7 +9407,10 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 
 		switch t := constantType.(type) {
 		case *types.Module:
-			t.AppendDeclaration(location)
+			t.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(t.Name(), docComment, location)
+			}
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -9416,9 +9422,12 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			module.AppendDeclaration(location)
+			module.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(t.Name(), docComment, location)
+			}
 			t.Namespace = module
-			namespace.DefineConstant(docComment, constantName, module, location)
+			namespace.DefineConstant(docComment, constantName, module, location.FilePath)
 			namespace.DefineSubtype(constantName, module)
 			return module
 		case *types.ConstantPlaceholder:
@@ -9427,26 +9436,40 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 				fullConstantName,
 				c.runtimeEnv,
 			)
-			module.AppendDeclaration(location)
+			module.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			c.replaceSimpleNamespacePlaceholder(t, module, module)
-			namespace.DefineConstant(docComment, constantName, module, location)
+			namespace.DefineConstant(docComment, constantName, module, location.FilePath)
 			namespace.DefineSubtype(constantName, module)
 			return module
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
 			module := types.NewModule(docComment, fullConstantName, c.runtimeEnv)
-			module.AppendDeclaration(location)
+			module.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return module
 		}
 	}
 
 	if namespace == nil {
 		module := types.NewModule(docComment, fullConstantName, c.runtimeEnv)
-		module.AppendDeclaration(location)
+		module.AddDeclarationFile(location.FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+		}
 		return module
 	}
 
-	return namespace.DefineModule(docComment, constantName, c.runtimeEnv, location)
+	module := namespace.DefineModule(docComment, constantName, c.runtimeEnv, location.FilePath)
+	module.AddDeclarationFile(location.FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+	}
+	return module
 }
 
 func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
@@ -9499,10 +9522,13 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
-			class.AppendDeclaration(location)
+			class.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			classSingleton := class.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, class, classSingleton)
-			namespace.DefineConstant(docComment, constantName, class.Singleton(), location)
+			namespace.DefineConstant(docComment, constantName, class.Singleton(), location.FilePath)
 			namespace.DefineSubtype(constantName, class)
 			return class
 		default:
@@ -9518,7 +9544,10 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
-			class.AppendDeclaration(location)
+			class.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return class
 		}
 
@@ -9535,7 +9564,10 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 					location,
 				)
 			}
-			t.AppendDeclaration(location)
+			t.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -9551,9 +9583,12 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			class.AppendDeclaration(location)
+			class.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			t.Namespace = class
-			namespace.DefineConstant(docComment, constantName, class.Singleton(), location)
+			namespace.DefineConstant(docComment, constantName, class.Singleton(), location.FilePath)
 			namespace.DefineSubtype(constantName, class)
 			return class
 		default:
@@ -9569,7 +9604,10 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 				nil,
 				c.runtimeEnv,
 			)
-			class.AppendDeclaration(location)
+			class.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return class
 		}
 	}
@@ -9586,11 +9624,14 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 			nil,
 			c.runtimeEnv,
 		)
-		class.AppendDeclaration(location)
+		class.AddDeclarationFile(location.FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+		}
 		return class
 	}
 
-	return namespace.DefineClass(
+	class := namespace.DefineClass(
 		docComment,
 		abstract,
 		sealed,
@@ -9600,8 +9641,13 @@ func (c *Checker) declareClass(docComment string, abstract, sealed, primitive, n
 		constantName,
 		nil,
 		c.runtimeEnv,
-		location,
+		location.FilePath,
 	)
+	class.AddDeclarationFile(location.FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+	}
+	return class
 }
 
 func (c *Checker) checkCanAssign(assignedType, targetType types.Type, location *position.Location) bool {
@@ -10221,7 +10267,7 @@ func (c *Checker) checkUsingEntryWithSubentriesForNamespace(node *ast.UsingEntry
 }
 
 func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.ComplexConstantNode, asName string) ast.ComplexConstantNode {
-	container, constant, fullConstantName, constantName := c.resolveConstantInRoot(node)
+	container, constantType, fullConstantName, constantName := c.resolveConstantInRoot(node)
 	if container == nil {
 		return node
 	}
@@ -10237,21 +10283,21 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	usingNamespace := c.getUsingBufferNamespace(scopeSpan)
 	node.SetType(usingNamespace)
 
-	switch n := constant.(type) {
+	switch n := constantType.(type) {
 	case *types.SingletonClass:
 		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, n.AttachedObject)
-		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constant, nil)
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constantType, node.Location().FilePath)
 		return node
 	case *types.Module:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constant, nil)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constantType)
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, constantType, node.Location().FilePath)
 		return node
 	case types.Namespace:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
-		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, n.Singleton(), nil)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constantType)
+		usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, n.Singleton(), node.Location().FilePath)
 		return node
 	default:
-		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constant)
+		usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, constantType)
 		return node
 	case nil: // continue
 	}
@@ -10278,8 +10324,8 @@ func (c *Checker) checkUsingConstantLookupEntryNodeForNamespace(node ast.Complex
 	container.DefineSubtype(originalConstantSymbol, placeholderType)
 	usingNamespace.DefineSubtypeWithFullName(newConstantSymbol, fullConstantName, placeholderType)
 
-	container.DefineConstant("", originalConstantSymbol, placeholderConstant, nil)
-	usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, placeholderConstant, nil)
+	container.DefineConstant("", originalConstantSymbol, placeholderConstant, node.Location().FilePath)
+	usingNamespace.DefineConstantWithFullName("", newConstantSymbol, fullConstantName, placeholderConstant, node.Location().FilePath)
 
 	return node
 }
@@ -10315,7 +10361,7 @@ func (c *Checker) checkSimpleUsingEntry(typ types.Type, constName, fullName stri
 	placeholder.Locations.Push(location)
 	c.registerPlaceholderNamespace(placeholder)
 	parentNamespace.DefineSubtype(symbol.ToSymbol(constName), placeholder)
-	parentNamespace.DefineConstant("", symbol.ToSymbol(constName), types.NewSingletonClass(placeholder, nil), nil)
+	parentNamespace.DefineConstant("", symbol.ToSymbol(constName), types.NewSingletonClass(placeholder, nil), location.FilePath)
 	return placeholder
 }
 
@@ -10380,16 +10426,22 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				fullConstantName,
 				c.runtimeEnv,
 			)
-			mixin.AppendDeclaration(location)
+			mixin.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			mixinSingleton := mixin.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, mixin, mixinSingleton)
-			namespace.DefineConstant(docComment, constantName, mixinSingleton, location)
+			namespace.DefineConstant(docComment, constantName, mixinSingleton, location.FilePath)
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
 			mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
-			mixin.AppendDeclaration(location)
+			mixin.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return mixin
 		}
 
@@ -10406,7 +10458,10 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 					location,
 				)
 			}
-			t.AppendDeclaration(location)
+			t.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			t.AppendDocComment(docComment)
 			return t
 		case *types.NamespacePlaceholder:
@@ -10420,26 +10475,40 @@ func (c *Checker) declareMixin(docComment string, abstract bool, namespace types
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			mixin.AppendDeclaration(location)
+			mixin.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			t.Namespace = mixin
-			namespace.DefineConstant(docComment, constantName, mixin.Singleton(), location)
+			namespace.DefineConstant(docComment, constantName, mixin.Singleton(), location.FilePath)
 			namespace.DefineSubtype(constantName, mixin)
 			return mixin
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
 			mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
-			mixin.AppendDeclaration(location)
+			mixin.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return mixin
 		}
 	}
 
 	if namespace == nil {
 		mixin := types.NewMixin(docComment, abstract, fullConstantName, c.runtimeEnv)
-		mixin.AppendDeclaration(location)
+		mixin.AddDeclarationFile(location.FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+		}
 		return mixin
 	}
 
-	return namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv, location)
+	mixin := namespace.DefineMixin(docComment, abstract, constantName, c.runtimeEnv, location.FilePath)
+	mixin.AddDeclarationFile(location.FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+	}
+	return mixin
 }
 
 func (c *Checker) declareInterface(docComment string, namespace types.Namespace, constantType types.Type, fullConstantName string, constantName symbol.Symbol, location *position.Location) *types.Interface {
@@ -10453,23 +10522,32 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				fullConstantName,
 				c.runtimeEnv,
 			)
-			iface.AppendDeclaration(location)
+			iface.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			ifaceSingleton := iface.Singleton()
 			c.replaceSimpleNamespacePlaceholder(ct, iface, ifaceSingleton)
-			namespace.DefineConstant(docComment, constantName, ifaceSingleton, location)
+			namespace.DefineConstant(docComment, constantName, ifaceSingleton, location.FilePath)
 			namespace.DefineSubtype(constantName, iface)
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
 			iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
-			iface.AppendDeclaration(location)
+			iface.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return iface
 		}
 
 		switch t := constantType.(type) {
 		case *types.Interface:
 			t.AppendDocComment(docComment)
-			t.AppendDeclaration(location)
+			t.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return t
 		case *types.NamespacePlaceholder:
 			iface := types.NewInterfaceWithDetails(
@@ -10480,22 +10558,36 @@ func (c *Checker) declareInterface(docComment string, namespace types.Namespace,
 				t.Methods(),
 				c.runtimeEnv,
 			)
-			iface.AppendDeclaration(location)
+			iface.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			t.Namespace = iface
-			namespace.DefineConstant(docComment, constantName, iface.Singleton(), location)
+			namespace.DefineConstant(docComment, constantName, iface.Singleton(), location.FilePath)
 			namespace.DefineSubtype(constantName, iface)
 			return iface
 		default:
 			c.addRedeclaredConstantError(fullConstantName, location)
 			iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
-			iface.AppendDeclaration(location)
+			iface.AddDeclarationFile(location.FilePath)
+			if c.LSPData != nil {
+				c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+			}
 			return iface
 		}
 	} else if namespace == nil {
 		iface := types.NewInterface(docComment, fullConstantName, c.runtimeEnv)
-		iface.AppendDeclaration(location)
+		iface.AddDeclarationFile(location.FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+		}
 		return iface
 	} else {
-		return namespace.DefineInterface(docComment, constantName, c.runtimeEnv, location)
+		mixin := namespace.DefineInterface(docComment, constantName, c.runtimeEnv, location.FilePath)
+		mixin.AddDeclarationFile(location.FilePath)
+		if c.LSPData != nil {
+			c.LSPData.AddDeclaration(fullConstantName, docComment, location)
+		}
+		return mixin
 	}
 }

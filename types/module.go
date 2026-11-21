@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -115,11 +116,13 @@ func NewModuleWithDetails(
 		parent: env.StdSubtypeClass(symbol.C_Module),
 		native: env.Init,
 		NamespaceBase: NamespaceBase{
-			docComment: docComment,
-			name:       name,
-			constants:  consts,
-			subtypes:   subtypes,
-			methods:    methods,
+			docComment:       docComment,
+			name:             name,
+			constants:        consts,
+			subtypes:         subtypes,
+			methods:          methods,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }
@@ -148,11 +151,13 @@ func (m *Module) Copy() *Module {
 		defined: m.defined,
 		native:  m.native,
 		NamespaceBase: NamespaceBase{
-			docComment: m.docComment,
-			name:       m.name,
-			constants:  m.constants,
-			subtypes:   m.subtypes,
-			methods:    m.methods,
+			docComment:       m.docComment,
+			name:             m.name,
+			constants:        m.constants,
+			subtypes:         m.subtypes,
+			methods:          m.methods,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }

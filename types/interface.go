@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -106,10 +107,12 @@ func NewInterfaceWithDetails(
 		parent:   parent,
 		compiled: env.Init,
 		NamespaceBase: NamespaceBase{
-			name:      name,
-			constants: consts,
-			methods:   methods,
-			subtypes:  subtypes,
+			name:             name,
+			constants:        consts,
+			methods:          methods,
+			subtypes:         subtypes,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }
@@ -140,10 +143,12 @@ func (i *Interface) Copy() *Interface {
 		singleton:      i.singleton,
 		typeParameters: i.typeParameters,
 		NamespaceBase: NamespaceBase{
-			name:      i.name,
-			constants: i.constants,
-			methods:   i.methods,
-			subtypes:  i.subtypes,
+			name:             i.name,
+			constants:        i.constants,
+			methods:          i.methods,
+			subtypes:         i.subtypes,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }

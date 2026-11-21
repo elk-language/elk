@@ -1,10 +1,10 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elk-language/elk/lexer"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -44,13 +44,13 @@ var varianceString = []string{
 }
 
 type TypeParameter struct {
-	declaration *position.Location
-	Name        symbol.Symbol
-	Namespace   Namespace
-	LowerBound  Type
-	UpperBound  Type
-	Default     Type
-	Variance    Variance
+	declarationFile string
+	Name            symbol.Symbol
+	Namespace       Namespace
+	LowerBound      Type
+	UpperBound      Type
+	Default         Type
+	Variance        Variance
 }
 
 // Returns the default inferred type for the type parameter
@@ -78,18 +78,18 @@ func (t *TypeParameter) DocComment() string {
 	return ""
 }
 
-func (t *TypeParameter) Declaration() *position.Location {
-	return t.declaration
+func (t *TypeParameter) DeclarationFile() string {
+	return t.declarationFile
 }
 
 func (t *TypeParameter) Copy() *TypeParameter {
 	return &TypeParameter{
-		declaration: t.declaration,
-		Name:        t.Name,
-		Namespace:   t.Namespace,
-		LowerBound:  t.LowerBound,
-		UpperBound:  t.UpperBound,
-		Variance:    t.Variance,
+		declarationFile: t.declarationFile,
+		Name:            t.Name,
+		Namespace:       t.Namespace,
+		LowerBound:      t.LowerBound,
+		UpperBound:      t.UpperBound,
+		Variance:        t.Variance,
 	}
 }
 
@@ -114,16 +114,24 @@ func (t *TypeParameter) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *TypePara
 	return newTypeParam
 }
 
-func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance, decl *position.Location) *TypeParameter {
+func NewTypeParameter(name symbol.Symbol, namespace Namespace, lowerBound, upperBound, def Type, variance Variance, decl string) *TypeParameter {
 	return &TypeParameter{
-		declaration: decl,
-		Name:        name,
-		Namespace:   namespace,
-		LowerBound:  lowerBound,
-		UpperBound:  upperBound,
-		Default:     def,
-		Variance:    variance,
+		declarationFile: decl,
+		Name:            name,
+		Namespace:       namespace,
+		LowerBound:      lowerBound,
+		UpperBound:      upperBound,
+		Default:         def,
+		Variance:        variance,
 	}
+}
+
+func (t *TypeParameter) FullName() string {
+	if t.Namespace == nil {
+		return t.Name.String()
+	}
+
+	return fmt.Sprintf("%s::%s", Inspect(t.Namespace), t.Name.String())
 }
 
 func (t *TypeParameter) ToNonLiteral(env *GlobalEnvironment) Type {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
@@ -254,11 +255,13 @@ func NewClassWithDetails(
 		sealed:    sealed,
 		native:    env.Init,
 		NamespaceBase: NamespaceBase{
-			docComment: docComment,
-			name:       name,
-			constants:  consts,
-			subtypes:   subtypes,
-			methods:    methods,
+			docComment:       docComment,
+			name:             name,
+			constants:        consts,
+			subtypes:         subtypes,
+			methods:          methods,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.C_Class))
@@ -298,11 +301,13 @@ func (c *Class) Copy() *Class {
 		singleton:      c.singleton,
 		typeParameters: c.typeParameters,
 		NamespaceBase: NamespaceBase{
-			docComment: c.docComment,
-			name:       c.name,
-			constants:  c.constants,
-			subtypes:   c.subtypes,
-			methods:    c.methods,
+			docComment:       c.docComment,
+			name:             c.name,
+			constants:        c.constants,
+			subtypes:         c.subtypes,
+			methods:          c.methods,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }

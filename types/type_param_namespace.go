@@ -5,7 +5,6 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -54,31 +53,27 @@ func (t *TypeParamNamespace) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Typ
 	return newNamespace
 }
 
-func (t *TypeParamNamespace) Declaration() *position.Location {
+func (t *TypeParamNamespace) DeclarationFiles() *concurrent.Set[string] {
 	return nil
 }
 
-func (t *TypeParamNamespace) Declarations() *concurrent.Slice[*position.Location] {
+func (t *TypeParamNamespace) AllDeclarationFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {}
+}
+
+func (t *TypeParamNamespace) AddDeclarationFile(string) {
+	panic("cannot add declaration files in a type param namespace")
+}
+
+func (t *TypeParamNamespace) AllUseFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {}
+}
+
+func (t *TypeParamNamespace) UseFiles() *concurrent.Set[string] {
 	return nil
 }
 
-func (t *TypeParamNamespace) AllDeclarations() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {}
-}
-
-func (t *TypeParamNamespace) AppendDeclaration(*position.Location) {
-	panic("cannot append declarations in a type param namespace")
-}
-
-func (t *TypeParamNamespace) AllUses() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {}
-}
-
-func (t *TypeParamNamespace) Uses() *concurrent.Slice[*position.Location] {
-	return nil
-}
-
-func (t *TypeParamNamespace) AppendUse(...*position.Location) {}
+func (t *TypeParamNamespace) AddUseFile(string) {}
 
 func (t *TypeParamNamespace) Name() string {
 	return ""
@@ -169,21 +164,22 @@ func (t *TypeParamNamespace) ConstantString(name string) (*Constant, bool) {
 	return t.Constant(symbol.ToSymbol(name))
 }
 
-func (t *TypeParamNamespace) DefineConstant(docComment string, name symbol.Symbol, val Type, declaration *position.Location) {
-	t.constants[name] = &Constant{
-		docComment:  docComment,
-		Type:        val,
-		declaration: declaration,
-	}
+func (t *TypeParamNamespace) DefineConstant(docComment string, name symbol.Symbol, val Type, declaration string) {
+	t.constants[name] = NewConstant(
+		docComment,
+		"",
+		val,
+		declaration,
+	)
 }
 
-func (t *TypeParamNamespace) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration *position.Location) {
-	t.constants[name] = &Constant{
-		docComment:  docComment,
-		Type:        val,
-		FullName:    fullName,
-		declaration: declaration,
-	}
+func (t *TypeParamNamespace) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration string) {
+	t.constants[name] = NewConstant(
+		docComment,
+		fullName,
+		val,
+		declaration,
+	)
 }
 
 func (t *TypeParamNamespace) Subtypes() ConstantMap {
@@ -208,15 +204,21 @@ func (t *TypeParamNamespace) SubtypeString(name string) (*Constant, bool) {
 }
 
 func (t *TypeParamNamespace) DefineSubtype(name symbol.Symbol, val Type) {
-	t.subtypes[name] = &Constant{
-		Type: val,
-	}
+	t.subtypes[name] = NewConstant(
+		"",
+		"",
+		val,
+		"",
+	)
 }
 
 func (t *TypeParamNamespace) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
-	t.subtypes[name] = &Constant{
-		Type: val,
-	}
+	t.subtypes[name] = NewConstant(
+		"",
+		"",
+		val,
+		"",
+	)
 }
 
 func (t *TypeParamNamespace) Methods() MethodMap {
@@ -254,19 +256,19 @@ func (t *TypeParamNamespace) DefineInstanceVariable(name symbol.Symbol, ivar *In
 	panic("cannot define instance variables on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, decl *position.Location) *Class {
+func (t *TypeParamNamespace) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, decl string) *Class {
 	panic("cannot define classes on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Module {
+func (t *TypeParamNamespace) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl string) *Module {
 	panic("cannot define module on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Mixin {
+func (t *TypeParamNamespace) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, decl string) *Mixin {
 	panic("cannot define mixins on type param namespaces")
 }
 
-func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Interface {
+func (t *TypeParamNamespace) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl string) *Interface {
 	panic("cannot define interfaces on type param namespaces")
 }
 

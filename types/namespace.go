@@ -9,7 +9,6 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/ivar"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -26,11 +25,12 @@ type Namespace interface {
 	Identifier
 	Name() string
 	DocComment() string
-	Declaration() *position.Location
-	Declarations() *concurrent.Slice[*position.Location]
-	AppendDeclaration(*position.Location)
-	Uses() *concurrent.Slice[*position.Location]
-	AppendUse(...*position.Location)
+	DeclarationFiles() *concurrent.Set[string]
+	AllDeclarationFiles() iter.Seq[string]
+	AddDeclarationFile(string)
+	UseFiles() *concurrent.Set[string]
+	AllUseFiles() iter.Seq[string]
+	AddUseFile(string)
 	SetDocComment(string)
 	AppendDocComment(string)
 	Parent() Namespace
@@ -52,8 +52,8 @@ type Namespace interface {
 	Constants() ConstantMap
 	Constant(name symbol.Symbol) (*Constant, bool)
 	ConstantString(name string) (*Constant, bool)
-	DefineConstant(docComment string, name symbol.Symbol, val Type, declaration *position.Location)
-	DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration *position.Location)
+	DefineConstant(docComment string, name symbol.Symbol, val Type, declaration string)
+	DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration string)
 
 	Subtypes() ConstantMap
 	Subtype(name symbol.Symbol) (*Constant, bool)
@@ -74,10 +74,10 @@ type Namespace interface {
 	InstanceVariableString(name string) *InstanceVariable
 	DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVariable)
 
-	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration *position.Location) *Class
-	DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Module
-	DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Mixin
-	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface
+	DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration string) *Class
+	DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Module
+	DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Mixin
+	DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Interface
 }
 
 func IsSingletonMacroContainerType(namespace Type) bool {
@@ -123,11 +123,11 @@ func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironme
 	newConstants := make(ConstantMap, len(constants))
 	for constName, constant := range constants {
 		newConstants[constName] = &Constant{
-			FullName:    constant.FullName,
-			Type:        DeepCopyEnv(constant.Type, oldEnv, newEnv),
-			docComment:  constant.docComment,
-			uses:        constant.uses.CloneUnsafeValue(),
-			declaration: constant.declaration,
+			FullName:        constant.FullName,
+			Type:            DeepCopyEnv(constant.Type, oldEnv, newEnv),
+			docComment:      constant.docComment,
+			useFiles:        constant.useFiles.CloneUnsafeValue(),
+			declarationFile: constant.declarationFile,
 		}
 	}
 	return newConstants

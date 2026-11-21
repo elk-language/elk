@@ -146,22 +146,34 @@ func (l *Location) RelFilename() string {
 
 // Returns the filename where the ELKPATH is
 // replaced by `%ELKPATH%/`
-func (l *Location) PlaceholderElkPathFilename() string {
-	if strings.HasPrefix(l.FilePath, env.ELKPATH) {
-		return filepath.Join("%ELKPATH%", l.FilePath[len(env.ELKPATH):])
+func PlaceholderElkPathFilename(file string) string {
+	if strings.HasPrefix(file, env.ELKPATH) {
+		return filepath.Join("%ELKPATH%", file[len(env.ELKPATH):])
 	}
 
-	return l.FilePath
+	return file
+}
+
+// Returns the filename where the `%ELKPATH%` is
+// replaced by env.ELKPATH
+func ReplacedElkPathFilename(file string) string {
+	if strings.HasPrefix(file, "%ELKPATH%") {
+		return filepath.Join(env.ELKPATH, file[len(env.ELKPATH)+1:])
+	}
+
+	return file
+}
+
+// Returns the filename where the ELKPATH is
+// replaced by `%ELKPATH%/`
+func (l *Location) PlaceholderElkPathFilename() string {
+	return PlaceholderElkPathFilename(l.FilePath)
 }
 
 // Returns the filename where the `%ELKPATH%` is
 // replaced by env.ELKPATH
 func (l *Location) ReplacedElkPathFilename() string {
-	if strings.HasPrefix(l.FilePath, "%ELKPATH%") {
-		return filepath.Join(env.ELKPATH, l.FilePath[len(env.ELKPATH)+1:])
-	}
-
-	return l.FilePath
+	return ReplacedElkPathFilename(l.FilePath)
 }
 
 func (l *Location) Equal(other *Location) bool {

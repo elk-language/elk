@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -132,11 +133,13 @@ func NewMixinWithDetails(
 		abstract: abstract,
 		defined:  env.Init,
 		NamespaceBase: NamespaceBase{
-			docComment: docComment,
-			name:       name,
-			constants:  consts,
-			methods:    methods,
-			subtypes:   subtypes,
+			docComment:       docComment,
+			name:             name,
+			constants:        consts,
+			methods:          methods,
+			subtypes:         subtypes,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.C_Mixin))
@@ -170,11 +173,13 @@ func (m *Mixin) Copy() *Mixin {
 		Checked:        m.Checked,
 		typeParameters: m.typeParameters,
 		NamespaceBase: NamespaceBase{
-			docComment: m.docComment,
-			name:       m.name,
-			constants:  m.constants,
-			methods:    m.methods,
-			subtypes:   m.subtypes,
+			docComment:       m.docComment,
+			name:             m.name,
+			constants:        m.constants,
+			methods:          m.methods,
+			subtypes:         m.subtypes,
+			declarationFiles: concurrent.MakeSet[string](),
+			useFiles:         concurrent.MakeSet[string](),
 		},
 	}
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -15,32 +14,28 @@ type SingletonClass struct {
 	Class
 }
 
-func (c *SingletonClass) AllDeclarations() iter.Seq[*position.Location] {
-	return c.AttachedObject.AllDeclarations()
+func (c *SingletonClass) AllDeclarationFiles() iter.Seq[string] {
+	return c.AttachedObject.AllDeclarationFiles()
 }
 
-func (c *SingletonClass) Declaration() *position.Location {
-	return c.AttachedObject.Declaration()
+func (c *SingletonClass) DeclarationFiles() *concurrent.Set[string] {
+	return c.AttachedObject.DeclarationFiles()
 }
 
-func (c *SingletonClass) Declarations() *concurrent.Slice[*position.Location] {
-	return c.AttachedObject.Declarations()
+func (c *SingletonClass) AllUseFiles() iter.Seq[string] {
+	return c.AttachedObject.AllUseFiles()
 }
 
-func (c *SingletonClass) AllUses() iter.Seq[*position.Location] {
-	return c.AttachedObject.AllUses()
+func (c *SingletonClass) UseFiles() *concurrent.Set[string] {
+	return c.AttachedObject.UseFiles()
 }
 
-func (c *SingletonClass) Uses() *concurrent.Slice[*position.Location] {
-	return c.AttachedObject.Uses()
+func (c *SingletonClass) AddUseFile(file string) {
+	c.AttachedObject.AddUseFile(file)
 }
 
-func (c *SingletonClass) AppendUse(loc ...*position.Location) {
-	c.AttachedObject.AppendUse(loc...)
-}
-
-func (c *SingletonClass) AppendDeclaration(loc *position.Location) {
-	c.AttachedObject.AppendDeclaration(loc)
+func (c *SingletonClass) AddDeclarationFile(file string) {
+	c.AttachedObject.AddDeclarationFile(file)
 }
 
 func (c *SingletonClass) SetParent(parent Namespace) {
@@ -108,7 +103,7 @@ func (s *SingletonClass) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Singlet
 	singletonConstantPath := GetConstantPath(fullConstantName)
 	parentNamespace := DeepCopyNamespacePath(singletonConstantPath[:len(singletonConstantPath)-1], oldEnv, newEnv)
 	singletonConstantName := singletonConstantPath[len(singletonConstantPath)-1]
-	parentNamespace.DefineConstant("", symbol.ToSymbol(singletonConstantName), newSingleton, nil)
+	parentNamespace.DefineConstant("", symbol.ToSymbol(singletonConstantName), newSingleton, "")
 
 	newSingleton.methods = MethodsDeepCopyEnv(s.methods, oldEnv, newEnv)
 	newSingleton.instanceVariables = InstanceVariablesDeepCopyEnv(s.instanceVariables, oldEnv, newEnv)

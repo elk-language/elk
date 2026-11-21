@@ -2,26 +2,26 @@ package types
 
 import (
 	"github.com/elk-language/elk/concurrent"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type NamedType struct {
-	docComment  string
-	Name        string
-	Type        Type
-	declaration *position.Location
-	uses        concurrent.Slice[*position.Location]
+	docComment      string
+	Name            string
+	Type            Type
+	declarationFile string
+	useFiles        concurrent.Set[string]
 }
 
-var _ TypeWithDeclarationAndUses = &NamedType{}
+var _ TypeWithUseFiles = &NamedType{}
 
-func NewNamedType(docComment string, name string, typ Type, decl *position.Location) *NamedType {
+func NewNamedType(docComment string, name string, typ Type, decl string) *NamedType {
 	return &NamedType{
-		docComment:  docComment,
-		Name:        name,
-		Type:        typ,
-		declaration: decl,
+		docComment:      docComment,
+		Name:            name,
+		Type:            typ,
+		declarationFile: decl,
+		useFiles:        concurrent.MakeSet[string](),
 	}
 }
 
@@ -42,16 +42,16 @@ func (n *NamedType) DocComment() string {
 	return n.docComment
 }
 
-func (n *NamedType) Declaration() *position.Location {
-	return n.declaration
+func (n *NamedType) DeclarationFile() string {
+	return n.declarationFile
 }
 
-func (n *NamedType) Uses() *concurrent.Slice[*position.Location] {
-	return &n.uses
+func (n *NamedType) UseFiles() *concurrent.Set[string] {
+	return &n.useFiles
 }
 
-func (c *NamedType) AppendUse(decl ...*position.Location) {
-	c.uses.Append(decl...)
+func (c *NamedType) AddUseFile(decl string) {
+	c.useFiles.Add(decl)
 }
 
 func (*NamedType) IsLiteral() bool {
@@ -64,10 +64,11 @@ func (n *NamedType) inspect() string {
 
 func (n *NamedType) Copy() *NamedType {
 	return &NamedType{
-		docComment:  n.docComment,
-		Name:        n.Name,
-		Type:        n.Type,
-		declaration: n.declaration,
+		docComment:      n.docComment,
+		Name:            n.Name,
+		Type:            n.Type,
+		declarationFile: n.declarationFile,
+		useFiles:        n.useFiles,
 	}
 }
 
@@ -77,9 +78,10 @@ func (n *NamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *NamedType {
 	}
 
 	newType := &NamedType{
-		docComment:  n.docComment,
-		Name:        n.Name,
-		declaration: n.declaration,
+		docComment:      n.docComment,
+		Name:            n.Name,
+		declarationFile: n.declarationFile,
+		useFiles:        n.useFiles.CloneValue(),
 	}
 
 	classConstantPath := GetConstantPath(n.Name)

@@ -77,9 +77,9 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 		usingConst.DocComment(),
 		usingConst.FullName,
 		constant,
-		usingConst.Declaration(),
+		usingConst.DeclarationFile(),
 	)
-	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	newConstant.UseFiles().CopyElements(usingConst.UseFiles())
 	placeholder.Container[placeholder.AsName] = newConstant
 
 	placeholder.Sibling.Replaced = true
@@ -89,9 +89,9 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 		usingSubtype.DocComment(),
 		usingSubtype.FullName,
 		subtype,
-		usingSubtype.Declaration(),
+		usingSubtype.DeclarationFile(),
 	)
-	newSubtype.Uses().Slice = append(newSubtype.Uses().Slice, usingSubtype.Uses().Slice...)
+	newSubtype.UseFiles().CopyElements(usingSubtype.UseFiles())
 	subtypeContainer[placeholder.AsName] = newSubtype
 }
 
@@ -121,9 +121,9 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 		usingConst.DocComment(),
 		usingConst.FullName,
 		newType,
-		usingConst.Declaration(),
+		usingConst.DeclarationFile(),
 	)
-	newConstant.Uses().Slice = append(newConstant.Uses().Slice, usingConst.Uses().Slice...)
+	newConstant.UseFiles().CopyElements(usingConst.UseFiles())
 	placeholder.Container[placeholder.AsName] = newConstant
 }
 
@@ -141,8 +141,11 @@ func (c *Checker) registerNamedTypeCheck(node *ast.TypeDefinitionNode) {
 		c.addRedeclaredConstantError(fullConstantName, node.Constant.Location())
 	}
 
-	namedType := types.NewNamedType(node.DocComment(), fullConstantName, nil, node.Location())
-	container.DefineConstant("", constantName, types.NoValue{}, nil)
+	namedType := types.NewNamedType(node.DocComment(), fullConstantName, nil, node.Location().FilePath)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, node.DocComment(), node.Location())
+	}
+	container.DefineConstant("", constantName, types.NoValue{}, "")
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -173,11 +176,16 @@ func (c *Checker) registerGenericNamedTypeCheck(node *ast.GenericTypeDefinitionN
 	}
 
 	namedType := types.NewGenericNamedType(
+		node.DocComment(),
 		fullConstantName,
 		nil,
 		nil,
+		node.Location().FilePath,
 	)
-	container.DefineConstant("", constantName, types.NoValue{}, nil)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(fullConstantName, node.DocComment(), node.Location())
+	}
+	container.DefineConstant("", constantName, types.NoValue{}, "")
 	container.DefineSubtype(constantName, namedType)
 	node.SetType(namedType)
 	c.replaceTypePlaceholder(constant, namedType)
@@ -244,7 +252,7 @@ func (c *Checker) checkGenericNamedType(node *ast.GenericTypeDefinitionNode) boo
 		typeParams = append(typeParams, t)
 		typeParamNode.SetType(t)
 		typeParamMod.DefineSubtype(t.Name, t)
-		typeParamMod.DefineConstant("", t.Name, types.NoValue{}, nil)
+		typeParamMod.DefineConstant("", t.Name, types.NoValue{}, "")
 	}
 
 	prevMode := c.mode
@@ -668,7 +676,7 @@ func (c *Checker) checkNamespaceTypeParameters(
 				typeParams = append(typeParams, t)
 				typeParamNode.SetType(t)
 				namespace.DefineSubtype(t.Name, t)
-				namespace.DefineConstant("", t.Name, types.NoValue{}, nil)
+				namespace.DefineConstant("", t.Name, types.NoValue{}, "")
 				c.finishCheckingTypeParameterNode(t, varNode)
 			}
 
@@ -1041,15 +1049,19 @@ func (c *Checker) checkTypeParameterNode(node *ast.VariantTypeParameterNode, nam
 		}
 	}
 
-	return types.NewTypeParameter(
+	typeParam := types.NewTypeParameter(
 		symbol.ToSymbol(node.Name),
 		namespace,
 		lowerType,
 		upperType,
 		def,
 		variance,
-		node.Location(),
+		node.Location().FilePath,
 	)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(typeParam.FullName(), "", node.Location())
+	}
+	return typeParam
 }
 
 func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, namespace types.Namespace) *types.TypeParameter {
@@ -1063,15 +1075,20 @@ func (c *Checker) initTypeParameterNode(node *ast.VariantTypeParameterNode, name
 		variance = types.CONTRAVARIANT
 	}
 
-	return types.NewTypeParameter(
+	typeParam := types.NewTypeParameter(
 		symbol.ToSymbol(node.Name),
 		namespace,
 		nil,
 		nil,
 		nil,
 		variance,
-		node.Location(),
+		node.Location().FilePath,
 	)
+	if c.LSPData != nil {
+		c.LSPData.AddDeclaration(typeParam.FullName(), "", node.Location())
+	}
+
+	return typeParam
 }
 
 func (c *Checker) finishCheckingTypeParameterNode(typ *types.TypeParameter, node *ast.VariantTypeParameterNode) {

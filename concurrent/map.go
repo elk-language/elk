@@ -7,6 +7,12 @@ type Map[K comparable, V any] struct {
 	mu  sync.RWMutex
 }
 
+func MakeMap[K comparable, V any]() Map[K, V] {
+	return Map[K, V]{
+		Map: make(map[K]V),
+	}
+}
+
 func NewMap[K comparable, V any]() *Map[K, V] {
 	return &Map[K, V]{
 		Map: make(map[K]V),

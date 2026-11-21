@@ -21,12 +21,43 @@ type LSPData struct {
 	methodScopes    concurrent.Slice[*methodScope]
 	constantScopes  concurrent.Slice[*constantScope]
 	IdentifierIndex concurrent.Slice[*IdentifierInstance]
+	Declarations    concurrent.Map[string, []*Declaration]
+	Uses            concurrent.Map[string, []*position.Location]
+}
+
+func (l *LSPData) AddDeclaration(name string, docComment string, loc *position.Location) {
+	l.Declarations.Lock()
+	defer l.Declarations.Unlock()
+
+	var newList []*Declaration
+	if currentList, ok := l.Declarations.GetUnsafe(name); ok {
+		newList = append(currentList, NewDeclaration(docComment, loc))
+	} else {
+		newList = []*Declaration{NewDeclaration(docComment, loc)}
+	}
+	l.Declarations.SetUnsafe(name, newList)
+}
+
+func (l *LSPData) AddUse(name string, loc *position.Location) {
+	l.Uses.Lock()
+	defer l.Uses.Unlock()
+
+	var newList []*position.Location
+	if currentList, ok := l.Uses.GetUnsafe(name); ok {
+		newList = append(currentList, loc)
+	} else {
+		newList = []*position.Location{loc}
+	}
+	l.Uses.SetUnsafe(name, newList)
 }
 
 func (l *LSPData) LSPData() {}
 
 func NewLSPData() *LSPData {
-	return &LSPData{}
+	return &LSPData{
+		Declarations: concurrent.MakeMap[string, []*Declaration](),
+		Uses:         concurrent.MakeMap[string, []*position.Location](),
+	}
 }
 
 type Completion struct {
@@ -550,4 +581,24 @@ func NewIdentifierInstance(ident types.Identifier, span *position.Span) *Identif
 		Identifier: ident,
 		Span:       span,
 	}
+}
+
+type Declaration struct {
+	docComment string
+	loc        *position.Location
+}
+
+func NewDeclaration(docComment string, loc *position.Location) *Declaration {
+	return &Declaration{
+		docComment: docComment,
+		loc:        loc,
+	}
+}
+
+func (d *Declaration) DocComment() string {
+	return d.docComment
+}
+
+func (d *Declaration) Location() *position.Location {
+	return d.loc
 }

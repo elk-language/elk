@@ -6,7 +6,6 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/concurrent"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -76,31 +75,27 @@ func IsClosure(namespace Namespace) bool {
 	return c.IsClosure
 }
 
-func (c *Callable) Declaration() *position.Location {
+func (c *Callable) AllDeclarationFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {}
+}
+
+func (c *Callable) DeclarationFiles() *concurrent.Set[string] {
 	return nil
 }
 
-func (c *Callable) AllDeclarations() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {}
+func (c *Callable) AddDeclarationFile(string) {
+	panic("cannot add declaration files to a callable")
 }
 
-func (c *Callable) Declarations() *concurrent.Slice[*position.Location] {
+func (c *Callable) AllUseFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {}
+}
+
+func (c *Callable) UseFiles() *concurrent.Set[string] {
 	return nil
 }
 
-func (c *Callable) AppendDeclaration(*position.Location) {
-	panic("cannot append declarations to a callable")
-}
-
-func (c *Callable) AllUses() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {}
-}
-
-func (c *Callable) Uses() *concurrent.Slice[*position.Location] {
-	return nil
-}
-
-func (c *Callable) AppendUse(...*position.Location) {}
+func (c *Callable) AddUseFile(string) {}
 
 func (c *Callable) Name() string {
 	return "callable"
@@ -174,11 +169,11 @@ func (c *Callable) ConstantString(name string) (*Constant, bool) {
 	return nil, false
 }
 
-func (c *Callable) DefineConstant(docComment string, name symbol.Symbol, val Type, decl *position.Location) {
+func (c *Callable) DefineConstant(docComment string, name symbol.Symbol, val Type, decl string) {
 	panic("cannot define constants on callables")
 }
 
-func (c *Callable) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, decl *position.Location) {
+func (c *Callable) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, decl string) {
 	panic("cannot define constants on callables")
 }
 
@@ -256,19 +251,19 @@ func (c *Callable) DefineInstanceVariable(name symbol.Symbol, ivar *InstanceVari
 	panic("cannot define instance variables on callables")
 }
 
-func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, decl *position.Location) *Class {
+func (c *Callable) DefineClass(docComment string, primitive, abstract, sealed, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, decl string) *Class {
 	panic("cannot define classes on callables")
 }
 
-func (c *Callable) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Module {
+func (c *Callable) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl string) *Module {
 	panic("cannot define module on callables")
 }
 
-func (c *Callable) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Mixin {
+func (c *Callable) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, decl string) *Mixin {
 	panic("cannot define mixins on callables")
 }
 
-func (c *Callable) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl *position.Location) *Interface {
+func (c *Callable) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, decl string) *Interface {
 	panic("cannot define interfaces on callables")
 }
 

@@ -38,7 +38,6 @@ func main() {
 
 			import (
 				"github.com/elk-language/elk/value/symbol"
-				"github.com/elk-language/elk/position"
 			)
 
 			func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
@@ -256,15 +255,15 @@ func setTypeParameters(buffer *bytes.Buffer, namespace types.Namespace) {
 		fmt.Fprintf(
 			buffer,
 			`
-				typeParam = NewTypeParameter(symbol.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s, %[4]s)
+				typeParam = NewTypeParameter(symbol.ToSymbol(%[1]q), namespace, Never{}, Any{}, nil, %[2]s, %[4]q)
 				typeParams[%[3]d] = typeParam
 				namespace.DefineSubtype(symbol.ToSymbol(%[1]q), typeParam)
-				namespace.DefineConstant("", symbol.ToSymbol(%[1]q), NoValue{}, nil)
+				namespace.DefineConstant("", symbol.ToSymbol(%[1]q), NoValue{}, "")
 			`,
 			param.Name.String(),
 			param.Variance.String(),
 			i,
-			serializeLocation(param.Declaration()),
+			position.PlaceholderElkPathFilename(param.DeclarationFile()),
 		)
 
 		if !types.IsNever(param.LowerBound) {
@@ -298,13 +297,13 @@ func createTypeParametersForMixinWithWhere(buffer *bytes.Buffer, typeParams []*t
 	for _, param := range typeParams {
 		fmt.Fprintf(
 			buffer,
-			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s, %s)",
+			"NewTypeParameter(symbol.ToSymbol(%q), mixin, %s, %s, %s, %s, %q)",
 			param.Name.String(),
 			typeToCode(param.LowerBound, false),
 			typeToCode(param.UpperBound, false),
 			typeToCode(param.Default, false),
 			param.Variance.String(),
-			serializeLocation(param.Declaration()),
+			position.PlaceholderElkPathFilename(param.DeclarationFile()),
 		)
 	}
 	buffer.WriteString("}")
@@ -338,11 +337,11 @@ func defineConstants(buffer *bytes.Buffer, namespace types.Namespace) {
 	for name, constant := range types.SortedConstants(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineConstant(%q, symbol.ToSymbol(%q), %s, %s)\n",
+			"namespace.DefineConstant(%q, symbol.ToSymbol(%q), %s, %q)\n",
 			constant.DocComment(),
 			name.String(),
 			typeToCode(constant.Type, false),
-			serializeLocation(constant.Declaration()),
+			position.PlaceholderElkPathFilename(constant.DeclarationFile()),
 		)
 	}
 }
@@ -575,7 +574,7 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, symbol.ToSymbol(%q), %s, env, %s)
+		`namespace.TryDefineClass(%q, %t, %t, %t, %t, %t, symbol.ToSymbol(%q), %s, env, "")
 		`,
 		class.DocComment(),
 		class.IsAbstract(),
@@ -585,7 +584,6 @@ func defineClass(buffer *bytes.Buffer, class *types.Class, constantName string) 
 		class.IsImmutable(),
 		constantName,
 		initialSuperclass,
-		serializeLocation(class.Declaration()),
 	)
 
 	defineSubtypesWithinNamespace(buffer, class)
@@ -603,12 +601,11 @@ func defineMixin(buffer *bytes.Buffer, mixin *types.Mixin, constantName string) 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineMixin(%q, %t, symbol.ToSymbol(%q), env, %s)
+		`namespace.TryDefineMixin(%q, %t, symbol.ToSymbol(%q), env, "")
 		`,
 		mixin.DocComment(),
 		mixin.IsAbstract(),
 		constantName,
-		serializeLocation(mixin.Declaration()),
 	)
 
 	defineSubtypesWithinNamespace(buffer, mixin)
@@ -626,11 +623,10 @@ func defineModule(buffer *bytes.Buffer, module *types.Module, constantName strin
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineModule(%q, symbol.ToSymbol(%q), env, %s)
+		`namespace.TryDefineModule(%q, symbol.ToSymbol(%q), env, "")
 		`,
 		module.DocComment(),
 		constantName,
-		serializeLocation(module.Declaration()),
 	)
 
 	defineSubtypesWithinNamespace(buffer, module)
@@ -648,11 +644,10 @@ func defineInterface(buffer *bytes.Buffer, iface *types.Interface, constantName 
 
 	fmt.Fprintf(
 		buffer,
-		`namespace.TryDefineInterface(%q, symbol.ToSymbol(%q), env, %s)
+		`namespace.TryDefineInterface(%q, symbol.ToSymbol(%q), env, "")
 		`,
 		iface.DocComment(),
 		constantName,
-		serializeLocation(iface.Declaration()),
 	)
 
 	defineSubtypesWithinNamespace(buffer, iface)
@@ -746,11 +741,11 @@ func typeToCode(typ types.Type, init bool) string {
 	case *types.NamedType:
 		if init {
 			return fmt.Sprintf(
-				"NewNamedType(%q, %q, %s, %s)",
+				"NewNamedType(%q, %q, %s, %q)",
 				t.DocComment(),
 				t.Name,
 				typeToCode(t.Type, init),
-				serializeLocation(t.Declaration()),
+				position.PlaceholderElkPathFilename(t.DeclarationFile()),
 			)
 		}
 
@@ -762,14 +757,14 @@ func typeToCode(typ types.Type, init bool) string {
 		namespaceName := t.Namespace.Name()
 		if init || len(namespaceName) == 0 {
 			return fmt.Sprintf(
-				"NewTypeParameter(symbol.ToSymbol(%q), %s, %s, %s, %s, %s, %s)",
+				"NewTypeParameter(symbol.ToSymbol(%q), %s, %s, %s, %s, %s, %q)",
 				t.Name.String(),
 				namespaceToCode(t.Namespace),
 				typeToCode(t.LowerBound, false),
 				typeToCode(t.UpperBound, false),
 				typeToCode(t.Default, false),
 				t.Variance.String(),
-				serializeLocation(t.Declaration()),
+				position.PlaceholderElkPathFilename(t.DeclarationFile()),
 			)
 		}
 

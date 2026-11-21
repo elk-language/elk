@@ -3,20 +3,27 @@ package types
 import (
 	"strings"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value/symbol"
 )
 
 type GenericNamedType struct {
-	Name           string
-	Type           Type
-	TypeParameters []*TypeParameter
+	docComment      string
+	Name            string
+	declarationFile string
+	Type            Type
+	TypeParameters  []*TypeParameter
+	useFiles        concurrent.Set[string]
 }
 
-func NewGenericNamedType(name string, typ Type, typeVars []*TypeParameter) *GenericNamedType {
+func NewGenericNamedType(docComment string, name string, typ Type, typeVars []*TypeParameter, decl string) *GenericNamedType {
 	return &GenericNamedType{
-		Name:           name,
-		Type:           typ,
-		TypeParameters: typeVars,
+		docComment:      docComment,
+		Name:            name,
+		Type:            typ,
+		TypeParameters:  typeVars,
+		declarationFile: decl,
+		useFiles:        concurrent.MakeSet[string](),
 	}
 }
 
@@ -47,6 +54,22 @@ func (g *GenericNamedType) ToNonLiteral(env *GlobalEnvironment) Type {
 
 func (*GenericNamedType) IsLiteral() bool {
 	return false
+}
+
+func (n *GenericNamedType) DocComment() string {
+	return n.docComment
+}
+
+func (n *GenericNamedType) DeclarationFile() string {
+	return n.declarationFile
+}
+
+func (n *GenericNamedType) UseFiles() *concurrent.Set[string] {
+	return &n.useFiles
+}
+
+func (c *GenericNamedType) AddUseFile(decl string) {
+	c.useFiles.Add(decl)
 }
 
 func (g *GenericNamedType) inspect() string {
@@ -87,9 +110,12 @@ func (g *GenericNamedType) inspect() string {
 
 func (g *GenericNamedType) Copy() *GenericNamedType {
 	return &GenericNamedType{
-		Name:           g.Name,
-		Type:           g.Type,
-		TypeParameters: g.TypeParameters,
+		docComment:      g.docComment,
+		declarationFile: g.declarationFile,
+		useFiles:        g.useFiles,
+		Name:            g.Name,
+		Type:            g.Type,
+		TypeParameters:  g.TypeParameters,
 	}
 }
 
@@ -99,7 +125,10 @@ func (g *GenericNamedType) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Gener
 	}
 
 	newType := &GenericNamedType{
-		Name: g.Name,
+		Name:            g.Name,
+		docComment:      g.docComment,
+		declarationFile: g.declarationFile,
+		useFiles:        g.useFiles.CloneValue(),
 	}
 
 	classConstantPath := GetConstantPath(g.Name)

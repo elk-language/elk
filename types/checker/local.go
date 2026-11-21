@@ -26,7 +26,7 @@ type Local struct {
 	singleAssignment           bool
 }
 
-var _ types.Identifier = &Local{}
+var _ types.LocalIdentifier = &Local{}
 
 func (l *Local) Name() string {
 	return l.name.String()

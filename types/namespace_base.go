@@ -5,7 +5,6 @@ import (
 	"iter"
 
 	"github.com/elk-language/elk/concurrent"
-	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value/symbol"
 )
 
@@ -28,14 +27,14 @@ type InstanceVariableMap = map[symbol.Symbol]*InstanceVariable
 type ConstantMap = map[symbol.Symbol]*Constant
 
 type Constant struct {
-	FullName    string
-	Type        Type
-	docComment  string
-	declaration *position.Location
-	uses        concurrent.Slice[*position.Location]
+	FullName        string
+	Type            Type
+	docComment      string
+	declarationFile string                 // path to file where the constant is declared
+	useFiles        concurrent.Set[string] // paths to files where the constant is used
 }
 
-var _ Identifier = &Constant{}
+var _ GlobalIdentifier = &Constant{}
 
 func (c *Constant) Name() string {
 	return c.FullName
@@ -45,53 +44,50 @@ func (c *Constant) Inspect() string {
 	return fmt.Sprintf("const %s: %s", c.FullName, Inspect(c.Type))
 }
 
-func (c *Constant) AllDeclarations() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {
-		if !yield(c.declaration) {
+func (c *Constant) AllDeclarationFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {
+		if !yield(c.declarationFile) {
 			return
 		}
 	}
 }
 
-func (c *Constant) Declaration() *position.Location {
-	return c.declaration
+func (c *Constant) DeclarationFile() string {
+	return c.declarationFile
 }
 
 func (c *Constant) DocComment() string {
 	return c.docComment
 }
 
-func (c *Constant) AllUses() iter.Seq[*position.Location] {
-	return func(yield func(*position.Location) bool) {
-		if !yield(c.declaration) {
-			return
-		}
-	}
+func (c *Constant) AllUseFiles() iter.Seq[string] {
+	return c.useFiles.All()
 }
 
-func (c *Constant) Uses() *concurrent.Slice[*position.Location] {
-	return &c.uses
+func (c *Constant) UseFiles() *concurrent.Set[string] {
+	return &c.useFiles
 }
 
-func (c *Constant) AppendUse(loc ...*position.Location) {
-	c.uses.Append(loc...)
-	AppendUseToType(c.Type, loc...)
+func (c *Constant) AddUseFile(file string) {
+	c.useFiles.Add(file)
+	AddUseFileToType(c.Type, file)
 }
 
-func NewConstant(docComment string, fullName string, typ Type, declaration *position.Location) *Constant {
+func NewConstant(docComment string, fullName string, typ Type, declaration string) *Constant {
 	return &Constant{
-		docComment:  docComment,
-		declaration: declaration,
-		FullName:    fullName,
-		Type:        typ,
+		docComment:      docComment,
+		declarationFile: declaration,
+		FullName:        fullName,
+		Type:            typ,
+		useFiles:        concurrent.MakeSet[string](),
 	}
 }
 
 type NamespaceBase struct {
 	docComment        string
 	name              string
-	declarations      concurrent.Slice[*position.Location]
-	uses              concurrent.Slice[*position.Location]
+	declarationFiles  concurrent.Set[string]
+	useFiles          concurrent.Set[string]
 	constants         ConstantMap
 	subtypes          ConstantMap
 	instanceVariables InstanceVariableMap
@@ -106,40 +102,33 @@ func MakeNamespaceBase(docComment, name string) NamespaceBase {
 		subtypes:          make(ConstantMap),
 		instanceVariables: make(InstanceVariableMap),
 		methods:           make(MethodMap),
+		declarationFiles:  concurrent.MakeSet[string](),
+		useFiles:          concurrent.MakeSet[string](),
 	}
 }
 
-func (c *NamespaceBase) Declaration() *position.Location {
-	if c.declarations.Len() == 0 {
-		return nil
-	}
-
-	l, _ := c.declarations.Get(0)
-	return l
+func (c *NamespaceBase) AllDeclarationFiles() iter.Seq[string] {
+	return c.declarationFiles.All()
 }
 
-func (c *NamespaceBase) AllDeclarations() iter.Seq[*position.Location] {
-	return c.declarations.Values()
+func (c *NamespaceBase) DeclarationFiles() *concurrent.Set[string] {
+	return &c.declarationFiles
 }
 
-func (c *NamespaceBase) Declarations() *concurrent.Slice[*position.Location] {
-	return &c.declarations
+func (c *NamespaceBase) AddDeclarationFile(decl string) {
+	c.declarationFiles.Add(decl)
 }
 
-func (c *NamespaceBase) AppendDeclaration(decl *position.Location) {
-	c.declarations.Push(decl)
+func (c *NamespaceBase) AllUseFiles() iter.Seq[string] {
+	return c.useFiles.All()
 }
 
-func (c *NamespaceBase) AllUses() iter.Seq[*position.Location] {
-	return c.uses.Values()
+func (c *NamespaceBase) UseFiles() *concurrent.Set[string] {
+	return &c.useFiles
 }
 
-func (c *NamespaceBase) Uses() *concurrent.Slice[*position.Location] {
-	return &c.uses
-}
-
-func (c *NamespaceBase) AppendUse(decl ...*position.Location) {
-	c.uses.Append(decl...)
+func (c *NamespaceBase) AddUseFile(decl string) {
+	c.useFiles.Add(decl)
 }
 
 func (c *NamespaceBase) DocComment() string {
@@ -248,17 +237,17 @@ func (c *NamespaceBase) InstanceVariableString(name string) *InstanceVariable {
 	return c.instanceVariables[symbol.ToSymbol(name)]
 }
 
-func (c *NamespaceBase) DefineConstant(docComment string, name symbol.Symbol, val Type, declaration *position.Location) {
+func (c *NamespaceBase) DefineConstant(docComment string, name symbol.Symbol, val Type, declaration string) {
 	c.DefineConstantWithFullName(docComment, name, MakeFullConstantName(c.Name(), name.String()), val, declaration)
 }
 
-func (c *NamespaceBase) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration *position.Location) {
-	c.constants[name] = &Constant{
-		FullName:    fullName,
-		Type:        val,
-		docComment:  docComment,
-		declaration: declaration,
-	}
+func (c *NamespaceBase) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration string) {
+	c.constants[name] = NewConstant(
+		docComment,
+		fullName,
+		val,
+		declaration,
+	)
 }
 
 func (c *NamespaceBase) DefineSubtype(name symbol.Symbol, val Type) {
@@ -266,10 +255,12 @@ func (c *NamespaceBase) DefineSubtype(name symbol.Symbol, val Type) {
 }
 
 func (c *NamespaceBase) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
-	c.subtypes[name] = &Constant{
-		FullName: fullName,
-		Type:     val,
-	}
+	c.subtypes[name] = NewConstant(
+		"",
+		fullName,
+		val,
+		"",
+	)
 }
 
 func (c *NamespaceBase) SetMethod(name symbol.Symbol, method *Method) {
@@ -277,7 +268,7 @@ func (c *NamespaceBase) SetMethod(name symbol.Symbol, method *Method) {
 }
 
 // Define a new class if it does not exist
-func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration *position.Location) *Class {
+func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration string) *Class {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineClass(docComment, abstract, sealed, primitive, noinit, immutable, name, parent, env, declaration)
@@ -285,7 +276,7 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 
 	class := subtype.Type.(*Class)
 	class.AppendDocComment(docComment)
-	class.AppendDeclaration(declaration)
+	class.AddDeclarationFile(declaration)
 
 	if class.IsPrimitive() != primitive || class.IsAbstract() != abstract || class.IsSealed() != sealed {
 		panic(
@@ -301,7 +292,7 @@ func (c *NamespaceBase) TryDefineClass(docComment string, abstract, sealed, prim
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration *position.Location) *Class {
+func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primitive, noinit, immutable bool, name symbol.Symbol, parent Namespace, env *GlobalEnvironment, declaration string) *Class {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	class := NewClass(docComment, abstract, sealed, primitive, noinit, immutable, fullName, parent, env)
 	c.DefineSubtypeWithFullName(name, fullName, class)
@@ -310,7 +301,7 @@ func (c *NamespaceBase) DefineClass(docComment string, abstract, sealed, primiti
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Module {
+func (c *NamespaceBase) TryDefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Module {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineModule(docComment, name, env, declaration)
@@ -318,12 +309,12 @@ func (c *NamespaceBase) TryDefineModule(docComment string, name symbol.Symbol, e
 
 	module := subtype.Type.(*Module)
 	module.AppendDocComment(docComment)
-	module.AppendDeclaration(declaration)
+	module.AddDeclarationFile(declaration)
 	return module
 }
 
 // Define a new module.
-func (c *NamespaceBase) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Module {
+func (c *NamespaceBase) DefineModule(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Module {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewModule(docComment, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)
@@ -332,7 +323,7 @@ func (c *NamespaceBase) DefineModule(docComment string, name symbol.Symbol, env 
 }
 
 // Define a new mixin if it does not exist.
-func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Mixin {
+func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Mixin {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineMixin(docComment, abstract, name, env, declaration)
@@ -340,7 +331,7 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name sy
 
 	mixin := subtype.Type.(*Mixin)
 	mixin.AppendDocComment(docComment)
-	mixin.AppendDeclaration(declaration)
+	mixin.AddDeclarationFile(declaration)
 	if mixin.IsAbstract() != abstract {
 		panic(
 			fmt.Sprintf(
@@ -355,7 +346,7 @@ func (c *NamespaceBase) TryDefineMixin(docComment string, abstract bool, name sy
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Mixin {
+func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Mixin {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewMixin(docComment, abstract, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)
@@ -364,7 +355,7 @@ func (c *NamespaceBase) DefineMixin(docComment string, abstract bool, name symbo
 }
 
 // Define a new module if it does not exist.
-func (c *NamespaceBase) TryDefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface {
+func (c *NamespaceBase) TryDefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Interface {
 	subtype, ok := c.Subtype(name)
 	if !ok {
 		return c.DefineInterface(docComment, name, env, declaration)
@@ -372,12 +363,12 @@ func (c *NamespaceBase) TryDefineInterface(docComment string, name symbol.Symbol
 
 	iface := subtype.Type.(*Interface)
 	iface.AppendDocComment(docComment)
-	iface.AppendDeclaration(declaration)
+	iface.AddDeclarationFile(declaration)
 	return iface
 }
 
 // Define a new interface.
-func (c *NamespaceBase) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration *position.Location) *Interface {
+func (c *NamespaceBase) DefineInterface(docComment string, name symbol.Symbol, env *GlobalEnvironment, declaration string) *Interface {
 	fullName := MakeFullConstantName(c.Name(), name.String())
 	m := NewInterface(docComment, fullName, env)
 	c.DefineSubtypeWithFullName(name, fullName, m)
