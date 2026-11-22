@@ -13,10 +13,12 @@ var _ Reference = &StringBuilder{}
 
 var StringBuilderClass *Class // Std::StringBuilder
 
+func NewStringBuilder() *StringBuilder {
+	return &StringBuilder{}
+}
+
 func stringBuilderConstructor(class *Class) Value {
-	return (&StringBuilder{
-		buf: strings.Builder{},
-	}).ToValue()
+	return NewStringBuilder().ToValue()
 }
 
 func (b *StringBuilder) Class() *Class {
@@ -32,11 +34,10 @@ func (b *StringBuilder) SingletonClass() *Class {
 }
 
 func (b *StringBuilder) Copy() *StringBuilder {
-	newBuf := strings.Builder{}
-	newBuf.WriteString(b.String())
-	return &StringBuilder{
-		buf: newBuf,
-	}
+	newBuf := NewStringBuilder()
+	newBuf.Grow(b.Capacity())
+	newBuf.WriteString(b.ToString())
+	return newBuf
 }
 
 func (b *StringBuilder) CopyReference() Reference {
@@ -52,7 +53,7 @@ func (b *StringBuilder) ToString() String {
 }
 
 func (b *StringBuilder) Inspect() string {
-	return fmt.Sprintf(`Std::StringBuilder(%q)`, b.String())
+	return fmt.Sprintf("Std::StringBuilder(%q)", b.String())
 }
 
 func (b *StringBuilder) Error() string {
@@ -92,7 +93,7 @@ func (b *StringBuilder) WriteChar(c Char) SmallInt {
 }
 
 func (b *StringBuilder) WriteByte(i UInt8) {
-	_ = b.buf.WriteByte(byte(i))
+	b.buf.WriteByte(byte(i))
 }
 
 func (b *StringBuilder) WriteString(s String) SmallInt {
