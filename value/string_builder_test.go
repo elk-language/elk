@@ -169,7 +169,7 @@ func TestStringBuilderGoMethods(t *testing.T) {
 			length:   0,
 			capacity: 0,
 		},
-		"check length and capacity after writing": {
+		"check length and capacity after writing string": {
 			initial: func() *value.StringBuilder {
 				buf := value.NewStringBuilder()
 				buf.WriteString(value.String("foo"))
@@ -179,6 +179,30 @@ func TestStringBuilderGoMethods(t *testing.T) {
 				buf.WriteString(value.String("bar"))
 			},
 			length:   6,
+			capacity: 8,
+		},
+		"check length and capacity after writing char": {
+			initial: func() *value.StringBuilder {
+				buf := value.NewStringBuilder()
+				buf.WriteString(value.String("foo"))
+				return buf
+			}(),
+			change: func(buf *value.StringBuilder) {
+				buf.WriteChar(value.Char('b'))
+			},
+			length:   4,
+			capacity: 8,
+		},
+		"check length and capacity after writing byte": {
+			initial: func() *value.StringBuilder {
+				buf := value.NewStringBuilder()
+				buf.WriteString(value.String("foo"))
+				return buf
+			}(),
+			change: func(buf *value.StringBuilder) {
+				buf.WriteByte(value.UInt8('\x02'))
+			},
+			length:   4,
 			capacity: 8,
 		},
 		"check length and capacity after exceeding original capacity": {
