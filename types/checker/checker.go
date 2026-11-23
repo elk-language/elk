@@ -5727,6 +5727,7 @@ func (c *Checker) checkGenericReceiverlessMethodCallNode(node *ast.GenericReceiv
 		return node
 	}
 
+	c.addUseLocationToMethod(method, node.MethodName.Location())
 	c.addToMethodCache(method)
 
 	typeArgs, ok := c.checkTypeArguments(
@@ -5780,6 +5781,7 @@ func (c *Checker) checkReceiverlessMethodCallNode(node *ast.ReceiverlessMethodCa
 		return node
 	}
 
+	c.addUseLocationToMethod(method, node.MethodName.Location())
 	c.addToMethodCache(method)
 
 	var typedPositionalArguments []ast.ExpressionNode
@@ -6017,6 +6019,8 @@ func (c *Checker) checkNewExpressionNode(node *ast.NewExpressionNode, inferredTy
 			nil,
 			class,
 		)
+	} else {
+		c.addUseLocationToMethod(method, node.Location())
 	}
 
 	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
@@ -6112,6 +6116,8 @@ func (c *Checker) checkGenericConstructorCallNode(node *ast.GenericConstructorCa
 			types.Never{},
 			class,
 		)
+	} else {
+		c.addUseLocationToMethod(method, node.Location())
 	}
 
 	method, typedPositionalArguments := c.checkNonGenericMethodArguments(
@@ -6196,6 +6202,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 			)
 		} else {
 			c.addToMethodCache(method)
+			c.addUseLocationToMethod(method, node.Location())
 		}
 
 		method, typedPositionalArguments := c.checkNonGenericMethodArguments(
@@ -6232,6 +6239,7 @@ func (c *Checker) checkConstructorCallNode(node *ast.ConstructorCallNode) ast.Ex
 	} else {
 		method = c.deepCopyMethod(method)
 		c.addToMethodCache(method)
+		c.addUseLocationToMethod(method, node.Location())
 	}
 
 	method, typedPositionalArguments, typeArgMap := c.checkMethodArgumentsAndInferTypeArguments(

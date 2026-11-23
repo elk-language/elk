@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/ds"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
@@ -193,6 +194,7 @@ type Method struct {
 	DefinedUnder   Namespace
 	Body           MethodBody
 	location       *position.Location
+	useFiles       concurrent.Set[string]
 	// used to detect methods that circularly reference constants
 	UsedInConstants              ds.Set[symbol.Symbol] // set of constants in which this method is called
 	UsedConstants                ds.Set[symbol.Symbol] // set of constants references in this method's body
@@ -254,6 +256,7 @@ func (m *Method) Copy() *Method {
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
 		Overloads:                    m.Overloads,
+		useFiles:                     m.useFiles,
 	}
 }
 
@@ -281,6 +284,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		UsedConstants:                m.UsedConstants,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
+		useFiles:                     m.useFiles.CloneValue(),
 	}
 	if newDefinedUnder != nil {
 		newMethod.DefinedUnder = newDefinedUnder
@@ -371,6 +375,18 @@ func (m *Method) Location() *position.Location {
 
 func (m *Method) SetLocation(location *position.Location) {
 	m.location = location
+}
+
+func (m *Method) DeclarationFile() string {
+	return m.location.FilePath
+}
+
+func (m *Method) UseFiles() *concurrent.Set[string] {
+	return &m.useFiles
+}
+
+func (m *Method) AddUseFile(file string) {
+	m.useFiles.Add(file)
 }
 
 func (m *Method) IsInit() bool {

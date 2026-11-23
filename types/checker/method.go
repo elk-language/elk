@@ -2308,6 +2308,7 @@ func (c *Checker) checkSimpleMethodCall(
 	}
 
 	c.addToMethodCache(method)
+	c.addUseLocationToMethod(method, location)
 
 	method, typedPositionalArguments := c.checkMethodArguments(method, typeArgumentNodes, positionalArgumentNodes, namedArgumentNodes, location)
 	if method == nil {
@@ -3904,6 +3905,32 @@ func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLo
 	method.Overloads = nil
 	method.DerivedFrom = methods
 	return method
+}
+
+func (c *Checker) addUseLocationToMethod(method *types.Method, loc *position.Location) {
+	if c.LSPData != nil {
+		return
+	}
+
+	uses := &c.LSPData.Uses
+	uses.Lock()
+
+	methodKey := types.Inspect(method)
+
+	var locations []*position.Location
+	if existingLocations, ok := uses.GetUnsafe(methodKey); ok {
+		locations = append(existingLocations, loc)
+	} else {
+		locations = []*position.Location{loc}
+	}
+
+	uses.SetUnsafe(methodKey, locations)
+
+	uses.Unlock()
+
+	for _, originMethod := range method.DerivedFrom {
+		c.addUseLocationToMethod(originMethod, loc)
+	}
 }
 
 func (c *Checker) getMethodInIntersection(typ *types.Intersection, name symbol.Symbol, errLoc *position.Location) *types.Method {
