@@ -7448,7 +7448,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 							// Define constants
 
 							// Define instance variables
-							namespace.DefineInstanceVariable(symbol.ToSymbol("diagnostics"), NewInstanceVariable(symbol.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env), "", false))
+							namespace.DefineInstanceVariable(symbol.ToSymbol("diagnostics"), NewInstanceVariable(symbol.ToSymbol("diagnostics"), NameToType("Std::DiagnosticList", env), "", "%ELKPATH%/headers/elk/type/checker/error.elh", false))
 						}
 					}
 				}
@@ -7619,7 +7619,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				// Define constants
 
 				// Define instance variables
-				namespace.DefineInstanceVariable(symbol.ToSymbol("message"), NewInstanceVariable(symbol.ToSymbol("message"), NameToType("Std::String", env), "", false))
+				namespace.DefineInstanceVariable(symbol.ToSymbol("message"), NewInstanceVariable(symbol.ToSymbol("message"), NameToType("Std::String", env), "", "%ELKPATH%/headers/error.elh", false))
 			}
 			{
 				namespace := namespace.MustSubtypeString("FS").(*Module)

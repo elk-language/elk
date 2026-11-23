@@ -892,12 +892,9 @@ func (c *Checker) replaceTypeParametersInInstanceVariable(ivar *types.InstanceVa
 		return ivar
 	}
 
-	return types.NewInstanceVariable(
-		ivar.Name,
-		result,
-		ivar.DocComment,
-		ivar.SingleAssignment,
-	)
+	newIvar := ivar.Copy()
+	newIvar.Type = result
+	return newIvar
 }
 
 func (c *Checker) normaliseSingletonOf(typ *types.SingletonOf) types.Type {

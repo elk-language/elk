@@ -644,6 +644,8 @@ func (c *Checker) checkObjectKeyValuePattern(typ types.Type, node *ast.SymbolKey
 		c.checkPattern(node.Value, types.Untyped{})
 		return types.Untyped{}, false
 	}
+
+	c.addUseLocationToMethod(getter, node.Key.Location())
 	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, node.Location())
 	if getter == nil {
 		c.checkPattern(node.Value, types.Untyped{})
@@ -662,6 +664,8 @@ func (c *Checker) checkObjectIdentifierPattern(typ types.Type, name string, loca
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, location)
 		return types.Untyped{}, false
 	}
+
+	c.addUseLocationToMethod(getter, location)
 	getter, _ = c.checkMethodArguments(getter, nil, nil, nil, location)
 	if getter == nil {
 		c.checkIdentifierPattern(name, types.Untyped{}, types.Untyped{}, location)

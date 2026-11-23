@@ -194,7 +194,7 @@ type Method struct {
 	DefinedUnder   Namespace
 	Body           MethodBody
 	location       *position.Location
-	useFiles       concurrent.Set[string]
+	useFiles       *concurrent.Set[string]
 	// used to detect methods that circularly reference constants
 	UsedInConstants              ds.Set[symbol.Symbol] // set of constants in which this method is called
 	UsedConstants                ds.Set[symbol.Symbol] // set of constants references in this method's body
@@ -284,7 +284,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		UsedConstants:                m.UsedConstants,
 		InitialisedInstanceVariables: m.InitialisedInstanceVariables,
 		Node:                         m.Node,
-		useFiles:                     m.useFiles.CloneValue(),
+		useFiles:                     m.useFiles.Clone(),
 	}
 	if newDefinedUnder != nil {
 		newMethod.DefinedUnder = newDefinedUnder
@@ -382,7 +382,7 @@ func (m *Method) DeclarationFile() string {
 }
 
 func (m *Method) UseFiles() *concurrent.Set[string] {
-	return &m.useFiles
+	return m.useFiles
 }
 
 func (m *Method) AddUseFile(file string) {
@@ -609,6 +609,7 @@ func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, 
 		DefinedUnder:       definedUnder,
 		OptionalParamCount: optParamCount,
 		PostParamCount:     postParamCount,
+		useFiles:           concurrent.NewSet[string](),
 		UsedInConstants:    make(ds.Set[symbol.Symbol]),
 		UsedConstants:      make(ds.Set[symbol.Symbol]),
 		Flags:              bitfield.BitField16FromBitFlag(flags),

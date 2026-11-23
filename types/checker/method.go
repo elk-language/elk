@@ -2603,7 +2603,7 @@ func (c *Checker) declareMethodWithBase(
 			pName := c.identifierToName(p.Name)
 			var declaredType types.Type
 			if p.SetInstanceVariable {
-				currentIvar, _ := c.getInstanceVariableIn(symbol.ToSymbol(pName), methodNamespace)
+				currentIvar, ivarNamespace := c.getInstanceVariableIn(symbol.ToSymbol(pName), methodNamespace)
 				if p.TypeNode == nil {
 					if currentIvar == nil {
 						c.addFailure(
@@ -2614,15 +2614,17 @@ func (c *Checker) declareMethodWithBase(
 							p.Location(),
 						)
 					} else {
+						c.addUseLocationToInstanceVariable(currentIvar, ivarNamespace, p.Name.Location())
 						declaredType = currentIvar.Type
 					}
 				} else {
 					p.TypeNode = c.checkTypeNode(p.TypeNode)
 					declaredType = c.TypeOf(p.TypeNode)
 					if currentIvar != nil {
+						c.addUseLocationToInstanceVariable(currentIvar, ivarNamespace, p.Name.Location())
 						c.checkCanAssignInstanceVariable(pName, declaredType, currentIvar, p.TypeNode.Location())
 					} else {
-						c.declareInstanceVariable(symbol.ToSymbol(pName), declaredType, "", isImmutable, p.Location())
+						c.declareInstanceVariable(symbol.ToSymbol(pName), declaredType, "", isImmutable, p.Location(), p.Location())
 					}
 				}
 			} else if p.TypeNode != nil {
@@ -3908,9 +3910,11 @@ func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLo
 }
 
 func (c *Checker) addUseLocationToMethod(method *types.Method, loc *position.Location) {
-	if c.LSPData != nil {
+	if c.LSPData == nil {
 		return
 	}
+
+	method.UseFiles().Add(loc.FilePath)
 
 	uses := &c.LSPData.Uses
 	uses.Lock()

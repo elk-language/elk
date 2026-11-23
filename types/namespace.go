@@ -147,7 +147,8 @@ func InstanceVariablesDeepCopyEnv(ivars InstanceVariableMap, oldEnv, newEnv *Glo
 		newIvars[name] = NewInstanceVariable(
 			name,
 			DeepCopyEnv(ivar.Type, oldEnv, newEnv),
-			ivar.DocComment,
+			ivar.DocComment(),
+			ivar.declarationFile,
 			ivar.SingleAssignment,
 		)
 	}
@@ -921,8 +922,14 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 type InstanceVariable struct {
 	Name             symbol.Symbol
 	Type             Type
-	DocComment       string
+	docComment       string
 	SingleAssignment bool
+	declarationFile  string
+	useFiles         *concurrent.Set[string]
+}
+
+func (i *InstanceVariable) Identifier(namespace Namespace) string {
+	return fmt.Sprintf("%s@%s", namespace.Name(), i.Name.String())
 }
 
 func (i *InstanceVariable) Kind() string {
@@ -932,12 +939,41 @@ func (i *InstanceVariable) Kind() string {
 	return "variable"
 }
 
-func NewInstanceVariable(name symbol.Symbol, typ Type, docComment string, singleAssignment bool) *InstanceVariable {
+func (i *InstanceVariable) DocComment() string {
+	return i.docComment
+}
+
+func (i *InstanceVariable) DeclarationFile() string {
+	return i.declarationFile
+}
+
+func (i *InstanceVariable) UseFiles() *concurrent.Set[string] {
+	return i.useFiles
+}
+
+func (i *InstanceVariable) AddUseFile(file string) {
+	i.useFiles.Add(file)
+}
+
+func (i *InstanceVariable) Copy() *InstanceVariable {
+	return &InstanceVariable{
+		Name:             i.Name,
+		Type:             i.Type,
+		docComment:       i.docComment,
+		declarationFile:  i.declarationFile,
+		SingleAssignment: i.SingleAssignment,
+		useFiles:         i.useFiles,
+	}
+}
+
+func NewInstanceVariable(name symbol.Symbol, typ Type, docComment string, declarationFile string, singleAssignment bool) *InstanceVariable {
 	return &InstanceVariable{
 		Name:             name,
 		Type:             typ,
-		DocComment:       docComment,
+		docComment:       docComment,
+		declarationFile:  declarationFile,
 		SingleAssignment: singleAssignment,
+		useFiles:         concurrent.NewSet[string](),
 	}
 }
 

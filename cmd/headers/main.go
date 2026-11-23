@@ -351,11 +351,12 @@ func defineInstanceVariables(buffer *bytes.Buffer, namespace types.Namespace) {
 	for ivar := range types.SortedOwnInstanceVariables(namespace) {
 		fmt.Fprintf(
 			buffer,
-			"namespace.DefineInstanceVariable(symbol.ToSymbol(%q), NewInstanceVariable(symbol.ToSymbol(%q), %s, %q, %t))\n",
+			"namespace.DefineInstanceVariable(symbol.ToSymbol(%q), NewInstanceVariable(symbol.ToSymbol(%q), %s, %q, %q, %t))\n",
 			ivar.Name.String(),
 			ivar.Name.String(),
 			typeToCode(ivar.Type, false),
-			ivar.DocComment,
+			ivar.DocComment(),
+			position.PlaceholderElkPathFilename(ivar.DeclarationFile()),
 			ivar.SingleAssignment,
 		)
 	}

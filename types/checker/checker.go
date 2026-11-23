@@ -3676,6 +3676,30 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 	return node
 }
 
+func (c *Checker) addUseLocationToInstanceVariable(ivar *types.InstanceVariable, namespace types.Namespace, loc *position.Location) {
+	if c.LSPData == nil {
+		return
+	}
+
+	ivar.UseFiles().Add(loc.FilePath)
+
+	uses := &c.LSPData.Uses
+	uses.Lock()
+
+	ivarKey := ivar.Identifier(namespace)
+
+	var locations []*position.Location
+	if existingLocations, ok := uses.GetUnsafe(ivarKey); ok {
+		locations = append(existingLocations, loc)
+	} else {
+		locations = []*position.Location{loc}
+	}
+
+	uses.SetUnsafe(ivarKey, locations)
+
+	uses.Unlock()
+}
+
 func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.ModifierForInNode) ast.ExpressionNode {
 	if c.isReadonly() {
 		node.SetType(types.Untyped{})
@@ -8439,6 +8463,7 @@ func (c *Checker) checkInstanceVariable(name string, location *position.Location
 		return nil
 	}
 
+	c.addUseLocationToInstanceVariable(ivar, container, location)
 	return ivar
 }
 
@@ -8492,7 +8517,7 @@ func (c *Checker) declareInstanceVariableForAttribute(name symbol.Symbol, typ ty
 			)
 		}
 	} else {
-		c.declareInstanceVariable(name, typ, "", isImmutable, location)
+		c.declareInstanceVariable(name, typ, "", isImmutable, location, location)
 	}
 }
 
@@ -8653,7 +8678,7 @@ func (c *Checker) checkSignatureOfInstanceVariableDeclaration(node *ast.Instance
 	}
 
 	node.SetType(declaredType)
-	c.declareInstanceVariable(symbol.ToSymbol(name), declaredType, node.DocComment(), false, node.Location())
+	c.declareInstanceVariable(symbol.ToSymbol(name), declaredType, node.DocComment(), false, node.Location(), node.Location())
 }
 
 func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceValueDeclarationNode) {
@@ -8731,7 +8756,7 @@ func (c *Checker) checkSignatureOfInstanceValueDeclaration(node *ast.InstanceVal
 	}
 
 	node.SetType(declaredType)
-	c.declareInstanceVariable(symbol.ToSymbol(name), declaredType, node.DocComment(), true, node.Location())
+	c.declareInstanceVariable(symbol.ToSymbol(name), declaredType, node.DocComment(), true, node.Location(), node.Location())
 }
 
 func (c *Checker) checkLocalDeclaration(
@@ -9480,12 +9505,12 @@ func (c *Checker) declareModule(docComment string, namespace types.Namespace, co
 	return module
 }
 
-func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, docComment string, singleAssignment bool, errSpan *position.Location) {
+func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, docComment string, singleAssignment bool, errLoc, loc *position.Location) {
 	container := c.currentConstScope().container
 
 	if !singleAssignment {
 		if class, ok := container.(*types.Class); ok && class.IsImmutable() {
-			c.addInstanceVariableInImmutableClassError(name.String(), container, errSpan)
+			c.addInstanceVariableInImmutableClassError(name.String(), container, errLoc)
 		}
 	}
 
@@ -9496,10 +9521,10 @@ func (c *Checker) declareInstanceVariable(name symbol.Symbol, typ types.Type, do
 				name.String(),
 				types.InspectWithColor(container),
 			),
-			errSpan,
+			errLoc,
 		)
 	}
-	container.DefineInstanceVariable(name, types.NewInstanceVariable(name, typ, docComment, singleAssignment))
+	container.DefineInstanceVariable(name, types.NewInstanceVariable(name, typ, docComment, loc.FilePath, singleAssignment))
 }
 
 func (c *Checker) addInstanceVariableInImmutableClassError(ivarName string, container types.Namespace, errSpan *position.Location) {
@@ -10156,13 +10181,13 @@ func (c *Checker) hoistNamespaceDefinitionsAndMacros(statements []ast.StatementN
 			case *ast.InstanceVariableDeclarationNode,
 				*ast.SetterDeclarationNode, *ast.AttrDeclarationNode:
 				namespace := c.currentMethodScope().container
-				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", false)) // placeholder
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", "", false)) // placeholder
 			case *ast.InstanceValueDeclarationNode:
 				namespace := c.currentMethodScope().container
-				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", true)) // placeholder
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", "", true)) // placeholder
 			case *ast.GetterDeclarationNode:
 				namespace := c.currentMethodScope().container
-				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", namespace.IsImmutable())) // placeholder
+				namespace.DefineInstanceVariable(symbol.S_empty, types.NewInstanceVariable(symbol.S_empty, nil, "", "", namespace.IsImmutable())) // placeholder
 			}
 		}
 	}
