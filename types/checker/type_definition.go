@@ -75,7 +75,8 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 	usingConst := placeholder.Container[placeholder.AsName]
 	newConstant := types.NewConstant(
 		usingConst.DocComment(),
-		usingConst.FullName,
+		usingConst.Name(),
+		usingConst.FullName(),
 		constant,
 		usingConst.DeclarationFile(),
 	)
@@ -87,7 +88,8 @@ func (c *Checker) replaceSimpleNamespacePlaceholder(placeholder *types.ConstantP
 	usingSubtype := subtypeContainer[placeholder.AsName]
 	newSubtype := types.NewConstant(
 		usingSubtype.DocComment(),
-		usingSubtype.FullName,
+		usingSubtype.Name(),
+		usingSubtype.FullName(),
 		subtype,
 		usingSubtype.DeclarationFile(),
 	)
@@ -119,7 +121,8 @@ func (c *Checker) replaceTypePlaceholder(previousConstantType, newType types.Typ
 	usingConst := placeholder.Container[placeholder.AsName]
 	newConstant := types.NewConstant(
 		usingConst.DocComment(),
-		usingConst.FullName,
+		usingConst.Name(),
+		usingConst.FullName(),
 		newType,
 		usingConst.DeclarationFile(),
 	)

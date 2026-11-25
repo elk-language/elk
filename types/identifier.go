@@ -8,6 +8,7 @@ import (
 
 // Represents an identifier of a constant, local variable, method etc
 type Identifier interface {
+	FullName() string
 	IdentifierName() string
 	DocComment() string
 }

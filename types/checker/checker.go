@@ -7108,8 +7108,8 @@ func (c *Checker) _resolveConstantLookupTypeInRoot(node *ast.ConstantLookupNode,
 	constant, ok := leftContainer.Constant(rightSymbol)
 	var constantType types.Type
 	if constant != nil {
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
+		if len(constant.FullName()) > 0 {
+			fullName = constant.FullName()
 		}
 		constantType = constant.Type
 	}
@@ -7412,14 +7412,14 @@ func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, 
 	namespace := c.currentConstScope().container
 	constant, ok := namespace.ConstantString(name)
 	var fullName string
-	if ok && len(constant.FullName) > 0 {
-		fullName = constant.FullName
+	if ok && len(constant.FullName()) > 0 {
+		fullName = constant.FullName()
 	} else {
 		fullName = types.MakeFullConstantName(namespace.Name(), name)
 	}
 
 	if ok {
-		return namespace, constant.Type, constant.FullName
+		return namespace, constant.Type, constant.FullName()
 	}
 	return namespace, nil, fullName
 }
@@ -7524,8 +7524,8 @@ func (c *Checker) resolveType(name string, location *position.Location) (*types.
 		}
 
 		var fullName string
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
+		if len(constant.FullName()) > 0 {
+			fullName = constant.FullName()
 		} else {
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
 		}
@@ -7712,8 +7712,8 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (*type
 		)
 		return nil, typeName
 	}
-	if len(subtype.FullName) > 0 {
-		typeName = subtype.FullName
+	if len(subtype.FullName()) > 0 {
+		typeName = subtype.FullName()
 	}
 
 	if types.IsNoValue(subtype.Type) || types.IsConstantPlaceholder(subtype.Type) {

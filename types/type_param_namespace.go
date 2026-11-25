@@ -79,6 +79,10 @@ func (t *TypeParamNamespace) Name() string {
 	return ""
 }
 
+func (t *TypeParamNamespace) FullName() string {
+	return ""
+}
+
 func (t *TypeParamNamespace) IdentifierName() string {
 	return ""
 }
@@ -171,6 +175,7 @@ func (t *TypeParamNamespace) ConstantString(name string) (*Constant, bool) {
 func (t *TypeParamNamespace) DefineConstant(docComment string, name symbol.Symbol, val Type, declaration string) {
 	t.constants[name] = NewConstant(
 		docComment,
+		name,
 		"",
 		val,
 		declaration,
@@ -180,6 +185,7 @@ func (t *TypeParamNamespace) DefineConstant(docComment string, name symbol.Symbo
 func (t *TypeParamNamespace) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration string) {
 	t.constants[name] = NewConstant(
 		docComment,
+		name,
 		fullName,
 		val,
 		declaration,
@@ -210,6 +216,7 @@ func (t *TypeParamNamespace) SubtypeString(name string) (*Constant, bool) {
 func (t *TypeParamNamespace) DefineSubtype(name symbol.Symbol, val Type) {
 	t.subtypes[name] = NewConstant(
 		"",
+		name,
 		"",
 		val,
 		"",
@@ -219,6 +226,7 @@ func (t *TypeParamNamespace) DefineSubtype(name symbol.Symbol, val Type) {
 func (t *TypeParamNamespace) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	t.subtypes[name] = NewConstant(
 		"",
+		name,
 		"",
 		val,
 		"",

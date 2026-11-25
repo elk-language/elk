@@ -646,7 +646,7 @@ func (c *Checker) checkMethodPlaceholders() {
 		}
 
 		c.addFailureWithLocation(
-			fmt.Sprintf("undefined method `%s`", lexer.Colorize(placeholder.FullName)),
+			fmt.Sprintf("undefined method `%s`", lexer.Colorize(placeholder.FullName())),
 			placeholder.Location(),
 		)
 	}

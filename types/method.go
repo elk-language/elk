@@ -177,7 +177,7 @@ const (
 
 type Method struct {
 	docComment         string
-	FullName           string
+	fullName           string
 	Name               symbol.Symbol
 	OptionalParamCount int
 	PostParamCount     int
@@ -216,7 +216,7 @@ func (m *Method) traverse(parent Type, enter func(node, parent Type) TraverseOpt
 
 func NewMethodPlaceholder(fullName string, name symbol.Symbol, definedUnder Namespace, location *position.Location) *Method {
 	m := &Method{
-		FullName:     fullName,
+		fullName:     fullName,
 		Name:         name,
 		DefinedUnder: definedUnder,
 		location:     location,
@@ -239,7 +239,7 @@ func (m *Method) Copy() *Method {
 	return &Method{
 		Base:                         m.Base,
 		OverloadId:                   m.OverloadId,
-		FullName:                     m.FullName,
+		fullName:                     m.fullName,
 		Name:                         m.Name,
 		docComment:                   m.docComment,
 		Params:                       m.Params,
@@ -274,7 +274,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 
 	newMethod := &Method{
 		OverloadId:                   m.OverloadId,
-		FullName:                     m.FullName,
+		fullName:                     m.fullName,
 		Name:                         m.Name,
 		docComment:                   m.docComment,
 		OptionalParamCount:           m.OptionalParamCount,
@@ -369,6 +369,10 @@ func (m *Method) RegisterOverload(overload *Method) {
 	overload.Name = symbol.ToSymbol(fmt.Sprintf("%s@%d", overload.Name.String(), len(m.Overloads)))
 
 	m.DefinedUnder.SetMethod(overload.Name, overload)
+}
+
+func (m *Method) FullName() string {
+	return m.fullName
 }
 
 func (m *Method) IdentifierName() string {

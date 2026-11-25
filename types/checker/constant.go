@@ -91,7 +91,8 @@ func (c *Checker) replaceConstantPlaceholder(previousConstantType, newType types
 	usingConst := placeholder.Container[placeholder.AsName]
 	newConstant := types.NewConstant(
 		usingConst.DocComment(),
-		usingConst.FullName,
+		usingConst.Name(),
+		usingConst.FullName(),
 		newType,
 		usingConst.DeclarationFile(),
 	)
@@ -491,8 +492,8 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode, typ types.
 		)
 		return nil, constantName
 	}
-	if len(constant.FullName) > 0 {
-		constantName = constant.FullName
+	if len(constant.FullName()) > 0 {
+		constantName = constant.FullName()
 	}
 	if types.IsNoValue(constant.Type) || types.IsConstantPlaceholder(constant.Type) {
 		c.addInvalidValueInExpressionError(constantName, node.Right.Location())
@@ -515,8 +516,8 @@ func (c *Checker) resolvePublicConstant(name string, location *position.Location
 		}
 
 		var fullName string
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
+		if len(constant.FullName()) > 0 {
+			fullName = constant.FullName()
 		} else {
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
 		}
@@ -552,8 +553,8 @@ func (c *Checker) resolvePrivateConstant(name string, location *position.Locatio
 		}
 
 		var fullName string
-		if len(constant.FullName) > 0 {
-			fullName = constant.FullName
+		if len(constant.FullName()) > 0 {
+			fullName = constant.FullName()
 		} else {
 			fullName = types.MakeFullConstantName(constScope.container.Name(), name)
 		}

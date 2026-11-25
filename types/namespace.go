@@ -123,7 +123,8 @@ func ConstantsDeepCopyEnv(constants ConstantMap, oldEnv, newEnv *GlobalEnvironme
 	newConstants := make(ConstantMap, len(constants))
 	for constName, constant := range constants {
 		newConstants[constName] = &Constant{
-			FullName:        constant.FullName,
+			name:            constName,
+			fullName:        constant.fullName,
 			Type:            DeepCopyEnv(constant.Type, oldEnv, newEnv),
 			docComment:      constant.docComment,
 			useFiles:        constant.useFiles.CloneUnsafeValue(),
@@ -935,7 +936,11 @@ func (i *InstanceVariable) Identifier(namespace Namespace) string {
 }
 
 func (i *InstanceVariable) IdentifierName() string {
-	return i.name.String()
+	return fmt.Sprintf("@%s", i.name.String())
+}
+
+func (i *InstanceVariable) FullName() string {
+	return i.IdentifierName()
 }
 
 func (i *InstanceVariable) Name() symbol.Symbol {

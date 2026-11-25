@@ -414,6 +414,11 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 	patternNodeType := c.StdPatternNode()
 	typeNodeType := c.StdTypeNode()
 
+	if c.LSPData != nil {
+		c.LSPData.AddIdentifierInstance(macro, loc)
+		c.LSPData.AddUse(macro.IdentifierName(), loc)
+	}
+
 	checkedArgs := c.checkMacroArguments(macro, posArgs, namedArgs, loc)
 
 	var expectedReturnType types.Type
@@ -1096,7 +1101,7 @@ func (c *Checker) checkMacroCallNode(node *ast.MacroCallNode) ast.Node {
 		node.Kind,
 		append(posArgs, node.PositionalArguments...),
 		node.NamedArguments,
-		node.Location(),
+		node.MacroName.Location(),
 	)
 	if result == nil {
 		return nil
@@ -1202,7 +1207,7 @@ func (c *Checker) checkScopedMacroCallNode(node *ast.ScopedMacroCallNode) ast.No
 		node.Kind,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.MacroName.Location(),
 	)
 	if result == nil {
 		return nil
@@ -1262,7 +1267,7 @@ func (c *Checker) checkReceiverlessMacroCallNode(node *ast.ReceiverlessMacroCall
 		node.Kind,
 		node.PositionalArguments,
 		node.NamedArguments,
-		node.Location(),
+		node.MacroName.Location(),
 	)
 	if result == nil {
 		return nil

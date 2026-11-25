@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"iter"
+	"strings"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value/symbol"
@@ -27,7 +28,8 @@ type InstanceVariableMap = map[symbol.Symbol]*InstanceVariable
 type ConstantMap = map[symbol.Symbol]*Constant
 
 type Constant struct {
-	FullName        string
+	name            symbol.Symbol
+	fullName        string
 	Type            Type
 	docComment      string
 	declarationFile string                 // path to file where the constant is declared
@@ -36,8 +38,16 @@ type Constant struct {
 
 var _ GlobalIdentifier = &Constant{}
 
+func (c *Constant) Name() symbol.Symbol {
+	return c.name
+}
+
 func (c *Constant) IdentifierName() string {
-	return c.FullName
+	return c.name.String()
+}
+
+func (c *Constant) FullName() string {
+	return c.fullName
 }
 
 func (c *Constant) Inspect() string {
@@ -73,11 +83,12 @@ func (c *Constant) AddUseFile(file string) {
 	AddUseFileToType(c.Type, file)
 }
 
-func NewConstant(docComment string, fullName string, typ Type, declaration string) *Constant {
+func NewConstant(docComment string, name symbol.Symbol, fullName string, typ Type, declaration string) *Constant {
 	return &Constant{
 		docComment:      docComment,
 		declarationFile: declaration,
-		FullName:        fullName,
+		name:            name,
+		fullName:        fullName,
 		Type:            typ,
 		useFiles:        concurrent.MakeSet[string](),
 	}
@@ -151,12 +162,17 @@ func (c *NamespaceBase) AppendDocComment(newComment string) {
 	c.docComment = fmt.Sprintf("%s\n\n%s", c.docComment, newComment)
 }
 
+func (c *NamespaceBase) FullName() string {
+	return c.name
+}
+
 func (c *NamespaceBase) Name() string {
 	return c.name
 }
 
 func (c *NamespaceBase) IdentifierName() string {
-	return c.name
+	names := strings.Split(c.name, "::")
+	return names[len(names)-1]
 }
 
 func (c *NamespaceBase) SetName(name string) {
@@ -248,6 +264,7 @@ func (c *NamespaceBase) DefineConstant(docComment string, name symbol.Symbol, va
 func (c *NamespaceBase) DefineConstantWithFullName(docComment string, name symbol.Symbol, fullName string, val Type, declaration string) {
 	c.constants[name] = NewConstant(
 		docComment,
+		name,
 		fullName,
 		val,
 		declaration,
@@ -261,6 +278,7 @@ func (c *NamespaceBase) DefineSubtype(name symbol.Symbol, val Type) {
 func (c *NamespaceBase) DefineSubtypeWithFullName(name symbol.Symbol, fullName string, val Type) {
 	c.subtypes[name] = NewConstant(
 		"",
+		name,
 		fullName,
 		val,
 		"",

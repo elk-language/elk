@@ -28,6 +28,10 @@ type Local struct {
 
 var _ types.LocalIdentifier = &Local{}
 
+func (l *Local) FullName() string {
+	return l.name.String()
+}
+
 func (l *Local) IdentifierName() string {
 	return l.name.String()
 }
