@@ -36,7 +36,7 @@ type Constant struct {
 
 var _ GlobalIdentifier = &Constant{}
 
-func (c *Constant) Name() string {
+func (c *Constant) IdentifierName() string {
 	return c.FullName
 }
 
@@ -152,6 +152,10 @@ func (c *NamespaceBase) AppendDocComment(newComment string) {
 }
 
 func (c *NamespaceBase) Name() string {
+	return c.name
+}
+
+func (c *NamespaceBase) IdentifierName() string {
 	return c.name
 }
 

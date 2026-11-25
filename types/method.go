@@ -176,7 +176,7 @@ const (
 )
 
 type Method struct {
-	DocComment         string
+	docComment         string
 	FullName           string
 	Name               symbol.Symbol
 	OptionalParamCount int
@@ -202,6 +202,8 @@ type Method struct {
 	CalledMethods                []*Method             // list of methods called in this method's body
 	Node                         AstNode
 }
+
+var _ GlobalIdentifier = &Method{}
 
 func (m *Method) traverse(parent Type, enter func(node, parent Type) TraverseOption, leave func(node, parent Type) TraverseOption) TraverseOption {
 	switch enter(m, parent) {
@@ -239,7 +241,7 @@ func (m *Method) Copy() *Method {
 		OverloadId:                   m.OverloadId,
 		FullName:                     m.FullName,
 		Name:                         m.Name,
-		DocComment:                   m.DocComment,
+		docComment:                   m.docComment,
 		Params:                       m.Params,
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
@@ -274,7 +276,7 @@ func (m *Method) DeepCopyEnv(oldEnv, newEnv *GlobalEnvironment) *Method {
 		OverloadId:                   m.OverloadId,
 		FullName:                     m.FullName,
 		Name:                         m.Name,
-		DocComment:                   m.DocComment,
+		docComment:                   m.docComment,
 		OptionalParamCount:           m.OptionalParamCount,
 		PostParamCount:               m.PostParamCount,
 		Flags:                        m.Flags,
@@ -369,6 +371,14 @@ func (m *Method) RegisterOverload(overload *Method) {
 	m.DefinedUnder.SetMethod(overload.Name, overload)
 }
 
+func (m *Method) IdentifierName() string {
+	return m.Name.String()
+}
+
+func (m *Method) DocComment() string {
+	return m.docComment
+}
+
 func (m *Method) Location() *position.Location {
 	return m.location
 }
@@ -377,12 +387,22 @@ func (m *Method) SetLocation(location *position.Location) {
 	m.location = location
 }
 
+func (m *Method) AllDeclarationFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {
+		yield(m.DeclarationFile())
+	}
+}
+
 func (m *Method) DeclarationFile() string {
 	return m.location.FilePath
 }
 
 func (m *Method) UseFiles() *concurrent.Set[string] {
 	return m.useFiles
+}
+
+func (m *Method) AllUseFiles() iter.Seq[string] {
+	return m.useFiles.All()
 }
 
 func (m *Method) AddUseFile(file string) {
@@ -602,7 +622,7 @@ func NewMethod(docComment string, flags bitfield.BitFlag16, name symbol.Symbol, 
 	m := &Method{
 		Name:               name,
 		TypeParameters:     typeParams,
-		DocComment:         docComment,
+		docComment:         docComment,
 		Params:             params,
 		ReturnType:         returnType,
 		ThrowType:          throwType,

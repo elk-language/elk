@@ -79,6 +79,10 @@ func (t *TypeParamNamespace) Name() string {
 	return ""
 }
 
+func (t *TypeParamNamespace) IdentifierName() string {
+	return ""
+}
+
 func (t *TypeParamNamespace) inspect() string {
 	return t.docComment
 }

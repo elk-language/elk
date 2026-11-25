@@ -85,7 +85,7 @@ func (c *Checker) inferTypeArgumentsWithFlags(givenType, paramType types.Type, t
 		if isDifferent {
 			closure := types.NewCallable(nil, p.IsClosure)
 			newMethod := types.NewMethod(
-				pMethod.DocComment,
+				pMethod.DocComment(),
 				pMethod.Flags.ToBitFlag(),
 				pMethod.Name,
 				pMethod.TypeParameters,

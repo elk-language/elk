@@ -28,7 +28,7 @@ type Local struct {
 
 var _ types.LocalIdentifier = &Local{}
 
-func (l *Local) Name() string {
+func (l *Local) IdentifierName() string {
 	return l.name.String()
 }
 

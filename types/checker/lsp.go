@@ -25,7 +25,22 @@ type LSPData struct {
 	Uses            concurrent.Map[string, []*position.Location]
 }
 
+func (l *LSPData) AddIdentifierInstance(identifier types.Identifier, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
+	l.IdentifierIndex.Push(NewIdentifierInstance(
+		identifier,
+		loc.Span,
+	))
+}
+
 func (l *LSPData) AddDeclaration(name string, docComment string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
 	l.Declarations.Lock()
 	defer l.Declarations.Unlock()
 
@@ -39,6 +54,10 @@ func (l *LSPData) AddDeclaration(name string, docComment string, loc *position.L
 }
 
 func (l *LSPData) AddUse(name string, loc *position.Location) {
+	if loc == nil {
+		return
+	}
+
 	l.Uses.Lock()
 	defer l.Uses.Unlock()
 
@@ -360,8 +379,8 @@ func (c *Checker) GetMethodCompletions(receiverType types.Type, name string) []*
 				fmt.Fprintf(&docBuf, "`%s`", types.Inspect(originMethod.DefinedUnder))
 			}
 
-			if method.DocComment != "" {
-				fmt.Fprintf(&docBuf, ". %s", method.DocComment)
+			if method.DocComment() != "" {
+				fmt.Fprintf(&docBuf, ". %s", method.DocComment())
 			}
 			doc = docBuf.String()
 		} else {

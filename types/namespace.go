@@ -920,7 +920,7 @@ func SortedOwnMethods(namespace Namespace) iter.Seq2[symbol.Symbol, *Method] {
 }
 
 type InstanceVariable struct {
-	Name             symbol.Symbol
+	name             symbol.Symbol
 	Type             Type
 	docComment       string
 	SingleAssignment bool
@@ -928,8 +928,18 @@ type InstanceVariable struct {
 	useFiles         *concurrent.Set[string]
 }
 
+var _ GlobalIdentifier = &InstanceVariable{}
+
 func (i *InstanceVariable) Identifier(namespace Namespace) string {
-	return fmt.Sprintf("%s@%s", namespace.Name(), i.Name.String())
+	return fmt.Sprintf("%s@%s", namespace.Name(), i.name.String())
+}
+
+func (i *InstanceVariable) IdentifierName() string {
+	return i.name.String()
+}
+
+func (i *InstanceVariable) Name() symbol.Symbol {
+	return i.name
 }
 
 func (i *InstanceVariable) Kind() string {
@@ -947,8 +957,18 @@ func (i *InstanceVariable) DeclarationFile() string {
 	return i.declarationFile
 }
 
+func (i *InstanceVariable) AllDeclarationFiles() iter.Seq[string] {
+	return func(yield func(string) bool) {
+		yield(i.declarationFile)
+	}
+}
+
 func (i *InstanceVariable) UseFiles() *concurrent.Set[string] {
 	return i.useFiles
+}
+
+func (i *InstanceVariable) AllUseFiles() iter.Seq[string] {
+	return i.useFiles.All()
 }
 
 func (i *InstanceVariable) AddUseFile(file string) {
@@ -957,7 +977,7 @@ func (i *InstanceVariable) AddUseFile(file string) {
 
 func (i *InstanceVariable) Copy() *InstanceVariable {
 	return &InstanceVariable{
-		Name:             i.Name,
+		name:             i.name,
 		Type:             i.Type,
 		docComment:       i.docComment,
 		declarationFile:  i.declarationFile,
@@ -968,7 +988,7 @@ func (i *InstanceVariable) Copy() *InstanceVariable {
 
 func NewInstanceVariable(name symbol.Symbol, typ Type, docComment string, declarationFile string, singleAssignment bool) *InstanceVariable {
 	return &InstanceVariable{
-		Name:             name,
+		name:             name,
 		Type:             typ,
 		docComment:       docComment,
 		declarationFile:  declarationFile,

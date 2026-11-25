@@ -949,11 +949,19 @@ func (c *Checker) checkIdentifierPattern(name string, valueType, patternType typ
 			varType := c.ToNonLiteral(patternType, false)
 			local = newLocal("", nameSym, varType, true, false, location)
 		}
+		local.AppendUse(location)
+		if c.LSPData != nil {
+			c.LSPData.AddIdentifierInstance(local, location)
+		}
 		c.addLocal(nameSym, local)
 		return patternType
 	}
 
 	variable.initialised = true
+	variable.AppendUse(location)
+	if c.LSPData != nil {
+		c.LSPData.AddIdentifierInstance(variable, location)
+	}
 	if variable.singleAssignment {
 		c.addValueReassignedError(name, location)
 		return variable.typ

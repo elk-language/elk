@@ -2423,7 +2423,7 @@ func (c *Checker) checkArithmeticBinaryOperator(
 }
 
 func (c *Checker) checkBoxOfLocal(node *ast.BoxOfExpressionNode, name string) ast.ExpressionNode {
-	local, typ := c.checkIdentifier(name, node.Location())
+	local, typ := c.checkIdentifier(name, node.Expression.Location())
 	node.Expression.SetType(typ)
 
 	if types.IsUntyped(typ) {
@@ -3677,27 +3677,15 @@ func (c *Checker) checkNumericForExpressionNode(label string, node *ast.NumericF
 }
 
 func (c *Checker) addUseLocationToInstanceVariable(ivar *types.InstanceVariable, namespace types.Namespace, loc *position.Location) {
-	if c.LSPData == nil {
+	if c.LSPData == nil || loc == nil {
 		return
 	}
 
+	c.LSPData.AddIdentifierInstance(ivar, loc)
 	ivar.UseFiles().Add(loc.FilePath)
 
-	uses := &c.LSPData.Uses
-	uses.Lock()
-
 	ivarKey := ivar.Identifier(namespace)
-
-	var locations []*position.Location
-	if existingLocations, ok := uses.GetUnsafe(ivarKey); ok {
-		locations = append(existingLocations, loc)
-	} else {
-		locations = []*position.Location{loc}
-	}
-
-	uses.SetUnsafe(ivarKey, locations)
-
-	uses.Unlock()
+	c.LSPData.AddUse(ivarKey, loc)
 }
 
 func (c *Checker) checkModifierForInExpressionNode(label string, node *ast.ModifierForInNode) ast.ExpressionNode {
@@ -5293,14 +5281,14 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 
 	self := c.selfType.(types.Namespace)
 	for ivar := range types.SortedInstanceVariables(self) {
-		if initialisedIvars.Contains(ivar.Name) {
+		if initialisedIvars.Contains(ivar.Name()) {
 			continue
 		}
 		if ivar.SingleAssignment {
 			c.addFailure(
 				fmt.Sprintf(
 					"instance value `%s` must be initialised before `%s` can be used",
-					types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					types.InspectInstanceValueDeclarationWithColor(ivar.Name().String(), ivar.Type),
 					lexer.Colorize("self"),
 				),
 				location,
@@ -5311,7 +5299,7 @@ func (c *Checker) checkNonNilableInstanceVariablesForSelf(location *position.Loc
 			c.addFailure(
 				fmt.Sprintf(
 					"instance variable `%s` must be initialised before `%s` can be used, since it is non-nilable",
-					types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+					types.InspectInstanceVariableDeclarationWithColor(ivar.Name().String(), ivar.Type),
 					lexer.Colorize("self"),
 				),
 				location,
@@ -5368,7 +5356,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			}
 
 			for ivar := range types.SortedOwnInstanceVariables(parent) {
-				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
+				currentIvarIndices[ivar.Name()] = len(currentIvarIndices)
 			}
 
 			parent.SetIvarIndices(&currentIvarIndices)
@@ -5379,7 +5367,7 @@ func (c *Checker) assignIvarIndicesForNamespace(namespace types.NamespaceWithIva
 			currentIvarIndices = maps.Clone(currentIvarIndices)
 		case *types.MixinProxy:
 			for ivar := range types.SortedOwnInstanceVariables(parent) {
-				currentIvarIndices[ivar.Name] = len(currentIvarIndices)
+				currentIvarIndices[ivar.Name()] = len(currentIvarIndices)
 			}
 		}
 	}
@@ -5395,7 +5383,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 					c.addFailure(
 						fmt.Sprintf(
 							"instance variable `%s` must be initialised in the constructor, since it is not nilable",
-							types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+							types.InspectInstanceVariableDeclarationWithColor(ivar.Name().String(), ivar.Type),
 						),
 						loc,
 					)
@@ -5406,7 +5394,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 					c.addFailure(
 						fmt.Sprintf(
 							"instance value `%s` must be initialised in the constructor",
-							types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+							types.InspectInstanceValueDeclarationWithColor(ivar.Name().String(), ivar.Type),
 						),
 						loc,
 					)
@@ -5424,7 +5412,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 	}
 
 	for ivar := range types.SortedInstanceVariables(class) {
-		if initialisedIvars.Contains(ivar.Name) {
+		if initialisedIvars.Contains(ivar.Name()) {
 			continue
 		}
 
@@ -5433,7 +5421,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 				c.addFailure(
 					fmt.Sprintf(
 						"instance value `%s` must be initialised in the constructor",
-						types.InspectInstanceValueDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						types.InspectInstanceValueDeclarationWithColor(ivar.Name().String(), ivar.Type),
 					),
 					loc,
 				)
@@ -5446,7 +5434,7 @@ func (c *Checker) checkNonNilableInstanceVariableForClass(class *types.Class, lo
 				c.addFailure(
 					fmt.Sprintf(
 						"instance variable `%s` must be initialised in the constructor, since it is non-nilable",
-						types.InspectInstanceVariableDeclarationWithColor(ivar.Name.String(), ivar.Type),
+						types.InspectInstanceVariableDeclarationWithColor(ivar.Name().String(), ivar.Type),
 					),
 					loc,
 				)
@@ -5526,13 +5514,13 @@ func (c *Checker) checkIncludeExpressionNode(node *ast.IncludeExpressionNode) {
 			if includedIvar == nil {
 				continue
 			}
-			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, includedIvar.Name)
+			superIvar, superNamespace := types.GetInstanceVariableInNamespace(parentOfMixin, includedIvar.Name())
 			if superIvar == nil {
 				continue
 			}
 			if !c.isTheSameType(superIvar.Type, includedIvar.Type, nil) {
 				incompatibleIvars = append(incompatibleIvars, instanceVariableOverride{
-					name:              includedIvar.Name,
+					name:              includedIvar.Name(),
 					super:             superIvar.Type,
 					superNamespace:    superNamespace,
 					override:          includedIvar.Type,
@@ -8423,6 +8411,9 @@ func (c *Checker) checkIdentifier(value string, loc *position.Location) (*Local,
 	}
 
 	local.AppendUse(loc)
+	if c.LSPData != nil {
+		c.LSPData.AddIdentifierInstance(local, loc)
+	}
 	if !local.initialised {
 		c.addUninitialisedLocalError(value, loc)
 	}

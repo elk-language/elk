@@ -3910,27 +3910,15 @@ func (c *Checker) resolveMethodCollectionForUnion(methods []*types.Method, errLo
 }
 
 func (c *Checker) addUseLocationToMethod(method *types.Method, loc *position.Location) {
-	if c.LSPData == nil {
+	if c.LSPData == nil || loc == nil {
 		return
 	}
 
+	c.LSPData.AddIdentifierInstance(method, loc)
 	method.UseFiles().Add(loc.FilePath)
 
-	uses := &c.LSPData.Uses
-	uses.Lock()
-
 	methodKey := types.Inspect(method)
-
-	var locations []*position.Location
-	if existingLocations, ok := uses.GetUnsafe(methodKey); ok {
-		locations = append(existingLocations, loc)
-	} else {
-		locations = []*position.Location{loc}
-	}
-
-	uses.SetUnsafe(methodKey, locations)
-
-	uses.Unlock()
+	c.LSPData.AddUse(methodKey, loc)
 
 	for _, originMethod := range method.DerivedFrom {
 		c.addUseLocationToMethod(originMethod, loc)

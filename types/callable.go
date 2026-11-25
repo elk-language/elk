@@ -101,6 +101,10 @@ func (c *Callable) Name() string {
 	return "callable"
 }
 
+func (c *Callable) IdentifierName() string {
+	return "callable"
+}
+
 func (c *Callable) DocComment() string {
 	return ""
 }

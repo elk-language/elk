@@ -51,6 +51,14 @@ func (s *Slice[V]) Values() iter.Seq[V] {
 	}
 }
 
+func (s *Slice[V]) Lock() {
+	s.mu.Lock()
+}
+
+func (s *Slice[V]) Unlock() {
+	s.mu.Unlock()
+}
+
 func (s *Slice[V]) Clone() *Slice[V] {
 	s.mu.Lock()
 	defer s.mu.Unlock()
