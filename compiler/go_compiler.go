@@ -2377,7 +2377,7 @@ func (c *GoCompiler) compileNamespaceDefinition(parentNamespace, namespace types
 		if subtype.Type == namespace {
 			continue
 		}
-		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), subtype.FullName)
+		c.compileSubtypeDefinition(namespace, subtype.Type, value.S(name), subtype.FullName())
 	}
 }
 

@@ -34,7 +34,18 @@ func MakeOrderedMapWithCap[K comparable, V any](cap int) OrderedMap[K, V] {
 	}
 }
 
-// NewOrderedMap instantiates a new ordered map with the given capacity
+// MakeOrderedMapWithPairs instantiates a new ordered map with the given pairs
+func MakeOrderedMapWithPairs[K comparable, V any](pairs ...Pair[K, V]) OrderedMap[K, V] {
+	m := MakeOrderedMapWithCap[K, V](len(pairs))
+
+	for _, pair := range pairs {
+		m.Set(pair.Key, pair.Value)
+	}
+
+	return m
+}
+
+// NewOrderedMapWithCap instantiates a new ordered map with the given capacity
 func NewOrderedMapWithCap[K comparable, V any](cap int) *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
 		data:  make(map[K]V, cap),
@@ -42,7 +53,7 @@ func NewOrderedMapWithCap[K comparable, V any](cap int) *OrderedMap[K, V] {
 	}
 }
 
-// NewOrderedMap instantiates a new ordered map with the given pairs
+// NewOrderedMapWithPairs instantiates a new ordered map with the given pairs
 func NewOrderedMapWithPairs[K comparable, V any](pairs ...Pair[K, V]) *OrderedMap[K, V] {
 	m := NewOrderedMapWithCap[K, V](len(pairs))
 

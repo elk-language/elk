@@ -51,6 +51,7 @@ func rootCommand() *cobra.Command {
 		runCommand(),
 		compileCommand(),
 		testCommand(),
+		lspCommand(),
 	)
 	return root
 }
@@ -115,6 +116,24 @@ func compileCommand() *cobra.Command {
 			compileFile(args[0], bitfield.BitField32{})
 		},
 	}
+}
+
+// Build the `elk lsp` command.
+func lspCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lsp",
+		Short: "Start the Elk LSP",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			startLSP()
+		},
+	}
+
+	return cmd
+}
+
+func startLSP() {
+
 }
 
 // Build the `elk test` command.
