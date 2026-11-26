@@ -293,6 +293,7 @@ func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicCo
 		constant.AddUseFile(node.Location().FilePath)
 		if c.LSPData != nil {
 			c.LSPData.AddUse(name, node.Right.Location())
+			c.LSPData.AddIdentifierInstance(constant, node.Right.Location())
 		}
 	}
 
@@ -317,6 +318,7 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 			constantType.AddUseFile(constant.Location().FilePath)
 			if c.LSPData != nil {
 				c.LSPData.AddUse(name, constant.Location())
+				c.LSPData.AddIdentifierInstance(constantType, constant.Location())
 			}
 			return constantType.Type, name
 		}
@@ -328,6 +330,7 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 			constantType.AddUseFile(constant.Location().FilePath)
 			if c.LSPData != nil {
 				c.LSPData.AddUse(name, constant.Location())
+				c.LSPData.AddIdentifierInstance(constantType, constant.Location())
 			}
 			return constantType.Type, name
 		}
@@ -339,6 +342,7 @@ func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (ty
 			constantType.AddUseFile(constant.Location().FilePath)
 			if c.LSPData != nil {
 				c.LSPData.AddUse(name, constant.Location())
+				c.LSPData.AddIdentifierInstance(constantType, constant.Location())
 			}
 			return constantType.Type, name
 		}
@@ -633,6 +637,7 @@ func (c *Checker) checkConstantLookupNode(node *ast.ConstantLookupNode, inferred
 		constant.AddUseFile(node.Right.Location().FilePath)
 		if c.LSPData != nil {
 			c.LSPData.AddUse(name, node.Right.Location())
+			c.LSPData.AddIdentifierInstance(constant, node.Right.Location())
 		}
 	}
 
@@ -661,6 +666,7 @@ func (c *Checker) checkPublicConstantNode(node *ast.PublicConstantNode) *ast.Pub
 	constant.AddUseFile(node.Location().FilePath)
 	if c.LSPData != nil {
 		c.LSPData.AddUse(name, node.Location())
+		c.LSPData.AddIdentifierInstance(constant, node.Location())
 	}
 
 	node.Value = name
@@ -685,6 +691,7 @@ func (c *Checker) checkPrivateConstantNode(node *ast.PrivateConstantNode) *ast.P
 	constant.AddUseFile(node.Location().FilePath)
 	if c.LSPData != nil {
 		c.LSPData.AddUse(name, node.Location())
+		c.LSPData.AddIdentifierInstance(constant, node.Location())
 	}
 
 	node.Value = name

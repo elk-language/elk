@@ -3915,7 +3915,7 @@ func (c *Checker) addUseLocationToMethod(method *types.Method, loc *position.Loc
 	}
 
 	c.LSPData.AddIdentifierInstance(method, loc)
-	method.UseFiles().Add(loc.FilePath)
+	method.AddUseFile(loc.FilePath)
 
 	methodKey := types.Inspect(method)
 	c.LSPData.AddUse(methodKey, loc)

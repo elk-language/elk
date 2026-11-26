@@ -3682,7 +3682,7 @@ func (c *Checker) addUseLocationToInstanceVariable(ivar *types.InstanceVariable,
 	}
 
 	c.LSPData.AddIdentifierInstance(ivar, loc)
-	ivar.UseFiles().Add(loc.FilePath)
+	ivar.AddUseFile(loc.FilePath)
 
 	ivarKey := ivar.Identifier(namespace)
 	c.LSPData.AddUse(ivarKey, loc)
@@ -8004,6 +8004,7 @@ func (c *Checker) checkSimpleConstantType(name string, location *position.Locati
 	constant.AddUseFile(location.FilePath)
 	if c.LSPData != nil {
 		c.LSPData.AddUse(name, location)
+		c.LSPData.AddIdentifierInstance(constant, location)
 	}
 	return c.resolveGenericType(constant.Type, location)
 }

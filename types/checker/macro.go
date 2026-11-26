@@ -416,6 +416,7 @@ func (c *Checker) expandMacro(macro *types.Method, kind ast.MacroKind, posArgs [
 
 	if c.LSPData != nil {
 		c.LSPData.AddIdentifierInstance(macro, loc)
+		macro.AddUseFile(loc.FilePath)
 		c.LSPData.AddUse(macro.IdentifierName(), loc)
 	}
 
