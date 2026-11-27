@@ -27,66 +27,66 @@ sealed primitive noinit class ::Std::Size < Value
 	##[
 		Returns the string representation of the size in the format "1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes".
 	]##
-	def to_string: String; end
+	pure def to_string: String; end
 
 	##[
 		Returns the approximate count of bytes in this size as a Float.
 	]##
-	def in_bytes: Float; end
+	pure def in_bytes: Float; end
 
 	##[
 		Returns the amount of full bytes in this size.
 	]##
-	def bytes: Int; end
+	pure def bytes: Int; end
 
 	##[
 		Returns the approximate count of kilobytes in this size as a Float.
 	]##
-	def in_kilobytes: Float; end
+	pure def in_kilobytes: Float; end
 
 	##[
 		Returns the amount of full kilobytes in this size.
 	]##
-	def kilobytes: Int; end
+	pure def kilobytes: Int; end
 
 	##[
 		Returns the approximate count of megabytes in this size as a Float.
 	]##
-	def in_megabytes: Float; end
+	pure def in_megabytes: Float; end
 
 	##[
 		Returns the amount of full megabytes in this size.
 	]##
-	def megabytes: Int; end
+	pure def megabytes: Int; end
 
 	##[
 		Returns the approximate count of gigabytes in this size as a Float.
 	]##
-	def in_gigabytes: Float; end
+	pure def in_gigabytes: Float; end
 
 	##[
 		Returns the amount of full gigabytes in this size.
 	]##
-	def gigabytes: Int; end
+	pure def gigabytes: Int; end
 
 	##[
 		Returns the approximate count of terabytes in this size as a Float.
 	]##
-	def in_terabytes: Float; end
+	pure def in_terabytes: Float; end
 
 	##[
 		Returns the amount of full terabytes in this size.
 	]##
-	def terabytes: Int; end
+	pure def terabytes: Int; end
 
 	##[
 		Returns the approximate count of petabytes in this size as a Float.
 	]##
-	def in_petabytes: Float; end
+	pure def in_petabytes: Float; end
 
 	##[
 		Returns the amount of full petabytes in this size.
 	]##
-	def petabytes: Int; end
+	pure def petabytes: Int; end
 
 end

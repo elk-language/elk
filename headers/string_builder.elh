@@ -1,0 +1,78 @@
+##[
+	Represents the number of bytes.
+]##
+sealed primitive class ::Std::StringBuilder < Value
+
+	##[
+		Create a new StringBuilder.
+	]##
+	init(string: String | Char | UInt8 = ""); end
+
+	##[
+		Appends param content to the buffer.
+
+		Returns self allowing method chaining.
+	]##
+	overload sealed def push(other: String | Char | UInt8): StringBuilder; end
+	overload sealed def push(other: String): StringBuilder; end
+	overload sealed def push(other: Char): StringBuilder; end
+	overload sealed def push(other: UInt8): StringBuilder; end
+
+	##[
+		Appends param content to the buffer.
+
+		Returns self allowing method chaining.
+	]##
+	overload sealed def <<(other: String | Char | UInt8): StringBuilder; end
+	overload sealed def <<(other: String): StringBuilder; end
+	overload sealed def <<(other: Char): StringBuilder; end
+	overload sealed def <<(other: UInt8): StringBuilder; end
+
+	##[
+		Appends param content to the buffer.
+
+		Returns how many bytes were appended.
+	]##
+	overload def write(other: String | Char | UInt8): Int; end
+	overload def write(other: String): Int; end
+	overload def write(other: Char): Int; end
+	overload def write(other: UInt8): Int; end
+
+	##[
+		Returns the accumulated string from the buffer.
+	]##
+	pure def to_string: String; end
+
+	##[
+		Returns a human readable string representation of
+		this object for debugging etc.
+	]##
+	pure def inspect: String; end
+
+	##[
+		Returns the number of accumulated bytes.
+	]##
+	pure def length: Int; end
+
+	##[
+		Returns the capacity of the builder's underlying byte slice.
+		It is the total space allocated for the string being built and
+		includes any bytes already written.
+	]##
+	pure def capacity: Int; end
+
+	##[
+		Increases buffer capacity, if necessary,
+		to guarantee space for another n bytes.
+		After grow(n), at least n bytes can be
+		written to buffer without another allocation.
+		If n is negative, method panics.
+	]##
+	pure def grow(n: Int); end
+
+	##[
+		Resets the StringBuilder to be empty.
+	]##
+	pure def reset: StringBuilder; end
+
+end

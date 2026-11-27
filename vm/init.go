@@ -122,4 +122,5 @@ func InitGlobalEnvironment() {
 	initSyncOrderedHashSet()
 	initSyncOrderedHashSetIterator()
 	initSize()
+	initStringBuilder()
 }
