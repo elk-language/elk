@@ -6,37 +6,37 @@ sealed primitive class ::Std::StringBuilder < Value
 	##[
 		Create a new StringBuilder.
 	]##
-	init(string: String | Char | UInt8 = ""); end
+	init(string: String | Char | Byte = ""); end
 
 	##[
 		Appends param content to the buffer.
 
 		Returns self allowing method chaining.
 	]##
-	overload sealed def push(other: String | Char | UInt8): StringBuilder; end
+	overload sealed def push(other: String | Char | Byte): StringBuilder; end
 	overload sealed def push(other: String): StringBuilder; end
 	overload sealed def push(other: Char): StringBuilder; end
-	overload sealed def push(other: UInt8): StringBuilder; end
+	overload sealed def push(other: Byte): StringBuilder; end
 
 	##[
 		Appends param content to the buffer.
 
 		Returns self allowing method chaining.
 	]##
-	overload sealed def <<(other: String | Char | UInt8): StringBuilder; end
+	overload sealed def <<(other: String | Char | Byte): StringBuilder; end
 	overload sealed def <<(other: String): StringBuilder; end
 	overload sealed def <<(other: Char): StringBuilder; end
-	overload sealed def <<(other: UInt8): StringBuilder; end
+	overload sealed def <<(other: Byte): StringBuilder; end
 
 	##[
 		Appends param content to the buffer.
 
 		Returns how many bytes were appended.
 	]##
-	overload def write(other: String | Char | UInt8): Int; end
-	overload def write(other: String): Int; end
-	overload def write(other: Char): Int; end
-	overload def write(other: UInt8): Int; end
+	overload def write(other: String | Char | Byte): AnyInt; end
+	overload def write(other: String): AnyInt; end
+	overload def write(other: Char): AnyInt; end
+	overload def write(other: Byte): AnyInt; end
 
 	##[
 		Returns the accumulated string from the buffer.
@@ -52,14 +52,14 @@ sealed primitive class ::Std::StringBuilder < Value
 	##[
 		Returns the number of accumulated bytes.
 	]##
-	pure def length: Int; end
+	pure def length: AnyInt; end
 
 	##[
 		Returns the capacity of the builder's underlying byte slice.
 		It is the total space allocated for the string being built and
 		includes any bytes already written.
 	]##
-	pure def capacity: Int; end
+	pure def capacity: AnyInt; end
 
 	##[
 		Increases buffer capacity, if necessary,
@@ -68,7 +68,7 @@ sealed primitive class ::Std::StringBuilder < Value
 		written to buffer without another allocation.
 		If n is negative, method panics.
 	]##
-	pure def grow(n: Int); end
+	pure def grow(size: AnyInt); end
 
 	##[
 		Resets the StringBuilder to be empty.
