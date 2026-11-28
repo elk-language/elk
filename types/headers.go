@@ -754,6 +754,7 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 			namespace.TryDefineClass("Represents the position of a piece of text in a string.\n\nIt is made up of two positions, start position\n(position of the first character) and end position (position of the last character).", false, true, true, false, false, symbol.ToSymbol("Span"), objectClass, env, nil)
 			_ = namespace
 		}
+		namespace.TryDefineClass("Represents the number of bytes.", false, true, true, false, false, symbol.ToSymbol("StringBuilder"), objectClass, env, nil)
 		namespace.TryDefineClass("Represents an interned string.\n\nA symbol is an integer ID that is associated\nwith a particular name (string).\n\nA few symbols with the same name refer to the same ID.\n\nComparing symbols happens in constant time, so it's\nusually faster than comparing strings.", false, true, true, true, false, symbol.ToSymbol("Symbol"), objectClass, env, nil)
 		{
 			namespace := namespace.TryDefineModule("`Sync` provides synchronisation utilities like mutexes.", symbol.ToSymbol("Sync"), env, nil)
@@ -10444,19 +10445,19 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("<=>"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, NameToType("Std::Int", env), Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol(">"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
 				namespace.DefineMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol(">="), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Size", env), NormalParameterKind, false)}, Bool{}, Never{})
-				namespace.DefineMethod("Returns the amount of full bytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("bytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the amount of full gigabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("gigabytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of bytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_bytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of gigabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_gigabytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of kilobytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_kilobytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of megabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_megabytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of petabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_petabytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the approximate count of terabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("in_terabytes"), nil, nil, NameToType("Std::Float", env), Never{})
-				namespace.DefineMethod("Returns the amount of full kilobytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("kilobytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the amount of full megabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("megabytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the amount of full petabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("petabytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the amount of full terabytes in this size.", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("terabytes"), nil, nil, NameToType("Std::Int", env), Never{})
-				namespace.DefineMethod("Returns the string representation of the size in the format \"1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes\".", 0|METHOD_NATIVE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns the amount of full bytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("bytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full gigabytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("gigabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of bytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_bytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of gigabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_gigabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of kilobytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_kilobytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of megabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_megabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of petabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_petabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the approximate count of terabytes in this size as a Float.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("in_terabytes"), nil, nil, NameToType("Std::Float", env), Never{})
+				namespace.DefineMethod("Returns the amount of full kilobytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("kilobytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full megabytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("megabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full petabytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("petabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the amount of full terabytes in this size.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("terabytes"), nil, nil, NameToType("Std::Int", env), Never{})
+				namespace.DefineMethod("Returns the string representation of the size in the format \"1.bytes + 2.kilobytes + 3.megabytes + 4.gigabytes + 5.terabytes + 6.petabytes\".", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
 
 				// Define constants
 
@@ -10656,6 +10657,40 @@ func setupGlobalEnvironmentFromHeaders(env *GlobalEnvironment) {
 
 					// Define instance variables
 				}
+			}
+			{
+				namespace := namespace.MustSubtypeString("StringBuilder").(*Class)
+
+				_ = namespace
+				namespace.SetParent(NameToType("Std::Value", env).(*Class))
+
+				// Include mixins and implement interfaces
+
+				// Define methods
+				method = namespace.DefineMethod("Create a new StringBuilder.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("#__init"), nil, []*Parameter{NewParameter(symbol.ToSymbol("string"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env), NameToType("Std::Byte", env)), DefaultValueParameterKind, false)}, Void{}, Never{})
+				method = namespace.DefineMethod("Appends param content to the buffer.\n\nReturns self allowing method chaining.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("<<"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env), NameToType("Std::Byte", env)), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("<<"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("<<"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Char", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("<<"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Byte", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				namespace.DefineMethod("Returns the capacity of the builder's underlying byte slice.\nIt is the total space allocated for the string being built and\nincludes any bytes already written.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("capacity"), nil, nil, NameToType("Std::AnyInt", env), Never{})
+				namespace.DefineMethod("Increases buffer capacity, if necessary,\nto guarantee space for another n bytes.\nAfter grow(n), at least n bytes can be\nwritten to buffer without another allocation.\nIf n is negative, method panics.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("grow"), nil, []*Parameter{NewParameter(symbol.ToSymbol("size"), NameToType("Std::AnyInt", env), NormalParameterKind, false)}, Void{}, Never{})
+				namespace.DefineMethod("Returns a human readable string representation of\nthis object for debugging etc.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("inspect"), nil, nil, NameToType("Std::String", env), Never{})
+				namespace.DefineMethod("Returns `true` if the buffer is empty; otherwise, `false` is returned.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("is_empty"), nil, nil, Bool{}, Never{})
+				namespace.DefineMethod("Returns the number of accumulated bytes.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("length"), nil, nil, NameToType("Std::AnyInt", env), Never{})
+				method = namespace.DefineMethod("Appends param content to the buffer.\n\nReturns self allowing method chaining.", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env), NameToType("Std::Byte", env)), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Char", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_SEALED_FLAG|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("push"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Byte", env), NormalParameterKind, false)}, NameToType("Std::StringBuilder", env), Never{}, namespace))
+				namespace.DefineMethod("Resets the StringBuilder to be empty.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("reset"), nil, nil, NameToType("Std::StringBuilder", env), Never{})
+				namespace.DefineMethod("Returns the accumulated string from the buffer.", 0|METHOD_NATIVE_FLAG|METHOD_PURE_FLAG, symbol.ToSymbol("to_string"), nil, nil, NameToType("Std::String", env), Never{})
+				method = namespace.DefineMethod("Appends param content to the buffer.\n\nReturns how many bytes were appended.", 0|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("write"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NewUnion(NameToType("Std::String", env), NameToType("Std::Char", env), NameToType("Std::Byte", env)), NormalParameterKind, false)}, NameToType("Std::AnyInt", env), Never{})
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("write"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::String", env), NormalParameterKind, false)}, NameToType("Std::AnyInt", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("write"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Char", env), NormalParameterKind, false)}, NameToType("Std::AnyInt", env), Never{}, namespace))
+				method.RegisterOverload(NewMethod("", 0|METHOD_NATIVE_FLAG|METHOD_OVERLOAD_FLAG, symbol.ToSymbol("write"), nil, []*Parameter{NewParameter(symbol.ToSymbol("other"), NameToType("Std::Byte", env), NormalParameterKind, false)}, NameToType("Std::AnyInt", env), Never{}, namespace))
+
+				// Define constants
+
+				// Define instance variables
 			}
 			{
 				namespace := namespace.MustSubtypeString("Symbol").(*Class)
