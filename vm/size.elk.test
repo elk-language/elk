@@ -1,7 +1,7 @@
 describe "Size" ->
   context "unary minus" ->
     should "negate positive size" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := -s
       assert! r <<: Std::Size
       assert! r == -5.bytes
@@ -19,7 +19,7 @@ describe "Size" ->
 
   context "unary plus" ->
     should "not change positive size" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := +s
       assert! r <<: Std::Size
       assert! r == 5.bytes
@@ -37,7 +37,7 @@ describe "Size" ->
 
   context "+" ->
     should "add sizes of the same unit" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s + 70.bytes
       assert! r <<: Std::Size
       assert! r == 75.bytes
@@ -45,7 +45,7 @@ describe "Size" ->
     end
 
     should "add sizes with multiple units" ->
-      s:= 1.bytes + 2.kilobytes + 3.megabytes
+      s := 1.bytes + 2.kilobytes + 3.megabytes
       r := s + 3.bytes + 2.kilobytes + 1.megabytes
       assert! r <<: Std::Size
       assert! r == 4.bytes + 4.kilobytes + 4.megabytes
@@ -53,7 +53,7 @@ describe "Size" ->
     end
 
     should "add sizes with overflow" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s + 1019.bytes
       assert! r <<: Std::Size
       assert! r == 1.kilobytes
@@ -61,7 +61,7 @@ describe "Size" ->
     end
 
     should "add sizes with multiple overflows" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s + 71984840712.bytes
       assert! r <<: Std::Size
       assert! r == 67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes
@@ -71,7 +71,7 @@ describe "Size" ->
 
   context "-" ->
     should "subtract sizes of the same unit" ->
-      s:= 75.bytes
+      s := 75.bytes
       r := s - 70.bytes
       assert! r <<: Std::Size
       assert! r == 5.bytes
@@ -79,7 +79,7 @@ describe "Size" ->
     end
 
     should "subtract sizes with multiple units" ->
-      s:= 4.bytes + 4.kilobytes + 4.megabytes
+      s := 4.bytes + 4.kilobytes + 4.megabytes
       r := s - (3.bytes + 2.kilobytes + 1.megabytes)
       assert! r <<: Std::Size
       assert! r == 1.bytes + 2.kilobytes + 3.megabytes
@@ -87,7 +87,7 @@ describe "Size" ->
     end
 
     should "subtract sizes with borrow" ->
-      s:= 1.kilobytes
+      s := 1.kilobytes
       r := s - 1019.bytes
       assert! r <<: Std::Size
       assert! r == 5.bytes
@@ -95,7 +95,7 @@ describe "Size" ->
     end
 
     should "add sizes with multiple borrows" ->
-      s:= 67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes
+      s := 67.gigabytes + 42.megabytes + 96.kilobytes + 13.bytes
       r := s - (67.gigabytes + 42.megabytes + 96.kilobytes + 8.bytes)
       assert! r <<: Std::Size
       assert! r == 5.bytes
@@ -106,7 +106,7 @@ describe "Size" ->
 	context "*" ->
 		context "multiply by numeric" ->
 			should "multiply by int" ->
-				s:= 5.bytes
+				s := 5.bytes
 				var d: CoercibleNumeric = 15
 				r := s * d
         assert! r <<: Std::Size
@@ -115,7 +115,7 @@ describe "Size" ->
 			end
 
 			should "multiply by float" ->
-				s:= 5.bytes
+				s := 5.bytes
 				var d: CoercibleNumeric = 15.5
 				r := s * d
         assert! r <<: Std::Size
@@ -124,7 +124,7 @@ describe "Size" ->
 			end
 
 			should "multiply by big float" ->
-        s:= 5.bytes
+        s := 5.bytes
 				var d: CoercibleNumeric = 15.5bf
 				r := s * d
         assert! r <<: Std::Size
@@ -134,7 +134,7 @@ describe "Size" ->
 		end
 
 		should "multiply by int" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s * 15
       assert! r <<: Std::Size
       assert! r == 75.bytes
@@ -142,7 +142,7 @@ describe "Size" ->
 		end
 
 		should "multiply by float" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s * 15.5
       assert! r <<: Std::Size
       assert! r == 77.bytes
@@ -150,7 +150,7 @@ describe "Size" ->
 		end
 
 		should "multiply by big float" ->
-      s:= 5.bytes
+      s := 5.bytes
       r := s * 15.5bf
       assert! r <<: Std::Size
       assert! r == 77.bytes
@@ -161,7 +161,7 @@ describe "Size" ->
 	context "/" ->
 		context "divide by numeric" ->
 			should "divide by int" ->
-				s:= 75.bytes
+				s := 75.bytes
 				var d: CoercibleNumeric = 15
 				r := s / d
         assert! r <<: Std::Size
@@ -170,7 +170,7 @@ describe "Size" ->
 			end
 
 			should "divide by float" ->
-				s:= 75.bytes
+				s := 75.bytes
 				var d: CoercibleNumeric = 15.5
 				r := s / d
         assert! r <<: Std::Size
@@ -179,7 +179,7 @@ describe "Size" ->
 			end
 
 			should "divide by big float" ->
-        s:= 75.bytes
+        s := 75.bytes
 				var d: CoercibleNumeric = 15.5bf
 				r := s / d
         assert! r <<: Std::Size
@@ -189,7 +189,7 @@ describe "Size" ->
 		end
 
 		should "divide by int" ->
-      s:= 75.bytes
+      s := 75.bytes
       r := s / 15
       assert! r <<: Std::Size
       assert! r == 5.bytes
@@ -197,7 +197,7 @@ describe "Size" ->
 		end
 
 		should "divide by float" ->
-      s:= 75.bytes
+      s := 75.bytes
       r := s / 15.5
       assert! r <<: Std::Size
       assert! r == 4.bytes
@@ -205,7 +205,7 @@ describe "Size" ->
 		end
 
 		should "divide by big float" ->
-      s:= 75.bytes
+      s := 75.bytes
       r := s / 15.5bf
       assert! r <<: Std::Size
       assert! r == 4.bytes

@@ -554,6 +554,10 @@ func (v Value) AsStringBuilder() *StringBuilder {
 
 }
 
+func (v Value) MustStringBuilder() *StringBuilder {
+	return v.MustReference().(*StringBuilder)
+}
+
 func (v Value) AsBigInt() *BigInt {
 	return (*BigInt)(v.Pointer())
 }

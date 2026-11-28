@@ -75,4 +75,9 @@ sealed primitive class ::Std::StringBuilder < Value
 	]##
 	pure def reset: StringBuilder; end
 
+	##[
+		Returns `true` if the buffer is empty; otherwise, `false` is returned.
+	]##
+	pure def is_empty: bool; end
+
 end

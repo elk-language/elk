@@ -27,7 +27,7 @@ func initStringBuilder() {
 		c,
 		"<<",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1]
 			self.Write(other)
 
@@ -40,7 +40,7 @@ func initStringBuilder() {
 		c,
 		"<<@1",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsString()
 			self.WriteString(other)
 
@@ -53,7 +53,7 @@ func initStringBuilder() {
 		c,
 		"<<@2",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsChar()
 			self.WriteChar(other)
 
@@ -66,7 +66,7 @@ func initStringBuilder() {
 		c,
 		"<<@3",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsUInt8()
 			self.WriteByte(other)
 
@@ -84,7 +84,7 @@ func initStringBuilder() {
 		c,
 		"write",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1]
 
 			return self.Write(other).ToValue(), value.Undefined
@@ -96,7 +96,7 @@ func initStringBuilder() {
 		c,
 		"write@1",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsString()
 
 			return self.WriteString(other).ToValue(), value.Undefined
@@ -108,7 +108,7 @@ func initStringBuilder() {
 		c,
 		"write@2",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsChar()
 
 			return self.WriteChar(other).ToValue(), value.Undefined
@@ -120,7 +120,7 @@ func initStringBuilder() {
 		c,
 		"write@3",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsUInt8()
 			self.WriteByte(other)
 			return value.SmallInt(1).ToValue(), value.Undefined
@@ -132,7 +132,7 @@ func initStringBuilder() {
 		c,
 		"to_string",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 
 			return self.ToString().ToValue(), value.Undefined
 		},
@@ -142,7 +142,7 @@ func initStringBuilder() {
 		c,
 		"inspect",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 
 			return value.String(self.Inspect()).ToValue(), value.Undefined
 		},
@@ -152,7 +152,7 @@ func initStringBuilder() {
 		c,
 		"length",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 
 			return value.SmallInt(self.Length()).ToValue(), value.Undefined
 		},
@@ -162,7 +162,7 @@ func initStringBuilder() {
 		c,
 		"capacity",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 
 			return value.SmallInt(self.Capacity()).ToValue(), value.Undefined
 		},
@@ -172,7 +172,7 @@ func initStringBuilder() {
 		c,
 		"grow",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			other := args[1].AsAnyInt()
 			self.Grow(other)
 
@@ -185,10 +185,19 @@ func initStringBuilder() {
 		c,
 		"reset",
 		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
-			self := args[0].AsStringBuilder()
+			self := args[0].MustStringBuilder()
 			self.Reset()
 
 			return self.ToValue(), value.Undefined
+		},
+	)
+
+	Def(
+		c,
+		"is_empty",
+		func(_ *Thread, args []value.Value) (value.Value, value.Value) {
+			self := args[0].MustStringBuilder()
+			return value.BoolVal(self.Length() == 0), value.Undefined
 		},
 	)
 
